@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { NavItem } from 'src/app/layouts/full/vertical/sidebar/nav-item/nav-item';
 import { NavigationACL } from 'src/app/models/selfhelp.model';
+import { LoggingService } from '../logging.service';
 
 @Injectable({
    providedIn: 'root'
@@ -12,7 +13,7 @@ export class ApiService {
 
    public navItems: NavItem[] = [];
 
-   constructor(private http: HttpClient) {
+   constructor(private http: HttpClient, private logService: LoggingService) {
       this.getNavigation();
    }
 
@@ -67,8 +68,8 @@ export class ApiService {
             }))
          )
       ).subscribe(items => {
+         this.logService.debugLog('getNavigation', items);
          this.navItems = items;
-         console.log(items);
       })
    }
 
