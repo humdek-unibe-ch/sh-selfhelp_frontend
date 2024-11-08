@@ -1,0 +1,23 @@
+<div class="p-b-24 overflow-hidden">
+    <div class="row">
+        <div class="col-lg-8 col-sm-6">
+            <h4 class="page-title m-0 f-s-18 f-w-500">
+                {{ pageInfo?.title }}
+            </h4>
+            <div class="d-flex align-items-center overflow-hidden justify-content-start list-style-none">
+                <ul class="breadcrumb list-style-none d-flex p-l-0">
+                    <li *ngFor="let url of pageInfo?.urls; let last = last"
+                        class="breadcrumb-item"
+                        [ngClass]="{'active text-primary': last}">
+                        <ng-container *ngIf="!last">
+                            <a [routerLink]="url.url">{{ url.title }}</a>
+                        </ng-container>
+                        <ng-container *ngIf="last">
+                            {{ url.title }}
+                        </ng-container>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

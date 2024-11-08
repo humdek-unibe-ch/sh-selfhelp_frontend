@@ -1,0 +1,243 @@
+<mat-toolbar class="topbar">
+  <app-branding></app-branding>
+
+  <!-- --------------------------------------------------------------- -->
+  <!-- Desktop Menu -->
+  @if(showToggle) {
+  <button
+    mat-icon-button
+    (click)="toggleCollapsed.emit()"
+    class="d-flex justify-content-center"
+  >
+    <i-tabler name="menu-2" class="icon-20 d-flex"></i-tabler>
+  </button>
+  }
+
+  <!-- Mobile Menu -->
+  @if(!showToggle) {
+  <button
+    mat-icon-button
+    (click)="toggleMobileNav.emit()"
+    class="d-flex justify-content-center"
+  >
+    <i-tabler name="menu-2" class="icon-20 d-flex"></i-tabler>
+  </button>
+  }
+
+  <!-- --------------------------------------------------------------- -->
+
+  <!-- --------------------------------------------------------------- -->
+  <!--  Search -->
+  <!-- --------------------------------------------------------------- -->
+  <button
+    mat-icon-button
+    (click)="openDialog()"
+    class="d-flex justify-content-center"
+  >
+    <i-tabler name="search" class="icon-20 d-flex"></i-tabler>
+  </button>
+
+  <span class="flex-1-auto"></span>
+
+  <!-- --------------------------------------------------------------- -->
+  <!-- langugage Dropdown -->
+  <!-- --------------------------------------------------------------- -->
+  <button [matMenuTriggerFor]="flags" mat-icon-button class="m-r-5">
+    <img [src]="selectedLanguage.icon" class="rounded object-cover icon-20" />
+  </button>
+  <mat-menu #flags="matMenu" class="cardWithShadow">
+    @for(lang of languages; track lang) {
+    <button mat-menu-item (click)="changeLanguage(lang)">
+      <div class="d-flex align-items-center">
+        <img [src]="lang.icon" class="rounded object-cover m-r-8 icon-20" />
+        <span class="mat-subtitle-1 f-s-14">{{ lang.language }}</span>
+      </div>
+    </button>
+    }
+  </mat-menu>
+
+  <!-- --------------------------------------------------------------- -->
+  <!-- Notification Dropdown -->
+  <!-- --------------------------------------------------------------- -->
+  <button
+    mat-icon-button
+    [matMenuTriggerFor]="notificationmenu"
+    aria-label="Notifications"
+  >
+    <mat-icon
+      matBadge="1"
+      matBadgeOverlap="false"
+      matBadgeColor="warn"
+      class="header-badge"
+      >message</mat-icon
+    >
+  </button>
+  <mat-menu #notificationmenu="matMenu" class="topbar-dd cardWithShadow">
+    <div class="d-flex align-items-center p-x-32 p-y-16">
+      <h6 class="f-s-16 f-w-600 m-0 mat-subtitle-1">Notifications</h6>
+      <span class="m-l-auto">
+        <span class="bg-primary text-white p-x-8 p-y-4 f-w-500 rounded f-s-12"
+          >5 new</span
+        >
+      </span>
+    </div>
+    @for(notification of notifications; track notification.title) {
+    <button mat-menu-item class="p-x-32 p-y-16">
+      <div class="d-flex align-items-center">
+        <img [src]="notification.img" class="rounded-circle" width="48" />
+        <div class="m-l-16">
+          <h5 class="f-s-14 f-w-600 m-0 mat-subtitle-1">
+            {{ notification.title }}
+          </h5>
+          <span>{{ notification.subtitle }}</span>
+        </div>
+      </div>
+    </button>
+    }
+
+    <div class="p-y-12 p-x-32">
+      <button mat-stroked-button color="primary" class="w-100">
+        See all notifications
+      </button>
+    </div>
+  </mat-menu>
+
+  <!-- --------------------------------------------------------------- -->
+  <!-- Messages Dropdown -->
+  <!-- --------------------------------------------------------------- -->
+  <button mat-icon-button [matMenuTriggerFor]="msgmenu" aria-label="Messages">
+    <mat-icon
+      matBadge="2"
+      matBadgeOverlap="false"
+      matBadgeColor="warn"
+      class="header-badge"
+      >email</mat-icon
+    >
+  </button>
+  <mat-menu #msgmenu="matMenu" class="topbar-dd cardWithShadow">
+    <div class="d-flex align-items-center p-x-32 p-y-16">
+      <h6 class="f-s-16 f-w-600 m-0 mat-subtitle-1">Messages</h6>
+      <span class="m-l-auto">
+        <span class="bg-primary text-white p-x-8 p-y-4 f-w-500 rounded f-s-12"
+          >5 new</span
+        >
+      </span>
+    </div>
+
+    @for(msg of msgs; track msg.title) {
+    <button mat-menu-item class="p-x-32 p-y-16">
+      <div class="d-flex align-items-center">
+        <img [src]="msg.img" class="rounded-circle" width="48" />
+        <div class="m-l-16">
+          <h5 class="f-s-14 f-w-600 m-0 mat-subtitle-1">
+            {{ msg.title }}
+          </h5>
+          <span>{{ msg.subtitle }}</span>
+        </div>
+      </div>
+    </button>
+    }
+
+    <div class="p-y-12 p-x-32">
+      <button mat-stroked-button color="primary" class="w-100">
+        See all messages
+      </button>
+    </div>
+  </mat-menu>
+
+  <!-- --------------------------------------------------------------- -->
+  <!-- profile Dropdown -->
+  <!-- --------------------------------------------------------------- -->
+  <button
+    mat-icon-button
+    [matMenuTriggerFor]="profilemenu"
+    aria-label="Notifications"
+  >
+    <img
+      src="/assets/images/profile/profile.png"
+      class="rounded-circle object-cover icon-35 profile-dd"
+      width="35"
+    />
+  </button>
+  <mat-menu #profilemenu="matMenu" class="topbar-dd cardWithShadow">
+    <ng-scrollbar class="position-relative" style="height: 647px">
+      <div class="p-x-32 p-y-16">
+        <h6 class="f-s-16 f-w-600 m-0 mat-subtitle-1">User Profile</h6>
+
+        <div class="d-flex align-items-center p-b-24 b-b-1 m-t-16">
+          <img
+            src="/assets/images/profile/profile.png"
+            class="rounded-circle"
+            width="95"
+          />
+          <div class="m-l-16">
+            <h6 class="f-s-14 f-w-600 m-0 mat-subtitle-1">Mathew Anderson</h6>
+            <span class="f-s-14 d-block m-b-4">Designer</span>
+            <span class="d-flex align-items-center">
+              <i-tabler name="mail" class="icon-15 m-r-4"></i-tabler>
+              info&#64;materialpro.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="p-x-32">
+        @for(profile of profiledd; track profile.title) {
+        <a
+          class="p-y-16 text-decoration-none d-block text-hover-primary"
+          [routerLink]="[profile.link]"
+        >
+          <div class="d-flex align-items-center">
+            <button
+              mat-mini-fab
+              class="text-primary bg-light-primary shadow-none rounded"
+            >
+              <img [src]="profile.img" width="20" />
+            </button>
+
+            <div class="m-l-16">
+              <h5
+                class="f-s-14 f-w-600 m-0 textprimary mat-subtitle-1 hover-text"
+              >
+                {{ profile.title }}
+              </h5>
+              <span class="mat-body-1">{{ profile.subtitle }}</span>
+            </div>
+          </div>
+        </a>
+        }
+
+        <!-- upgrade -->
+        <div
+          class="p-24 overflow-hidden bg-light-primary rounded position-relative m-y-16"
+        >
+          <div class="d-flex align-items-center">
+            <div>
+              <h5 class="f-s-18 m-0 f-w-600 m-b-12 mat-subtitle-1">
+                Unlimited <br />
+                Access
+              </h5>
+              <button mat-flat-button color="primary">Upgrade</button>
+            </div>
+            <div class="m-l-auto">
+              <img
+                src="/assets/images/backgrounds/unlimited-bg.png"
+                alt="upgrade-bg"
+                class="upgrade-bg"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-y-12 p-x-32">
+        <a
+          [routerLink]="['/authentication/side-login']"
+          mat-stroked-button
+          color="primary"
+          class="w-100"
+          >Logout</a
+        >
+      </div>
+    </ng-scrollbar>
+  </mat-menu>
+</mat-toolbar>

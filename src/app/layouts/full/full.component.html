@@ -1,0 +1,144 @@
+<div
+  autosize
+  autoFocus
+  [ngClass]="{
+    'sidebarNav-mini': options.sidenavCollapsed && options.navPos !== 'top' &&  !resView,
+    'sidebarNav-horizontal': options.horizontal,
+    cardBorder: options.cardBorder,
+    orange_theme: options.activeTheme == 'orange_theme',
+    blue_theme: options.activeTheme == 'blue_theme',
+    aqua_theme: options.activeTheme == 'aqua_theme',
+    purple_theme: options.activeTheme == 'purple_theme',
+    green_theme: options.activeTheme == 'green_theme',
+    cyan_theme: options.activeTheme == 'cyan_theme'
+  }"
+  [dir]="options.dir!"
+>
+  <!-- ============================================================== -->
+  <!-- VerticalHeader -->
+  <!-- ============================================================== -->
+  @if(!options.horizontal) {
+  <app-header
+    [showToggle]="!isOver"
+    (toggleCollapsed)="toggleCollapsed()"
+    (toggleMobileNav)="sidenav.toggle()"
+  ></app-header>
+  } @else {
+  <!-- horizontal header -->
+  <app-horizontal-header
+    (toggleMobileNav)="sidenav.toggle()"
+  ></app-horizontal-header>
+  }
+
+  <mat-sidenav-container class="mainWrapper">
+    <!-- ============================================================== -->
+    <!-- Vertical Sidebar -->
+    <!-- ============================================================== -->
+    @if(!options.horizontal) {
+    <mat-sidenav
+      align="start"
+      #leftsidenav
+      [mode]="isOver ? 'over' : 'side'"
+      [opened]="options.navPos === 'side' && options.sidenavOpened && !isOver && !resView"
+      (openedChange)="onSidenavOpenedChange($event)"
+      (closedStart)="onSidenavClosedStart()"
+      class="sidebarNav"
+    >
+      <app-sidebar> </app-sidebar>
+      <ng-scrollbar
+        class="position-relative mini-scroll"
+        style="height: calc(100vh - 230px)"
+      >
+        <mat-nav-list class="sidebar-list">
+          @for(item of navItems; track item) {
+          <app-nav-item [item]="item" (notify)="sidenav.toggle()">
+          </app-nav-item>
+          }
+        </mat-nav-list>
+      </ng-scrollbar>
+    </mat-sidenav>
+    }
+
+    <!-- ============================================================== -->
+    <!-- horizontal Sidebar -->
+    <!-- ============================================================== -->
+    @if(resView && options.horizontal) {
+    <mat-sidenav
+      #leftsidenav
+      [mode]="'over'"
+      [opened]="options.sidenavOpened && !isTablet"
+      (openedChange)="onSidenavOpenedChange($event)"
+      (closedStart)="onSidenavClosedStart()"
+      class="sidebarNav"
+    >
+      <app-sidebar> </app-sidebar>
+      <ng-scrollbar
+        class="position-relative mini-scroll"
+        style="height: calc(100vh - 230px)"
+      >
+        <mat-nav-list class="sidebar-list">
+          @for(item of navItems; track item) {
+          <app-nav-item [item]="item" (notify)="sidenav.toggle()">
+          </app-nav-item>
+          }
+        </mat-nav-list>
+      </ng-scrollbar>
+    </mat-sidenav>
+    }
+
+    <!-- ============================================================== -->
+    <!-- Main Content -->
+    <!-- ============================================================== -->
+    <mat-sidenav-content class="contentWrapper">
+      @if(options.horizontal) {
+      <app-horizontal-sidebar></app-horizontal-sidebar>
+      }
+
+      <main
+        class="pageWrapper"
+        [ngClass]="{
+          maxWidth: options.boxed
+        }"
+      >
+        <app-breadcrumb></app-breadcrumb>
+        <!-- ============================================================== -->
+        <!-- Outlet -->
+        <!-- ============================================================== -->
+        <router-outlet></router-outlet>
+        <div class="customizerBtn">
+          <button mat-fab color="primary" (click)="customizerRight.toggle()">
+            <mat-icon>settings</mat-icon>
+          </button>
+        </div>
+      </main>
+    </mat-sidenav-content>
+    <!-- ============================================================== -->
+    <!-- Customizer -->
+    <!-- ============================================================== -->
+    <mat-sidenav
+      #customizerRight
+      mode="over"
+      position="end"
+      class="fixed-customizer"
+    >
+      <app-customizer (optionsChange)="receiveOptions($event)"></app-customizer>
+    </mat-sidenav>
+  </mat-sidenav-container>
+
+  <!-- -footer  -->
+  <footer class="p-y-30">
+   <div class="container">
+      <div class="row justify-content-center">
+         <div class="col-sm-5 col-lg-4 text-center">
+            <span>
+               <img src="assets/images/landingpage/favicon.png" alt="logo" />
+            </span>
+            <div class="f-s-14 m-t-8">
+               All rights reserved by MaterialPro. Designed & Developed by
+               <a [routerLink]="['https://www.wrappixel.com/']" class="mat-subtitle-2">Wrappixel </a>.
+            </div>
+         </div>
+      </div>
+   </div>
+</footer>
+</div>

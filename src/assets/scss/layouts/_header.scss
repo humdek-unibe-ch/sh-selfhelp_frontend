@@ -1,0 +1,73 @@
+html .topbar {
+  background-color: $toolbar;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: $header-height;
+  box-shadow: 1px 0 10px #00000080;
+}
+
+.topbar-dd {
+  min-width: 360px !important;
+  &.mat-mdc-menu-panel.mat-mdc-menu-panel {
+    overflow: unset;
+  }
+}
+
+.apps-dd {
+  min-width: 830px !important;
+  overflow: unset !important;
+
+  .mat-mdc-menu-content {
+    padding: 0;
+  }
+}
+
+.upgrade-bg {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  height: 100%;
+}
+
+.object-cover {
+  object-fit: cover;
+}
+
+.branding {
+  // padding: 20px;
+  width: $sidenav-desktop;
+}
+
+.sidebarNav-mini {
+  .branding {
+    width: $sidenav-mini - 15px;
+    overflow: hidden;
+  }
+}
+
+.header-badge.mat-badge-medium .mat-badge-content {
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+  line-height: 18px;
+  left: 18px;
+}
+
+@media (min-width: 768px) {
+  .search-dialog {
+    width: 600px;
+  }
+}
+
+// perfect scroll
+.ps__rail-y {
+  right: 0;
+  left: unset !important;
+}
+
+
+.profile-dd {
+  margin-left: -5px !important;
+  margin-top: -5px;
+}

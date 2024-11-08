@@ -1,0 +1,209 @@
+.social-chips {
+  img {
+    margin-left: -9px;
+    border: 2px solid $white;
+    &:first-child {
+      margin-left: 0;
+    }
+  }
+}
+
+.profiletimeline {
+  position: relative;
+  padding-left: 40px;
+  margin: 10px 10px 0 30px;
+  border-left: 1px solid rgba(0, 0, 0, 0.1);
+  .sl-item {
+    margin-top: 8px;
+    margin-bottom: 30px;
+    display: flex;
+  }
+  .sl-left {
+    margin-left: -60px;
+    z-index: 1;
+    margin-right: 15px;
+  }
+}
+
+.minus-img {
+  margin-bottom: -65px !important;
+}
+
+.total-sales-icon {
+  position: absolute;
+  left: 46%;
+  top: 45%;
+  opacity: 0.6;
+}
+
+.welcome-img {
+  position: absolute;
+  right: -18px;
+  top: -29px;
+  width: 225px;
+}
+
+// dashboard 2
+.welcome-img {
+  margin-bottom: -65px;
+  margin-top: -15px;
+}
+
+.timeline {
+  position: relative;
+  .timeline-item {
+    position: relative;
+    height: 70px;
+    .time {
+      padding: 6px 16px 6px 0;
+      min-width: 90px;
+      flex-shrink: 0;
+    }
+    .desc {
+      padding: 6px 16px;
+    }
+    .timline-border {
+      width: 1px;
+      height: 100%;
+      background-color: $borderColor;
+      flex-shrink: 0;
+    }
+    .point {
+      flex-direction: column;
+      .timeline-badge {
+        width: 12px;
+        height: 12px;
+        border-radius: 50px;
+        background-color: transparent;
+        flex-shrink: 0;
+        &.border-primary {
+          border: 2px solid $primary;
+        }
+        &.border-accent {
+          border: 2px solid $accent;
+        }
+        &.border-success {
+          border: 2px solid $success;
+        }
+        &.border-warning {
+          border: 2px solid $warning;
+        }
+        &.border-error {
+          border: 2px solid $error;
+        }
+      }
+
+      .timeline-border {
+        width: 1px;
+        height: 100%;
+        background-color: $borderColor;
+        flex-shrink: 0;
+      }
+    }
+    &:last-child {
+      .timeline-border {
+        display: none !important;
+      }
+    }
+  }
+}
+
+// dashboard 1
+.little-profile .pro-img,
+.little-profile .pro-img:first-child {
+  margin-top: -80px;
+  margin-bottom: 20px;
+  z-index: 1;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .profile-bg-height {
+    max-height: 187px;
+  }
+}
+
+.profile-bg-height {
+  min-height: 192px;
+}
+
+// comments
+.comment-widgets {
+  position: relative;
+  margin-bottom: 10px;
+  .comment-row {
+    border-left: 3px solid transparent;
+    padding: 15px;
+    &:hover,
+    &.active {
+      border-color: $primary;
+    }
+  }
+}
+
+.comment-text {
+  &:hover .comment-footer,
+  &.active .comment-footer {
+    .action-icons {
+      visibility: visible;
+    }
+  }
+  p {
+    max-height: 50px;
+    overflow: hidden;
+  }
+}
+
+.comment-footer {
+  .action-icons {
+    visibility: hidden;
+    a {
+      padding-left: 15px;
+      vertical-align: middle;
+      color: $gray-100;
+      &:hover,
+      &.active {
+        color: $primary;
+      }
+    }
+  }
+}
+
+.msg-box {
+  .mat-mdc-menu-item .mdc-list-item__primary-text {
+    width: 100%;
+  }
+}
+
+.minus-margin {
+  margin-bottom: -60px !important;
+}
+
+.remove-th-table {
+  margin-top: -70px;
+  &.mat-mdc-table .mat-mdc-row:hover,
+  .mat-mdc-table .mat-mdc-footer-row:hover {
+    background-color: transparent !important;
+  }
+}
+
+#vector-map {
+  &.sm-map {
+    margin-top: -60px;
+  }
+  .dx-export-menu,
+  .dxm-title,
+  .dxm-legend,
+  .dxm-control-bar,
+  tspan {
+    display: none !important;
+  }
+  .dxm-background {
+    stroke-width: 0;
+    fill: transparent;
+  }
+  .dxm-layer path {
+    stroke-width: 0;
+    fill: $gray-50;
+  }
+}
