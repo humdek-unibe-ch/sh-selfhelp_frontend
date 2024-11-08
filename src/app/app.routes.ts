@@ -7,20 +7,20 @@ export const routes: Routes = [
     {
         path: '',
         component: FullComponent,
-        data: {
-            frontendSettings: {
-                dir: 'ltr',
-                theme: 'light',
-                sidenavOpened: true,
-                sidenavCollapsed: false,
-                boxed: true,
-                horizontal: true,
-                cardBorder: false,
-                activeTheme: 'blue_theme',
-                language: 'en-us',
-                navPos: 'side',
-            } as AppSettings,
-        },
+      //   data: {
+      //       frontendSettings: {
+      //           dir: 'ltr',
+      //           theme: 'light',
+      //           sidenavOpened: true,
+      //           sidenavCollapsed: false,
+      //           boxed: true,
+      //           horizontal: false,
+      //           cardBorder: false,
+      //           activeTheme: 'blue_theme',
+      //           language: 'en-us',
+      //           navPos: 'side',
+      //       } as AppSettings,
+      //   },
         children: [
             {
                 path: '',

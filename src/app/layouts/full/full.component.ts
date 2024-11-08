@@ -62,6 +62,7 @@ interface quicklinks {
    encapsulation: ViewEncapsulation.None,
 })
 export class FullComponent implements OnInit {
+   // navItems = navItems;
    navItems$: Observable<NavItem[]>;
 
    @ViewChild('leftsidenav')
@@ -195,6 +196,7 @@ export class FullComponent implements OnInit {
       private navigationService: NavigationService,
       private route: ActivatedRoute
    ) {
+      this.navItems$ = this.navigationService.navItems$;
       this.htmlElement = document.querySelector('html')!;
       this.layoutChangesSubscription = this.breakpointObserver
          .observe([MOBILE_VIEW, TABLET_VIEW, MONITOR_VIEW, BELOWMONITOR])
@@ -211,7 +213,6 @@ export class FullComponent implements OnInit {
 
       // Initialize project theme with options
       this.receiveOptions(this.options);
-      this.navItems$ = this.navigationService.navItems$;
 
       // This is for scroll to top
       // this.router.events
@@ -222,9 +223,9 @@ export class FullComponent implements OnInit {
    }
 
    ngOnInit(): void {
-      this.route.data.subscribe((data) => {
-         this.receiveOptions(data['frontendSettings']);
-      });
+      // this.route.data.subscribe((data) => {
+      //    this.receiveOptions(data['frontendSettings']);
+      // });
    }
 
    ngOnDestroy() {

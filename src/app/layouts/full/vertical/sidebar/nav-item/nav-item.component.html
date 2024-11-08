@@ -1,43 +1,65 @@
-@if(item.navCap){
-<div mat-subheader class="nav-caption">
-   {{ item.navCap }}
-</div>
-} @if(!item.navCap && !item.external && !item.twoLines) {
-<a mat-list-item (click)="onItemSelected(item)" [ngClass]="{
-      'mat-toolbar mat-primary activeMenu': item.route
-        ? router.isActive(item.route, true)
-        : false,
-      expanded: expanded,
-      disabled: item.disabled
-    }" class="menu-list-item">
-   <i-tabler class="routeIcon" name="{{ item.iconName }}" matListItemIcon></i-tabler>
-   <span class="hide-menu">{{ item.displayName }}</span>
-   @if(item.children && item.children.length) {
-   <span class="arrow-icon" fxFlex>
-      <span fxFlex></span>
-      <mat-icon [@indicatorRotate]="expanded ? 'expanded' : 'collapsed'">
-         expand_more
-      </mat-icon>
-   </span>
-   } @if(item.chip) {
-   <span>
-      <span class="{{ item.chipClass }} p-x-8 p-y-4 item-chip f-w-500 rounded-pill ">{{ item.chipContent }}</span>
-   </span>
-   }
-</a>
-}
+<!-- Main Navigation Item -->
+<ng-container *ngIf="item.navCap; else noNavCap">
+   <div mat-subheader class="nav-caption">
+     {{ item.navCap }}
+   </div>
+ </ng-container>
 
-<!-- external Link -->
+ <ng-template #noNavCap>
+   <!-- Internal Link without navCap, external link, or two lines -->
+   <ng-container *ngIf="!item.external && !item.twoLines">
+     <a
+       mat-list-item
+       (click)="onItemSelected(item)"
+       [ngClass]="{
+         'mat-toolbar mat-primary activeMenu': item.route
+           ? router.isActive(item.route, true)
+           : false,
+         expanded: expanded,
+         disabled: item.disabled
+       }"
+       class="menu-list-item"
+     >
+       <i-tabler class="routeIcon" name="{{ item.iconName }}" matListItemIcon></i-tabler>
+       <span class="hide-menu">{{ item.displayName }}</span>
 
-@if(!item.navCap && item.external) {
-<mat-list-item onClick="window.open('//google.com')" class="menu-list-item" target="_blank">
-   <i-tabler class="routeIcon" name="{{ item.iconName }}" matListItemIcon></i-tabler>
-   <span class="hide-menu">{{ item.displayName }}</span>
-</mat-list-item>
-}
+       <!-- Arrow Icon for Items with Children -->
+       <ng-container *ngIf="item.children && item.children.length">
+         <span class="arrow-icon" fxFlex>
+           <span fxFlex></span>
+           <mat-icon [@indicatorRotate]="expanded ? 'expanded' : 'collapsed'">
+             expand_more
+           </mat-icon>
+         </span>
+       </ng-container>
 
-<!-- children -->
-@if(expanded) { @for(child of item.children; track child) {
-<app-nav-item [item]="child" (click)="onSubItemSelected(child)" [depth]="depth + 1">
-</app-nav-item>
-} }
+       <!-- Chip for Items with Chip -->
+       <ng-container *ngIf="item.chip">
+         <span>
+           <span class="{{ item.chipClass }} p-x-8 p-y-4 item-chip f-w-500 rounded-pill">
+             {{ item.chipContent }}
+           </span>
+         </span>
+       </ng-container>
+     </a>
+   </ng-container>
+
+   <!-- External Link -->
+   <ng-container *ngIf="item.external">
+     <mat-list-item
+       class="menu-list-item"
+       target="_blank"
+     >
+       <i-tabler class="routeIcon" name="{{ item.iconName }}" matListItemIcon></i-tabler>
+       <span class="hide-menu">{{ item.displayName }}</span>
+     </mat-list-item>
+   </ng-container>
+ </ng-template>
+
+ <!-- Children -->
+ <ng-container *ngIf="expanded">
+   <ng-container *ngFor="let child of item.children;">
+     <app-nav-item [item]="child" (click)="onSubItemSelected(child)" [depth]="depth + 1">
+     </app-nav-item>
+   </ng-container>
+ </ng-container>

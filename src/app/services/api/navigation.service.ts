@@ -34,7 +34,7 @@ export class NavigationService extends ApiService {
                route: nav.url,
             }))
          )
-      ).subscribe(items => {
+      ).subscribe((items: NavItem[]) => {
          this.logService.debugLog('loadNavigation', items);
          this.navItemsSubject.next(items); // Push items to BehaviorSubject
       });
