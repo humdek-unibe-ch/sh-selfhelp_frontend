@@ -3,7 +3,7 @@
     <div class="container">
       <div>
         <div class="horizontal-navbar hstack align-items-center">
-          @for(item of navItems; track item) {
+          @for(item of this.api.navItems; track item) {
           <app-horizontal-nav-item
             [item]="item"
             class="parentBox {{ item.ddType }}"
@@ -18,4 +18,3 @@
     </div>
   </div>
   }
-  

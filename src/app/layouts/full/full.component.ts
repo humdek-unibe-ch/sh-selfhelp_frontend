@@ -223,7 +223,6 @@ export class FullComponent implements OnInit {
 
     ngOnInit(): void {
         this.route.data.subscribe((data) => {
-            console.log(data['frontendSettings']);
             this.receiveOptions(data['frontendSettings']);
         });
     }

@@ -11,7 +11,6 @@ import { NavService } from '../../../../services/nav.service';
 import { MediaMatcher } from '@angular/cdk/layout';
 import { AppHorizontalNavItemComponent } from './nav-item/nav-item.component';
 import { CommonModule, NgForOf, NgIf } from '@angular/common';
-import { navItems } from '../../vertical/sidebar/sidebar-data';
 import { ApiService } from 'src/app/services/api/api.service';
 import { NavItem } from '../../vertical/sidebar/nav-item/nav-item';
 
@@ -22,8 +21,6 @@ import { NavItem } from '../../vertical/sidebar/nav-item/nav-item';
    templateUrl: './sidebar.component.html',
 })
 export class AppHorizontalSidebarComponent implements OnInit {
-   //   navItems = navItems;
-   navItems: NavItem[] = [];
    parentActive = '';
 
    mobileQuery: MediaQueryList;
@@ -34,15 +31,11 @@ export class AppHorizontalSidebarComponent implements OnInit {
       public router: Router,
       media: MediaMatcher,
       changeDetectorRef: ChangeDetectorRef,
-      private api: ApiService
+      public api: ApiService
    ) {
       this.mobileQuery = media.matchMedia('(min-width: 1100px)');
       this._mobileQueryListener = () => changeDetectorRef.detectChanges();
       this.mobileQuery.addListener(this._mobileQueryListener);
-      this.api.getNavigation().subscribe(items => {
-         this.navItems = items;
-         console.log(items);
-       });
    }
 
    ngOnInit(): void { }

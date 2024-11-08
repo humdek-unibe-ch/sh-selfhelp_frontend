@@ -10,7 +10,11 @@ import { NavigationACL } from 'src/app/models/selfhelp.model';
 export class ApiService {
    private apiUrl = '/selfhelp/cms-api'; // API endpoint for routes
 
-   constructor(private http: HttpClient) { }
+   public navItems: NavItem[] = [];
+
+   constructor(private http: HttpClient) {
+      this.getNavigation();
+   }
 
    /**
    * Method to handle both GET and POST requests with credentials (cookies-based authentication)
@@ -54,15 +58,18 @@ export class ApiService {
       throw new Error('Unsupported request method');
    }
 
-   public getNavigation(): Observable<NavItem[]> {
-      return this.makeRequest('GET', '/nav/pages/web', { mobile: true, web: true }).pipe(
-         map((response: NavigationACL[]) =>
-            response.map(nav => ({
+   public getNavigation() {
+      this.makeRequest('GET', '/nav/pages/web', { mobile: true, web: true }).pipe(
+         map((response: { success: boolean; data: NavigationACL[] }) =>
+            response.data.map(nav => ({
                displayName: nav.keyword,
                route: nav.url,
             }))
          )
-      );
+      ).subscribe(items => {
+         this.navItems = items;
+         console.log(items);
+      })
    }
 
 }
