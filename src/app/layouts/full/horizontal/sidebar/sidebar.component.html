@@ -1,20 +1,16 @@
-@if(mobileQuery.matches) {
-  <div class="horizontal-sidebar p-y-8 b-b-1">
-    <div class="container">
-      <div>
-        <div class="horizontal-navbar hstack align-items-center">
-          @for(item of this.api.navItems; track item) {
-          <app-horizontal-nav-item
-            [item]="item"
-            class="parentBox {{ item.ddType }}"
-            [ngClass]="{
-              pactive: item.route == parentActive ? 'pactive' : ''
-            }"
-          >
-          </app-horizontal-nav-item>
-          }
-        </div>
+<div *ngIf="mobileQuery.matches">
+   <div class="horizontal-sidebar p-y-8 b-b-1">
+      <div class="container">
+         <div>
+            <div class="horizontal-navbar hstack align-items-center">
+               <ng-container *ngIf="navItems$ | async as navItems">
+                  <ng-container *ngFor="let item of navItems">
+                     <app-horizontal-nav-item [item]="item" class="parentBox {{ item.ddType }}"
+                        [ngClass]="{pactive: item.route == parentActive ? 'pactive' : ''}"></app-horizontal-nav-item>
+                  </ng-container>
+               </ng-container>
+            </div>
+         </div>
       </div>
-    </div>
-  </div>
-  }
+   </div>
+</div>

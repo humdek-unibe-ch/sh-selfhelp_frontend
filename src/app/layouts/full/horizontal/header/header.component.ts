@@ -6,13 +6,13 @@ import {
 } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import { MatDialog } from '@angular/material/dialog';
-import { navItems } from '../../vertical/sidebar/sidebar-data';
 import { RouterModule } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { MaterialModule } from 'src/app/material.module';
 import { BrandingComponent } from '../../vertical/sidebar/branding.component';
 import { NgFor, NgForOf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { SearchDialogComponent } from 'src/app/layouts/search-dialog/search-dialog.component';
 
 interface notifications {
   id: number;
@@ -88,7 +88,7 @@ export class AppHorizontalHeaderComponent {
   ) {  }
 
   openDialog() {
-    const dialogRef = this.dialog.open(AppHorizontalSearchDialogComponent);
+    const dialogRef = this.dialog.open(SearchDialogComponent);
 
     dialogRef.afterClosed().subscribe((result) => {
       console.log(`Dialog result: ${result}`);
@@ -189,21 +189,4 @@ export class AppHorizontalHeaderComponent {
     },
   ];
 
-}
-
-@Component({
-  selector: 'app-search-dialog',
-  standalone: true,
-  imports: [RouterModule, MaterialModule, TablerIconsModule, FormsModule, NgForOf],
-  templateUrl: 'search-dialog.component.html',
-})
-export class AppHorizontalSearchDialogComponent {
-  searchText: string = '';
-  navItems = navItems;
-
-  navItemsData = navItems.filter((navitem) => navitem.displayName);
-
-  // filtered = this.navItemsData.find((obj) => {
-  //   return obj.displayName == this.searchinput;
-  // });
 }

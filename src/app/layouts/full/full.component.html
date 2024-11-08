@@ -2,7 +2,7 @@
   autosize
   autoFocus
   [ngClass]="{
-    'sidebarNav-mini': options.sidenavCollapsed && options.navPos !== 'top' &&  !resView,
+    'sidebarNav-mini': options.sidenavCollapsed && options.navPos !== 'top' && !resView,
     'sidebarNav-horizontal': options.horizontal,
     cardBorder: options.cardBorder,
     orange_theme: options.activeTheme == 'orange_theme',
@@ -17,82 +17,90 @@
   <!-- ============================================================== -->
   <!-- VerticalHeader -->
   <!-- ============================================================== -->
-  @if(!options.horizontal) {
-  <app-header
-    [showToggle]="!isOver"
-    (toggleCollapsed)="toggleCollapsed()"
-    (toggleMobileNav)="sidenav.toggle()"
-  ></app-header>
-  } @else {
-  <!-- horizontal header -->
-  <app-horizontal-header
-    (toggleMobileNav)="sidenav.toggle()"
-  ></app-horizontal-header>
-  }
+  <ng-container *ngIf="!options.horizontal; else horizontalHeader">
+    <app-header
+      [showToggle]="!isOver"
+      (toggleCollapsed)="toggleCollapsed()"
+      (toggleMobileNav)="sidenav.toggle()"
+    ></app-header>
+  </ng-container>
+
+  <ng-template #horizontalHeader>
+    <!-- Horizontal Header -->
+    <app-horizontal-header
+      (toggleMobileNav)="sidenav.toggle()"
+    ></app-horizontal-header>
+  </ng-template>
 
   <mat-sidenav-container class="mainWrapper">
     <!-- ============================================================== -->
     <!-- Vertical Sidebar -->
     <!-- ============================================================== -->
-    @if(!options.horizontal) {
-    <mat-sidenav
-      align="start"
-      #leftsidenav
-      [mode]="isOver ? 'over' : 'side'"
-      [opened]="options.navPos === 'side' && options.sidenavOpened && !isOver && !resView"
-      (openedChange)="onSidenavOpenedChange($event)"
-      (closedStart)="onSidenavClosedStart()"
-      class="sidebarNav"
-    >
-      <app-sidebar> </app-sidebar>
-      <ng-scrollbar
-        class="position-relative mini-scroll"
-        style="height: calc(100vh - 230px)"
+    <ng-container *ngIf="!options.horizontal">
+      <mat-sidenav
+        align="start"
+        #leftsidenav
+        [mode]="isOver ? 'over' : 'side'"
+        [opened]="options.navPos === 'side' && options.sidenavOpened && !isOver && !resView"
+        (openedChange)="onSidenavOpenedChange($event)"
+        (closedStart)="onSidenavClosedStart()"
+        class="sidebarNav"
       >
-        <mat-nav-list class="sidebar-list">
-          @for(item of navItems; track item) {
-          <app-nav-item [item]="item" (notify)="sidenav.toggle()">
-          </app-nav-item>
-          }
-        </mat-nav-list>
-      </ng-scrollbar>
-    </mat-sidenav>
-    }
+        <app-sidebar></app-sidebar>
+        <ng-scrollbar
+          class="position-relative mini-scroll"
+          style="height: calc(100vh - 230px)"
+        >
+          <mat-nav-list class="sidebar-list">
+            <ng-container *ngIf="navItems$ | async as navItems">
+              <app-nav-item
+                *ngFor="let item of navItems;"
+                [item]="item"
+                (notify)="sidenav.toggle()"
+              ></app-nav-item>
+            </ng-container>
+          </mat-nav-list>
+        </ng-scrollbar>
+      </mat-sidenav>
+    </ng-container>
 
     <!-- ============================================================== -->
-    <!-- horizontal Sidebar -->
+    <!-- Horizontal Sidebar -->
     <!-- ============================================================== -->
-    @if(resView && options.horizontal) {
-    <mat-sidenav
-      #leftsidenav
-      [mode]="'over'"
-      [opened]="options.sidenavOpened && !isTablet"
-      (openedChange)="onSidenavOpenedChange($event)"
-      (closedStart)="onSidenavClosedStart()"
-      class="sidebarNav"
-    >
-      <app-sidebar> </app-sidebar>
-      <ng-scrollbar
-        class="position-relative mini-scroll"
-        style="height: calc(100vh - 230px)"
+    <ng-container *ngIf="resView && options.horizontal">
+      <mat-sidenav
+        #leftsidenav
+        [mode]="'over'"
+        [opened]="options.sidenavOpened && !isTablet"
+        (openedChange)="onSidenavOpenedChange($event)"
+        (closedStart)="onSidenavClosedStart()"
+        class="sidebarNav"
       >
-        <mat-nav-list class="sidebar-list">
-          @for(item of navItems; track item) {
-          <app-nav-item [item]="item" (notify)="sidenav.toggle()">
-          </app-nav-item>
-          }
-        </mat-nav-list>
-      </ng-scrollbar>
-    </mat-sidenav>
-    }
+        <app-sidebar></app-sidebar>
+        <ng-scrollbar
+          class="position-relative mini-scroll"
+          style="height: calc(100vh - 230px)"
+        >
+          <mat-nav-list class="sidebar-list">
+            <ng-container *ngIf="navItems$ | async as navItems">
+              <app-nav-item
+                *ngFor="let item of navItems;"
+                [item]="item"
+                (notify)="sidenav.toggle()"
+              ></app-nav-item>
+            </ng-container>
+          </mat-nav-list>
+        </ng-scrollbar>
+      </mat-sidenav>
+    </ng-container>
 
     <!-- ============================================================== -->
     <!-- Main Content -->
     <!-- ============================================================== -->
     <mat-sidenav-content class="contentWrapper">
-      @if(options.horizontal) {
-      <app-horizontal-sidebar></app-horizontal-sidebar>
-      }
+      <ng-container *ngIf="options.horizontal">
+        <app-horizontal-sidebar></app-horizontal-sidebar>
+      </ng-container>
 
       <main
         class="pageWrapper"
@@ -112,6 +120,7 @@
         </div>
       </main>
     </mat-sidenav-content>
+
     <!-- ============================================================== -->
     <!-- Customizer -->
     <!-- ============================================================== -->
@@ -125,20 +134,20 @@
     </mat-sidenav>
   </mat-sidenav-container>
 
-  <!-- -footer  -->
+  <!-- Footer -->
   <footer class="p-y-30">
-   <div class="container">
+    <div class="container">
       <div class="row justify-content-center">
-         <div class="col-sm-5 col-lg-4 text-center">
-            <span>
-               <img src="assets/images/landingpage/favicon.png" alt="logo" />
-            </span>
-            <div class="f-s-14 m-t-8">
-               All rights reserved by MaterialPro. Designed & Developed by
-               <a [routerLink]="['https://www.wrappixel.com/']" class="mat-subtitle-2">Wrappixel </a>.
-            </div>
-         </div>
+        <div class="col-sm-5 col-lg-4 text-center">
+          <span>
+            <img src="assets/images/landingpage/favicon.png" alt="logo" />
+          </span>
+          <div class="f-s-14 m-t-8">
+            All rights reserved by MaterialPro. Designed & Developed by
+            <a [routerLink]="['https://www.wrappixel.com/']" class="mat-subtitle-2">Wrappixel</a>.
+          </div>
+        </div>
       </div>
-   </div>
-</footer>
+    </div>
+  </footer>
 </div>

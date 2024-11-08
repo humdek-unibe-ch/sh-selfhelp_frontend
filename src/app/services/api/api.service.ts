@@ -1,8 +1,6 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { map, Observable } from 'rxjs';
-import { NavItem } from 'src/app/layouts/full/vertical/sidebar/nav-item/nav-item';
-import { NavigationACL } from 'src/app/models/selfhelp.model';
+import { inject, Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 import { LoggingService } from '../logging.service';
 
 @Injectable({
@@ -11,11 +9,10 @@ import { LoggingService } from '../logging.service';
 export class ApiService {
    private apiUrl = '/selfhelp/cms-api'; // API endpoint for routes
 
-   public navItems: NavItem[] = [];
+   protected http: HttpClient = inject(HttpClient);
+   protected logService: LoggingService = inject(LoggingService);
 
-   constructor(private http: HttpClient, private logService: LoggingService) {
-      this.getNavigation();
-   }
+   constructor() { }
 
    /**
    * Method to handle both GET and POST requests with credentials (cookies-based authentication)
@@ -24,7 +21,7 @@ export class ApiService {
    * @param params - Optional parameters for the request
    * @param headers - Optional custom headers
    */
-   private makeRequest(method: 'GET' | 'POST', requestUrl: string, params?: any, headers?: HttpHeaders): Observable<any> {
+   protected makeRequest(method: 'GET' | 'POST', requestUrl: string, params?: any, headers?: HttpHeaders): Observable<any> {
       // Default headers for the request (can be customized)
       let url = this.apiUrl + requestUrl;
       const defaultHeaders = headers ? headers : new HttpHeaders({
@@ -57,20 +54,6 @@ export class ApiService {
       }
 
       throw new Error('Unsupported request method');
-   }
-
-   public getNavigation() {
-      this.makeRequest('GET', '/nav/pages/web', { mobile: true, web: true }).pipe(
-         map((response: { success: boolean; data: NavigationACL[] }) =>
-            response.data.map(nav => ({
-               displayName: nav.keyword,
-               route: nav.url,
-            }))
-         )
-      ).subscribe(items => {
-         this.logService.debugLog('getNavigation', items);
-         this.navItems = items;
-      })
    }
 
 }

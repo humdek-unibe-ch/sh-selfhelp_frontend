@@ -9,7 +9,6 @@ import {
 } from '@angular/core';
 import { NavItem } from './nav-item';
 import { Router } from '@angular/router';
-import { NavService } from '../../../../../services/nav.service';
 import {
    animate,
    state,
@@ -20,6 +19,7 @@ import {
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
+import { NavigationService } from 'src/app/services/api/navigation.service';
 
 @Component({
    selector: 'app-nav-item',
@@ -49,14 +49,14 @@ export class AppNavItemComponent implements OnChanges {
    @Input() item: NavItem | any;
    @Input() depth: any;
 
-   constructor(public navService: NavService, public router: Router) {
+   constructor(public navigationService: NavigationService, public router: Router) {
       if (this.depth === undefined) {
          this.depth = 0;
       }
    }
 
    ngOnChanges() {
-      this.navService.currentUrl.subscribe((url: string) => {
+      this.navigationService.currentUrl.subscribe((url: string) => {
          if (this.item.route && url) {
             // console.log(`Checking '/${this.item.route}' against '${url}'`);
             this.expanded = url.indexOf(`/${this.item.route}`) === 0;
