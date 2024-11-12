@@ -1,5 +1,5 @@
 export interface NavItem {
-    displayName?: string;
+    displayName: string;
     disabled?: boolean;
     external?: boolean;
     twoLines?: boolean;
@@ -9,7 +9,8 @@ export interface NavItem {
     chipContent?: string;
     chipClass?: string;
     subtext?: string;
-    route?: string;
+    route: string;
+    keyword:string;
     children?: NavItem[];
     ddType?: string;
 }

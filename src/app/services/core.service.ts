@@ -17,7 +17,6 @@ export class CoreService {
   }
 
   setOptions(options: AppSettings) {
-    console.log('set options');
     this.options = Object.assign(defaults, options);
     this.notify$.next(this.options);
   }
