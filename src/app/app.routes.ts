@@ -26,17 +26,7 @@ export const routes: Routes = [
                 path: '',
                 redirectTo: '/home',
                 pathMatch: 'full',
-            },
-            {
-                path: 'home',
-                loadChildren: () =>
-                    import('./pages/frontend/frontend-pages.routes').then((m) => m.PagesRoutes),
-            },
-            {
-                path: 'starter',
-                loadChildren: () =>
-                    import('./pages/pages.routes').then((m) => m.PagesRoutes),
-            },
+            }
         ],
     },
     {

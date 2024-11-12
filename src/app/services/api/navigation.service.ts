@@ -22,36 +22,54 @@ export class NavigationService extends ApiService {
       redirectTo: 'authentication/error',
    };
 
+   // Define the wildcard route
+   private homeRedirect: Route = {
+      path: '',
+      redirectTo: '/home',
+      pathMatch: 'full',
+   };
+
    constructor(private router: Router) {
       super();
       this.loadNavigation();
       this.router.events.subscribe((event: Event) => {
          if (event instanceof NavigationEnd) {
             this.currentUrl.next(event.urlAfterRedirects);
+            this.loadNavigation();
          }
       });
    }
 
-   public loadNavigation(): void {
-      this.makeRequest('GET', '/nav/pages/web', { mobile: true, web: true }).pipe(
-         map((response: { success: boolean; data: NavigationACL[] }) =>
-            response.data.map(nav => ({
-               displayName: nav.keyword,
-               route: nav.keyword,
-               url: nav.url,
-               keyword: nav.keyword
-            }))
-         )
-      ).subscribe((items: NavItem[]) => {
-         this.logService.debugLog('loadNavigation', items);
-         this.navItemsSubject.next(items); // Push items to BehaviorSubject
-         this.addRoutesDynamically(items);
+   public async loadNavigation(): Promise<void> {
+      return new Promise((resolve, reject) => {
+         this.makeRequest('GET', '/nav/pages/web', { mobile: true, web: true }).pipe(
+            map((response: { success: boolean; data: NavigationACL[] }) =>
+               response.data.map(nav => ({
+                  displayName: nav.keyword,
+                  route: nav.keyword,
+                  url: nav.url,
+                  keyword: nav.keyword
+               }))
+            )
+         ).subscribe({
+            next: (items: NavItem[]) => {
+               this.logService.debugLog('loadNavigation', items);
+               this.navItemsSubject.next(items); // Push items to BehaviorSubject
+               this.addRoutesDynamically(items);
+               resolve();
+            },
+            error: (err) => {
+               this.logService.errorLog('loadNavigation error', err);
+               reject(err);
+            }
+         });
       });
    }
 
    // Dynamically add routes
    private addRoutesDynamically(navItems: NavItem[]): void {
-      const dynamicRoutes : Route[] = navItems.map(item => ({
+      this.logService.debugLog('addRoutesDynamically');
+      const dynamicRoutes: Route[] = navItems.map(item => ({
          path: item.keyword,
          loadChildren: () =>
             import('../../pages/frontend/frontend-pages.routes').then((m) => m.PagesRoutes),
@@ -59,10 +77,10 @@ export class NavigationService extends ApiService {
 
       // Ensure the wildcard route is always added last
       let r: Routes = [...this.router.config];
-      r[0].children = [...dynamicRoutes];
+      r[0].children = [this.homeRedirect, ...dynamicRoutes];
 
       this.router.resetConfig(r);
-      this.logService.debugLog('addRoutesDynamically', r);
+      this.logService.debugLog('addRoutesDynamically Result', r);
    }
 
 }
