@@ -20,4 +20,10 @@ export class LoggingService {
          console.log(`[${currentTime}] DEBUG`, ...optionalParams);
       }
    }
+
+   // Log a debug message if debug mode is enabled
+   public errorLog(...optionalParams: any[]): void {
+      const currentTime = new Date().toLocaleString();
+      console.error(`[${currentTime}] ERROR`, ...optionalParams);
+   }
 }
