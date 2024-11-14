@@ -2,12 +2,10 @@ import React from "react";
 import { Providers } from "@/store/providers";
 import MyApp from "./app";
 import "./global.css";
-import { DynamicRouter } from "./components/navigation/DynamicRouter";
-
 
 export const metadata = {
   title: "MaterialPro StarterKit",
-  description: "MaterialPro  kit",
+  description: "MaterialPro kit",
 };
 
 export default function RootLayout({
@@ -17,12 +15,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>
+      <body suppressHydrationWarning={true}>
         <Providers>
-          <MyApp>
-            <DynamicRouter />
-            {children}
-          </MyApp>
+          <MyApp>{children}</MyApp>
         </Providers>
       </body>
     </html>

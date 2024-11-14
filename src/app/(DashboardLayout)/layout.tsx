@@ -1,13 +1,14 @@
 "use client";
 import { styled, Container, Box, useTheme } from "@mui/material";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "./layout/vertical/header/Header";
 import Sidebar from "./layout/vertical/sidebar/Sidebar";
 import Customizer from "./layout/shared/customizer/Customizer";
 import Navigation from "./layout/horizontal/navbar/Navigation";
 import HorizontalHeader from "./layout/horizontal/header/Header";
-import { useSelector } from "@/store/hooks";
+import { useSelector, useDispatch } from "@/store/hooks";
 import { AppState } from "@/store/store";
+import { useRoutes } from '@/hooks/useRoutes';
 
 const MainWrapper = styled("div")(() => ({
 }));
@@ -30,26 +31,17 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
-  const [isMobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const { data: routes, isLoading } = useRoutes();
   const customizer = useSelector((state: AppState) => state.customizer);
   const theme = useTheme();
+
+  if (isLoading) return <div>Loading...</div>;
 
   return (
     <MainWrapper>
       <title>MaterialPro NextJs 14.0.3 Admin Dashboard</title>
-      {/* ------------------------------------------- */}
-      {/* Header */}
-      {/* ------------------------------------------- */}
       {customizer.isHorizontal ? "" : <Header />}
-      {/* ------------------------------------------- */}
-      {/* Sidebar */}
-      {/* ------------------------------------------- */}
       {customizer.isHorizontal ? "" : <Sidebar />}
-      {/* ------------------------------------------- */}
-      {/* Main Wrapper */}
-      {/* ------------------------------------------- */}
-
       <PageWrapper
         className="page-wrapper"
         sx={{
@@ -58,7 +50,6 @@ export default function RootLayout({
               ml: `${customizer.SidebarWidth}px`,
             },
           }),
-
           ...(customizer.isCollapse && {
             [theme.breakpoints.up("lg")]: {
               ml: `${customizer.MiniSidebarWidth}px`,
@@ -66,7 +57,6 @@ export default function RootLayout({
           }),
         }}
       >
-        {/* PageContent */}
         {customizer.isHorizontal ? <HorizontalHeader /> : ""}
         {customizer.isHorizontal ? <Navigation /> : ""}
         <Container
@@ -74,19 +64,9 @@ export default function RootLayout({
             maxWidth: customizer.isLayout === "boxed" ? "lg" : "100%!important",
           }}
         >
-          {/* ------------------------------------------- */}
-          {/* PageContent */}
-          {/* ------------------------------------------- */}
-
           <Box sx={{ minHeight: "calc(100vh - 170px)" }}>
-            {/* <Outlet /> */}
             {children}
-            {/* <Index /> */}
           </Box>
-
-          {/* ------------------------------------------- */}
-          {/* End Page */}
-          {/* ------------------------------------------- */}
         </Container>
         <Customizer />
       </PageWrapper>

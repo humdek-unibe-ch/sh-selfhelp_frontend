@@ -7,7 +7,8 @@ import { RootState } from '@/store/store';
 import PageContainer from "@/app/components/container/PageContainer";
 import DashboardCard from "@/app/components/shared/DashboardCard";
 import Breadcrumb from "@/app/(DashboardLayout)/layout/shared/breadcrumb/Breadcrumb";
-import { isValidRoute } from "@/store/routes/RouteSlice";
+import { useQuery } from '@tanstack/react-query';
+import { NavigationService } from '@/services/api.service';
 
 interface PageData {
    title: string;
@@ -18,10 +19,16 @@ export default function DynamicPage({ params }: { params: { slug: string } }) {
    const [pageData, setPageData] = useState<PageData | null>(null);
    const [isLoading, setLoading] = useState(true);
 
-   const routes = useSelector((state: RootState) => state.routes.availableRoutes);
-   const routesLoading = useSelector((state: RootState) => state.routes.isLoading);
-   const { slug } = params;
-   const isValid = useSelector((state: RootState) => isValidRoute(state, `/${slug}`));
+   const { data: routes, isLoading: routesLoading } = useQuery({
+      queryKey: ['routes'],
+      queryFn: async () => {
+         const response = await NavigationService.getRoutes();
+         if (!response) throw new Error('No routes received');
+         return response;
+      }
+   });
+
+   const isValid = routes?.some(route => route.path === `/${params.slug}`);
 
    useEffect(() => {
       console.log('Loading page data for:', params.slug);

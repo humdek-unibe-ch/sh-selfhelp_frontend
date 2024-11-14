@@ -1,7 +1,6 @@
-import { uniqueId } from "lodash";
+import { IconChartPie, IconDashboard, IconTestPipe } from "@tabler/icons-react";
 
-interface MenuitemsType {
-  [x: string]: any;
+export interface MenuitemsType {
   id?: string;
   navlabel?: boolean;
   subheader?: string;
@@ -13,36 +12,15 @@ interface MenuitemsType {
   chipColor?: string;
   variant?: string;
   external?: boolean;
+  position?: number | null;
 }
-import { IconBoxMultiple, IconPoint, IconChartPie, IconTestPipe } from "@tabler/icons-react";
 
-const Menuitems = [
-  {
-    navlabel: true,
-    subheader: "Home",
-  },
-  {
-    id: uniqueId(),
-    title: "Dashboard",
-    icon: IconChartPie,
-    href: "/",
-  },
-  {
-    navlabel: true,
-    subheader: "Dynamic Pages",
-  },
-  {
-    id: uniqueId(),
-    title: "Test Page",
-    icon: IconTestPipe,
-    href: "/test",
-  },
-  {
-    id: uniqueId(),
-    title: "Test Page 2",
-    icon: IconTestPipe,
-    href: "/test2",
-  }
-];
-
-export default Menuitems;
+export const getIconForRoute = (title: string): any => {
+  const iconMap: Record<string, any> = {
+    'Dashboard': IconDashboard,
+    'Test': IconTestPipe,
+    // Add more mappings as needed
+  };
+  
+  return iconMap[title] || IconChartPie; // Default icon
+};

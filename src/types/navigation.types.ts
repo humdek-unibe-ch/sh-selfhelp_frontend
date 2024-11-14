@@ -23,7 +23,7 @@ export interface NavigationItem {
     id_pageAccessTypes: number;
 }
 
-export interface RouteItem {
+export interface Route {
     title: string;
     path: string;
     isNav: boolean;

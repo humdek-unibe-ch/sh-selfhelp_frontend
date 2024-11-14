@@ -1,4 +1,3 @@
-import Menuitems from './MenuItems';
 import { usePathname } from "next/navigation";
 import { Box, List, useMediaQuery } from '@mui/material';
 import { useDispatch, useSelector } from '@/store/hooks';
@@ -7,10 +6,14 @@ import NavCollapse from './NavCollapse';
 import NavGroup from './NavGroup/NavGroup';
 import { AppState } from '@/store/store'
 import { toggleMobileSidebar } from '@/store/customizer/CustomizerSlice';
+import { MenuitemsType } from "./MenuItems";
 
+interface SidebarItemsProps {
+  items: MenuitemsType[];
+}
 
-const SidebarItems = () => {
-  const  pathname  = usePathname();
+const SidebarItems = ({ items }: SidebarItemsProps) => {
+  const pathname = usePathname();
   const pathDirect = pathname;
   const pathWithoutLastPart = pathname.slice(0, pathname.lastIndexOf('/'));
   const customizer = useSelector((state: AppState) => state.customizer);
@@ -20,7 +23,7 @@ const SidebarItems = () => {
   return (
     <Box sx={{ px: 2 }} borderRadius={0}>
       <List sx={{ pt: 0 }} className="sidebarNav">
-        {Menuitems.map((item) => {
+        {items.map((item) => {
           // {/********SubHeader**********/}
           if (item.subheader) {
             return <NavGroup item={item} hideMenu={hideMenu} key={item.subheader} />;

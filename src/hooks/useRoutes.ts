@@ -1,13 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
-import { NavigationService } from '../services/api.service';
+import { NavigationService } from '@/services/api.service';
+import { Route } from '@/types/navigation.types';
 
-export const useRoutes = () => {
-  return useQuery({
+export function useRoutes() {
+  return useQuery<Route[], Error>({
     queryKey: ['routes'],
-    queryFn: NavigationService.getRoutes,
-    staleTime: Infinity,
-    gcTime: Infinity,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-  }); 
-};
+    queryFn: async () => {
+      const response = await NavigationService.getRoutes();
+      if (!response) throw new Error('No routes received');
+      return response;
+    }
+  });
+}

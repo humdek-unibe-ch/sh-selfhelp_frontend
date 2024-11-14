@@ -2,27 +2,21 @@
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import NotFound from '@/app/not-found'
-import { useSelector } from '@/store/hooks'
-import { AppState } from '@/store/store'
-import { NavigationService } from '@/services/api.service'
+import { useRoutes } from '@/hooks/useRoutes'
 
 export function DynamicRouter() {
-   const pathname = usePathname()
-   const [showNotFound, setShowNotFound] = useState(false)
-   const { availableRoutes, isLoading } = useSelector((state: AppState) => state.routes)
+  const pathname = usePathname()
+  const [showNotFound, setShowNotFound] = useState(false)
+  const { data: availableRoutes, isLoading } = useRoutes()
 
-   useEffect(() => {
-      NavigationService.initializeRoutes()
-   }, [])
+  useEffect(() => {
+    if (!isLoading && availableRoutes) {
+      const isValidRoute = availableRoutes.some((route) => 
+        pathname === route.path || pathname.startsWith(`${route.path}/`)
+      )
+      setShowNotFound(!isValidRoute)
+    }
+  }, [pathname, availableRoutes, isLoading])
 
-   useEffect(() => {
-      if (!isLoading && availableRoutes) {
-         const isValidRoute = availableRoutes.some(route => 
-            pathname === route || pathname.startsWith(`${route}/`)
-         )
-         setShowNotFound(!isValidRoute)
-      }
-   }, [pathname, availableRoutes, isLoading])
-
-   return showNotFound ? <NotFound /> : null
+  return showNotFound ? <NotFound /> : null
 }

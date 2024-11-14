@@ -13,7 +13,6 @@ import TicketReducer from "./apps/tickets/TicketSlice";
 import ContactsReducer from "./apps/contacts/ContactSlice";
 import UserProfileReducer from "./apps/userProfile/UserProfileSlice";
 import BlogReducer from "./apps/blog/BlogSlice";
-import RoutesReducer from './routes/RouteSlice'
 
 const persistConfig = {
   key: "root",
@@ -32,26 +31,24 @@ export const store = configureStore({
     ticketReducer: TicketReducer,
     userpostsReducer: UserProfileReducer,
     blogReducer: BlogReducer,
-    routes: RoutesReducer,
   },
   devTools: process.env.NODE_ENV !== "production",
   middleware: (getDefaultMiddleware) =>
-  getDefaultMiddleware({ serializableCheck: false, immutableCheck: false }),
+    getDefaultMiddleware({ serializableCheck: false, immutableCheck: false }),
 });
 
 const rootReducer = combineReducers({
-  counter: counterReducer,
-  customizer: CustomizerReducer,
-  ecommerceReducer: EcommerceReducer,
-  chatReducer: ChatsReducer,
-  emailReducer: EmailReducer,
-  notesReducer: NotesReducer,
-  contactsReducer: ContactsReducer,
-  ticketReducer: TicketReducer,
-  userpostsReducer: UserProfileReducer,
-  blogReducer: BlogReducer,
-  routes: RoutesReducer,
-});
+   counter: counterReducer,
+   customizer: CustomizerReducer,
+   ecommerceReducer: EcommerceReducer,
+   chatReducer: ChatsReducer,
+   emailReducer: EmailReducer,
+   notesReducer: NotesReducer,
+   contactsReducer: ContactsReducer,
+   ticketReducer: TicketReducer,
+   userpostsReducer: UserProfileReducer,
+   blogReducer: BlogReducer,
+ });
 
 export const persistor = persistStore(store);
 export type RootState = ReturnType<typeof store.getState>;
