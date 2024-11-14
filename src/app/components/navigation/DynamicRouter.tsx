@@ -1,39 +1,28 @@
 'use client'
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
+import NotFound from '@/app/not-found'
+import { useSelector } from '@/store/hooks'
+import { AppState } from '@/store/store'
+import { NavigationService } from '@/services/api.service'
 
 export function DynamicRouter() {
-  const router = useRouter()
+   const pathname = usePathname()
+   const [showNotFound, setShowNotFound] = useState(false)
+   const { availableRoutes, isLoading } = useSelector((state: AppState) => state.routes)
 
-  useEffect(() => {
-    async function loadRoutes() {
-      // In the future, this would be an API call
-      // const routes = await fetch('/api/routes').then(res => res.json())
-      
-      // For now, hardcoded routes
-      const routes = {
-        availableRoutes: ['/', 'test', 'test2'],
-        routeData: {
-          test: {
-            title: 'Test Page',
-            // content: 'This is test page content'
-          },
-          test2: {
-            title: 'Test Page 2',
-            // content: 'This is test page 2 content'
-          }
-        }
-      };
-      
-      // Store route data in localStorage for the dynamic page to use
-      localStorage.setItem('routeData', JSON.stringify(routes.routeData));
-      
-      // Randomly select a route
-      const randomRoute = routes.availableRoutes[Math.floor(Math.random() * routes.availableRoutes.length)];
-      router.push(randomRoute);
-    }
-    loadRoutes()
-  }, [])
+   useEffect(() => {
+      NavigationService.initializeRoutes()
+   }, [])
 
-  return null;
-} 
+   useEffect(() => {
+      if (!isLoading && availableRoutes) {
+         const isValidRoute = availableRoutes.some(route => 
+            pathname === route || pathname.startsWith(`${route}/`)
+         )
+         setShowNotFound(!isValidRoute)
+      }
+   }, [pathname, availableRoutes, isLoading])
+
+   return showNotFound ? <NotFound /> : null
+}

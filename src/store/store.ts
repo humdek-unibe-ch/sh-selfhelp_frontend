@@ -13,6 +13,7 @@ import TicketReducer from "./apps/tickets/TicketSlice";
 import ContactsReducer from "./apps/contacts/ContactSlice";
 import UserProfileReducer from "./apps/userProfile/UserProfileSlice";
 import BlogReducer from "./apps/blog/BlogSlice";
+import RoutesReducer from './routes/RouteSlice'
 
 const persistConfig = {
   key: "root",
@@ -31,6 +32,7 @@ export const store = configureStore({
     ticketReducer: TicketReducer,
     userpostsReducer: UserProfileReducer,
     blogReducer: BlogReducer,
+    routes: RoutesReducer,
   },
   devTools: process.env.NODE_ENV !== "production",
   middleware: (getDefaultMiddleware) =>
@@ -48,6 +50,7 @@ const rootReducer = combineReducers({
   ticketReducer: TicketReducer,
   userpostsReducer: UserProfileReducer,
   blogReducer: BlogReducer,
+  routes: RoutesReducer,
 });
 
 export const persistor = persistStore(store);
