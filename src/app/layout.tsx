@@ -2,6 +2,7 @@ import React from "react";
 import { Providers } from "@/store/providers";
 import MyApp from "./app";
 import "./global.css";
+import { DynamicRouter } from "./components/navigation/DynamicRouter";
 
 
 export const metadata = {
@@ -18,7 +19,10 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body>
         <Providers>
-          <MyApp>{children}</MyApp>
+          <MyApp>
+            <DynamicRouter />
+            {children}
+          </MyApp>
         </Providers>
       </body>
     </html>

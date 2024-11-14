@@ -14,72 +14,35 @@ interface MenuitemsType {
   variant?: string;
   external?: boolean;
 }
-import { IconBoxMultiple, IconPoint, IconChartPie } from "@tabler/icons-react";
+import { IconBoxMultiple, IconPoint, IconChartPie, IconTestPipe } from "@tabler/icons-react";
 
-const Menuitems: MenuitemsType[] = [
+const Menuitems = [
   {
     navlabel: true,
     subheader: "Home",
   },
-
   {
     id: uniqueId(),
-    title: "Starter Page",
+    title: "Dashboard",
     icon: IconChartPie,
     href: "/",
   },
   {
     navlabel: true,
-    subheader: "Other",
+    subheader: "Dynamic Pages",
   },
   {
     id: uniqueId(),
-    title: "Menu Level",
-    icon: IconBoxMultiple,
-    href: "/menulevel/",
-    children: [
-      {
-        id: uniqueId(),
-        title: "Level 1",
-        icon: IconPoint,
-        href: "/l1",
-      },
-      {
-        id: uniqueId(),
-        title: "Level 1.1",
-        icon: IconPoint,
-        href: "/l1.1",
-        children: [
-          {
-            id: uniqueId(),
-            title: "Level 2",
-            icon: IconPoint,
-            href: "/l2",
-          },
-          {
-            id: uniqueId(),
-            title: "Level 2.1",
-            icon: IconPoint,
-            href: "/l2.1",
-            children: [
-              {
-                id: uniqueId(),
-                title: "Level 3",
-                icon: IconPoint,
-                href: "/l3",
-              },
-              {
-                id: uniqueId(),
-                title: "Level 3.1",
-                icon: IconPoint,
-                href: "/l3.1",
-              },
-            ],
-          },
-        ],
-      },
-    ],
+    title: "Test Page",
+    icon: IconTestPipe,
+    href: "/test",
   },
+  {
+    id: uniqueId(),
+    title: "Test Page 2",
+    icon: IconTestPipe,
+    href: "/test2",
+  }
 ];
 
 export default Menuitems;
