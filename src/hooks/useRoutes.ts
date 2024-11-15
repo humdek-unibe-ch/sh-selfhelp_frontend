@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { NavigationService } from '@/services/api.service';
-import { Route } from '@/types/navigation.types';
+import { Route } from '@/types/navigation/navigation.types';
 
 export function useRoutes() {
   return useQuery<Route[], Error>({
