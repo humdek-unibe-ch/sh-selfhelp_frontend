@@ -1,17 +1,17 @@
-export interface navItemProps {
-  item: {
-    icon: string;
-    href?: string;
-    disabled?: boolean;
-    title?: string;
-    subtitle?: string;
-    chip?: string;
-    chipColor?: string;
-    variant?: string;
-    external?: boolean;
-    id: number;
-  };
-}
+export interface MenuitemsType {
+   [x: string]: any;
+   id?: string;
+   navlabel?: boolean;
+   subheader?: string;
+   title?: string;
+   icon?: any;
+   href?: string;
+   children?: MenuitemsType[];
+   chip?: string;
+   chipColor?: string;
+   variant?: string;
+   external?: boolean;
+ }
 
 export interface listItemType {
   component: any;

@@ -14,13 +14,13 @@ import {
 } from '@mui/material';
 import { IconSearch, IconX } from '@tabler/icons-react';
 import Link from 'next/link';
-import { useRoutes } from '@/hooks/useRoutes';
+import { useNavigation } from '@/hooks/useNavigation';
 
 const Search = () => {
   const [showDrawer2, setShowDrawer2] = useState(false);
   const [search, setSearch] = useState('');
 
-  const { data: routes = [] } = useRoutes();
+  const { routes: routes = [] } = useNavigation();
 
   const filterRoutes = (routes: any[], searchTerm: string) => {
     if (!searchTerm) return routes;

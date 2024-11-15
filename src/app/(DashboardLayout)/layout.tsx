@@ -8,7 +8,7 @@ import Navigation from "./layout/horizontal/navbar/Navigation";
 import HorizontalHeader from "./layout/horizontal/header/Header";
 import { useSelector } from "@/store/hooks";
 import { AppState } from "@/store/store";
-import { useRoutes } from '@/hooks/useRoutes';
+import { useNavigation } from "@/hooks/useNavigation";
 
 const MainWrapper = styled("div")(() => ({
 }));
@@ -31,7 +31,7 @@ export default function RootLayout({
 }: {
    children: React.ReactNode;
 }) {
-   const { data: routes, isLoading } = useRoutes();
+   const { routes: routes, isLoading } = useNavigation();
    const customizer = useSelector((state: AppState) => state.customizer);
    const theme = useTheme();
 

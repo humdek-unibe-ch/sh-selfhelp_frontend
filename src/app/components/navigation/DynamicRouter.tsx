@@ -2,21 +2,21 @@
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import NotFound from '@/app/not-found'
-import { useRoutes } from '@/hooks/useRoutes'
+import { useNavigation } from '@/hooks/useNavigation'
 
 export function DynamicRouter() {
   const pathname = usePathname()
   const [showNotFound, setShowNotFound] = useState(false)
-  const { data: availableRoutes, isLoading } = useRoutes()
+  const { routes, isLoading } = useNavigation()
 
   useEffect(() => {
-    if (!isLoading && availableRoutes) {
-      const isValidRoute = availableRoutes.some((route) => 
+    if (!isLoading && routes) {
+      const isValidRoute = routes.some((route) => 
         pathname === route.path || pathname.startsWith(`${route.path}/`)
       )
       setShowNotFound(!isValidRoute)
     }
-  }, [pathname, availableRoutes, isLoading])
+  }, [pathname, routes, isLoading])
 
   return showNotFound ? <NotFound /> : null
 }

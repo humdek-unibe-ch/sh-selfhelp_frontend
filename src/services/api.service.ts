@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { API_CONFIG } from '../config/api.config';
-import { NavigationResponse, Route } from '../types/navigation/navigation.types';
+import { NavigationItem, NavigationResponse, Route } from '../types/navigation/navigation.types';
 
 const apiClient = axios.create({
    baseURL: API_CONFIG.BASE_URL,
@@ -11,13 +11,8 @@ const apiClient = axios.create({
 });
 
 export const NavigationService = {
-   getRoutes: async (): Promise<Route[]> => {
+   getRoutes: async (): Promise<NavigationItem[]> => {
       const response = await apiClient.get<NavigationResponse>(API_CONFIG.ENDPOINTS.NAVIGATION);
-      return response.data.data.map(item => ({
-         title: item.keyword,
-         path: item.url,
-         isNav: item.nav_position !== null,
-         position: item.nav_position
-      }));
+      return response.data.data;
    }
 };
