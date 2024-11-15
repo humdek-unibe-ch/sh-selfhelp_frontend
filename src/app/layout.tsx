@@ -4,8 +4,8 @@ import MyApp from "./app";
 import "./global.css";
 
 export const metadata = {
-  title: "MaterialPro StarterKit",
-  description: "MaterialPro kit",
+  title: "SelfHelp",
+  description: "SelfHelp",
 };
 
 export default function RootLayout({
