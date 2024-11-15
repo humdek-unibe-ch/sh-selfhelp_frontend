@@ -9,8 +9,12 @@ const Search = () => {
    const [showDrawer2, setShowDrawer2] = useState(false);
    const [search, setSearch] = useState('');
 
+   const handleClose = () => {
+      setShowDrawer2(false);
+      setSearch('');
+   };
+
    const { menuItems = [] } = useNavigation();
-   console.log(menuItems);
 
    const filterRoutes = (menuItems: MenuitemsType[], searchTerm: string) => {
       if (!searchTerm) return menuItems;
@@ -36,7 +40,7 @@ const Search = () => {
          </IconButton>
          <Dialog
             open={showDrawer2}
-            onClose={() => setShowDrawer2(false)}
+            onClose={handleClose}
             fullWidth
             maxWidth={'sm'}
             aria-labelledby="alert-dialog-title"
@@ -49,10 +53,11 @@ const Search = () => {
                      id="tb-search"
                      placeholder="Search here"
                      fullWidth
+                     value={search}
                      onChange={(e) => setSearch(e.target.value)}
                      inputProps={{ 'aria-label': 'Search here' }}
                   />
-                  <IconButton size="small" onClick={() => setShowDrawer2(false)}>
+                  <IconButton size="small" onClick={handleClose}>
                      <IconX size="18" />
                   </IconButton>
                </Stack>
