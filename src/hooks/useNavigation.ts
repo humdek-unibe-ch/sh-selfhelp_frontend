@@ -49,7 +49,8 @@ export function useNavigation() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['navigation'],
     queryFn: NavigationService.getRoutes,
-    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+   //  staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+   staleTime: 1000, // Consider data fresh every second
   });
 
   return {
