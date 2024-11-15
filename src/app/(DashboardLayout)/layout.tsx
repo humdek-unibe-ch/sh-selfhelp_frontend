@@ -14,60 +14,60 @@ const MainWrapper = styled("div")(() => ({
 }));
 
 const PageWrapper = styled("div")(() => ({
-  display: "flex",
-  flexGrow: 1,
-  paddingBottom: "60px",
-  flexDirection: "column",
-  zIndex: 1,
-  backgroundColor: "transparent",
+   display: "flex",
+   flexGrow: 1,
+   paddingBottom: "60px",
+   flexDirection: "column",
+   zIndex: 1,
+   backgroundColor: "transparent",
 }));
 
 interface Props {
-  children: React.ReactNode;
+   children: React.ReactNode;
 }
 
 export default function RootLayout({
-  children,
+   children,
 }: {
-  children: React.ReactNode;
+   children: React.ReactNode;
 }) {
-  const { data: routes, isLoading } = useRoutes();
-  const customizer = useSelector((state: AppState) => state.customizer);
-  const theme = useTheme();
+   const { data: routes, isLoading } = useRoutes();
+   const customizer = useSelector((state: AppState) => state.customizer);
+   const theme = useTheme();
 
-  if (isLoading) return <div>Loading...</div>;
+   if (isLoading) return <div>Loading...</div>;
 
-  return (
-    <MainWrapper>
-      <title>MaterialPro NextJs 14.0.3 Admin Dashboard</title>
-      {customizer.isHorizontal ? "" : <Header />}
-      {customizer.isHorizontal ? "" : <Sidebar />}
-      <PageWrapper
-        className="page-wrapper"
-        sx={{
-          ...(customizer.isHorizontal == false && {
-            [theme.breakpoints.up("lg")]: {
-              ml: `${customizer.SidebarWidth}px`,
-            },
-          }),
-          ...(customizer.isCollapse && {
-            [theme.breakpoints.up("lg")]: {
-              ml: `${customizer.MiniSidebarWidth}px`,
-            },
-          }),
-        }}
-      >
-        {customizer.isHorizontal ? <HorizontalHeader /> : ""}
-        {customizer.isHorizontal ? <Navigation /> : ""}
-        <Container
-          sx={{
-            maxWidth: customizer.isLayout === "boxed" ? "lg" : "100%!important",
-          }}
-        >
-          <Box sx={{ minHeight: "calc(100vh - 170px)" }}>{children}</Box>
-        </Container>
-        <Customizer />
-      </PageWrapper>
-    </MainWrapper>
-  );
+   return (
+      <MainWrapper>
+         <title>SelfHelp</title>
+         {customizer.isHorizontal ? "" : <Header />}
+         {customizer.isHorizontal ? "" : <Sidebar />}
+         <PageWrapper
+            className="page-wrapper"
+            sx={{
+               ...(customizer.isHorizontal == false && {
+                  [theme.breakpoints.up("lg")]: {
+                     ml: `${customizer.SidebarWidth}px`,
+                  },
+               }),
+               ...(customizer.isCollapse && {
+                  [theme.breakpoints.up("lg")]: {
+                     ml: `${customizer.MiniSidebarWidth}px`,
+                  },
+               }),
+            }}
+         >
+            {customizer.isHorizontal ? <HorizontalHeader /> : ""}
+            {customizer.isHorizontal ? <Navigation /> : ""}
+            <Container
+               sx={{
+                  maxWidth: customizer.isLayout === "boxed" ? "lg" : "100%!important",
+               }}
+            >
+               <Box sx={{ minHeight: "calc(100vh - 170px)" }}>{children}</Box>
+            </Container>
+            <Customizer />
+         </PageWrapper>
+      </MainWrapper>
+   );
 }
