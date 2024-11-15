@@ -60,8 +60,9 @@ export default  function NavCollapse ({
   const pathname  = usePathname();
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const menuIcon =
-    level > 1 ? <Icon stroke={1.5} size="1rem" /> : <Icon stroke={1.5} size="1.3rem" />;
+  const menuIcon = Icon ? (
+   level > 1 ? <Icon stroke={1.5} size="1rem" /> : <Icon stroke={1.5} size="1.3rem" />
+ ) : null;
 
   const handleClick = () => {
     setOpen(!open);

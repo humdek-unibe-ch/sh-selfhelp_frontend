@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 import PageContainer from "@/app/components/container/PageContainer";
 import DashboardCard from "@/app/components/shared/DashboardCard";
 import Breadcrumb from "@/app/(DashboardLayout)/layout/shared/breadcrumb/Breadcrumb";
-import { useRoutes } from '@/hooks/useRoutes';
+import { useNavigation } from "@/hooks/useNavigation";
 
 interface PageData {
    title: string;
@@ -15,12 +15,11 @@ interface PageData {
 export default function DynamicPage({ params }: { params: { slug: string } }) {
    const [pageData, setPageData] = useState<PageData | null>(null);
 
-   const { data: routes, isLoading: routesLoading } = useRoutes();
+   const { routes: routes, isLoading: routesLoading } = useNavigation();
 
    const isValid = routes?.some(route => route.path === `/${params.slug}`);
 
    useEffect(() => {
-      console.log('Loading page data for:', params.slug);
       async function loadPageData() {         
          const mockData = {
             title: params.slug.charAt(0).toUpperCase() + params.slug.slice(1),
@@ -37,8 +36,6 @@ export default function DynamicPage({ params }: { params: { slug: string } }) {
    }
 
    if (!routesLoading && !isValid) {
-      console.log('Routes:', routes); // Debug log
-      console.log('Checking path:', `/${params.slug}`); // Debug log
       notFound();
    }
 

@@ -1,5 +1,4 @@
 export interface MenuitemsType {
-   [x: string]: any;
    id?: string;
    navlabel?: boolean;
    subheader?: string;

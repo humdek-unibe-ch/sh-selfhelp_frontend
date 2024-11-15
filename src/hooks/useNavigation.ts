@@ -8,25 +8,31 @@ function transformToMenuItems(items: NavigationItem[]): MenuitemsType[] {
   return items
     .filter(item => item.nav_position !== null)
     .sort((a, b) => (a.nav_position ?? 0) - (b.nav_position ?? 0))
-    .map(item => ({
-      id: item.id_pages.toString(),
-      title: item.keyword,
-      href: item.url,
-      icon: IconLayoutDashboard,
-      disabled: item.id_pageAccessTypes !== 1,
-      external: item.protocol !== 'internal',
-      children: items
+    .map(item => {
+      const childItems = items
         .filter(child => child.parent === item.id_pages)
-        .sort((a, b) => (a.nav_position ?? 0) - (b.nav_position ?? 0))
-        .map(child => ({
+        .sort((a, b) => (a.nav_position ?? 0) - (b.nav_position ?? 0));
+
+      const menuItem: MenuitemsType = {
+        id: item.id_pages.toString(),
+        title: item.keyword,
+        href: item.url,
+        icon: null,
+        external: item.protocol !== 'internal'
+      };
+
+      if (childItems.length > 0) {
+        menuItem.children = childItems.map(child => ({
           id: child.id_pages.toString(),
           title: child.keyword,
           href: child.url,
           icon: IconPoint,
           disabled: child.id_pageAccessTypes !== 1,
           external: child.protocol !== 'internal'
-        }))
-    }));
+        }));
+      }
+      return menuItem;
+    });
 }
 
 function transformToRoutes(items: NavigationItem[]): Route[] {

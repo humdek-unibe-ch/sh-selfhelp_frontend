@@ -50,8 +50,9 @@ export default function NavItem  ({ item, level, pathDirect, hideMenu, onClick }
   const Icon = item?.icon;
   const theme = useTheme();
   const { t } = useTranslation();
-  const itemIcon =
-    level > 1 ? <Icon stroke={1.5} size="1rem" /> : <Icon stroke={1.5} size="1.3rem" />;
+  const itemIcon = Icon ? (
+    level > 1 ? <Icon stroke={1.5} size="1rem" /> : <Icon stroke={1.5} size="1.3rem" />
+  ) : null;
 
   const ListItemStyled = styled(ListItemButton)(() => ({
     whiteSpace: 'nowrap',
@@ -98,18 +99,20 @@ export default function NavItem  ({ item, level, pathDirect, hideMenu, onClick }
           selected={pathDirect === item?.href}
           onClick={lgDown ? onClick : undefined}>
 
-          <ListItemIcon
-            sx={{
-              minWidth: '36px',
-              p: '3px 0',
-              color:
-                level > 1 && pathDirect === item?.href
-                  ? `${theme.palette.primary.main}!important`
-                  : 'inherit',
-            }}
-          >
-            {itemIcon}
-          </ListItemIcon>
+          {itemIcon && (
+            <ListItemIcon
+              sx={{
+                minWidth: '36px',
+                p: '3px 0',
+                color:
+                  level > 1 && pathDirect === item?.href
+                    ? `${theme.palette.primary.main}!important`
+                    : 'inherit',
+              }}
+            >
+              {itemIcon}
+            </ListItemIcon>
+          )}
           <ListItemText>
             {hideMenu ? '' : <>{t(`${item?.title}`)}</>}
             <br />
