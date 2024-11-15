@@ -18,7 +18,7 @@ function transformToMenuItems(items: NavigationItem[]): MenuitemsType[] {
         title: item.keyword,
         href: item.url,
         icon: null,
-        external: item.protocol !== 'internal'
+        external: false
       };
 
       if (childItems.length > 0) {
@@ -28,9 +28,10 @@ function transformToMenuItems(items: NavigationItem[]): MenuitemsType[] {
           href: child.url,
           icon: IconPoint,
           disabled: child.id_pageAccessTypes !== 1,
-          external: child.protocol !== 'internal'
+          external: false
         }));
       }
+
       return menuItem;
     });
 }
