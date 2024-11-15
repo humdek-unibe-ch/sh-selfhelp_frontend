@@ -2,7 +2,7 @@ import mock from '../mock';
 import { sub } from 'date-fns';
 import { Chance } from 'chance';
 import { uniqueId } from 'lodash';
-import type { userType } from '@/app/(DashboardLayout)/types/apps/users';
+import type { userType } from '@/types/apps/users';
 
 const chance = new Chance();
 

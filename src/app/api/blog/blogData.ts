@@ -3,7 +3,7 @@ import { Chance } from "chance";
 import { random } from "lodash";
 import { sub } from "date-fns";
 import { uniqueId } from "lodash";
-import { BlogType, BlogPostType } from "../../(DashboardLayout)/types/apps/blog";
+import { BlogType, BlogPostType } from "../../../types/apps/blog";
 
 const chance = new Chance();
 

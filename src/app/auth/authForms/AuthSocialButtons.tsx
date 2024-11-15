@@ -1,7 +1,7 @@
 import CustomSocialButton from "@/app/components/forms/theme-elements/CustomSocialButton";
 import { Stack } from "@mui/system";
 import { Avatar, Box } from "@mui/material";
-import { signInType } from "@/app/(DashboardLayout)/types/auth/auth";
+import { signInType } from "@/types/auth/auth";
 
 const AuthSocialButtons = ({ title }: signInType) => (
   <>

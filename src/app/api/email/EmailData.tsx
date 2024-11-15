@@ -1,5 +1,5 @@
 import mock from '../mock';
-import type { EmailType } from '@/app/(DashboardLayout)/types/apps/email';
+import type { EmailType } from '@/types/apps/email';
 import { sub } from 'date-fns';
 
 const EmailData: EmailType[] = [

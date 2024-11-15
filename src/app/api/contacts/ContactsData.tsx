@@ -1,5 +1,5 @@
 import mock from '../mock';
-import type { ContactType } from '@/app/(DashboardLayout)/types/apps/contact';
+import type { ContactType } from '@/types/apps/contact';
 import { Chance } from 'chance';
 
 const chance = new Chance();

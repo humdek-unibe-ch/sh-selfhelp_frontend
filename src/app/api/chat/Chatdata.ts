@@ -1,6 +1,6 @@
 import mock from '../mock';
 import { Chance } from 'chance';
-import type { ChatsType } from '@/app/(DashboardLayout)/types/apps/chat';
+import type { ChatsType } from '@/types/apps/chat';
 import { sub } from 'date-fns';
 import { uniqueId } from 'lodash';
 

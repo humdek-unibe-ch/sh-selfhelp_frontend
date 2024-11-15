@@ -1,6 +1,6 @@
 import mock from '../mock';
 import { Chance } from 'chance';
-import { TicketType } from '@/app/(DashboardLayout)/types/apps/ticket';
+import { TicketType } from '@/types/apps/ticket';
 
 const chance = new Chance();
 

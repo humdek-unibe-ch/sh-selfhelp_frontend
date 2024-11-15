@@ -1,6 +1,6 @@
 import mock from '../mock';
 import { Chance } from 'chance';
-import { PostType } from '@/app/(DashboardLayout)/types/apps/userProfile';
+import { PostType } from '@/types/apps/userProfile';
 
 const chance = new Chance();
 
