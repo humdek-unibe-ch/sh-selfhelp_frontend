@@ -1,14 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Typography } from "@mui/material";
-import { notFound, usePathname } from 'next/navigation';
-import { useSelector } from '@/store/hooks';
-import { RootState } from '@/store/store';
+import { notFound } from 'next/navigation';
 import PageContainer from "@/app/components/container/PageContainer";
 import DashboardCard from "@/app/components/shared/DashboardCard";
 import Breadcrumb from "@/app/(DashboardLayout)/layout/shared/breadcrumb/Breadcrumb";
-import { useQuery } from '@tanstack/react-query';
-import { NavigationService } from '@/services/api.service';
+import { useRoutes } from '@/hooks/useRoutes';
 
 interface PageData {
    title: string;
@@ -17,16 +14,8 @@ interface PageData {
 
 export default function DynamicPage({ params }: { params: { slug: string } }) {
    const [pageData, setPageData] = useState<PageData | null>(null);
-   const [isLoading, setLoading] = useState(true);
 
-   const { data: routes, isLoading: routesLoading } = useQuery({
-      queryKey: ['routes'],
-      queryFn: async () => {
-         const response = await NavigationService.getRoutes();
-         if (!response) throw new Error('No routes received');
-         return response;
-      }
-   });
+   const { data: routes, isLoading: routesLoading } = useRoutes();
 
    const isValid = routes?.some(route => route.path === `/${params.slug}`);
 
@@ -39,7 +28,6 @@ export default function DynamicPage({ params }: { params: { slug: string } }) {
          };
 
          setPageData(mockData);
-         setLoading(false);
       }
       loadPageData();
    }, [params.slug]);

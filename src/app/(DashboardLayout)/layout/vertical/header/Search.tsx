@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { useSelector } from "@/store/hooks";
-import { MenuitemsType } from '../sidebar/MenuItems';
 import {
   IconButton,
   Dialog,
@@ -16,21 +14,13 @@ import {
 } from '@mui/material';
 import { IconSearch, IconX } from '@tabler/icons-react';
 import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
-import { NavigationService } from '@/services/api.service';
+import { useRoutes } from '@/hooks/useRoutes';
 
 const Search = () => {
   const [showDrawer2, setShowDrawer2] = useState(false);
   const [search, setSearch] = useState('');
 
-  const { data: routes = [] } = useQuery({
-    queryKey: ['routes'],
-    queryFn: async () => {
-      const response = await NavigationService.getRoutes();
-      if (!response) throw new Error('No routes received');
-      return response;
-    }
-  });
+  const { data: routes = [] } = useRoutes();
 
   const filterRoutes = (routes: any[], searchTerm: string) => {
     if (!searchTerm) return routes;
