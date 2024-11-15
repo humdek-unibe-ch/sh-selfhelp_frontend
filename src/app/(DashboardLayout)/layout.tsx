@@ -1,12 +1,12 @@
 "use client";
 import { styled, Container, Box, useTheme } from "@mui/material";
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Header from "./layout/vertical/header/Header";
 import Sidebar from "./layout/vertical/sidebar/Sidebar";
 import Customizer from "./layout/shared/customizer/Customizer";
 import Navigation from "./layout/horizontal/navbar/Navigation";
 import HorizontalHeader from "./layout/horizontal/header/Header";
-import { useSelector, useDispatch } from "@/store/hooks";
+import { useSelector } from "@/store/hooks";
 import { AppState } from "@/store/store";
 import { useRoutes } from '@/hooks/useRoutes';
 
@@ -64,9 +64,7 @@ export default function RootLayout({
             maxWidth: customizer.isLayout === "boxed" ? "lg" : "100%!important",
           }}
         >
-          <Box sx={{ minHeight: "calc(100vh - 170px)" }}>
-            {children}
-          </Box>
+          <Box sx={{ minHeight: "calc(100vh - 170px)" }}>{children}</Box>
         </Container>
         <Customizer />
       </PageWrapper>

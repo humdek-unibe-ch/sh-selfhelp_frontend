@@ -13,32 +13,32 @@ import "@/utils/i18n";
 import "@/app/api/index";
 
 const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-      retry: 2,
-      refetchOnWindowFocus: false,
-    },
-  },
+   defaultOptions: {
+      queries: {
+         staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+         retry: 2,
+         refetchOnWindowFocus: false,
+      },
+   },
 });
 
 const MyApp = ({ children }: { children: React.ReactNode }) => {
-  const theme = ThemeSettings();
-  const customizer = useSelector((state: AppState) => state.customizer);
+   const theme = ThemeSettings();
+   const customizer = useSelector((state: AppState) => state.customizer);
 
-  return (
-    <QueryClientProvider client={queryClient}>
-      <AppRouterCacheProvider options={{ enableCssLayer: true }}>
-        <ThemeProvider theme={theme}>
-          <RTL direction={customizer.activeDir}>
-            <CssBaseline />
-            {children}
-          </RTL>
-        </ThemeProvider>
-      </AppRouterCacheProvider>
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
-  );
+   return (
+      <QueryClientProvider client={queryClient}>
+         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
+            <ThemeProvider theme={theme}>
+               <RTL direction={customizer.activeDir}>
+                  <CssBaseline />
+                  {children}
+               </RTL>
+            </ThemeProvider>
+         </AppRouterCacheProvider>
+         <ReactQueryDevtools initialIsOpen={false} />
+      </QueryClientProvider>
+   );
 };
 
 export default MyApp;
