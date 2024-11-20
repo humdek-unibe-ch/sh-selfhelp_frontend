@@ -1,5 +1,6 @@
 import React from 'react';
 import { ILinkStyle } from '@/types/api/styles.types';
+import InternalLink from './shared/InternalLink';
 
 interface ILinkStyleProps {
     style: ILinkStyle;
@@ -7,14 +8,12 @@ interface ILinkStyleProps {
 
 const LinkStyle: React.FC<ILinkStyleProps> = ({ style }) => {
     return (
-        <a 
-            href={style.url.content} 
+        <InternalLink 
+            href={style.url.content}
             className={style.css}
-            target={style.open_in_new_tab?.content === 'true' ? '_blank' : undefined}
-            rel={style.open_in_new_tab?.content === 'true' ? 'noopener noreferrer' : undefined}
         >
             {style.label.content}
-        </a>
+        </InternalLink>
     );
 };
 
