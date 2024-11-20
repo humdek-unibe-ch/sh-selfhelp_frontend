@@ -1,5 +1,6 @@
 import React from 'react';
 import { IDivStyle } from '@/types/api/styles.types';
+import BasicStyle from './BasicStyle';
 
 interface IDivStyleProps {
     style: IDivStyle;
@@ -8,7 +9,13 @@ interface IDivStyleProps {
 const DivStyle: React.FC<IDivStyleProps> = ({ style }) => {
     return (
         <div className={style.css}>
-            {style.children.length} children
+            {
+                style.children?.map(
+                    (childStyle, index) => (
+                        childStyle ? <BasicStyle key={`${childStyle.id.content}-${index}`} style={childStyle} /> : null
+                    )
+                )
+            }
         </div>
     );
 };
