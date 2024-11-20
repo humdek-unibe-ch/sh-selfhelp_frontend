@@ -23,7 +23,7 @@ const HeadingStyle: React.FC<IHeadingStyleProps> = ({ style }) => {
     
     return (
         <HeadingTag className={style.css}>
-            {style.text.content}
+            {style.title?.content}
         </HeadingTag>
     );
 };
