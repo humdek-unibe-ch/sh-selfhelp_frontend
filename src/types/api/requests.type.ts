@@ -10,5 +10,6 @@ export interface ApiResponse<T> {
 export interface PageContent {
     content: (Style | null)[];
     title: string;
+    description: string;
     is_headless: boolean;
 }
