@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { API_CONFIG } from '../config/api.config';
-import { ApiResponse } from '@/types/api/requests.type';
+import { ApiResponse, PageContent } from '@/types/api/requests.type';
 import { NavigationItem } from '@/types/api/navigation.type';
 
 const apiClient = axios.create({
@@ -17,3 +17,10 @@ export const NavigationService = {
        return response.data.data;
     }
  };
+
+ export const PageService = {
+    getPageContent: async (keyword: string): Promise<PageContent> => {
+        const response = await apiClient.get<ApiResponse<PageContent>>(API_CONFIG.ENDPOINTS.PAGE_CONTENT(keyword));
+        return response.data.data;
+    }
+};

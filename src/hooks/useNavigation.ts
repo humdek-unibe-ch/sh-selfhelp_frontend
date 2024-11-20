@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { NavigationService } from '@/services/api.service';
-import { NavigationItem, Route } from '@/types/navigation/navigation.types';
+import { Route } from '@/types/navigation/navigation.types';
 import { MenuitemsType } from '@/types/layout/sidebar';
 import { IconPoint } from '@tabler/icons-react';
-import { useCallback } from 'react';
+import { NavigationItem } from '@/types/api/navigation.type';
 
 interface NavigationData {
     routes: Route[];

@@ -6,6 +6,7 @@ import PageContainer from "@/app/components/container/PageContainer";
 import DashboardCard from "@/app/components/shared/DashboardCard";
 import Breadcrumb from "@/app/(DashboardLayout)/layout/shared/breadcrumb/Breadcrumb";
 import { useNavigation } from "@/hooks/useNavigation";
+import { usePageContent } from "@/hooks/usePageConent";
 
 interface PageData {
    title: string;
@@ -16,6 +17,8 @@ export default function DynamicPage({ params }: { params: { slug: string } }) {
    const [pageData, setPageData] = useState<PageData | null>(null);
 
    const { routes: routes, isLoading: routesLoading } = useNavigation();
+
+   const { content: pageContent, isLoading: pageLoading } = usePageContent(params.slug);
 
    const isValid = routes?.some(route => route.path === `/${params.slug}`);
 

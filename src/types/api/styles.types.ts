@@ -1,4 +1,4 @@
-export type Style = ContainerStyle | ImageStyle | MarkdownStyle | HeadingStyle | CardStyle | DivStyle;
+export type Style = ContainerStyle | ImageStyle | MarkdownStyle | HeadingStyle | CardStyle | DivStyle | ButtonStyle | CarouselStyle | LinkStyle;
 
 interface BaseStyle {
     id: IdType;
@@ -74,4 +74,37 @@ export interface ContentField<T> {
     type?: string;
     id?: string;
     default?: string;
+}
+
+export interface ButtonStyle extends BaseStyle {
+    style_name: 'button';
+    label: ContentField<string>;
+    url?: ContentField<string>;
+    type?: ContentField<string>;
+    label_cancel?: ContentField<string>;
+    confirmation_title?: ContentField<string>;
+    confirmation_continue?: ContentField<string>;
+    confirmation_message?: ContentField<string>;
+}
+
+interface CarouselSource {
+    source: string;
+    alt?: string;
+    caption?: string;
+}
+
+export interface CarouselStyle extends BaseStyle {
+    style_name: 'carousel';
+    sources: ContentField<CarouselSource[]>;
+    id_prefix?: ContentField<string>;
+    has_controls?: ContentField<string>;
+    has_indicators?: ContentField<string>;
+    has_crossfade?: ContentField<string>;
+}
+
+export interface LinkStyle extends BaseStyle {
+    style_name: 'link';
+    label: ContentField<string>;
+    url: ContentField<string>;
+    open_in_new_tab?: ContentField<string>;
 }
