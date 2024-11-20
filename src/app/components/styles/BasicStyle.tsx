@@ -1,14 +1,32 @@
 import React from 'react';
 import { TStyle } from '@/types/api/styles.types';
-import { IContainerStyle, IButtonStyle, ICardStyle, ICarouselStyle, IDivStyle, IHeadingStyle, IImageStyle, ILinkStyle, IMarkdownStyle } from '@/types/api/styles.types';
-import { ButtonStyle, CardStyle, CarouselStyle, ContainerStyle, DivStyle, HeadingStyle, ImageStyle, LinkStyle, MarkdownStyle } from './SelfHelpStyles';
+import { 
+    IContainerStyle, IButtonStyle, ICardStyle, ICarouselStyle, 
+    IDivStyle, IHeadingStyle, IImageStyle, ILinkStyle, IMarkdownStyle 
+} from '@/types/api/styles.types';
+import { 
+    ButtonStyle, CardStyle, CarouselStyle, ContainerStyle, 
+    DivStyle, HeadingStyle, ImageStyle, LinkStyle, MarkdownStyle 
+} from './SelfHelpStyles';
 
+/**
+ * Props interface for BasicStyle component
+ * @property {TStyle} style - The style configuration object
+ */
 interface IBasicStyleProps {
     style: TStyle;
 }
 
+/**
+ * BasicStyle is a component factory that renders different style components
+ * based on the style_name property. It uses type guards to ensure type safety
+ * when passing props to child components.
+ *
+ * @param {IBasicStyleProps} props - Component props
+ * @returns {JSX.Element} The appropriate styled component
+ */
 const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
-    // Type guard functions to ensure proper type casting
+    // Type guard functions for each style type
     const isContainer = (style: TStyle): style is IContainerStyle => style.style_name === 'container';
     const isImage = (style: TStyle): style is IImageStyle => style.style_name === 'image';
     const isMarkdown = (style: TStyle): style is IMarkdownStyle => style.style_name === 'markdown';
@@ -19,6 +37,10 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
     const isCarousel = (style: TStyle): style is ICarouselStyle => style.style_name === 'carousel';
     const isLink = (style: TStyle): style is ILinkStyle => style.style_name === 'link';
 
+    /**
+     * Renders the appropriate style component based on style_name
+     * Uses type guards to ensure type safety
+     */
     const renderStyle = () => {
         switch (style.style_name) {
             case 'container':

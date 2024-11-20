@@ -1,6 +1,15 @@
 import React from 'react';
 import Link from 'next/link';
 
+/**
+ * Props interface for InternalLink component
+ * @interface IInternalLinkProps
+ * @property {string} href - The URL or path to link to
+ * @property {React.ReactNode} children - The content to be rendered inside the link
+ * @property {string} [className] - Optional CSS class name for styling
+ * @property {string} [target] - Optional target attribute for the link
+ * @property {string} [rel] - Optional rel attribute for the link
+ */
 interface IInternalLinkProps {
     href: string;
     children: React.ReactNode;
@@ -9,6 +18,15 @@ interface IInternalLinkProps {
     rel?: string;
 }
 
+/**
+ * InternalLink component that handles both internal and external links.
+ * For internal links, it uses Next.js Link component for client-side navigation.
+ * For external links, it falls back to regular anchor tags with security attributes.
+ *
+ * @component
+ * @param {IInternalLinkProps} props - Component props
+ * @returns {JSX.Element} Rendered link component
+ */
 export const InternalLink: React.FC<IInternalLinkProps> = ({ href, children, className, ...props }) => {
     const isInternal = href && (
         href.startsWith('/') || 
