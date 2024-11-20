@@ -1,4 +1,4 @@
-import { Style } from "./styles.types";
+import { TStyle } from "./styles.types";
 
 export interface IApiResponse<T> {
     status: number;
@@ -8,7 +8,7 @@ export interface IApiResponse<T> {
 }
 
 export interface IPageContent {
-    content: (Style | null)[];
+    content: (TStyle | null)[];
     title: string;
     description: string;
     is_headless: boolean;

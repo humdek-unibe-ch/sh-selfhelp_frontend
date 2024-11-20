@@ -1,4 +1,4 @@
-export type Style = IContainerStyle | IImageStyle | IMarkdownStyle | IHeadingStyle | ICardStyle | IDivStyle | IButtonStyle | ICarouselStyle | ILinkStyle | IBaseStyle;
+export type TStyle = IContainerStyle | IImageStyle | IMarkdownStyle | IHeadingStyle | ICardStyle | IDivStyle | IButtonStyle | ICarouselStyle | ILinkStyle | IBaseStyle;
 
 interface IBaseStyle {
     id: IIdType;
@@ -12,7 +12,7 @@ interface IBaseStyle {
 
 export interface IContainerStyle extends IBaseStyle {
     style_name: 'container';
-    children: Style[];
+    children: TStyle[];
     is_fluid?: IContentField<string>;
     export_pdf?: IContentField<string>;
 }
@@ -44,7 +44,7 @@ export interface IHeadingStyle extends IBaseStyle {
 
 export interface ICardStyle extends IBaseStyle {
     style_name: 'card';
-    children: Style[];
+    children: TStyle[];
     title: IContentField<string>;
     type?: IContentField<string>;
     is_expanded?: IContentField<string>;
@@ -54,7 +54,7 @@ export interface ICardStyle extends IBaseStyle {
 
 export interface IDivStyle extends IBaseStyle {
     style_name: 'div';
-    children: Style[];
+    children: TStyle[];
     color_background?: IContentField<string>;
     color_border?: IContentField<string>;
     color_text?: IContentField<string>;
