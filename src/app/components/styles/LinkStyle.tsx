@@ -1,15 +1,20 @@
 import React from 'react';
-import { LinkStyle as LinkStyleType } from '@/types/api/styles.types';
+import { ILinkStyle } from '@/types/api/styles.types';
 
-interface LinkStyleProps {
-    style: LinkStyleType;
+interface ILinkStyleProps {
+    style: ILinkStyle;
 }
 
-const LinkStyle: React.FC<LinkStyleProps> = ({ style }) => {
+const LinkStyle: React.FC<ILinkStyleProps> = ({ style }) => {
     return (
-        <div className={style.css}>
-            Link Style: {style.label?.content} ({style.url?.content})
-        </div>
+        <a 
+            href={style.url.content} 
+            className={style.css}
+            target={style.open_in_new_tab?.content === 'true' ? '_blank' : undefined}
+            rel={style.open_in_new_tab?.content === 'true' ? 'noopener noreferrer' : undefined}
+        >
+            {style.label.content}
+        </a>
     );
 };
 

@@ -1,15 +1,17 @@
 import React from 'react';
-import { ImageStyle as ImageStyleType } from '@/types/api/styles.types';
+import { IImageStyle } from '@/types/api/styles.types';
 
-interface ImageStyleProps {
-    style: ImageStyleType;
+interface IImageStyleProps {
+    style: IImageStyle;
 }
 
-const ImageStyle: React.FC<ImageStyleProps> = ({ style }) => {
+const ImageStyle: React.FC<IImageStyleProps> = ({ style }) => {
     return (
-        <div className={style.css}>
-            Image Style: {style.img_src?.content} (Alt: {style.alt?.content})
-        </div>
+        <img 
+            src={style.img_src.content} 
+            alt={style.alt?.content || ''} 
+            className={style.css}
+        />
     );
 };
 

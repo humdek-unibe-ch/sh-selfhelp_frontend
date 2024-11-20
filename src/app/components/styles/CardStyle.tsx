@@ -1,14 +1,14 @@
 import React from 'react';
-import { CardStyle as CardStyleType } from '@/types/api/styles.types';
+import { ICardStyle } from '@/types/api/styles.types';
 
-interface CardStyleProps {
-    style: CardStyleType;
+interface ICardStyleProps {
+    style: ICardStyle;
 }
 
-const CardStyle: React.FC<CardStyleProps> = ({ style }) => {
+const CardStyle: React.FC<ICardStyleProps> = ({ style }) => {
     return (
         <div className={style.css}>
-            Card Style: {style.title?.content}
+            {style.title.content}
         </div>
     );
 };

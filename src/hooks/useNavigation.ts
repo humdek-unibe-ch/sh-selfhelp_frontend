@@ -1,17 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
 import { NavigationService } from '@/services/api.service';
-import { Route } from '@/types/navigation/navigation.types';
-import { MenuitemsType } from '@/types/layout/sidebar';
+import { IRoute } from '@/types/navigation/navigation.types';
+import { IMenuitemsType } from '@/types/layout/sidebar';
 import { IconPoint } from '@tabler/icons-react';
-import { NavigationItem } from '@/types/api/navigation.type';
+import { INavigationItem } from '@/types/api/navigation.type';
 
-interface NavigationData {
-    routes: Route[];
-    menuItems: MenuitemsType[];
+interface INavigationData {
+    routes: IRoute[];
+    menuItems: IMenuitemsType[];
 }
 
 // Move transform functions outside
-function transformToRoutes(items: NavigationItem[]): Route[] {
+function transformToRoutes(items: INavigationItem[]): IRoute[] {
     return items.map(item => ({
         title: item.keyword,
         path: item.url,
@@ -20,7 +20,7 @@ function transformToRoutes(items: NavigationItem[]): Route[] {
     }));
 }
 
-function transformToMenuItems(items: NavigationItem[]): MenuitemsType[] {
+function transformToMenuItems(items: INavigationItem[]): IMenuitemsType[] {
     return items
         .filter(item => item.nav_position !== null)
         .sort((a, b) => (a.nav_position ?? 0) - (b.nav_position ?? 0))
@@ -29,7 +29,7 @@ function transformToMenuItems(items: NavigationItem[]): MenuitemsType[] {
                 .filter(child => child.parent === item.id_pages)
                 .sort((a, b) => (a.nav_position ?? 0) - (b.nav_position ?? 0));
 
-            const menuItem: MenuitemsType = {
+            const menuItem: IMenuitemsType = {
                 id: item.id_pages.toString(),
                 title: item.keyword,
                 href: item.url,

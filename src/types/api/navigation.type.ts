@@ -1,4 +1,4 @@
-export interface NavigationItem {
+export interface INavigationItem {
     id_users: number;
     id_pages: number;
     acl_select: number;

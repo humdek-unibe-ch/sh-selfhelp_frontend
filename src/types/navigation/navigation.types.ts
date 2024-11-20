@@ -1,4 +1,4 @@
-export interface Route {
+export interface IRoute {
     title: string;
     path: string;
     isNav: boolean;

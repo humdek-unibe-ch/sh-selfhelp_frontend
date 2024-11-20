@@ -1,14 +1,14 @@
 import React from 'react';
-import { DivStyle as DivStyleType } from '@/types/api/styles.types';
+import { IDivStyle } from '@/types/api/styles.types';
 
-interface DivStyleProps {
-    style: DivStyleType;
+interface IDivStyleProps {
+    style: IDivStyle;
 }
 
-const DivStyle: React.FC<DivStyleProps> = ({ style }) => {
+const DivStyle: React.FC<IDivStyleProps> = ({ style }) => {
     return (
         <div className={style.css}>
-            Div Style: {style.children.length} children
+            {style.children.length} children
         </div>
     );
 };

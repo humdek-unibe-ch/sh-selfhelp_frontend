@@ -1,15 +1,15 @@
 import React from 'react';
-import { ButtonStyle as ButtonStyleType } from '@/types/api/styles.types';
+import { IButtonStyle } from '@/types/api/styles.types';
 
-interface ButtonStyleProps {
-    style: ButtonStyleType;
+interface IButtonStyleProps {
+    style: IButtonStyle;
 }
 
-const ButtonStyle: React.FC<ButtonStyleProps> = ({ style }) => {
+const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
     return (
-        <div className={style.css}>
-            Button Style: {style.label?.content}
-        </div>
+        <button className={style.css}>
+            {style.label.content}
+        </button>
     );
 };
 

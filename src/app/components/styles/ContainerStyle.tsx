@@ -1,11 +1,11 @@
 import React from 'react';
-import { ContainerStyle as ContainerStyleType } from '@/types/api/styles.types';
+import { IContainerStyle } from '@/types/api/styles.types';
 
-interface ContainerStyleProps {
-    style: ContainerStyleType;
+interface IContainerStyleProps {
+    style: IContainerStyle;
 }
 
-const ContainerStyle: React.FC<ContainerStyleProps> = ({ style }) => {
+const ContainerStyle: React.FC<IContainerStyleProps> = ({ style }) => {
     return (
         <div className={style.css}>
             Container Style: {style.children.length} children

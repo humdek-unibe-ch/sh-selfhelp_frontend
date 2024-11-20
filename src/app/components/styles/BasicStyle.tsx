@@ -1,22 +1,23 @@
 import React from 'react';
 import { Style } from '@/types/api/styles.types';
-import { ButtonStyle, CardStyle, CarouselStyle, ContainerStyle, DivStyle, HeadingStyle, ImageStyle, LinkStyle, MarkdownStyle } from './index';
+import { IContainerStyle, IButtonStyle, ICardStyle, ICarouselStyle, IDivStyle, IHeadingStyle, IImageStyle, ILinkStyle, IMarkdownStyle } from '@/types/api/styles.types';
+import { ButtonStyle, CardStyle, CarouselStyle, ContainerStyle, DivStyle, HeadingStyle, ImageStyle, LinkStyle, MarkdownStyle } from './SelfHelpStyles';
 
-interface BasicStyleProps {
+interface IBasicStyleProps {
     style: Style;
 }
 
-const BasicStyle: React.FC<BasicStyleProps> = ({ style }) => {
+const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
     // Type guard functions to ensure proper type casting
-    const isContainer = (style: Style): style is ContainerStyle => style.style_name === 'container';
-    const isImage = (style: Style): style is ImageStyle => style.style_name === 'image';
-    const isMarkdown = (style: Style): style is MarkdownStyle => style.style_name === 'markdown';
-    const isHeading = (style: Style): style is HeadingStyle => style.style_name === 'heading';
-    const isCard = (style: Style): style is CardStyle => style.style_name === 'card';
-    const isDiv = (style: Style): style is DivStyle => style.style_name === 'div';
-    const isButton = (style: Style): style is ButtonStyle => style.style_name === 'button';
-    const isCarousel = (style: Style): style is CarouselStyle => style.style_name === 'carousel';
-    const isLink = (style: Style): style is LinkStyle => style.style_name === 'link';
+    const isContainer = (style: Style): style is IContainerStyle => style.style_name === 'container';
+    const isImage = (style: Style): style is IImageStyle => style.style_name === 'image';
+    const isMarkdown = (style: Style): style is IMarkdownStyle => style.style_name === 'markdown';
+    const isHeading = (style: Style): style is IHeadingStyle => style.style_name === 'heading';
+    const isCard = (style: Style): style is ICardStyle => style.style_name === 'card';
+    const isDiv = (style: Style): style is IDivStyle => style.style_name === 'div';
+    const isButton = (style: Style): style is IButtonStyle => style.style_name === 'button';
+    const isCarousel = (style: Style): style is ICarouselStyle => style.style_name === 'carousel';
+    const isLink = (style: Style): style is ILinkStyle => style.style_name === 'link';
 
     const renderStyle = () => {
         switch (style.style_name) {
@@ -51,13 +52,7 @@ const BasicStyle: React.FC<BasicStyleProps> = ({ style }) => {
         return <div>Unsupported style type: {style.style_name}</div>;
     };
 
-    // Render with error boundary
-    try {
-        return renderStyle();
-    } catch (error) {
-        console.error('Error rendering style:', error);
-        return <div>Error rendering style: {style.style_name}</div>;
-    }
+    return renderStyle();
 };
 
 export default BasicStyle;

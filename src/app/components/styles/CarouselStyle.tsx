@@ -1,14 +1,14 @@
 import React from 'react';
-import { CarouselStyle as CarouselStyleType } from '@/types/api/styles.types';
+import { ICarouselStyle } from '@/types/api/styles.types';
 
-interface CarouselStyleProps {
-    style: CarouselStyleType;
+interface ICarouselStyleProps {
+    style: ICarouselStyle;
 }
 
-const CarouselStyle: React.FC<CarouselStyleProps> = ({ style }) => {
+const CarouselStyle: React.FC<ICarouselStyleProps> = ({ style }) => {
     return (
         <div className={style.css}>
-            Carousel Style: {style.sources?.content.length} images
+            {style.sources.content.length} images
         </div>
     );
 };

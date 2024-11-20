@@ -1,14 +1,14 @@
 import React from 'react';
-import { HeadingStyle as HeadingStyleType } from '@/types/api/styles.types';
+import { IHeadingStyle } from '@/types/api/styles.types';
 
-interface HeadingStyleProps {
-    style: HeadingStyleType;
+interface IHeadingStyleProps {
+    style: IHeadingStyle;
 }
 
-const HeadingStyle: React.FC<HeadingStyleProps> = ({ style }) => {
+const HeadingStyle: React.FC<IHeadingStyleProps> = ({ style }) => {
     return (
         <div className={style.css}>
-            Heading Style: {style.title?.content} (Level {style.level?.content})
+            {style.title.content}
         </div>
     );
 };

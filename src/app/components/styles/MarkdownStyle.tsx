@@ -1,14 +1,14 @@
 import React from 'react';
-import { MarkdownStyle as MarkdownStyleType } from '@/types/api/styles.types';
+import { IMarkdownStyle } from '@/types/api/styles.types';
 
-interface MarkdownStyleProps {
-    style: MarkdownStyleType;
+interface IMarkdownStyleProps {
+    style: IMarkdownStyle;
 }
 
-const MarkdownStyle: React.FC<MarkdownStyleProps> = ({ style }) => {
+const MarkdownStyle: React.FC<IMarkdownStyleProps> = ({ style }) => {
     return (
         <div className={style.css}>
-            Markdown Style: {style.text_md?.content}
+            {style.text_md.content}
         </div>
     );
 };
