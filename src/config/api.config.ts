@@ -1,7 +1,7 @@
 export const API_CONFIG = {
     BASE_URL: '/api/v1',
     ENDPOINTS: {
-        NAVIGATION: '/nav/pages/web',
-        PAGE_CONTENT: (keyword: string) => `/webPage/page/${keyword}`
+        ALL_ROUTES: '/content/all_routes',
+        PAGE_CONTENT: (keyword: string) => `/content/page/${keyword}`
     }
 };

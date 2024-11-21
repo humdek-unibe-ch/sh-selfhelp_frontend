@@ -13,7 +13,7 @@ const apiClient = axios.create({
 
 export const NavigationService = {
     getRoutes: async (): Promise<INavigationItem[]> => {
-       const response = await apiClient.get<IApiResponse<INavigationItem[]>>(API_CONFIG.ENDPOINTS.NAVIGATION);
+       const response = await apiClient.get<IApiResponse<INavigationItem[]>>(API_CONFIG.ENDPOINTS.ALL_ROUTES);
        return response.data.data;
     }
  };
