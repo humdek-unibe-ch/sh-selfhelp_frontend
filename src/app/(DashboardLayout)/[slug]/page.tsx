@@ -8,10 +8,10 @@ import BasicStyle from "@/app/components/styles/BasicStyle";
 import Breadcrumb from "../layout/shared/breadcrumb/Breadcrumb";
 
 export default function DynamicPage({ params }: { params: { slug: string } }) {
-    const { routes, isLoading: routesLoading } = useNavigation();
-    const { content: pageContent, isLoading: pageLoading } = usePageContent(params.slug);
+    const { routes, isLoading: routesLoading } = useNavigation();    
 
     const isValid = routes?.some(route => route.path === `/${params.slug}`);
+    const { content: pageContent, isLoading: pageLoading } = usePageContent(params.slug, isValid);
 
     const breadcrumbItems = [
         {
