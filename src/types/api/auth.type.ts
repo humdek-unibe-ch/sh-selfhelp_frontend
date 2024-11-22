@@ -24,6 +24,18 @@ export interface ILogoutResponse {
     data: null;
 }
 
+export interface IRefreshTokenResponse {
+    status: number;
+    message: string;
+    error: string | null;
+    logged_in: boolean;
+    data: {
+        access_token: string;
+        expires_in: number;
+        token_type: string;
+    };
+}
+
 export interface IAuthState {
     isAuthenticated: boolean;
     accessToken: string | null;

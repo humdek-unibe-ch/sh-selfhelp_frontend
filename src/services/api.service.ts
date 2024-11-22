@@ -2,7 +2,7 @@ import axios from 'axios';
 import { API_CONFIG } from '../config/api.config';
 import { IApiResponse, IPageContent } from '@/types/api/requests.type';
 import { INavigationItem } from '@/types/api/navigation.type';
-import { ILoginRequest, ILoginResponse, ILogoutResponse } from '@/types/api/auth.type';
+import { ILoginRequest, ILoginResponse, ILogoutResponse, IRefreshTokenResponse } from '@/types/api/auth.type';
 
 const apiClient = axios.create({
    baseURL: API_CONFIG.BASE_URL,
@@ -19,6 +19,48 @@ apiClient.interceptors.request.use((config) => {
     }
     return config;
 });
+
+// Add a response interceptor to handle token refresh
+apiClient.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+        const originalRequest = error.config;
+
+        // If the error is 401 and we haven't tried to refresh the token yet
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true;
+
+            try {
+                // Try to refresh the token
+                const refreshToken = localStorage.getItem('refresh_token');
+                if (!refreshToken) {
+                    throw new Error('No refresh token available');
+                }
+
+                const response = await AuthService.refreshToken();
+                
+                // Update the access token
+                localStorage.setItem('access_token', response.data.access_token);
+                localStorage.setItem('expires_in', response.data.expires_in.toString());
+
+                // Update the Authorization header
+                originalRequest.headers.Authorization = `Bearer ${response.data.access_token}`;
+                
+                // Retry the original request
+                return apiClient(originalRequest);
+            } catch (refreshError) {
+                // If refresh fails, redirect to login
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                localStorage.removeItem('expires_in');
+                window.location.href = '/auth/auth1/login';
+                return Promise.reject(refreshError);
+            }
+        }
+
+        return Promise.reject(error);
+    }
+);
 
 export const NavigationService = {
     getRoutes: async (): Promise<INavigationItem[]> => {
@@ -44,6 +86,28 @@ export const AuthService = {
             API_CONFIG.ENDPOINTS.LOGIN,
             formData.toString()
         );
+        return response.data;
+    },
+    
+    refreshToken: async (): Promise<IRefreshTokenResponse> => {
+        const formData = new URLSearchParams();
+        const refreshToken = localStorage.getItem('refresh_token');
+        
+        if (!refreshToken) {
+            throw new Error('No refresh token available');
+        }
+        
+        formData.append('refresh_token', refreshToken);
+        
+        const response = await apiClient.post<IRefreshTokenResponse>(
+            API_CONFIG.ENDPOINTS.REFRESH_TOKEN,
+            formData.toString()
+        );
+        
+        if (response.data.error) {
+            throw new Error(response.data.error);
+        }
+        
         return response.data;
     },
     
