@@ -36,7 +36,6 @@ apiClient.interceptors.response.use(
             try {
                 // Try to refresh the token
                 const refreshResponse = await AuthService.refreshToken();
-                console.log(refreshResponse);
                 
                 // Update the tokens
                 localStorage.setItem('access_token', refreshResponse.data.access_token);
@@ -129,7 +128,6 @@ export const AuthService = {
     },
     
     refreshToken: async (): Promise<IRefreshTokenResponse> => {
-        console.log('Refreshing token...');
         const formData = new URLSearchParams();
         const refreshToken = localStorage.getItem('refresh_token');
         
