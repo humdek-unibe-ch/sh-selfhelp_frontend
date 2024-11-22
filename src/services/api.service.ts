@@ -22,9 +22,48 @@ apiClient.interceptors.request.use((config) => {
 
 // Add a response interceptor to handle token refresh
 apiClient.interceptors.response.use(
-    (response) => response,
+    async (response) => {
+        // Skip interceptor for refresh token requests
+        if (response.config.url?.includes(API_CONFIG.ENDPOINTS.REFRESH_TOKEN)) {
+            return response;
+        }
+
+        // Check if response has logged_in=false but we have stored tokens
+        if (response.data?.logged_in === false && 
+            localStorage.getItem('access_token') && 
+            localStorage.getItem('refresh_token')) {
+            
+            try {
+                // Try to refresh the token
+                const refreshResponse = await AuthService.refreshToken();
+                console.log(refreshResponse);
+                
+                // Update the tokens
+                localStorage.setItem('access_token', refreshResponse.data.access_token);
+                localStorage.setItem('expires_in', refreshResponse.data.expires_in.toString());
+
+                // Retry the original request with new token
+                const originalRequest = response.config;
+                originalRequest.headers.Authorization = `Bearer ${refreshResponse.data.access_token}`;
+                return apiClient(originalRequest);
+            } catch (refreshError) {
+                // If refresh fails, clear tokens and redirect to login
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                localStorage.removeItem('expires_in');
+                window.location.href = '/auth/auth1/login';
+                return Promise.reject(refreshError);
+            }
+        }
+        return response;
+    },
     async (error) => {
         const originalRequest = error.config;
+
+        // Skip interceptor for refresh token requests
+        if (originalRequest.url?.includes('/refresh-token')) {
+            return Promise.reject(error);
+        }
 
         // If the error is 401 and we haven't tried to refresh the token yet
         if (error.response?.status === 401 && !originalRequest._retry) {
@@ -90,6 +129,7 @@ export const AuthService = {
     },
     
     refreshToken: async (): Promise<IRefreshTokenResponse> => {
+        console.log('Refreshing token...');
         const formData = new URLSearchParams();
         const refreshToken = localStorage.getItem('refresh_token');
         
