@@ -2,7 +2,7 @@ import axios from 'axios';
 import { API_CONFIG } from '../config/api.config';
 import { IApiResponse, IPageContent } from '@/types/api/requests.type';
 import { INavigationItem } from '@/types/api/navigation.type';
-import { ILoginRequest, ILoginResponse } from '@/types/api/auth.type';
+import { ILoginRequest, ILoginResponse, ILogoutResponse } from '@/types/api/auth.type';
 
 const apiClient = axios.create({
    baseURL: API_CONFIG.BASE_URL,
@@ -44,6 +44,26 @@ export const AuthService = {
             API_CONFIG.ENDPOINTS.LOGIN,
             formData.toString()
         );
+        return response.data;
+    },
+    
+    logout: async (): Promise<ILogoutResponse> => {
+        const formData = new URLSearchParams();
+        const accessToken = localStorage.getItem('access_token');
+        const refreshToken = localStorage.getItem('refresh_token');
+        
+        if (accessToken) formData.append('access_token', accessToken);
+        if (refreshToken) formData.append('refresh_token', refreshToken);
+        
+        const response = await apiClient.post<ILogoutResponse>(
+            API_CONFIG.ENDPOINTS.LOGOUT,
+            formData.toString()
+        );
+        
+        if (response.data.error) {
+            throw new Error(response.data.error);
+        }
+        
         return response.data;
     }
 };

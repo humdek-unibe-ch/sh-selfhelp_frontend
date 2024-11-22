@@ -45,12 +45,39 @@ export const useAuth = () => {
         }
     };
 
-    const logout = () => {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('expires_in');
-        updateAuthState();
-        router.push('/auth/auth1/login');
+    const logout = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            
+            // Call the server to invalidate tokens
+            const response = await AuthService.logout();
+            
+            if (response.error) {
+                throw new Error(response.error);
+            }
+            
+            if (!response.logged_in) {
+                // Clear local storage
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                localStorage.removeItem('expires_in');
+                
+                // Update auth context
+                updateAuthState();
+                
+                // Redirect to login page
+                router.push('/auth/auth1/login');
+            } else {
+                throw new Error('Logout failed: User is still logged in');
+            }
+        } catch (err: any) {
+            const errorMessage = err.response?.data?.error || err.message || 'An error occurred during logout';
+            setError(errorMessage);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
     };
 
     return {

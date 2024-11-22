@@ -16,6 +16,14 @@ export interface ILoginResponse {
     };
 }
 
+export interface ILogoutResponse {
+    status: number;
+    message: string;
+    error: string | null;
+    logged_in: boolean;
+    data: null;
+}
+
 export interface IAuthState {
     isAuthenticated: boolean;
     accessToken: string | null;

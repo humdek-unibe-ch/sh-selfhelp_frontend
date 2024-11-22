@@ -12,13 +12,13 @@ import {
 import { Stack } from "@mui/system";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useAuth } from "@/hooks/useAuth";
-import { jwtDecode , JwtPayload } from "jwt-decode";
+import { jwtDecode, JwtPayload } from "jwt-decode";
 
 const Profile = () => {
   const [anchorEl2, setAnchorEl2] = useState(null);
   const { accessToken } = useAuthContext();
   const { logout } = useAuth();
-  
+
   const decodedToken = accessToken ? jwtDecode<JwtPayload>(accessToken) : null;
 
   const handleClick2 = (event: any) => {
@@ -28,9 +28,13 @@ const Profile = () => {
     setAnchorEl2(null);
   };
 
-  const handleLogout = () => {
-    handleClose2();
-    logout();
+  const handleLogout = async () => {
+    try {
+      handleClose2();
+      await logout();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   return (
