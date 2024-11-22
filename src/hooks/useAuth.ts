@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { AuthService } from '@/services/api.service';
 import { ILoginRequest, ILoginResponse } from '@/types/api/auth.type';
 import { useRouter } from 'next/navigation';
+import { useAuthContext } from '@/contexts/AuthContext';
 
 export const useAuth = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
+    const { updateAuthState } = useAuthContext();
 
     const login = async (credentials: ILoginRequest) => {
         try {
@@ -14,16 +16,29 @@ export const useAuth = () => {
             setError(null);
             const response = await AuthService.login(credentials);
             
-            // Store the token in localStorage or a secure cookie
-            localStorage.setItem('token', response.token);
-            localStorage.setItem('user', JSON.stringify(response.user));
+            if (response.error) {
+                throw new Error(response.error);
+            }
+
+            if (!response.logged_in) {
+                throw new Error('Login failed');
+            }
+            
+            // Store the tokens in localStorage
+            localStorage.setItem('access_token', response.data.access_token);
+            localStorage.setItem('refresh_token', response.data.refresh_token);
+            localStorage.setItem('expires_in', response.data.expires_in.toString());
+            
+            // Update the auth context
+            updateAuthState();
             
             // Redirect to dashboard or home page
             router.push('/');
             
             return response;
         } catch (err: any) {
-            setError(err.response?.data?.message || 'An error occurred during login');
+            const errorMessage = err.response?.data?.error || err.message || 'An error occurred during login';
+            setError(errorMessage);
             throw err;
         } finally {
             setLoading(false);
@@ -31,8 +46,10 @@ export const useAuth = () => {
     };
 
     const logout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('expires_in');
+        updateAuthState();
         router.push('/auth/auth1/login');
     };
 

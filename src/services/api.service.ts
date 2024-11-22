@@ -11,6 +11,15 @@ const apiClient = axios.create({
    }
 });
 
+// Add a request interceptor to add the auth token
+apiClient.interceptors.request.use((config) => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
 export const NavigationService = {
     getRoutes: async (): Promise<INavigationItem[]> => {
        const response = await apiClient.get<IApiResponse<INavigationItem[]>>(API_CONFIG.ENDPOINTS.ALL_ROUTES);
@@ -18,7 +27,7 @@ export const NavigationService = {
     }
  };
 
- export const PageService = {
+export const PageService = {
     getPageContent: async (keyword: string): Promise<IPageContent> => {
         const response = await apiClient.get<IApiResponse<IPageContent>>(API_CONFIG.ENDPOINTS.PAGE_CONTENT(keyword));
         return response.data.data;
@@ -31,10 +40,10 @@ export const AuthService = {
         formData.append('user', credentials.user);
         formData.append('password', credentials.password);
         
-        const response = await apiClient.post<IApiResponse<ILoginResponse>>(
+        const response = await apiClient.post<ILoginResponse>(
             API_CONFIG.ENDPOINTS.LOGIN,
             formData.toString()
         );
-        return response.data.data;
+        return response.data;
     }
 };

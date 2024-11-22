@@ -4,16 +4,21 @@ export interface ILoginRequest {
 }
 
 export interface ILoginResponse {
-    token: string;
-    user: {
-        id: number;
-        email: string;
-        name: string;
+    status: number;
+    message: string;
+    error: string | null;
+    logged_in: boolean;
+    data: {
+        access_token: string;
+        refresh_token: string;
+        expires_in: number;
+        token_type: string;
     };
 }
 
 export interface IAuthState {
     isAuthenticated: boolean;
-    user: ILoginResponse['user'] | null;
-    token: string | null;
+    accessToken: string | null;
+    refreshToken: string | null;
+    expiresIn: number | null;
 }
