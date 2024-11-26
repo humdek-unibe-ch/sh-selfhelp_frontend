@@ -2,13 +2,15 @@ import React from 'react';
 import { TStyle } from '@/types/api/styles.types';
 import {
     IContainerStyle, IButtonStyle, ICardStyle, ICarouselStyle,
-    IDivStyle, IHeadingStyle, IImageStyle, ILinkStyle, IMarkdownStyle
+    IDivStyle, IHeadingStyle, IImageStyle, ILinkStyle, IMarkdownStyle,
+    ITextareaStyle
 } from '@/types/api/styles.types';
 import {
     ButtonStyle, CardStyle, CarouselStyle, ContainerStyle,
     DivStyle, HeadingStyle, ImageStyle, LinkStyle, MarkdownStyle
 } from './SelfHelpStyles';
 import FormUserInputLogStyle from './FormUserInputStyle';
+import TextareaStyle from './TextareaStyle';
 
 /**
  * Props interface for BasicStyle component
@@ -38,6 +40,7 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
     const isCarousel = (style: TStyle): style is ICarouselStyle => style.style_name === 'carousel';
     const isLink = (style: TStyle): style is ILinkStyle => style.style_name === 'link';
     const isFormUserInput = (style: TStyle): style is TStyle => style.style_name === 'formUserInputLog';
+    const isTextarea = (style: TStyle): style is ITextareaStyle => style.style_name === 'textarea';
 
     /**
      * Renders the appropriate style component based on style_name
@@ -75,8 +78,13 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             case 'formUserInputLog':
                 if (isFormUserInput(style)) return <FormUserInputLogStyle style={style} />;
                 break;
+            case 'textarea':
+                if (isTextarea(style)) return <TextareaStyle style={style} />;
+                break;
+            default:
+                return null;
         }
-        return <div>Unsupported style type: {style.style_name}</div>;
+        return null;
     };
 
     return renderStyle();

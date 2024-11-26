@@ -1,4 +1,4 @@
-export type TStyle = IContainerStyle | IImageStyle | IMarkdownStyle | IHeadingStyle | ICardStyle | IDivStyle | IButtonStyle | ICarouselStyle | ILinkStyle | IBaseStyle | IFormUserInputLogStyle;
+export type TStyle = IContainerStyle | IImageStyle | IMarkdownStyle | IHeadingStyle | ICardStyle | IDivStyle | IButtonStyle | ICarouselStyle | ILinkStyle | IBaseStyle | IFormUserInputLogStyle | ITextareaStyle;
 
 interface IBaseStyle {
     id: IIdType;
@@ -112,21 +112,7 @@ export interface ILinkStyle extends IBaseStyle {
 export interface IFormUserInputLogStyle extends IBaseStyle {
     style_name: 'formUserInputLog';
     label: IContentField<string>;
-    children: Array<{
-        id: {
-            content: number;
-            type: string;
-        };
-        label: IContentField<string>;
-        name: IContentField<string>;
-        value: IContentField<string>;
-        is_required: IContentField<string>;
-        min: IContentField<string>;
-        max: IContentField<string>;
-        placeholder: IContentField<string>;
-        markdown_editor?: IContentField<string>;
-        style_name: string;
-    }>;
+    children: (TStyle | null)[];
     type: IContentField<string>;
     alert_success: IContentField<string>;
     label_cancel: IContentField<string>;
@@ -139,4 +125,19 @@ export interface IFormUserInputLogStyle extends IBaseStyle {
     confirmation_continue: IContentField<string>;
     confirmation_message: IContentField<string>;
     internal: IContentField<string>;
+}
+
+export interface ITextareaStyle extends IBaseStyle {
+    style_name: 'textarea';
+    label: IContentField<string>;
+    placeholder: IContentField<string>;
+    is_required: IContentField<string>;
+    name: IContentField<string>;
+    value: IContentField<string>;
+    min: IContentField<string>;
+    max: IContentField<string>;
+    locked_after_submit: IContentField<string>;
+    markdown_editor: IContentField<string>;
+    children: TStyle[];
+    last_value: string | null;
 }
