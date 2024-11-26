@@ -1,4 +1,4 @@
-export type TStyle = IContainerStyle | IImageStyle | IMarkdownStyle | IHeadingStyle | ICardStyle | IDivStyle | IButtonStyle | ICarouselStyle | ILinkStyle | IBaseStyle;
+export type TStyle = IContainerStyle | IImageStyle | IMarkdownStyle | IHeadingStyle | ICardStyle | IDivStyle | IButtonStyle | ICarouselStyle | ILinkStyle | IBaseStyle | IFormUserInputLogStyle;
 
 interface IBaseStyle {
     id: IIdType;
@@ -107,4 +107,36 @@ export interface ILinkStyle extends IBaseStyle {
     label: IContentField<string>;
     url: IContentField<string>;
     open_in_new_tab?: IContentField<string>;
+}
+
+export interface IFormUserInputLogStyle extends IBaseStyle {
+    style_name: 'formUserInputLog';
+    label: IContentField<string>;
+    children: Array<{
+        id: {
+            content: number;
+            type: string;
+        };
+        label: IContentField<string>;
+        name: IContentField<string>;
+        value: IContentField<string>;
+        is_required: IContentField<string>;
+        min: IContentField<string>;
+        max: IContentField<string>;
+        placeholder: IContentField<string>;
+        markdown_editor?: IContentField<string>;
+        style_name: string;
+    }>;
+    type: IContentField<string>;
+    alert_success: IContentField<string>;
+    label_cancel: IContentField<string>;
+    url_cancel: IContentField<string>;
+    is_log: IContentField<string>;
+    ajax: IContentField<string>;
+    redirect_at_end: IContentField<string>;
+    own_entries_only: IContentField<string>;
+    confirmation_title: IContentField<string>;
+    confirmation_continue: IContentField<string>;
+    confirmation_message: IContentField<string>;
+    internal: IContentField<string>;
 }

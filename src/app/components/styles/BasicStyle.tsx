@@ -1,13 +1,14 @@
 import React from 'react';
 import { TStyle } from '@/types/api/styles.types';
-import { 
-    IContainerStyle, IButtonStyle, ICardStyle, ICarouselStyle, 
-    IDivStyle, IHeadingStyle, IImageStyle, ILinkStyle, IMarkdownStyle 
+import {
+    IContainerStyle, IButtonStyle, ICardStyle, ICarouselStyle,
+    IDivStyle, IHeadingStyle, IImageStyle, ILinkStyle, IMarkdownStyle
 } from '@/types/api/styles.types';
-import { 
-    ButtonStyle, CardStyle, CarouselStyle, ContainerStyle, 
-    DivStyle, HeadingStyle, ImageStyle, LinkStyle, MarkdownStyle 
+import {
+    ButtonStyle, CardStyle, CarouselStyle, ContainerStyle,
+    DivStyle, HeadingStyle, ImageStyle, LinkStyle, MarkdownStyle
 } from './SelfHelpStyles';
+import FormUserInputLogStyle from './FormUserInputStyle';
 
 /**
  * Props interface for BasicStyle component
@@ -36,6 +37,7 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
     const isButton = (style: TStyle): style is IButtonStyle => style.style_name === 'button';
     const isCarousel = (style: TStyle): style is ICarouselStyle => style.style_name === 'carousel';
     const isLink = (style: TStyle): style is ILinkStyle => style.style_name === 'link';
+    const isFormUserInput = (style: TStyle): style is TStyle => style.style_name === 'formUserInputLog';
 
     /**
      * Renders the appropriate style component based on style_name
@@ -69,6 +71,9 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
                 break;
             case 'link':
                 if (isLink(style)) return <LinkStyle style={style} />;
+                break;
+            case 'formUserInputLog':
+                if (isFormUserInput(style)) return <FormUserInputLogStyle style={style} />;
                 break;
         }
         return <div>Unsupported style type: {style.style_name}</div>;
