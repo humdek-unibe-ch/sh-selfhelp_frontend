@@ -1,11 +1,12 @@
 "use client";
-import { useEffect } from "react";
 import { notFound } from 'next/navigation';
 import PageContainer from "@/app/components/container/PageContainer";
 import { useNavigation } from "@/hooks/useNavigation";
 import { usePageContent } from "@/hooks/usePageConent";
 import BasicStyle from "@/app/components/styles/BasicStyle";
 import Breadcrumb from "../layout/shared/breadcrumb/Breadcrumb";
+import { useEffect } from 'react';
+import { pageService } from '@/services/page.service';
 
 export default function DynamicPage({ params }: { params: { slug: string } }) {
     const { routes, isLoading: routesLoading } = useNavigation();    
@@ -22,6 +23,10 @@ export default function DynamicPage({ params }: { params: { slug: string } }) {
             title: pageContent?.title || params.slug.charAt(0).toUpperCase() + params.slug.slice(1)
         }
     ];
+
+    useEffect(() => {
+        pageService.setKeyword(params.slug);
+    }, [params.slug]);
 
     if (routesLoading || pageLoading) {
         return (
