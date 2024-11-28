@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { PageService } from '@/services/api.service';
+import { PageService } from '@/services/page.service';
 
 export function usePageContent(keyword: string, enabled: boolean = true) {
     const { data, isLoading, error } = useQuery({

@@ -1,10 +1,10 @@
 import axios from 'axios';
 import { API_CONFIG } from '../config/api.config';
-import { IApiResponse, IPageContent } from '@/types/api/requests.type';
+import { IApiResponse } from '@/types/api/requests.type';
 import { INavigationItem } from '@/types/api/navigation.type';
 import { ILoginRequest, ILoginResponse, ILogoutResponse, IRefreshTokenResponse } from '@/types/api/auth.type';
 
-const apiClient = axios.create({
+export const apiClient = axios.create({
     baseURL: API_CONFIG.BASE_URL,
     headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -104,25 +104,6 @@ export const NavigationService = {
     getRoutes: async (): Promise<INavigationItem[]> => {
         const response = await apiClient.get<IApiResponse<INavigationItem[]>>(API_CONFIG.ENDPOINTS.ALL_ROUTES);
         return response.data.data;
-    }
-};
-
-export const PageService = {
-    getPageContent: async (keyword: string): Promise<IPageContent> => {
-        const response = await apiClient.get<IApiResponse<IPageContent>>(API_CONFIG.ENDPOINTS.PAGE(keyword));
-        return response.data.data;
-    },
-
-    updatePageContent: async (keyword: string, content: any): Promise<IApiResponse<any>> => {
-        try {
-            const response = await apiClient.put<IApiResponse<any>>(API_CONFIG.ENDPOINTS.PAGE(keyword), content);
-            return response.data;
-        } catch (error: any) {
-            if (error.response?.data) {
-                return error.response.data;
-            }
-            throw error;
-        }
     }
 };
 

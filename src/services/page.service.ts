@@ -1,25 +1,33 @@
 // src/services/page.service.ts
-class PageService {
-    private static instance: PageService;
-    private currentKeyword: string = '';
+import { IApiResponse, IPageContent } from '@/types/api/requests.type';
+import { apiClient } from './api.service';
+import { API_CONFIG } from '@/config/api.config';
 
-    private constructor() {}
+let currentKeyword = '';
 
-    static getInstance(): PageService {
-        if (!PageService.instance) {
-            PageService.instance = new PageService();
-        }
-        return PageService.instance;
-    }
-
+export const PageService = {
     setKeyword(keyword: string) {
-        this.currentKeyword = keyword;
-    }
+        currentKeyword = keyword;
+    },
 
     getKeyword(): string {
-        return this.currentKeyword;
-    }
-    
-}
+        return currentKeyword;
+    },
 
-export const pageService = PageService.getInstance();
+    async getPageContent(keyword: string): Promise<IPageContent> {
+        const response = await apiClient.get<IApiResponse<IPageContent>>(API_CONFIG.ENDPOINTS.PAGE(keyword));
+        return response.data.data;
+    },
+
+    async updatePageContent(keyword: string, content: any): Promise<IApiResponse<any>> {
+        try {
+            const response = await apiClient.put<IApiResponse<any>>(API_CONFIG.ENDPOINTS.PAGE(keyword), content);
+            return response.data;
+        } catch (error: any) {
+            if (error.response?.data) {
+                return error.response.data;
+            }
+            throw error;
+        }
+    }
+};

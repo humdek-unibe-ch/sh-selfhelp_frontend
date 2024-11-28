@@ -2,27 +2,30 @@ import React from 'react';
 import { Button } from '@mui/material';
 import { IFormUserInputLogStyle } from '@/types/api/styles.types';
 import BasicStyle from './BasicStyle';
-import { PageService } from '@/services/api.service';
-import { pageService } from '@/services/page.service';
+import { PageService } from '@/services/page.service';
 
 interface FormUserInputLogStyleProps {
     style: IFormUserInputLogStyle;
 }
 
 const FormUserInputLogStyle: React.FC<FormUserInputLogStyleProps> = ({ style }) => {
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const formData = new FormData(e.target as HTMLFormElement);
         const formDataObject = Object.fromEntries(formData.entries());
-        const keyword = pageService.getKeyword();
+        const keyword = PageService.getKeyword();
 
         try {
-            PageService.updatePageContent(keyword, formDataObject).then((response) => {
-                console.log('Response:', response);
-                if (response.error) {
-                    alert(response.error);
-                }
-            });
+            const response = await PageService.updatePageContent(keyword, formDataObject);
+            console.log('Response:', response);
+            if (response.error) {
+                alert(response.error);
+            } else if (style.alert_success?.content) {
+                // alert(style.alert_success.content);
+                // if (style.redirect_at_end?.content) {
+                //     window.location.href = style.redirect_at_end.content;
+                // }
+            }
         } catch (error) {
             console.error('Error:', error);
             // if (style.alert_error?.content) {
