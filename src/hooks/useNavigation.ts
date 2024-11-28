@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { NavigationService } from '@/services/api.service';
+import { NavigationService } from '@/services/navigation.service';
 import { IRoute } from '@/types/navigation/navigation.types';
 import { IMenuitemsType } from '@/types/layout/sidebar';
 import { IconPoint } from '@tabler/icons-react';
