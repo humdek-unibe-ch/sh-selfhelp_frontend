@@ -4,30 +4,24 @@ import { API_CONFIG } from '@/config/api.config';
 
 export const AuthService = {
     async login(credentials: ILoginRequest): Promise<ILoginResponse> {
-        const formData = new URLSearchParams();
-        formData.append('user', credentials.user);
-        formData.append('password', credentials.password);
-
+        console.log(credentials);
         const response = await apiClient.post<ILoginResponse>(
             API_CONFIG.ENDPOINTS.LOGIN,
-            formData.toString()
+            credentials
         );
         return response.data;
     },
 
     async refreshToken(): Promise<IRefreshTokenResponse> {
-        const formData = new URLSearchParams();
         const refreshToken = localStorage.getItem('refresh_token');
 
         if (!refreshToken) {
             throw new Error('No refresh token available');
         }
 
-        formData.append('refresh_token', refreshToken);
-
         const response = await apiClient.post<IRefreshTokenResponse>(
             API_CONFIG.ENDPOINTS.REFRESH_TOKEN,
-            formData.toString()
+            { refresh_token: refreshToken }
         );
 
         if (response.data.error) {
@@ -38,16 +32,15 @@ export const AuthService = {
     },
 
     async logout(): Promise<ILogoutResponse> {
-        const formData = new URLSearchParams();
         const accessToken = localStorage.getItem('access_token');
         const refreshToken = localStorage.getItem('refresh_token');
 
-        if (accessToken) formData.append('access_token', accessToken);
-        if (refreshToken) formData.append('refresh_token', refreshToken);
-
         const response = await apiClient.post<ILogoutResponse>(
             API_CONFIG.ENDPOINTS.LOGOUT,
-            formData.toString()
+            {
+                access_token: accessToken || undefined,
+                refresh_token: refreshToken || undefined
+            }
         );
 
         if (response.data.error) {

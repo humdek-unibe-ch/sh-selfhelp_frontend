@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { AuthService } from '@/services/api.service';
-import { ILoginRequest, ILoginResponse } from '@/types/api/auth.type';
+import { ILoginRequest } from '@/types/api/auth.type';
 import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/contexts/AuthContext';
+import { AuthService } from '@/services/auth.service';
 
 export const useAuth = () => {
     const [loading, setLoading] = useState(false);

@@ -5,7 +5,7 @@ import { AuthService } from './auth.service';
 export const apiClient = axios.create({
     baseURL: API_CONFIG.BASE_URL,
     headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json',
     }
 });
 
