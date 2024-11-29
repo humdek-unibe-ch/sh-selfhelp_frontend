@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@mui/material';
 import { IFormUserInputLogStyle } from '@/types/api/styles.types';
 import BasicStyle from './BasicStyle';
@@ -11,6 +11,7 @@ interface FormUserInputLogStyleProps {
 
 const FormUserInputLogStyle: React.FC<FormUserInputLogStyleProps> = ({ style }) => {
     const { updatePageContent } = usePageContentContext();
+    const [formKey, setFormKey] = useState(0);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -26,7 +27,9 @@ const FormUserInputLogStyle: React.FC<FormUserInputLogStyleProps> = ({ style }) 
             } else {
                 // Update the React Query cache with the new content
                 updatePageContent(keyword, response.data);
-
+                // Force form re-render
+                setFormKey(prev => prev + 1);
+                
                 if (style.alert_success?.content) {
                     // alert(style.alert_success.content);
                     // if (style.redirect_at_end?.content) {
@@ -43,7 +46,7 @@ const FormUserInputLogStyle: React.FC<FormUserInputLogStyleProps> = ({ style }) 
     };
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form key={formKey} onSubmit={handleSubmit}>
             <input type="hidden" name="__id_sections" value={style.id.content} />
             <div className={style.css}>
                 {style.children?.map((child, index) => (

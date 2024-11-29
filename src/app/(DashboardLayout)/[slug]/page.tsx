@@ -17,7 +17,6 @@ export default function DynamicPage({ params }: { params: { slug: string } }) {
     const { content: queryContent, isLoading: pageLoading } = usePageContent(params.slug, isValid);
 
     // Use context content if available, otherwise use query content
-    console.log('contextContent', contextContent);
     const pageContent = contextContent || queryContent;
     console.log(pageContent);
 

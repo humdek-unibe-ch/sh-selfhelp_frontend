@@ -47,7 +47,7 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
      * Uses type guards to ensure type safety
      */
     const renderStyle = () => {
-        switch (style.style_name) {
+        switch (style?.style_name) {
             case 'container':
                 if (isContainer(style)) return <ContainerStyle style={style} />;
                 break;
