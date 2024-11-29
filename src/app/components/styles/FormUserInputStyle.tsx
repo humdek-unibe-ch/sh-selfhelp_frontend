@@ -36,6 +36,7 @@ const FormUserInputLogStyle: React.FC<FormUserInputLogStyleProps> = ({ style }) 
 
     return (
         <form onSubmit={handleSubmit}>
+            <input type="hidden" name="id_styles" value={style.id.content} />
             <div className={style.css}>
                 {style.children?.map((child, index) => (
                     child ? <BasicStyle key={index} style={child} /> : null
