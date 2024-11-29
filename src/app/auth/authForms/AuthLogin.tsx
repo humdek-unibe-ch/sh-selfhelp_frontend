@@ -82,6 +82,9 @@ const AuthLogin = ({ title, subtitle, subtext }: loginType) => {
                 value={formData.user}
                 onChange={handleChange}
                 placeholder="Enter your email"
+                inputProps={{
+                    autoComplete: "username"
+                  }}
               />
             </Box>
             <Box>
@@ -95,6 +98,9 @@ const AuthLogin = ({ title, subtitle, subtext }: loginType) => {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="Enter your password"
+                inputProps={{
+                  autoComplete: "current-password"
+                }}
               />
             </Box>
             <Stack
