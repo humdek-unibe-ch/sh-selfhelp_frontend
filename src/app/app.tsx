@@ -5,39 +5,42 @@ import RTL from "@/app/(DashboardLayout)/layout/shared/customizer/RTL";
 import { ThemeSettings } from "@/utils/theme/Theme";
 import { useSelector } from 'react-redux';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter';
-import { AppState } from "@/store/store"; // Changed AppState to RootState
+import { AppState } from "@/store/store"; 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import "@/utils/i18n";
 import "@/app/api/index";
+import { PageContentProvider } from '@/contexts/PageContentContext';
 
 const queryClient = new QueryClient({
-   defaultOptions: {
-      queries: {
-         // staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-         retry: 2,
-         refetchOnWindowFocus: false,
-      },
-   },
+  defaultOptions: {
+    queries: {
+      // staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+      retry: 2,
+      refetchOnWindowFocus: false,
+    },
+  },
 });
 
 const MyApp = ({ children }: { children: React.ReactNode }) => {
-   const theme = ThemeSettings();
-   const customizer = useSelector((state: AppState) => state.customizer);
+  const theme = ThemeSettings();
+  const customizer = useSelector((state: AppState) => state.customizer);
 
-   return (
+  return (
+    <AppRouterCacheProvider options={{ enableCssLayer: true }}>
       <QueryClientProvider client={queryClient}>
-         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
-            <ThemeProvider theme={theme}>
-               <RTL direction={customizer.activeDir}>
-                  <CssBaseline />
-                  {children}
-               </RTL>
-            </ThemeProvider>
-         </AppRouterCacheProvider>
-         <ReactQueryDevtools initialIsOpen={false} />
+        <ThemeProvider theme={theme}>
+          <RTL direction={customizer.activeDir}>
+            <CssBaseline />
+            <PageContentProvider>
+              {children}
+            </PageContentProvider>
+          </RTL>
+        </ThemeProvider>
+        <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
-   );
+    </AppRouterCacheProvider>
+  );
 };
 
 export default MyApp;

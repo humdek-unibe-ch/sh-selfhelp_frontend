@@ -23,7 +23,6 @@ function transformDynamicUrl(url: string): string {
     // Remove trailing slash if present
     url = url.replace(/\/$/, '');
     
-    console.log(url);
     return url;
 }
 

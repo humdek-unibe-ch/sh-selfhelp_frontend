@@ -3,12 +3,15 @@ import { Button } from '@mui/material';
 import { IFormUserInputLogStyle } from '@/types/api/styles.types';
 import BasicStyle from './BasicStyle';
 import { PageService } from '@/services/page.service';
+import { usePageContentContext } from '@/contexts/PageContentContext';
 
 interface FormUserInputLogStyleProps {
     style: IFormUserInputLogStyle;
 }
 
 const FormUserInputLogStyle: React.FC<FormUserInputLogStyleProps> = ({ style }) => {
+    const { updatePageContent } = usePageContentContext();
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const formData = new FormData(e.target as HTMLFormElement);
@@ -20,11 +23,16 @@ const FormUserInputLogStyle: React.FC<FormUserInputLogStyleProps> = ({ style }) 
             console.log('Response:', response);
             if (response.error) {
                 alert(response.error);
-            } else if (style.alert_success?.content) {
-                // alert(style.alert_success.content);
-                // if (style.redirect_at_end?.content) {
-                //     window.location.href = style.redirect_at_end.content;
-                // }
+            } else {
+                // Update the React Query cache with the new content
+                updatePageContent(keyword, response.data);
+
+                if (style.alert_success?.content) {
+                    // alert(style.alert_success.content);
+                    // if (style.redirect_at_end?.content) {
+                    //     window.location.href = style.redirect_at_end.content;
+                    // }
+                }
             }
         } catch (error) {
             console.error('Error:', error);
