@@ -26,7 +26,7 @@ import { usePageContentContext } from "@/contexts/PageContentContext";
  */
 export default function DynamicPage({ params }: { params: { slug: string } }) {
     // Get routes for navigation and validation
-    const { routes, isLoading: routesLoading } = useNavigation();    
+    const { routes, isLoading: routesLoading } = useNavigation();
     const { pageContent: contextContent } = usePageContentContext();
 
     // Validate if the current route exists
@@ -73,14 +73,16 @@ export default function DynamicPage({ params }: { params: { slug: string } }) {
     // Render page content
     return (
         <PageContainer title={pageTitle} description={pageContent?.description}>
-            <Breadcrumb 
+            <Breadcrumb
                 title={pageTitle}
                 items={breadcrumbItems}
                 subtitle={pageContent?.description}
             />
-            {pageContent?.content && pageContent?.content.map((style, index) => (
-                <BasicStyle key={index} style={style} />
-            ))}
+            <>
+                {pageContent?.content.map((style, index) => (
+                    style ? <BasicStyle key={index} style={style} /> : null
+                ))}
+            </>
         </PageContainer>
     );
 }
