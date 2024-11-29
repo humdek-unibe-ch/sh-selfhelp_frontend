@@ -3,14 +3,14 @@ import { TStyle } from '@/types/api/styles.types';
 import {
     IContainerStyle, IButtonStyle, ICardStyle, ICarouselStyle,
     IDivStyle, IHeadingStyle, IImageStyle, ILinkStyle, IMarkdownStyle,
-    ITextareaStyle
+    ITextareaStyle, IFormUserInputLogStyle
 } from '@/types/api/styles.types';
 import {
     ButtonStyle, CardStyle, CarouselStyle, ContainerStyle,
     DivStyle, HeadingStyle, ImageStyle, LinkStyle, MarkdownStyle
 } from './SelfHelpStyles';
-import FormUserInputLogStyle from './FormUserInputStyle';
 import TextareaStyle from './TextareaStyle';
+import FormUserInputStyle from './FormUserInputStyle';
 
 /**
  * Props interface for BasicStyle component
@@ -39,7 +39,13 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
     const isButton = (style: TStyle): style is IButtonStyle => style.style_name === 'button';
     const isCarousel = (style: TStyle): style is ICarouselStyle => style.style_name === 'carousel';
     const isLink = (style: TStyle): style is ILinkStyle => style.style_name === 'link';
-    const isFormUserInput = (style: TStyle): style is TStyle => style.style_name === 'formUserInputLog';
+    const isFormUserInput = (style: TStyle): style is IFormUserInputLogStyle => {
+        return style.style_name === 'formUserInputLog' && 
+               'label' in style && 
+               'type' in style && 
+               'alert_success' in style && 
+               'label_cancel' in style;
+    };
     const isTextarea = (style: TStyle): style is ITextareaStyle => style.style_name === 'textarea';
 
     /**
@@ -76,7 +82,7 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
                 if (isLink(style)) return <LinkStyle style={style} />;
                 break;
             case 'formUserInputLog':
-                if (isFormUserInput(style)) return <FormUserInputLogStyle style={style} />;
+                if (isFormUserInput(style)) return <FormUserInputStyle style={style} />;
                 break;
             case 'textarea':
                 if (isTextarea(style)) return <TextareaStyle style={style} />;

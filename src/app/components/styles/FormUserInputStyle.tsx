@@ -5,11 +5,11 @@ import BasicStyle from './BasicStyle';
 import { PageService } from '@/services/page.service';
 import { usePageContentContext } from '@/contexts/PageContentContext';
 
-interface FormUserInputLogStyleProps {
+interface FormUserInputStyleProps {
     style: IFormUserInputLogStyle;
 }
 
-const FormUserInputLogStyle: React.FC<FormUserInputLogStyleProps> = ({ style }) => {
+const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
     const { updatePageContent } = usePageContentContext();
     const [formKey, setFormKey] = useState(0);
 
@@ -60,4 +60,4 @@ const FormUserInputLogStyle: React.FC<FormUserInputLogStyleProps> = ({ style }) 
     );
 };
 
-export default FormUserInputLogStyle;
+export default FormUserInputStyle;
