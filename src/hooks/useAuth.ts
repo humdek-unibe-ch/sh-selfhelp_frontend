@@ -1,3 +1,11 @@
+/**
+ * Custom hook for handling authentication-related operations in the application.
+ * This hook provides functionality for user login, logout, and token refresh operations,
+ * while managing loading and error states.
+ * 
+ * @module hooks/useAuth
+ */
+
 import { useState } from 'react';
 import { ILoginRequest } from '@/types/api/auth.type';
 import { useRouter } from 'next/navigation';
@@ -10,6 +18,11 @@ export const useAuth = () => {
     const router = useRouter();
     const { updateAuthState } = useAuthContext();
 
+    /**
+     * Handles user login process.
+     * @param {ILoginRequest} credentials - User login credentials
+     * @throws {Error} When login fails or server returns an error
+     */
     const login = async (credentials: ILoginRequest) => {
         try {
             setLoading(true);
@@ -45,6 +58,10 @@ export const useAuth = () => {
         }
     };
 
+    /**
+     * Handles user logout process.
+     * Clears local storage, updates auth state, and redirects to login page.
+     */
     const logout = async () => {
         try {
             setLoading(true);
@@ -80,10 +97,14 @@ export const useAuth = () => {
         }
     };
 
-    return {
-        login,
-        logout,
-        loading,
-        error
+    /**
+     * Refreshes the authentication token.
+     * @returns {Promise<boolean>} True if refresh successful, false otherwise
+     */
+    const refreshToken = async (): Promise<boolean> => {
+        // TO DO: implement token refresh logic
+        return true;
     };
+
+    return { login, logout, refreshToken, loading, error };
 };

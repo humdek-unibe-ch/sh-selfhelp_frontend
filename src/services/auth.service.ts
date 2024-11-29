@@ -1,8 +1,21 @@
+/**
+ * Service for handling authentication-related API calls.
+ * Provides methods for user login, logout, and token refresh operations.
+ * 
+ * @module services/auth.service
+ */
+
 import { ILoginRequest, ILoginResponse, ILogoutResponse, IRefreshTokenResponse } from '@/types/api/auth.type';
 import { apiClient } from './api.service';
 import { API_CONFIG } from '@/config/api.config';
 
 export const AuthService = {
+    /**
+     * Authenticates a user with their credentials.
+     * @param {ILoginRequest} credentials - User login credentials
+     * @returns {Promise<ILoginResponse>} Response containing authentication tokens and user info
+     * @throws {Error} When authentication fails
+     */
     async login(credentials: ILoginRequest): Promise<ILoginResponse> {
         console.log(credentials);
         const response = await apiClient.post<ILoginResponse>(
@@ -12,6 +25,11 @@ export const AuthService = {
         return response.data;
     },
 
+    /**
+     * Refreshes the authentication token using the refresh token.
+     * @returns {Promise<IRefreshTokenResponse>} New access token and related data
+     * @throws {Error} When refresh token is missing or invalid
+     */
     async refreshToken(): Promise<IRefreshTokenResponse> {
         const refreshToken = localStorage.getItem('refresh_token');
 
@@ -31,6 +49,11 @@ export const AuthService = {
         return response.data;
     },
 
+    /**
+     * Logs out the current user and invalidates their tokens.
+     * @returns {Promise<ILogoutResponse>} Confirmation of successful logout
+     * @throws {Error} When logout operation fails
+     */
     async logout(): Promise<ILogoutResponse> {
         const accessToken = localStorage.getItem('access_token');
         const refreshToken = localStorage.getItem('refresh_token');

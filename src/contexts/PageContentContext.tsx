@@ -1,22 +1,50 @@
+/**
+ * Page Content Context Provider and Hook.
+ * Manages global page content state and provides methods to update it.
+ * Integrates with React Query for caching and state management.
+ * 
+ * @module contexts/PageContentContext
+ */
+
 "use client";
 import { createContext, useContext, useState, ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { IPageContent } from '@/types/api/requests.type';
 
+/**
+ * Page content context type definition
+ */
 interface PageContentContextType {
+    /** Current page content */
     pageContent: IPageContent | null;
+    /** Sets the current page content */
     setPageContent: (content: IPageContent) => void;
+    /** Updates both React Query cache and local state */
     updatePageContent: (keyword: string, content: IPageContent) => void;
 }
 
+/**
+ * Context instance with undefined default value
+ */
 const PageContentContext = createContext<PageContentContextType | undefined>(undefined);
 
+/**
+ * Page Content Provider Component
+ * Manages page content state and provides methods to update it
+ * 
+ * @param {Object} props - Component props
+ * @param {ReactNode} props.children - Child components
+ */
 export const PageContentProvider = ({ children }: { children: ReactNode }) => {
     const [pageContent, setPageContent] = useState<IPageContent | null>(null);
     const queryClient = useQueryClient();
 
+    /**
+     * Updates both React Query cache and local state
+     * @param {string} keyword - Page identifier
+     * @param {IPageContent} content - New page content
+     */
     const updatePageContent = (keyword: string, content: IPageContent) => {
-        // Update both the React Query cache and local state
         queryClient.setQueryData(['page-content', keyword], content);
         setPageContent(content);
     };
@@ -32,10 +60,14 @@ export const PageContentProvider = ({ children }: { children: ReactNode }) => {
     );
 };
 
-// Export the context itself for useContext usage
+// Export the context for direct usage
 export { PageContentContext };
 
-// Hook for components that need to read the content
+/**
+ * Hook to access page content context
+ * @throws {Error} When used outside of PageContentProvider
+ * @returns {PageContentContextType} Page content context value
+ */
 export const usePageContentContext = () => {
     const context = useContext(PageContentContext);
     if (!context) {

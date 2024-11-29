@@ -1,7 +1,19 @@
+/**
+ * API client configuration and interceptor setup.
+ * Handles authentication token management, request/response interceptors,
+ * and automatic token refresh functionality.
+ * 
+ * @module services/api.service
+ */
+
 import axios from 'axios';
 import { API_CONFIG } from '../config/api.config';
 import { AuthService } from './auth.service';
 
+/**
+ * Axios instance configured with base URL and default headers.
+ * Used as the main HTTP client throughout the application.
+ */
 export const apiClient = axios.create({
     baseURL: API_CONFIG.BASE_URL,
     headers: {
@@ -9,7 +21,14 @@ export const apiClient = axios.create({
     }
 });
 
-// Add a request interceptor to add the auth token
+/**
+ * Request interceptor to add authentication token to outgoing requests.
+ * Retrieves the access token from local storage and appends it to the
+ * Authorization header if available.
+ * 
+ * @param {Object} config - Axios request configuration
+ * @returns {Object} Updated request configuration
+ */
 apiClient.interceptors.request.use((config) => {
     const token = localStorage.getItem('access_token');
     if (token) {
@@ -18,7 +37,15 @@ apiClient.interceptors.request.use((config) => {
     return config;
 });
 
-// Add a response interceptor to handle token refresh
+/**
+ * Response interceptor to handle token refresh and authentication errors.
+ * - Skips interceptor for refresh token requests
+ * - Handles automatic token refresh when access token expires
+ * - Manages authentication state based on server responses
+ * 
+ * @param {Object} response - Axios response object
+ * @returns {Object} Updated response object or a new promise
+ */
 apiClient.interceptors.response.use(
     async (response) => {
         // Skip interceptor for refresh token requests
