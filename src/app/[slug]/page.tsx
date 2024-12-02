@@ -13,7 +13,6 @@ import PageContainer from "@/app/components/container/PageContainer";
 import { useNavigation } from "@/hooks/useNavigation";
 import { usePageContent } from "@/hooks/usePageContent";
 import BasicStyle from "@/app/components/styles/BasicStyle";
-import Breadcrumb from "../layout/shared/breadcrumb/Breadcrumb";
 import { useEffect } from 'react';
 import { PageService } from '@/services/page.service';
 import { usePageContentContext } from "@/contexts/PageContentContext";

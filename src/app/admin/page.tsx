@@ -5,10 +5,10 @@ import { useEffect, useState } from "react";
 import { Typography } from "@mui/material";
 import PageContainer from "@/app/components/container/PageContainer";
 import DashboardCard from "@/app/components/shared/DashboardCard";
-import Breadcrumb from "@/app/(DashboardLayout)/layout/shared/breadcrumb/Breadcrumb";
+import Breadcrumb from "./layout/shared/breadcrumb/Breadcrumb";
+import Welcome from "./layout/shared/welcome/Welcome";
 
 // components
-import Welcome from "@/app/(DashboardLayout)/layout/shared/welcome/Welcome";
 
 const BCrumb = [
   {

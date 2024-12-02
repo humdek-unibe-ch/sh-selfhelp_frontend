@@ -9,10 +9,10 @@ import Stack from "@mui/material/Stack";
 import Toolbar from "@mui/material/Toolbar";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { styled } from "@mui/material/styles";
-import AuthLogo from "@/app/(DashboardLayout)/layout/shared/logo/AuthLogo";
 import Navigations from "./Navigations";
 import MobileSidebar from "./MobileSidebar";
 import { IconMenu2 } from "@tabler/icons-react";
+import AuthLogo from "@/app/admin/layout/shared/logo/AuthLogo";
 
 const HpHeader = (props: any) => {
   const AppBarStyled = styled(AppBar)(({ theme }) => ({

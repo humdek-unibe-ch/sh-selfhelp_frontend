@@ -1,7 +1,6 @@
 "use client";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
-import RTL from "@/app/(DashboardLayout)/layout/shared/customizer/RTL";
 import { ThemeSettings } from "@/utils/theme/Theme";
 import { useSelector } from 'react-redux';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter';
@@ -11,6 +10,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import "@/utils/i18n";
 import "@/app/api/index";
 import { PageContentProvider } from '@/contexts/PageContentContext';
+import RTL from "./admin/layout/shared/customizer/RTL";
 
 const queryClient = new QueryClient({
   defaultOptions: {
