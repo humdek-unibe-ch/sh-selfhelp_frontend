@@ -1,47 +1,17 @@
 "use client";
 import React from "react";
 import Button from "@mui/material/Button";
-
 import { styled } from "@mui/material/styles";
 import { Chip } from "@mui/material";
 import NextLink from "next/link";
-
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-
-export const NavLinks = [
-  {
-    title: "About Materialpro",
-    href: "/frontend-pages/about",
-  },
-  {
-    title: "Blog",
-    href: "/frontend-pages/blog",
-  },
-  {
-    title: "Portfolio",
-    new: true,
-    href: "/frontend-pages/portfolio",
-  },
-
-  {
-    title: "Dashboard",
-    href: "/",
-  },
-  {
-    title: "Pricing",
-    href: "/frontend-pages/pricing",
-  },
-  {
-    title: "Contact",
-    href: "/frontend-pages/contact",
-  },
-];
+import { useNavigation } from "@/hooks/useNavigation";
 
 const Navigations = () => {
   const router = usePathname();
-
   const [isMounted, setIsMounted] = useState(false);
+  const { menuItems } = useNavigation();
 
   useEffect(() => {
     setIsMounted(true);
@@ -66,18 +36,18 @@ const Navigations = () => {
 
   return (
     <>
-      {NavLinks.map((navlink, i) => (
+      {menuItems.map((navlink, i) => (
         <StyledButton
           color="inherit"
           className={router === navlink.href ? "active" : "not-active"}
           variant="text"
           key={i}
         >
-          <NextLink href={navlink.href}>
-            {navlink.title}{" "}
-            {navlink.new ? (
+          <NextLink href={navlink.href || '#'}>
+            {navlink.title}
+            {navlink.chip && (
               <Chip
-                label="New"
+                label={navlink.chip}
                 size="small"
                 sx={{
                   ml: "6px",
@@ -86,7 +56,7 @@ const Navigations = () => {
                   backgroundColor: "rgba(93, 135, 255, 0.15)",
                 }}
               />
-            ) : null}
+            )}
           </NextLink>
         </StyledButton>
       ))}
