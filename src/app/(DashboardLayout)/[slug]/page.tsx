@@ -17,6 +17,9 @@ import Breadcrumb from "../layout/shared/breadcrumb/Breadcrumb";
 import { useEffect } from 'react';
 import { PageService } from '@/services/page.service';
 import { usePageContentContext } from "@/contexts/PageContentContext";
+import HpHeader from '@/app/components/shared/frontend-pages/header/HpHeader';
+import Footer from '@/app/components/shared/frontend-pages/footer';
+import ScrollToTop from '@/app/components/shared/frontend-pages/scroll-to-top';
 
 /**
  * Dynamic page component that renders content based on URL slug
@@ -72,17 +75,28 @@ export default function DynamicPage({ params }: { params: { slug: string } }) {
 
     // Render page content
     return (
-        <PageContainer title={pageTitle} description={pageContent?.description}>
-            <Breadcrumb
-                title={pageTitle}
-                items={breadcrumbItems}
-                subtitle={pageContent?.description}
-            />
+        // <PageContainer title={pageTitle} description={pageContent?.description}>
+        //     <Breadcrumb
+        //         title={pageTitle}
+        //         items={breadcrumbItems}
+        //         subtitle={pageContent?.description}
+        //     />
+        //     <>
+        //         {pageContent?.content.map((style, index) => (
+        //             style ? <BasicStyle key={index} style={style} /> : null
+        //         ))}
+        //     </>
+        // </PageContainer>
+        <PageContainer title="Homepage" description="this is Homepage">
+            <HpHeader />
             <>
                 {pageContent?.content.map((style, index) => (
+
                     style ? <BasicStyle key={index} style={style} /> : null
                 ))}
             </>
+            <Footer />
+            <ScrollToTop />
         </PageContainer>
     );
 }
