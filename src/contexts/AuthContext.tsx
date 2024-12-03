@@ -8,8 +8,6 @@
 "use client";
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { IAuthState } from '@/types/api/auth.type';
-import { AuthService } from '@/services/auth.service';
-import { authStateChangeEvent } from '@/services/api.service';
 
 /**
  * Extended authentication context type that includes update method

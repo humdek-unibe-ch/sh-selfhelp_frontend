@@ -8,6 +8,7 @@
 import { ILoginRequest, ILoginResponse, ILogoutResponse, IRefreshTokenResponse } from '@/types/api/auth.type';
 import { apiClient } from './api.service';
 import { API_CONFIG } from '@/config/api.config';
+import { NavigationService } from './navigation.service';
 
 export const AuthService = {
     /**
@@ -66,8 +67,16 @@ export const AuthService = {
             }
         );
 
-        if (response.data.error) {
-            throw new Error(response.data.error);
+        // Clear tokens from localStorage
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('expires_in');
+
+        // Update navigation to reflect logged-out state
+        try {
+            await NavigationService.getRoutes();
+        } catch (error) {
+            console.warn('Failed to update navigation after logout:', error);
         }
 
         return response.data;
