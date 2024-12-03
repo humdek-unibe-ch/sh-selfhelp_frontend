@@ -1,10 +1,7 @@
 /**
- * Dynamic Page Component for Dashboard Layout.
- * Renders content based on the URL slug parameter, managing page content
- * through React Query and Context API. Includes breadcrumb navigation
- * and dynamic content rendering through BasicStyle components.
- * 
- * @module app/(DashboardLayout)/[slug]/page
+ * @fileoverview Dynamic page component that handles content rendering based on URL slugs.
+ * This is a client-side component that manages dynamic routing, content loading,
+ * and rendering of page content using various services and contexts.
  */
 
 "use client";
@@ -13,7 +10,7 @@ import PageContainer from "@/app/components/container/PageContainer";
 import { useNavigation } from "@/hooks/useNavigation";
 import { usePageContent } from "@/hooks/usePageContent";
 import BasicStyle from "@/app/components/styles/BasicStyle";
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { PageService } from '@/services/page.service';
 import { usePageContentContext } from "@/contexts/PageContentContext";
 import HpHeader from '@/app/components/shared/frontend-pages/header/HpHeader';
@@ -22,58 +19,68 @@ import ScrollToTop from '@/app/components/shared/frontend-pages/scroll-to-top';
 import LoadingSpinner from '@/app/components/shared/LoadingSpinner';
 
 /**
- * Dynamic page component that renders content based on URL slug
- * @param {Object} props - Component props
- * @param {Object} props.params - URL parameters
- * @param {string} props.params.slug - Page slug from URL
+ * Interface for the DynamicPage component props
+ * @interface DynamicPageProps
  */
-export default function DynamicPage({ params }: { params: { slug: string } }) {
+interface DynamicPageProps {
+    /** URL parameters object containing the page slug */
+    params: {
+        /** The URL slug that determines which page content to load */
+        slug: string;
+    };
+}
+
+/**
+ * Dynamic page component that renders content based on the URL slug.
+ * Handles loading states, route validation, and content rendering.
+ * 
+ * @component
+ * @param {DynamicPageProps} props - Component properties
+ * @returns {JSX.Element} Rendered page content with header, footer, and scroll-to-top functionality
+ * 
+ * @example
+ * // This component is typically rendered by Next.js routing
+ * // URL: /about
+ * <DynamicPage params={{ slug: 'about' }} />
+ */
+export default function DynamicPage({ params }: DynamicPageProps) {
     // Get routes for navigation and validation
-    const { 
-        routes, 
+    const {
+        routes,
         isLoading: routesLoading,
         isFetching: routesFetching
     } = useNavigation();
+
+    /** Get page content from context if available */
     const { pageContent: contextContent } = usePageContentContext();
 
-    // Validate if the current route exists
+    /** Validate if the current route exists in available routes */
     const isValid = routes?.some(route => route.path === `/${params.slug}`);
-    const { 
-        content: queryContent, 
+
+    /** Fetch page content if route is valid */
+    const {
+        content: queryContent,
         isLoading: pageLoading,
         isFetching: pageFetching,
-        isSuccess: pageSuccess 
+        isSuccess: pageSuccess
     } = usePageContent(params.slug, isValid);
 
-    // Use context content if available, otherwise use query content
+    /** Determine which content to use (context or query) and loading state */
     const pageContent = contextContent || queryContent;
     const isInitialLoading = (routesLoading || pageLoading) && (routesFetching || pageFetching);
-    console.log('isInitialLoading:', isInitialLoading);
 
-    // Configure breadcrumb navigation
-    const breadcrumbItems = [
-        {
-            title: "Home",
-            to: "/"
-        },
-        {
-            title: pageContent?.title || params.slug.charAt(0).toUpperCase() + params.slug.slice(1)
-        }
-    ];
-
-    // Update current page keyword
+    /** Update page keyword when slug changes */
     useEffect(() => {
         PageService.setKeyword(params.slug);
     }, [params.slug]);
 
-    // Get page title
+    /** Get formatted page title */
     const pageTitle = pageContent?.title || params.slug.charAt(0).toUpperCase() + params.slug.slice(1);
 
-    // Render page content
     return (
         <>
             <HpHeader />
-            <PageContainer title="Homepage" description="this is Homepage">
+            <PageContainer title={pageTitle} description="TODO: Page Description">
                 {isInitialLoading ? (
                     <LoadingSpinner />
                 ) : !isValid && !routesLoading ? (
