@@ -55,47 +55,30 @@ export default function DynamicPage({ params }: { params: { slug: string } }) {
         PageService.setKeyword(params.slug);
     }, [params.slug]);
 
-    // Handle loading states
-    if (routesLoading || pageLoading) {
-        return (
-            <PageContainer>
-                <div>Loading...</div>
-            </PageContainer>
-        );
-    }
-
-    // Handle invalid routes
-    if (!isValid) {
-        notFound();
-    }
-
     // Get page title
     const pageTitle = pageContent?.title || params.slug.charAt(0).toUpperCase() + params.slug.slice(1);
 
     // Render page content
     return (
-        // <PageContainer title={pageTitle} description={pageContent?.description}>
-        //     <Breadcrumb
-        //         title={pageTitle}
-        //         items={breadcrumbItems}
-        //         subtitle={pageContent?.description}
-        //     />
-        //     <>
-        //         {pageContent?.content.map((style, index) => (
-        //             style ? <BasicStyle key={index} style={style} /> : null
-        //         ))}
-        //     </>
-        // </PageContainer>
-        <PageContainer title="Homepage" description="this is Homepage">
+        <>
             <HpHeader />
-            <>
-                {pageContent?.content.map((style, index) => (
-
-                    style ? <BasicStyle key={index} style={style} /> : null
-                ))}
-            </>
+            <PageContainer title="Homepage" description="this is Homepage">
+                {(routesLoading || pageLoading) ? (
+                    <div className="min-h-[50vh] flex items-center justify-center">
+                        <div className="animate-pulse text-lg">Loading...</div>
+                    </div>
+                ) : !isValid ? (
+                    notFound()
+                ) : (
+                    <>
+                        {pageContent?.content.map((style, index) => (
+                            style ? <BasicStyle key={index} style={style} /> : null
+                        ))}
+                    </>
+                )}
+            </PageContainer>
             <Footer />
             <ScrollToTop />
-        </PageContainer>
+        </>
     );
 }
