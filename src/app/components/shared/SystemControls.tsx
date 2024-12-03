@@ -1,8 +1,8 @@
 "use client";
 import { Stack, Button } from "@mui/material";
-import Language from "../vertical/header/Language";
-import DarkLightMode from "../vertical/header/DarkLightMode";
-import Profile from "../vertical/header/Profile";
+import Language from "../../admin/layout/vertical/header/Language";
+import DarkLightMode from "../../admin/layout/vertical/header/DarkLightMode";
+import Profile from "../../admin/layout/vertical/header/Profile";
 import { useAuthContext } from "@/contexts/AuthContext";
 
 const SystemControls = () => {

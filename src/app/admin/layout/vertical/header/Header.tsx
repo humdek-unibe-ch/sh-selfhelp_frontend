@@ -24,8 +24,7 @@ import AppDD from "./Navigation";
 import { useEffect, useState } from "react";
 import Messages from "./Messages";
 import DarkLightMode from "./DarkLightMode";
-import SystemControls from "../../shared/SystemControls";
-
+import SystemControls from "@/app/components/shared/SystemControls";
 
 const Header = () => {
     const [height, setHeight] = useState('0px');
@@ -142,18 +141,17 @@ const Header = () => {
                     ) : null}
 
                     <Box flexGrow={1} />
-
                     {lgUp ? (
-                        <SystemControls isLoggedIn={false} /> // Set isLoggedIn based on your auth state
-                    ) : <Box
-                        display='flex'
-                        justifyContent="center"
-                        sx={{
-                            width: toggleWidth,
-                        }}
-                    >
-                        <Logo />
-                    </Box>}
+                        <SystemControls />
+                    ) : (
+                        <IconButton
+                            color="inherit"
+                            aria-label="menu"
+                            onClick={() => dispatch(toggleMobileSidebar())}
+                        >
+                            <IconDots width="20" height="20" />
+                        </IconButton>
+                    )}
                     {lgUp ? (
                         null
                     ) : <>

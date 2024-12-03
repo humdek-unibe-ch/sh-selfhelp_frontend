@@ -13,85 +13,82 @@ import Navigations from "./Navigations";
 import MobileSidebar from "./MobileSidebar";
 import { IconMenu2 } from "@tabler/icons-react";
 import AuthLogo from "@/app/admin/layout/shared/logo/AuthLogo";
+import SystemControls from "@/app/components/shared/SystemControls";
+import { Box } from "@mui/material";
 
-const HpHeader = (props: any) => {
-  const AppBarStyled = styled(AppBar)(({ theme }) => ({
+const AppBarStyled = styled(AppBar)(({ theme }) => ({
     justifyContent: "center",
     [theme.breakpoints.up("lg")]: {
-      minHeight: "100px",
+        minHeight: "100px",
     },
     backgroundColor: theme.palette.primary.light,
-  }));
+}));
 
-  const ToolbarStyled = styled(Toolbar)(({ theme }) => ({
+const ToolbarStyled = styled(Toolbar)(({ theme }) => ({
     width: "100%",
     paddingLeft: "0 !important",
     paddingRight: "0 !important",
     color: theme.palette.text.secondary,
     justifyContent: "space-between",
-  }));
+}));
 
-  //   sidebar
-  const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up("lg"));
-  const lgDown = useMediaQuery((theme: any) => theme.breakpoints.down("lg"));
+const HpHeader = (props: any) => {
+    const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up("lg"));
+    const lgDown = useMediaQuery((theme: any) => theme.breakpoints.down("lg"));
+    const [open, setOpen] = React.useState(false);
 
-  const [open, setOpen] = React.useState(false);
+    const handleDrawerOpen = () => {
+        setOpen(true);
+    };
 
-  const handleDrawerOpen = () => {
-    setOpen(true);
-  };
+    const toggleDrawer = (newOpen: any) => () => {
+        setOpen(newOpen);
+    };
 
-  const toggleDrawer = (newOpen: any) => () => {
-    setOpen(newOpen);
-  };
-
-  return (
-    <AppBarStyled position="sticky" elevation={0}>
-      <Container maxWidth="lg">
-        <ToolbarStyled>
-          <AuthLogo />
-          {lgDown ? (
-            <IconButton
-              color="inherit"
-              aria-label="menu"
-              onClick={handleDrawerOpen}
+    return (
+        <AppBarStyled position="sticky" elevation={0}>
+            <Container maxWidth="lg">
+                <ToolbarStyled>
+                    <AuthLogo />
+                    {lgDown ? (
+                        <Box display="flex" gap={1}>
+                            <SystemControls />
+                            <IconButton
+                                color="inherit"
+                                aria-label="menu"
+                                onClick={handleDrawerOpen}
+                            >
+                                <IconMenu2 size="20" />
+                            </IconButton>
+                        </Box>
+                    ) : null}
+                    {lgUp ? (
+                        <>
+                            <Stack spacing={1} direction="row" alignItems="center">
+                                <Navigations />
+                            </Stack>
+                            <SystemControls />
+                        </>
+                    ) : null}
+                </ToolbarStyled>
+            </Container>
+            <Drawer
+                anchor="left"
+                open={open}
+                variant="temporary"
+                onClose={toggleDrawer(false)}
+                PaperProps={{
+                    sx: {
+                        width: 270,
+                        border: "0 !important",
+                        boxShadow: (theme) => theme.shadows[8],
+                    },
+                }}
             >
-              <IconMenu2 size="20" />
-            </IconButton>
-          ) : null}
-          {lgUp ? (
-            <>
-              <Stack spacing={1} direction="row" alignItems="center">
-                <Navigations />
-              </Stack>
-              <Button
-                color="primary"
-                variant="contained"
-                href="/auth/auth1/login"
-              >
-                Log In
-              </Button>
-            </>
-          ) : null}
-        </ToolbarStyled>
-      </Container>
-      <Drawer
-        anchor="left"
-        open={open}
-        variant="temporary"
-        onClose={toggleDrawer(false)}
-        PaperProps={{
-          sx: {
-            width: 270,
-            border: "0 !important",
-            boxShadow: (theme) => theme.shadows[8],
-          },
-        }}
-      >
-        <MobileSidebar />
-      </Drawer>
-    </AppBarStyled>
-  );
+                <MobileSidebar />
+            </Drawer>
+        </AppBarStyled>
+    );
 };
 
 export default HpHeader;

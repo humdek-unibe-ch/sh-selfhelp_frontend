@@ -15,7 +15,7 @@ import { IconMenu2 } from "@tabler/icons-react";
 import Search from "../../vertical/header/Search";
 import Logo from "../../shared/logo/Logo";
 import { AppState } from "@/store/store";
-import SystemControls from "../../shared/SystemControls";
+import SystemControls from "../../../../components/shared/SystemControls";
 
 const Header = () => {
     const lgDown = useMediaQuery((theme: Theme) => theme.breakpoints.down("lg"));
