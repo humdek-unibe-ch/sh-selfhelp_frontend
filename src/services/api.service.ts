@@ -76,6 +76,7 @@ const handleTokenRefreshFailure = () => {
 
 // Helper function to perform token refresh
 const performTokenRefresh = async () => {
+    console.log('Performing token refresh');
     const response = await AuthService.refreshToken();
     if (response.data.access_token) {
         handleTokenRefreshSuccess(response.data.access_token, response.data.expires_in);
@@ -109,22 +110,39 @@ apiClient.interceptors.request.use(
  * 3. Automatic retry of failed requests after token refresh
  */
 apiClient.interceptors.response.use(
-    (response) => {
+    async (response) => {
         // Don't process logged_in flag for refresh token or logout endpoint responses
         if ('logged_in' in response.data && !isRefreshTokenRequest(response.config) && !isLogoutRequest(response.config)) {
             updateAuthState(response.data.logged_in);
             
-            // If server says not logged in but we have tokens, try to refresh once
+            // If server says not logged in but we have a token, try to refresh
             if (!response.data.logged_in && localStorage.getItem('access_token')) {
-                return performTokenRefresh()
-                    .then(newToken => {
-                        response.config.headers.Authorization = `Bearer ${newToken}`;
-                        return apiClient(response.config).then((axiosResponse: any) => axiosResponse);
-                    })
-                    .catch(error => {
-                        handleTokenRefreshFailure();
-                        throw error;
-                    });
+                if (isRefreshing) {
+                    try {
+                        const token = await new Promise((resolve, reject) => {
+                            failedQueue.push({ resolve, reject });
+                        });
+                        response.config.headers.Authorization = `Bearer ${token}`;
+                        return apiClient(response.config);
+                    } catch (err) {
+                        updateAuthState(false);
+                        return Promise.reject(err);
+                    }
+                }
+
+                isRefreshing = true;
+                try {
+                    const newToken = await performTokenRefresh();
+                    processQueue(null, newToken);
+                    response.config.headers.Authorization = `Bearer ${newToken}`;
+                    return apiClient(response.config);
+                } catch (refreshError) {
+                    processQueue(refreshError, null);
+                    updateAuthState(false);
+                    return Promise.reject(refreshError);
+                } finally {
+                    isRefreshing = false;
+                }
             }
         }
         return response;
@@ -158,7 +176,6 @@ apiClient.interceptors.response.use(
                 return apiClient(originalRequest);
             } catch (refreshError) {
                 processQueue(refreshError, null);
-                handleTokenRefreshFailure();
                 return Promise.reject(refreshError);
             } finally {
                 isRefreshing = false;
