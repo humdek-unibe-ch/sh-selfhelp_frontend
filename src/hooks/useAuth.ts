@@ -74,7 +74,7 @@ export const useAuth = () => {
                 throw new Error(response.error);
             }
             
-            if (!response.logged_in) {
+            if (response) {
                 // Clear local storage
                 localStorage.removeItem('access_token');
                 localStorage.removeItem('refresh_token');

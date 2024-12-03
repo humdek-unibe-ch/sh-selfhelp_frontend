@@ -34,6 +34,11 @@ const isRefreshTokenRequest = (config?: { url?: string }) => {
     return config?.url?.includes(API_CONFIG.ENDPOINTS.REFRESH_TOKEN);
 };
 
+// Helper function to check if a request is for logout
+const isLogoutRequest = (config?: { url?: string }) => {
+    return config?.url?.includes(API_CONFIG.ENDPOINTS.LOGOUT);
+};
+
 const processQueue = (error: any, token: string | null = null) => {
     failedQueue.forEach(prom => {
         if (error) {
@@ -105,8 +110,8 @@ apiClient.interceptors.request.use(
  */
 apiClient.interceptors.response.use(
     (response) => {
-        // Don't process logged_in flag for refresh token endpoint responses
-        if ('logged_in' in response.data && !isRefreshTokenRequest(response.config)) {
+        // Don't process logged_in flag for refresh token or logout endpoint responses
+        if ('logged_in' in response.data && !isRefreshTokenRequest(response.config) && !isLogoutRequest(response.config)) {
             updateAuthState(response.data.logged_in);
             
             // If server says not logged in but we have tokens, try to refresh once
@@ -114,7 +119,7 @@ apiClient.interceptors.response.use(
                 return performTokenRefresh()
                     .then(newToken => {
                         response.config.headers.Authorization = `Bearer ${newToken}`;
-                        return apiClient(response.config);
+                        return apiClient(response.config).then((axiosResponse: any) => axiosResponse);
                     })
                     .catch(error => {
                         handleTokenRefreshFailure();
