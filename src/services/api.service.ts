@@ -71,18 +71,28 @@ const handleTokenRefreshFailure = () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('expires_in');
+    delete apiClient.defaults.headers.common.Authorization;
     updateAuthState(false);
 };
 
 // Helper function to perform token refresh
 const performTokenRefresh = async () => {
     console.log('Performing token refresh');
-    const response = await AuthService.refreshToken();
-    if (response.data.access_token) {
-        handleTokenRefreshSuccess(response.data.access_token, response.data.expires_in);
-        return response.data.access_token;
+    try {
+        const response = await AuthService.refreshToken();
+        
+        if (response.data.access_token) {
+            handleTokenRefreshSuccess(response.data.access_token, response.data.expires_in);
+            return response.data.access_token;
+        }
+        
+        // If we get here, something went wrong but not an invalid token
+        handleTokenRefreshFailure();
+        throw new Error('Token refresh failed - no access token received');
+    } catch (error) {
+        handleTokenRefreshFailure();
+        throw error;
     }
-    throw new Error('Token refresh failed - no access token received');
 };
 
 /**
