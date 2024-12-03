@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Profile component that handles user authentication state and profile menu
+ * in the application header. Provides user information display and logout functionality.
+ */
+
 "use client";
 import React, { useState } from "react";
 import {
@@ -14,20 +19,62 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { useAuth } from "@/hooks/useAuth";
 import { jwtDecode, JwtPayload } from "jwt-decode";
 
+/**
+ * Interface for decoded JWT token with user information
+ */
+interface UserToken extends JwtPayload {
+  sub?: string;  // User ID
+}
+
+/**
+ * Profile component displays user information and authentication controls.
+ * Features a dropdown menu with user details and logout functionality.
+ * 
+ * Features:
+ * - User avatar display
+ * - Profile dropdown menu
+ * - User information display
+ * - Logout functionality
+ * - JWT token handling
+ * 
+ * @component
+ * @example
+ * return (
+ *   <Header>
+ *     <Profile />
+ *   </Header>
+ * )
+ */
 const Profile = () => {
-  const [anchorEl2, setAnchorEl2] = useState(null);
+  // State for managing the profile menu anchor element
+  const [anchorEl2, setAnchorEl2] = useState<HTMLElement | null>(null);
+  
+  // Authentication hooks and context
   const { accessToken } = useAuthContext();
   const { logout } = useAuth();
 
-  const decodedToken = accessToken ? jwtDecode<JwtPayload>(accessToken) : null;
+  // Decode JWT token to get user information
+  const decodedToken = accessToken ? jwtDecode<UserToken>(accessToken) : null;
 
-  const handleClick2 = (event: any) => {
+  /**
+   * Handles opening the profile menu
+   * @param event - Click event from the profile button
+   */
+  const handleClick2 = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl2(event.currentTarget);
   };
+
+  /**
+   * Handles closing the profile menu
+   */
   const handleClose2 = () => {
     setAnchorEl2(null);
   };
 
+  /**
+   * Handles user logout process
+   * Closes the menu and calls the logout function from useAuth hook
+   */
   const handleLogout = async () => {
     try {
       handleClose2();
@@ -39,6 +86,7 @@ const Profile = () => {
 
   return (
     <Box>
+      {/* Profile Avatar Button */}
       <IconButton
         size="large"
         aria-label="profile menu"
@@ -46,7 +94,7 @@ const Profile = () => {
         aria-controls="profile-menu"
         aria-haspopup="true"
         sx={{
-          ...(typeof anchorEl2 === "object" && {
+          ...(Boolean(anchorEl2) && {
             color: "primary.main",
           }),
         }}
@@ -61,6 +109,8 @@ const Profile = () => {
           }}
         />
       </IconButton>
+
+      {/* Profile Dropdown Menu */}
       <Menu
         id="profile-menu"
         anchorEl={anchorEl2}
@@ -75,6 +125,7 @@ const Profile = () => {
           },
         }}
       >
+        {/* User Information Section */}
         <Box p={2}>
           <Stack direction="row" spacing={2} alignItems="center">
             <Avatar
@@ -90,6 +141,8 @@ const Profile = () => {
           </Stack>
         </Box>
         <Divider />
+
+        {/* Logout Button Section */}
         <Box p={2}>
           <Button
             fullWidth

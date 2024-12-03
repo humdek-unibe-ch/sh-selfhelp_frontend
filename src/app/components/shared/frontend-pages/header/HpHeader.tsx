@@ -1,7 +1,11 @@
+/**
+ * @fileoverview Frontend header component that provides navigation, system controls,
+ * and responsive layout for both desktop and mobile views.
+ */
+
 "use client";
 import React from "react";
 import AppBar from "@mui/material/AppBar";
-import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
@@ -9,13 +13,18 @@ import Stack from "@mui/material/Stack";
 import Toolbar from "@mui/material/Toolbar";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { styled } from "@mui/material/styles";
+import { Box } from "@mui/material";
+import { IconMenu2 } from "@tabler/icons-react";
+
+// Custom components
 import Navigations from "./Navigations";
 import MobileSidebar from "./MobileSidebar";
-import { IconMenu2 } from "@tabler/icons-react";
 import AuthLogo from "@/app/admin/layout/shared/logo/AuthLogo";
 import SystemControls from "@/app/components/shared/SystemControls";
-import { Box } from "@mui/material";
 
+/**
+ * Styled AppBar component with responsive height and custom background
+ */
 const AppBarStyled = styled(AppBar)(({ theme }) => ({
     justifyContent: "center",
     [theme.breakpoints.up("lg")]: {
@@ -24,6 +33,9 @@ const AppBarStyled = styled(AppBar)(({ theme }) => ({
     backgroundColor: theme.palette.primary.light,
 }));
 
+/**
+ * Styled Toolbar component with custom spacing and layout
+ */
 const ToolbarStyled = styled(Toolbar)(({ theme }) => ({
     width: "100%",
     paddingLeft: "0 !important",
@@ -32,16 +44,38 @@ const ToolbarStyled = styled(Toolbar)(({ theme }) => ({
     justifyContent: "space-between",
 }));
 
+/**
+ * Frontend header component that provides navigation and system controls.
+ * Includes responsive design for both desktop and mobile views.
+ * 
+ * Features:
+ * - Responsive layout with different views for desktop and mobile
+ * - System controls (language, theme, authentication)
+ * - Mobile navigation drawer
+ * - Company logo
+ * 
+ * @component
+ */
 const HpHeader = (props: any) => {
+    // Media query hooks for responsive design
     const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up("lg"));
     const lgDown = useMediaQuery((theme: any) => theme.breakpoints.down("lg"));
+    
+    // State for mobile navigation drawer
     const [open, setOpen] = React.useState(false);
 
+    /**
+     * Opens the mobile navigation drawer
+     */
     const handleDrawerOpen = () => {
         setOpen(true);
     };
 
-    const toggleDrawer = (newOpen: any) => () => {
+    /**
+     * Toggles the mobile navigation drawer
+     * @param newOpen - The new state for the drawer
+     */
+    const toggleDrawer = (newOpen: boolean) => () => {
         setOpen(newOpen);
     };
 
@@ -50,6 +84,7 @@ const HpHeader = (props: any) => {
             <Container maxWidth="lg">
                 <ToolbarStyled>
                     <AuthLogo />
+                    {/* Mobile view */}
                     {lgDown ? (
                         <Box display="flex" gap={1}>
                             <SystemControls />
@@ -62,6 +97,7 @@ const HpHeader = (props: any) => {
                             </IconButton>
                         </Box>
                     ) : null}
+                    {/* Desktop view */}
                     {lgUp ? (
                         <>
                             <Stack spacing={1} direction="row" alignItems="center">
@@ -72,6 +108,7 @@ const HpHeader = (props: any) => {
                     ) : null}
                 </ToolbarStyled>
             </Container>
+            {/* Mobile navigation drawer */}
             <Drawer
                 anchor="left"
                 open={open}

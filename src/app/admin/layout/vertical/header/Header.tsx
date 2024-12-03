@@ -14,7 +14,7 @@ import {
 } from "@/store/customizer/CustomizerSlice";
 import { IconMenu2, IconDots } from "@tabler/icons-react";
 import Notifications from "./Notification";
-import Profile from "./Profile";
+import Profile from "../../../../components/shared/Profile";
 import Search from "./Search";
 import Language from "./Language";
 import { AppState } from "@/store/store";
