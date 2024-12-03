@@ -43,7 +43,6 @@ const ToolbarStyled = styled(Toolbar)(({ theme }) => ({
     paddingLeft: "0 !important",
     paddingRight: "0 !important",
     color: theme.palette.text.secondary,
-    justifyContent: "space-between",
 }));
 
 /**
@@ -87,45 +86,66 @@ const HpHeader = (props: any) => {
                 }}
             >
                 <ToolbarStyled>
-                    <AuthLogo />
-                    {/* Mobile view */}
-                    {lgDown ? (
-                        <Box display="flex" gap={1}>
-                            <SystemControls />
-                            <IconButton
-                                color="inherit"
-                                aria-label="menu"
-                                onClick={handleDrawerOpen}
-                            >
-                                <IconMenu2 size="20" />
-                            </IconButton>
-                        </Box>
-                    ) : null}
                     {/* Desktop view */}
-                    {lgUp ? (
-                        <Box display={"flex"} justifyContent={"space-between"} flexGrow={1}>
-                            <Navigations />
+                    {!lgDown ? (
+                        <Stack 
+                            direction="row" 
+                            spacing={2} 
+                            alignItems="center" 
+                            sx={{ 
+                                width: '100%',
+                                justifyContent: 'space-between'
+                            }}
+                        >
+                            <Stack 
+                                direction="row" 
+                                spacing={4} 
+                                alignItems="center"
+                            >
+                                <AuthLogo />
+                                <Navigations />
+                            </Stack>
                             <SystemControls />
-                        </Box>
-                    ) : null}
+                        </Stack>
+                    ) : (
+                        // Mobile view
+                        <Stack 
+                            direction="row" 
+                            alignItems="center" 
+                            justifyContent="space-between" 
+                            sx={{ width: '100%' }}
+                        >
+                            <AuthLogo />
+                            <Box display="flex" gap={1}>
+                                <SystemControls />
+                                <IconButton
+                                    color="inherit"
+                                    aria-label="menu"
+                                    onClick={handleDrawerOpen}
+                                >
+                                    <IconMenu2 size="20" />
+                                </IconButton>
+                            </Box>
+                            <Drawer
+                                anchor="right"
+                                open={open}
+                                onClose={toggleDrawer(false)}
+                                sx={{
+                                    '& .MuiDrawer-paper': {
+                                        width: '280px',
+                                        background: (theme) => theme.palette.background.paper,
+                                        color: (theme) => theme.palette.text.primary,
+                                        borderRadius: '0',
+                                        borderRight: '0',
+                                    },
+                                }}
+                            >
+                                <MobileSidebar />
+                            </Drawer>
+                        </Stack>
+                    )}
                 </ToolbarStyled>
             </Container>
-            {/* Mobile navigation drawer */}
-            <Drawer
-                anchor="right"
-                open={open}
-                onClose={toggleDrawer(false)}
-                sx={{
-                    display: { xs: "block", lg: "none" },
-                    "& .MuiDrawer-paper": {
-                        boxSizing: "border-box",
-                        width: 280,
-                        background: (theme) => theme.palette.primary.light,
-                    },
-                }}
-            >
-                <MobileSidebar />
-            </Drawer>
         </AppBarStyled>
     );
 };
