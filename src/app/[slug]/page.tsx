@@ -79,7 +79,6 @@ export default function DynamicPage({ params }: DynamicPageProps) {
 
     return (
         <>
-            <HpHeader />
             <PageContainer title={pageTitle} description="TODO: Page Description">
                 {isInitialLoading ? (
                     <LoadingSpinner />
@@ -93,7 +92,6 @@ export default function DynamicPage({ params }: DynamicPageProps) {
                     </>
                 )}
             </PageContainer>
-            <Footer />
             <ScrollToTop />
         </>
     );
