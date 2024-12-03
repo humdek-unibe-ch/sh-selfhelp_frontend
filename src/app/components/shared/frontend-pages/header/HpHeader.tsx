@@ -15,6 +15,8 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import { styled } from "@mui/material/styles";
 import { Box } from "@mui/material";
 import { IconMenu2 } from "@tabler/icons-react";
+import { useSelector } from "@/store/hooks";
+import { AppState } from "@/store/store";
 
 // Custom components
 import Navigations from "./Navigations";
@@ -57,12 +59,10 @@ const ToolbarStyled = styled(Toolbar)(({ theme }) => ({
  * @component
  */
 const HpHeader = (props: any) => {
-    // Media query hooks for responsive design
     const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up("lg"));
     const lgDown = useMediaQuery((theme: any) => theme.breakpoints.down("lg"));
-    
-    // State for mobile navigation drawer
     const [open, setOpen] = React.useState(false);
+    const customizer = useSelector((state: AppState) => state.customizer);
 
     /**
      * Opens the mobile navigation drawer
@@ -81,7 +81,11 @@ const HpHeader = (props: any) => {
 
     return (
         <AppBarStyled position="sticky" elevation={0}>
-            <Container maxWidth="lg">
+            <Container 
+                sx={{
+                    maxWidth: customizer.isLayout === "boxed" ? "lg" : "100%!important",
+                }}
+            >
                 <ToolbarStyled>
                     <AuthLogo />
                     {/* Mobile view */}
@@ -99,26 +103,24 @@ const HpHeader = (props: any) => {
                     ) : null}
                     {/* Desktop view */}
                     {lgUp ? (
-                        <>
-                            <Stack spacing={1} direction="row" alignItems="center">
-                                <Navigations />
-                            </Stack>
+                        <Box display={"flex"} justifyContent={"space-between"} flexGrow={1}>
+                            <Navigations />
                             <SystemControls />
-                        </>
+                        </Box>
                     ) : null}
                 </ToolbarStyled>
             </Container>
             {/* Mobile navigation drawer */}
             <Drawer
-                anchor="left"
+                anchor="right"
                 open={open}
-                variant="temporary"
                 onClose={toggleDrawer(false)}
-                PaperProps={{
-                    sx: {
-                        width: 270,
-                        border: "0 !important",
-                        boxShadow: (theme) => theme.shadows[8],
+                sx={{
+                    display: { xs: "block", lg: "none" },
+                    "& .MuiDrawer-paper": {
+                        boxSizing: "border-box",
+                        width: 280,
+                        background: (theme) => theme.palette.primary.light,
                     },
                 }}
             >

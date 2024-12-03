@@ -2,7 +2,7 @@
 import React from "react";
 import Button from "@mui/material/Button";
 import { styled } from "@mui/material/styles";
-import { Chip } from "@mui/material";
+import { Chip, Stack } from "@mui/material";
 import NextLink from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -35,7 +35,7 @@ const Navigations = () => {
   }));
 
   return (
-    <>
+    <Stack direction={"row"}>
       {menuItems.map((navlink, i) => (
         <StyledButton
           color="inherit"
@@ -45,22 +45,10 @@ const Navigations = () => {
         >
           <NextLink href={navlink.href || '#'}>
             {navlink.title}
-            {navlink.chip && (
-              <Chip
-                label={navlink.chip}
-                size="small"
-                sx={{
-                  ml: "6px",
-                  borderRadius: "8px",
-                  color: "primary.main",
-                  backgroundColor: "rgba(93, 135, 255, 0.15)",
-                }}
-              />
-            )}
           </NextLink>
         </StyledButton>
       ))}
-    </>
+    </Stack>
   );
 };
 
