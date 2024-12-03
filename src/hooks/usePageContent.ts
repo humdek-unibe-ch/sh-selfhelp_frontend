@@ -26,7 +26,13 @@ export function usePageContent(keyword: string, enabled: boolean = true) {
     const { setPageContent } = context;
 
     // Query configuration using React Query
-    const { data, isLoading, error } = useQuery({
+    const { 
+        data, 
+        isLoading, 
+        isFetching,
+        isSuccess,
+        error 
+    } = useQuery({
         queryKey: ['page-content', keyword],
         queryFn: () => PageService.getPageContent(keyword),
         staleTime: 1000, // Cache for 1 second
@@ -43,6 +49,8 @@ export function usePageContent(keyword: string, enabled: boolean = true) {
     return {
         content: data,
         isLoading,
+        isFetching,
+        isSuccess,
         error
     };
 }

@@ -99,7 +99,13 @@ function transformToMenuItems(items: INavigationItem[]): IMenuitemsType[] {
  * @returns {Object} Object containing navigation data and query state
  */
 export const useNavigation = () => {
-    const { data, isLoading, error } = useQuery({
+    const { 
+        data, 
+        isLoading, 
+        isFetching,
+        isSuccess,
+        error 
+    } = useQuery({
         queryKey: ['navigation'],
         queryFn: async () => {
             const data = await NavigationService.getRoutes();
@@ -115,6 +121,8 @@ export const useNavigation = () => {
         routes: data?.routes ?? [],
         menuItems: data?.menuItems ?? [],
         isLoading,
+        isFetching,
+        isSuccess,
         error
     };
 };

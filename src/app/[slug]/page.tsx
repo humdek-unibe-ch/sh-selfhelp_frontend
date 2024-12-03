@@ -13,12 +13,13 @@ import PageContainer from "@/app/components/container/PageContainer";
 import { useNavigation } from "@/hooks/useNavigation";
 import { usePageContent } from "@/hooks/usePageContent";
 import BasicStyle from "@/app/components/styles/BasicStyle";
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { PageService } from '@/services/page.service';
 import { usePageContentContext } from "@/contexts/PageContentContext";
 import HpHeader from '@/app/components/shared/frontend-pages/header/HpHeader';
 import Footer from '@/app/components/shared/frontend-pages/footer';
 import ScrollToTop from '@/app/components/shared/frontend-pages/scroll-to-top';
+import { CircularProgress, Box } from '@mui/material';
 
 /**
  * Dynamic page component that renders content based on URL slug
@@ -28,16 +29,26 @@ import ScrollToTop from '@/app/components/shared/frontend-pages/scroll-to-top';
  */
 export default function DynamicPage({ params }: { params: { slug: string } }) {
     // Get routes for navigation and validation
-    const { routes, isLoading: routesLoading } = useNavigation();
+    const { 
+        routes, 
+        isLoading: routesLoading,
+        isFetching: routesFetching
+    } = useNavigation();
     const { pageContent: contextContent } = usePageContentContext();
 
     // Validate if the current route exists
     const isValid = routes?.some(route => route.path === `/${params.slug}`);
-    const { content: queryContent, isLoading: pageLoading } = usePageContent(params.slug, isValid);
+    const { 
+        content: queryContent, 
+        isLoading: pageLoading,
+        isFetching: pageFetching,
+        isSuccess: pageSuccess 
+    } = usePageContent(params.slug, isValid);
 
     // Use context content if available, otherwise use query content
     const pageContent = contextContent || queryContent;
-    console.log(pageContent);
+    const isInitialLoading = (routesLoading || pageLoading) && (routesFetching || pageFetching);
+    console.log('isInitialLoading:', isInitialLoading);
 
     // Configure breadcrumb navigation
     const breadcrumbItems = [
@@ -63,11 +74,16 @@ export default function DynamicPage({ params }: { params: { slug: string } }) {
         <>
             <HpHeader />
             <PageContainer title="Homepage" description="this is Homepage">
-                {(routesLoading || pageLoading) ? (
-                    <div className="min-h-[50vh] flex items-center justify-center">
-                        <div className="animate-pulse text-lg">Loading...</div>
-                    </div>
-                ) : !isValid ? (
+                {isInitialLoading ? (
+                    <Box 
+                        display="flex" 
+                        justifyContent="center" 
+                        alignItems="center" 
+                        minHeight="50vh"
+                    >
+                        <CircularProgress size={40} thickness={4} />
+                    </Box>
+                ) : !isValid && !routesLoading ? (
                     notFound()
                 ) : (
                     <>
