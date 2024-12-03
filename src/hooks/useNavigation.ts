@@ -62,35 +62,47 @@ function transformToRoutes(items: INavigationItem[]): IRoute[] {
  * @returns {IMenuitemsType[]} Array of menu items for sidebar
  */
 function transformToMenuItems(items: INavigationItem[]): IMenuitemsType[] {
-    return items
-        .filter(item => item.nav_position !== null)
-        .sort((a, b) => (a.nav_position ?? 0) - (b.nav_position ?? 0))
-        .map(item => {
-            const childItems = items
-                .filter(child => child.parent === item.id_pages)
-                .sort((a, b) => (a.nav_position ?? 0) - (b.nav_position ?? 0));
+    // First, get all root items (items with no parent or parent is null)
+    const rootItems = items
+        .filter(item => 
+            item.nav_position !== null && 
+            item.parent === null &&
+            !item.is_headless // Exclude headless items
+        )
+        .sort((a, b) => (a.nav_position ?? 0) - (b.nav_position ?? 0));
 
-            const menuItem: IMenuitemsType = {
-                id: item.id_pages.toString(),
-                title: item.keyword,
-                href: transformDynamicUrl(item.url),
-                icon: null,
+    // Transform each root item and its children
+    return rootItems.map(item => {
+        // Find all immediate children of this item
+        const childItems = items
+            .filter(child => 
+                child.parent === item.id_pages &&
+                child.nav_position !== null &&
+                !child.is_headless
+            )
+            .sort((a, b) => (a.nav_position ?? 0) - (b.nav_position ?? 0));
+
+        const menuItem: IMenuitemsType = {
+            id: item.id_pages.toString(),
+            title: item.keyword,
+            href: transformDynamicUrl(item.url) || '#',
+            icon: null,
+            external: false
+        };
+
+        // If this item has children, add them
+        if (childItems.length > 0) {
+            menuItem.children = childItems.map(child => ({
+                id: child.id_pages.toString(),
+                title: child.keyword,
+                href: transformDynamicUrl(child.url) || '#',
+                icon: IconPoint,
                 external: false
-            };
+            }));
+        }
 
-            if (childItems.length > 0) {
-                menuItem.children = childItems.map(child => ({
-                    id: child.id_pages.toString(),
-                    title: child.keyword,
-                    href: transformDynamicUrl(child.url),
-                    icon: IconPoint,
-                    disabled: child.id_pageAccessTypes !== 1,
-                    external: false
-                }));
-            }
-
-            return menuItem;
-        });
+        return menuItem;
+    });
 }
 
 /**
