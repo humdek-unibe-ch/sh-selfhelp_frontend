@@ -8,6 +8,8 @@
 "use client";
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { IAuthState } from '@/types/api/auth.type';
+import { AuthService } from '@/services/auth.service';
+import { authStateChangeEvent } from '@/services/api.service';
 
 /**
  * Extended authentication context type that includes update method
@@ -16,7 +18,7 @@ interface AuthContextType extends IAuthState {
     /**
      * Updates authentication state from localStorage
      */
-    updateAuthState: () => void;
+    updateAuthState: () => Promise<void>;
 }
 
 /**
@@ -27,7 +29,7 @@ const AuthContext = createContext<AuthContextType>({
     accessToken: null,
     refreshToken: null,
     expiresIn: null,
-    updateAuthState: () => {}
+    updateAuthState: async () => {}
 });
 
 /**
@@ -44,9 +46,6 @@ export const useAuthContext = () => useContext(AuthContext);
  * @param {ReactNode} props.children - Child components
  */
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    /**
-     * Authentication state
-     */
     const [authState, setAuthState] = useState<IAuthState>({
         isAuthenticated: false,
         accessToken: null,
@@ -57,38 +56,66 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     /**
      * Updates authentication state from localStorage
      */
-    const updateAuthState = () => {
+    const updateAuthState = async () => {
         const accessToken = localStorage.getItem('access_token');
         const refreshToken = localStorage.getItem('refresh_token');
         const expiresIn = localStorage.getItem('expires_in');
-        
-        if (accessToken && refreshToken) {
-            setAuthState({
-                isAuthenticated: true,
-                accessToken,
-                refreshToken,
-                expiresIn: expiresIn ? parseInt(expiresIn) : null
-            });
-        } else {
-            setAuthState({
-                isAuthenticated: false,
-                accessToken: null,
-                refreshToken: null,
-                expiresIn: null
-            });
-        }
+
+        setAuthState({
+            isAuthenticated: Boolean(accessToken && refreshToken),
+            accessToken,
+            refreshToken,
+            expiresIn: expiresIn ? parseInt(expiresIn) : null
+        });
     };
 
-    // Initialize auth state on mount
+    /**
+     * Handle auth state changes from API service
+     */
+    useEffect(() => {
+        const handleAuthChange = (event: Event) => {
+            const customEvent = event as CustomEvent;
+            const isAuthenticated = customEvent.detail.isAuthenticated;
+            
+            if (!isAuthenticated) {
+                // Clear state if not authenticated
+                setAuthState({
+                    isAuthenticated: false,
+                    accessToken: null,
+                    refreshToken: null,
+                    expiresIn: null
+                });
+            } else {
+                // Update state from localStorage if authenticated
+                updateAuthState();
+            }
+        };
+
+        window.addEventListener('authStateChange', handleAuthChange);
+        return () => window.removeEventListener('authStateChange', handleAuthChange);
+    }, []);
+
+    /**
+     * Listen for storage events to sync state across tabs
+     */
+    useEffect(() => {
+        const handleStorageChange = () => {
+            updateAuthState();
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, []);
+
+    /**
+     * Initial auth state update
+     */
     useEffect(() => {
         updateAuthState();
     }, []);
 
     return (
-        <AuthContext.Provider value={{
-            ...authState,
-            updateAuthState
-        }}>
+        <AuthContext.Provider value={{ ...authState, updateAuthState }}>
             {children}
         </AuthContext.Provider>
     );

@@ -10,103 +10,159 @@ import axios from 'axios';
 import { API_CONFIG } from '../config/api.config';
 import { AuthService } from './auth.service';
 
+// Event to notify about authentication state changes
+export const authStateChangeEvent = new CustomEvent('authStateChange', {
+    detail: { isAuthenticated: false }
+});
+
 /**
  * Axios instance configured with base URL and default headers.
  * Used as the main HTTP client throughout the application.
  */
 export const apiClient = axios.create({
     baseURL: API_CONFIG.BASE_URL,
-    headers: {
-        'Content-Type': 'application/json',
-    }
+    withCredentials: API_CONFIG.CORS_CONFIG.credentials,
+    headers: API_CONFIG.CORS_CONFIG.headers
 });
+
+// Keep track of refresh token request to prevent multiple simultaneous refreshes
+let isRefreshing = false;
+let failedQueue: any[] = [];
+
+// Helper function to check if a request is for token refresh
+const isRefreshTokenRequest = (config?: { url?: string }) => {
+    return config?.url?.includes(API_CONFIG.ENDPOINTS.REFRESH_TOKEN);
+};
+
+const processQueue = (error: any, token: string | null = null) => {
+    failedQueue.forEach(prom => {
+        if (error) {
+            prom.reject(error);
+        } else {
+            prom.resolve(token);
+        }
+    });
+    failedQueue = [];
+};
+
+/**
+ * Updates authentication state and dispatches event
+ */
+const updateAuthState = (isAuthenticated: boolean) => {
+    authStateChangeEvent.detail.isAuthenticated = isAuthenticated;
+    window.dispatchEvent(authStateChangeEvent);
+};
+
+// Helper function to handle successful token refresh
+const handleTokenRefreshSuccess = (accessToken: string, expiresIn: number) => {
+    localStorage.setItem('access_token', accessToken);
+    localStorage.setItem('expires_in', expiresIn.toString());
+    apiClient.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+    updateAuthState(true);
+};
+
+// Helper function to handle token refresh failure
+const handleTokenRefreshFailure = () => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('expires_in');
+    updateAuthState(false);
+};
+
+// Helper function to perform token refresh
+const performTokenRefresh = async () => {
+    const response = await AuthService.refreshToken();
+    if (response.data.access_token) {
+        handleTokenRefreshSuccess(response.data.access_token, response.data.expires_in);
+        return response.data.access_token;
+    }
+    throw new Error('Token refresh failed - no access token received');
+};
 
 /**
  * Request interceptor to add authentication token to outgoing requests.
  * Retrieves the access token from local storage and appends it to the
  * Authorization header if available.
- * 
- * @param {Object} config - Axios request configuration
- * @returns {Object} Updated request configuration
  */
-apiClient.interceptors.request.use((config) => {
-    const token = localStorage.getItem('access_token');
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+apiClient.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('access_token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
     }
-    return config;
-});
+);
 
 /**
- * Response interceptor to handle token refresh and authentication errors.
- * - Skips interceptor for refresh token requests
- * - Handles automatic token refresh when access token expires
- * - Manages authentication state based on server responses
- * 
- * @param {Object} response - Axios response object
- * @returns {Object} Updated response object or a new promise
+ * Response interceptor to handle:
+ * 1. Authentication state based on logged_in flag from server
+ * 2. Token refresh on 401 errors
+ * 3. Automatic retry of failed requests after token refresh
  */
 apiClient.interceptors.response.use(
-    async (response) => {
-        // Skip interceptor for refresh token requests
-        if (response.config.url?.includes(API_CONFIG.ENDPOINTS.REFRESH_TOKEN)) {
-            return response;
-        }
-
-        // Check if response has logged_in=false but we have stored tokens
-        if (response.data?.logged_in === false &&
-            localStorage.getItem('access_token') &&
-            localStorage.getItem('refresh_token')) {
-
-            try {
-                // Try to refresh the token
-                const refreshResponse = await AuthService.refreshToken();
-
-                // Update the tokens
-                localStorage.setItem('access_token', refreshResponse.data.access_token);
-                localStorage.setItem('expires_in', refreshResponse.data.expires_in.toString());
-
-                // Retry the original request with new token
-                const originalRequest = response.config;
-                originalRequest.headers.Authorization = `Bearer ${refreshResponse.data.access_token}`;
-                return apiClient(originalRequest);
-            } catch (refreshError) {
-                // If refresh fails, clear tokens and redirect to login
-                localStorage.removeItem('access_token');
-                localStorage.removeItem('refresh_token');
-                window.location.href = '/login';
-                return Promise.reject(refreshError);
+    (response) => {
+        // Don't process logged_in flag for refresh token endpoint responses
+        if ('logged_in' in response.data && !isRefreshTokenRequest(response.config)) {
+            updateAuthState(response.data.logged_in);
+            
+            // If server says not logged in but we have tokens, try to refresh once
+            if (!response.data.logged_in && localStorage.getItem('access_token')) {
+                return performTokenRefresh()
+                    .then(newToken => {
+                        response.config.headers.Authorization = `Bearer ${newToken}`;
+                        return apiClient(response.config);
+                    })
+                    .catch(error => {
+                        handleTokenRefreshFailure();
+                        throw error;
+                    });
             }
         }
-
         return response;
     },
     async (error) => {
         const originalRequest = error.config;
 
-        // If error is 401 and we haven't tried to refresh token yet
+        // If error is 401 and we haven't tried refreshing yet
         if (error.response?.status === 401 && !originalRequest._retry) {
+            if (isRefreshing) {
+                // If already refreshing, queue this request
+                try {
+                    const token = await new Promise((resolve, reject) => {
+                        failedQueue.push({ resolve, reject });
+                    });
+                    originalRequest.headers.Authorization = `Bearer ${token}`;
+                    return apiClient(originalRequest);
+                } catch (err) {
+                    updateAuthState(false);
+                    return Promise.reject(err);
+                }
+            }
+
             originalRequest._retry = true;
+            isRefreshing = true;
 
             try {
-                const response = await AuthService.refreshToken();
-
-                // Update the access token
-                localStorage.setItem('access_token', response.data.access_token);
-                localStorage.setItem('expires_in', response.data.expires_in.toString());
-
-                // Update the Authorization header
-                originalRequest.headers.Authorization = `Bearer ${response.data.access_token}`;
-
-                // Retry the original request
+                const newToken = await performTokenRefresh();
+                processQueue(null, newToken);
+                originalRequest.headers.Authorization = `Bearer ${newToken}`;
                 return apiClient(originalRequest);
             } catch (refreshError) {
-                // If refresh fails, clear tokens and redirect to login
-                localStorage.removeItem('access_token');
-                localStorage.removeItem('refresh_token');
-                window.location.href = '/login';
+                processQueue(refreshError, null);
+                handleTokenRefreshFailure();
                 return Promise.reject(refreshError);
+            } finally {
+                isRefreshing = false;
             }
+        }
+
+        // Update auth state if server explicitly says not logged in
+        if (error.response?.data?.logged_in === false) {
+            updateAuthState(false);
         }
 
         return Promise.reject(error);
