@@ -5,38 +5,22 @@ import {
     useMediaQuery,
     Toolbar,
     styled,
-    Stack,
 } from "@mui/material";
 import { useSelector, useDispatch } from "@/store/hooks";
 import {
     toggleSidebar,
     toggleMobileSidebar,
 } from "@/store/customizer/CustomizerSlice";
-import { IconMenu2, IconDots } from "@tabler/icons-react";
-import Notifications from "./Notification";
-import Profile from "../../../../components/shared/Profile";
+import { IconMenu2 } from "@tabler/icons-react";
 import Search from "./Search";
-import Language from "./Language";
 import { AppState } from "@/store/store";
-import MobileRightSidebar from "./MobileRightSidebar";
 import Logo from "../../shared/logo/Logo";
-import AppDD from "./Navigation";
 import { useEffect, useState } from "react";
-import Messages from "./Messages";
-import DarkLightMode from "./DarkLightMode";
 import SystemControls from "@/app/components/shared/SystemControls";
 
 const Header = () => {
     const [height, setHeight] = useState('0px');
-
-
-    const handleChange = () => {
-        height == '0px' ? setHeight('auto') : setHeight('0px')
-    };
     const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up("lg"));
-    const lgDown = useMediaQuery((theme: any) => theme.breakpoints.down("lg"));
-
-
 
     // drawer
     const customizer = useSelector((state: AppState) => state.customizer);
@@ -128,95 +112,11 @@ const Header = () => {
                     {/* ------------------------------------------- */}
                     {/* Search Dropdown */}
                     {/* ------------------------------------------- */}
-                    {lgUp ? (
-                        <>
-                            <Search />
-                        </>
-                    ) : null}
-
-                    {lgUp ? (
-                        <>
-                            <AppDD />
-                        </>
-                    ) : null}
-
+                    <Search />
                     <Box flexGrow={1} />
-                    {lgUp ? (
-                        <SystemControls />
-                    ) : (
-                        <IconButton
-                            color="inherit"
-                            aria-label="menu"
-                            onClick={() => dispatch(toggleMobileSidebar())}
-                        >
-                            <IconDots width="20" height="20" />
-                        </IconButton>
-                    )}
-                    {lgUp ? (
-                        null
-                    ) : <>
-                        <Box flexGrow={1} />
-                    </>}
-                    {lgUp ? (
-                        null
-                    ) :
-                        <>
-                            <IconButton
-                                onClick={handleChange}
-                                aria-label="show 4 new mails"
-                                color="inherit"
-                                size="large"
-                            >
-                                <IconDots size="22" />
-                            </IconButton>
-                        </>}
-                </ToolbarStyled>
-                <Box
-                    sx={{
-                        maxHeight: { height },
-                        width: '100%',
-                        backgroundColor: "transparent",
-                        transition: "all 2s ease",
-                        overflow: "hidden"
-                    }}>
-                    <Stack
-                        direction="row"
-                        justifyContent="space-between"
-                        alignItems="center"
-                        spacing={0}
-                        paddingX={3}
-                    >
-                        <Stack spacing={0.5} direction="row" alignItems="center">
-                            {/* ------------------------------------------- */}
-                            {/* Notification Dropdown */}
-                            {/* ------------------------------------------- */}
-                            <Notifications />
-                            {/* ------------------------------------------- */}
-                            {/* Messages Dropdown */}
-                            {/* ------------------------------------------- */}
-                            <Messages />
+                    <SystemControls />
 
-                            {/* ------------------------------------------- */}
-                            {/* Toggle Right Sidebar for mobile */}
-                            {/* ------------------------------------------- */}
-                            {lgDown ? <MobileRightSidebar /> : null}
-                        </Stack>
-                        <Stack spacing={0.5} direction="row" alignItems="center">
-                            {/* ------------------------------------------- */}
-                            {/* Language */}
-                            {/* ------------------------------------------- */}
-                            <Language />
-                            {/* ------------------------------------------- */}
-                            {/* DarkLightMode */}
-                            {/* ------------------------------------------- */}
-                            <DarkLightMode />
-                            {/* ------------------------------------------- */}
-                            {/* Profile */}
-                            {/* ------------------------------------------- */}
-                            <Profile />
-                        </Stack>
-                    </Stack>
-                </Box>
+                </ToolbarStyled>
             </AppBarStyled>
         </>
     );
