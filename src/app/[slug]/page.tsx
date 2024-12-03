@@ -19,7 +19,7 @@ import { usePageContentContext } from "@/contexts/PageContentContext";
 import HpHeader from '@/app/components/shared/frontend-pages/header/HpHeader';
 import Footer from '@/app/components/shared/frontend-pages/footer';
 import ScrollToTop from '@/app/components/shared/frontend-pages/scroll-to-top';
-import { CircularProgress, Box } from '@mui/material';
+import LoadingSpinner from '@/app/components/shared/LoadingSpinner';
 
 /**
  * Dynamic page component that renders content based on URL slug
@@ -75,14 +75,7 @@ export default function DynamicPage({ params }: { params: { slug: string } }) {
             <HpHeader />
             <PageContainer title="Homepage" description="this is Homepage">
                 {isInitialLoading ? (
-                    <Box 
-                        display="flex" 
-                        justifyContent="center" 
-                        alignItems="center" 
-                        minHeight="50vh"
-                    >
-                        <CircularProgress size={40} thickness={4} />
-                    </Box>
+                    <LoadingSpinner />
                 ) : !isValid && !routesLoading ? (
                     notFound()
                 ) : (
