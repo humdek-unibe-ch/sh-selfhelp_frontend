@@ -21,8 +21,6 @@ import {
 } from '@mui/material';
 
 import Link from 'next/link';
-import AppLinks from './AppLinks';
-import QuickLinks from './QuickLinks';
 
 const MobileRightSidebar = () => {
   const [showDrawer, setShowDrawer] = useState(false);
@@ -89,16 +87,7 @@ const MobileRightSidebar = () => {
               <IconChevronUp size="21" stroke="1.5" />
             )}
           </ListItemButton>
-          <Collapse in={open} timeout="auto" unmountOnExit>
-            <Box px={4} pt={3} overflow="hidden">
-              <AppLinks />
-            </Box>
-          </Collapse>
         </List>
-      </Box>
-
-      <Box px={3} mt={3}>
-        <QuickLinks />
       </Box>
     </Box>
   );
