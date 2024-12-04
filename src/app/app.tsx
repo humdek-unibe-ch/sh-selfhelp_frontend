@@ -4,7 +4,6 @@
 
 "use client";
 import "@/utils/i18n";
-import "@/app/api/index";
 
 /**
  * Root application component.
