@@ -1,10 +1,10 @@
 "use client";
 
 import { Grid, Box, Typography } from "@mui/material";
-import AuthLogo from "@/app/(DashboardLayout)/layout/shared/logo/AuthLogo";
 import PageContainer from "@/app/components/container/PageContainer";
 import AuthForgotPassword from "../../authForms/AuthForgotPassword";
 import Image from "next/image";
+import AuthLogo from "@/app/admin/layout/shared/logo/AuthLogo";
 
 export default function ForgotPassword() {
   return (

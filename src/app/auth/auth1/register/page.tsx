@@ -2,10 +2,10 @@
 import Link from "next/link";
 import { Grid, Box, Typography, Stack } from "@mui/material";
 import PageContainer from "@/app/components/container/PageContainer";
-import Logo from "@/app/(DashboardLayout)/layout/shared/logo/Logo";
 
 import AuthRegister from "../../authForms/AuthRegister";
 import Image from "next/image";
+import Logo from "@/app/admin/layout/shared/logo/Logo";
 
 export default function Register() {
   return (

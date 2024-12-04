@@ -3,9 +3,9 @@ import Link from 'next/link';
 import { Grid, Box, Card, Stack, Typography } from '@mui/material';
 
 // components
-import Logo from '@/app/(DashboardLayout)/layout/shared/logo/Logo';
 import PageContainer from '@/app/components/container/PageContainer';
 import AuthLogin from '../../authForms/AuthLogin';
+import Logo from '@/app/admin/layout/shared/logo/Logo';
 
 export default function Login2() {
   

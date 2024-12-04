@@ -1,9 +1,9 @@
 "use client";
 import { Grid, Box, Typography } from '@mui/material';
 import PageContainer from '@/app/components/container/PageContainer';
-import Logo from '@/app/(DashboardLayout)/layout/shared/logo/Logo';
 import AuthTwoSteps from '../../authForms/AuthTwoSteps';
 import Image from 'next/image';
+import Logo from '@/app/admin/layout/shared/logo/Logo';
 
 export default function TwoSteps() {
   return(

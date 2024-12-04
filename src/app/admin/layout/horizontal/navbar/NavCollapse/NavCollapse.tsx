@@ -33,13 +33,14 @@ interface NavCollapseProps {
 
 // FC Component For Dropdown Menu
 const NavCollapse = ({ menu, level, pathWithoutLastPart, pathDirect, hideMenu }: NavCollapseProps) => {
-  const Icon = menu.icon;
+  const Icon = menu.icon || IconChevronDown; // Provide default icon
   const theme = useTheme();
-  const  pathname  = usePathname();
+  const pathname = usePathname();
   const [open, setOpen] = React.useState(false);
   const customizer = useSelector((state: AppState) => state.customizer);
-  const menuIcon =
-    level > 1 ? <Icon stroke={1.5} size="1rem" /> : <Icon stroke={1.5} size="1.1rem" />;
+  const menuIcon = Icon ? (
+    level > 1 ? <Icon stroke={1.5} size="1rem" /> : <Icon stroke={1.5} size="1.1rem" />
+  ) : null;
 
   React.useEffect(() => {
     setOpen(false);
