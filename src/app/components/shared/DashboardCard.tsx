@@ -1,7 +1,6 @@
-import { useTheme } from '@mui/material/styles';
-import { Card, CardContent, Typography, Stack, Box } from '@mui/material';
 import { useSelector } from '@/store/hooks';
 import { AppState } from '@/store/store';
+import { Card, Text, Stack, Box, Group } from '@mantine/core';
 
 type Props = {
   title?: string;
@@ -28,49 +27,35 @@ const DashboardCard = ({
 }: Props) => {
   const customizer = useSelector((state: AppState) => state.customizer);
 
-  const theme = useTheme();
-  const borderColor = theme.palette.divider;
-
   return (
     <Card
-      sx={{ padding: 0, border: !customizer.isCardShadow ?  `1px solid ${borderColor}` : 'none' }}
-      elevation={customizer.isCardShadow ? 9 : 0}
-      variant={!customizer.isCardShadow ? 'outlined' : undefined}
+      p={0}
+      shadow={customizer.isCardShadow ? 'md' : undefined}
+      withBorder={!customizer.isCardShadow}
     >
       {cardheading ? (
-        <CardContent>
-          <Typography variant="h5">{headtitle}</Typography>
-          <Typography variant="subtitle2" color="textSecondary">
-            {headsubtitle}
-          </Typography>
-        </CardContent>
+        <Box p="md">
+          <Text fz="xl" fw={500}>{headtitle}</Text>
+          <Text fz="sm" c="dimmed">{headsubtitle}</Text>
+        </Box>
       ) : (
-        <CardContent sx={{p: "30px"}}>
+        <Box p="30px">
           {title ? (
-            <Stack
-              direction="row"
-              spacing={2}
-              justifyContent="space-between"
-              alignItems={'center'}
-              mb={3}
-            >
+            <Group justify="space-between" align="center" mb="lg">
               <Box>
-                {title ? <Typography variant="h5">{title}</Typography> : ''}
-
+                {title ? <Text fz="xl" fw={500}>{title}</Text> : ''}
                 {subtitle ? (
-                  <Typography variant="subtitle2" color="textSecondary">
+                  <Text fz="sm" c="dimmed">
                     {subtitle}
-                  </Typography>
-                ) : (
-                  ''
-                )}
+                  </Text>
+                ) : null}
               </Box>
               {action}
-            </Stack>
+            </Group>
           ) : null}
 
           {children}
-        </CardContent>
+        </Box>
       )}
 
       {middlecontent}

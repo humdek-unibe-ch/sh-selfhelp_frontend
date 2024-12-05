@@ -4,17 +4,8 @@
  */
 
 "use client";
-import React, { useState } from "react";
-import {
-  Box,
-  Menu,
-  Avatar,
-  Typography,
-  Divider,
-  Button,
-  IconButton,
-} from "@mui/material";
-import { Stack } from "@mui/system";
+import { useState } from "react";
+import { Menu, Avatar, Text, Divider, Button, ActionIcon, Stack, Group, Paper } from "@mantine/core";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useAuth } from "@/hooks/useAuth";
 import { jwtDecode, JwtPayload } from "jwt-decode";
@@ -47,7 +38,7 @@ interface UserToken extends JwtPayload {
  */
 const Profile = () => {
   // State for managing the profile menu anchor element
-  const [anchorEl2, setAnchorEl2] = useState<HTMLElement | null>(null);
+  const [opened, setOpened] = useState(false);
   
   // Authentication hooks and context
   const { accessToken } = useAuthContext();
@@ -57,27 +48,12 @@ const Profile = () => {
   const decodedToken = accessToken ? jwtDecode<UserToken>(accessToken) : null;
 
   /**
-   * Handles opening the profile menu
-   * @param event - Click event from the profile button
-   */
-  const handleClick2 = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl2(event.currentTarget);
-  };
-
-  /**
-   * Handles closing the profile menu
-   */
-  const handleClose2 = () => {
-    setAnchorEl2(null);
-  };
-
-  /**
    * Handles user logout process
    * Closes the menu and calls the logout function from useAuth hook
    */
   const handleLogout = async () => {
     try {
-      handleClose2();
+      setOpened(false);
       await logout();
     } catch (error) {
       console.error('Logout failed:', error);
@@ -85,76 +61,64 @@ const Profile = () => {
   };
 
   return (
-    <Box>
-      {/* Profile Avatar Button */}
-      <IconButton
-        size="large"
-        aria-label="profile menu"
-        color="inherit"
-        aria-controls="profile-menu"
-        aria-haspopup="true"
-        sx={{
-          ...(Boolean(anchorEl2) && {
-            color: "primary.main",
-          }),
-        }}
-        onClick={handleClick2}
-      >
-        <Avatar
-          src={"/images/profile/user2.jpg"}
-          alt="User"
-          sx={{
-            width: 35,
-            height: 35,
-          }}
-        />
-      </IconButton>
+    <Menu 
+      opened={opened}
+      onChange={setOpened}
+      position="bottom-end"
+      offset={5}
+      width={300}
+      withArrow
+      arrowPosition="center"
+    >
+      <Menu.Target>
+        <ActionIcon
+          size="xl"
+          variant={opened ? "filled" : "subtle"}
+          color={opened ? "blue" : "gray"}
+          radius="xl"
+        >
+          <Avatar
+            src="/images/profile/user2.jpg"
+            alt="User"
+            size="md"
+            radius="xl"
+          />
+        </ActionIcon>
+      </Menu.Target>
 
-      {/* Profile Dropdown Menu */}
-      <Menu
-        id="profile-menu"
-        anchorEl={anchorEl2}
-        keepMounted
-        open={Boolean(anchorEl2)}
-        onClose={handleClose2}
-        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-        transformOrigin={{ horizontal: "right", vertical: "top" }}
-        sx={{
-          "& .MuiMenu-paper": {
-            width: "300px",
-          },
-        }}
-      >
-        {/* User Information Section */}
-        <Box p={2}>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Avatar
-              src={"/images/profile/user2.jpg"}
-              alt="User"
-              sx={{ width: 64, height: 64 }}
-            />
-            <Box>
-              <Typography variant="subtitle1" fontWeight={600}>
-                User ID: {decodedToken?.sub || 'Unknown'}
-              </Typography>
-            </Box>
+      <Menu.Dropdown>
+        <Paper p="md" withBorder={false}>
+          <Stack gap="md">
+            <Group>
+              <Avatar
+                src="/images/profile/user2.jpg"
+                alt="User"
+                size={64}
+                radius="xl"
+              />
+              <Stack gap={2}>
+                <Text fw={600} size="sm">
+                  User ID: {decodedToken?.sub || 'Unknown'}
+                </Text>
+              </Stack>
+            </Group>
           </Stack>
-        </Box>
+        </Paper>
+        
         <Divider />
-
-        {/* Logout Button Section */}
-        <Box p={2}>
+        
+        <Paper p="md" withBorder={false}>
           <Button
             fullWidth
-            variant="contained"
-            color="primary"
+            variant="light"
+            color="red"
             onClick={handleLogout}
           >
             Logout
           </Button>
-        </Box>
-      </Menu>
-    </Box>
+        </Paper>
+      </Menu.Dropdown>
+    </Menu>
   );
 };
 

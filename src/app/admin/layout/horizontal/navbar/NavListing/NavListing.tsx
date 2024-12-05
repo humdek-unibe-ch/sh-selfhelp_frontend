@@ -1,23 +1,35 @@
 import { usePathname } from "next/navigation";
-import { Box, List, Theme, useMediaQuery } from '@mui/material';
 import { useSelector } from '@/store/hooks';
 import NavItem from '../NavItem/NavItem';
 import NavCollapse from '../NavCollapse/NavCollapse';
 import { AppState } from '@/store/store';
 import { useNavigation } from '@/hooks/useNavigation';
+import { useMediaQuery } from '@mantine/hooks';
+import { Box } from '@mantine/core';
 
 const NavListing = () => {
    const pathname = usePathname();
    const pathDirect = pathname;
    const pathWithoutLastPart = pathname.slice(0, pathname.lastIndexOf('/'));
    const customizer = useSelector((state: AppState) => state.customizer);
-   const lgUp = useMediaQuery((theme: Theme) => theme.breakpoints.up('lg'));
+   const lgUp = useMediaQuery('(min-width: 1200px)');
    const hideMenu = lgUp ? customizer.isCollapse && !customizer.isSidebarHover : '';
    const { menuItems, isLoading } = useNavigation();
 
    return (
       <Box>
-         <List sx={{ p: 0, display: 'flex', gap: '3px', zIndex: '100' }}>
+         <Box
+            component="ul"
+            style={{
+               padding: 0,
+               margin: 0,
+               display: 'flex',
+               flexDirection: 'column',
+               gap: '3px',
+               zIndex: 100,
+               listStyle: 'none'
+            }}
+         >
             {menuItems.map((item) => {
                if (item.children) {
                   return (
@@ -27,18 +39,25 @@ const NavListing = () => {
                         hideMenu={hideMenu}
                         pathWithoutLastPart={pathWithoutLastPart}
                         level={1}
-                        key={item.id} onClick={undefined} />
+                        key={item.id}
+                        onClick={undefined}
+                     />
                   );
-
-                  // {/********If Sub No Menu**********/}
                } else {
                   return (
-                     <NavItem item={item} key={item.id} pathDirect={pathDirect} hideMenu={hideMenu} onClick={undefined} />
+                     <NavItem
+                        item={item}
+                        key={item.id}
+                        pathDirect={pathDirect}
+                        hideMenu={hideMenu}
+                        onClick={()=>{console.log('clicked')}}
+                     />
                   );
                }
             })}
-         </List>
+         </Box>
       </Box>
    );
 };
+
 export default NavListing;

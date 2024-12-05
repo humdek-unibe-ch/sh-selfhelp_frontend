@@ -5,45 +5,18 @@
 
 "use client";
 import React from "react";
-import AppBar from "@mui/material/AppBar";
-import Container from "@mui/material/Container";
-import Drawer from "@mui/material/Drawer";
-import IconButton from "@mui/material/IconButton";
-import Stack from "@mui/material/Stack";
-import Toolbar from "@mui/material/Toolbar";
-import useMediaQuery from "@mui/material/useMediaQuery";
-import { styled } from "@mui/material/styles";
-import { Box } from "@mui/material";
 import { IconMenu2 } from "@tabler/icons-react";
 import { useSelector } from "@/store/hooks";
 import { AppState } from "@/store/store";
+import { Box, Container, Drawer, ActionIcon, Stack, Group } from "@mantine/core";
+import { useViewportSize } from '@mantine/hooks';
+import { BREAKPOINT_VALUES } from '@/utils/theme/Theme';
 
 // Custom components
 import Navigations from "./Navigations";
 import MobileSidebar from "./MobileSidebar";
 import AuthLogo from "@/app/admin/layout/shared/logo/AuthLogo";
 import SystemControls from "@/app/components/shared/SystemControls";
-
-/**
- * Styled AppBar component with responsive height and custom background
- */
-const AppBarStyled = styled(AppBar)(({ theme }) => ({
-    justifyContent: "center",
-    [theme.breakpoints.up("lg")]: {
-        minHeight: "100px",
-    },
-    backgroundColor: theme.palette.primary.light,
-}));
-
-/**
- * Styled Toolbar component with custom spacing and layout
- */
-const ToolbarStyled = styled(Toolbar)(({ theme }) => ({
-    width: "100%",
-    paddingLeft: "0 !important",
-    paddingRight: "0 !important",
-    color: theme.palette.text.secondary,
-}));
 
 /**
  * Frontend header component that provides navigation and system controls.
@@ -57,96 +30,75 @@ const ToolbarStyled = styled(Toolbar)(({ theme }) => ({
  * 
  * @component
  */
-const HpHeader = (props: any) => {
-    const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up("lg"));
-    const lgDown = useMediaQuery((theme: any) => theme.breakpoints.down("lg"));
+const HpHeader = () => {
+    const { width } = useViewportSize();
+    const lgUp = width >= BREAKPOINT_VALUES.lg * 16; // Convert em to px
+    const lgDown = width < BREAKPOINT_VALUES.lg * 16; // Convert em to px
     const [open, setOpen] = React.useState(false);
     const customizer = useSelector((state: AppState) => state.customizer);
 
-    /**
-     * Opens the mobile navigation drawer
-     */
-    const handleDrawerOpen = () => {
-        setOpen(true);
-    };
-
-    /**
-     * Toggles the mobile navigation drawer
-     * @param newOpen - The new state for the drawer
-     */
-    const toggleDrawer = (newOpen: boolean) => () => {
-        setOpen(newOpen);
-    };
-
     return (
-        <AppBarStyled position="sticky" elevation={0}>
+        <Box
+            component="header"
+            style={{
+                position: "sticky",
+                top: 0,
+                minHeight: "100px",
+                background: 'var(--mantine-color-blue-light)',
+                zIndex: 100,
+            }}
+        >
             <Container 
-                sx={{
-                    maxWidth: customizer.isLayout === "boxed" ? "lg" : "100%!important",
-                }}
+                size={customizer.isLayout === "boxed" ? "lg" : "100%"}
+                h="100%"
             >
-                <ToolbarStyled>
+                <Group 
+                    h="100%" 
+                    justify="space-between" 
+                    wrap="nowrap"
+                    px={0}
+                >
                     {/* Desktop view */}
                     {!lgDown ? (
-                        <Stack 
-                            direction="row" 
-                            spacing={2} 
-                            alignItems="center" 
-                            sx={{ 
-                                width: '100%',
-                                justifyContent: 'space-between'
-                            }}
-                        >
-                            <Stack 
-                                direction="row" 
-                                spacing={4} 
-                                alignItems="center"
-                            >
+                        <>
+                            <Group gap="xl">
                                 <AuthLogo />
                                 <Navigations />
-                            </Stack>
+                            </Group>
                             <SystemControls />
-                        </Stack>
+                        </>
                     ) : (
                         // Mobile view
-                        <Stack 
-                            direction="row" 
-                            alignItems="center" 
-                            justifyContent="space-between" 
-                            sx={{ width: '100%' }}
-                        >
+                        <>
                             <AuthLogo />
-                            <Box display="flex" gap={1}>
+                            <Group gap="xs">
                                 <SystemControls />
-                                <IconButton
-                                    color="inherit"
+                                <ActionIcon
+                                    variant="subtle"
+                                    onClick={() => setOpen(true)}
                                     aria-label="menu"
-                                    onClick={handleDrawerOpen}
                                 >
-                                    <IconMenu2 size="20" />
-                                </IconButton>
-                            </Box>
+                                    <IconMenu2 size="1.3rem" />
+                                </ActionIcon>
+                            </Group>
                             <Drawer
-                                anchor="right"
-                                open={open}
-                                onClose={toggleDrawer(false)}
-                                sx={{
-                                    '& .MuiDrawer-paper': {
-                                        width: '280px',
-                                        background: (theme) => theme.palette.background.paper,
-                                        color: (theme) => theme.palette.text.primary,
-                                        borderRadius: '0',
-                                        borderRight: '0',
-                                    },
+                                position="right"
+                                opened={open}
+                                onClose={() => setOpen(false)}
+                                size="280px"
+                                styles={{
+                                    content: {
+                                        background: 'var(--mantine-color-body)',
+                                    }
                                 }}
                             >
                                 <MobileSidebar />
                             </Drawer>
-                        </Stack>
+                        </>
                     )}
-                </ToolbarStyled>
+                </Group>
             </Container>
-        </AppBarStyled>
+        </Box>
     );
 };
 

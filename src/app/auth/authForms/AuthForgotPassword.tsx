@@ -1,15 +1,15 @@
-import { Button, Stack } from "@mui/material";
 import Link from "next/link";
 
 import CustomTextField from "@/app/components/forms/theme-elements/CustomTextField";
 import CustomFormLabel from "@/app/components/forms/theme-elements/CustomFormLabel";
+import { Button, Stack } from "@mantine/core";
 
 export default function AuthForgotPassword(){
  return (
   <>
-    <Stack mt={4} spacing={2}>
+    <Stack mt="lg" gap="md">
       <CustomFormLabel htmlFor="reset-email">Email Adddress</CustomFormLabel>
-      <CustomTextField id="reset-email" variant="outlined" fullWidth />
+      <CustomTextField id="reset-email" variant="outlined" w="100%" />
 
       <Button
         color="primary"

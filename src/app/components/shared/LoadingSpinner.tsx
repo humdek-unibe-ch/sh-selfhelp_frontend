@@ -1,13 +1,13 @@
 /**
- * @fileoverview A reusable loading spinner component using Material-UI's CircularProgress.
+ * @fileoverview A reusable loading spinner component using Mantine's Loader.
  * This component provides a centered loading indicator with customizable properties.
  */
 
-import { CircularProgress, Box, BoxProps } from '@mui/material';
+import { Loader, Box, BoxProps } from '@mantine/core';
 
 /**
  * Props interface for the LoadingSpinner component.
- * Extends Material-UI's BoxProps to allow for all Box component properties.
+ * Extends Mantine's BoxProps to allow for all Box component properties.
  *
  * @interface LoadingSpinnerProps
  * @extends {BoxProps}
@@ -15,7 +15,7 @@ import { CircularProgress, Box, BoxProps } from '@mui/material';
 interface LoadingSpinnerProps extends BoxProps {
     /** The size of the spinner in pixels */
     size?: number;
-    /** The thickness of the spinner's circle */
+    /** The thickness of the spinner's circle (not applicable in Mantine) */
     thickness?: number;
     /** The minimum height of the container */
     minHeight?: string | number;
@@ -23,7 +23,7 @@ interface LoadingSpinnerProps extends BoxProps {
 
 /**
  * A centered loading spinner component with customizable properties.
- * Wraps Material-UI's CircularProgress in a flex container for easy positioning.
+ * Uses Mantine's Loader component in a flex container for easy positioning.
  *
  * @component
  * @example
@@ -31,28 +31,30 @@ interface LoadingSpinnerProps extends BoxProps {
  * <LoadingSpinner />
  *
  * @example
- * // Custom size and thickness
- * <LoadingSpinner size={60} thickness={5} minHeight="300px" />
+ * // Custom size
+ * <LoadingSpinner size={60} minHeight="300px" />
  *
  * @example
  * // With additional Box props
- * <LoadingSpinner sx={{ bgcolor: 'background.paper' }} />
+ * <LoadingSpinner bg="var(--mantine-color-body)" />
  */
 export const LoadingSpinner = ({
     size = 40,
-    thickness = 4,
+    thickness: _thickness, // Ignored as Mantine's Loader doesn't have thickness prop
     minHeight = '50vh',
     ...boxProps
 }: LoadingSpinnerProps) => {
     return (
         <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            minHeight={minHeight}
+            style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                minHeight: minHeight
+            }}
             {...boxProps}
         >
-            <CircularProgress size={size} thickness={thickness} />
+            <Loader size={size} />
         </Box>
     );
 };

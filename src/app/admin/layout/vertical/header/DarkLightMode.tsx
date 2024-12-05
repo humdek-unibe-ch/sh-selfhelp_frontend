@@ -1,41 +1,33 @@
-import React, { useState } from 'react';
-import {
-  IconButton,
-  Box,
-} from '@mui/material';
+import React from 'react';
 import { useSelector, useDispatch } from "@/store/hooks";
-import WbSunnyTwoToneIcon from "@mui/icons-material/WbSunnyTwoTone";
-import {
-  setDarkMode,
-} from "@/store/customizer/CustomizerSlice";
+import { setDarkMode } from "@/store/customizer/CustomizerSlice";
 import { AppState } from "@/store/store";
-import DarkModeTwoToneIcon from "@mui/icons-material/DarkModeTwoTone";
+import { ActionIcon, Box } from '@mantine/core';
+import { IconSun, IconMoon } from '@tabler/icons-react';
 
 const DarkLightMode = () => {
+  const customizer = useSelector((state: AppState) => state.customizer);
+  const dispatch = useDispatch();
 
-    const customizer = useSelector((state: AppState) => state.customizer);
-
-    const dispatch = useDispatch();
-
-    const handleMode = () => {
-        customizer.activeMode === "light" ? dispatch(setDarkMode("dark")) : dispatch(setDarkMode("light")) 
-    }
-
+  const handleMode = () => {
+    dispatch(setDarkMode(customizer.activeMode === "light" ? "dark" : "light"));
+  };
 
   return (
-    <Box color='white'>
-        <IconButton
-        aria-label="show 4 new mails"
-        color="inherit"
+    <Box c="white">
+      <ActionIcon
+        variant="transparent"
+        color="white"
         onClick={handleMode}
-        size="large"
+        size="lg"
+        aria-label="Toggle theme"
       >
-    <WbSunnyTwoToneIcon sx={{display:(theme)=>theme.palette.mode==="light"?"none":"block"}}/>
-    <DarkModeTwoToneIcon sx={{display:(theme)=>theme.palette.mode==="light"?"block":"none"}}/>
-      </IconButton>
-      {/* ------------------------------------------- */}
-      {/* Message Dropdown */}
-      {/* ------------------------------------------- */}
+        {customizer.activeMode === "light" ? (
+          <IconMoon size="1.3rem" />
+        ) : (
+          <IconSun size="1.3rem" />
+        )}
+      </ActionIcon>
     </Box>
   );
 };

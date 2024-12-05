@@ -1,31 +1,30 @@
+import { Box } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import SimpleBar from "simplebar-react";
 import "simplebar-react/dist/simplebar.min.css";
-import Box from '@mui/material/Box'
-import { SxProps } from '@mui/system';
-import { styled } from '@mui/material/styles'
-import { useMediaQuery } from "@mui/material";
-
-const SimpleBarStyle = styled(SimpleBar)(() => ({
-  maxHeight: "100%",
-}));
+import { CSSProperties } from "react";
 
 interface PropsType {
   children: React.ReactElement | React.ReactNode;
-  sx: SxProps;
+  style?: CSSProperties;
 }
 
 const Scrollbar = (props: PropsType) => {
-  const { children, sx, ...other } = props;
-  const lgDown = useMediaQuery((theme: any) => theme.breakpoints.down('lg'));
+  const { children, style, ...other } = props;
+  const lgDown = useMediaQuery('(max-width: 1200px)');
 
   if (lgDown) {
-    return <Box sx={{ overflowX: "auto" }}>{children}</Box>;
+    return (
+      <Box style={{ overflowX: "auto", ...style }}>
+        {children}
+      </Box>
+    );
   }
 
   return (
-    <SimpleBarStyle sx={sx} {...other}>
+    <SimpleBar style={{ maxHeight: "100%", ...style }} {...other}>
       {children}
-    </SimpleBarStyle>
+    </SimpleBar>
   );
 };
 

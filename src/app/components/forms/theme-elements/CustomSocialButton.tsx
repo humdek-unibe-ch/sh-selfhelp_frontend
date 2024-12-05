@@ -1,15 +1,26 @@
-import React from 'react';
-import { styled } from '@mui/material/styles';
-import { Button } from '@mui/material';
+import { Button, ButtonProps } from '@mantine/core';
 
-const CustomSocialButton = styled((props: any) => (
-  <Button variant="outlined" size="large" color="inherit" {...props} />
-))(({ theme }) => ({
-  border: `1px solid ${theme.palette.divider}`,
+interface CustomSocialButtonProps extends ButtonProps {
+  children: React.ReactNode;
+}
 
-  '&:hover': {
-    color: theme.palette.primary.main,
-  },
-}));
+const CustomSocialButton = ({ children, ...props }: CustomSocialButtonProps) => (
+  <Button
+    variant="default"
+    size="lg"
+    styles={(theme) => ({
+      root: {
+        border: `1px solid ${theme.colors.gray[3]}`,
+        '&:hover': {
+          color: theme.colors.blue[6],
+          backgroundColor: theme.colors.gray[0],
+        },
+      },
+    })}
+    {...props}
+  >
+    {children}
+  </Button>
+);
 
 export default CustomSocialButton;

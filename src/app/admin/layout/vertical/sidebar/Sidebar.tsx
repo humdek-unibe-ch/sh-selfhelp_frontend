@@ -1,6 +1,4 @@
-import { useMediaQuery, Box, Drawer, useTheme } from "@mui/material";
 import SidebarItems from "./SidebarItems";
-
 import { useSelector, useDispatch } from "@/store/hooks";
 import {
   hoverSidebar,
@@ -10,16 +8,18 @@ import Scrollbar from "@/app/components/custom-scroll/Scrollbar";
 import { Profile } from "./SidebarProfile/Profile";
 import { AppState } from "@/store/store";
 import AuthLogo from "../../shared/logo/AuthLogo";
+import { useMediaQuery } from "@mantine/hooks";
+import { Box, Drawer, ScrollArea } from '@mantine/core';
+import { BREAKPOINTS } from '@/utils/theme/Theme';
 
 const Sidebar = () => {
-  const lgUp = useMediaQuery((theme: any) => theme.breakpoints.down("lg"));
+  const lgDown = useMediaQuery(`(max-width: ${BREAKPOINTS.lg}px)`);
   const customizer = useSelector((state: AppState) => state.customizer);
   const dispatch = useDispatch();
-  const theme = useTheme();
-  const toggleWidth =
-    customizer.isCollapse && !customizer.isSidebarHover
-      ? customizer.MiniSidebarWidth
-      : customizer.SidebarWidth;
+
+  const toggleWidth = customizer.isCollapse && !customizer.isSidebarHover
+    ? customizer.MiniSidebarWidth
+    : customizer.SidebarWidth;
 
   const onHoverEnter = () => {
     if (customizer.isCollapse) {
@@ -31,12 +31,33 @@ const Sidebar = () => {
     dispatch(hoverSidebar(false));
   };
 
+  if (lgDown) {
+    return (
+      <Drawer
+        opened={Boolean(customizer.isMobileSidebar)}
+        onClose={() => dispatch(toggleMobileSidebar())}
+        size={customizer.SidebarWidth}
+        styles={{
+          root: {
+            '& .mantine-drawer-content': {
+              boxShadow: 'var(--mantine-shadow-lg)',
+              border: 0,
+            }
+          }
+        }}
+      >
+        <Box p="md">
+          <AuthLogo />
+        </Box>
+        <Profile />
+        <SidebarItems />
+      </Drawer>
+    );
+  }
 
   return (
-    <>
-      {!lgUp ? (
-      <Box
-      sx={{
+    <Box
+      style={{
         zIndex: 100,
         width: toggleWidth,
         flexShrink: 0,
@@ -45,79 +66,34 @@ const Sidebar = () => {
         }),
       }}
     >
-      {/* ------------------------------------------- */}
-      {/* Sidebar for desktop */}
-      {/* ------------------------------------------- */}
       <Drawer
-        anchor="left"
-        open
+        opened
+        onClose={() => {}}
         onMouseEnter={onHoverEnter}
         onMouseLeave={onHoverLeave}
-        variant="permanent"
-        PaperProps={{
-          sx: {
-            transition: theme.transitions.create("width", {
-              duration: theme.transitions.duration.shortest,
-            }),
-            width: toggleWidth,
-            boxSizing: "border-box",
-            border: "0",
-            top: customizer.TopbarHeight,
-            boxShadow: "1px 0 20px #00000014",
-          },
+        withCloseButton={false}
+        position="left"
+        size={toggleWidth}
+        styles={{
+          root: {
+            position: 'fixed',
+            '& .mantine-drawer-content': {
+              boxShadow: 'var(--mantine-shadow-sm)',
+              border: 0,
+              top: customizer.TopbarHeight,
+              transition: 'width 0.2s ease-in-out',
+            }
+          }
         }}
       >
-        {/* ------------------------------------------- */}
-        {/* Sidebar Box */}
-        {/* ------------------------------------------- */}
-        <Box
-          borderRadius="0 !important"
-          sx={{
-            height: "100%",
-          }}
-        >
-         
-         
+        <Box style={{ height: '100%' }}>
           <Profile />
-          <Scrollbar sx={{ height: "calc(100% - 220px)" }}>
-          
-            {/* ------------------------------------------- */}
-            {/* Sidebar Items */}
-            {/* ------------------------------------------- */}
+          <ScrollArea h="calc(100% - 220px)" type="hover">
             <SidebarItems />
-          </Scrollbar>
+          </ScrollArea>
         </Box>
       </Drawer>
     </Box>
-      ) : (
-        <Drawer
-        anchor="left"
-        open={customizer.isMobileSidebar}
-        onClose={() => dispatch(toggleMobileSidebar())}
-        variant="temporary"
-        PaperProps={{
-          sx: {
-            width: customizer.SidebarWidth,
-            border: "0 !important",
-            boxShadow: (theme) => theme.shadows[8],
-          },
-        }}
-      >
-        {/* ------------------------------------------- */}
-        {/* Logo */}
-        {/* ------------------------------------------- */}
-        <Box px={2}>
-          <AuthLogo />
-        </Box>
-  
-        <Profile />
-        {/* ------------------------------------------- */}
-        {/* Sidebar For Mobile */}
-        {/* ------------------------------------------- */}
-        <SidebarItems />
-      </Drawer>
-      )}
-    </>
   );
 };
 

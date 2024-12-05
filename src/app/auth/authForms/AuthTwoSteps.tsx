@@ -1,52 +1,49 @@
-import { Box, Typography, Button } from "@mui/material";
 import Link from "next/link";
 import CustomTextField from "@/app/components/forms/theme-elements/CustomTextField";
 import CustomFormLabel from "@/app/components/forms/theme-elements/CustomFormLabel";
-import { Stack } from "@mui/system";
+import { Stack, Button, Box, Text, Group } from "@mantine/core";
 
 const AuthTwoSteps = () => (
   <>
-    <Box mt={4}>
-      <Stack mb={3}>
+    <Box mt="lg">
+      <Stack gap="md">
         <CustomFormLabel htmlFor="code">
           Type your 6 digits security code{" "}
         </CustomFormLabel>
-        <Stack spacing={2} direction="row">
-          <CustomTextField id="code" variant="outlined" fullWidth />
-          <CustomTextField id="code" variant="outlined" fullWidth />
-          <CustomTextField id="code" variant="outlined" fullWidth />
-          <CustomTextField id="code" variant="outlined" fullWidth />
-          <CustomTextField id="code" variant="outlined" fullWidth />
-          <CustomTextField id="code" variant="outlined" fullWidth />
-        </Stack>
+        <Group gap="xs">
+          <CustomTextField id="code" variant="outlined" w="100%" />
+          <CustomTextField id="code" variant="outlined" w="100%" />
+          <CustomTextField id="code" variant="outlined" w="100%" />
+          <CustomTextField id="code" variant="outlined" w="100%" />
+          <CustomTextField id="code" variant="outlined" w="100%" />
+          <CustomTextField id="code" variant="outlined" w="100%" />
+        </Group>
       </Stack>
       <Button
-        color="primary"
-        variant="contained"
-        size="large"
         fullWidth
+        size="md"
         component={Link}
         href="/"
       >
         Verify My Account
       </Button>
 
-      <Stack direction="row" spacing={1} mt={3}>
-        <Typography color="textSecondary" variant="h6" fontWeight="400">
+      <Group gap="xs" mt="lg">
+        <Text c="dimmed" size="sm" fw={400}>
           Didn&apos;t get the code?
-        </Typography>
-        <Typography
+        </Text>
+        <Text
           component={Link}
           href="/"
-          fontWeight="500"
-          sx={{
+          fw={500}
+          style={{
             textDecoration: "none",
-            color: "primary.main",
+            color: "var(--mantine-color-blue-6)",
           }}
         >
           Resend
-        </Typography>
-      </Stack>
+        </Text>
+      </Group>
     </Box>
   </>
 );

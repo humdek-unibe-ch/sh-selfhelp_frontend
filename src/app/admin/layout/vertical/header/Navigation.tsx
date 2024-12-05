@@ -1,93 +1,55 @@
 import { useState } from "react";
-import { Box, Menu, Typography, Button, Divider, Grid, IconButton } from "@mui/material";
 import Link from "next/link";
 import { IconHelp, IconLayoutDashboard } from "@tabler/icons-react";
+import { Box, ActionIcon, Menu, Text, Divider, Grid, Button, Group } from "@mantine/core";
 
 const AppDD = () => {
-    const [anchorEl2, setAnchorEl2] = useState(null);
-
-    const handleClick2 = (event: any) => {
-        setAnchorEl2(event.currentTarget);
-    };
-
-    const handleClose2 = () => {
-        setAnchorEl2(null);
-    };
+    const [opened, setOpened] = useState(false);
 
     return (
-        <>
-            <Box>
-                <IconButton
-                    aria-label="show 4 new mails"
-                    color="inherit"
-                    onClick={handleClick2}
-                    size="large"
-                >
-                    <IconLayoutDashboard size="22" />
-                </IconButton>
-                {/* ------------------------------------------- */}
-                {/* Message Dropdown */}
-                {/* ------------------------------------------- */}
-                <Menu
-                    id="msgs-menu"
-                    anchorEl={anchorEl2}
-                    keepMounted
-                    open={Boolean(anchorEl2)}
-                    onClose={handleClose2}
-                    anchorOrigin={{ horizontal: "left", vertical: "bottom" }}
-                    transformOrigin={{ horizontal: "left", vertical: "top" }}
-                    sx={{
-                        "& .MuiMenu-paper": {
-                            width: "850px",
-                        },
-                        "& .MuiMenu-paper ul": {
-                            p: 0,
-                        },
-                    }}
-                >
-                    <Grid container>
-                        <Grid item sm={8} display="flex">
-                            <Box p={4} pr={0} pb={3}>
+        <Box>
+            <Menu opened={opened} onChange={setOpened}>
+                <Menu.Target>
+                    <ActionIcon 
+                        variant="transparent"
+                        color="white"
+                        size="lg"
+                    >
+                        <IconLayoutDashboard size="1.3rem" />
+                    </ActionIcon>
+                </Menu.Target>
+
+                <Menu.Dropdown w={850}>
+                    <Grid>
+                        <Grid.Col span={8}>
+                            <Box p="md" pr={0} pb="xs">
                                 <Divider />
                                 <Box
-                                    sx={{
-                                        display: {
-                                            xs: "none",
-                                            sm: "flex",
-                                        },
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "space-between",
+                                        paddingTop: "md",
+                                        paddingRight: "md",
                                     }}
-                                    alignItems="center"
-                                    justifyContent="space-between"
-                                    pt={2}
-                                    pr={4}
                                 >
                                     <Link href="/faq" className="hover-text-primary">
-                                        <Typography
-                                            variant="subtitle2"
-                                            fontWeight="400"
-                                            fontSize='15px'
-                                            color="grey.600"
-                                            display="flex"
-                                            className="text-hover"
-                                            alignItems="center"
-                                            gap="6px"
-                                        >
-                                            <IconHelp width={20} stroke={1.5} />
-                                            Frequently Asked Questions
-                                        </Typography>
+                                        <Group gap="xs">
+                                            <IconHelp size="1.3rem" stroke={1.5} />
+                                            <Text size="sm" c="dimmed">
+                                                Frequently Asked Questions
+                                            </Text>
+                                        </Group>
                                     </Link>
-                                    <Button variant="contained" color="primary" sx={{ borderRadius: "50px" }}>
-                                        <Typography fontWeight="500" variant="subtitle2" lineHeight={1.75}>Check</Typography>
-                                    </Button>
+                                    <Button radius="xl">Check</Button>
                                 </Box>
                             </Box>
                             <Divider orientation="vertical" />
-                        </Grid>
+                        </Grid.Col>
                     </Grid>
-                </Menu>
-
-            </Box>
-        </>
+                </Menu.Dropdown>
+            </Menu>
+        </Box>
     );
 };
 

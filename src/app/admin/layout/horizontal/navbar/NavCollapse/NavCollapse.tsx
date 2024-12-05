@@ -1,17 +1,10 @@
 import React from 'react';
-import { useTheme } from '@mui/material/styles';
 import { usePathname } from "next/navigation";
-
-// mui imports
-import { ListItemIcon, styled, ListItemText, Box, ListItemButton } from '@mui/material';
 import { useSelector } from '@/store/hooks';
-
-// custom imports
 import NavItem from '../NavItem/NavItem';
-
-// plugins
 import { IconChevronDown } from '@tabler/icons-react';
 import { AppState } from '@/store/store';
+import { useMantineTheme, UnstyledButton, Box, Group, Text } from '@mantine/core';
 
 type NavGroupProps = {
   [x: string]: any;
@@ -31,10 +24,9 @@ interface NavCollapseProps {
   onClick: any;
 }
 
-// FC Component For Dropdown Menu
 const NavCollapse = ({ menu, level, pathWithoutLastPart, pathDirect, hideMenu }: NavCollapseProps) => {
-  const Icon = menu.icon || IconChevronDown; // Provide default icon
-  const theme = useTheme();
+  const Icon = menu.icon || IconChevronDown;
+  const theme = useMantineTheme();
   const pathname = usePathname();
   const [open, setOpen] = React.useState(false);
   const customizer = useSelector((state: AppState) => state.customizer);
@@ -51,45 +43,6 @@ const NavCollapse = ({ menu, level, pathWithoutLastPart, pathDirect, hideMenu }:
     });
   }, [pathname, menu.children]);
 
-  const ListItemStyled = styled(ListItemButton)(() => ({
-    width: 'auto',
-    padding: '5px 10px',
-    position: 'relative',
-    flexGrow: 'unset',
-    gap: '10px',
-    borderRadius: `${customizer.borderRadius}px`,
-    whiteSpace: 'nowrap',
-    color: open || pathname.includes(menu.href) || level < 1 ? 'white' : theme.palette.text.secondary,
-    backgroundColor: open || pathname.includes(menu.href) ? theme.palette.secondary.main : '',
-
-    '&:hover': {
-      backgroundColor:
-        open || pathname.includes(menu.href)
-          ? theme.palette.secondary.main
-          : theme.palette.secondary.light,
-    },
-    '&:hover > .SubNav': { display: 'block' },
-  }));
-
-  const ListSubMenu = styled(Box)(() => ({
-    display: 'none',
-    position: 'absolute',
-    top: level > 1 ? `0px` : '35px',
-    left: level > 1 ? `${level + 228}px` : '0px',
-    padding: '10px',
-    width: '250px',
-    color: theme.palette.text.primary,
-    boxShadow: theme.shadows[8],
-    backgroundColor: theme.palette.background.paper,
-  }));
-
-  const listItemProps: {
-    component: string;
-  } = {
-    component: 'li',
-  };
-
-  // If Menu has Children
   const submenus = menu.children?.map((item: any) => {
     if (item.children) {
       return (
@@ -99,7 +52,9 @@ const NavCollapse = ({ menu, level, pathWithoutLastPart, pathDirect, hideMenu }:
           level={level + 1}
           pathWithoutLastPart={pathWithoutLastPart}
           pathDirect={pathDirect}
-          hideMenu={hideMenu} onClick={undefined}        />
+          hideMenu={hideMenu}
+          onClick={undefined}
+        />
       );
     } else {
       return (
@@ -108,38 +63,57 @@ const NavCollapse = ({ menu, level, pathWithoutLastPart, pathDirect, hideMenu }:
           item={item}
           level={level + 1}
           pathDirect={pathDirect}
-          hideMenu={hideMenu} onClick={function (): void {
-            throw new Error('Function not implemented.');
-          } }        />
+          hideMenu={hideMenu}
+          onClick={() => {}}
+        />
       );
     }
   });
 
   return (
-    <React.Fragment key={menu.id}>
-      <ListItemStyled
-        {...listItemProps}
-        selected={pathWithoutLastPart === menu.href}
+    <Box component="li" key={menu.id}>
+      <UnstyledButton
+        style={{
+          width: 'auto',
+          padding: '5px 10px',
+          position: 'relative',
+          gap: '10px',
+          borderRadius: customizer.borderRadius,
+          whiteSpace: 'nowrap',
+          color: open || pathname.includes(menu.href) || level < 1 ? 'white' : 'var(--mantine-color-text)',
+          backgroundColor: open || pathname.includes(menu.href) ? 'var(--mantine-color-secondary-6)' : '',
+          '&:hover': {
+            backgroundColor: open || pathname.includes(menu.href)
+              ? 'var(--mantine-color-secondary-6)'
+              : 'var(--mantine-color-secondary-1)',
+          },
+        }}
         className={open ? 'selected' : ''}
       >
-        <ListItemIcon
-          sx={{
-            minWidth: 'auto',
-            p: '3px 0',
-            color: 'inherit',
+        <Group gap="xs">
+          {menuIcon}
+          <Text>{menu.title}</Text>
+          <IconChevronDown size="1rem" />
+        </Group>
+        <Box
+          component="ul"
+          className="SubNav"
+          style={{
+            display: 'none',
+            position: 'absolute',
+            top: level > 1 ? 0 : 35,
+            left: level > 1 ? level + 228 : 0,
+            padding: '10px',
+            width: 250,
+            backgroundColor: 'var(--mantine-color-body)',
+            boxShadow: 'var(--mantine-shadow-lg)',
+            '&:hover': { display: 'block' },
           }}
         >
-          {menuIcon}
-        </ListItemIcon>
-        <ListItemText color="inherit" sx={{ mr: 'auto' }}>
-          {menu.title}
-        </ListItemText>
-        <IconChevronDown size="1rem" />
-        <ListSubMenu component={'ul'} className="SubNav">
           {submenus}
-        </ListSubMenu>
-      </ListItemStyled>
-    </React.Fragment>
+        </Box>
+      </UnstyledButton>
+    </Box>
   );
 };
 

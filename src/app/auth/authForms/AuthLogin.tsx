@@ -1,19 +1,18 @@
 "use client";
 import {
   Box,
-  Typography,
-  FormGroup,
-  FormControlLabel,
+  Text,
+  Checkbox,
   Button,
   Stack,
   Divider,
   Alert,
-} from "@mui/material";
+  TextInput,
+  Group,
+  rem,
+} from "@mantine/core";
 import Link from "next/link";
 import { loginType } from "@/types/auth/auth";
-import CustomCheckbox from "@/app/components/forms/theme-elements/CustomCheckbox";
-import CustomTextField from "@/app/components/forms/theme-elements/CustomTextField";
-import CustomFormLabel from "@/app/components/forms/theme-elements/CustomFormLabel";
 import AuthSocialButtons from "./AuthSocialButtons";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
@@ -44,96 +43,77 @@ const AuthLogin = ({ title, subtitle, subtext }: loginType) => {
   return (
     <>
       {title ? (
-        <Typography fontWeight="700" variant="h3" mb={1}>
+        <Text fw={700} size="xl" mb="md">
           {title}
-        </Typography>
+        </Text>
       ) : null}
 
       {subtext}
 
       <AuthSocialButtons title="Sign in with" />
-      <Box mt={3}>
-        <Divider>
-          <Typography
-            component="span"
-            color="textSecondary"
-            variant="h6"
-            fontWeight="400"
-            position="relative"
-            px={2}
-          >
-            or sign in with
-          </Typography>
-        </Divider>
+      <Box mt="lg">
+        <Divider
+          label={
+            <Text c="dimmed" size="sm" fw={400} px="md">
+              or sign in with
+            </Text>
+          }
+          labelPosition="center"
+        />
       </Box>
 
-      <Stack spacing={3}>
-        {error && <Alert severity="error">{error}</Alert>}
+      <Stack gap="md">
+        {error && (
+          <Alert variant="light" color="red" title="Error">
+            {error}
+          </Alert>
+        )}
 
         <Box component="form" onSubmit={handleSubmit}>
-          <Stack spacing={2}>
-            <Box>
-              <CustomFormLabel htmlFor="user">Email</CustomFormLabel>
-              <CustomTextField
-                id="user"
-                name="user"
-                variant="outlined"
-                fullWidth
-                value={formData.user}
-                onChange={handleChange}
-                placeholder="Enter your email"
-                inputProps={{
-                    autoComplete: "username"
-                  }}
+          <Stack gap="sm">
+            <TextInput
+              id="user"
+              name="user"
+              label="Email"
+              placeholder="Enter your email"
+              value={formData.user}
+              onChange={handleChange}
+              autoComplete="username"
+            />
+            <TextInput
+              id="password"
+              name="password"
+              type="password"
+              label="Password"
+              placeholder="Enter your password"
+              value={formData.password}
+              onChange={handleChange}
+              autoComplete="current-password"
+            />
+            <Group justify="space-between" align="center" my="sm">
+              <Checkbox
+                defaultChecked
+                label="Remember this Device"
+                size="sm"
               />
-            </Box>
-            <Box>
-              <CustomFormLabel htmlFor="password">Password</CustomFormLabel>
-              <CustomTextField
-                id="password"
-                name="password"
-                type="password"
-                variant="outlined"
-                fullWidth
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Enter your password"
-                inputProps={{
-                  autoComplete: "current-password"
-                }}
-              />
-            </Box>
-            <Stack
-              justifyContent="space-between"
-              direction="row"
-              alignItems="center"
-              my={2}
-            >
-              <FormGroup>
-                <FormControlLabel
-                  control={<CustomCheckbox defaultChecked />}
-                  label="Remeber this Device"
-                />
-              </FormGroup>
-              <Typography
+              <Text
                 component={Link}
                 href="/auth/auth1/forgot-password"
-                fontWeight="500"
-                sx={{
+                fw={500}
+                style={{
                   textDecoration: "none",
-                  color: "primary.main",
+                  color: "var(--mantine-color-blue-6)",
                 }}
               >
                 Forgot Password ?
-              </Typography>
-            </Stack>
+              </Text>
+            </Group>
             <Button
-              color="primary"
-              variant="contained"
-              size="large"
               fullWidth
               type="submit"
+              loading={loading}
               disabled={loading}
+              size="md"
             >
               {loading ? "Signing in..." : "Sign In"}
             </Button>

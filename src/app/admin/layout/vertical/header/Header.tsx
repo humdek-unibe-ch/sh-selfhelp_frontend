@@ -4,15 +4,6 @@
  */
 
 "use client";
-// Material-UI and core dependencies
-import {
-    IconButton,
-    Box,
-    AppBar,
-    useMediaQuery,
-    Toolbar,
-    styled,
-} from "@mui/material";
 import { useSelector, useDispatch } from "@/store/hooks";
 import {
     toggleSidebar,
@@ -24,6 +15,9 @@ import { AppState } from "@/store/store";
 import Logo from "../../shared/logo/Logo";
 import { useEffect, useState } from "react";
 import SystemControls from "@/app/components/shared/SystemControls";
+import { useMediaQuery } from '@mantine/hooks';
+import { BREAKPOINT_VALUES } from '@/utils/theme/Theme';
+import { Box, Group, ActionIcon } from '@mantine/core';
 
 /**
  * Header Component - Main navigation header for the admin dashboard
@@ -42,41 +36,17 @@ const Header = () => {
     const [height, setHeight] = useState('0px');
     
     // Media query hook for responsive design
-    const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up("lg"));
+    const lgUp = useMediaQuery(`(min-width: ${BREAKPOINT_VALUES.lg}em)`);
 
     // Redux state for customization settings
     const customizer = useSelector((state: AppState) => state.customizer);
 
     // Calculate sidebar width based on collapse state
-    const toggleWidth =
-        customizer.isCollapse && !customizer.isSidebarHover
-            ? customizer.MiniSidebarWidth
-            : customizer.SidebarWidth;
+    const toggleWidth = customizer.isCollapse && !customizer.isSidebarHover
+        ? customizer.MiniSidebarWidth
+        : customizer.SidebarWidth;
 
     const dispatch = useDispatch();
-
-    /**
-     * Styled AppBar component with custom height and responsive behavior
-     * Includes shadow, background, and backdrop filter effects
-     */
-    const AppBarStyled = styled(AppBar)(({ theme }) => ({
-        boxShadow:
-            "0 -2px 5px -1px rgba(0, 0, 0, .2),0 5px 8px 0 rgba(0, 0, 0, .14),0 1px 4px 0 rgba(0, 0, 0, .12)!important",
-        background: theme.palette.primary.main,
-        justifyContent: "center",
-        backdropFilter: "blur(4px)",
-        [theme.breakpoints.up("lg")]: {
-            minHeight: customizer.TopbarHeight,
-        },
-    }));
-
-    /**
-     * Styled Toolbar component with custom width and color
-     */
-    const ToolbarStyled = styled(Toolbar)(({ theme }) => ({
-        width: "100%",
-        color: theme.palette.warning.contrastText,
-    }));
 
     /**
      * Effect hook to handle window resize events
@@ -84,71 +54,68 @@ const Header = () => {
      */
     useEffect(() => {
         const handleResize = () => {
-            if (window.innerWidth >= 992) {
+            if (window.innerWidth >= BREAKPOINT_VALUES.lg * 16) { // Convert em to px
                 setHeight('0px')
             }
         }
         window.addEventListener('resize', handleResize);
-
-        // Cleanup function to remove event listener on unmount
         return () => window.removeEventListener('resize', handleResize);
-    }, [])
+    }, []);
 
     return (
-        <>
-            <AppBarStyled position="sticky" color="default">
-                <ToolbarStyled>
-                    {/* Logo Section - Shows full logo on desktop, menu icon on mobile */}
-                    {lgUp ? (
-                        <>
-                            <Box
-                                sx={{
-                                    width: toggleWidth,
-                                }}
-                            >
-                                <Logo />
-                            </Box>
-                        </>
-                    ) : <IconButton
-                        color="inherit"
-                        aria-label="menu"
-                        onClick={
-                            lgUp
-                                ? () => dispatch(toggleSidebar())
-                                : () => dispatch(toggleMobileSidebar())
-                        }
+        <Box
+            component="header"
+            h={customizer.TopbarHeight}
+            style={{
+                boxShadow: 'var(--mantine-shadow-lg)',
+                background: 'var(--mantine-color-blue-filled)',
+                backdropFilter: 'blur(4px)',
+            }}
+        >
+            <Group 
+                h="100%" 
+                px="md" 
+                justify="space-between"
+                wrap="nowrap"
+            >
+                {/* Logo Section - Shows full logo on desktop, menu icon on mobile */}
+                {lgUp ? (
+                    <Box style={{ width: toggleWidth }}>
+                        <Logo />
+                    </Box>
+                ) : (
+                    <ActionIcon
+                        variant="transparent"
+                        color="white"
+                        onClick={() => dispatch(toggleMobileSidebar())}
+                        aria-label="Toggle mobile menu"
                     >
-                        <IconMenu2 size="22" />
-                    </IconButton>}
+                        <IconMenu2 size="1.3rem" />
+                    </ActionIcon>
+                )}
 
-                    {/* Sidebar Toggle Button - Only visible on desktop */}
-                    {lgUp ? (
-                        <>
-                            <IconButton
-                                color="inherit"
-                                aria-label="menu"
-                                onClick={
-                                    lgUp
-                                        ? () => dispatch(toggleSidebar())
-                                        : () => dispatch(toggleMobileSidebar())
-                                }
-                            >
-                                <IconMenu2 size="22" />
-                            </IconButton>
-                        </>
-                    ) : null}
+                {/* Sidebar Toggle Button - Only visible on desktop */}
+                {lgUp && (
+                    <ActionIcon
+                        variant="transparent"
+                        color="white"
+                        onClick={() => dispatch(toggleSidebar())}
+                        aria-label="Toggle sidebar"
+                    >
+                        <IconMenu2 size="1.3rem" />
+                    </ActionIcon>
+                )}
 
-                    {/* Search Component - Global search functionality */}
-                    <Search />
+                {/* Search Component */}
+                <Search />
 
-                    {/* Spacer */}
-                    <Box flexGrow={1} />
+                {/* Spacer */}
+                <Box style={{ flex: 1 }} />
 
-                    {/* System Controls - Theme, Profile, etc. */}
-                    <SystemControls />
-                </ToolbarStyled>
-            </AppBarStyled>
-        </>
+                {/* System Controls - Theme, Profile, etc. */}
+                <SystemControls />
+            </Group>
+        </Box>
     );
 };
 

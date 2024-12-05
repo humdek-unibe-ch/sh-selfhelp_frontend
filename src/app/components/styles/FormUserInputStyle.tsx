@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Button } from '@mui/material';
 import { IFormUserInputLogStyle } from '@/types/api/styles.types';
 import BasicStyle from './BasicStyle';
 import { PageService } from '@/services/page.service';
 import { usePageContentContext } from '@/contexts/PageContentContext';
+import { Button } from '@mantine/core';
 
 interface FormUserInputStyleProps {
     style: IFormUserInputLogStyle;
@@ -52,7 +52,7 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
                 {style.children?.map((child, index) => (
                     child ? <BasicStyle key={index} style={child} /> : null
                 ))}
-                <Button type="submit" variant="contained" sx={{ mt: 2 }}>
+                <Button type="submit" variant="contained" style={{ mt: 2 }}>
                     {style.label.content}
                 </Button>
             </div>

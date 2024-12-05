@@ -1,253 +1,147 @@
 "use client";
-import React from "react";
-import {
-  Box,
-  Grid,
-  Typography,
-  Container,
-  Divider,
-  Stack,
-  Tooltip,
-  useTheme,
-} from "@mui/material";
-import Image from "next/image";
 import Link from "next/link";
+import { 
+  Container, 
+  Grid, 
+  Text, 
+  Stack,
+  Box,
+  Tooltip,
+  Group,
+  useMantineTheme
+} from "@mantine/core";
 import {
   IconBrandFacebook,
-  IconBrandInstagram,
   IconBrandTwitter,
+  IconBrandInstagram,
+  IconBrandYoutube,
 } from "@tabler/icons-react";
 
 const footerLinks = [
   {
-    id: 1,
     children: [
       {
         title: true,
-        titleText: "Applications",
+        titleText: "Company",
       },
       {
         title: false,
-        titleText: "Kanban",
-        link: "https://spike-nextjs-pro-main.vercel.app/apps/kanban",
+        titleText: "About Us",
+        link: "/about",
       },
       {
         title: false,
-        titleText: "Invoice List",
-        link: "https://spike-nextjs-pro-main.vercel.app/apps/invoice/list",
-      },
-      {
-        title: false,
-        titleText: "eCommerce",
-        link: "https://spike-nextjs-pro-main.vercel.app/apps/ecommerce/shop",
-      },
-      {
-        title: false,
-        titleText: "Chat",
-        link: "https://spike-nextjs-pro-main.vercel.app/apps/chats",
-      },
-      {
-        title: false,
-        titleText: "Tickets",
-        link: "https://spike-nextjs-pro-main.vercel.app/apps/tickets",
-      },
-      {
-        title: false,
-        titleText: "Blog",
-        link: "https://spike-nextjs-pro-main.vercel.app/apps/blog/posts",
+        titleText: "Services",
+        link: "/services",
       },
     ],
   },
   {
-    id: 2,
     children: [
       {
         title: true,
-        titleText: "Forms",
+        titleText: "Other",
       },
       {
         title: false,
-        titleText: "Form Layout",
-        link: "https://spike-nextjs-pro-main.vercel.app/forms/form-layouts",
+        titleText: "Privacy Policy",
+        link: "/privacy-policy",
       },
       {
         title: false,
-        titleText: "Form Horizontal",
-        link: "https://spike-nextjs-pro-main.vercel.app/forms/form-horizontal",
-      },
-      {
-        title: false,
-        titleText: "Form Wizard",
-        link: "https://spike-nextjs-pro-main.vercel.app/forms/form-wizard",
-      },
-      {
-        title: false,
-        titleText: "Form Validation",
-        link: "https://spike-nextjs-pro-main.vercel.app/forms/form-validation",
-      },
-      {
-        title: false,
-        titleText: "Quill Editor",
-        link: "https://spike-nextjs-pro-main.vercel.app/forms/quill-editor",
-      },
-    ],
-  },
-  {
-    id: 3,
-    children: [
-      {
-        title: true,
-        titleText: "Tables",
-      },
-      {
-        title: false,
-        titleText: "Basic Table",
-        link: "https://spike-nextjs-pro-main.vercel.app/tables/basic",
-      },
-      {
-        title: false,
-        titleText: "Fixed Header",
-        link: "https://spike-nextjs-pro-main.vercel.app/tables/fixed-header",
-      },
-      {
-        title: false,
-        titleText: "Pagination Table",
-        link: "https://spike-nextjs-pro-main.vercel.app/tables/pagination",
-      },
-      {
-        title: false,
-        titleText: "React Dense Table",
-        link: "https://spike-nextjs-pro-main.vercel.app/react-tables/dense",
-      },
-      {
-        title: false,
-        titleText: "Row Selection Table",
-        link: "https://spike-nextjs-pro-main.vercel.app/react-tables/row-selection",
-      },
-      {
-        title: false,
-        titleText: "Drag n Drop Table",
-        link: "https://spike-nextjs-pro-main.vercel.app/react-tables/drag-drop",
+        titleText: "Contact Us",
+        link: "/contact",
       },
     ],
   },
 ];
 
 const Footer = () => {
-  const theme = useTheme();
+  const theme = useMantineTheme();
 
   return (
     <>
       <Box
-        color="white"
-        borderRadius={0}
-        sx={{
-          backgroundColor:
-            theme.palette.mode == "light" ? "text.primary" : "#1f2c4f",
+        component="footer"
+        style={{
+          backgroundColor: theme.colors.dark[7],
+          marginTop: "30px",
         }}
       >
         <Container
-          maxWidth="lg"
-          sx={{
-            pt: {
-              xs: "30px",
-              lg: "60px",
-            },
+          size="lg"
+          py={{
+            base: "30px",
+            lg: "60px"
           }}
         >
-          <Grid container spacing={3} justifyContent="space-between" mb={7}>
+          <Grid gutter="lg">
             {footerLinks.map((footerlink, i) => (
-              <Grid item xs={6} sm={4} lg={2} key={i}>
+              <Grid.Col span={{ base: 6, sm: 4, lg: 2 }} key={i}>
                 {footerlink.children.map((child, i) => (
-                  <React.Fragment key={i}>
+                  <Box key={i}>
                     {child.title ? (
-                      <Typography fontSize="17px" fontWeight="600" mb="22px">
+                      <Text fz="lg" fw={600} mb="md">
                         {child.titleText}
-                      </Typography>
+                      </Text>
                     ) : (
                       <Link href={`${child.link}`}>
-                        <Typography
-                          sx={{
-                            display: "block",
-                            padding: "10px 0",
-                            fontSize: "15px",
-                            color: "rgba(255,255,255,0.8)",
-                            "&:hover": {
-                              color: (theme) => theme.palette.primary.main,
+                        <Text
+                          component="span"
+                          display="block"
+                          py="xs"
+                          c="gray.3"
+                          style={{
+                            '&:hover': {
+                              color: theme.colors.blue[4],
                             },
                           }}
-                          component="span"
                         >
                           {child.titleText}
-                        </Typography>
+                        </Text>
                       </Link>
                     )}
-                  </React.Fragment>
+                  </Box>
                 ))}
-              </Grid>
+              </Grid.Col>
             ))}
-            <Grid item xs={6} sm={6} lg={2}>
-              <Typography fontSize="17px" fontWeight="600" mb="22px">
+            <Grid.Col span={{ base: 6, sm: 6, lg: 2 }}>
+              <Text fz="lg" fw={600} mb="md">
                 Follow us
-              </Typography>
+              </Text>
 
-              <Stack direction="row" gap="20px">
-                <Tooltip title="Facebook">
+              <Group gap="md">
+                <Tooltip label="Facebook">
                   <Link href="#">
-                    <Box component="span" color="white">
-                      <IconBrandFacebook height={22} />
+                    <Box component="span" c="gray.0">
+                      <IconBrandFacebook size={22} />
                     </Box>
                   </Link>
                 </Tooltip>
-                <Tooltip title="Twitter">
+                <Tooltip label="Twitter">
                   <Link href="#">
-                    <Box component="span" color="white">
-                      <IconBrandTwitter height={22} />
+                    <Box component="span" c="gray.0">
+                      <IconBrandTwitter size={22} />
                     </Box>
                   </Link>
                 </Tooltip>
-                <Tooltip title="Instagram">
+                <Tooltip label="Instagram">
                   <Link href="#">
-                    <Box component="span" color="white">
-                      <IconBrandInstagram height={22} />
+                    <Box component="span" c="gray.0">
+                      <IconBrandInstagram size={22} />
                     </Box>
                   </Link>
                 </Tooltip>
-              </Stack>
-            </Grid>
+                <Tooltip label="Youtube">
+                  <Link href="#">
+                    <Box component="span" c="gray.0">
+                      <IconBrandYoutube size={22} />
+                    </Box>
+                  </Link>
+                </Tooltip>
+              </Group>
+            </Grid.Col>
           </Grid>
-
-          <Divider sx={{ borderColor: "rgba(255,255,255,0.1)" }} />
-
-          <Box
-            py="40px"
-            flexWrap="wrap"
-            display="flex"
-            justifyContent="space-between"
-          >
-            <Stack direction="row" gap={1} alignItems="center">
-              <Image
-                src="/images/logos/logo-icon.svg"
-                width={25}
-                height={20}
-                alt="logo"
-              />
-              <Typography variant="body1" fontSize="15px">
-                All rights reserved by Materialpro.{" "}
-              </Typography>
-            </Stack>
-            <Typography variant="body1" fontSize="15px">
-              Produced by{" "}
-              <Typography
-                component={Link}
-                color="primary.main"
-                href="https://wrappixel.com/"
-              >
-                Wrappixel
-              </Typography>
-              .
-            </Typography>
-          </Box>
         </Container>
       </Box>
     </>

@@ -1,19 +1,30 @@
-import React from 'react';
-import { styled } from '@mui/material/styles';
-import { TextField } from '@mui/material';
+import { TextInput, TextInputProps } from '@mantine/core';
 
-const CustomTextField = styled((props: any) => <TextField {...props} />)(({ theme }) => ({
-  '& .MuiOutlinedInput-input::-webkit-input-placeholder': {
-    color: theme.palette.text.secondary,
-    opacity: '0.8',
-  },
-  '& .MuiOutlinedInput-input.Mui-disabled::-webkit-input-placeholder': {
-    color: theme.palette.text.secondary,
-    opacity: '1',
-  },
-  '& .Mui-disabled .MuiOutlinedInput-notchedOutline': {
-    borderColor: theme.palette.grey[200],
-  },
-}));
+interface CustomTextFieldProps extends TextInputProps {
+  children?: React.ReactNode;
+}
+
+const CustomTextField = ({ ...props }: CustomTextFieldProps) => (
+  <TextInput
+    size="md"
+    styles={(theme) => ({
+      input: {
+        '&::placeholder': {
+          color: theme.colors.gray[6],
+          opacity: 0.8,
+        },
+        '&:disabled::placeholder': {
+          color: theme.colors.gray[6],
+          opacity: 1,
+        },
+        '&:disabled': {
+          borderColor: theme.colors.gray[2],
+          backgroundColor: theme.colors.gray[0],
+        },
+      },
+    })}
+    {...props}
+  />
+);
 
 export default CustomTextField;

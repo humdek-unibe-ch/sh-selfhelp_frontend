@@ -1,5 +1,4 @@
 "use client";
-import { styled, Container, Box, useTheme } from "@mui/material";
 import React from "react";
 import Header from "./layout/vertical/header/Header";
 import Sidebar from "./layout/vertical/sidebar/Sidebar";
@@ -9,22 +8,7 @@ import HorizontalHeader from "./layout/horizontal/header/Header";
 import { useSelector } from "@/store/hooks";
 import { AppState } from "@/store/store";
 import { useNavigation } from "@/hooks/useNavigation";
-
-const MainWrapper = styled("div")(() => ({
-}));
-
-const PageWrapper = styled("div")(() => ({
-   display: "flex",
-   flexGrow: 1,
-   paddingBottom: "60px",
-   flexDirection: "column",
-   zIndex: 1,
-   backgroundColor: "transparent",
-}));
-
-interface Props {
-   children: React.ReactNode;
-}
+import { Box, Container, useMantineTheme } from "@mantine/core";
 
 export default function RootLayout({
    children,
@@ -33,41 +17,38 @@ export default function RootLayout({
 }) {
    const { routes: routes, isLoading } = useNavigation();
    const customizer = useSelector((state: AppState) => state.customizer);
-   const theme = useTheme();
+   const theme = useMantineTheme();
 
    if (isLoading) return <div>Loading...</div>;
 
    return (
-      <MainWrapper>
+      <Box>
          <title>SelfHelp</title>
          {customizer.isHorizontal ? "" : <Header />}
          {customizer.isHorizontal ? "" : <Sidebar />}
-         <PageWrapper
+         <Box
             className="page-wrapper"
-            sx={{
-               ...(customizer.isHorizontal == false && {
-                  [theme.breakpoints.up("lg")]: {
-                     ml: `${customizer.SidebarWidth}px`,
-                  },
-               }),
-               ...(customizer.isCollapse && {
-                  [theme.breakpoints.up("lg")]: {
-                     ml: `${customizer.MiniSidebarWidth}px`,
-                  },
-               }),
+            style={{
+               display: "flex",
+               flexGrow: 1,
+               paddingBottom: "60px",
+               flexDirection: "column",
+               zIndex: 1,
+               backgroundColor: "transparent",
+               marginLeft: customizer.isHorizontal ? 0 : 
+                  customizer.isCollapse ? `${customizer.MiniSidebarWidth}px` : 
+                  `${customizer.SidebarWidth}px`
             }}
          >
             {customizer.isHorizontal ? <HorizontalHeader /> : ""}
             {customizer.isHorizontal ? <Navigation /> : ""}
             <Container
-               sx={{
-                  maxWidth: customizer.isLayout === "boxed" ? "lg" : "100%!important",
-               }}
+               size={customizer.isLayout === "boxed" ? "lg" : "100%"}
             >
-               <Box sx={{ minHeight: "calc(100vh - 170px)" }}>{children}</Box>
+               <Box style={{ minHeight: "calc(100vh - 170px)" }}>{children}</Box>
             </Container>
             <Customizer />
-         </PageWrapper>
-      </MainWrapper>
+         </Box>
+      </Box>
    );
 }

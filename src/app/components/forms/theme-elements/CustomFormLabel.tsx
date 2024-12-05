@@ -1,19 +1,24 @@
-import React from 'react';
-import { styled } from '@mui/material/styles';
-import { Typography } from '@mui/material';
+import { Text } from '@mantine/core';
+import { ComponentPropsWithoutRef } from 'react';
 
-const CustomFormLabel = styled((props: any) => (
-  <Typography
-    variant="subtitle1"
-    fontWeight={500}
-    {...props}
+interface CustomFormLabelProps extends ComponentPropsWithoutRef<'label'> {
+  children: React.ReactNode;
+}
+
+const CustomFormLabel = ({ children, ...props }: CustomFormLabelProps) => (
+  <Text
     component="label"
-    htmlFor={props.htmlFor}
-  />
-))(() => ({
-  marginBottom: '5px',
-  marginTop: '25px',
-  display: 'block',
-}));
+    size="sm"
+    fw={500}
+    style={{
+      marginBottom: '5px',
+      marginTop: '25px',
+      display: 'block',
+    }}
+    {...props}
+  >
+    {children}
+  </Text>
+);
 
 export default CustomFormLabel;

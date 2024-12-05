@@ -4,18 +4,6 @@ import { useState } from 'react';
 import { useSelector } from '@/store/hooks';
 import { usePathname } from "next/navigation";
 
-// mui imports
-import {
-  ListItemIcon,
-  ListItemButton,
-  Collapse,
-  styled,
-  ListItemText,
-  useTheme,
-  useMediaQuery,
-  Theme,
-} from '@mui/material';
-
 // custom imports
 import NavItem from '../NavItem';
 
@@ -24,6 +12,10 @@ import { IconChevronDown, IconChevronUp } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { AppState } from '@/store/store';
 import { isNull } from "lodash";
+import { useMantineTheme } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
+import { Collapse, UnstyledButton, Box, Text } from '@mantine/core';
+import { BREAKPOINTS } from '@/utils/theme/Theme';
 
 type NavGroupProps = {
   [x: string]: any;
@@ -52,11 +44,11 @@ export default  function NavCollapse ({
   hideMenu,
   onClick
 }: NavCollapseProps)  {
-  const lgDown = useMediaQuery((theme: Theme) => theme.breakpoints.down("lg"));
+  const lgDown = useMediaQuery(`(max-width: ${BREAKPOINTS.lg}px)`);
 
   const customizer = useSelector((state: AppState) => state.customizer);
   const Icon = menu?.icon;
-  const theme = useTheme();
+  const theme = useMantineTheme();
   const pathname  = usePathname();
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -78,26 +70,30 @@ export default  function NavCollapse ({
     });
   }, [pathname, menu.children]);
 
-  const ListItemStyled = styled(ListItemButton)(() => ({
+  const buttonStyles = {
     marginBottom: '2px',
     padding: '8px 10px',
     paddingLeft: hideMenu ? '10px' : level > 2 ? `${level * 15}px` : '10px',
-    backgroundColor: open && level < 2 ? theme.palette.secondary.main : '',
+    backgroundColor: open && level < 2 ? theme.colors.blue[6] : '',
     whiteSpace: 'nowrap',
+    width: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
     '&:hover': {
       backgroundColor: pathname.includes(menu.href) || open
-        ? theme.palette.secondary.main
-        : theme.palette.secondary.light,
-      color: pathname.includes(menu.href)|| open ? 'white' : theme.palette.secondary.main,
+        ? theme.colors.blue[6]
+        : theme.colors.blue[1],
+      color: pathname.includes(menu.href) || open ? 'white' : theme.colors.blue[6],
     },
     color:
       open && level < 2
         ? 'white'
-        : `inherit` && level > 1 && open
-        ? theme.palette.secondary.main
-        : theme.palette.text.secondary,
+        : level > 1 && open
+        ? theme.colors.blue[6]
+        : theme.colors.gray[7],
     borderRadius: `${customizer.borderRadius}px`,
-  }));
+  };
 
   // If Menu has Children
   const submenus = menu.children?.map((item: any) => {
@@ -129,24 +125,19 @@ export default  function NavCollapse ({
 
   return (
     <>
-      <ListItemStyled
+      <UnstyledButton
         onClick={handleClick}
-        selected={pathWithoutLastPart === menu.href}
+        data-selected={pathWithoutLastPart === menu.href}
         key={menu?.id}
+        style={buttonStyles}
       >
-        <ListItemIcon
-          sx={{
-            minWidth: '36px',
-            p: '3px 0',
-            color: 'inherit',
-          }}
-        >
+        <Box style={{ minWidth: '36px', padding: '3px 0' }}>
           {menuIcon}
-        </ListItemIcon>
-        <ListItemText color="inherit">{hideMenu ? '' : <>{t(`${menu.title}`)}</>}</ListItemText>
+        </Box>
+        <Text>{hideMenu ? '' : t(`${menu.title}`)}</Text>
         {!open ? <IconChevronDown size="1rem" /> : <IconChevronUp size="1rem" />}
-      </ListItemStyled>
-      <Collapse in={open} timeout="auto">
+      </UnstyledButton>
+      <Collapse in={open}>
         {submenus}
       </Collapse>
     </>

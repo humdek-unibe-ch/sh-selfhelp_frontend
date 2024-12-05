@@ -1,5 +1,4 @@
 import { usePathname } from "next/navigation";
-import { Box, List, useMediaQuery } from '@mui/material';
 import { useDispatch, useSelector } from '@/store/hooks';
 import NavItem from './NavItem';
 import NavCollapse from './NavCollapse';
@@ -7,20 +6,22 @@ import NavGroup from './NavGroup/NavGroup';
 import { AppState } from '@/store/store'
 import { toggleMobileSidebar } from '@/store/customizer/CustomizerSlice';
 import { useNavigation } from '@/hooks/useNavigation';
-
+import { Box, List } from "@mantine/core";
+import { useMediaQuery } from '@mantine/hooks';
+import { BREAKPOINTS } from '@/utils/theme/Theme';
 
 const SidebarItems = () => {
    const pathname = usePathname();
    const pathDirect = pathname;
    const pathWithoutLastPart = pathname.slice(0, pathname.lastIndexOf('/'));
    const customizer = useSelector((state: AppState) => state.customizer);
-   const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up('lg'));
+   const lgUp = useMediaQuery(`(min-width: ${BREAKPOINTS.lg}px)`);
    const hideMenu: any = lgUp ? customizer.isCollapse && !customizer.isSidebarHover : '';
    const dispatch = useDispatch();
    const { menuItems, isLoading } = useNavigation();
    return (
-      <Box sx={{ px: 2 }} borderRadius={0}>
-         <List sx={{ pt: 0 }} className="sidebarNav">
+      <Box style={{ px: 2, borderRadius: 0 }}>
+         <List style={{ pt: 0 }} className="sidebarNav">
             {menuItems.map((item) => {
                // {/********SubHeader**********/}
                if (item.subheader) {

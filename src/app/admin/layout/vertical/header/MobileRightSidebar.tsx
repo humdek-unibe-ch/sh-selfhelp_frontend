@@ -8,24 +8,12 @@ import {
   IconMail,
   IconMessages,
 } from '@tabler/icons-react';
-import {
-  Box,
-  Typography,
-  Drawer,
-  IconButton,
-  List,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Collapse,
-} from '@mui/material';
-
 import Link from 'next/link';
+import { Box, List, Drawer, ActionIcon, Text, UnstyledButton, Group } from '@mantine/core';
 
 const MobileRightSidebar = () => {
   const [showDrawer, setShowDrawer] = useState(false);
-
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = useState(true);
 
   const handleClick = () => {
     setOpen(!open);
@@ -33,90 +21,67 @@ const MobileRightSidebar = () => {
 
   const cartContent = (
     <Box>
-      {/* ------------------------------------------- */}
-      {/* Apps Content */}
-      {/* ------------------------------------------- */}
-      <Box px={1}>
-        <List
-          sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}
-          component="nav"
-          aria-labelledby="nested-list-subheader"
-        >
-          <ListItemButton component={Link} href="/apps/chats">
-            <ListItemIcon sx={{ minWidth: 35 }}>
-              <IconMessages size="21" stroke="1.5" />
-            </ListItemIcon>
-            <ListItemText>
-              <Typography variant="subtitle2" fontWeight={600}>
-                Chats
-              </Typography>
-            </ListItemText>
-          </ListItemButton>
-          <ListItemButton component={Link} href="/apps/calendar">
-            <ListItemIcon sx={{ minWidth: 35 }}>
-              <IconCalendarEvent size="21" stroke="1.5" />
-            </ListItemIcon>
-            <ListItemText>
-              <Typography variant="subtitle2" fontWeight={600}>
-                Calendar
-              </Typography>
-            </ListItemText>
-          </ListItemButton>
-          <ListItemButton component={Link} href="/apps/email">
-            <ListItemIcon sx={{ minWidth: 35 }}>
-              <IconMail size="21" stroke="1.5" />
-            </ListItemIcon>
-            <ListItemText>
-              <Typography variant="subtitle2" fontWeight={600}>
-                Email
-              </Typography>
-            </ListItemText>
-          </ListItemButton>
-          <ListItemButton onClick={handleClick}>
-            <ListItemIcon sx={{ minWidth: 35 }}>
-              <IconApps size="21" stroke="1.5" />
-            </ListItemIcon>
-            <ListItemText>
-              <Typography variant="subtitle2" fontWeight={600}>
-                Apps
-              </Typography>
-            </ListItemText>
-            {open ? (
-              <IconChevronDown size="21" stroke="1.5" />
-            ) : (
-              <IconChevronUp size="21" stroke="1.5" />
-            )}
-          </ListItemButton>
+      <Box px="md">
+        <List listStyleType="none" spacing="xs">
+          <UnstyledButton component={Link} href="/apps/chats">
+            <Group gap="xs">
+              <IconMessages size="1.3rem" stroke={1.5} />
+              <Text fw={600} size="sm">Chats</Text>
+            </Group>
+          </UnstyledButton>
+
+          <UnstyledButton component={Link} href="/apps/calendar">
+            <Group gap="xs">
+              <IconCalendarEvent size="1.3rem" stroke={1.5} />
+              <Text fw={600} size="sm">Calendar</Text>
+            </Group>
+          </UnstyledButton>
+
+          <UnstyledButton component={Link} href="/apps/email">
+            <Group gap="xs">
+              <IconMail size="1.3rem" stroke={1.5} />
+              <Text fw={600} size="sm">Email</Text>
+            </Group>
+          </UnstyledButton>
+
+          <UnstyledButton onClick={handleClick}>
+            <Group gap="xs" justify="space-between">
+              <Group gap="xs">
+                <IconApps size="1.3rem" stroke={1.5} />
+                <Text fw={600} size="sm">Apps</Text>
+              </Group>
+              {open ? (
+                <IconChevronDown size="1.3rem" stroke={1.5} />
+              ) : (
+                <IconChevronUp size="1.3rem" stroke={1.5} />
+              )}
+            </Group>
+          </UnstyledButton>
         </List>
       </Box>
     </Box>
   );
 
   return (
-    <Box color='white'>
-      <IconButton
-        size="large"
-        color="inherit"
+    <Box c="white">
+      <ActionIcon
+        size="lg"
+        variant="transparent"
+        color="white"
         onClick={() => setShowDrawer(true)}
       >
-        <IconGridDots size="21" stroke="1.5" />
-      </IconButton>
-      {/* ------------------------------------------- */}
-      {/* Cart Sidebar */}
-      {/* ------------------------------------------- */}
-      <Drawer
-        anchor="right"
-        open={showDrawer}
-        onClose={() => setShowDrawer(false)}
-        PaperProps={{ sx: { width: '300px' } }}
-      >
-        <Box p={3} pb={0}>
-          <Typography variant="h5" fontWeight={600}>
-            Navigation
-          </Typography>
-        </Box>
+        <IconGridDots size="1.3rem" stroke={1.5} />
+      </ActionIcon>
 
-        {/* component */}
+      <Drawer
+        opened={showDrawer}
+        onClose={() => setShowDrawer(false)}
+        position="right"
+        size={300}
+      >
+        <Box p="md" pb={0}>
+          <Text size="lg" fw={600}>Navigation</Text>
+        </Box>
         {cartContent}
       </Drawer>
     </Box>

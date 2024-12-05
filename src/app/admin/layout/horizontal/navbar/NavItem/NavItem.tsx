@@ -1,22 +1,10 @@
 import React from 'react';
 import Link from 'next/link';
-
-// mui imports
-import {
-  ListItemIcon,
-  List,
-  styled,
-  ListItemText,
-  Chip,
-  useTheme,
-  Typography,
-  ListItemButton,
-  useMediaQuery,
-  Theme,
-} from '@mui/material';
 import { useSelector } from '@/store/hooks';
 import { useTranslation } from 'react-i18next';
 import { AppState } from '@/store/store';
+import { useMediaQuery } from '@mantine/hooks';
+import { Box, UnstyledButton, Group, Text, Badge } from '@mantine/core';
 
 type NavGroup = {
   [x: string]: any;
@@ -43,97 +31,84 @@ interface ItemType {
   pathDirect: string;
 }
 
-export default function NavItem  ({ item, level, pathDirect, hideMenu, onClick }: ItemType) {
-  const lgDown = useMediaQuery((theme: Theme) => theme.breakpoints.down("lg"));
-
+export default function NavItem({ item, level, pathDirect, hideMenu, onClick }: ItemType) {
+  const lgDown = useMediaQuery('(max-width: 1200px)');
   const customizer = useSelector((state: AppState) => state.customizer);
   const Icon = item?.icon;
-  const theme = useTheme();
   const { t } = useTranslation();
+  
   const itemIcon = Icon ? (
     level > 1 ? <Icon stroke={1.5} size="1rem" /> : <Icon stroke={1.5} size="1.3rem" />
   ) : null;
 
-  const ListItemStyled = styled(ListItemButton)(() => ({
-    whiteSpace: 'nowrap',
-    padding: '5px 10px',
-    gap: '10px',
-    borderRadius: `${customizer.borderRadius}px`,
-    backgroundColor: level > 1 ? 'transparent !important' : 'inherit',
-    marginBottom: level > 1 ? '3px' : '0px',
-    color:
-      level > 1 && pathDirect === item?.href
-        ? `${theme.palette.secondary.main}!important`
-        : theme.palette.text.secondary,
-    paddingLeft: hideMenu ? '10px' : level > 2 ? `${level * 15}px` : '10px',
-    '&:hover': {
-      backgroundColor: theme.palette.secondary.light,
-      color: theme.palette.secondary.main,
-    },
-    '&.Mui-selected': {
-      color: 'white',
-      backgroundColor: theme.palette.secondary.main,
-      '&:hover': {
-        backgroundColor: theme.palette.secondary.main,
-        color: 'white',
-      },
-    },
-  }));
-
-  const listItemProps: {
-    component: any;
-    href?: string;
-    target?: any;
-    to?: any;
-  } = {
-    component: item?.external ? 'a' : Link,
-    to: item?.href,
-    href: item?.external ? item?.href : '',
-    target: item?.external ? '_blank' : '',
-  };
-
   return (
-    <List component="li" disablePadding key={item?.id && item.title}>
-      <Link href={item.href}>
-        <ListItemStyled
-         
+    <Box component="li" style={{ padding: 0 }} key={item?.id && item.title}>
+      <Link href={item.href} style={{ textDecoration: 'none' }}>
+        <UnstyledButton
           disabled={item?.disabled}
-          selected={pathDirect === item?.href}
-          onClick={lgDown ? onClick : undefined}>
-
-          <ListItemIcon
-            sx={{
-              minWidth: 'auto',
-              p: '3px 0',
-              color:
-                level > 1 && pathDirect === item?.href
-                  ? `${theme.palette.secondary.main}!important`
+          onClick={lgDown ? onClick : undefined}
+          style={{
+            width: '100%',
+            padding: '5px 10px',
+            gap: '10px',
+            borderRadius: customizer.borderRadius,
+            backgroundColor: level > 1 ? 'transparent' : 'inherit',
+            marginBottom: level > 1 ? '3px' : '0px',
+            paddingLeft: hideMenu ? '10px' : level > 2 ? `${level * 15}px` : '10px',
+            color: level > 1 && pathDirect === item?.href
+              ? 'var(--mantine-color-secondary-6)'
+              : 'var(--mantine-color-text)',
+            '&:hover': {
+              backgroundColor: 'var(--mantine-color-secondary-1)',
+              color: 'var(--mantine-color-secondary-6)',
+            },
+            ...(pathDirect === item?.href && {
+              color: 'white',
+              backgroundColor: 'var(--mantine-color-secondary-6)',
+              '&:hover': {
+                backgroundColor: 'var(--mantine-color-secondary-6)',
+                color: 'white',
+              },
+            }),
+          }}
+        >
+          <Group gap="xs" wrap="nowrap">
+            <Box
+              style={{
+                color: level > 1 && pathDirect === item?.href
+                  ? 'var(--mantine-color-secondary-6)'
                   : 'inherit',
-            }}
-          >
-            {itemIcon}
-          </ListItemIcon>
-          <ListItemText>
-            {hideMenu ? '' : <>{t(`${item?.title}`)}</>}
-            <br />
-            {item?.subtitle ? (
-              <Typography variant="caption">{hideMenu ? '' : item?.subtitle}</Typography>
-            ) : (
-              ''
-            )}
-          </ListItemText>
+              }}
+            >
+              {itemIcon}
+            </Box>
+            
+            <Box style={{ flex: 1 }}>
+              {!hideMenu && (
+                <>
+                  <Text size="sm">{t(`${item?.title}`)}</Text>
+                  {item?.subtitle && (
+                    <Text size="xs" c="dimmed">
+                      {item?.subtitle}
+                    </Text>
+                  )}
+                </>
+              )}
+            </Box>
 
-          {!item?.chip || hideMenu ? null : (
-            <Chip
-              color={item?.chipColor}
-              variant={item?.variant ? item?.variant : 'filled'}
-              size="small"
-              label={item?.chip}
-            />
-          )}
-        </ListItemStyled>
+            {!item?.chip || hideMenu ? null : (
+              <Badge
+                color={item?.chipColor}
+                variant={item?.variant || 'filled'}
+                size="sm"
+              >
+                {item?.chip}
+              </Badge>
+            )}
+          </Group>
+        </UnstyledButton>
       </Link>
-    </List>
+    </Box>
   );
-};
+}
 

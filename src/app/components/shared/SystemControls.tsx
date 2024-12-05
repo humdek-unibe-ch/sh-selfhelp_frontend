@@ -4,11 +4,12 @@
  */
 
 "use client";
-import { Stack, Button } from "@mui/material";
 import Language from "../../admin/layout/vertical/header/Language";
 import DarkLightMode from "../../admin/layout/vertical/header/DarkLightMode";
 import Profile from "./Profile";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { Button } from "@mantine/core";
+import { Stack } from "@mantine/core";
 
 /**
  * SystemControls component provides a collection of system-wide controls
@@ -33,24 +34,17 @@ import { useAuthContext } from "@/contexts/AuthContext";
  * )
  */
 const SystemControls = () => {
-    // Get authentication state from context
     const { isAuthenticated } = useAuthContext();
 
     return (
-        <Stack spacing={1} direction="row" alignItems="center">
-            {/* Language selector component */}
+        <Stack gap="xs" justify="center" align="center">
             <Language />
-
-            {/* Theme toggle component */}
             <DarkLightMode />
-
-            {/* Conditional rendering based on authentication state */}
             {isAuthenticated ? (
                 <Profile />
             ) : (
                 <Button 
-                    color="secondary" 
-                    variant="contained" 
+                    component="a"
                     href="/auth/auth1/login"
                     aria-label="Login to account"
                 >

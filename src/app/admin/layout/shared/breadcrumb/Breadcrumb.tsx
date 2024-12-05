@@ -1,62 +1,61 @@
 import React from "react";
-import { Grid, Typography, Box, Breadcrumbs, Theme } from "@mui/material";
 import NextLink from "next/link";
-
-import breadcrumbImg from "/public/images/breadcrumb/ChatBc.png";
-import {
-  IconArrowRight,
-  IconChevronRight,
-  IconCircle,
-} from "@tabler/icons-react";
-import Image from "next/image";
+import { IconChevronRight } from "@tabler/icons-react";
+import { Grid, Title, Text, Breadcrumbs, Anchor } from '@mantine/core';
 
 interface BreadCrumbType {
   subtitle?: string;
-  items?: any[];
+  items?: Array<{
+    title: string;
+    to?: string;
+  }>;
   title: string;
   children?: JSX.Element;
 }
 
 const Breadcrumb = ({ subtitle, items, title, children }: BreadCrumbType) => (
   <Grid
-    container
-    sx={{
-      my: "24px",
+    my="md"
+    style={{
       position: "relative",
       overflow: "hidden",
     }}
   >
-    <Grid item xs={12} sm={6} lg={8} mb={1}>
-      <Typography variant="h3">{title}</Typography>
-      <Typography
-        color="textSecondary"
-        variant="h5"
-        fontWeight={400}
-        mt={0.8}
-        mb={0}
-      >
-        {subtitle}
-      </Typography>
-      <Breadcrumbs
-        separator={<IconChevronRight size="16" style={{ margin: "0 5px" }} />}
-        sx={{ alignItems: "center", mt: items ? "10px" : "" }}
-        aria-label="breadcrumb"
-      >
-        {items
-          ? items.map((item) => (
-              <div key={item.title}>
-                {item.to ? (
-                  <NextLink href={item.to} passHref>
-                    <Typography color="textSecondary">{item.title}</Typography>
-                  </NextLink>
-                ) : (
-                  <Typography color="textPrimary">{item.title}</Typography>
-                )}
-              </div>
-            ))
-          : ""}
-      </Breadcrumbs>
-    </Grid>
+    <Grid.Col style={{ xs: 12, sm: 6, lg: 8, mb: "xs" }}>
+      <Title order={3}>{title}</Title>
+      {subtitle && (
+        <Text c="dimmed" fz="lg" fw={400} mt="xs" mb={0}>
+          {subtitle}
+        </Text>
+      )}
+      {items && (
+        <Breadcrumbs
+          separator={
+            <IconChevronRight 
+              size="16" 
+              style={{ margin: "0 5px" }} 
+              color="var(--mantine-color-dimmed)"
+            />
+          }
+          mt="xs"
+        >
+          {items.map((item) => (
+            <div key={item.title}>
+              {item.to ? (
+                <NextLink href={item.to} passHref legacyBehavior>
+                  <Anchor component="a" c="dimmed">
+                    {item.title}
+                  </Anchor>
+                </NextLink>
+              ) : (
+                <Text>{item.title}</Text>
+              )}
+            </div>
+          ))}
+        </Breadcrumbs>
+      )}
+      {children}
+    </Grid.Col>
   </Grid>
 );
 

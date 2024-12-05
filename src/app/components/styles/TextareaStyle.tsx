@@ -1,27 +1,28 @@
-import React from 'react';
-import { TextField } from '@mui/material';
+import { Textarea } from '@mantine/core';
 import { ITextareaStyle } from '@/types/api/styles.types';
 
 interface TextareaStyleProps {
     style: ITextareaStyle;
 }
 
-const TextareaStyle: React.FC<TextareaStyleProps> = ({ style }) => {
+const TextareaStyle = ({ style }: TextareaStyleProps) => {
     return (
-        <TextField
+        <Textarea
             name={style.name.content}
             label={style.label.content}
-            fullWidth
-            required={style.is_required.content === '1'}
             placeholder={style.placeholder.content}
-            multiline
-            rows={4}
+            required={style.is_required.content === '1'}
+            disabled={style.locked_after_submit?.content === '1'}
+            minLength={parseInt(style.min.content)}
+            maxLength={parseInt(style.max.content)}
             defaultValue={style.value.content}
             className={style.css}
-            disabled={style.locked_after_submit?.content === '1'}
-            inputProps={{
-                minLength: parseInt(style.min.content),
-                maxLength: parseInt(style.max.content)
+            autosize
+            minRows={4}
+            styles={{
+                input: {
+                    width: '100%'
+                }
             }}
         />
     );

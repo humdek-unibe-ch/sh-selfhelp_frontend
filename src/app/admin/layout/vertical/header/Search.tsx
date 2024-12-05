@@ -1,94 +1,104 @@
 import { useState } from 'react';
-import { IconButton, Dialog, DialogContent, Stack, Divider, Box, List, ListItemText, Typography, TextField, ListItemButton } from '@mui/material';
 import { IconSearch, IconX } from '@tabler/icons-react';
 import Link from 'next/link';
 import { useNavigation } from '@/hooks/useNavigation';
-import { MenuitemsType } from '@/types/layout/sidebar';
+import { IMenuitemsType } from '@/types/layout/sidebar';
+import { 
+  ActionIcon, 
+  Modal, 
+  TextInput, 
+  Group, 
+  Box, 
+  Text, 
+  Stack,
+  UnstyledButton,
+  Divider,
+  ScrollArea
+} from '@mantine/core';
 
 const Search = () => {
-   const [showDrawer2, setShowDrawer2] = useState(false);
-   const [search, setSearch] = useState('');
+  const [opened, setOpened] = useState(false);
+  const [search, setSearch] = useState('');
+  const { menuItems = [] } = useNavigation();
 
-   const handleClose = () => {
-      setShowDrawer2(false);
-      setSearch('');
-   };
+  const handleClose = () => {
+    setOpened(false);
+    setSearch('');
+  };
 
-   const { menuItems = [] } = useNavigation();
+  const filterRoutes = (menuItems: IMenuitemsType[], searchTerm: string) => {
+    if (!searchTerm) return menuItems;
+    return menuItems.filter((menuItem) =>
+      menuItem.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      menuItem.href?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  };
 
-   const filterRoutes = (menuItems: MenuitemsType[], searchTerm: string) => {
-      if (!searchTerm) return menuItems;
-      return menuItems.filter((menuItem) =>
-         menuItem.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         menuItem.href?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-   };
+  const searchData = filterRoutes(menuItems, search);
 
-   const searchData = filterRoutes(menuItems, search);
+  return (
+    <>
+      <ActionIcon
+        variant="transparent"
+        color="white"
+        size="lg"
+        onClick={() => setOpened(true)}
+        aria-label="Search"
+      >
+        <IconSearch size="1.3rem" />
+      </ActionIcon>
 
-   return (
-      <>
-         <IconButton
-            aria-label="show 4 new mails"
-            color="inherit"
-            aria-controls="search-menu"
-            aria-haspopup="true"
-            onClick={() => setShowDrawer2(true)}
-            size="large"
-         >
-            <IconSearch size="22" />
-         </IconButton>
-         <Dialog
-            open={showDrawer2}
-            onClose={handleClose}
-            fullWidth
-            maxWidth={'sm'}
-            aria-labelledby="alert-dialog-title"
-            aria-describedby="alert-dialog-description"
-            PaperProps={{ sx: { position: 'fixed', top: 30, m: 0 } }}
-         >
-            <DialogContent className="testdialog">
-               <Stack direction="row" spacing={2} alignItems="center">
-                  <TextField
-                     id="tb-search"
-                     placeholder="Search here"
-                     fullWidth
-                     value={search}
-                     onChange={(e) => setSearch(e.target.value)}
-                     inputProps={{ 'aria-label': 'Search here' }}
-                  />
-                  <IconButton size="small" onClick={handleClose}>
-                     <IconX size="18" />
-                  </IconButton>
-               </Stack>
-            </DialogContent>
-            <Divider />
-            <Box p={2} sx={{ maxHeight: '60vh', overflow: 'auto' }}>
-               <Typography variant="h5" p={1}>
-                  Quick Page Links
-               </Typography>
-               <Box>
-                  <List component="nav">
-                     {searchData.map((menuItem) => (
-                        <ListItemButton
-                           key={menuItem.href}
-                           sx={{ py: 0.5, px: 1 }}
-                           href={menuItem.href ?? '#'}
-                           component={Link}
-                        >
-                           <ListItemText
-                              primary={menuItem.title}
-                              secondary={menuItem.href}
-                              sx={{ my: 0, py: 0.5 }}
-                           />
-                        </ListItemButton>
-                     ))}
-                  </List>
-               </Box>
-            </Box>
-         </Dialog>
-      </>
-   );
+      <Modal
+        opened={opened}
+        onClose={handleClose}
+        size="md"
+        yOffset={30}
+        title={
+          <Group justify="space-between" w="100%">
+            <TextInput
+              placeholder="Search here"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{ flex: 1 }}
+            />
+            <ActionIcon variant="subtle" onClick={handleClose} size="sm">
+              <IconX size="1rem" />
+            </ActionIcon>
+          </Group>
+        }
+        styles={{
+          title: {
+            width: '100%',
+          },
+          header: {
+            padding: 'var(--mantine-spacing-md)',
+            marginBottom: 0,
+          }
+        }}
+      >
+        <Divider />
+        <ScrollArea h="60vh">
+          <Box p="md">
+            <Text fw={500} size="lg" mb="xs">Quick Page Links</Text>
+            <Stack gap="xs">
+              {searchData.map((menuItem) => (
+                <UnstyledButton
+                  key={menuItem.href}
+                  component={Link}
+                  href={menuItem.href ?? '#'}
+                >
+                  <Box py="xs">
+                    <Text size="sm" fw={500}>{menuItem.title}</Text>
+                    <Text size="xs" c="dimmed">{menuItem.href}</Text>
+                  </Box>
+                </UnstyledButton>
+              ))}
+            </Stack>
+          </Box>
+        </ScrollArea>
+      </Modal>
+    </>
+  );
 };
 
 export default Search;

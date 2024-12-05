@@ -1,11 +1,11 @@
 'use client'
-import CircularProgress from "@mui/material/CircularProgress";
-import Box from "@mui/material/Box";
+
+import { Box, Loader } from "@mantine/core";
 
 export default function Loading() {
   return (
     <Box
-      sx={{
+      style={{
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
@@ -13,7 +13,7 @@ export default function Loading() {
         height: "100vh",
       }}
     >
-      <CircularProgress />
+      <Loader size="xl" type="dots" />
     </Box>
   );
 };
