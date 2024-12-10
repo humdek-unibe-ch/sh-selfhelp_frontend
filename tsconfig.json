@@ -34,7 +34,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"
-, "bac.middleware.ts.bac"  ],
+, "bac.middleware.ts.bac", "app/hooks/useAuth.ts.bac"  ],
   "exclude": [
     "node_modules"
   ]

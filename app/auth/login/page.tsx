@@ -2,27 +2,35 @@
 
 import { useState } from 'react';
 import { TextInput, PasswordInput, Button, Paper, Title, Container } from '@mantine/core';
+import { useLogin } from "@refinedev/core";
 import { useRouter } from 'next/navigation';
-import { AuthService } from '@/services/auth.service';
-import { useAuthContext } from '@/contexts/AuthContext';
+import { notifications } from '@mantine/notifications';
+import { ILoginRequest } from '@/types/api/auth.type';
 
 export default function LoginPage() {
   const [user, setUser] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
+  
+  const { mutateAsync: login, isLoading } = useLogin<ILoginRequest>();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
     try {
-      await AuthService.login({ user, password });
+      await login({ user, password });
+      notifications.show({
+        title: 'Success',
+        message: 'Successfully logged in',
+        color: 'green',
+      });
       router.push('/home');
     } catch (error) {
-      console.error('Login failed:', error);
-    } finally {
-      setLoading(false);
+      notifications.show({
+        title: 'Error',
+        message: 'Invalid credentials',
+        color: 'red',
+      });
     }
   };
 
@@ -47,7 +55,7 @@ export default function LoginPage() {
             value={password}
             onChange={(e) => setPassword(e.currentTarget.value)}
           />
-          <Button fullWidth mt="xl" type="submit" loading={loading}>
+          <Button fullWidth mt="xl" type="submit" loading={isLoading}>
             Sign in
           </Button>
         </form>

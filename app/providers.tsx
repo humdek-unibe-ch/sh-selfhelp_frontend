@@ -14,6 +14,7 @@ import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persist
 import { LoadingScreen } from './components/common/LoadingScreen';
 import { useNavigation } from './hooks/useNavigation';
 import { useEffect } from 'react';
+import { authProvider } from './providers/auth.provider';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -62,11 +63,12 @@ function Providers({ children }: { children: React.ReactNode }) {
     return (
         <MantineProvider theme={theme}>
             <QueryClientProvider client={queryClient}>
-                <AuthProvider>
+                {/* <AuthProvider> */}
                     <RefineKbarProvider>
                         <Refine
                             routerProvider={appRouter}
                             dataProvider={dataProvider(API_CONFIG.BASE_URL)}
+                            authProvider={authProvider}
                             resources={[
                                 {
                                     name: "content",
@@ -90,7 +92,7 @@ function Providers({ children }: { children: React.ReactNode }) {
                             <RefineKbar />
                         </Refine>
                     </RefineKbarProvider>
-                </AuthProvider>
+                {/* </AuthProvider> */}
             </QueryClientProvider>
         </MantineProvider>
     );

@@ -2,12 +2,12 @@
 
 import { Button, Menu, Group } from '@mantine/core';
 import { IconLogin, IconLogout, IconUser } from '@tabler/icons-react';
-import { useAuthContext } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { AuthService } from '@/services/auth.service';
+import { useIsAuthenticated } from '@refinedev/core';
 
 export function AuthButton() {
-    const { isAuthenticated } = useAuthContext();
+    const { data: { authenticated } = {} } = useIsAuthenticated();
     const router = useRouter();
 
     const handleLogin = () => {
@@ -23,7 +23,8 @@ export function AuthButton() {
         }
     };
 
-    if (!isAuthenticated) {
+
+    if (!authenticated) {
         return (
             <Button
                 onClick={handleLogin}

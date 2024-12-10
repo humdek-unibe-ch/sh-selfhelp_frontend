@@ -3,6 +3,7 @@ v0.0.2
  - Mantine v7
  - add `tailwind` css
  - add `refine`
+ - rework authentication to be `refine` based
 
 v0.0.1
 - Initial commit

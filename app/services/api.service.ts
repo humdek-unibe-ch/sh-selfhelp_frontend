@@ -77,7 +77,6 @@ const handleTokenRefreshFailure = () => {
 
 // Helper function to perform token refresh
 const performTokenRefresh = async () => {
-    console.log('Performing token refresh');
     try {
         const response = await AuthService.refreshToken();
         
