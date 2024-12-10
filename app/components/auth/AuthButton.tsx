@@ -23,6 +23,8 @@ export function AuthButton() {
         }
     };
 
+    console.log(authenticated);
+
 
     if (!authenticated) {
         return (
