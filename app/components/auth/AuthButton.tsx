@@ -5,10 +5,25 @@ import { IconLogin, IconLogout, IconUser } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { AuthService } from '@/services/auth.service';
 import { useIsAuthenticated } from '@refinedev/core';
+import { useEffect, useState } from 'react';
 
 export function AuthButton() {
-    const { data: { authenticated } = {} } = useIsAuthenticated();
+    const { data: { authenticated } = {}, isLoading: isAuthLoading } = useIsAuthenticated();
+    const [localAuth, setLocalAuth] = useState<boolean | null>(null);
     const router = useRouter();
+
+    // Initialize auth state from localStorage
+    useEffect(() => {
+        const hasToken = Boolean(localStorage.getItem('access_token'));
+        setLocalAuth(hasToken);
+    }, []);
+
+    // Sync server auth state when it changes
+    useEffect(() => {
+        if (typeof authenticated !== 'undefined') {
+            setLocalAuth(authenticated);
+        }
+    }, [authenticated]);
 
     const handleLogin = () => {
         router.push('/auth/login');
@@ -17,16 +32,19 @@ export function AuthButton() {
     const handleLogout = async () => {
         try {
             await AuthService.logout();
+            setLocalAuth(false);
             router.push('/auth/login');
         } catch (error) {
             console.error('Logout failed:', error);
         }
     };
 
-    console.log(authenticated);
+    // Don't render anything until we have initial state
+    if (localAuth === null) {
+        return null;
+    }
 
-
-    if (!authenticated) {
+    if (!localAuth) {
         return (
             <Button
                 onClick={handleLogin}
