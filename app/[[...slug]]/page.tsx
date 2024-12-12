@@ -8,10 +8,15 @@ import { Container } from '@mantine/core';
 import BasicStyle from '@/components/styles/BasicStyle';
 import { usePageContent } from '@/hooks/usePageContent';
 import { PageContentProvider, usePageContentContext } from '@/contexts/PageContentContext';
+import { PageService } from '@/services/page.service';
 
 export default function DynamicPage() {
     const params = useParams();
     const keyword = Array.isArray(params.slug) ? params.slug.join('/') : params.slug || '';
+    /** Update page keyword when slug changes */
+    useEffect(() => {
+        PageService.setKeyword(keyword);
+    }, [keyword]);
 
     return (
         <PageContentProvider>
