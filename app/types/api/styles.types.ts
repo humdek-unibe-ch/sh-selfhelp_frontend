@@ -100,6 +100,7 @@ export interface ICarouselStyle extends IBaseStyle {
     has_controls?: IContentField<string>;
     has_indicators?: IContentField<string>;
     has_crossfade?: IContentField<string>;
+    children: (TStyle | null)[];
 }
 
 export interface ILinkStyle extends IBaseStyle {
