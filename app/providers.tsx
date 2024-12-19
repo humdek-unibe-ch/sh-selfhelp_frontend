@@ -57,11 +57,36 @@ function NavigationLoader({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
 }
 
+function RefineWrapper({ children }: { children: React.ReactNode }) {
+    const { resources, isLoading } = useNavigation();
+
+    if (isLoading) {
+        return <LoadingScreen />;
+    }
+
+    console.log('resources', resources);
+
+    return (
+        <Refine
+            routerProvider={appRouter}
+            dataProvider={dataProvider(API_CONFIG.BASE_URL)}
+            authProvider={authProvider}
+            resources={resources}
+            options={{
+                syncWithLocation: true,
+                warnWhenUnsavedChanges: true,
+                disableTelemetry: true,
+            }}
+        >
+            {children}
+        </Refine>
+    );
+}
+
 function Providers({ children }: { children: React.ReactNode }) {
     const [isReady, setIsReady] = useState(false);
 
     useEffect(() => {
-        // Mark as ready after hydration
         setIsReady(true);
     }, []);
 
@@ -72,35 +97,9 @@ function Providers({ children }: { children: React.ReactNode }) {
     return (
         <MantineProvider theme={theme}>
             <QueryClientProvider client={queryClient}>
-                <Refine
-                    routerProvider={appRouter}
-                    dataProvider={dataProvider(API_CONFIG.BASE_URL)}
-                    authProvider={authProvider}
-                    resources={[
-                        {
-                            name: "content",
-                            meta: {
-                                canDelete: false,
-                                label: "Content",
-                            },
-                            list: "/content/all_routes",
-                            show: "/content/page/:keyword",
-                        }
-                    ]}
-                    options={{
-                        syncWithLocation: true,
-                        warnWhenUnsavedChanges: true,
-                        disableTelemetry: true,
-                        // reactQuery: {
-                        //     clientConfig: queryClient, // Pass the same client to Refine
-                        //     devtoolConfig: false,
-                        // },
-                    }}
-                >
-                    {/* <NavigationLoader> */}
-                        {children}
-                    {/* </NavigationLoader> */}
-                </Refine>
+                <RefineWrapper>
+                    {children}
+                </RefineWrapper>
             </QueryClientProvider>
         </MantineProvider>
     );

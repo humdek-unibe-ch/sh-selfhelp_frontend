@@ -9,6 +9,7 @@ import BasicStyle from '@/components/styles/BasicStyle';
 import { usePageContent } from '@/hooks/usePageContent';
 import { PageContentProvider, usePageContentContext } from '@/contexts/PageContentContext';
 import { PageService } from '@/services/page.service';
+import { useResource, useShow } from '@refinedev/core';
 
 export default function DynamicPage() {
     const params = useParams();
@@ -17,6 +18,17 @@ export default function DynamicPage() {
     useEffect(() => {
         PageService.setKeyword(keyword);
     }, [keyword]);
+
+    // In your component
+    const { id } = useParams();
+    const { resource } = useResource();
+    // const { data } = useShow({
+    //     resource: resource.name,
+    //     id
+    // });
+
+    console.log('resource', resource);
+    console.log('id', id);
 
     return (
         <PageContentProvider>
@@ -32,16 +44,20 @@ function DynamicPageContent({ keyword }: { keyword: string }) {
 
     const { routes, isLoading } = useNavigation();
     const currentPath = '/' + keyword;
-    const isValid = routes?.some(route => route.path === `/${keyword}`);
+    const route = routes.find(route => {
+        // Replace dynamic parameters in route path with regex pattern
+        const routePattern = route.path.replace(/\[([^\]]+)\]/g, '([^/]+)');
+        const regex = new RegExp(`^${routePattern}$`);
+        return regex.test(currentPath);
+    });
+
+    const isValid = !!route;
 
     useEffect(() => {
-        if (!isLoading && routes.length > 0) {
-            const isValidRoute = routes.some(route => route.path === currentPath);
-            if (!isValidRoute) {
-                notFound();
-            }
+        if (!isLoading && routes.length > 0 && !isValid) {
+            notFound();
         }
-    }, [routes, currentPath, isLoading]);
+    }, [routes, isValid, isLoading]);
 
     if (pageLoading) {
         return <div>Loading...</div>;

@@ -14,23 +14,30 @@ import { IconPoint } from '@tabler/icons-react';
 import { INavigationItem } from '@/types/api/navigation.type';
 
 /**
- * Transforms legacy dynamic URLs to Next.js compatible format.
- * @param {string} url - The URL to transform
- * @returns {string} Transformed URL with dynamic segments removed
+ * Converts AltoRouter-style parameters to Next.js dynamic routes
+ * e.g., '/test_edit/[i:record_id]' becomes '/test_edit/[record_id]'
  */
-function transformDynamicUrl(url: string): string {
-    if (!url) return url;
+const transformDynamicUrl = (url: string | null): string => {
+    if (!url) return '/';
     
-    // Remove all dynamic segments between square brackets
-    url = url.replace(/\/\[([^\]]+)\]/g, '');
+    // Replace AltoRouter patterns with Next.js dynamic route patterns
+    return url.replace(/\[(i|a|s|h):([^\]]+)\]/g, '[$2]');
+};
+
+/**
+ * Extracts parameter information from a URL pattern
+ * e.g., '/test_edit/[i:record_id]' returns { record_id: { type: 'i' } }
+ */
+function extractUrlParams(url: string): Record<string, { type: string }> {
+    const params: Record<string, { type: string }> = {};
+    const matches = url.matchAll(/\[([ias]):([^\]]+)\]/g);
     
-    // Remove any double slashes that might result from removing segments
-    url = url.replace(/\/+/g, '/');
+    for (const match of matches) {
+        const [, type, name] = match;
+        params[name] = { type };
+    }
     
-    // Remove trailing slash if present
-    url = url.replace(/\/$/, '');
-    
-    return url;
+    return params;
 }
 
 /**
@@ -39,12 +46,17 @@ function transformDynamicUrl(url: string): string {
  * @returns {IRoute[]} Array of route configurations
  */
 function transformToRoutes(items: INavigationItem[]): IRoute[] {
-    return items.map(item => ({
-        title: item.keyword,
-        path: transformDynamicUrl(item.url),
-        isNav: item.nav_position !== null,
-        position: item.nav_position
-    }));
+    return items.map(item => {
+        const path = transformDynamicUrl(item.url);
+        return {
+            title: item.keyword,
+            path,
+            isNav: item.nav_position !== null,
+            position: item.nav_position,
+            params: extractUrlParams(item.url || ''),
+            protocol: item.protocol?.split('|') || ['GET']
+        };
+    });
 }
 
 /**
@@ -98,36 +110,56 @@ function transformToMenuItems(items: INavigationItem[]): IMenuitemsType[] {
 }
 
 /**
+ * Converts routes to Refine resources
+ */
+function transformToResources(items: INavigationItem[]) {
+    return items.map(item => {
+        const path = transformDynamicUrl(item.url);
+        const params = extractUrlParams(item.url || '');
+        
+        return {
+            name: item.keyword,
+            meta: {
+                label: item.keyword,
+                parent: item.parent?.toString(),
+                canDelete: false,
+                nav: item.nav_position !== null,
+                navOrder: item.nav_position,
+                footer: item.footer_position !== null,
+                footerOrder: item.footer_position,
+                params,
+                protocol: item.protocol?.split('|') || ['GET']
+            },
+            list: path,
+            show: path,
+        };
+    });
+}
+
+/**
  * Hook for fetching and managing navigation data.
  * Uses React Query for data fetching and caching.
  * @returns {Object} Object containing navigation data and query state
  */
-export const useNavigation = () => {
-    const { 
-        data, 
-        isLoading, 
-        isFetching,
-        isSuccess,
-        error,
-    } = useQuery({
+export function useNavigation() {
+    const { data, isLoading, error } = useQuery({
         queryKey: ['navigation'],
         queryFn: async () => {
             const data = await NavigationService.getRoutes();
             return {
                 routes: transformToRoutes(data),
-                menuItems: transformToMenuItems(data)
+                menuItems: transformToMenuItems(data),
+                resources: transformToResources(data)
             };
         },
         staleTime: 1000, // 1 second
-        gcTime: 1000 * 60 * 60 * 24, // 24 hours
     });
 
     return {
-        routes: data?.routes ?? [],
-        menuItems: data?.menuItems ?? [],
+        routes: data?.routes || [],
+        menuItems: data?.menuItems || [],
+        resources: data?.resources || [],
         isLoading,
-        isFetching,
-        isSuccess,
         error
     };
-};
+}
