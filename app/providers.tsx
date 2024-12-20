@@ -35,26 +35,8 @@ if (typeof window !== 'undefined') {
 
     persistQueryClient({
         queryClient,
-        persister,
-        // dehydrateOptions: {
-        //     shouldDehydrateQuery: ({ queryKey }) => {
-        //         // Only persist navigation and auth queries
-        //         return ['navigation', 'auth'].includes(queryKey[0] as string);
-        //     },
-        // },
+        persister
     });
-}
-
-function NavigationLoader({ children }: { children: React.ReactNode }) {
-    const { error, menuItems } = useNavigation();
-
-    if (error) {
-        console.error('Failed to load navigation:', error);
-        return <div>Failed to load application. Please refresh the page.</div>;
-    }
-
-    // Don't show loading to prevent flicker
-    return <>{children}</>;
 }
 
 function RefineWrapper({ children }: { children: React.ReactNode }) {
