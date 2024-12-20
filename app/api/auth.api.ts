@@ -1,16 +1,16 @@
 /**
- * Service for handling authentication-related API calls.
+ * API client for handling authentication-related API calls.
  * Provides methods for user login, logout, and token refresh operations.
  * 
- * @module services/auth.service
+ * @module api/auth.api
  */
 
 import { ILoginRequest, ILoginResponse, ILogoutResponse, IRefreshTokenResponse } from '@/types/api/auth.type';
-import { apiClient } from './api.service';
+import { apiClient } from './base.api';
 import { API_CONFIG } from '@/config/api.config';
-import { NavigationService } from './navigation.service';
+import { NavigationApi } from './navigation.api';
 
-export const AuthService = {
+export const AuthApi = {
     /**
      * Authenticates a user with their credentials.
      * @param {ILoginRequest} credentials - User login credentials
@@ -94,7 +94,7 @@ export const AuthService = {
         
         // Update navigation to reflect logged-out state
         try {
-            await NavigationService.getRoutes();
+            await NavigationApi.getRoutes();
             return response.data;
         } catch (error) {
             console.warn('Failed to update navigation after logout:', error);

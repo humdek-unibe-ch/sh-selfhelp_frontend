@@ -1,16 +1,16 @@
 /**
- * Service for handling navigation-related API calls.
+ * API client for handling navigation-related API calls.
  * Provides methods for fetching application routes and navigation structure.
  * 
- * @module services/navigation.service
+ * @module api/navigation.api
  */
 
 import { IApiResponse } from '@/types/api/requests.type';
 import { INavigationItem } from '@/types/api/navigation.type';
-import { apiClient } from './api.service';
+import { apiClient } from './base.api';
 import { API_CONFIG } from '@/config/api.config';
 
-export const NavigationService = {
+export const NavigationApi = {
     /**
      * Fetches all available routes and navigation items from the API.
      * @returns {Promise<INavigationItem[]>} Array of navigation items

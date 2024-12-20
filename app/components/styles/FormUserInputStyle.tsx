@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { IFormUserInputLogStyle } from '@/types/api/styles.types';
 import BasicStyle from './BasicStyle';
-import { PageService } from '@/services/page.service';
+import { PageApi } from '@/api/page.api';
 import { usePageContentContext } from '@/contexts/PageContentContext';
 import { Button } from '@mantine/core';
 import { useResource } from '@refinedev/core';
@@ -22,7 +22,7 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
         const formDataObject = Object.fromEntries(formData.entries());
 
         try {
-            const response = await PageService.updatePageContent(keyword, formDataObject);
+            const response = await PageApi.updatePageContent(keyword, formDataObject);
             if (response.error) {
                 alert(response.error);
             } else {

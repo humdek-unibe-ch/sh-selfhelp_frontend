@@ -1,14 +1,14 @@
 /**
- * API client configuration and interceptor setup.
+ * Base API client configuration and interceptor setup.
  * Handles authentication token management, request/response interceptors,
  * and automatic token refresh functionality.
  * 
- * @module services/api.service
+ * @module api/base.api
  */
 
 import axios from 'axios';
 import { API_CONFIG } from '../config/api.config';
-import { AuthService } from './auth.service';
+import { AuthApi } from './auth.api';
 
 // Event to notify about authentication state changes
 export const authStateChangeEvent = new CustomEvent('authStateChange', {
@@ -29,27 +29,6 @@ export const apiClient = axios.create({
 let isRefreshing = false;
 let failedQueue: any[] = [];
 
-// Helper function to check if a request is for token refresh
-const isRefreshTokenRequest = (config?: { url?: string }) => {
-    return config?.url?.includes(API_CONFIG.ENDPOINTS.REFRESH_TOKEN);
-};
-
-// Helper function to check if a request is for logout
-const isLogoutRequest = (config?: { url?: string }) => {
-    return config?.url?.includes(API_CONFIG.ENDPOINTS.LOGOUT);
-};
-
-const processQueue = (error: any, token: string | null = null) => {
-    failedQueue.forEach(prom => {
-        if (error) {
-            prom.reject(error);
-        } else {
-            prom.resolve(token);
-        }
-    });
-    failedQueue = [];
-};
-
 /**
  * Updates authentication state and dispatches event
  */
@@ -58,7 +37,7 @@ const updateAuthState = (isAuthenticated: boolean) => {
     window.dispatchEvent(authStateChangeEvent);
 };
 
-// Helper function to handle successful token refresh
+// Helper function to handle token refresh success
 const handleTokenRefreshSuccess = (accessToken: string, expiresIn: number) => {
     localStorage.setItem('access_token', accessToken);
     localStorage.setItem('expires_in', expiresIn.toString());
@@ -75,10 +54,21 @@ const handleTokenRefreshFailure = () => {
     updateAuthState(false);
 };
 
+const processQueue = (error: any, token: string | null = null) => {
+    failedQueue.forEach(prom => {
+        if (error) {
+            prom.reject(error);
+        } else {
+            prom.resolve(token);
+        }
+    });
+    failedQueue = [];
+};
+
 // Helper function to perform token refresh
 const performTokenRefresh = async () => {
     try {
-        const response = await AuthService.refreshToken();
+        const response = await AuthApi.refreshToken();
         
         if (response.data.access_token) {
             handleTokenRefreshSuccess(response.data.access_token, response.data.expires_in);
@@ -93,6 +83,13 @@ const performTokenRefresh = async () => {
         throw error;
     }
 };
+
+// Helper functions to identify specific request types
+const isRefreshTokenRequest = (config: any) => 
+    config.url === API_CONFIG.ENDPOINTS.REFRESH_TOKEN;
+
+const isLogoutRequest = (config: any) => 
+    config.url === API_CONFIG.ENDPOINTS.LOGOUT;
 
 /**
  * Request interceptor to add authentication token to outgoing requests.
@@ -156,6 +153,7 @@ apiClient.interceptors.response.use(
         }
         return response;
     },
+
     async (error) => {
         const originalRequest = error.config;
 

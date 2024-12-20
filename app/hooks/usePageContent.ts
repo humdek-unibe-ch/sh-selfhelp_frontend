@@ -7,7 +7,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { PageService } from '@/services/page.service';
+import { PageApi } from '@/api/page.api';
 import { useContext, useEffect } from 'react';
 import { PageContentContext } from '@/contexts/PageContentContext';
 
@@ -34,7 +34,7 @@ export function usePageContent(keyword: string, enabled: boolean = true) {
         error 
     } = useQuery({
         queryKey: ['page-content', keyword],
-        queryFn: () => PageService.getPageContent(keyword),
+        queryFn: () => PageApi.getPageContent(keyword),
         staleTime: 1000, // Cache for 1 second
         enabled: !!keyword && enabled, // Only run query if keyword is provided and enabled is true
     });

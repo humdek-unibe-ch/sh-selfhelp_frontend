@@ -1,7 +1,7 @@
 import { AuthBindings } from "@refinedev/core";
 import { ILoginRequest, ILoginResponse } from "@/types/api/auth.type";
 import { API_CONFIG } from "@/config/api.config";
-import { apiClient } from "@/services/api.service";
+import { apiClient } from '@/api/base.api';
 
 export const authProvider: AuthBindings = {
     login: async ({ user, password }: ILoginRequest) => {

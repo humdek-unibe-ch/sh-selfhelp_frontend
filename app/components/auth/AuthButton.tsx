@@ -3,7 +3,7 @@
 import { Button, Menu, Group } from '@mantine/core';
 import { IconLogin, IconLogout, IconUser } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
-import { AuthService } from '@/services/auth.service';
+import { AuthApi } from '@/api/auth.api';
 import { useIsAuthenticated } from '@refinedev/core';
 import { useEffect, useState } from 'react';
 
@@ -31,7 +31,7 @@ export function AuthButton() {
 
     const handleLogout = async () => {
         try {
-            await AuthService.logout();
+            await AuthApi.logout();
             setLocalAuth(false);
             router.push('/auth/login');
         } catch (error) {

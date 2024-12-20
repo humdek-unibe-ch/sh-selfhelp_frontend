@@ -1,17 +1,15 @@
 /**
- * Service for handling page content-related API calls.
- * Provides methods for fetching and updating page content,
- * as well as managing the current page keyword.
+ * API client for handling page content-related API calls.
+ * Provides methods for fetching and updating page content.
  * 
- * @module services/page.service
+ * @module api/page.api
  */
 
 import { IApiResponse, IPageContent } from '@/types/api/requests.type';
-import { apiClient } from './api.service';
+import { apiClient } from './base.api';
 import { API_CONFIG } from '@/config/api.config';
 
-export const PageService = {
-
+export const PageApi = {
     /**
      * Fetches page content for a specific keyword.
      * @param {string} keyword - The page identifier
