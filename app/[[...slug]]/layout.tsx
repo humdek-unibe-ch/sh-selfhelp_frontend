@@ -2,7 +2,7 @@
 
 import "../globals.css";
 import "@mantine/core/styles.css";
-import { MantineProvider, LoadingOverlay } from "@mantine/core";
+import { MantineProvider } from "@mantine/core";
 import { theme } from "../../theme";
 import { WebsiteHeader } from "../components/website/WebsiteHeader";
 

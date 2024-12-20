@@ -11,6 +11,7 @@ import { IRoute } from '@/types/navigation/navigation.types';
 import { IMenuitemsType } from '@/types/layout/sidebar';
 import { IconPoint } from '@tabler/icons-react';
 import { INavigationItem } from '@/types/api/navigation.type';
+import { NavigationApi } from '@/api/navigation.api';
 
 /**
  * Converts AltoRouter-style parameters to Next.js dynamic routes
@@ -144,7 +145,7 @@ export function useNavigation() {
     const { data, isLoading, error } = useQuery({
         queryKey: ['navigation'],
         queryFn: async () => {
-            const data = await NavigationService.getRoutes();
+            const data = await NavigationApi.getRoutes();
             return {
                 routes: transformToRoutes(data),
                 menuItems: transformToMenuItems(data),
