@@ -10,25 +10,7 @@ import { IApiResponse, IPageContent } from '@/types/api/requests.type';
 import { apiClient } from './api.service';
 import { API_CONFIG } from '@/config/api.config';
 
-/** Current page keyword for tracking active page */
-let currentKeyword = '';
-
 export const PageService = {
-    /**
-     * Sets the current page keyword.
-     * @param {string} keyword - The keyword to set
-     */
-    setKeyword(keyword: string) {
-        currentKeyword = keyword;
-    },
-
-    /**
-     * Gets the current page keyword.
-     * @returns {string} Current keyword
-     */
-    getKeyword(): string {
-        return currentKeyword;
-    },
 
     /**
      * Fetches page content for a specific keyword.

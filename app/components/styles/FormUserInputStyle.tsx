@@ -4,6 +4,7 @@ import BasicStyle from './BasicStyle';
 import { PageService } from '@/services/page.service';
 import { usePageContentContext } from '@/contexts/PageContentContext';
 import { Button } from '@mantine/core';
+import { useResource } from '@refinedev/core';
 
 interface FormUserInputStyleProps {
     style: IFormUserInputLogStyle;
@@ -12,16 +13,16 @@ interface FormUserInputStyleProps {
 const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
     const { updatePageContent } = usePageContentContext();
     const [formKey, setFormKey] = useState(0);
+    const { resource } = useResource();
+    const keyword = resource?.name || '';
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const formData = new FormData(e.target as HTMLFormElement);
         const formDataObject = Object.fromEntries(formData.entries());
-        const keyword = PageService.getKeyword();
 
         try {
             const response = await PageService.updatePageContent(keyword, formDataObject);
-            console.log('Response:', response);
             if (response.error) {
                 alert(response.error);
             } else {

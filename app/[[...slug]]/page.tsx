@@ -1,6 +1,5 @@
 'use client';
 
-import { useParams } from 'next/navigation';
 import { useNavigation } from '@/hooks/useNavigation';
 import { notFound } from 'next/navigation';
 import { useEffect } from 'react';
@@ -8,27 +7,11 @@ import { Container } from '@mantine/core';
 import BasicStyle from '@/components/styles/BasicStyle';
 import { usePageContent } from '@/hooks/usePageContent';
 import { PageContentProvider, usePageContentContext } from '@/contexts/PageContentContext';
-import { PageService } from '@/services/page.service';
-import { useResource, useShow } from '@refinedev/core';
+import { useResource } from '@refinedev/core';
 
 export default function DynamicPage() {
-    const params = useParams();
-    const keyword = Array.isArray(params.slug) ? params.slug.join('/') : params.slug || '';
-    /** Update page keyword when slug changes */
-    useEffect(() => {
-        PageService.setKeyword(keyword);
-    }, [keyword]);
-
-    // In your component
-    const { id } = useParams();
     const { resource } = useResource();
-    // const { data } = useShow({
-    //     resource: resource.name,
-    //     id
-    // });
-
-    console.log('resource', resource);
-    console.log('id', id);
+    const keyword = resource?.name || '';
 
     return (
         <PageContentProvider>
