@@ -35,7 +35,7 @@ export function AdminNavbar() {
             <NavLink
                 key={item.label}
                 label={item.label}
-                leftSection={Icon && <Icon size="1rem" stroke={1.5} />}
+                // leftSection={Icon && <Icon size="1rem" stroke={1.5} />}
                 childrenOffset={28}
                 opened={isOpen}
                 active={isActive}

@@ -1,3 +1,5 @@
+import { Icon as TablerIcon } from '@tabler/icons-react';
+import { TablerIconsProps } from '@tabler/icons-react';
 import { Icon } from '@tabler/icons-react';
 
 export interface IRoute {
@@ -16,12 +18,12 @@ export interface IUrlParam {
 }
 
 export interface NavItem {
+    id?: number;
     label: string;
     link?: string;
     icon?: Icon;
     initiallyOpened?: boolean;
     links?: NavItem[];
-    id?: number;
     isInMenu?: boolean;
 }
 

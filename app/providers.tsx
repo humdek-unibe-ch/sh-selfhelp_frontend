@@ -44,7 +44,7 @@ if (typeof window !== 'undefined') {
 function RefineWrapper({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const isAdmin = pathname?.startsWith('/admin');
-    const { resources, navItems, isLoading } = useAppNavigation({ isAdmin });
+    const { resources, isLoading } = useAppNavigation({ isAdmin });
 
     if (isLoading) {
         return <LoadingScreen />;

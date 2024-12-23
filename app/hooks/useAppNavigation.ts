@@ -156,7 +156,7 @@ const transformNavigationToNavItems = (navigationData: INavigationItem[]): NavIt
                 label: item.keyword,
                 link: '/admin/pages/'+item.id_pages,
                 initiallyOpened: true,
-                icon: item.nav_position !== null ? IconLayoutNavbar : undefined,
+                icon: item.nav_position !== null ? IconLayoutNavbar : IconFiles,
                 isInMenu: item.nav_position !== null,
                 links: []
             });
@@ -221,13 +221,16 @@ const transformNavigationToNavItems = (navigationData: INavigationItem[]): NavIt
  * @returns {Object} Object containing navigation data and query state
  */
 export function useAppNavigation({ isAdmin = false } = {}) {
+    const queryKey = isAdmin ? ['admin-navigation'] : ['navigation'];
+
     const { data, isLoading, error } = useQuery({
-        queryKey: [isAdmin ? 'admin-navigation' : 'navigation'],
+        queryKey,
         queryFn: async () => {
             const data = await NavigationApi.getRoutes();
             if (isAdmin) {
+                const navItems = transformNavigationToNavItems(data);
                 return {
-                    navItems: transformNavigationToNavItems(data),
+                    navItems,
                     resources: []
                 };
             }
@@ -237,7 +240,10 @@ export function useAppNavigation({ isAdmin = false } = {}) {
                 resources: transformToResources(data)
             };
         },
-        staleTime: 1000 // 1 second
+        staleTime: 1000, // 1 second
+        refetchOnWindowFocus: false,
+        refetchOnMount: true,
+        retry: 1
     });
 
     if (isAdmin) {
