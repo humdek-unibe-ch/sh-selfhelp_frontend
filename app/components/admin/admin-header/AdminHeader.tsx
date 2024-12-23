@@ -1,8 +1,9 @@
 'use client';
 
-import { Burger, Container, Group, Text } from '@mantine/core';
+import { Burger, Container, Group } from '@mantine/core';
 import classes from './AdminHeader.module.css';
 import { useDisclosure } from '@mantine/hooks';
+import { SelfHelpLogo } from '../../common/SelfHelpLogo';
 
 export function AdminHeader() {
     const [opened, { toggle }] = useDisclosure();
@@ -10,7 +11,7 @@ export function AdminHeader() {
     return (
         <Group h="100%" px="md">
             <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
-            {/* <MantineLogo size={30} /> */}
+            <SelfHelpLogo size={40} />
         </Group>
     );
 }
