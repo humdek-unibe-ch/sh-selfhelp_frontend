@@ -11,8 +11,10 @@ import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { LoadingScreen } from './components/common/LoadingScreen';
 import { useNavigation } from './hooks/useNavigation';
+import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { authProvider } from './providers/auth.provider';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 // Create a client with optimized settings
 const queryClient = new QueryClient({
@@ -40,7 +42,13 @@ if (typeof window !== 'undefined') {
 }
 
 function RefineWrapper({ children }: { children: React.ReactNode }) {
-    const { resources, isLoading } = useNavigation();
+    const pathname = usePathname();
+    const isAdmin = pathname?.startsWith('/admin');
+    
+    // const { resources: userResources, isLoading: userLoading } = useNavigation();
+    
+    const resources = isAdmin ? [] : [];
+    const isLoading = isAdmin ? false : false;
 
     if (isLoading) {
         return <LoadingScreen />;
@@ -77,13 +85,14 @@ function Providers({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <MantineProvider theme={theme}>
-            <QueryClientProvider client={queryClient}>
+        <QueryClientProvider client={queryClient}>
+            <MantineProvider theme={theme}>
                 <RefineWrapper>
                     {children}
                 </RefineWrapper>
-            </QueryClientProvider>
-        </MantineProvider>
+            </MantineProvider>
+            <ReactQueryDevtools initialIsOpen={false} />
+        </QueryClientProvider>
     );
 }
 

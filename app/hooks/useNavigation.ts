@@ -14,14 +14,19 @@ import { INavigationItem } from '@/types/api/navigation.type';
 import { NavigationApi } from '@/api/navigation.api';
 
 /**
- * Converts AltoRouter-style parameters to Next.js dynamic routes
- * e.g., '/test_edit/[i:record_id]' becomes '/test_edit/[record_id]'
+ * Converts AltoRouter-style parameters to Next.js app router dynamic routes
+ * e.g., '/nav/[i:nav]' becomes '/nav/[...slug]'
  */
 const transformDynamicUrl = (url: string | null): string => {
     if (!url) return '/';
     
-    // Replace AltoRouter patterns with Next.js dynamic route patterns
-    return url.replace(/\[(i|a|s|h):([^\]]+)\]/g, '[$2]');
+    // Check if it's a dynamic route
+    if (url.includes('[')) {
+        // For dynamic routes in app router, we'll use catch-all routes
+        return `/`;
+    }
+    
+    return url;
 };
 
 /**

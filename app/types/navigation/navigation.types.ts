@@ -12,3 +12,13 @@ export interface IUrlParam {
     type: 'i' | 'a' | 's' | 'h';  // integer, alphanumeric, string, hash
     value?: string | number;
 }
+
+export interface NavItem {
+    label: string;
+    link?: string;
+    icon?: any;
+    initiallyOpened?: boolean;
+    links?: NavItem[];
+    id?: number;
+    isInMenu?: boolean;
+}

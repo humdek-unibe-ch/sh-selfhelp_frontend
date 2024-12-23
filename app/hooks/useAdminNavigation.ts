@@ -2,27 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { IconLayoutNavbar, IconFiles } from '@tabler/icons-react';
 import { INavigationItem } from '@/types/api/navigation.type';
 import { NavigationApi } from '@/api/navigation.api';
-
-export interface NavItem {
-  label: string;
-  link?: string;
-  icon?: any;
-  initiallyOpened?: boolean;
-  links?: NavItem[];
-  id?: number;
-  isInMenu?: boolean;
-}
-
-/**
- * Converts AltoRouter-style parameters to Next.js dynamic routes
- * e.g., '/test_edit/[i:record_id]' becomes '/test_edit/[record_id]'
- */
-const transformDynamicUrl = (url: string | null): string => {
-    if (!url) return '/';
-    
-    // Replace AltoRouter patterns with Next.js dynamic route patterns
-    return url.replace(/\[(i|a|s|h):([^\]]+)\]/g, '[$2]');
-};
+import { NavItem } from '@/types/navigation/navigation.types';
 
 /**
  * Transforms navigation items from API response into NavItem format for admin navigation
@@ -104,6 +84,7 @@ export const useAdminNavigation = () => {
     const { data: adminNavigationData, isLoading, error } = useQuery({
         queryKey: ['admin-navigation'],
         queryFn: NavigationApi.getRoutes,
+        staleTime: 1000, // 1 second
     });
 
     const navItems = adminNavigationData ? transformNavigationToNavItems(adminNavigationData) : [];
@@ -114,5 +95,3 @@ export const useAdminNavigation = () => {
         error,
     };
 };
-
-export type { NavItem };

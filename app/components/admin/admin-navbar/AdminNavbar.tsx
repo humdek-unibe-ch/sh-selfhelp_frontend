@@ -3,13 +3,14 @@
 import { NavLink, ScrollArea } from '@mantine/core';
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { useNavigation as useRefineNavigation } from '@refinedev/core';
-import { useAdminNavigation, type NavItem } from '@/hooks/useAdminNavigation';
+import { useAdminNavigation } from '@/hooks/useAdminNavigation';
+import { NavItem } from '@/types/navigation/navigation.types';
+import { useNavigation } from "@refinedev/core";
 
 export function AdminNavbar() {
   const pathname = usePathname();
   const [openItems, setOpenItems] = useState<string[]>([]);
-  const { push } = useRefineNavigation();
+  const { push } = useNavigation();
   const { navItems, isLoading } = useAdminNavigation();
 
   const handleClick = (link: string) => {
