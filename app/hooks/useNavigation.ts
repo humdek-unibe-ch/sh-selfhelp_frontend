@@ -30,7 +30,8 @@ const transformDynamicUrl = (url: string | null): string => {
  */
 function extractUrlParams(url: string): Record<string, { type: string }> {
     const params: Record<string, { type: string }> = {};
-    const matches = url.matchAll(/\[([ias]):([^\]]+)\]/g);
+    // Convert matchAll result to array before iterating
+    const matches = Array.from(url.matchAll(/\[([ias]):([^\]]+)\]/g));
     
     for (const match of matches) {
         const [, type, name] = match;
