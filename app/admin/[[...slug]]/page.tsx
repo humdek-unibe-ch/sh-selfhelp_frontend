@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation';
 
 export default function AdminPage() {
   const params = useParams();
-  const path = params.slug ? (Array.isArray(params.slug) ? params.slug.join('/') : params.slug) : 'dashboard';
+  const path = params.slug ? (Array.isArray(params.slug) ? params.slug.join('/') : params.slug) : '';
   
   return (
     <div style={{ padding: '20px' }}>
