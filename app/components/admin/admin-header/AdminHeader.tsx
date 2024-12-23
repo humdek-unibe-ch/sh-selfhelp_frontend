@@ -1,22 +1,16 @@
 'use client';
 
-import { Container, Group, Text } from '@mantine/core';
+import { Burger, Container, Group, Text } from '@mantine/core';
 import classes from './AdminHeader.module.css';
+import { useDisclosure } from '@mantine/hooks';
 
 export function AdminHeader() {
-  return (
-    <header className={classes.header}>
-      <Container size="md">
-        <div className={classes.inner}>
-          <Text size="xl" fw={700}>Admin Panel</Text>
-          <Group gap={5} visibleFrom="sm">
-            {/* Add admin navigation items here */}
-            <Text>Dashboard</Text>
-            <Text>Users</Text>
-            <Text>Settings</Text>
-          </Group>
-        </div>
-      </Container>
-    </header>
-  );
+    const [opened, { toggle }] = useDisclosure();
+
+    return (
+        <Group h="100%" px="md">
+            <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
+            {/* <MantineLogo size={30} /> */}
+        </Group>
+    );
 }

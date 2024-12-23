@@ -4,11 +4,6 @@ import "./globals.css";
 import { ColorSchemeScript } from "@mantine/core";
 import { Providers } from "./providers";
 
-export const metadata = {
-  title: "Website Builder",
-  description: "Dynamic website builder with admin panel",
-};
-
 export default function RootLayout({ children }: { children: any }) {
   return (
     <html lang="en" suppressHydrationWarning>
