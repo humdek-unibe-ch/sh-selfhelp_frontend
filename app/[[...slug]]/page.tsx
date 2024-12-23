@@ -1,6 +1,6 @@
 'use client';
 
-import { useNavigation } from '@/hooks/useNavigation';
+import { useAppNavigation } from '@/hooks/useAppNavigation';
 import { notFound } from 'next/navigation';
 import { useEffect } from 'react';
 import { Container } from '@mantine/core';
@@ -25,9 +25,9 @@ function DynamicPageContent({ keyword }: { keyword: string }) {
     const { pageContent: contextContent } = usePageContentContext();
     const pageContent = contextContent || queryContent;
 
-    const { routes, isLoading } = useNavigation();
+    const { routes, isLoading } = useAppNavigation();
     const currentPath = '/' + keyword;
-    const route = routes.find(route => {
+    const route = routes?.find(route => {
         // Replace dynamic parameters in route path with regex pattern
         const routePattern = route.path.replace(/\[([^\]]+)\]/g, '([^/]+)');
         const regex = new RegExp(`^${routePattern}$`);
@@ -37,7 +37,7 @@ function DynamicPageContent({ keyword }: { keyword: string }) {
     const isValid = !!route;
 
     useEffect(() => {
-        if (!isLoading && routes.length > 0 && !isValid) {
+        if (!isLoading && routes&& routes.length > 0 && !isValid) {
             notFound();
         }
     }, [routes, isValid, isLoading]);

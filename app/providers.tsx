@@ -10,7 +10,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { LoadingScreen } from './components/common/LoadingScreen';
-import { useNavigation } from './hooks/useNavigation';
+import { useAppNavigation } from './hooks/useAppNavigation';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { authProvider } from './providers/auth.provider';
@@ -44,17 +44,11 @@ if (typeof window !== 'undefined') {
 function RefineWrapper({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const isAdmin = pathname?.startsWith('/admin');
-    
-    // const { resources: userResources, isLoading: userLoading } = useNavigation();
-    
-    const resources = isAdmin ? [] : [];
-    const isLoading = isAdmin ? false : false;
+    const { resources, navItems, isLoading } = useAppNavigation({ isAdmin });
 
     if (isLoading) {
         return <LoadingScreen />;
     }
-
-    console.log('resources', resources);
 
     return (
         <Refine

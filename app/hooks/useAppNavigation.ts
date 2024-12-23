@@ -3,13 +3,13 @@
  * Provides functionality to fetch and transform navigation data from the API
  * into routes and menu items compatible with the application's layout system.
  * 
- * @module hooks/useNavigation
+ * @module hooks/useAppNavigation
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { IRoute } from '@/types/navigation/navigation.types';
+import { IResource, IRoute, NavItem } from '@/types/navigation/navigation.types';
 import { IMenuitemsType } from '@/types/layout/sidebar';
-import { IconPoint } from '@tabler/icons-react';
+import { IconPoint, IconLayoutNavbar, IconFiles } from '@tabler/icons-react';
 import { INavigationItem } from '@/types/api/navigation.type';
 import { NavigationApi } from '@/api/navigation.api';
 
@@ -22,7 +22,6 @@ const transformDynamicUrl = (url: string | null): string => {
     
     // Check if it's a dynamic route
     if (url.includes('[')) {
-        // For dynamic routes in app router, we'll use catch-all routes
         return `/`;
     }
     
@@ -118,7 +117,7 @@ function transformToMenuItems(items: INavigationItem[]): IMenuitemsType[] {
 /**
  * Converts routes to Refine resources
  */
-function transformToResources(items: INavigationItem[]) {
+function transformToResources(items: INavigationItem[]): IResource[] {
     return items.map(item => {
         const path = transformDynamicUrl(item.url);
         const params = extractUrlParams(item.url || '');
@@ -143,23 +142,112 @@ function transformToResources(items: INavigationItem[]) {
 }
 
 /**
- * Hook for fetching and managing navigation data.
+ * Transforms navigation items from API response into NavItem format for admin navigation
+ */
+const transformNavigationToNavItems = (navigationData: INavigationItem[]): NavItem[] => {
+    // First, create a map of all items
+    const itemsMap = new Map<number, NavItem>();
+    
+    // Initialize items without handling parent relationships
+    navigationData.forEach(item => {
+        if (!itemsMap.has(item.id_pages)) {
+            itemsMap.set(item.id_pages, {
+                id: item.id_pages,
+                label: item.keyword,
+                link: '/admin/pages/'+item.id_pages,
+                initiallyOpened: true,
+                icon: item.nav_position !== null ? IconLayoutNavbar : undefined,
+                isInMenu: item.nav_position !== null,
+                links: []
+            });
+        }
+    });
+
+    // Create the hierarchy
+    const rootItems: NavItem[] = [];
+    navigationData.forEach(item => {
+        const navItem = itemsMap.get(item.id_pages);
+        if (navItem) {
+            if (item.parent === null) {
+                rootItems.push(navItem);
+            } else {
+                const parentItem = itemsMap.get(item.parent);
+                if (parentItem) {
+                    if (!parentItem.links) {
+                        parentItem.links = [];
+                    }
+                    parentItem.links.push(navItem);
+                }
+            }
+        }
+    });
+
+    // Sort items by nav_position if available
+    const sortByNavPosition = (items: NavItem[]) => {
+        return items.sort((a, b) => {
+            const aPos = navigationData.find(n => n.id_pages === a.id)?.nav_position ?? Infinity;
+            const bPos = navigationData.find(n => n.id_pages === b.id)?.nav_position ?? Infinity;
+            return aPos - bPos;
+        });
+    };
+
+    // Sort root items and their children recursively
+    const sortNavigationRecursive = (items: NavItem[]) => {
+        items = sortByNavPosition(items);
+        items.forEach(item => {
+            if (item.links && item.links.length > 0) {
+                item.links = sortNavigationRecursive(item.links);
+            }
+        });
+        return items;
+    };
+
+    // Create a Pages parent that wraps all items
+    const pagesParent: NavItem = {
+        label: 'Pages',
+        icon: IconFiles,
+        initiallyOpened: true,
+        links: sortNavigationRecursive(rootItems)
+    };
+
+    return [pagesParent];
+};
+
+/**
+ * Unified hook for fetching and managing navigation data for both admin and user interfaces.
  * Uses React Query for data fetching and caching.
+ * @param {Object} options - Hook options
+ * @param {boolean} options.isAdmin - Whether to fetch admin navigation
  * @returns {Object} Object containing navigation data and query state
  */
-export function useNavigation() {
+export function useAppNavigation({ isAdmin = false } = {}) {
     const { data, isLoading, error } = useQuery({
-        queryKey: ['navigation'],
+        queryKey: [isAdmin ? 'admin-navigation' : 'navigation'],
         queryFn: async () => {
             const data = await NavigationApi.getRoutes();
+            if (isAdmin) {
+                return {
+                    navItems: transformNavigationToNavItems(data),
+                    resources: []
+                };
+            }
             return {
                 routes: transformToRoutes(data),
                 menuItems: transformToMenuItems(data),
                 resources: transformToResources(data)
             };
         },
-        staleTime: 1000, // 1 second
+        staleTime: 1000 // 1 second
     });
+
+    if (isAdmin) {
+        return {
+            navItems: data?.navItems || [],
+            resources: [],
+            isLoading,
+            error
+        };
+    }
 
     return {
         routes: data?.routes || [],

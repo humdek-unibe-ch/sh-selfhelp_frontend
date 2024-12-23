@@ -18,7 +18,6 @@ export const AuthApi = {
      * @throws {Error} When authentication fails
      */
     async login(credentials: ILoginRequest): Promise<ILoginResponse> {
-        console.log(credentials);
         const response = await apiClient.post<ILoginResponse>(
             API_CONFIG.ENDPOINTS.LOGIN,
             credentials

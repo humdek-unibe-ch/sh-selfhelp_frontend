@@ -3,10 +3,10 @@
 import { IconChevronDown } from '@tabler/icons-react';
 import { Center, Group, Menu } from '@mantine/core';
 import Link from 'next/link';
-import { useNavigation } from '@/hooks/useNavigation';
+import { useAppNavigation } from '@/hooks/useAppNavigation';
 
 export function WebsiteHeaderMenu() {
-    const { menuItems, isLoading } = useNavigation();
+    const { menuItems, isLoading } = useAppNavigation();
 
     // No loading state needed since we keep previous data
     const items = (menuItems ?? []).map((item) => {
