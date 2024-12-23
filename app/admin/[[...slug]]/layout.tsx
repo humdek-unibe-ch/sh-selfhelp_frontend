@@ -1,13 +1,11 @@
+"use client";
+
 import "@mantine/core/styles.css";
 import React from "react";
-import { MantineProvider, ColorSchemeScript } from "@mantine/core";
+import { MantineProvider, ColorSchemeScript, AppShell } from "@mantine/core";
 import { theme } from "../../../theme";
 import { AdminHeader } from "../../components/admin/admin-header/AdminHeader";
-
-export const metadata = {
-  title: "Mantine Next.js template",
-  description: "I am using Mantine with Next.js!",
-};
+import { AdminNavbar } from "../../components/admin/admin-navbar/AdminNavbar";
 
 export default function RootLayout({ children }: { children: any }) {
   return (
@@ -22,8 +20,22 @@ export default function RootLayout({ children }: { children: any }) {
       </head>
       <body>
         <MantineProvider theme={theme}>
-          <AdminHeader />
-          {children}
+          <AppShell
+            header={{ height: 60 }}
+            navbar={{ width: 300, breakpoint: 'sm' }}
+            padding="md"
+          >
+            <AppShell.Header>
+              <AdminHeader />
+            </AppShell.Header>
+            <AppShell.Navbar>
+              <AdminNavbar />
+            </AppShell.Navbar>
+            <AppShell.Main>
+              {children}
+            </AppShell.Main>
+            <AppShell.Aside p="md">Aside</AppShell.Aside>
+          </AppShell>
         </MantineProvider>
       </body>
     </html>
