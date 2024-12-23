@@ -1,191 +1,120 @@
 "use client";
 
+import { NavLink, ScrollArea } from '@mantine/core';
+import { IconFile, IconFingerprint, IconGauge, IconChartBar, IconUsers } from '@tabler/icons-react';
 import { useState } from 'react';
-import { Group, Code, ScrollArea, rem, Text, Collapse } from '@mantine/core';
-import { IconChevronRight, IconFiles, IconLayoutDashboard, IconSettings } from '@tabler/icons-react';
-import { usePathname, useRouter } from 'next/navigation';
-import { SelfHelpLogo } from '../../common/SelfHelpLogo';
-import { useNavigation } from '@/hooks/useNavigation';
+import { usePathname } from 'next/navigation';
+import { useNavigation } from '@refinedev/core';
 
-interface NavbarLinkProps {
-  icon: typeof IconFiles;
+interface NavItem {
   label: string;
-  active?: boolean;
-  rightSection?: React.ReactNode;
-  onClick?(): void;
+  link?: string;
+  icon?: any;
+  initiallyOpened?: boolean;
+  links?: NavItem[];
 }
 
-function NavbarLink({ icon: Icon, label, active, rightSection, onClick }: NavbarLinkProps) {
-  return (
-    <button
-      className={`
-        w-full px-3 py-2 rounded-sm flex items-center justify-between text-sm font-medium 
-        ${active 
-          ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/50 dark:text-blue-300' 
-          : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800/50'
-        }
-        transition-colors duration-100
-      `}
-      onClick={onClick}
-    >
-      <span className="flex items-center">
-        <Icon style={{ width: rem(20), height: rem(20) }} />
-        <span className="ml-3">{label}</span>
-      </span>
-      {rightSection}
-    </button>
-  );
-}
-
-const systemLinks = [
-  { label: 'Dashboard', icon: IconLayoutDashboard, link: '/admin' },
-  { label: 'Settings', icon: IconSettings, link: '/admin/settings' },
+const mockdata: NavItem[] = [
+  {
+    label: 'Dashboard',
+    icon: IconGauge,
+    link: '/admin/dashboard'
+  },
+  {
+    label: 'Analytics',
+    icon: IconChartBar,
+    initiallyOpened: false,
+    links: [
+      { label: 'Overview', link: '/admin/analytics/overview' },
+      { label: 'Reports', link: '/admin/analytics/reports' },
+      { label: 'Real-time', link: '/admin/analytics/real-time' }
+    ]
+  },
+  {
+    label: 'User Management',
+    icon: IconUsers,
+    initiallyOpened: false,
+    links: [
+      { label: 'Users List', link: '/admin/users' },
+      { label: 'Roles', link: '/admin/roles' },
+      { label: 'Permissions', link: '/admin/permissions' }
+    ]
+  },
+  {
+    label: 'Content',
+    icon: IconFile,
+    initiallyOpened: false,
+    links: [
+      { 
+        label: 'Pages', 
+        link: '/admin/content/pages',
+        links: [
+          { label: 'Pages2', link: '/admin/content/pages2' },
+          { label: 'Blog Posts2', link: '/admin/content/blog2' },
+          { label: 'Media Library2', link: '/admin/content/media2' }
+        ]
+      },
+      { label: 'Blog Posts', link: '/admin/content/blog' },
+      { label: 'Media Library', link: '/admin/content/media' }
+    ]
+  },
+  {
+    label: 'Security',
+    icon: IconFingerprint,
+    initiallyOpened: false,
+    links: [
+      { label: 'Settings', link: '/admin/security/settings' },
+      { label: 'Audit Log', link: '/admin/security/audit' }
+    ]
+  }
 ];
 
 export function AdminNavbar() {
   const pathname = usePathname();
-  const router = useRouter();
-  // TODO rework page loading
-  const { menuItems, routes, isLoading } = useNavigation(); 
-  const [openSection, setOpenSection] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
+  const [openItems, setOpenItems] = useState<string[]>([]);
+  const { push } = useNavigation();
 
-  // Filter root menu items (items without parents)
-  const rootMenuItems = menuItems?.filter(item => !item.parent) ?? [];
-  
-  // Get all IDs from menu items and their children
-  const menuItemIds = menuItems?.reduce<Set<number>>((ids, item) => {
-    // Use Set to avoid duplicates
-    ids.add(Number(item.id));
-    if (item.children) {
-      item.children.forEach(child => ids.add(Number(child.id)));
-    }
-    return ids;
-  }, new Set()) ?? new Set();
+  const handleClick = (link: string) => {
+    push(link);
+  };
 
-  // Filter out pages that are in the menu (including children)
-  const otherPages = routes.filter(route => !menuItemIds.has(Number(route.id)));
+  const toggleItem = (label: string) => {
+    setOpenItems(prev => 
+      prev.includes(label) 
+        ? prev.filter(item => item !== label)
+        : [...prev, label]
+    );
+  };
 
-  // Filter function for search
-  const matchesSearch = (text: string) => 
-    text.toLowerCase().includes(search.toLowerCase());
+  const renderNavItem = (item: NavItem) => {
+    const isActive = pathname === item.link;
+    const isOpen = openItems.includes(item.label);
+    const hasNestedLinks = item.links && item.links.length > 0;
 
-  // Filter menu items and their children
-  const filteredMenuItems = rootMenuItems.filter(item => 
-    matchesSearch(item.title) || 
-    item.children?.some(child => matchesSearch(child.title))
-  );
-
-  // Filter other pages
-  const filteredOtherPages = otherPages.filter(page => 
-    matchesSearch(page.title) || matchesSearch(page.path)
-  );
+    return (
+      <NavLink
+        key={item.label}
+        label={item.label}
+        leftSection={item.icon && <item.icon size="1rem" stroke={1.5} />}
+        childrenOffset={28}
+        opened={isOpen}
+        active={isActive}
+        onClick={() => {
+          if (hasNestedLinks) {
+            toggleItem(item.label);
+          } else if (item.link) {
+            handleClick(item.link);
+          }
+        }}
+      >
+        {hasNestedLinks && item.links?.map(renderNavItem)}
+      </NavLink>
+    );
+  };
 
   return (
-    <nav className="h-full p-3">
-      <ScrollArea className="h-[calc(100vh-60px)]" type="hover">
-        <div className="mb-4 pl-3">
-          <Group justify="apart">
-            <SelfHelpLogo size={28} />
-            <Code fw={700}>v1.0.0</Code>
-          </Group>
-        </div>
-
-        {/* Search Input */}
-        <div className="px-3 mb-4">
-          <input
-            type="text"
-            placeholder="Search pages..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-3 py-2 text-sm rounded-sm border border-gray-200 
-              dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200
-              focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        {/* System Links */}
-        <div className="mb-4">
-          <Text className="px-3 mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400">
-            System
-          </Text>
-          {systemLinks.map((link) => (
-            <NavbarLink
-              key={link.label}
-              {...link}
-              active={pathname === link.link}
-              onClick={() => router.push(link.link)}
-            />
-          ))}
-        </div>
-
-        {/* Menu Pages */}
-        {filteredMenuItems.length > 0 && (
-          <div className="mb-4">
-            <Text className="px-3 mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400">
-              Menu Pages
-            </Text>
-            {filteredMenuItems.map((item) => (
-              <div key={item.id}>
-                <div className="flex">
-                  <NavbarLink
-                    icon={IconFiles}
-                    label={item.title}
-                    active={pathname === item.href}
-                    onClick={() => router.push(item.href)}
-                  />
-                  {item.children?.length > 0 && (
-                    <button
-                      className="px-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                      onClick={() => setOpenSection(openSection === item.id ? null : item.id)}
-                    >
-                      <IconChevronRight
-                        className={`transform transition-transform ${
-                          openSection === item.id ? 'rotate-90' : ''
-                        }`}
-                        size={16}
-                      />
-                    </button>
-                  )}
-                </div>
-                {item.children?.length > 0 && (
-                  <Collapse in={openSection === item.id}>
-                    <div className="ml-4">
-                      {item.children.map((child) => (
-                        <NavbarLink
-                          key={child.id}
-                          icon={IconFiles}
-                          label={child.title}
-                          active={pathname === child.href}
-                          onClick={() => router.push(child.href)}
-                        />
-                      ))}
-                    </div>
-                  </Collapse>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Other Pages */}
-        {filteredOtherPages.length > 0 && (
-          <div className="mb-4">
-            <Text className="px-3 mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400">
-              Other Pages
-            </Text>
-            {filteredOtherPages.map((page) => (
-              <NavbarLink
-                key={page.id}
-                icon={IconFiles}
-                label={page.title}
-                active={pathname === page.path}
-                onClick={() => router.push(page.path)}
-              />
-            ))}
-          </div>
-        )}
-      </ScrollArea>
-    </nav>
+    <ScrollArea className="bg-[var(--mantine-color-white)] dark:bg-[var(--mantine-color-dark-6)] h-[800px] w-[300px] p-[var(--mantine-spacing-md)] pb-0 flex flex-col border-r border-[var(--mantine-color-gray-3)] dark:border-[var(--mantine-color-dark-4)]">
+      {mockdata.map(renderNavItem)}
+    </ScrollArea>
   );
 }
