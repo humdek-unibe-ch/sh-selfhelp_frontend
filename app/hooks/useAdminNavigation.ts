@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { IconLayoutNavbar } from '@tabler/icons-react';
+import { IconLayoutNavbar, IconFiles } from '@tabler/icons-react';
 import { INavigationItem } from '@/types/api/navigation.type';
 import { NavigationApi } from '@/api/navigation.api';
 
@@ -85,7 +85,15 @@ const transformNavigationToNavItems = (navigationData: INavigationItem[]): NavIt
     return items;
   };
 
-  return sortNavigationRecursive(rootItems);
+  // Create a Pages parent that wraps all items
+  const pagesParent: NavItem = {
+    label: 'Pages',
+    icon: IconFiles,
+    initiallyOpened: true,
+    links: sortNavigationRecursive(rootItems)
+  };
+
+  return [pagesParent];
 };
 
 /**
@@ -95,7 +103,7 @@ const transformNavigationToNavItems = (navigationData: INavigationItem[]): NavIt
 export const useAdminNavigation = () => {
     const { data: adminNavigationData, isLoading, error } = useQuery({
         queryKey: ['admin-navigation'],
-        queryFn: NavigationApi.getRoutes, // Replace with admin-specific endpoint if needed
+        queryFn: NavigationApi.getRoutes,
     });
 
     const navItems = adminNavigationData ? transformNavigationToNavItems(adminNavigationData) : [];
