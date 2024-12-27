@@ -4,6 +4,7 @@ v0.0.2
  - add `tailwind` css
  - add `refine`
  - rework authentication to be `refine` based
+ - add `zustand` state management
 
 v0.0.1
 - Initial commit

@@ -1,12 +1,11 @@
 "use client";
 
-import { Group, Code, ScrollArea, NavLink } from '@mantine/core';
-import { useState } from 'react';
+import { ScrollArea, NavLink } from '@mantine/core';
 import { usePathname } from 'next/navigation';
 import { useNavigation } from "@refinedev/core";
 import { IconAdjustmentsCog, IconFiles, IconMessageCircleQuestion, IconSettings, IconSettingsAutomation } from '@tabler/icons-react';
-import { SelfHelpLogo } from '../../common/SelfHelpLogo';
 import { NavItemData } from '@/types/navigation/navigation.types';
+import { useNavigationStore, useNavigationOpenItems } from '@/store/navigation.store';
 
 const mockData: NavItemData[] = [
     {
@@ -75,26 +74,20 @@ const mockData: NavItemData[] = [
     }
 ];
 
-export function AdminNavbar() {
+export function AdminNavbar(): JSX.Element {
     const pathname = usePathname();
     const { push } = useNavigation();
-    const [opened, setOpened] = useState<string[]>([]);
+    const openItems = useNavigationOpenItems();
+    const { toggleItem, setActiveItem } = useNavigationStore();
 
-    const toggleItem = (itemPath: string) => {
-        setOpened((current) => 
-            current.includes(itemPath) 
-                ? current.filter((item) => item !== itemPath)
-                : [...current, itemPath]
-        );
-    };
-
-    const handleClick = (link: string) => {
+    const handleClick = (link: string): void => {
+        setActiveItem(link);
         push(link);
     };
 
-    const renderNavLink = (item: NavItemData, itemPath: string = '') => {
+    const renderNavLink = (item: NavItemData, itemPath: string = ''): JSX.Element => {
         const currentPath = itemPath ? `${itemPath}.${item.label}` : item.label;
-        const isOpen = opened.includes(currentPath);
+        const isOpen = openItems.includes(currentPath);
         const hasChildren = item.children && item.children.length > 0;
 
         return (
@@ -121,7 +114,6 @@ export function AdminNavbar() {
 
     return (
         <ScrollArea className="h-[calc(100vh-60px)] p-md">
-
             <div className="px-3">
                 {mockData.map((item) => renderNavLink(item))}
             </div>
