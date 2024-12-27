@@ -1,13 +1,11 @@
 "use client";
 
-import { ScrollArea, NavLink } from '@mantine/core';
-import { usePathname } from 'next/navigation';
-import { useNavigation } from "@refinedev/core";
+import { ScrollArea } from '@mantine/core';
 import { IconAdjustmentsCog, IconFiles, IconMessageCircleQuestion, IconSettings, IconSettingsAutomation } from '@tabler/icons-react';
-import { NavItemData } from '@/types/navigation/navigation.types';
-import { useNavigationStore, useNavigationOpenItems } from '@/store/navigation.store';
+import { LinksGroup } from '../../common/navbar-links-group/NavbarLinksGroup';
+import classes from './AdminNavbar.module.css';
 
-const mockData: NavItemData[] = [
+const mockData = [
     {
         label: 'Configuration',
         icon: <IconSettingsAutomation size="1rem" stroke={1.5} />,
@@ -53,6 +51,10 @@ const mockData: NavItemData[] = [
                 ]
             },
             {
+                label: 'Test',
+                link: '/admin/pages/test'
+            },
+            {
                 label: 'Blog',
                 // link: '/admin/pages/blog',
                 children: [
@@ -75,48 +77,16 @@ const mockData: NavItemData[] = [
 ];
 
 export function AdminNavbar(): JSX.Element {
-    const pathname = usePathname();
-    const { push } = useNavigation();
-    const openItems = useNavigationOpenItems();
-    const { toggleItem, setActiveItem } = useNavigationStore();
-
-    const handleClick = (link: string): void => {
-        setActiveItem(link);
-        push(link);
-    };
-
-    const renderNavLink = (item: NavItemData, itemPath: string = ''): JSX.Element => {
-        const currentPath = itemPath ? `${itemPath}.${item.label}` : item.label;
-        const isOpen = openItems.includes(currentPath);
-        const hasChildren = item.children && item.children.length > 0;
-
-        return (
-            <NavLink
-                key={currentPath}
-                active={pathname === item.link}
-                label={item.label}
-                leftSection={item.icon}
-                opened={isOpen}
-                onClick={() => {
-                    if (hasChildren) {
-                        toggleItem(currentPath);
-                    }
-                    if (item.link) {
-                        handleClick(item.link);
-                    }
-                }}
-            >
-                {hasChildren &&
-                    item?.children?.map((child) => renderNavLink(child, currentPath))}
-            </NavLink>
-        );
-    };
+    const links = mockData.map((item) => (
+        <LinksGroup {...item} key={item.label} />
+    ));
 
     return (
-        <ScrollArea className="h-[calc(100vh-60px)] p-md">
-            <div className="px-3">
-                {mockData.map((item) => renderNavLink(item))}
-            </div>
-        </ScrollArea>
+        <nav className={classes.navbar}>
+
+            <ScrollArea className={classes.links}>
+                <div className={classes.linksInner}>{links}</div>
+            </ScrollArea>
+        </nav>
     );
 }
