@@ -1,5 +1,3 @@
-import { Icon as TablerIcon } from '@tabler/icons-react';
-import { TablerIconsProps } from '@tabler/icons-react';
 import { Icon } from '@tabler/icons-react';
 
 export interface IRoute {
