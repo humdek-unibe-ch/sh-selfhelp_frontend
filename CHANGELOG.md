@@ -5,6 +5,7 @@ v0.0.2
  - add `refine`
  - rework authentication to be `refine` based
  - add `zustand` state management
+ - add dark, light, auto theme toggle support
 
 v0.0.1
 - Initial commit

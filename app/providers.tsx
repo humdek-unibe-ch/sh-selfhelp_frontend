@@ -1,6 +1,6 @@
 'use client';
 
-import { MantineProvider } from '@mantine/core';
+import { MantineProvider, createTheme } from '@mantine/core';
 import { Refine } from '@refinedev/core';
 import { theme } from '../theme';
 import appRouter from '@refinedev/nextjs-router';
@@ -80,7 +80,12 @@ function Providers({ children }: { children: React.ReactNode }) {
 
     return (
         <QueryClientProvider client={queryClient}>
-            <MantineProvider theme={theme}>
+            <MantineProvider
+                defaultColorScheme="auto"
+                theme={createTheme({
+                    // your theme configuration
+                })}
+            >
                 <RefineWrapper>
                     {children}
                 </RefineWrapper>
