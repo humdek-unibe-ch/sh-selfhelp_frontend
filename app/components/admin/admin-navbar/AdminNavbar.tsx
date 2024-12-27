@@ -1,64 +1,130 @@
 "use client";
 
-import { NavLink, ScrollArea } from '@mantine/core';
+import { Group, Code, ScrollArea, NavLink } from '@mantine/core';
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { useAppNavigation } from '@/hooks/useAppNavigation';
-import { NavItem } from '@/types/navigation/navigation.types';
 import { useNavigation } from "@refinedev/core";
+import { IconAdjustmentsCog, IconFiles, IconMessageCircleQuestion, IconSettings, IconSettingsAutomation } from '@tabler/icons-react';
+import { SelfHelpLogo } from '../../common/SelfHelpLogo';
+import { NavItemData } from '@/types/navigation/navigation.types';
+
+const mockData: NavItemData[] = [
+    {
+        label: 'Configuration',
+        icon: <IconSettingsAutomation size="1rem" stroke={1.5} />,
+        children: [
+            {
+                label: 'Global Values',
+                link: '/admin/pages/globals',
+            },
+            {
+                label: 'Custom CSS',
+                link: '/admin/pages/css',
+            }
+        ]
+    },
+    {
+        label: 'System Pages',
+        icon: <IconAdjustmentsCog size="1rem" stroke={1.5} />,
+        children: [
+            {
+                label: 'Login',
+                link: '/admin/pages/login',
+            },
+            {
+                label: 'Register',
+                link: '/admin/pages/register',
+            },
+            {
+                label: 'Not found',
+                link: '/admin/pages/notfound',
+            }
+        ]
+    },
+    {
+        label: 'Pages',
+        icon: <IconFiles size="1rem" stroke={1.5} />,
+        children: [
+            {
+                label: 'PageRoot',
+                // link: '/admin/pages/pageRoot',
+                children: [
+                    { label: 'Page 1', link: '/admin/pages/page1' },
+                    { label: 'Page 2', link: '/admin/pages/page2' }
+                ]
+            },
+            {
+                label: 'Blog',
+                // link: '/admin/pages/blog',
+                children: [
+                    { label: 'Posts', link: '/admin/pages/posts' },
+                    { label: 'Categories', link: '/admin/pages/categories' }
+                ]
+            }
+        ]
+    },
+    {
+        label: 'Settings',
+        icon: <IconSettings size="1rem" stroke={1.5} />,
+        link: "/admin/settings"
+    },
+    {
+        label: 'Learning Assistance',
+        icon: <IconMessageCircleQuestion size="1rem" stroke={1.5} />,
+        link: "/admin/help"
+    }
+];
 
 export function AdminNavbar() {
     const pathname = usePathname();
-    const [openItems, setOpenItems] = useState<string[]>([]);
     const { push } = useNavigation();
-    const { navItems, isLoading } = useAppNavigation({ isAdmin: true });
+    const [opened, setOpened] = useState<string[]>([]);
+
+    const toggleItem = (itemPath: string) => {
+        setOpened((current) => 
+            current.includes(itemPath) 
+                ? current.filter((item) => item !== itemPath)
+                : [...current, itemPath]
+        );
+    };
 
     const handleClick = (link: string) => {
         push(link);
     };
 
-    const toggleItem = (label: string) => {
-        setOpenItems(prev =>
-            prev.includes(label)
-                ? prev.filter(item => item !== label)
-                : [...prev, label]
-        );
-    };
-
-    const renderNavItem = (item: NavItem) => {
-        const isActive = pathname === item.link;
-        const isOpen = openItems.includes(item.label);
-        const hasNestedLinks = item.links && item.links.length > 0;
-        const Icon = item.icon;
+    const renderNavLink = (item: NavItemData, itemPath: string = '') => {
+        const currentPath = itemPath ? `${itemPath}.${item.label}` : item.label;
+        const isOpen = opened.includes(currentPath);
+        const hasChildren = item.children && item.children.length > 0;
 
         return (
             <NavLink
-                key={item.label}
+                key={currentPath}
+                active={pathname === item.link}
                 label={item.label}
-                // leftSection={Icon && <Icon size="1rem" stroke={1.5} />}
-                childrenOffset={28}
+                leftSection={item.icon}
                 opened={isOpen}
-                active={isActive}
                 onClick={() => {
-                    if (hasNestedLinks) {
-                        toggleItem(item.label);
-                    } else if (item.link) {
+                    if (hasChildren) {
+                        toggleItem(currentPath);
+                    }
+                    if (item.link) {
                         handleClick(item.link);
                     }
                 }}
             >
-                {hasNestedLinks && item.links?.map(renderNavItem)}
+                {hasChildren &&
+                    item?.children?.map((child) => renderNavLink(child, currentPath))}
             </NavLink>
         );
     };
 
-    if (isLoading) {
-        return <div>Loading...</div>; // Consider using a proper loading skeleton
-    }
-
     return (
-        <ScrollArea className="bg-[var(--mantine-color-white)] dark:bg-[var(--mantine-color-dark-6)] h-[800px] w-[300px] p-[var(--mantine-spacing-md)] pb-0 flex flex-col border-r border-[var(--mantine-color-gray-3)] dark:border-[var(--mantine-color-dark-4)]">
-            {navItems?.map(renderNavItem)}
+        <ScrollArea className="h-[calc(100vh-60px)] p-md">
+
+            <div className="px-3">
+                {mockData.map((item) => renderNavLink(item))}
+            </div>
         </ScrollArea>
     );
 }

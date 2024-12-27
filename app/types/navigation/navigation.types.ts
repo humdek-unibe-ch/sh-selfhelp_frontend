@@ -25,6 +25,13 @@ export interface NavItem {
     isInMenu?: boolean;
 }
 
+export interface NavItemData {
+    label: string;
+    icon?: React.ReactNode;
+    link?: string;
+    children?: NavItemData[];
+  }
+
 export interface IResourceMeta {
     label: string;
     parent: string | undefined;
