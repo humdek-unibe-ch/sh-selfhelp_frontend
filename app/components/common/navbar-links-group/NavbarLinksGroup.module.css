@@ -5,13 +5,18 @@
     padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
     color: var(--mantine-color-text);
     font-size: var(--mantine-font-size-sm);
-
+  
     @mixin hover {
         background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7));
         color: light-dark(var(--mantine-color-black), var(--mantine-color-dark-0));
     }
-}
 
+    &[data-active] {
+        background-color: var(--mantine-color-blue-light);
+        color: var(--mantine-color-blue-light-color);
+    }
+}
+  
 .link {
     font-weight: 500;
     display: block;
@@ -20,19 +25,42 @@
     text-decoration: none;
     font-size: var(--mantine-font-size-sm);
     color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-0));
-
+  
     @mixin hover {
         background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7));
         color: light-dark(var(--mantine-color-black), var(--mantine-color-dark-0));
     }
-}
 
+    &[data-active] {
+        background-color: var(--mantine-color-blue-light);
+        color: var(--mantine-color-blue-light-color);
+    }
+}
+  
 .chevron {
     transition: transform 200ms ease;
+}
+  
+/* Root level items */
+.control + .collapse > div {
+    border-left: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+    margin-left: var(--mantine-spacing-md);
+    padding-left: var(--mantine-spacing-xs);
+}
+
+/* First level items */
+.control + .collapse .link {
+    padding-left: var(--mantine-spacing-xs);
 }
 
 /* Nested children */
 .children {
     border-left: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
-    margin-left: var(--mantine-spacing-xl);
+    margin-left: var(--mantine-spacing-md);
+    padding-left: var(--mantine-spacing-xs);
+}
+
+/* Nested links */
+.children .link {
+    padding-left: var(--mantine-spacing-xs);
 }
