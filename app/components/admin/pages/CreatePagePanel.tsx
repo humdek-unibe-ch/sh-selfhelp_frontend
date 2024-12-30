@@ -90,6 +90,14 @@ export const CreatePagePanel = ({ isOpen, onClose }: CreatePagePanelProps) => {
     setPages(updatedPages.filter(page => !('isNew' in page)));
   };
 
+  const getDragHandleProps = (defaultDragHandleProps: any) => ({
+    ...defaultDragHandleProps,
+    style: {
+      ...defaultDragHandleProps?.style,
+      cursor: 'grab'
+    }
+  });
+
   const handleSubmit = (values: PageFormValues) => {
     console.log('Form values:', values);
     onClose();
@@ -187,7 +195,11 @@ export const CreatePagePanel = ({ isOpen, onClose }: CreatePagePanelProps) => {
                         {(provided) => (
                           <Stack gap="xs" {...provided.droppableProps} ref={provided.innerRef}>
                             {allPages.map((page, index) => (
-                              <Draggable key={page.id} draggableId={page.id} index={index}>
+                              <Draggable 
+                                key={page.id} 
+                                draggableId={page.id} 
+                                index={index}
+                              >
                                 {(provided, snapshot) => (
                                   <Group 
                                     p="xs"
@@ -200,10 +212,13 @@ export const CreatePagePanel = ({ isOpen, onClose }: CreatePagePanelProps) => {
                                       background: 'var(--mantine-color-body)',
                                       border: '1px solid var(--mantine-color-gray-3)',
                                       borderRadius: 'var(--mantine-radius-sm)',
+                                      transform: snapshot.isDragging
+                                        ? `${provided.draggableProps.style?.transform} translateX(-85%)`
+                                        : provided.draggableProps.style?.transform
                                     }}
                                   >
                                     <Box 
-                                      {...provided.dragHandleProps}
+                                      {...getDragHandleProps(provided.dragHandleProps)}
                                       className={classes.dragHandle}
                                     >
                                       <IconGripVertical />
