@@ -39,6 +39,52 @@ SelfHelp CMS is a modern research-oriented content management system built with 
 - Component-based architecture
 - Efficient data caching and persistence
 
+### Page Creation System
+
+The page creation system allows users to create and configure new pages with specific properties:
+
+1. **Page Properties**
+   - **Keyword**: Unique identifier for the page
+     - Must be unique across the system
+     - Can contain numbers, letters, hyphens, and underscores
+     - Used in URL patterns and internal references
+   
+   - **Page Type**: Determines the page's structure and behavior
+     - Sections: Content-focused pages with multiple sections
+     - Navigation: Pages that serve as navigation structures
+     - Component: Custom component-based pages (requires PHP programming)
+     - Backend: Server-side processing pages
+     - Ajax: Dynamic content loading pages
+   
+   - **Header Configuration**
+     - Header Position: Controls page visibility in navigation
+     - Headless Page Option: Pages without header/footer
+   
+   - **Access Control**
+     - Page Access Type: Mobile, web, or both
+     - Protocol Settings: GET, POST, PUT, PATCH, DELETE
+     - Open Access Toggle: Public accessibility without login
+     - Advanced Settings: Additional security configurations
+
+2. **URL Configuration**
+   - Auto-generated URL pattern based on keyword
+   - Manual override option for custom URLs
+   - Integration with Altorouter for routing
+   
+3. **Technical Implementation**
+   - Form validation for unique keywords
+   - Automatic URL pattern generation
+   - Protocol validation based on page type
+   - Access control integration with authentication system
+   - Real-time validation feedback
+   
+4. **API Endpoints**
+   ```
+   POST   /cms-api/v1/pages              # Create new page
+   GET    /cms-api/v1/pages/validate     # Validate page keyword
+   GET    /cms-api/v1/pages/types        # Get available page types
+   ```
+
 ## UI/UX Design Requirements
 
 ### CMS Interface Layout
