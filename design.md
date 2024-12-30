@@ -724,6 +724,57 @@ The Forms Actions System provides a powerful workflow automation tool that trigg
    - Efficient condition evaluation
    - Background processing
 
+## Plugin System
+
+1. **Plugin Management**
+   - Currently manual server installation (to be improved)
+   - Future interface-based installation system
+   - Plugin repository integration
+   - Version management
+   - Dependency handling
+
+2. **Available Plugins**
+   - `sh-shp-lab-js`: LabJS integration plugin
+   - `sh-shp-survey-js`: SurveyJS integration (https://surveyjs.io)
+   - `sh-shp-formula_parser`: Math expression parser based on MathExecutor
+   - `sh-shp-video_capture`: Video capture integration
+   - `sh-shp-plotly_graphs`: Plotly charts integration
+   - `sh-shp-filters`: Content filtering functionality
+   - `sh-shp-unipark`: Unipark integration
+   - `sh-shp-studybuddy`: Custom styles for StudyBuddy
+   - `sh-shp-shepherd`: Shepherd.js integration for guided tours
+   - `sh-shp-r_serve`: R integration service
+   - `sh-shp-qualtrics`: Qualtrics styles and components
+   - `sh-shp-js_plumb`: Drawing connections between elements
+   - `sh-shp-fitrockr`: Fitrockr integration
+   - `sh-shp-chat`: Chat functionality
+   - `sh-shp-calendar`: Mobile app calendar presentation
+   - `sh-shp-api`: API extension functionality
+   - `sh-shp-search`: Search functionality
+   - `sh-shp-mobile_styles`: Mobile-specific styles
+   - `sh-shp-mermaid_form`: Mermaid form presentation
+   - `sh-shp-book`: Book-style page presentation
+   - `sh-shp-message_board`: Message board functionality
+   - `sh-shp-sleep_efficiency`: Sleep efficiency calculations
+
+3. **Planned Improvements**
+   - Web-based plugin installation interface
+   - Plugin marketplace integration
+   - Automated dependency resolution
+   - Plugin configuration UI
+   - Version compatibility checking
+   - Plugin health monitoring
+   - Update management system
+   - Plugin sandbox environment
+
+4. **Plugin Development**
+   - Standardized plugin structure
+   - Development guidelines
+   - Testing framework
+   - Documentation requirements
+   - Security guidelines
+   - Version compatibility specifications
+
 ## Asset Management System
 
 ### Overview
