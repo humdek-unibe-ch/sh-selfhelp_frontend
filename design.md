@@ -226,6 +226,155 @@ The interface is divided into three main sections:
 - Session management
 - Rate limiting
 
+## Role and Group Management System
+
+### Access Control Types
+
+1. **DB Roles (Static)**
+   - Predefined system roles that cannot be assigned to users dynamically
+   - Full system access control
+   - Examples:
+     - Super Admin
+     - Content Manager
+     - Researcher
+     - Participant
+   - Characteristics:     
+     - Managed through database migrations
+     - Provides access to administrative functions
+     - Hierarchical permission structure
+
+2. **Groups (Dynamic)**
+   - User-created groups for experiment page access
+   - Limited to experiment page permissions only
+   - Characteristics:
+     - Cannot access administrative functions
+     - Specifically designed for research participant management
+     - Flexible and project-specific
+     - can be assigned to users via job actions
+
+### DB Role Management
+
+1. **Permission Types**
+   - System Administration
+   - User Management
+   - Content Management
+   - Analytics Access
+   - API Access
+   - Security Settings
+
+2. **Role Assignment**
+   - Assigned during user creation
+   - Can only be modified by super administrators
+   - Audit logging for role changes
+
+### Group Management
+
+1. **Group Interface**
+   - Create/Edit/Delete groups
+   - Assign users to groups
+   - Define experiment page access
+   - Set group-specific permissions
+
+2. **Permission Scope**
+   - Limited to experiment pages only
+   - Available permissions:
+     - View experiment
+     - Participate in experiment
+     - View results
+     - Submit responses
+   - No access to administrative functions
+
+3. **Group Features**
+   - Group name and description
+   - Member management
+   - Experiment page assignment
+   - Access duration settings
+   - Activity tracking
+
+### Technical Implementation
+
+1. **Component Structure**
+```
+/app
+  /components
+    /admin
+      /roles
+        RoleList.tsx
+        RoleDetail.tsx
+      /groups
+        GroupList.tsx
+        GroupCreate.tsx
+        GroupEdit.tsx
+        GroupDetail.tsx
+        components/
+          - GroupForm.tsx
+          - MemberList.tsx
+          - ExperimentAccess.tsx
+          - PermissionMatrix.tsx
+```
+
+2. **State Management**
+   - Role state (read-only, from backend)
+   - Group state with React Query
+   - Permission matrix state with Zustand
+   - Member management state with React Query
+
+3. **API Integration**
+   - GET /cms-api/v1/db-roles (list available roles)
+   - GET /cms-api/v1/db-roles/:id (role details)
+   - GET /cms-api/v1/groups (list groups)
+   - POST /cms-api/v1/groups (create group)
+   - GET /cms-api/v1/groups/:id (group details)
+   - PUT /cms-api/v1/groups/:id (update group)
+   - DELETE /cms-api/v1/groups/:id (delete group)
+   - POST /cms-api/v1/groups/:id/members (manage members)
+   - GET /cms-api/v1/groups/:id/experiments (list accessible experiments)
+   - PUT /cms-api/v1/groups/:id/experiments (update experiment access)
+
+4. **Security Considerations**
+   - Regular permission reviews
+   - Audit logging for all changes
+   - Automatic cleanup of expired permissions
+   - Validation of permission scope
+   - Prevention of privilege escalation
+
+5. **UI Components (Mantine v7)**
+   - `Table` for role and group lists
+   - `Select` for role assignment
+   - `MultiSelect` for group assignment
+   - `Checkbox` for permission matrix
+   - `Card` for group details
+   - `Tabs` for section organization
+   - `Badge` for status indicators
+   - `ActionIcon` for quick actions
+   - `Modal` for confirmation dialogs
+   - `Notification` for action feedback
+
+6. **Permission Inheritance**
+   - DB Roles have system-wide permissions
+   - Groups inherit experiment-specific permissions
+   - No overlap between DB Roles and Group permissions
+   - Clear separation of concerns
+
+### Workflow
+
+1. **Role Assignment**
+   - Super Admin assigns DB roles during user creation
+   - Role changes require elevated permissions
+   - Changes are logged in audit trail
+
+2. **Group Management**
+   - Researchers create groups for experiments
+   - Add/remove members as needed
+   - Set experiment-specific permissions
+   - Monitor group activity
+
+3. **Permission Validation**
+   - System validates all permission requests
+   - Ensures groups only access experiment pages
+   - Prevents unauthorized elevation of privileges
+   - Maintains separation between system and experiment permissions
+
 ## Development Tools
 - TypeScript v5.5.2
 - ESLint v8.57.0
