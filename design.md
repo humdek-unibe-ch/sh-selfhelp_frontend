@@ -568,6 +568,100 @@ Query Parameters:
    - Prevents unauthorized elevation of privileges
    - Maintains separation between system and experiment permissions
 
+## Asset Management System
+
+### Overview
+The Asset Management System provides a centralized interface for managing various types of assets including images, documents, and custom CSS files. This system allows users to upload, organize, and reference these assets throughout the CMS.
+
+### Key Features
+
+1. **Asset Categories**
+   - Media files (images, videos, documents)
+   - Custom CSS files for webpage styling
+   - Asset organization by folders
+   - Preview capabilities for supported file types
+
+2. **Asset Management Features**
+   - Drag-and-drop file upload
+   - Folder-based organization
+   - File overwrite protection
+   - Bulk upload capability
+   - Asset search and filtering
+   - File type validation
+   - Size limit enforcement
+
+3. **CSS File Management**
+   - Custom CSS file upload
+   - Live CSS preview
+   - CSS validation
+   - Scope selection (global/page-specific)
+   - CSS priority management
+   - Style conflict detection
+
+### Implementation
+
+1. **Component Structure**
+```
+/app
+  /components
+    /admin
+      /assets
+        AssetsManager.tsx
+        components/
+          - FileUploader.tsx
+          - AssetBrowser.tsx
+          - CSSManager.tsx
+          - FolderNavigator.tsx
+```
+
+2. **API Integration**
+```
+# Asset Management
+POST   /cms-api/v1/assets/upload           # Upload assets
+GET    /cms-api/v1/assets                  # List assets
+DELETE /cms-api/v1/assets/:id              # Delete asset
+PUT    /cms-api/v1/assets/:id              # Update asset
+POST   /cms-api/v1/assets/folder           # Create folder
+GET    /cms-api/v1/assets/folder/:id       # List folder contents
+
+# CSS Management
+POST   /cms-api/v1/css                     # Upload CSS
+GET    /cms-api/v1/css                     # List CSS files
+PUT    /cms-api/v1/css/:id                 # Update CSS
+DELETE /cms-api/v1/css/:id                 # Delete CSS
+```
+
+3. **Security Considerations**
+   - File type whitelisting
+   - Size limitations
+   - Malware scanning
+   - Access control per folder
+   - Secure file storage
+   - CSS injection prevention
+
+4. **Features**
+   - Asset versioning
+   - Usage tracking
+   - Automatic image optimization
+   - Thumbnail generation
+   - Asset categorization
+   - Quick copy asset URL/path
+
+5. **User Experience**
+   - Visual file browser
+   - Progress indicators
+   - Drag-and-drop zones
+   - Quick preview
+   - Search and filters
+   - Bulk operations
+
+6. **Performance**
+   - Lazy loading of assets
+   - Compressed storage
+   - CDN integration
+   - Caching strategy
+   - Optimized asset delivery
+
 ## Cache Management Interface
 
 ### Overview
