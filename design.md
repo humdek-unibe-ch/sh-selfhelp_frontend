@@ -639,6 +639,51 @@ The Forms Actions System provides a powerful workflow automation tool that trigg
    - Reminder conditions
    - Block-level conditions
 
+### Scheduled Jobs System
+
+1. **Job Management Interface**
+   - Grid view of all queued scheduled jobs
+   - Detailed job information display:
+     - Status (Queued, Running, Completed)
+     - Date Created
+     - Date To Be Sent
+     - Date Sent
+     - Recipient
+     - Description
+     - Data table and record references
+     - Configuration details
+     - Transaction history
+
+2. **Job Control Features**
+   - Manual job execution capability
+   - Job deletion option
+   - Right-click context menu for quick actions
+   - Transaction logging for all job operations
+   - Job configuration viewing
+
+3. **Calendar View**
+   - Monthly/weekly/daily/list view options
+   - User-specific job filtering
+   - Action type filtering
+   - Interactive calendar navigation
+   - Visual job status indicators
+   - Right-click menu for job management
+   - Job clustering for busy time slots
+
+4. **Execution System**
+   - Automated cron-based execution (1-minute default interval)
+   - Manual execution override capability
+   - Transaction logging for all executions
+   - Status tracking and updates
+   - Error handling and reporting
+
+5. **Integration Features**
+   - Experiment design support
+   - Historical tracking and auditing
+   - User-specific job views
+   - Action type categorization
+   - Detailed transaction logging
+
 ### Implementation
 
 1. **Component Structure**
