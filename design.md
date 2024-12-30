@@ -568,6 +568,103 @@ Query Parameters:
    - Prevents unauthorized elevation of privileges
    - Maintains separation between system and experiment permissions
 
+## Cache Management Interface
+
+### Overview
+The Cache Management system provides granular control over the CMS's caching mechanisms, allowing administrators to clear specific types of cached data or perform a complete cache reset.
+
+### Key Features
+
+1. **Cache Categories**
+   - All (complete cache reset)
+   - Pages cache
+   - Sections cache
+   - Fields cache
+   - Styles cache
+   - Hooks cache
+   - User Input cache
+   - Conditions cache
+   - Lookups cache
+
+2. **Control Interface**
+   - Individual toggle switches for each cache type
+   - Master toggle for all caches
+   - Clear button for executing cache clearing
+   - Visual feedback for clearing process
+
+### Implementation
+
+1. **Component Structure**
+```
+/app
+  /components
+    /admin
+      /cache
+        CacheManager.tsx
+        components/
+          - CacheToggle.tsx
+          - CacheClearButton.tsx
+          - CacheStatus.tsx
+```
+
+2. **API Integration**
+```
+# Cache Management
+POST   /cms-api/v1/cache/clear              # Clear selected caches
+GET    /cms-api/v1/cache/status             # Get cache status
+POST   /cms-api/v1/cache/clear/:type        # Clear specific cache type
+
+Request Body:
+{
+  "types": ["all" | string[]],  // Cache types to clear
+  "force": boolean              // Force immediate clear
+}
+
+Response:
+{
+  "success": boolean,
+  "clearedTypes": string[],
+  "timestamp": string
+}
+```
+
+3. **Cache Types**
+   ```typescript
+   type CacheType = 
+     | 'all'
+     | 'pages'
+     | 'sections'
+     | 'fields'
+     | 'styles'
+     | 'hooks'
+     | 'userInput'
+     | 'conditions'
+     | 'lookups';
+   ```
+
+4. **Features**
+   - Selective cache clearing
+   - Real-time cache status
+   - Background cache clearing
+   - Cache size monitoring
+   - Clear confirmation dialogs
+   - Cache clearing history
+
+5. **Security**
+   - Admin-only access
+   - Rate limiting for cache operations
+   - Audit logging of cache clears
+   - Prevention of concurrent clearing
+   - Validation of cache types
+
+6. **Performance Considerations**
+   - Asynchronous cache clearing
+   - Progressive cache rebuilding
+   - Cache warmup after clearing
+   - Impact warnings for production
+   - Queue system for large caches
+
+
 ## Development Tools
 - TypeScript v5.5.2
 - ESLint v8.57.0
