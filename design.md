@@ -230,8 +230,8 @@ The interface is divided into three main sections:
 
 ### Access Control Types
 
-1. **DB Roles (Static)**
-   - Predefined system roles that cannot be assigned to users dynamically
+1. **DB Roles (Static Assignment)**
+   - System roles that can be modified but not dynamically assigned
    - Full system access control
    - Examples:
      - Super Admin
@@ -239,18 +239,20 @@ The interface is divided into three main sections:
      - Researcher
      - Participant
    - Characteristics:     
-     - Managed through database migrations
+     - Can be edited through admin interface
+     - Requires system restart to apply changes
      - Provides access to administrative functions
      - Hierarchical permission structure
+     - Cannot be assigned through job actions
 
-2. **Groups (Dynamic)**
+2. **Groups (Dynamic Assignment)**
    - User-created groups for experiment page access
    - Limited to experiment page permissions only
    - Characteristics:
      - Cannot access administrative functions
      - Specifically designed for research participant management
      - Flexible and project-specific
-     - can be assigned to users via job actions
+     - Can be assigned to users via job actions
 
 ### DB Role Management
 
@@ -266,7 +268,6 @@ The interface is divided into three main sections:
    - Assigned during user creation
    - Can only be modified by super administrators
    - Audit logging for role changes
-
 ### Group Management
 
 1. **Group Interface**
@@ -320,16 +321,45 @@ The interface is divided into three main sections:
    - Member management state with React Query
 
 3. **API Integration**
-   - GET /cms-api/v1/db-roles (list available roles)
-   - GET /cms-api/v1/db-roles/:id (role details)
-   - GET /cms-api/v1/groups (list groups)
-   - POST /cms-api/v1/groups (create group)
-   - GET /cms-api/v1/groups/:id (group details)
-   - PUT /cms-api/v1/groups/:id (update group)
-   - DELETE /cms-api/v1/groups/:id (delete group)
-   - POST /cms-api/v1/groups/:id/members (manage members)
-   - GET /cms-api/v1/groups/:id/experiments (list accessible experiments)
-   - PUT /cms-api/v1/groups/:id/experiments (update experiment access)
+   
+   DB Roles Endpoints:
+   ```
+   # Role Management
+   GET    /cms-api/v1/db-roles                    # List all roles
+   GET    /cms-api/v1/db-roles/:id               # Get role details
+   POST   /cms-api/v1/db-roles                    # Create new role
+   PUT    /cms-api/v1/db-roles/:id               # Update role
+   DELETE /cms-api/v1/db-roles/:id               # Delete role
+   
+   # Role Permissions
+   GET    /cms-api/v1/db-roles/:id/permissions   # Get role permissions
+   PUT    /cms-api/v1/db-roles/:id/permissions   # Update role permissions
+   
+   # Role Users
+   GET    /cms-api/v1/db-roles/:id/users         # List users with role
+   POST   /cms-api/v1/db-roles/:id/users         # Assign role to users
+   DELETE /cms-api/v1/db-roles/:id/users/:userId # Remove role from user
+   ```
+
+   Groups Endpoints:
+   ```
+   # Group Management
+   GET    /cms-api/v1/groups                      # List all groups
+   GET    /cms-api/v1/groups/:id                 # Get group details
+   POST   /cms-api/v1/groups                      # Create new group
+   PUT    /cms-api/v1/groups/:id                 # Update group
+   DELETE /cms-api/v1/groups/:id                 # Delete group
+   
+   # Group Members
+   GET    /cms-api/v1/groups/:id/members         # List group members
+   POST   /cms-api/v1/groups/:id/members         # Add members to group
+   DELETE /cms-api/v1/groups/:id/members/:userId # Remove member from group
+   
+   # Group Experiments
+   GET    /cms-api/v1/groups/:id/experiments     # List accessible experiments
+   PUT    /cms-api/v1/groups/:id/experiments     # Update experiment access
+   GET    /cms-api/v1/groups/:id/permissions     # Get group permissions
+   ```
 
 4. **Security Considerations**
    - Regular permission reviews
