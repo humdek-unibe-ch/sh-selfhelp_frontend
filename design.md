@@ -387,7 +387,8 @@ Query Parameters:
    - Virtual scrolling for large datasets
    - Debounced search/filter inputs
    - Cached table configurations
-   - Progressive loading for multiple tables
+   - Efficient condition evaluation
+   - Background processing
 
 ## Role and Group Management System
 
@@ -965,6 +966,119 @@ Response:
    - Impact warnings for production
    - Queue system for large caches
 
+## Database Schema
+
+### Core Tables
+
+1. **Users and Authentication**
+   - `users`: User account information
+   - `refreshTokens`: JWT refresh tokens
+   - `acl_users`: User-specific access control
+   - `acl_groups`: Group-based access control
+   - `groups`: User groups and roles
+
+2. **Content Management**
+   - `pages`: Core content pages
+   - `sections`: Page sections
+   - `fields`: Content fields
+   - `pages_fields`: Page-field relationships
+   - `pages_sections`: Page-section relationships
+   - `pages_fields_translation`: Multilingual content
+
+3. **Asset Management**
+   - `assets`: File and media assets
+   - `libraries`: External libraries
+   - `plugins`: System plugins
+
+4. **Data Management**
+   - `dataTables`: Custom data tables
+   - `dataCols`: Table columns
+   - `dataRows`: Table rows
+   - `dataCells`: Cell values
+
+### Action System Tables
+
+1. **Form Actions**
+   - `formActions`: Action definitions
+   - `actions`: Available action types
+   - `scheduledJobs`: Scheduled tasks
+   - `mailQueue`: Email queue
+   - `notifications`: System notifications
+
+2. **Logging and Monitoring**
+   - `apilogs`: API request logs
+   - `callbackLogs`: Callback tracking
+   - `log_performance`: Performance metrics
+   - `user_activity`: User action tracking
+
+3. **Integration Tables**
+   - `qualtricsProjects`: Qualtrics integration
+   - `qualtricsSurveys`: Survey definitions
+   - `qualtricsSurveysResponses`: Survey responses
+   - `labjs`: Lab.js experiment integration
+
+### Configuration Tables
+
+1. **System Settings**
+   - `cmsPreferences`: Global settings
+   - `languages`: Language support
+   - `lookups`: System lookups
+   - `hooks`: System hooks
+
+2. **Type Definitions**
+   - `pageType`: Page types
+   - `fieldType`: Field types
+   - `activiTytype`: Activity types
+   - `lookups`: Most of the types are defined there
+
+### Key Relationships
+
+1. **Access Control**
+   ```
+   users -> acl_users -> pages
+   groups -> acl_groups -> pages
+   users -> groups (many-to-many)
+   ```
+
+2. **Content Structure**
+   ```
+   pages -> sections -> fields
+   pages -> pages (self-referential for hierarchy)
+   pages -> fields -> translations
+   ```
+
+3. **Data Management**
+   ```
+   dataTables -> datacCls -> dataCells
+   dataTables -> dataRows -> dataCells
+   ```
+
+4. **Action System**
+   ```
+   formActions -> scheduledJobs
+   formActions -> dataTables
+   scheduledJobs -> notifications
+   ```
+
+### Schema Notes
+
+1. **Security Features**
+   - Role-based access control (RBAC)
+   - Group-based permissions
+   - Token-based authentication
+   - Action logging and auditing
+
+2. **Extensibility**
+   - Plugin system support
+   - Custom data table creation
+   - Flexible field types
+   - Multilingual content support
+
+3. **Integration Support**
+   - Qualtrics survey integration
+   - Lab.js experiment support
+   - Email system integration
+   - External API logging
 
 ## Development Tools
 - TypeScript v5.5.2
