@@ -102,7 +102,7 @@ export const CreatePageModal = ({ isOpen, onClose }: CreatePageModalProps) => {
       size="lg"
     >
       <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Stack spacing="md">
+        <Stack gap="md">
           {/* Page Properties */}
           <TextInput
             label="Keyword"
@@ -161,48 +161,24 @@ export const CreatePageModal = ({ isOpen, onClose }: CreatePageModalProps) => {
 
           {/* Position Settings */}
           {form.values.headerPosition && (
-            <Box
-              p="xs"
-              style={{
-                border: '1px solid var(--mantine-color-gray-3)',
-                borderRadius: 'var(--mantine-radius-sm)',
-              }}
-            >
+            <Box>
               <Text size="sm" fw={500} mb="xs">Page Order</Text>
-              <Stack spacing="xs">
+              <Stack gap="xs">
                 {pages.map((page, index) => (
-                  <Group key={page.id} p="xs" style={{ 
-                    border: '1px solid var(--mantine-color-gray-2)',
-                    borderRadius: 'var(--mantine-radius-sm)',
-                    background: 'var(--mantine-color-white)',
-                  }}>
+                  <Group key={page.id} p="xs">
                     <IconGripVertical 
-                      style={{ 
-                        width: rem(18), 
-                        height: rem(18),
-                        color: 'var(--mantine-color-gray-5)',
-                        cursor: 'grab',
-                      }} 
+                      style={{ cursor: 'grab' }} 
                     />
-                    <Badge size="sm" variant="light">{page.position / 10}</Badge>
+                    <Badge size="sm">{page.position / 10}</Badge>
                     <Text size="sm">{page.content}</Text>
                   </Group>
                 ))}
                 {form.values.keyword && (
-                  <Group p="xs" style={{ 
-                    border: '1px solid var(--mantine-color-blue-2)',
-                    borderRadius: 'var(--mantine-radius-sm)',
-                    background: 'var(--mantine-color-blue-0)',
-                  }}>
+                  <Group p="xs">
                     <IconGripVertical 
-                      style={{ 
-                        width: rem(18), 
-                        height: rem(18),
-                        color: 'var(--mantine-color-blue-5)',
-                        cursor: 'grab',
-                      }} 
+                      style={{ cursor: 'grab' }} 
                     />
-                    <Badge size="sm" variant="light" color="blue">New</Badge>
+                    <Badge size="sm" color="blue">New</Badge>
                     <Text size="sm">{form.values.keyword}</Text>
                   </Group>
                 )}
