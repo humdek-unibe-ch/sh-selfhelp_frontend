@@ -226,6 +226,93 @@ The interface is divided into three main sections:
 - Session management
 - Rate limiting
 
+## CMS Preferences Interface
+
+### Overview
+The CMS Preferences section provides system-wide configuration options for the content management system, including language settings, API configurations, and system preferences.
+
+### Key Features
+
+1. **Language Management**
+   - Create new language support
+   - List of available languages
+   - Default language selection
+   - Language-specific settings
+   - Language codes (e.g., "Deutsch (Schweiz)", "English (GB)")
+
+2. **System Configuration**
+   - CMS Content Language selection
+   - Anonymous Users toggle
+   - Test Mode indicator
+   - System-wide preferences
+
+3. **API Configuration**
+   - Callback API Key management
+   - Firebase configuration
+   - API endpoints setup
+   - Authentication settings
+
+### Implementation
+
+1. **Component Structure**
+```
+/app
+  /components
+    /admin
+      /preferences
+        CMSPreferences.tsx
+        components/
+          - LanguageManager.tsx
+          - APIConfiguration.tsx
+          - SystemSettings.tsx
+          - PreferenceForm.tsx
+```
+
+2. **API Integration**
+```
+# Preferences Management
+GET    /cms-api/v1/preferences                # Get all preferences
+PUT    /cms-api/v1/preferences                # Update preferences
+GET    /cms-api/v1/preferences/languages      # Get language settings
+POST   /cms-api/v1/preferences/languages      # Add new language
+DELETE /cms-api/v1/preferences/languages/:id  # Remove language
+
+# API Configuration
+GET    /cms-api/v1/config/api-keys            # Get API keys
+PUT    /cms-api/v1/config/api-keys            # Update API keys
+GET    /cms-api/v1/config/firebase            # Get Firebase config
+PUT    /cms-api/v1/config/firebase            # Update Firebase config
+```
+
+
+3. **Security Considerations**
+   - Encrypted storage of sensitive data
+   - Role-based access control
+   - Audit logging for changes
+   - Validation of configuration values
+   - Secure key management
+
+4. **Features**
+   - Real-time validation
+   - Configuration backup/restore
+   - Change history tracking
+   - Environment-specific settings
+   - Configuration health checks
+
+5. **UI Layout**
+   - Tabbed interface for different sections
+   - Form-based configuration
+   - Visual feedback for changes
+   - Confirmation dialogs for critical changes
+   - Error handling and validation messages
+
+6. **Workflow**
+   - Changes require admin privileges
+   - Some changes may require system restart
+   - Validation before saving
+   - Automatic backup before changes
+   - Change notification system
+
 ## Data Panel Interface
 
 ### Overview
