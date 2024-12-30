@@ -1,0 +1,25 @@
+.draggableItem {
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.draggableItem[data-is-dragging="true"] {
+  background: var(--mantine-color-blue-0);
+}
+
+.dragHandle {
+  cursor: grab;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  color: var(--mantine-color-gray-6);
+}
+
+.dragHandle:hover {
+  color: var(--mantine-color-blue-6);
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}

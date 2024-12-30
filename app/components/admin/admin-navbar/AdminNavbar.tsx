@@ -3,7 +3,7 @@
 import { ScrollArea, ActionIcon, Tooltip, Group, Box } from '@mantine/core';
 import { IconAdjustmentsCog, IconFiles, IconMessageCircleQuestion, IconSettings, IconSettingsAutomation, IconPlus } from '@tabler/icons-react';
 import { LinksGroup } from '../../common/navbar-links-group/NavbarLinksGroup';
-import { CreatePageModal } from '../pages/CreatePageModal';
+import { CreatePagePanel } from '../pages/CreatePagePanel';
 import { useState } from 'react';
 import classes from './AdminNavbar.module.css';
 
@@ -104,17 +104,19 @@ export function AdminNavbar() {
 
     return (
         <nav className={classes.navbar}>
-            <ScrollArea className={classes.links}>
+            <ScrollArea className={classes.scrollArea}>
+                <Group justify="space-between" px="md" py="sm">
+                    <Box>SelfHelp</Box>
+                </Group>
+
                 <div className={classes.linksInner}>
                     {mockData.map((item) => (
                         <LinksGroup {...item} key={item.label} />
                     ))}
                 </div>
             </ScrollArea>
-            <CreatePageModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-            />
+
+            <CreatePagePanel isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
         </nav>
     );
 }
