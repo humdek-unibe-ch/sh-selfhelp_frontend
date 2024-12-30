@@ -18,9 +18,10 @@ interface LinksGroupProps {
     initiallyOpened?: boolean;
     link?: string;
     children?: LinkItem[];
+    rightSection?: React.ReactNode;
 }
 
-export function LinksGroup({ icon, label, initiallyOpened, children, link }: LinksGroupProps) {
+export function LinksGroup({ icon, label, initiallyOpened, children, link, rightSection }: LinksGroupProps) {
     const router = useRouter();
     const hasLinks = Array.isArray(children) && children.length > 0;
     const { toggleItem, setActiveItem } = useNavigationStore();
@@ -81,6 +82,7 @@ export function LinksGroup({ icon, label, initiallyOpened, children, link }: Lin
     return (
         <>
             <UnstyledButton
+                component="div"
                 onClick={() => {
                     if (hasLinks) {
                         toggleItem(label);
@@ -100,14 +102,20 @@ export function LinksGroup({ icon, label, initiallyOpened, children, link }: Lin
                         </ThemeIcon>
                         <Box ml="md">{label}</Box>
                     </Box>
-                    {hasLinks && (
-                        <IconChevronRight
-                            className={classes.chevron}
-                            stroke={1.5}
-                            size={16}
-                            style={{ transform: isOpen ? 'rotate(90deg)' : 'none' }}
-                        />
-                    )}
+                    <Group gap={0}>
+                        {rightSection}
+                        {hasLinks && (
+                            <IconChevronRight
+                                className={classes.chevron}
+                                stroke={1.5}
+                                size={16}
+                                style={{
+                                    transform: isOpen ? 'rotate(90deg)' : 'none',
+                                    marginLeft: rightSection ? '0.5rem' : 0
+                                }}
+                            />
+                        )}
+                    </Group>
                 </Group>
             </UnstyledButton>
             {hasLinks ? <Collapse in={isOpen}>{renderItems(children, label)}</Collapse> : null}

@@ -1,7 +1,7 @@
 "use client";
 
-import { ScrollArea } from '@mantine/core';
-import { IconAdjustmentsCog, IconFiles, IconMessageCircleQuestion, IconSettings, IconSettingsAutomation } from '@tabler/icons-react';
+import { ScrollArea, ActionIcon, Tooltip, Group, Box } from '@mantine/core';
+import { IconAdjustmentsCog, IconFiles, IconMessageCircleQuestion, IconSettings, IconSettingsAutomation, IconPlus } from '@tabler/icons-react';
 import { LinksGroup } from '../../common/navbar-links-group/NavbarLinksGroup';
 import classes from './AdminNavbar.module.css';
 
@@ -41,6 +41,28 @@ const mockData = [
     {
         label: 'Pages',
         icon: <IconFiles size="1rem" stroke={1.5} />,
+        rightSection: (
+            <Tooltip label="Create new page" position="right">
+                <Box
+                    component="div"
+                    style={{ display: 'inline-flex' }}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        // Add your create page logic here
+                        console.log('Create new page');
+                    }}
+                >
+                    <ActionIcon
+                        component="div"
+                        variant="light"
+                        size="sm"
+                        color="blue"
+                    >
+                        <IconPlus size="1rem" stroke={1.5} />
+                    </ActionIcon>
+                </Box>
+            </Tooltip>
+        ),
         children: [
             {
                 label: 'PageRoot',
