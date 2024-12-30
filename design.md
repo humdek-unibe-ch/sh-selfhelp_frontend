@@ -568,6 +568,117 @@ Query Parameters:
    - Prevents unauthorized elevation of privileges
    - Maintains separation between system and experiment permissions
 
+## Forms Actions System
+
+### Overview
+The Forms Actions System provides a powerful workflow automation tool that triggers actions based on datatable events (start, update, delete, finish). It allows administrators to create complex action chains with conditional logic, scheduling, and various job types.
+
+### Key Features
+
+1. **Action Triggers**
+   - On datatable start
+   - On datatable update
+   - On datatable delete
+   - On datatable finish
+
+2. **Block System**
+   - Conditional execution blocks
+   - Multiple jobs per block
+   - Block randomization
+   - Even presentation distribution
+   - Block naming and organization
+
+3. **Job Types**
+   - Group Management
+     - Add users to groups
+     - Remove users from groups
+   - Notifications
+     - Email notifications
+     - Push notifications
+     - Notifications with reminders
+     - Diary-specific notifications
+
+4. **Scheduling System**
+   - Immediate execution
+   - Fixed datetime scheduling
+   - Relative time scheduling (after period)
+   - Weekday-based scheduling
+   - Recurring schedules
+     - Daily repetition
+     - Weekly repetition (specific days)
+     - Monthly repetition (specific dates)
+   - Deadline-based repetition
+   - Custom time scheduling
+
+5. **Notification Features**
+   - Multiple recipient types
+   - Email configuration
+     - From email/name
+     - Reply-to address
+     - Subject and body
+     - File attachments
+   - Push notification settings
+     - Redirect URLs
+     - Custom messages
+   - Dynamic content
+     - User variables (@user, @user_name)
+     - Markdown support
+     - HTML email templates
+
+6. **Reminder System**
+   - Multiple reminders per notification
+   - Conditional reminder execution
+   - Custom scheduling intervals
+   - Validity periods
+   - Diary-specific reminder features
+
+7. **Conditional Logic**
+   - Complex condition builder
+   - JSON Logic implementation
+   - Execution conditions
+   - Reminder conditions
+   - Block-level conditions
+
+### Implementation
+
+1. **Component Structure**
+```
+/app
+  /components
+    /admin
+      /forms
+        /actions
+          FormsActionManager.tsx
+          components/
+            - ActionBuilder.tsx
+            - BlockEditor.tsx
+            - JobConfigurator.tsx
+            - ScheduleBuilder.tsx
+            - NotificationEditor.tsx
+            - ConditionBuilder.tsx
+```
+
+2. **State Management**
+   - Action configuration store
+   - Job execution status
+   - Scheduling queue
+   - Notification delivery status
+   - Reminder tracking
+
+3. **Security Considerations**
+   - Permission validation
+   - Execution logging
+   - Rate limiting
+   - Input sanitization
+   - Notification limits
+
+4. **Performance Features**
+   - Batch job processing
+   - Optimized scheduling
+   - Caching of common configurations
+   - Efficient condition evaluation
+   - Background processing
+
 ## Asset Management System
 
 ### Overview
