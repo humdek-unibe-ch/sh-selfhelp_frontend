@@ -1,7 +1,9 @@
 "use client";
 
-import { Button, TextInput, Stack, Group, Radio, Checkbox, Select, Text } from '@mantine/core';
+import { Button, TextInput, Stack, Group, Radio, Checkbox, Select, Text, Box, Badge, rem } from '@mantine/core';
 import { useForm } from '@mantine/form';
+import { useEffect, useState } from 'react';
+import { IconGripVertical } from '@tabler/icons-react';
 import { CustomModal } from '../../common/CustomModal';
 
 interface CreatePageModalProps {
@@ -19,22 +21,72 @@ interface PageFormValues {
   openAccess: boolean;
   advanced: boolean;
   urlPattern: string;
+  position: number | null;
 }
 
+// Mock data for existing pages
+const mockPages = [
+  { id: '1', content: 'Page 1', position: 10 },
+  { id: '2', content: 'Page 2', position: 20 },
+  { id: '3', content: 'Page 3', position: 30 },
+];
+
 export const CreatePageModal = ({ isOpen, onClose }: CreatePageModalProps) => {
+  const [pages, setPages] = useState(mockPages);
+  
   const form = useForm<PageFormValues>({
     initialValues: {
       keyword: '',
       pageType: 'sections',
-      headerPosition: true,
+      headerPosition: false,
       headlessPage: false,
       pageAccessType: 'mobile_and_web',
       protocols: ['GET'],
       openAccess: false,
       advanced: false,
       urlPattern: '',
+      position: null,
     },
   });
+
+  // Watch for changes in keyword and pageType to update URL pattern
+  useEffect(() => {
+    const keyword = form.values.keyword;
+    const isNavigation = form.values.pageType === 'navigation';
+    const navSuffix = isNavigation ? '/[i:nav]' : '';
+    form.setFieldValue('urlPattern', `/${keyword}${navSuffix}`);
+  }, [form.values.keyword, form.values.pageType]);
+
+  // Watch for changes in advanced mode
+  useEffect(() => {
+    const isAdvanced = form.values.advanced;
+    
+    if (!isAdvanced) {
+      form.setFieldValue('protocols', ['GET']);
+      form.setFieldValue('headlessPage', false);
+      
+      const restrictedTypes = ['component', 'custom', 'ajax'];
+      if (restrictedTypes.includes(form.values.pageType)) {
+        form.setFieldValue('pageType', 'sections');
+      }
+    }
+  }, [form.values.advanced]);
+
+  const handleDragEnd = (result: { source: { index: number }; destination?: { index: number } }) => {
+    if (!result.destination) return;
+
+    const reorderedPages = [...pages];
+    const [removed] = reorderedPages.splice(result.source.index, 1);
+    reorderedPages.splice(result.destination.index, 0, removed);
+
+    // Update positions (10, 20, 30, etc.)
+    const updatedPages = reorderedPages.map((page, index) => ({
+      ...page,
+      position: (index + 1) * 10,
+    }));
+
+    setPages(updatedPages);
+  };
 
   const handleSubmit = (values: PageFormValues) => {
     console.log('Form values:', values);
@@ -73,9 +125,21 @@ export const CreatePageModal = ({ isOpen, onClose }: CreatePageModalProps) => {
             <Group mt="xs">
               <Radio value="sections" label="Sections" />
               <Radio value="navigation" label="Navigation" />
-              <Radio value="component" label="Component" />
-              <Radio value="backend" label="Backend" />
-              <Radio value="ajax" label="Ajax" />
+              <Radio 
+                value="component" 
+                label="Component" 
+                disabled={!form.values.advanced}
+              />
+              <Radio 
+                value="backend" 
+                label="Backend" 
+                disabled={!form.values.advanced}
+              />
+              <Radio 
+                value="ajax" 
+                label="Ajax" 
+                disabled={!form.values.advanced}
+              />
             </Group>
           </Radio.Group>
 
@@ -86,12 +150,65 @@ export const CreatePageModal = ({ isOpen, onClose }: CreatePageModalProps) => {
               description="When activated, the page will appear in the header"
               {...form.getInputProps('headerPosition', { type: 'checkbox' })}
             />
-            <Checkbox
-              label="Headless Page"
-              description="A headless page will not render any header or footer"
-              {...form.getInputProps('headlessPage', { type: 'checkbox' })}
-            />
+            <Box display={form.values.advanced ? 'block' : 'none'}>
+              <Checkbox
+                label="Headless Page"
+                description="A headless page will not render any header or footer"
+                {...form.getInputProps('headlessPage', { type: 'checkbox' })}
+              />
+            </Box>
           </Group>
+
+          {/* Position Settings */}
+          {form.values.headerPosition && (
+            <Box
+              p="xs"
+              style={{
+                border: '1px solid var(--mantine-color-gray-3)',
+                borderRadius: 'var(--mantine-radius-sm)',
+              }}
+            >
+              <Text size="sm" fw={500} mb="xs">Page Order</Text>
+              <Stack spacing="xs">
+                {pages.map((page, index) => (
+                  <Group key={page.id} p="xs" style={{ 
+                    border: '1px solid var(--mantine-color-gray-2)',
+                    borderRadius: 'var(--mantine-radius-sm)',
+                    background: 'var(--mantine-color-white)',
+                  }}>
+                    <IconGripVertical 
+                      style={{ 
+                        width: rem(18), 
+                        height: rem(18),
+                        color: 'var(--mantine-color-gray-5)',
+                        cursor: 'grab',
+                      }} 
+                    />
+                    <Badge size="sm" variant="light">{page.position / 10}</Badge>
+                    <Text size="sm">{page.content}</Text>
+                  </Group>
+                ))}
+                {form.values.keyword && (
+                  <Group p="xs" style={{ 
+                    border: '1px solid var(--mantine-color-blue-2)',
+                    borderRadius: 'var(--mantine-radius-sm)',
+                    background: 'var(--mantine-color-blue-0)',
+                  }}>
+                    <IconGripVertical 
+                      style={{ 
+                        width: rem(18), 
+                        height: rem(18),
+                        color: 'var(--mantine-color-blue-5)',
+                        cursor: 'grab',
+                      }} 
+                    />
+                    <Badge size="sm" variant="light" color="blue">New</Badge>
+                    <Text size="sm">{form.values.keyword}</Text>
+                  </Group>
+                )}
+              </Stack>
+            </Box>
+          )}
 
           {/* Access Control */}
           <Select
@@ -104,39 +221,35 @@ export const CreatePageModal = ({ isOpen, onClose }: CreatePageModalProps) => {
             {...form.getInputProps('pageAccessType')}
           />
 
-          {/* Protocols */}
-          <Checkbox.Group
-            label="Protocol"
-            description="The protocol specifies how a page is accessed"
-            {...form.getInputProps('protocols')}
-          >
-            <Group mt="xs">
-              <Checkbox value="GET" label="GET" />
-              <Checkbox value="POST" label="POST" />
-              <Checkbox value="PUT" label="PUT" />
-              <Checkbox value="PATCH" label="PATCH" />
-              <Checkbox value="DELETE" label="DELETE" />
-            </Group>
-          </Checkbox.Group>
+          {/* Advanced Settings Toggle */}
+          <Checkbox
+            label="Advanced"
+            {...form.getInputProps('advanced', { type: 'checkbox' })}
+          />
 
-          {/* Access Settings */}
-          <Group grow>
-            <Checkbox
-              label="Open Access"
-              description="When activated the page will be accessible by anyone without having to log in"
-              {...form.getInputProps('openAccess', { type: 'checkbox' })}
-            />
-            <Checkbox
-              label="Advanced"
-              {...form.getInputProps('advanced', { type: 'checkbox' })}
-            />
-          </Group>
+          {/* Protocols - Only visible in advanced mode */}
+          {form.values.advanced && (
+            <Checkbox.Group
+              label="Protocol"
+              description="The protocol specifies how a page is accessed"
+              {...form.getInputProps('protocols')}
+            >
+              <Group mt="xs">
+                <Checkbox value="GET" label="GET" />
+                <Checkbox value="POST" label="POST" />
+                <Checkbox value="PUT" label="PUT" />
+                <Checkbox value="PATCH" label="PATCH" />
+                <Checkbox value="DELETE" label="DELETE" />
+              </Group>
+            </Checkbox.Group>
+          )}
 
-          {/* URL Pattern */}
+          {/* URL Pattern - Read-only unless in advanced mode */}
           <TextInput
             label="URL Pattern"
             description="This is set automatically. If you know what you are doing you may overwrite the value"
             placeholder="/page-url-pattern"
+            readOnly={!form.values.advanced}
             {...form.getInputProps('urlPattern')}
           />
 
