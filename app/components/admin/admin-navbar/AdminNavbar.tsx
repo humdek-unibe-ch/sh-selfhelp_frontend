@@ -6,40 +6,28 @@ import { LinksGroup } from '../../common/navbar-links-group/NavbarLinksGroup';
 import { CreatePagePanel } from '../pages/CreatePagePanel';
 import { useState } from 'react';
 import classes from './AdminNavbar.module.css';
+import { useAdminPages } from '@/hooks/useAdminPages';
 
 export function AdminNavbar() {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const mockData = [
+    const { structuredPages } = useAdminPages();
+
+    const navItems = [
         {
             label: 'Configuration',
             icon: <IconSettingsAutomation size="1rem" stroke={1.5} />,
             children: [
-                {
-                    label: 'Global Values',
-                    link: '/admin/pages/globals',
-                },
-                {
-                    label: 'Custom CSS',
-                    link: '/admin/pages/css',
-                }
+                { label: 'Global Values', link: '/admin/pages/globals' },
+                { label: 'Custom CSS', link: '/admin/pages/css' }
             ]
         },
         {
             label: 'System Pages',
             icon: <IconAdjustmentsCog size="1rem" stroke={1.5} />,
             children: [
-                {
-                    label: 'Login',
-                    link: '/admin/pages/login',
-                },
-                {
-                    label: 'Register',
-                    link: '/admin/pages/register',
-                },
-                {
-                    label: 'Not found',
-                    link: '/admin/pages/notfound',
-                }
+                { label: 'Login', link: '/admin/pages/login' },
+                { label: 'Register', link: '/admin/pages/register' },
+                { label: 'Not found', link: '/admin/pages/notfound' }
             ]
         },
         {
@@ -52,7 +40,6 @@ export function AdminNavbar() {
                         style={{ display: 'inline-flex' }}
                         onClick={(e) => {
                             e.stopPropagation();
-                            // Add your create page logic here
                             setIsModalOpen(true);
                         }}
                     >
@@ -67,28 +54,7 @@ export function AdminNavbar() {
                     </Box>
                 </Tooltip>
             ),
-            children: [
-                {
-                    label: 'PageRoot',
-                    // link: '/admin/pages/pageRoot',
-                    children: [
-                        { label: 'Page 1', link: '/admin/pages/page1' },
-                        { label: 'Page 2', link: '/admin/pages/page2' }
-                    ]
-                },
-                {
-                    label: 'Test',
-                    link: '/admin/pages/test'
-                },
-                {
-                    label: 'Blog',
-                    // link: '/admin/pages/blog',
-                    children: [
-                        { label: 'Posts', link: '/admin/pages/posts' },
-                        { label: 'Categories', link: '/admin/pages/categories' }
-                    ]
-                }
-            ]
+            children: structuredPages
         },
         {
             label: 'Settings',
@@ -103,16 +69,15 @@ export function AdminNavbar() {
     ];
 
     return (
-        <nav className={classes.navbar}>
-            <ScrollArea className={classes.scrollArea}>
-                <div className={classes.linksInner}>
-                    {mockData.map((item) => (
+        <>
+            <ScrollArea className={classes.navbar}>
+                <div className={classes.navbarMain}>
+                    {navItems.map((item) => (
                         <LinksGroup {...item} key={item.label} />
                     ))}
                 </div>
             </ScrollArea>
-
-            <CreatePagePanel isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-        </nav>
+            <CreatePagePanel opened={isModalOpen} onClose={() => setIsModalOpen(false)} />
+        </>
     );
 }

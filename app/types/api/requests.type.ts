@@ -13,3 +13,12 @@ export interface IPageContent {
     description: string;
     is_headless: boolean;
 }
+
+export interface IAdminPage {
+    id_pages: number;
+    keyword: string;
+    url: string;
+    parent: number | null;
+    nav_position: number | null;
+    is_headless: number;
+}

@@ -20,6 +20,7 @@ export const PageApi = {
         const response = await apiClient.get<IApiResponse<IPageContent>>(API_CONFIG.ENDPOINTS.PAGE(keyword));
         return response.data.data;
     },
+    
 
     /**
      * Updates page content for a specific keyword.
