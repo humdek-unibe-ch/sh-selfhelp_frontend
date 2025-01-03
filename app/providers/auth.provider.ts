@@ -60,7 +60,7 @@ export const authProvider: AuthBindings = {
 
             return {
                 success: true,
-                redirectTo: "/login"
+                redirectTo: "/auth/login"
             };
         } catch (error) {
             return {
@@ -83,7 +83,7 @@ export const authProvider: AuthBindings = {
                     name: "Authentication Error"
                 },
                 logout: true,
-                redirectTo: "/login"
+                redirectTo: "/auth/login"
             };
         }
 
@@ -100,7 +100,7 @@ export const authProvider: AuthBindings = {
                     name: "Authentication Error"
                 },
                 logout: true,
-                redirectTo: "/login"
+                redirectTo: "/auth/login"
             };
         }
     },
