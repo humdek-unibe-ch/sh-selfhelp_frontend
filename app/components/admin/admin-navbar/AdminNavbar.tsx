@@ -105,10 +105,6 @@ export function AdminNavbar() {
     return (
         <nav className={classes.navbar}>
             <ScrollArea className={classes.scrollArea}>
-                <Group justify="space-between" px="md" py="sm">
-                    <Box>SelfHelp</Box>
-                </Group>
-
                 <div className={classes.linksInner}>
                     {mockData.map((item) => (
                         <LinksGroup {...item} key={item.label} />
