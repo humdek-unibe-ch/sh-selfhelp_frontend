@@ -80,9 +80,41 @@ The page creation system allows users to create and configure new pages with spe
    
 4. **API Endpoints**
    ```
-   POST   /cms-api/v1/pages              # Create new page
-   GET    /cms-api/v1/pages/validate     # Validate page keyword
-   GET    /cms-api/v1/pages/types        # Get available page types
+   # Page Management
+   GET    /cms-api/v1/admin/pages        # Get all admin pages with hierarchy
+   POST   /cms-api/v1/admin/pages        # Create new page
+   GET    /cms-api/v1/admin/pages/{id}   # Get page details
+   PUT    /cms-api/v1/admin/pages/{id}   # Update page
+   DELETE /cms-api/v1/admin/pages/{id}   # Delete page
+
+   # Page Content
+   GET    /cms-api/v1/page/{keyword}     # Get page content by keyword
+   PUT    /cms-api/v1/page/{keyword}     # Update page content
+
+   Response Format:
+   {
+     "status": 200,
+     "message": "OK",
+     "error": null,
+     "logged_in": true,
+     "meta": {
+       "version": "v1",
+       "timestamp": "2025-01-03T13:05:42+01:00"
+     },
+     "data": [
+       {
+         "id_pages": number,
+         "keyword": string,
+         "url": string,
+         "protocol": string,
+         "parent": number | null,
+         "is_headless": number,
+         "nav_position": number | null,
+         "id_type": number,
+         "id_pageAccessTypes": number
+       }
+     ]
+   }
    ```
 
 ## UI/UX Design Requirements
