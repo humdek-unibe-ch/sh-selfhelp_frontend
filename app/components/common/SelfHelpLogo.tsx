@@ -1,6 +1,6 @@
 'use client';
 
-import { Group, Text } from '@mantine/core';
+import { Group, Text, useMantineColorScheme } from '@mantine/core';
 import Image from 'next/image';
 
 interface SelfHelpLogoProps {
@@ -8,10 +8,14 @@ interface SelfHelpLogoProps {
 }
 
 export function SelfHelpLogo({ size = 30 }: SelfHelpLogoProps) {
+  const { colorScheme } = useMantineColorScheme();
+  
+  const logoSrc = colorScheme === 'dark' ? '/assets/images/logo_negative.svg' : '/assets/images/logo.svg';
+
   return (
     <Group gap="xs">
       <Image 
-        src="/assets/images/logo.svg" 
+        src={logoSrc}
         alt="SelfHelp Logo" 
         width={size} 
         height={size}
@@ -25,4 +29,4 @@ export function SelfHelpLogo({ size = 30 }: SelfHelpLogoProps) {
       </Text>
     </Group>
   );
-} 
+}
