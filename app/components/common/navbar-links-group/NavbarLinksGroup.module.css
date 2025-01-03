@@ -56,8 +56,12 @@
 /* Nested children */
 .children {
     border-left: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
-    margin-left: var(--mantine-spacing-md);
-    padding-left: var(--mantine-spacing-xs);
+    margin-left: calc(var(--mantine-spacing-lg) * 1.5);
+    /* padding-left: var(--mantine-spacing-xs); */
+}
+
+.children .children{
+    margin-left: var(--mantine-spacing-lg);
 }
 
 /* Nested links */
