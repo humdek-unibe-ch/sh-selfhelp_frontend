@@ -112,23 +112,22 @@ export const CreatePagePanel = ({ isOpen, onClose }: CreatePagePanelProps) => {
           style={{
             ...styles,
             position: 'fixed',
-            top: 0,
-            left: '300px', // Position next to navbar
+            top: 'var(--mantine-header-height, 60px)',
+            left: '300px',
             bottom: 0,
             width: '400px',
-            height: '100vh',
             overflowY: 'auto',
-            zIndex: 1000,
+            zIndex: 1,
             borderLeft: '1px solid var(--mantine-color-gray-3)',
           }}
         >
           <Box p="md">
-            <Group justify="space-between" mb="lg">
-              <Text size="lg" fw={500}>Create New Page</Text>
-              <Button variant="subtle" onClick={onClose}>Close</Button>
-            </Group>
-
             <form onSubmit={form.onSubmit(handleSubmit)}>
+              <Group justify="space-between" mb="lg">
+                <Text size="lg" fw={500}>Create New Page</Text>
+                <Button variant="subtle" onClick={onClose}>Close</Button>
+              </Group>
+
               <Stack gap="md">
                 {/* Page Properties */}
                 <TextInput
