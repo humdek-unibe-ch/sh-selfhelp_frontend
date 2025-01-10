@@ -1,6 +1,9 @@
 .draggableItem {
   user-select: none;
   transition: background-color 0.2s ease;
+  position: relative !important;
+  transform-origin: 0 0;
+  contain: layout;
 }
 
 .draggableItem[data-is-dragging="true"] {
@@ -14,6 +17,7 @@
   justify-content: center;
   width: 2rem;
   color: var(--mantine-color-gray-6);
+  margin-right: var(--mantine-spacing-xs);
 }
 
 .dragHandle:hover {

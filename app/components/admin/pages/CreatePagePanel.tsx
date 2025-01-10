@@ -66,35 +66,41 @@ export const CreatePagePanel = ({ isOpen, onClose }: CreatePagePanelProps) => {
       return [...pages, newPage];
     }
 
-    const sortedPages = [...pages, newPage].sort((a, b) => a.position - b.position);
-    return sortedPages;
+    return [...pages, newPage].sort((a, b) => a.position - b.position);
   }, [pages, form.values.keyword, newPagePosition]);
 
   const handleDragEnd = (result: { source: { index: number }; destination?: { index: number } }) => {
-    if (!result.destination) return;
+    if (!result.destination || !form.values.keyword) return;
 
-    const reorderedPages = [...allPages];
-    const [removed] = reorderedPages.splice(result.source.index, 1);
-    reorderedPages.splice(result.destination.index, 0, removed);
+    const newPageIndex = allPages.findIndex(page => 'isNew' in page);
+    if (newPageIndex === -1) return;
 
-    const updatedPages = reorderedPages.map((page, index) => ({
-      ...page,
-      position: (index + 1) * 10,
-    }));
-
-    const newPageIndex = updatedPages.findIndex(page => 'isNew' in page);
-    if (newPageIndex !== -1) {
-      setNewPagePosition(updatedPages[newPageIndex].position);
+    // Calculate new position based on surrounding pages
+    const destIndex = result.destination.index;
+    const prevPage = destIndex > 0 ? allPages[destIndex - 1] : null;
+    const nextPage = destIndex < allPages.length - 1 ? allPages[destIndex] : null;
+    
+    let newPosition: number;
+    if (!prevPage) {
+      // Placing at the start
+      newPosition = nextPage ? nextPage.position / 2 : 10;
+    } else if (!nextPage) {
+      // Placing at the end
+      newPosition = prevPage.position + 10;
+    } else {
+      // Placing between two pages
+      newPosition = (prevPage.position + nextPage.position) / 2;
     }
 
-    setPages(updatedPages.filter(page => !('isNew' in page)));
+    setNewPagePosition(newPosition);
   };
 
-  const getDragHandleProps = (defaultDragHandleProps: any) => ({
+  const getDragHandleProps = (defaultDragHandleProps: any, isNewPage: boolean) => ({
     ...defaultDragHandleProps,
     style: {
       ...defaultDragHandleProps?.style,
-      cursor: 'grab'
+      cursor: isNewPage ? 'grab' : 'not-allowed',
+      color: isNewPage ? 'var(--mantine-color-blue-6)' : 'var(--mantine-color-gray-4)',
     }
   });
 
@@ -187,50 +193,68 @@ export const CreatePagePanel = ({ isOpen, onClose }: CreatePagePanelProps) => {
 
                 {/* Position Settings */}
                 {form.values.headerPosition && (
-                  <Box>
+                  <Box style={{ position: 'relative' }}>
                     <Text size="sm" fw={500} mb="xs">Page Order</Text>
                     <DragDropContext onDragEnd={handleDragEnd}>
                       <Droppable droppableId="pages">
                         {(provided) => (
-                          <Stack gap="xs" {...provided.droppableProps} ref={provided.innerRef}>
-                            {allPages.map((page, index) => (
-                              <Draggable 
-                                key={page.id} 
-                                draggableId={page.id} 
-                                index={index}
-                              >
-                                {(provided, snapshot) => (
-                                  <Group 
-                                    p="xs"
-                                    ref={provided.innerRef}
-                                    {...provided.draggableProps}
-                                    className={classes.draggableItem}
-                                    data-is-dragging={snapshot.isDragging}
-                                    style={{
-                                      ...provided.draggableProps.style,
-                                      background: 'var(--mantine-color-body)',
-                                      border: '1px solid var(--mantine-color-gray-3)',
-                                      borderRadius: 'var(--mantine-radius-sm)',
-                                      transform: snapshot.isDragging
-                                        ? `${provided.draggableProps.style?.transform} translateX(-85%)`
-                                        : provided.draggableProps.style?.transform
-                                    }}
-                                  >
-                                    <Box 
-                                      {...getDragHandleProps(provided.dragHandleProps)}
-                                      className={classes.dragHandle}
+                          <Box 
+                            {...provided.droppableProps} 
+                            ref={provided.innerRef}
+                            style={{ 
+                              position: 'relative',
+                              minHeight: '100px'
+                            }}
+                          >
+                            <Stack gap="xs">
+                              {allPages.map((page, index) => (
+                                <Draggable 
+                                  key={page.id} 
+                                  draggableId={page.id} 
+                                  index={index}
+                                  isDragDisabled={!('isNew' in page)}
+                                >
+                                  {(provided, snapshot) => (
+                                    <Group 
+                                      p="xs"
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      className={classes.draggableItem}
+                                      data-is-dragging={snapshot.isDragging}
+                                      style={{
+                                        ...provided.draggableProps.style,
+                                        background: snapshot.isDragging 
+                                          ? 'var(--mantine-color-blue-0)' 
+                                          : 'var(--mantine-color-body)',
+                                        border: '1px solid var(--mantine-color-gray-3)',
+                                        borderRadius: 'var(--mantine-radius-sm)',
+                                        opacity: ('isNew' in page) ? 1 : 0.7,
+                                        position: 'relative',
+                                        left: 'auto',
+                                        top: 'auto'
+                                      }}
                                     >
-                                      <IconGripVertical />
-                                    </Box>
-                                    <Badge size="sm">{page.position / 10}</Badge>
-                                    <Text size="sm">{page.content}</Text>
-                                    {'isNew' in page && <Badge size="sm" color="blue">New</Badge>}
-                                  </Group>
-                                )}
-                              </Draggable>
-                            ))}
-                            {provided.placeholder}
-                          </Stack>
+                                      <Box 
+                                        {...getDragHandleProps(provided.dragHandleProps, 'isNew' in page)}
+                                        className={classes.dragHandle}
+                                      >
+                                        <IconGripVertical />
+                                      </Box>
+                                      <Badge size="sm">{Math.round(page.position / 10)}</Badge>
+                                      <Text 
+                                        size="sm" 
+                                        c={('isNew' in page) ? 'blue' : 'dimmed'}
+                                      >
+                                        {page.content}
+                                      </Text>
+                                      {'isNew' in page && <Badge size="sm" color="blue">New</Badge>}
+                                    </Group>
+                                  )}
+                                </Draggable>
+                              ))}
+                              {provided.placeholder}
+                            </Stack>
+                          </Box>
                         )}
                       </Droppable>
                     </DragDropContext>
