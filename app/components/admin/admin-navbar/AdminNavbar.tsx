@@ -77,7 +77,7 @@ export function AdminNavbar() {
                     ))}
                 </div>
             </ScrollArea>
-            <CreatePagePanel opened={isModalOpen} onClose={() => setIsModalOpen(false)} />
+            <CreatePagePanel isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
         </>
     );
 }
