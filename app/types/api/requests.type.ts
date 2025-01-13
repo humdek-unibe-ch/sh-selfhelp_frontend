@@ -22,3 +22,7 @@ export interface IAdminPage {
     nav_position: number | null;
     is_headless: number;
 }
+
+export interface IAdminAccess {
+    access: boolean;
+}

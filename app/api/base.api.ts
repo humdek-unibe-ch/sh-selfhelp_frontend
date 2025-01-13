@@ -192,12 +192,6 @@ apiClient.interceptors.response.use(
             }
         }
 
-        // Update auth state if server explicitly says not logged in
-        if (error.response?.status === 401 || error.response?.data?.logged_in === false) {
-            updateAuthState(false);
-            window.location.href = '/auth/login';
-        }
-
         return Promise.reject(error);
     }
 );

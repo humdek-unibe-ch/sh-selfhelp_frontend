@@ -5,7 +5,7 @@
  * @module api/admin.api
  */
 
-import { IApiResponse, IAdminPage } from '@/types/api/requests.type';
+import { IApiResponse, IAdminPage, IAdminAccess } from '@/types/api/requests.type';
 import { apiClient } from './base.api';
 import { API_CONFIG } from '@/config/api.config';
 
@@ -17,6 +17,11 @@ export const AdminApi = {
      */
     async getAdminPages(): Promise<IAdminPage[]> {
         const response = await apiClient.get<IApiResponse<IAdminPage[]>>(API_CONFIG.ENDPOINTS.ADMIN_PAGES);
+        return response.data.data;
+    },
+
+    async getAdminAccess(): Promise<IAdminAccess> {
+        const response = await apiClient.get<IApiResponse<IAdminAccess>>(API_CONFIG.ENDPOINTS.ADMIN_ACCESS);
         return response.data.data;
     }
 };

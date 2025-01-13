@@ -15,6 +15,7 @@ export const API_CONFIG = {
         REFRESH_TOKEN: '/auth/refresh_token',
         LOGOUT: '/auth/logout',
         ADMIN_PAGES: '/admin/pages',
+        ADMIN_ACCESS: '/admin/access',
     },
     CORS_CONFIG: {
         credentials: true, // Required for cookies, authorization headers with HTTPS
