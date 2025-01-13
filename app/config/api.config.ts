@@ -4,7 +4,7 @@
  * Frontend is running at http://localhost:3000/Teilnahme
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost/selfhelp';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://84.75.194.2/selfhelp';
 
 export const API_CONFIG = {
     BASE_URL: `${API_BASE_URL}/cms-api/v1`,

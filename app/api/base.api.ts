@@ -169,6 +169,7 @@ apiClient.interceptors.response.use(
                     return apiClient(originalRequest);
                 } catch (err) {
                     updateAuthState(false);
+                    window.location.href = '/auth/login';
                     return Promise.reject(err);
                 }
             }
@@ -183,6 +184,8 @@ apiClient.interceptors.response.use(
                 return apiClient(originalRequest);
             } catch (refreshError) {
                 processQueue(refreshError, null);
+                updateAuthState(false);
+                window.location.href = '/auth/login';
                 return Promise.reject(refreshError);
             } finally {
                 isRefreshing = false;
@@ -190,8 +193,9 @@ apiClient.interceptors.response.use(
         }
 
         // Update auth state if server explicitly says not logged in
-        if (error.response?.data?.logged_in === false) {
+        if (error.response?.status === 401 || error.response?.data?.logged_in === false) {
             updateAuthState(false);
+            window.location.href = '/auth/login';
         }
 
         return Promise.reject(error);

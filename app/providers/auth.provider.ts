@@ -135,6 +135,19 @@ export const authProvider: AuthBindings = {
 
     onError: async (error) => {
         console.error(error);
+        
+        // Check if the error is an authentication error (401)
+        if (error.response?.status === 401) {
+            return {
+                error: {
+                    message: "Authentication failed. Please login again.",
+                    name: "Auth Error"
+                },
+                logout: true,
+                redirectTo: "/auth/login"
+            };
+        }
+
         return { error };
     }
 };
