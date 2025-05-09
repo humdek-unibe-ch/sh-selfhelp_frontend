@@ -23,7 +23,6 @@ export default function LoginPage() {
 
     try {
       const response = await AuthApi.login({ user, password });
-      console.log('Login response:', response);
       
       // Check if 2FA is required
       if (response.data && response.data.two_factor?.required) {
@@ -34,8 +33,16 @@ export default function LoginPage() {
         });
         // Save id_users for the 2FA verification step
         sessionStorage.setItem('two_factor_id_users', response.data.two_factor.id_users);
-        // Redirect to 2FA page with id_users in URL using API_CONFIG.ENDPOINTS
-        router.push(`${ROUTES.TWO_FACTOR_AUTH}?user=${response.data.two_factor.id_users}&redirectTo=${encodeURIComponent(redirectTo)}`);
+        
+        // Reset 2FA timer by clearing the storage keys
+        sessionStorage.removeItem('2fa_time_remaining');
+        sessionStorage.removeItem('2fa_last_update');
+        
+        // Set flag to indicate a fresh login with new 2FA code
+        sessionStorage.setItem('2fa_fresh_login', 'true');
+        
+        // Redirect to 2FA page
+        router.push(`${ROUTES.TWO_FACTOR_AUTH}`);
         return;
       }
       
