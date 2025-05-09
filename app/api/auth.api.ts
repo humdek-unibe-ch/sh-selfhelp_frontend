@@ -28,12 +28,12 @@ export const AuthApi = {
         }
 
         // If not logged in and not requiring 2FA, it's a login failure
-        if (!response.data.logged_in && !response.data.data['2fa']) {
+        if (!response.data.logged_in && !response.data.data.two_factor) {
             throw new Error('Login failed');
         }
 
         // If 2FA is required, return the response without storing tokens
-        if (response.data.data['2fa']) {
+        if (response.data.data.two_factor) {
             return response.data;
         }
 
@@ -73,7 +73,7 @@ export const AuthApi = {
     async verifyTwoFactor(twoFactorData: ITwoFactorRequest): Promise<ITwoFactorResponse> {
         const response = await apiClient.post<ITwoFactorResponse>(
             API_CONFIG.ENDPOINTS.TWO_FACTOR_VERIFY,
-            twoFactorData
+            twoFactorData,
         );
 
         if (response.data.error) {

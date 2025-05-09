@@ -15,9 +15,8 @@ export default function TwoFactorAuthenticationPage() {
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirectTo') || '/home';
   
-  // For demonstration purposes, we'll use a temporary session ID
-  // In a real implementation, this would come from the login response
-  const tempSessionId = 'temp-session-id';
+  // Get id_users from URL or sessionStorage
+  const userId = searchParams.get('user') || sessionStorage.getItem('two_factor_id_users') || '';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +26,7 @@ export default function TwoFactorAuthenticationPage() {
       // In a real implementation, we would use the actual session ID from the login response
       const twoFactorData: ITwoFactorRequest = {
         code,
-        session: tempSessionId
+        id_users: userId
       };
       
       const response = await AuthApi.verifyTwoFactor(twoFactorData);

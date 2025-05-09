@@ -3,6 +3,11 @@ export interface ILoginRequest {
     password: string;
 }
 
+export interface ITwoFactorData {
+    required: boolean;
+    id_users: string;
+}
+
 export interface ILoginResponse {
     status: number;
     message: string;
@@ -17,7 +22,7 @@ export interface ILoginResponse {
         refresh_token?: string;
         expires_in?: number;
         token_type?: string;
-        '2fa'?: boolean;
+        two_factor?: ITwoFactorData;
     };
 }
 
@@ -52,7 +57,7 @@ export interface IAuthState {
 
 export interface ITwoFactorRequest {
     code: string;
-    session: string;
+    id_users: string;
 }
 
 export interface ITwoFactorResponse {

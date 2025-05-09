@@ -6,6 +6,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { notifications } from '@mantine/notifications';
 import { ILoginRequest, ILoginResponse } from '@/types/api/auth.type';
 import { AuthApi } from '@/api/auth.api';
+import { API_CONFIG } from '@/config/api.config';
+import { ROUTES } from '@/config/routes.config';
 
 export default function LoginPage() {
   const [user, setUser] = useState('');
@@ -24,14 +26,16 @@ export default function LoginPage() {
       console.log('Login response:', response);
       
       // Check if 2FA is required
-      if (response.data && response.data['2fa']) {
+      if (response.data && response.data.two_factor?.required) {
         notifications.show({
           title: 'Two-Factor Authentication',
           message: 'Please verify your identity',
           color: 'blue',
         });
-        // Redirect to 2FA page with the redirect path
-        router.push(`/auth/two-factor-authentication?redirectTo=${encodeURIComponent(redirectTo)}`);
+        // Save id_users for the 2FA verification step
+        sessionStorage.setItem('two_factor_id_users', response.data.two_factor.id_users);
+        // Redirect to 2FA page with id_users in URL using API_CONFIG.ENDPOINTS
+        router.push(`${ROUTES.TWO_FACTOR_AUTH}?user=${response.data.two_factor.id_users}&redirectTo=${encodeURIComponent(redirectTo)}`);
         return;
       }
       
