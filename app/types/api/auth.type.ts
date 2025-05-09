@@ -8,11 +8,16 @@ export interface ILoginResponse {
     message: string;
     error: string | null;
     logged_in: boolean;
+    meta: {
+        version: string;
+        timestamp: string;
+    };
     data: {
-        access_token: string;
-        refresh_token: string;
-        expires_in: number;
-        token_type: string;
+        access_token?: string;
+        refresh_token?: string;
+        expires_in?: number;
+        token_type?: string;
+        '2fa'?: boolean;
     };
 }
 
@@ -41,4 +46,45 @@ export interface IAuthState {
     accessToken: string | null;
     refreshToken: string | null;
     expiresIn: number | null;
+    requiresTwoFactor: boolean;
+    redirectPath: string | null;
+}
+
+export interface ITwoFactorRequest {
+    code: string;
+    session: string;
+}
+
+export interface ITwoFactorResponse {
+    status: number;
+    message: string;
+    error: string | null;
+    logged_in: boolean;
+    meta: {
+        version: string;
+        timestamp: string;
+    };
+    data: {
+        access_token: string;
+        refresh_token: string;
+        expires_in: number;
+        token_type: string;
+        redirect_to?: string;
+    };
+}
+
+export interface ITwoFactorSetupResponse {
+    status: number;
+    message: string;
+    error: string | null;
+    logged_in: boolean;
+    meta: {
+        version: string;
+        timestamp: string;
+    };
+    data: {
+        method: '2fa_app' | '2fa_sms' | '2fa_email';
+        session: string;
+        contact?: string; // Partially masked email or phone number for SMS/email methods
+    };
 }

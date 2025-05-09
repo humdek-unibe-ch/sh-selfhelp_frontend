@@ -2,35 +2,54 @@
 
 import { useState } from 'react';
 import { TextInput, PasswordInput, Button, Paper, Title, Container } from '@mantine/core';
-import { useLogin } from "@refinedev/core";
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { notifications } from '@mantine/notifications';
-import { ILoginRequest } from '@/types/api/auth.type';
+import { ILoginRequest, ILoginResponse } from '@/types/api/auth.type';
+import { AuthApi } from '@/api/auth.api';
 
 export default function LoginPage() {
   const [user, setUser] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  
-  const { mutateAsync: login, isLoading } = useLogin<ILoginRequest>();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirectTo') || '/home';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
     try {
-      await login({ user, password });
+      const response = await AuthApi.login({ user, password });
+      console.log('Login response:', response);
+      
+      // Check if 2FA is required
+      if (response.data && response.data['2fa']) {
+        notifications.show({
+          title: 'Two-Factor Authentication',
+          message: 'Please verify your identity',
+          color: 'blue',
+        });
+        // Redirect to 2FA page with the redirect path
+        router.push(`/auth/two-factor-authentication?redirectTo=${encodeURIComponent(redirectTo)}`);
+        return;
+      }
+      
       notifications.show({
         title: 'Success',
         message: 'Successfully logged in',
         color: 'green',
       });
-      router.push('/home');
+      router.push(redirectTo);
     } catch (error) {
+      console.error('Login error:', error);
       notifications.show({
         title: 'Error',
-        message: 'Invalid credentials',
+        message: error instanceof Error ? error.message : 'Invalid credentials',
         color: 'red',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
