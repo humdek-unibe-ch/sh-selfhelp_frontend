@@ -11,6 +11,7 @@ export default function TwoFactorAuthenticationPage() {
     const [code, setCode] = useState<string[]>(['', '', '', '', '', '']);
     const [isLoading, setIsLoading] = useState(false);
     const [timer, setTimer] = useState(600); // 10 minutes in seconds
+    const [errorMessage, setErrorMessage] = useState<string>('');
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
     // Timer initialization and management
@@ -110,6 +111,8 @@ export default function TwoFactorAuthenticationPage() {
     // Original handleSubmit function - now just calls submitCode with current state
     const handleSubmit = async () => {
         console.log('handleSubmit called with current code state:', code);
+        // Clear any previous error message
+        setErrorMessage('');
         submitCode(code);
     };
     
@@ -146,15 +149,24 @@ export default function TwoFactorAuthenticationPage() {
             const redirectPath = response.data.redirect_to || redirectTo;
             router.push(redirectPath);
         } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : 'The verification code is incorrect. Please try again.';
+            
+            // Show notification
             notifications.show({
                 title: 'Invalid code',
-                message: error instanceof Error ? error.message : 'The verification code is incorrect. Please try again.',
+                message: errorMsg,
                 color: 'red',
             });
-
+            
+            // Set error message in UI
+            setErrorMessage(errorMsg);
+            
             // Clear the code and refocus first input
             setCode(['', '', '', '', '', '']);
             setTimeout(() => inputsRef.current[0]?.focus(), 100);
+            
+            // Clear error message after 5 seconds
+            setTimeout(() => setErrorMessage(''), 5000);
         } finally {
             setIsLoading(false);
         }
@@ -259,6 +271,12 @@ export default function TwoFactorAuthenticationPage() {
                 <Text size="sm" mb="lg" ta="center">
                     Please enter the 6-digit code sent to your email
                 </Text>
+                
+                {errorMessage && (
+                    <Text size="sm" mb="md" ta="center" c="red" fw={500}>
+                        {errorMessage}
+                    </Text>
+                )}
 
                 <form autoComplete="off" onSubmit={e => e.preventDefault()}>
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '16px' }}>
