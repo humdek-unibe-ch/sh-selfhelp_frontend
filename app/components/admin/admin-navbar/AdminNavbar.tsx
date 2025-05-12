@@ -3,10 +3,10 @@
 import { ScrollArea, ActionIcon, Tooltip, Group, Box } from '@mantine/core';
 import { IconAdjustmentsCog, IconFiles, IconMessageCircleQuestion, IconSettings, IconSettingsAutomation, IconPlus } from '@tabler/icons-react';
 import { LinksGroup } from '../../common/navbar-links-group/NavbarLinksGroup';
-import { CreatePagePanel } from '../pages/CreatePagePanel';
-import { useState } from 'react';
+import { CreatePageModal } from '../pages/create-page/CreatePage';
 import classes from './AdminNavbar.module.css';
 import { useAdminPages } from '@/hooks/useAdminPages';
+import { useState } from 'react';
 
 export function AdminNavbar() {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -77,7 +77,7 @@ export function AdminNavbar() {
                     ))}
                 </div>
             </ScrollArea>
-            <CreatePagePanel isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+            <CreatePageModal opened={isModalOpen} onClose={() => setIsModalOpen(false)} />
         </>
     );
 }
