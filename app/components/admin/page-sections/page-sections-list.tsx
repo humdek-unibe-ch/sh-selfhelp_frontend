@@ -108,9 +108,9 @@ export function PageSectionsList() {
       <ScrollArea h={500} offsetScrollbars>
         <Stack gap="md">
           {Array.isArray(data) ? (
-            data.map((section: IPageField) => (
+            data.map((section: IPageField, index: number) => (
               <SectionItem 
-                key={section.id} 
+                key={`${section.id}-${section.path}-${index}`} 
                 section={section} 
                 isTopLevel={true}
               />

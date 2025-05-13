@@ -102,9 +102,9 @@ export function SectionItem({ section, isTopLevel = false, level = 0 }: SectionI
       {/* Render children if expanded */}
       {hasChildren && expanded && (
         <Stack gap="xs" mt="xs">
-          {section.children.map((child) => (
+          {section.children.map((child, index) => (
             <SectionItem 
-              key={child.id} 
+              key={`${child.id}-${child.path}-${index}`} 
               section={child} 
               isTopLevel={false} 
               level={level + 1} 
