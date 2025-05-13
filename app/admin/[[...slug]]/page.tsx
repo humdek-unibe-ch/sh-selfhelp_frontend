@@ -25,7 +25,7 @@ import {
   IconEye,
   IconDeviceFloppy
 } from '@tabler/icons-react';
-import { PageSections } from '@/components/admin/page-sections';
+import { PageSectionsList } from '@/components/admin/page-sections';
 
 export default function AdminPage() {
   const params = useParams();
@@ -50,7 +50,7 @@ export default function AdminPage() {
         </Group>
         
         {/* Sections Container */}
-        <PageSections />
+        <PageSectionsList />
       </Box>
       
       {/* Right Sidebar - Properties Panel */}

@@ -37,5 +37,18 @@ export const AdminApi = {
             API_CONFIG.ENDPOINTS.ADMIN_PAGE_FIELDS(keyword)
         );
         return response.data.data;
+    },
+
+    /**
+     * Fetches page sections for a specific page by keyword.
+     * @param {string} keyword - The page keyword to fetch sections for
+     * @returns {Promise<IPageField[]>} Array of page sections with nested structure
+     * @throws {Error} When API request fails
+     */
+    async getPageSections(keyword: string): Promise<IPageField[]> {
+        const response = await apiClient.get<IPageFieldsResponse>(
+            API_CONFIG.ENDPOINTS.ADMIN_PAGE_SECTIONS(keyword)
+        );
+        return response.data.data;
     }
 };

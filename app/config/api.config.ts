@@ -19,6 +19,7 @@ export const API_CONFIG = {
         ADMIN_PAGES: '/admin/pages',
         ADMIN_ACCESS: '/admin/access',
         ADMIN_PAGE_FIELDS: (keyword: string) => `/admin/page_fields/${keyword}`,
+        ADMIN_PAGE_SECTIONS: (keyword: string) => `/admin/page_sections/${keyword}`,
     },
     CORS_CONFIG: {
         credentials: true, // Required for cookies, authorization headers with HTTPS
