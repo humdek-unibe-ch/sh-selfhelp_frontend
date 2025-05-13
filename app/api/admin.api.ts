@@ -6,6 +6,7 @@
  */
 
 import { IApiResponse, IAdminPage, IAdminAccess } from '@/types/api/requests.type';
+import { IPageFieldsResponse, IPageField } from '@/types/api/page-fields.type';
 import { apiClient } from './base.api';
 import { API_CONFIG } from '@/config/api.config';
 
@@ -22,6 +23,19 @@ export const AdminApi = {
 
     async getAdminAccess(): Promise<IAdminAccess> {
         const response = await apiClient.get<IApiResponse<IAdminAccess>>(API_CONFIG.ENDPOINTS.ADMIN_ACCESS);
+        return response.data.data;
+    },
+
+    /**
+     * Fetches page fields for a specific page by keyword.
+     * @param {string} keyword - The page keyword to fetch fields for
+     * @returns {Promise<IPageFieldsResponse>} Page fields response
+     * @throws {Error} When API request fails
+     */
+    async getPageFields(keyword: string): Promise<IPageField[]> {
+        const response = await apiClient.get<IPageFieldsResponse>(
+            API_CONFIG.ENDPOINTS.ADMIN_PAGE_FIELDS(keyword)
+        );
         return response.data.data;
     }
 };

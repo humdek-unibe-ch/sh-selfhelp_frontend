@@ -18,6 +18,7 @@ export const API_CONFIG = {
         TWO_FACTOR_VERIFY: '/auth/two_factor_verify',
         ADMIN_PAGES: '/admin/pages',
         ADMIN_ACCESS: '/admin/access',
+        ADMIN_PAGE_FIELDS: (keyword: string) => `/admin/page_fields/${keyword}`,
     },
     CORS_CONFIG: {
         credentials: true, // Required for cookies, authorization headers with HTTPS

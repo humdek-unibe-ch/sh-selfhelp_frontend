@@ -19,17 +19,13 @@ import {
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { 
-  IconPlus, 
-  IconTrash, 
-  IconCopy, 
-  IconArrowUp, 
-  IconArrowDown,
   IconChevronRight,
   IconChevronDown,
   IconSettings,
   IconEye,
   IconDeviceFloppy
 } from '@tabler/icons-react';
+import { PageSections } from '@/components/admin/page-sections';
 
 export default function AdminPage() {
   const params = useParams();
@@ -39,13 +35,7 @@ export default function AdminPage() {
   const [contentOpened, { toggle: toggleContent }] = useDisclosure(true);
   const [propertiesOpened, { toggle: toggleProperties }] = useDisclosure(true);
   
-  // Mock sections data (will be dynamic in the future)
-  const mockSections = [
-    { id: 1, title: 'Header Section' },
-    { id: 2, title: 'Introduction Text' },
-    { id: 3, title: 'Image Gallery' },
-    { id: 4, title: 'Contact Form' },
-  ];
+  // Page sections are now loaded via the PageSections component
 
   return (
     <Flex style={{ height: 'calc(100vh - var(--mantine-header-height, 60px))' }}>
@@ -60,38 +50,7 @@ export default function AdminPage() {
         </Group>
         
         {/* Sections Container */}
-        <Paper p="md" withBorder mb="md">
-          <Group justify="space-between" mb="md">
-            <Title order={4}>Page Sections</Title>
-            <Button leftSection={<IconPlus size={16} />} size="xs">Add Section</Button>
-          </Group>
-          
-          <ScrollArea h={500} offsetScrollbars>
-            <Stack gap="md">
-              {mockSections.map((section) => (
-                <Paper key={section.id} withBorder p="md" shadow="xs">
-                  <Group justify="space-between" wrap="nowrap">
-                    <Text fw={500}>{section.title}</Text>
-                    <Group gap="xs">
-                      <ActionIcon variant="subtle" size="sm">
-                        <IconArrowUp size={16} />
-                      </ActionIcon>
-                      <ActionIcon variant="subtle" size="sm">
-                        <IconArrowDown size={16} />
-                      </ActionIcon>
-                      <ActionIcon variant="subtle" size="sm">
-                        <IconCopy size={16} />
-                      </ActionIcon>
-                      <ActionIcon variant="subtle" color="red" size="sm">
-                        <IconTrash size={16} />
-                      </ActionIcon>
-                    </Group>
-                  </Group>
-                </Paper>
-              ))}
-            </Stack>
-          </ScrollArea>
-        </Paper>
+        <PageSections />
       </Box>
       
       {/* Right Sidebar - Properties Panel */}
