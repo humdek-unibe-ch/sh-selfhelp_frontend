@@ -1,0 +1,220 @@
+# Frontend Architecture Guidelines
+
+## 1. Introduction
+
+This document outlines the frontend architecture for the SH-Self-help project. The frontend is built using Next.js (App Router), React, Refine.dev, Mantine UI v7, Tailwind CSS, and TanStack React Query v5. The goal is to create a scalable, maintainable, and performant application by adhering to modern best practices.
+
+## 2. Core Principles
+
+*   **Modularity**: Break down the application into small, reusable, and independent modules/components.
+*   **Separation of Concerns**: Keep UI, business logic, and data fetching concerns separate.
+*   **React Server Components (RSC)**: Prioritize RSCs for improved performance. Minimize 'use client'.
+*   **Declarative Programming**: Use declarative patterns, especially in JSX and state management.
+*   **Type Safety**: Leverage TypeScript for robust and error-free code.
+*   **Mobile-First Responsive Design**: Ensure the application looks and works well on all screen sizes.
+*   **Performance**: Optimize for Web Vitals (LCP, CLS, FID).
+*   **Accessibility (a11y)**: Build inclusive interfaces.
+
+## 3. Directory Structure
+
+A clear directory structure is crucial for organization and scalability.
+
+```
+/
+├── public/                     # Static assets (images, fonts, etc.)
+├── src/
+│   ├── app/                    # Next.js App Router: Pages and layouts
+│   │   ├── (auth)/             # Route group for authentication pages
+│   │   │   ├── login/
+│   │   │   │   └── page.tsx
+│   │   │   └── layout.tsx
+│   │   ├── (main)/             # Route group for main application pages
+│   │   │   ├── dashboard/
+│   │   │   │   └── page.tsx
+│   │   │   ├── [keyword]/      # Dynamic route for content pages
+│   │   │   │   └── page.tsx
+│   │   │   └── layout.tsx      # Main application layout
+│   │   ├── _components/        # Private components for specific routes/layouts in `app`
+│   │   ├── api/                # Next.js API routes (if needed for BFF pattern)
+│   │   ├── layout.tsx          # Root layout
+│   │   └── global.css          # Global styles (Tailwind base, Mantine core)
+│   ├── components/             # Shared, reusable UI components
+│   │   ├── ui/                 # Generic UI elements (Button, Card, Modal etc.)
+│   │   │   ├── button/
+│   │   │   │   └── button.tsx
+│   │   │   └── ...
+│   │   ├── layout/             # Layout components (Navbar, Footer, Sidebar etc.)
+│   │   │   ├── navbar/
+│   │   │   │   └── navbar.tsx
+│   │   │   └── ...
+│   │   ├── forms/              # Form-related components
+│   │   └── ...                 # Other shared component categories
+│   ├── config/                 # Application configuration (constants, settings)
+│   │   └── index.ts
+│   ├── hooks/                  # Custom React hooks
+│   │   └── use-example.ts
+│   ├── lib/                    # Utility functions, helper modules
+│   │   ├── query-client.ts     # TanStack Query client setup
+│   │   ├── mantine-provider.tsx # Mantine theme and provider setup
+│   │   └── utils.ts
+│   ├── providers/              # React Context providers
+│   │   └── theme-provider.tsx
+│   ├── services/               # API interaction layer (data fetching functions)
+│   │   ├── auth-service.ts
+│   │   └── content-service.ts
+│   ├── store/                  # Client-side state management (e.g., Zustand, if needed beyond URL state)
+│   ├── styles/                 # Additional global styles or theme overrides
+│   └── types/                  # TypeScript type definitions and interfaces
+│       ├── index.ts
+│       └── api.ts              # API response/request types
+├── .env.local                  # Environment variables (local)
+├── .eslintrc.json              # ESLint configuration
+├── next.config.mjs             # Next.js configuration
+├── package.json
+├── postcss.config.js           # PostCSS configuration (for Tailwind)
+├── tailwind.config.ts          # Tailwind CSS configuration
+└── tsconfig.json               # TypeScript configuration
+```
+
+**Key Points:**
+*   **`src` directory**: Centralizes all source code.
+*   **`app` directory**: For Next.js 13+ App Router. Route groups `(auth)` and `(main)` help organize sections without affecting URL paths.
+*   **`components` directory**:
+    *   **`ui`**: Dumb, presentational components.
+    *   **`layout`**: Components defining page structure.
+    *   Organize by feature or type as the application grows.
+*   **`_components` (underscore prefix)**: For components co-located with routes/layouts that are not intended to be shared globally.
+*   **`services` directory**: Houses functions that interact with the backend API. These functions will be used by TanStack React Query.
+
+## 4. Component Strategy
+
+*   **Functional Components**: Use functional components with TypeScript interfaces for props.
+*   **Named Exports**: Prefer named exports for components.
+*   **File Structure**:
+    1.  Exported component (main component).
+    2.  Sub-components (if any, used only by the main component).
+    3.  Helper functions specific to the component.
+    4.  Static content/data used by the component.
+    5.  Type definitions/interfaces for the component's props and state.
+*   **Naming**: `new-component.tsx` in `app/components/feature-or-type/new-component/`.
+*   **Minimize `use client`**:
+    *   Default to Server Components.
+    *   Use `'use client'` only for components requiring interactivity, browser APIs, or React hooks like `useState`, `useEffect`.
+    *   Keep client components small and push them to the leaves of the component tree.
+    *   Wrap client components in `<Suspense>` with a fallback UI where appropriate.
+*   **Dynamic Loading**: Use `next/dynamic` for non-critical components or large components to improve initial load time.
+*   **Props Drilling vs. Context**: For deeply nested state, prefer React Context or a dedicated state management library over excessive props drilling. However, for server state, TanStack Query should be the primary tool.
+
+## 5. State Management
+
+*   **Server State**: Managed by **TanStack React Query (v5)**.
+    *   Handles caching, background updates, stale-while-revalidate, mutations, etc.
+    *   Centralize query keys and mutation functions.
+*   **URL State**: Managed by **`nuqs`** for state that should be reflected in the URL (filters, sorting, pagination, tabs).
+*   **Client State (UI State)**:
+    *   **`useState` / `useReducer`**: For simple, local component state.
+    *   **React Context**: For global UI state that doesn't fit TanStack Query or URL state (e.g., theme, user preferences not tied to API).
+    *   **Zustand (Optional)**: If complex global client state management is needed, Zustand is a lightweight option. Avoid if not strictly necessary.
+*   **Refine.dev State**: Refine manages its own internal state for data providers, resources, etc. Integrate with it as per its documentation.
+
+## 6. Data Fetching
+
+*   **TanStack React Query**: Primary tool for all interactions with the backend API.
+    *   Define custom hooks (e.g., `useGetPageContent(keyword)`) that encapsulate `useQuery`.
+    *   Place API call functions in the `src/services/` directory.
+    *   Example: `src/services/content-service.ts` would contain `fetchPageContent(keyword)`.
+*   **API Service Layer**: Abstract API calls into functions within `src/services/`. These functions will be consumed by TanStack React Query hooks.
+    ```typescript
+    // src/services/content-service.ts
+    import { apiClient } from './api-client'; // Your configured Axios instance or fetch wrapper
+
+    interface PageData { /* ... */ }
+
+    export async function getPageByKeyword(keyword: string): Promise<PageData> {
+      const response = await apiClient.get(`/api/v1/content/page/${keyword}`);
+      return response.data.data; // Assuming backend structure
+    }
+    ```
+*   **Error Handling**: Implement robust error handling within API service functions and `onError` callbacks in `useQuery`/`useMutation`.
+*   **Authentication**:
+    *   Store JWT tokens securely (e.g., httpOnly cookies if using BFF, or in memory/secure storage for client-side handling if directly calling external API).
+    *   Implement token refresh logic. Axios interceptors can be useful here.
+    *   Set `X-Client-Type: web` header for all requests.
+
+## 7. Routing
+
+*   **Next.js App Router**: Utilize file-system based routing within the `src/app` directory.
+*   **Layouts**: Use `layout.tsx` for shared UI between multiple routes.
+*   **Route Groups**: Use `(groupName)` to organize routes without affecting URL paths.
+*   **Dynamic Routes**: Use `[paramName]` folders for dynamic segments.
+*   **Loading UI**: Use `loading.tsx` for route-specific loading states with Suspense.
+*   **Error Handling**: Use `error.tsx` for route-specific error boundaries.
+
+## 8. Styling
+
+*   **Mantine UI v7**: Primary component library.
+    *   Customize the Mantine theme in `src/lib/mantine-provider.tsx`.
+    *   Utilize Mantine components for consistency and accessibility.
+*   **Tailwind CSS**: For utility-first styling and custom layouts.
+    *   Configure in `tailwind.config.ts`.
+    *   Use Tailwind classes for fine-grained control and responsive design.
+*   **Integration**: Mantine and Tailwind can coexist. Use Mantine for core components and structure, Tailwind for utility styling and overrides where needed. Ensure PostCSS setup is correct.
+*   **Global Styles**: In `src/app/global.css`, include Tailwind base styles, Mantine core styles, and any other global styles.
+*   **Responsive Design**: Employ a mobile-first approach using Tailwind's responsive prefixes (sm, md, lg, xl).
+
+## 9. Refine.dev Integration
+
+*   **Data Provider**: Configure Refine's data provider to use your TanStack Query hooks and API service functions. This will map Refine's data operations (getList, getOne, create, update, delete) to your backend.
+*   **Resources**: Define resources in Refine corresponding to your backend entities.
+*   **Auth Provider**: Implement Refine's auth provider for handling login, logout, permissions, etc., integrating with your authentication service.
+*   **Components**: Leverage Refine's headless components (`useTable`, `useForm`, etc.) and integrate them with Mantine UI components for the presentation layer.
+*   **Live Provider (Optional)**: If real-time updates are needed, configure a live provider.
+
+## 10. Type Safety
+
+*   **TypeScript Everywhere**: Write all code in TypeScript.
+*   **Interfaces over Types**: Prefer interfaces for defining object shapes and props, use types for unions or more complex type manipulations.
+*   **API Types**: Define types/interfaces for all API request payloads and responses in `src/types/api.ts` or similar. These should align with the backend's data structures.
+*   **Shared Types**: If backend types are available (e.g., via an OpenAPI spec or shared monorepo), use them to ensure consistency.
+
+## 11. Testing
+
+*   **Unit Tests**: Use Jest and React Testing Library for testing individual components, hooks, and utility functions.
+*   **Integration Tests**: Test interactions between multiple components or modules.
+*   **End-to-End Tests (Optional but Recommended)**: Use Playwright or Cypress for testing user flows across the application.
+*   **Mocking**: Mock API calls (e.g., using `msw` - Mock Service Worker) for testing data fetching and mutations.
+
+## 12. Linting and Formatting
+
+*   **ESLint**: Enforce code style and catch potential errors. Configure with Next.js and TypeScript plugins.
+*   **Prettier**: For automatic code formatting.
+*   **Husky & lint-staged**: Use pre-commit hooks to run linters and formatters automatically.
+
+## 13. Expansion Guidelines
+
+*   **Adding a New Page/Route**:
+    1.  Create a new folder in `src/app/` (e.g., `src/app/(main)/new-feature/page.tsx`).
+    2.  If it requires a specific layout, add `layout.tsx` in the same folder.
+    3.  Develop components specific to this page in `src/app/(main)/new-feature/_components/` or use shared components from `src/components/`.
+    4.  Define data fetching needs using TanStack Query and new functions in `src/services/`.
+*   **Adding a New Shared Component**:
+    1.  Create a new folder in `src/components/ui/` or `src/components/layout/` (or a new category if needed).
+    2.  Follow component structure and naming conventions.
+    3.  Ensure it's reusable and well-documented with props.
+*   **Adding a New API Interaction**:
+    1.  Define request/response types in `src/types/`.
+    2.  Add a new function in the relevant service file in `src/services/`.
+    3.  Create a new custom hook using `useQuery` or `useMutation` that utilizes this service function.
+*   **State Management**:
+    *   Prioritize TanStack Query for server state.
+    *   Use `nuqs` for URL state.
+    *   Only resort to local state (`useState`) or context/Zustand for pure UI state not covered by the above.
+
+## 14. Backend API Considerations (from backend.md)
+
+*   All requests must include `X-Client-Type: web` header.
+*   Authentication uses JWT (access + refresh tokens). Implement secure storage and refresh mechanism.
+*   API responses follow a standard format: `{ status, message, error, logged_in, meta, data }`. Ensure data fetching logic correctly unwraps the `data` field.
+*   Handle API errors (400, 401, 403, 404, 500) gracefully, providing user feedback.
+
+This architecture provides a solid foundation. It should be treated as a living document and updated as the project evolves.

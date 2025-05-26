@@ -32,9 +32,9 @@ export const authProvider: AuthBindings = {
             }
 
             const { access_token, refresh_token, expires_in } = response.data.data;
-            localStorage.setItem("access_token", access_token);
-            localStorage.setItem("refresh_token", refresh_token);
-            localStorage.setItem("expires_in", expires_in.toString());
+            localStorage.setItem("access_token", access_token ?? "");
+            localStorage.setItem("refresh_token", refresh_token ?? "");
+            localStorage.setItem("expires_in", expires_in?.toString() ?? "");
 
             return {
                 success: true,

@@ -17,7 +17,7 @@ export const NavigationApi = {
      * @throws {Error} When API request fails
      */
     async getRoutes(): Promise<INavigationItem[]> {
-        const response = await apiClient.get<IApiResponse<INavigationItem[]>>(API_CONFIG.ENDPOINTS.ALL_ROUTES);
+        const response = await apiClient.get<IApiResponse<INavigationItem[]>>(API_CONFIG.ENDPOINTS.PAGES);
         return response.data.data;
     }
 };

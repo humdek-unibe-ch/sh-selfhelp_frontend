@@ -48,23 +48,6 @@ export const AuthApi = {
     },
 
     /**
-     * Gets the two-factor authentication setup information.
-     * @returns {Promise<ITwoFactorSetupResponse>} Response containing 2FA method and session
-     * @throws {Error} When 2FA setup fails
-     */
-    async getTwoFactorSetup(): Promise<ITwoFactorSetupResponse> {
-        const response = await apiClient.get<ITwoFactorSetupResponse>(
-            API_CONFIG.ENDPOINTS.TWO_FACTOR_SETUP
-        );
-
-        if (response.data.error) {
-            throw new Error(response.data.error);
-        }
-
-        return response.data;
-    },
-
-    /**
      * Verifies a two-factor authentication code.
      * @param {ITwoFactorRequest} twoFactorData - 2FA verification data including code and session
      * @returns {Promise<ITwoFactorResponse>} Response containing authentication tokens and redirect info
