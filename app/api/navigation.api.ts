@@ -7,17 +7,16 @@
 
 import { apiClient } from './base.api';
 import { API_CONFIG } from '@/config/api.config';
-import { IPage } from '@/types/api/pages.type';
 import { IBaseApiResponse } from '@/types/responses/common/response-envelope.types';
-import { IFrontendPagesData } from '@/types/responses/frontend/frontend.types';
+import { IFrontendPagesData, IPageItem } from '@/types/responses/frontend/frontend.types';
 
 export const NavigationApi = {
     /**
      * Fetches all available routes and navigation items from the API.
-     * @returns {Promise<IPage[]>} Array of navigation items
+     * @returns {Promise<IPageItem[]>} Array of navigation items
      * @throws {Error} When API request fails
      */
-    async getPages(): Promise<IPage[]> {
+    async getPages(): Promise<IPageItem[]> {
         const response = await apiClient.get<IBaseApiResponse<IFrontendPagesData>>(API_CONFIG.ENDPOINTS.PAGES);
         return response.data.data.pages;
     }

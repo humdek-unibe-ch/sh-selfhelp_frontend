@@ -29,7 +29,7 @@ export const AuthApi = {
         }
 
         // Check if 2FA is required
-        if ('id_users' in response.data.data) {
+        if ('requires_2fa' in response.data.data) {
             return response.data as ITwoFactorRequiredResponse;
         }
 

@@ -5,7 +5,7 @@ import { Button, Paper, Title, Container, Text, Group, Box } from '@mantine/core
 import { useRouter, useSearchParams } from 'next/navigation';
 import { notifications } from '@mantine/notifications';
 import { AuthApi } from '@/api/auth.api';
-import { ITwoFactorRequest, ITwoFactorResponse } from '@/types/api/auth.type';
+import { ITwoFactorVerifyRequest } from '@/types/requests/auth/auth.types';
 
 export default function TwoFactorAuthenticationPage() {
     const [code, setCode] = useState<string[]>(['', '', '', '', '', '']);
@@ -130,9 +130,9 @@ export default function TwoFactorAuthenticationPage() {
         setIsLoading(true);
 
         try {
-            const twoFactorData: ITwoFactorRequest = {
+            const twoFactorData: ITwoFactorVerifyRequest = {
                 code: codeString,
-                id_users: userId
+                id_users: Number(userId)
             };
             console.log('twoFactorData', twoFactorData);
 
@@ -146,7 +146,7 @@ export default function TwoFactorAuthenticationPage() {
                 color: 'green',
             });
 
-            const redirectPath = response.data.redirect_to || redirectTo;
+            const redirectPath = redirectTo;
             router.push(redirectPath);
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : 'The verification code is incorrect. Please try again.';

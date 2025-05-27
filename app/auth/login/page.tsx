@@ -23,14 +23,14 @@ export default function LoginPage() {
       const response = await AuthApi.login({ email: user, password });
       
       // Check if 2FA is required
-      if (response.data && response.data.two_factor?.required) {
+      if (response.data && 'requires_2fa' in response.data && response.data.requires_2fa) {
         notifications.show({
           title: 'Two-Factor Authentication',
           message: 'Please verify your identity',
           color: 'blue',
         });
         // Save id_users for the 2FA verification step
-        sessionStorage.setItem('two_factor_id_users', response.data.two_factor.id_users);
+        sessionStorage.setItem('two_factor_id_users', response.data.id_users.toString());
         
         // Reset 2FA timer by clearing the storage keys
         sessionStorage.removeItem('2fa_time_remaining');

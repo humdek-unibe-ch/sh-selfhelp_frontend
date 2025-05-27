@@ -17,7 +17,7 @@ export type ILoginSuccessResponse = IBaseApiResponse<ILoginSuccessData>;
 
 // 2FA Required
 export interface ITwoFactorRequiredData {
-    message: string;
+    requires_2fa: boolean;
     id_users: number;
 }
 export type ITwoFactorRequiredResponse = IBaseApiResponse<ITwoFactorRequiredData>;

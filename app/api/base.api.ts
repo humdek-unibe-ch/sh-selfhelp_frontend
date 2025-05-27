@@ -38,9 +38,8 @@ const updateAuthState = (isAuthenticated: boolean) => {
 };
 
 // Helper function to handle token refresh success
-const handleTokenRefreshSuccess = (accessToken: string, expiresIn: number) => {
+const handleTokenRefreshSuccess = (accessToken: string) => {
     localStorage.setItem('access_token', accessToken);
-    localStorage.setItem('expires_in', expiresIn.toString());
     apiClient.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
     updateAuthState(true);
 };
@@ -71,7 +70,7 @@ const performTokenRefresh = async () => {
         const response = await AuthApi.refreshToken();
         
         if (response.data.access_token) {
-            handleTokenRefreshSuccess(response.data.access_token, response.data.expires_in);
+            handleTokenRefreshSuccess(response.data.access_token);
             return response.data.access_token;
         }
         

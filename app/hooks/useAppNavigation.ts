@@ -11,7 +11,7 @@ import { IResource, IRoute, NavItem } from '@/types/navigation/navigation.types'
 import { IMenuitemsType } from '@/types/layout/sidebar';
 import { IconPoint, IconLayoutNavbar, IconFiles } from '@tabler/icons-react';
 import { NavigationApi } from '@/api/navigation.api';
-import { IPage } from '@/types/api/pages.type';
+import { IPageItem } from '@/types/responses/frontend/frontend.types';
 
 /**
  * Converts AltoRouter-style parameters to Next.js app router dynamic routes
@@ -50,7 +50,7 @@ function extractUrlParams(url: string): Record<string, { type: string }> {
  * @param {IPage[]} pages - Navigation items from API
  * @returns {IRoute[]} Array of route configurations
  */
-function transformToRoutes(pages: IPage[]): IRoute[] {
+function transformToRoutes(pages: IPageItem[]): IRoute[] {
     console.log('transformToRoutes called with pages:', pages);
     if (!Array.isArray(pages)) {
         console.error('transformToRoutes: Expected an array but received:', pages);
@@ -91,7 +91,7 @@ function transformToRoutes(pages: IPage[]): IRoute[] {
  * @param {IPage[]} items - Navigation items from API
  * @returns {IMenuitemsType[]} Array of menu items for sidebar
  */
-function transformToMenuItems(items: IPage[]): IMenuitemsType[] {
+function transformToMenuItems(items: IPageItem[]): IMenuitemsType[] {
     const rootItems = items
         .filter(item => 
             item.nav_position !== null && 
@@ -139,7 +139,7 @@ function transformToMenuItems(items: IPage[]): IMenuitemsType[] {
 /**
  * Converts routes to Refine resources
  */
-function transformToResources(items: IPage[]): IResource[] {
+function transformToResources(items: IPageItem[]): IResource[] {
     return items.map(item => {
         const path = transformDynamicUrl(item.url);
         const params = extractUrlParams(item.url || '');
@@ -166,7 +166,7 @@ function transformToResources(items: IPage[]): IResource[] {
 /**
  * Transforms navigation items from API response into NavItem format for admin navigation
  */
-const transformNavigationToNavItems = (navigationData: IPage[]): NavItem[] => {
+const transformNavigationToNavItems = (navigationData: IPageItem[]): NavItem[] => {
     // First, create a map of all items
     const itemsMap = new Map<number, NavItem>();
     
