@@ -1,6 +1,6 @@
-import { BaseApiResponse } from '../common/response-envelope.types';
+import { IBaseApiResponse } from '../common/response-envelope.types';
 
-export interface SectionItem {
+export interface ISectionItem {
     id: number;
     name: string;
     id_styles: number;
@@ -8,12 +8,12 @@ export interface SectionItem {
     position: number;
     level: number;
     path: string;
-    children: SectionItem[];
+    children: ISectionItem[];
 }
 
-export interface AdminPageSectionsData {
+export interface IAdminPageSectionsData {
     page_keyword: string;
-    sections: SectionItem[];
+    sections: ISectionItem[];
 }
 
-export type AdminPageSectionsResponse = BaseApiResponse<AdminPageSectionsData>;
+export type TAdminPageSectionsResponse = IBaseApiResponse<IAdminPageSectionsData>;

@@ -1,6 +1,6 @@
-import { BaseApiResponse } from '../common/response-envelope.types';
+import { IBaseApiResponse } from '../common/response-envelope.types';
 
-export interface PageItem {
+export interface IPageItem {
     id_users: number;
     id_pages: number;
     acl_select: 0 | 1;
@@ -20,8 +20,8 @@ export interface PageItem {
     id_pageAccessTypes: number;
 }
 
-export interface FrontendPagesData {
-    pages: PageItem[];
+export interface IFrontendPagesData {
+    pages: IPageItem[];
 }
 
-export type FrontendPagesResponse = BaseApiResponse<FrontendPagesData>;
+export type TFrontendPagesResponse = IBaseApiResponse<IFrontendPagesData>;

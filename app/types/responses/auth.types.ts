@@ -1,44 +1,44 @@
-import { BaseApiResponse } from "./common/response-envelope.types";
+import { IBaseApiResponse } from "./common/response-envelope.types";
 
 // Common User interface for login and 2FA verify success
-export interface User {
+export interface IUser {
     id: number;
     email: string;
     name: string;
 }
 
 // Login Success
-export interface LoginSuccessData {
+export interface ILoginSuccessData {
     access_token: string;
     refresh_token: string;
-    user: User;
+    user: IUser;
 }
-export type LoginSuccessResponse = BaseApiResponse<LoginSuccessData>;
+export type ILoginSuccessResponse = IBaseApiResponse<ILoginSuccessData>;
 
 // 2FA Required
-export interface TwoFactorRequiredData {
+export interface ITwoFactorRequiredData {
     message: string;
     id_users: number;
 }
-export type TwoFactorRequiredResponse = BaseApiResponse<TwoFactorRequiredData>;
+export type ITwoFactorRequiredResponse = IBaseApiResponse<ITwoFactorRequiredData>;
 
 // 2FA Verify Success
-export interface TwoFactorVerifySuccessData {
+export interface ITwoFactorVerifySuccessData {
     access_token: string;
     refresh_token: string;
-    user: User;
+    user: IUser;
 }
-export type TwoFactorVerifySuccessResponse = BaseApiResponse<TwoFactorVerifySuccessData>;
+export type ITwoFactorVerifySuccessResponse = IBaseApiResponse<ITwoFactorVerifySuccessData>;
 
 // Logout Success
-export interface LogoutSuccessData {
+export interface ILogoutSuccessData {
     message: string;
 }
-export type LogoutSuccessResponse = BaseApiResponse<LogoutSuccessData>;
+export type ILogoutSuccessResponse = IBaseApiResponse<ILogoutSuccessData>;
 
 // Refresh Token Success
-export interface RefreshTokenSuccessData {
+export interface IRefreshTokenSuccessData {
     access_token: string;
     refresh_token: string;
 }
-export type RefreshTokenSuccessResponse = BaseApiResponse<RefreshTokenSuccessData>;
+export type TRefreshTokenSuccessResponse = IBaseApiResponse<IRefreshTokenSuccessData>;

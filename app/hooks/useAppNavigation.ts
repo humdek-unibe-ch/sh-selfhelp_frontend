@@ -10,7 +10,6 @@ import { useQuery } from '@tanstack/react-query';
 import { IResource, IRoute, NavItem } from '@/types/navigation/navigation.types';
 import { IMenuitemsType } from '@/types/layout/sidebar';
 import { IconPoint, IconLayoutNavbar, IconFiles } from '@tabler/icons-react';
-import { INavigationItem } from '@/types/api/navigation.type';
 import { NavigationApi } from '@/api/navigation.api';
 import { IPage } from '@/types/api/pages.type';
 
@@ -89,10 +88,10 @@ function transformToRoutes(pages: IPage[]): IRoute[] {
 
 /**
  * Transforms navigation items from API into sidebar menu items.
- * @param {INavigationItem[]} items - Navigation items from API
+ * @param {IPage[]} items - Navigation items from API
  * @returns {IMenuitemsType[]} Array of menu items for sidebar
  */
-function transformToMenuItems(items: INavigationItem[]): IMenuitemsType[] {
+function transformToMenuItems(items: IPage[]): IMenuitemsType[] {
     const rootItems = items
         .filter(item => 
             item.nav_position !== null && 
@@ -140,7 +139,7 @@ function transformToMenuItems(items: INavigationItem[]): IMenuitemsType[] {
 /**
  * Converts routes to Refine resources
  */
-function transformToResources(items: INavigationItem[]): IResource[] {
+function transformToResources(items: IPage[]): IResource[] {
     return items.map(item => {
         const path = transformDynamicUrl(item.url);
         const params = extractUrlParams(item.url || '');
@@ -167,7 +166,7 @@ function transformToResources(items: INavigationItem[]): IResource[] {
 /**
  * Transforms navigation items from API response into NavItem format for admin navigation
  */
-const transformNavigationToNavItems = (navigationData: INavigationItem[]): NavItem[] => {
+const transformNavigationToNavItems = (navigationData: IPage[]): NavItem[] => {
     // First, create a map of all items
     const itemsMap = new Map<number, NavItem>();
     

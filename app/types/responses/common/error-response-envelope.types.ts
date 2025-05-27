@@ -1,18 +1,18 @@
-import { Meta } from "./response-envelope.types";
+import { IMeta } from "./response-envelope.types";
 
-export interface ValidationErrorDetails {
+export interface IValidationErrorDetails {
     schema: string;
     errors: string[];
     missing_fields: string[];
     request_data?: Record<string, any>;
 }
 
-export interface BaseApiErrorResponse {
+export interface IBaseApiErrorResponse {
     status: number;
     message: string;
     error: string; // This is the primary error message string
     logged_in: boolean;
-    meta: Meta; // Re-using Meta from BaseApiResponse
+    meta: IMeta; // Re-using Meta from BaseApiResponse
     data?: any; // "Additional error data, if any"
-    validation?: ValidationErrorDetails;
+    validation?: IValidationErrorDetails;
 }
