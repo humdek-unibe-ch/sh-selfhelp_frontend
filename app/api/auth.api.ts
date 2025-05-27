@@ -13,6 +13,23 @@ import { ILoginSuccessResponse, ITwoFactorRequiredResponse, ITwoFactorVerifySucc
 
 export const AuthApi = {
     /**
+     * Clears all authentication data from localStorage and updates navigation
+     * @private
+     */
+    clearAuthData() {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('pending_2fa_user_id');
+        
+        // Update navigation to reflect logged-out state
+        try {
+            NavigationApi.getPages();
+        } catch (error) {
+            console.warn('Failed to update navigation after clearing auth data:', error);
+        }
+    },
+    /**
      * Authenticates a user with their credentials.
      * @param {ILoginRequest} credentials - User login credentials
      * @returns {Promise<ILoginSuccessResponse | ITwoFactorRequiredResponse>} Response containing authentication tokens and user info or 2FA flag if 2FA is required
@@ -80,26 +97,43 @@ export const AuthApi = {
         const refreshToken = localStorage.getItem('refresh_token');
 
         if (!refreshToken) {
+            // Clear any existing tokens and update navigation
+            this.clearAuthData();
             throw new Error('No refresh token available');
         }
 
-        const response = await apiClient.post<TRefreshTokenSuccessResponse>(
-            API_CONFIG.ENDPOINTS.REFRESH_TOKEN,
-            { refresh_token: refreshToken } as IRefreshTokenRequest
-        );
+        try {
+            const response = await apiClient.post<TRefreshTokenSuccessResponse>(
+                API_CONFIG.ENDPOINTS.REFRESH_TOKEN,
+                { refresh_token: refreshToken } as IRefreshTokenRequest
+            );
 
-        if (response.data.error) {
-            throw new Error(response.data.error);
+            if (response.data.error) {
+                // Clear tokens on error
+                this.clearAuthData();
+                throw new Error(response.data.error);
+            }
+
+            // Update stored tokens
+            const { access_token, refresh_token } = response.data.data;
+            if (access_token) {
+                localStorage.setItem('access_token', access_token);
+                localStorage.setItem('refresh_token', refresh_token);
+            }
+            
+            return response.data;
+        } catch (error: any) {
+            // Handle 401 errors or other API errors
+            if (error.response?.status === 401) {
+                console.log('Refresh token expired or invalid, logging out');
+            }
+            
+            // Clear tokens and update navigation regardless of error type
+            this.clearAuthData();
+            
+            // Rethrow the error for the caller to handle
+            throw error;
         }
-
-        // Update stored tokens
-        const { access_token, refresh_token } = response.data.data;
-        if (access_token) {
-            localStorage.setItem('access_token', access_token);
-            localStorage.setItem('refresh_token', refresh_token);
-        }
-
-        return response.data;
     },
 
     /**
@@ -121,18 +155,8 @@ export const AuthApi = {
                 throw new Error(response.data.error);
             }
         } finally {
-            // Always clear local storage, even if the server request fails
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            localStorage.removeItem('user');
-            localStorage.removeItem('pending_2fa_user_id');
-
-            // Update navigation to reflect logged-out state
-            try {
-                await NavigationApi.getPages();
-            } catch (error) {
-                console.warn('Failed to update navigation after logout:', error);
-            }
+            // Always clear auth data, even if the server request fails
+            this.clearAuthData();
         }
 
         return response?.data || { status: 200, message: 'Logged out', error: null, logged_in: false, meta: { version: 'v1', timestamp: new Date().toISOString() }, data: { message: 'Successfully logged out' } };

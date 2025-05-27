@@ -115,82 +115,74 @@ apiClient.interceptors.request.use(
  * 3. Automatic retry of failed requests after token refresh
  */
 apiClient.interceptors.response.use(
-    async (response) => {
-        // Don't process logged_in flag for refresh token or logout endpoint responses
+    (response) => {
+        // Check for logged_in flag in successful responses
         if ('logged_in' in response.data && !isRefreshTokenRequest(response.config) && !isLogoutRequest(response.config)) {
+            // Update auth state based on the server's logged_in flag
             updateAuthState(response.data.logged_in);
             
-            // If server says not logged in but we have a token, try to refresh
+            // If server says not logged in but we have tokens, we should clear them
             if (!response.data.logged_in && localStorage.getItem('access_token')) {
-                if (isRefreshing) {
-                    try {
-                        const token = await new Promise((resolve, reject) => {
-                            failedQueue.push({ resolve, reject });
-                        });
-                        response.config.headers.Authorization = `Bearer ${token}`;
-                        return apiClient(response.config);
-                    } catch (err) {
-                        updateAuthState(false);
-                        return Promise.reject(err);
-                    }
-                }
-
-                isRefreshing = true;
-                try {
-                    const newToken = await performTokenRefresh();
-                    processQueue(null, newToken);
-                    response.config.headers.Authorization = `Bearer ${newToken}`;
-                    return apiClient(response.config);
-                } catch (refreshError) {
-                    processQueue(refreshError, null);
-                    updateAuthState(false);
-                    return Promise.reject(refreshError);
-                } finally {
-                    isRefreshing = false;
-                }
+                handleTokenRefreshFailure();
             }
         }
         return response;
     },
-
     async (error) => {
         const originalRequest = error.config;
-
-        // If error is 401 and we haven't tried refreshing yet
-        if (error.response?.status === 401 && !originalRequest._retry) {
-            if (isRefreshing) {
-                // If already refreshing, queue this request
-                try {
-                    const token = await new Promise((resolve, reject) => {
-                        failedQueue.push({ resolve, reject });
-                    });
-                    originalRequest.headers.Authorization = `Bearer ${token}`;
-                    return apiClient(originalRequest);
-                } catch (err) {
-                    updateAuthState(false);
-                    window.location.href = '/auth/login';
-                    return Promise.reject(err);
-                }
-            }
-
-            originalRequest._retry = true;
-            isRefreshing = true;
-
-            try {
-                const newToken = await performTokenRefresh();
-                processQueue(null, newToken);
-                originalRequest.headers.Authorization = `Bearer ${newToken}`;
-                return apiClient(originalRequest);
-            } catch (refreshError) {
-                processQueue(refreshError, null);
-                updateAuthState(false);
-                window.location.href = '/auth/login';
-                return Promise.reject(refreshError);
-            } finally {
-                isRefreshing = false;
-            }
+        
+        // Don't retry if it's not a 401 or if we've already retried
+        if (error.response?.status !== 401 || originalRequest._retry) {
+            return Promise.reject(error);
         }
 
-        return Promise.reject(error);
+        // Don't retry refresh token or logout requests to avoid infinite loops
+        if (isRefreshTokenRequest(originalRequest) || isLogoutRequest(originalRequest)) {
+            return Promise.reject(error);
+        }
+
+        // If we're already refreshing, queue the request
+        if (isRefreshing) {
+            return new Promise((resolve, reject) => {
+                failedQueue.push({
+                    resolve: (token: string) => {
+                        originalRequest.headers.Authorization = `Bearer ${token}`;
+                        resolve(apiClient(originalRequest));
+                    },
+                    reject: (err: any) => reject(err)
+                });
+            });
+        }
+
+        // Mark this request as retried and start the refresh process
+        originalRequest._retry = true;
+        isRefreshing = true;
+
+        try {
+            const newToken = await performTokenRefresh();
+            
+            // Update the original request with the new token
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            
+            // Process any queued requests with the new token
+            processQueue(null, newToken);
+            
+            // Retry the original request
+            return apiClient(originalRequest);
+        } catch (refreshError) {
+            // If refresh fails, clear auth data and redirect to login
+            processQueue(refreshError, null);
+            handleTokenRefreshFailure();
+            
+            // Only redirect if we're not already on the login page
+            if (!window.location.pathname.startsWith('/auth/login')) {
+                window.location.href = '/auth/login';
+            }
+            
+            return Promise.reject(refreshError);
+        } finally {
+            isRefreshing = false;
+        }
+        // This line is unreachable, removing it
     }
 );
