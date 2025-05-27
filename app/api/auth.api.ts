@@ -129,7 +129,7 @@ export const AuthApi = {
         
         // Update navigation to reflect logged-out state
         try {
-            await NavigationApi.getRoutes();
+            await NavigationApi.getPages();
             return response.data;
         } catch (error) {
             console.warn('Failed to update navigation after logout:', error);

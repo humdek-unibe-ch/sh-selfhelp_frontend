@@ -16,15 +16,14 @@ export const API_CONFIG = {
          */
         PAGES: '/pages',
         PAGE: (keyword: string) => `/pages/${keyword}/sections`,
-        ALL_ROUTES: '/content/all_routes',
         LOGIN: '/auth/login',
         REFRESH_TOKEN: '/auth/refresh-token',
         LOGOUT: '/auth/logout',
         TWO_FACTOR_VERIFY: '/auth/two-factor-verify',
         ADMIN_PAGES: '/admin/pages',
         ADMIN_ACCESS: '/admin/access',
-        ADMIN_PAGE_FIELDS: (keyword: string) => `/admin/${keyword}/fields`,
-        ADMIN_PAGE_SECTIONS: (keyword: string) => `/admin/${keyword}/sections`,
+        ADMIN_PAGE_FIELDS: (keyword: string) => `/admin/pages/${keyword}/fields`,
+        ADMIN_PAGE_SECTIONS: (keyword: string) => `/admin/pages/${keyword}/sections`,
     },
     CORS_CONFIG: {
         credentials: true, // Required for cookies, authorization headers with HTTPS

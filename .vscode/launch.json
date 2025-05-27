@@ -1,11 +1,22 @@
 {
-   "version": "0.2.0",
-   "configurations": [
-      {
-         "name": "Next.js: debug client-side",
-         "type": "chrome",
-         "request": "launch",
-         "url": "http://localhost:3000"
-      },
-   ]
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Next.js: debug client-side",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:3000",
+            "webRoot": "${workspaceFolder}",
+            "sourceMapPathOverrides": {
+                "webpack://_N_E/*": "${webRoot}/*",
+                "webpack:///*": "${webRoot}/*",
+                "webpack:///./*": "${webRoot}/*"
+            },
+            "sourceMaps": true,
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "trace": true
+        }
+    ]
 }

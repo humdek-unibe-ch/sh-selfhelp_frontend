@@ -12,6 +12,7 @@ import { IMenuitemsType } from '@/types/layout/sidebar';
 import { IconPoint, IconLayoutNavbar, IconFiles } from '@tabler/icons-react';
 import { INavigationItem } from '@/types/api/navigation.type';
 import { NavigationApi } from '@/api/navigation.api';
+import { IPage } from '@/types/api/pages.type';
 
 /**
  * Converts AltoRouter-style parameters to Next.js app router dynamic routes
@@ -47,21 +48,43 @@ function extractUrlParams(url: string): Record<string, { type: string }> {
 
 /**
  * Transforms navigation items from API into route configurations.
- * @param {INavigationItem[]} items - Navigation items from API
+ * @param {IPage[]} pages - Navigation items from API
  * @returns {IRoute[]} Array of route configurations
  */
-function transformToRoutes(items: INavigationItem[]): IRoute[] {
-    return items.map(item => {
-        const path = transformDynamicUrl(item.url);
-        return {
-            title: item.keyword,
-            path,
-            isNav: item.nav_position !== null,
-            position: item.nav_position,
-            params: extractUrlParams(item.url || ''),
-            protocol: item.protocol?.split('|') || ['GET']
-        };
-    });
+function transformToRoutes(pages: IPage[]): IRoute[] {
+    console.log('transformToRoutes called with pages:', pages);
+    if (!Array.isArray(pages)) {
+        console.error('transformToRoutes: Expected an array but received:', pages);
+        return [];
+    }
+    
+    console.log(`Processing ${pages.length} pages`);
+    
+    const result = pages.map((page, index) => {
+        console.log(`Processing page ${index + 1}:`, page);
+        try {
+            const path = transformDynamicUrl(page.url);
+            console.log(`Transformed path for ${page.keyword}:`, path);
+            
+            const route = {
+                title: page.keyword,
+                path,
+                isNav: page.nav_position !== null,
+                position: page.nav_position,
+                params: extractUrlParams(page.url || ''),
+                protocol: page.protocol?.split('|') || ['GET']
+            };
+            
+            console.log(`Created route for ${page.keyword}:`, route);
+            return route;
+        } catch (error) {
+            console.error(`Error processing page ${page.keyword || 'unknown'}:`, error);
+            return null;
+        }
+    }).filter(Boolean) as IRoute[]; // Filter out any null values from failed mappings
+    
+    console.log('Final transformed routes:', result);
+    return result;
 }
 
 /**
@@ -226,7 +249,7 @@ export function useAppNavigation({ isAdmin = false } = {}) {
     const { data, isLoading, error } = useQuery({
         queryKey,
         queryFn: async () => {
-            const data = await NavigationApi.getRoutes();
+            const data = await NavigationApi.getPages();
             if (isAdmin) {
                 const navItems = transformNavigationToNavItems(data);
                 return {
