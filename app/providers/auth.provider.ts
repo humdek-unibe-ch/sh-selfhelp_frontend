@@ -1,14 +1,15 @@
 import { AuthBindings } from "@refinedev/core";
-import { ILoginRequest, ILoginResponse } from "@/types/api/auth.type";
 import { API_CONFIG } from "@/config/api.config";
 import { apiClient } from '@/api/base.api';
+import { ILoginRequest } from "@/types/requests/auth/auth.types";
+import { IBaseApiResponse } from "@/types/responses/common/response-envelope.types";
 
 export const authProvider: AuthBindings = {
-    login: async ({ user, password }: ILoginRequest) => {
+    login: async ({ email, password }: ILoginRequest): Promise<IBaseApiResponse> => {
         try {
-            const response = await apiClient.post<ILoginResponse>(
+            const response = await apiClient.post<IBaseApiResponse>(
                 API_CONFIG.ENDPOINTS.LOGIN,
-                { user, password }
+                { email, password }
             );
 
             if (response.data.error) {
@@ -31,7 +32,7 @@ export const authProvider: AuthBindings = {
                 };
             }
 
-            const { access_token, refresh_token, expires_in } = response.data.data;
+            const { access_token, refresh_token, expires_in } = response.data;
             localStorage.setItem("access_token", access_token ?? "");
             localStorage.setItem("refresh_token", refresh_token ?? "");
             localStorage.setItem("expires_in", expires_in?.toString() ?? "");

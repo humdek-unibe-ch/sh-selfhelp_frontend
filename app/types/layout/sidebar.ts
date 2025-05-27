@@ -11,10 +11,3 @@ export interface IMenuitemsType {
    variant?: string;
    external?: boolean;
  }
-
-export interface listItemType {
-  component: any;
-  href?: string;
-  target?: any;
-  to?: any;
-}
