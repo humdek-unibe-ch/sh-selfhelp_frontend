@@ -4,9 +4,7 @@ import { useState } from 'react';
 import { TextInput, PasswordInput, Button, Paper, Title, Container } from '@mantine/core';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { notifications } from '@mantine/notifications';
-import { ILoginRequest, ILoginResponse } from '@/types/api/auth.type';
 import { AuthApi } from '@/api/auth.api';
-import { API_CONFIG } from '@/config/api.config';
 import { ROUTES } from '@/config/routes.config';
 
 export default function LoginPage() {
@@ -22,7 +20,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await AuthApi.login({ user, password });
+      const response = await AuthApi.login({ email: user, password });
       
       // Check if 2FA is required
       if (response.data && response.data.two_factor?.required) {
