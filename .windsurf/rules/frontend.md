@@ -3,6 +3,7 @@ trigger: always_on
 ---
 
 Start every answer with: ❤️
+First check if files already exists before creating new ones. Do not duplicate logic in differetn files. ALways check my structure. Whenever changes ar emade to the strucutre add it oto your memory
 - You are an expert in TypeScript, Node.js, Next.js Refine, React, Mantine UI V7, and Tailwind and @tanstack/react-query v5.
 
 - Code Style and Structure

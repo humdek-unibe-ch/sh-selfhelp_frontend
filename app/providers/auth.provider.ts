@@ -3,6 +3,52 @@ import { ILoginRequest, ITwoFactorVerifyRequest } from "@/types/requests/auth/au
 import { AuthApi } from "@/api/auth.api";
 import { ITwoFactorRequiredResponse } from "@/types/responses/auth.types";
 
+// This function sets up a listener for auth state changes from the API interceptor
+// It will be called when the auth provider is initialized
+let authStateChangeListener: ((event: Event) => void) | null = null;
+
+/**
+ * Sets up a listener for auth state changes from the API interceptor
+ * This ensures that Refine's auth state stays in sync with the API's auth state
+ */
+const listenForAuthStateChanges = () => {
+    // Remove any existing listener to prevent duplicates
+    if (authStateChangeListener) {
+        window.removeEventListener('authStateChange', authStateChangeListener);
+    }
+    
+    // Create a new listener
+    authStateChangeListener = (event: Event) => {
+        const customEvent = event as CustomEvent<{ isAuthenticated: boolean }>;
+        const isAuthenticated = customEvent.detail.isAuthenticated;
+        
+        // If the user is logged out, clear tokens from localStorage
+        if (!isAuthenticated) {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('pending_2fa_user_id');
+            
+            // Redirect to login if not already there
+            if (typeof window !== 'undefined' && 
+                !window.location.pathname.startsWith('/auth/login') && 
+                !window.location.pathname.includes('/auth/verify-2fa')) {
+                window.location.href = '/auth/login';
+            }
+        }
+    };
+    
+    // Add the listener to the window
+    if (typeof window !== 'undefined') {
+        window.addEventListener('authStateChange', authStateChangeListener);
+    }
+};
+
+// Initialize the listener when this module is loaded
+if (typeof window !== 'undefined') {
+    listenForAuthStateChanges();
+}
+
 // Custom method for 2FA verification that can be used in components
 export const verify2fa = async ({ code }: { code: string }) => {
     try {
@@ -137,6 +183,7 @@ export const authProvider: AuthBindings = {
 
     check: async () => {
         const token = localStorage.getItem("access_token");
+        const refreshToken = localStorage.getItem("refresh_token");
         const pending2fa = localStorage.getItem("pending_2fa_user_id");
 
         // If there's a pending 2FA verification, user is not fully authenticated
@@ -151,11 +198,12 @@ export const authProvider: AuthBindings = {
             };
         }
 
+        // No tokens means not authenticated
         if (!token) {
             return {
                 authenticated: false,
                 error: {
-                    message: "Check failed",
+                    message: "Not authenticated",
                     name: "Not authenticated",
                 },
                 logout: true,
@@ -163,31 +211,11 @@ export const authProvider: AuthBindings = {
             };
         }
 
-        try {
-            // Optional: Verify token validity with the server
-            // This could be a lightweight endpoint that just validates the token
-            // const response = await apiClient.get(API_CONFIG.ENDPOINTS.VERIFY_TOKEN);
-            
-            return {
-                authenticated: true,
-            };
-        } catch (error) {
-            // If token verification fails, attempt to refresh the token
-            try {
-                await this.getIdentity?.();
-                return { authenticated: true };
-            } catch (refreshError) {
-                return {
-                    authenticated: false,
-                    error: {
-                        message: "Session expired",
-                        name: "Not authenticated",
-                    },
-                    logout: true,
-                    redirectTo: "/auth/login",
-                };
-            }
-        }
+        // We have a token, so we consider the user authenticated
+        // The global interceptor will handle token refresh if any API call returns logged_in: false
+        return {
+            authenticated: true,
+        };
     },
 
     getPermissions: async () => {

@@ -6,9 +6,17 @@
  * @module api/base.api
  */
 
-import axios from 'axios';
+import axios, { InternalAxiosRequestConfig } from 'axios';
 import { API_CONFIG } from '../config/api.config';
 import { AuthApi } from './auth.api';
+
+// Extend Axios request config to include our custom properties
+declare module 'axios' {
+  export interface InternalAxiosRequestConfig {
+    _retry?: boolean;
+    _loggedInRetry?: boolean;
+  }
+}
 
 // Event to notify about authentication state changes
 export const authStateChangeEvent = new CustomEvent('authStateChange', {
@@ -111,19 +119,73 @@ apiClient.interceptors.request.use(
 /**
  * Response interceptor to handle:
  * 1. Authentication state based on logged_in flag from server
- * 2. Token refresh on 401 errors
+ * 2. Token refresh when logged_in is false or on 401 errors
  * 3. Automatic retry of failed requests after token refresh
  */
 apiClient.interceptors.response.use(
-    (response) => {
+    async (response) => {
+        // Skip check for refresh token and logout requests
+        if (isRefreshTokenRequest(response.config) || isLogoutRequest(response.config)) {
+            return response;
+        }
+
         // Check for logged_in flag in successful responses
-        if ('logged_in' in response.data && !isRefreshTokenRequest(response.config) && !isLogoutRequest(response.config)) {
+        if ('logged_in' in response.data) {
             // Update auth state based on the server's logged_in flag
             updateAuthState(response.data.logged_in);
             
-            // If server says not logged in but we have tokens, we should clear them
-            if (!response.data.logged_in && localStorage.getItem('access_token')) {
-                handleTokenRefreshFailure();
+            // If server says not logged in but we have tokens, attempt to refresh
+            if (!response.data.logged_in && localStorage.getItem('access_token') && localStorage.getItem('refresh_token')) {
+                const originalRequest = response.config;
+                
+                // Prevent infinite loops
+                if (originalRequest._loggedInRetry) {
+                    // If we've already tried to refresh based on logged_in flag, clear tokens and fail
+                    handleTokenRefreshFailure();
+                    return response;
+                }
+                
+                // Mark this request for retry
+                originalRequest._loggedInRetry = true;
+                
+                try {
+                    // If we're already refreshing, queue this request
+                    if (isRefreshing) {
+                        return new Promise((resolve, reject) => {
+                            failedQueue.push({
+                                resolve: (token: string) => {
+                                    originalRequest.headers.Authorization = `Bearer ${token}`;
+                                    resolve(apiClient(originalRequest));
+                                },
+                                reject: (err: any) => reject(err)
+                            });
+                        });
+                    }
+                    
+                    // Start the refresh process
+                    isRefreshing = true;
+                    
+                    // Attempt to refresh the token
+                    const newToken = await performTokenRefresh();
+                    
+                    // Update the original request with the new token
+                    originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                    
+                    // Process any queued requests
+                    processQueue(null, newToken);
+                    
+                    // Retry the original request
+                    return await apiClient(originalRequest);
+                } catch (refreshError) {
+                    // If refresh fails, clear auth data
+                    processQueue(refreshError, null);
+                    handleTokenRefreshFailure();
+                    
+                    // Return the original response with logged_in: false
+                    return response;
+                } finally {
+                    isRefreshing = false;
+                }
             }
         }
         return response;
