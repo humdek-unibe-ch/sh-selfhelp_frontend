@@ -24,13 +24,10 @@ const listenForAuthStateChanges = () => {
         
         // If the user is logged out, clear tokens from localStorage
         if (!isAuthenticated) {
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            localStorage.removeItem('user');
-            localStorage.removeItem('pending_2fa_user_id');
             
             // Redirect to login if not already there
             if (typeof window !== 'undefined' && 
+                window.location.pathname.startsWith('/admin') && 
                 !window.location.pathname.startsWith('/auth/login') && 
                 !window.location.pathname.includes('/auth/verify-2fa')) {
                 window.location.href = '/auth/login';

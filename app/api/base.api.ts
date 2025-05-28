@@ -12,10 +12,10 @@ import { AuthApi } from './auth.api';
 
 // Extend Axios request config to include our custom properties
 declare module 'axios' {
-  export interface InternalAxiosRequestConfig {
-    _retry?: boolean;
-    _loggedInRetry?: boolean;
-  }
+    export interface InternalAxiosRequestConfig {
+        _retry?: boolean;
+        _loggedInRetry?: boolean;
+    }
 }
 
 // Event to notify about authentication state changes
@@ -56,7 +56,6 @@ const handleTokenRefreshSuccess = (accessToken: string) => {
 const handleTokenRefreshFailure = () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
-    localStorage.removeItem('expires_in');
     delete apiClient.defaults.headers.common.Authorization;
     updateAuthState(false);
 };
@@ -76,12 +75,12 @@ const processQueue = (error: any, token: string | null = null) => {
 const performTokenRefresh = async () => {
     try {
         const response = await AuthApi.refreshToken();
-        
+
         if (response.data.access_token) {
             handleTokenRefreshSuccess(response.data.access_token);
             return response.data.access_token;
         }
-        
+
         // If we get here, something went wrong but not an invalid token
         handleTokenRefreshFailure();
         throw new Error('Token refresh failed - no access token received');
@@ -92,10 +91,10 @@ const performTokenRefresh = async () => {
 };
 
 // Helper functions to identify specific request types
-const isRefreshTokenRequest = (config: any) => 
+const isRefreshTokenRequest = (config: any) =>
     config.url === API_CONFIG.ENDPOINTS.REFRESH_TOKEN;
 
-const isLogoutRequest = (config: any) => 
+const isLogoutRequest = (config: any) =>
     config.url === API_CONFIG.ENDPOINTS.LOGOUT;
 
 /**
@@ -106,9 +105,7 @@ const isLogoutRequest = (config: any) =>
 apiClient.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('access_token');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
+        config.headers.Authorization = `Bearer ${token}`;
         return config;
     },
     (error) => {
@@ -133,21 +130,21 @@ apiClient.interceptors.response.use(
         if ('logged_in' in response.data) {
             // Update auth state based on the server's logged_in flag
             updateAuthState(response.data.logged_in);
-            
+
             // If server says not logged in but we have tokens, attempt to refresh
-            if (!response.data.logged_in && localStorage.getItem('access_token') && localStorage.getItem('refresh_token')) {
+            if (!response.data.logged_in && localStorage.getItem('refresh_token')) {
                 const originalRequest = response.config;
-                
+
                 // Prevent infinite loops
                 if (originalRequest._loggedInRetry) {
                     // If we've already tried to refresh based on logged_in flag, clear tokens and fail
                     handleTokenRefreshFailure();
                     return response;
                 }
-                
+
                 // Mark this request for retry
                 originalRequest._loggedInRetry = true;
-                
+
                 try {
                     // If we're already refreshing, queue this request
                     if (isRefreshing) {
@@ -161,26 +158,26 @@ apiClient.interceptors.response.use(
                             });
                         });
                     }
-                    
+
                     // Start the refresh process
                     isRefreshing = true;
-                    
+
                     // Attempt to refresh the token
                     const newToken = await performTokenRefresh();
-                    
+
                     // Update the original request with the new token
                     originalRequest.headers.Authorization = `Bearer ${newToken}`;
-                    
+
                     // Process any queued requests
                     processQueue(null, newToken);
-                    
+
                     // Retry the original request
                     return await apiClient(originalRequest);
                 } catch (refreshError) {
                     // If refresh fails, clear auth data
                     processQueue(refreshError, null);
                     handleTokenRefreshFailure();
-                    
+
                     // Return the original response with logged_in: false
                     return response;
                 } finally {
@@ -192,7 +189,7 @@ apiClient.interceptors.response.use(
     },
     async (error) => {
         const originalRequest = error.config;
-        
+
         // Don't retry if it's not a 401 or if we've already retried
         if (error.response?.status !== 401 || originalRequest._retry) {
             return Promise.reject(error);
@@ -222,25 +219,25 @@ apiClient.interceptors.response.use(
 
         try {
             const newToken = await performTokenRefresh();
-            
+
             // Update the original request with the new token
             originalRequest.headers.Authorization = `Bearer ${newToken}`;
-            
+
             // Process any queued requests with the new token
             processQueue(null, newToken);
-            
+
             // Retry the original request
             return apiClient(originalRequest);
         } catch (refreshError) {
             // If refresh fails, clear auth data and redirect to login
             processQueue(refreshError, null);
             handleTokenRefreshFailure();
-            
+
             // Only redirect if we're not already on the login page
             if (!window.location.pathname.startsWith('/auth/login')) {
                 window.location.href = '/auth/login';
             }
-            
+
             return Promise.reject(refreshError);
         } finally {
             isRefreshing = false;
