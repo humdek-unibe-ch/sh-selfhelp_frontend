@@ -51,20 +51,13 @@ function extractUrlParams(url: string): Record<string, { type: string }> {
  * @returns {IRoute[]} Array of route configurations
  */
 function transformToRoutes(pages: IPageItem[]): IRoute[] {
-    console.log('transformToRoutes called with pages:', pages);
     if (!Array.isArray(pages)) {
         console.error('transformToRoutes: Expected an array but received:', pages);
         return [];
     }
-    
-    console.log(`Processing ${pages.length} pages`);
-    
-    const result = pages.map((page, index) => {
-        console.log(`Processing page ${index + 1}:`, page);
+    const result = pages.map((page) => {
         try {
             const path = transformDynamicUrl(page.url);
-            console.log(`Transformed path for ${page.keyword}:`, path);
-            
             const route = {
                 title: page.keyword,
                 path,
@@ -74,15 +67,12 @@ function transformToRoutes(pages: IPageItem[]): IRoute[] {
                 protocol: page.protocol?.split('|') || ['GET']
             };
             
-            console.log(`Created route for ${page.keyword}:`, route);
             return route;
         } catch (error) {
             console.error(`Error processing page ${page.keyword || 'unknown'}:`, error);
             return null;
         }
     }).filter(Boolean) as IRoute[]; // Filter out any null values from failed mappings
-    
-    console.log('Final transformed routes:', result);
     return result;
 }
 
