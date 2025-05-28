@@ -123,11 +123,6 @@ export const AuthApi = {
             
             return response.data;
         } catch (error: any) {
-            // Handle 401 errors or other API errors
-            if (error.response?.status === 401) {
-                console.log('Refresh token expired or invalid, logging out');
-            }
-            
             // Clear tokens and update navigation regardless of error type
             this.clearAuthData();
             

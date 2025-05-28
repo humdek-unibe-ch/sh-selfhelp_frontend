@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { notifications } from '@mantine/notifications';
 import { AuthApi } from '@/api/auth.api';
 import { ITwoFactorVerifyRequest } from '@/types/requests/auth/auth.types';
+import { ROUTES } from '@/config/routes.config';
 
 export default function TwoFactorAuthenticationPage() {
     const [code, setCode] = useState<string[]>(['', '', '', '', '', '']);
@@ -88,7 +89,7 @@ export default function TwoFactorAuthenticationPage() {
     useEffect(() => {
         // Check if we came from login page
         const referrer = document.referrer;
-        if (referrer.includes('/auth/login')) {
+        if (referrer.includes(ROUTES.LOGIN)) {
             sessionStorage.setItem('2fa_fresh_login', 'true');
         }
     }, []);
@@ -96,7 +97,7 @@ export default function TwoFactorAuthenticationPage() {
 
     const router = useRouter();
     const searchParams = useSearchParams();
-    const redirectTo = searchParams.get('redirectTo') || '/home';
+    const redirectTo = searchParams.get('redirectTo') || ROUTES.HOME;
 
     // Get id_users from URL or sessionStorage
     const userId = searchParams.get('user') || sessionStorage.getItem('two_factor_id_users') || '';
@@ -104,13 +105,12 @@ export default function TwoFactorAuthenticationPage() {
     // Ensure we have a userId, otherwise redirect to login
     useEffect(() => {
         if (!userId) {
-            router.replace('/auth/login');
+            router.replace(ROUTES.LOGIN);
         }
     }, [userId, router]);
 
     // Original handleSubmit function - now just calls submitCode with current state
     const handleSubmit = async () => {
-        console.log('handleSubmit called with current code state:', code);
         // Clear any previous error message
         setErrorMessage('');
         submitCode(code);
@@ -120,12 +120,10 @@ export default function TwoFactorAuthenticationPage() {
     const submitCode = async (codeArray: string[]) => {
         // Validate the code array
         if (codeArray.some(d => !d) || timer === 0) {
-            console.log('Not submitting - code incomplete or timer expired', codeArray);
             return;
         }
         
         const codeString = codeArray.join('');
-        console.log('Submitting code:', codeString);
         
         setIsLoading(true);
 
@@ -134,11 +132,8 @@ export default function TwoFactorAuthenticationPage() {
                 code: codeString,
                 id_users: Number(userId)
             };
-            console.log('twoFactorData', twoFactorData);
-
 
             const response = await AuthApi.verifyTwoFactor(twoFactorData);
-            console.log('response', response);
 
             notifications.show({
                 title: 'Success',
@@ -182,8 +177,6 @@ export default function TwoFactorAuthenticationPage() {
         // Update the code array
         const newCode = [...code];
         newCode[index] = value;
-        console.log(`Setting digit ${index} to ${value}`);
-        console.log('New code array:', newCode);
         
         // Important: Update state first, then check if complete
         setCode(newCode);
@@ -195,14 +188,11 @@ export default function TwoFactorAuthenticationPage() {
 
         // Check if all fields are filled after this update
         const allFilled = newCode.every(d => d);
-        console.log('All digits filled?', allFilled);
 
         // Auto-submit if all filled and timer is running
         if (allFilled && timer > 0) {
-            console.log('All fields filled and timer running, submitting with code:', newCode.join(''));
             // Use setTimeout to ensure state is updated before submitting
             setTimeout(() => {
-                console.log('Current code state before submit:', code);
                 // Use the newCode directly instead of the state variable
                 submitCode(newCode);
             }, 100);
@@ -227,9 +217,7 @@ export default function TwoFactorAuthenticationPage() {
 
         // Get pasted text, remove non-digits, limit to 6 characters
         const pastedData = e.clipboardData.getData('text');
-        console.log('Pasted data:', pastedData);
         const digits = pastedData.replace(/\D/g, '').split('').slice(0, 6);
-        console.log('Extracted digits:', digits);
 
         if (!digits.length) return;
 
@@ -241,12 +229,10 @@ export default function TwoFactorAuthenticationPage() {
             }
         });
 
-        console.log('Setting code after paste:', newCode);
         setCode(newCode);
 
         // Auto-submit if all 6 digits were pasted and timer is running
         if (digits.length === 6 && newCode.every(d => d) && timer > 0) {
-            console.log('All 6 digits pasted, submitting with code:', newCode.join(''));
             // Use a longer delay for paste to ensure state is fully updated
             setTimeout(() => {
                 // Use the newCode directly instead of the state variable

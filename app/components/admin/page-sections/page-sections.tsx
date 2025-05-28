@@ -21,7 +21,6 @@ import { IPageField } from '@/types/api/page-fields.type';
 
 export function PageSections() {
   const params = useParams();
-  console.log(params);
   const pageKeyword = params.slug ? (Array.isArray(params.slug) ? params.slug[1] : params.slug) : '';
 
   // Fetch page sections data using TanStack Query
@@ -35,9 +34,6 @@ export function PageSections() {
     queryFn: () => AdminApi.getPageFields(pageKeyword as string),
     enabled: !!pageKeyword,
   });
-  
-  // Debug the data structure
-  console.log('API Response:', data);
 
   // Handle loading state
   if (isLoading) {
@@ -90,7 +86,6 @@ export function PageSections() {
   // Handle add section
   const handleAddSection = () => {
     // Implement add section functionality
-    console.log('Add section clicked');
   };
 
   return (

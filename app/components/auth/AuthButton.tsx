@@ -24,8 +24,6 @@ export function AuthButton() {
         }
     };
 
-    console.log(authenticated);
-
     // Don't render anything until we have initial state
     if (isAuthLoading) {
         return null;
