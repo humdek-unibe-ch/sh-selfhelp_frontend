@@ -56,9 +56,10 @@ function DynamicPageContent({ keyword }: { keyword: string }) {
 
     return (
         <Container size="md">
-            {pageContent.content.map((style, index) => (
+            TODO load page content
+            {/* {pageContent.content.map((style, index) => (
                 style ? <BasicStyle key={index} style={style} /> : null
-            ))}
+            ))} */}
         </Container>
     );
 }

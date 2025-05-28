@@ -15,7 +15,7 @@ export const API_CONFIG = {
          * NOT a list of pages. Use ALL_ROUTES for a consistent list of navigation routes.
          */
         PAGES: '/pages',
-        PAGE: (keyword: string) => `/pages/${keyword}/sections`,
+        GET_PAGE: (keyword: string) => `/pages/${keyword}`,
         LOGIN: '/auth/login',
         REFRESH_TOKEN: '/auth/refresh-token',
         LOGOUT: '/auth/logout',
