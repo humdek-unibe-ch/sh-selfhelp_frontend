@@ -184,9 +184,19 @@ apiClient.interceptors.response.use(
 
         // Don't retry if it's not a 401 or if we've already retried
         if (error.response?.status !== 401 || originalRequest._retry) {
-            // If it's a 403 and we're authenticated, it could be a permission issue
+            // Handle 403 Forbidden errors (permission issues)
             if (error.response?.status === 403 && getAccessToken()) {
-                console.error('Permission denied for this resource');
+                console.error('Permission denied for this resource:', error.config.url);
+                
+                // Check if the response indicates the user is logged in but doesn't have permission
+                const responseData = error.response.data;
+                if (responseData?.logged_in === true) {
+                    // User is logged in but doesn't have permission
+                    // Redirect to no-access page if not already there
+                    if (!window.location.pathname.startsWith(ROUTES.NO_ACCESS)) {
+                        window.location.href = ROUTES.NO_ACCESS;
+                    }
+                }
             }
             return Promise.reject(error);
         }
