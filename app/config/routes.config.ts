@@ -4,5 +4,6 @@ export const ROUTES = {
   LOGIN: '/auth/login',
   VERIFY_2FA: '/auth/verify-2fa',
   HOME: '/home',
+  NO_ACCESS: '/no-access',
   // Add more as needed
 };

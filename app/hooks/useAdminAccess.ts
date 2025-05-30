@@ -6,10 +6,11 @@
  * @module hooks/useAdminAccess
  */
 
-import { useQuery } from '@tanstack/react-query';
-import { useNavigation, useAuthenticated } from '@refinedev/core';
-import { AdminApi } from '@/api/admin.api';
+import { useNavigation, useIsAuthenticated } from '@refinedev/core';
 import { useEffect } from 'react';
+import { useAuth } from './useAuth';
+import { PERMISSIONS } from '../types/auth/jwt-payload.types';
+import { ROUTES } from '@/config/routes.config';
 
 /**
  * Hook for checking admin access and handling unauthorized access
@@ -17,34 +18,27 @@ import { useEffect } from 'react';
  */
 export function useAdminAccess() {
     const { replace } = useNavigation();
-    const { isLoading: isAuthLoading } = useAuthenticated();
+    const { isLoading: isAuthLoading } = useIsAuthenticated();
+    const { user, isAuthenticated } = useAuth();
 
-    const { data, isLoading: isAccessLoading, error } = useQuery({
-        queryKey: ['adminAccess'],
-        queryFn: async () => {
-            const response = await AdminApi.getAdminAccess();
-            return response;
-        },
-        staleTime: 1000, // 1 second
-        refetchOnWindowFocus: false,
-        refetchOnMount: true,
-        retry: 1,
-        enabled: !isAuthLoading // Only check access for admin routes
-    });
-
-    const isLoading = isAuthLoading || isAccessLoading;
-    const hasAccess = data?.access || false;
+    // Check JWT token for admin.access permission
+    const hasAccess = user?.permissions?.includes(PERMISSIONS.ADMIN_ACCESS) || false;
 
     // Handle unauthorized access
     useEffect(() => {
-        if (!isLoading && !hasAccess) {
-            replace('/auth/login');
+        if (!isAuthLoading) {
+            if (!isAuthenticated) {
+                // Not logged in at all
+                replace(ROUTES.LOGIN);
+            } else if (!hasAccess) {
+                // Logged in but doesn't have admin access
+                replace(ROUTES.NO_ACCESS);
+            }
         }
-    }, [isLoading, hasAccess, replace]);
+    }, [isAuthLoading, hasAccess, isAuthenticated, replace]);
 
     return {
         hasAccess,
-        isLoading,
-        error
+        isLoading: isAuthLoading,
     };
 }

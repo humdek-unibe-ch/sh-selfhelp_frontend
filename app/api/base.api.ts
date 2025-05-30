@@ -11,6 +11,7 @@ import { API_CONFIG } from '../config/api.config';
 import { AuthApi } from './auth.api';
 import { authProvider } from '@/providers/auth.provider';
 import { ROUTES } from '@/config/routes.config';
+import { getAccessToken, getRefreshToken, storeTokens, removeTokens } from '@/utils/auth.utils';
 
 // Extend Axios request config to include our custom properties
 declare module 'axios' {
@@ -35,15 +36,24 @@ let failedQueue: any[] = [];
 
 
 // Helper function to handle token refresh success
-const handleTokenRefreshSuccess = (accessToken: string) => {
-    localStorage.setItem('access_token', accessToken);
+const handleTokenRefreshSuccess = (accessToken: string, refreshToken?: string) => {
+    // If both tokens are provided, store them
+    if (refreshToken) {
+        storeTokens(accessToken, refreshToken);
+    } else {
+        // Otherwise just update the access token
+        localStorage.setItem('access_token', accessToken);
+        // Update cookie for middleware
+        document.cookie = `access_token=${accessToken}; path=/; max-age=${60 * 60}; SameSite=Strict`;
+    }
+    
+    // Update axios default headers
     apiClient.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
 };
 
 // Helper function to handle token refresh failure
 const handleTokenRefreshFailure = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
+    removeTokens();
     delete apiClient.defaults.headers.common.Authorization;
 };
 
@@ -65,7 +75,12 @@ const performTokenRefresh = async () => {
         authProvider.check();
 
         if (response.data.access_token) {
-            handleTokenRefreshSuccess(response.data.access_token);
+            // Store both tokens if refresh token is also returned
+            if (response.data.refresh_token) {
+                handleTokenRefreshSuccess(response.data.access_token, response.data.refresh_token);
+            } else {
+                handleTokenRefreshSuccess(response.data.access_token);
+            }
             return response.data.access_token;
         }
 
@@ -86,15 +101,20 @@ const isRefreshTokenRequest = (config: any) =>
 
 /**
  * Request interceptor to add authentication token to outgoing requests.
- * Retrieves the access token from local storage and appends it to the
- * Authorization header if available.
+ * Retrieves the access token and appends it to the Authorization header if available.
+ * Also adds the X-Client-Type header for all requests.
  */
 apiClient.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('access_token');
+        // Add client type header for all requests
+        config.headers['X-Client-Type'] = 'web';
+        
+        // Add authorization header if token exists
+        const token = getAccessToken();
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         } else {
+            // Clear authorization header if no token
             config.headers.Authorization = '';
         }
         return config;
@@ -121,7 +141,7 @@ apiClient.interceptors.response.use(
         if ('logged_in' in response.data) {
 
             // If server says not logged in but we have tokens, attempt to refresh
-            if (!response.data.logged_in && localStorage.getItem('refresh_token')) {
+            if (!response.data.logged_in && getRefreshToken()) {
                 const originalRequest = response.config;
 
                 // Prevent infinite loops
@@ -164,6 +184,10 @@ apiClient.interceptors.response.use(
 
         // Don't retry if it's not a 401 or if we've already retried
         if (error.response?.status !== 401 || originalRequest._retry) {
+            // If it's a 403 and we're authenticated, it could be a permission issue
+            if (error.response?.status === 403 && getAccessToken()) {
+                console.error('Permission denied for this resource');
+            }
             return Promise.reject(error);
         }
 

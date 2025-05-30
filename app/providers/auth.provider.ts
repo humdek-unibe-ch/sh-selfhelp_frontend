@@ -3,6 +3,7 @@ import { ILoginRequest, ITwoFactorVerifyRequest } from "@/types/requests/auth/au
 import { AuthApi } from "@/api/auth.api";
 import { ITwoFactorRequiredResponse } from "@/types/responses/auth.types";
 import { ROUTES } from "@/config/routes.config";
+import { getAccessToken, getCurrentUser, storeTokens, removeTokens } from "@/utils/auth.utils";
 
 // Custom method for 2FA verification that can be used in components
 export const verify2fa = async ({ code }: { code: string }) => {
@@ -134,7 +135,7 @@ export const authProvider: AuthProvider = {
     },
 
     check: async () => {
-        const token = localStorage.getItem("access_token");
+        const token = getAccessToken();
         const pending2fa = localStorage.getItem("pending_2fa_user_id");
 
         // If there's a pending 2FA verification, user is not fully authenticated
@@ -162,19 +163,45 @@ export const authProvider: AuthProvider = {
             };
         }
 
-        // We have a token, so we consider the user authenticated
-        // The global interceptor will handle token refresh if any API call returns logged_in: false
+        // Get user from token and check if it's valid
+        const user = getCurrentUser();
+        if (!user) {
+            // Token is invalid or expired
+            removeTokens();
+            return {
+                authenticated: false,
+                error: {
+                    message: "Session expired",
+                    name: "Not authenticated",
+                },
+                logout: true,
+                redirectTo: ROUTES.LOGIN,
+            };
+        }
+
+        // We have a valid token and user, so we consider the user authenticated
         return {
             authenticated: true,
         };
     },
 
     getPermissions: async () => {
-        
+        const user = getCurrentUser();
+        return user?.permissions || [];
     },
 
     getIdentity: async () => {
+        const user = getCurrentUser();
+        const token = getAccessToken();
         
+        if (!user) return null;
+        
+        return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            token: token || undefined,
+        };
     },
 
 

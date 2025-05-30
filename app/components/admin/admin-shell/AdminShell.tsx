@@ -8,6 +8,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { useIsAuthenticated } from '@refinedev/core';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { ROUTES } from "@/config/routes.config";
 
 interface AdminShellProps {
     children: React.ReactNode;
@@ -25,7 +26,7 @@ export function AdminShell({ children }: AdminShellProps) {
         setLocalAuth(hasToken);
 
         if (!hasToken) {
-            router.push('/auth/login');
+            router.push(ROUTES.LOGIN);
         }
     }, [router]);
 
@@ -34,7 +35,7 @@ export function AdminShell({ children }: AdminShellProps) {
         if (typeof authenticated !== 'undefined') {
             setLocalAuth(authenticated);
             if (!authenticated) {
-                router.push('/auth/login');
+                router.push(ROUTES.LOGIN);
             }
         }
     }, [authenticated, router]);

@@ -10,15 +10,18 @@ import { API_CONFIG } from '@/config/api.config';
 import { NavigationApi } from './navigation.api';
 import { ILoginRequest, ILogoutRequest, IRefreshTokenRequest, ITwoFactorVerifyRequest } from '@/types/requests/auth/auth.types';
 import { ILoginSuccessResponse, ITwoFactorRequiredResponse, ITwoFactorVerifySuccessResponse, ILogoutSuccessResponse, TRefreshTokenSuccessResponse } from '@/types/responses/auth.types';
+import { storeTokens, removeTokens, getRefreshToken } from '@/utils/auth.utils';
 
 export const AuthApi = {
     /**
-     * Clears all authentication data from localStorage and updates navigation
+     * Clears all authentication data and updates navigation
      * @private
      */
     clearAuthData() {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
+        // Use the utility function to remove tokens
+        removeTokens();
+        
+        // Remove other auth-related data
         localStorage.removeItem('user');
         localStorage.removeItem('pending_2fa_user_id');
         
@@ -50,11 +53,13 @@ export const AuthApi = {
             return response.data as ITwoFactorRequiredResponse;
         }
 
-        // Store tokens in localStorage if normal login flow
+        // Store tokens if normal login flow
         const loginData = response.data as ILoginSuccessResponse;
         if (loginData.data.access_token) {
-            localStorage.setItem('access_token', loginData.data.access_token);
-            localStorage.setItem('refresh_token', loginData.data.refresh_token);
+            // Use the utility function to store tokens
+            storeTokens(loginData.data.access_token, loginData.data.refresh_token);
+            
+            // Store user data
             localStorage.setItem('user', JSON.stringify(loginData.data.user));
         }
 
@@ -77,11 +82,13 @@ export const AuthApi = {
             throw new Error(response.data.error);
         }
 
-        // Store tokens and user info in localStorage
+        // Store tokens and user info
         const { access_token, refresh_token, user } = response.data.data;
         if (access_token) {
-            localStorage.setItem('access_token', access_token);
-            localStorage.setItem('refresh_token', refresh_token);
+            // Use the utility function to store tokens
+            storeTokens(access_token, refresh_token);
+            
+            // Store user data
             localStorage.setItem('user', JSON.stringify(user));
         }
 
@@ -94,7 +101,7 @@ export const AuthApi = {
      * @throws {Error} When refresh token is missing or invalid
      */
     async refreshToken(): Promise<TRefreshTokenSuccessResponse> {
-        const refreshToken = localStorage.getItem('refresh_token');
+        const refreshToken = getRefreshToken();
 
         if (!refreshToken) {
             // Clear any existing tokens and update navigation
@@ -117,8 +124,8 @@ export const AuthApi = {
             // Update stored tokens
             const { access_token, refresh_token } = response.data.data;
             if (access_token) {
-                localStorage.setItem('access_token', access_token);
-                localStorage.setItem('refresh_token', refresh_token);
+                // Use the utility function to store tokens
+                storeTokens(access_token, refresh_token);
             }
             
             return response.data;
@@ -137,7 +144,7 @@ export const AuthApi = {
      * @throws {Error} When logout operation fails
      */
     async logout(): Promise<ILogoutSuccessResponse> {
-        const refreshToken = localStorage.getItem('refresh_token');
+        const refreshToken = getRefreshToken();
         let response;
 
         try {

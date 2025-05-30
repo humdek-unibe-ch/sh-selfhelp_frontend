@@ -310,7 +310,7 @@ export default function TwoFactorAuthenticationPage() {
                             type="button"
                             onClick={(e) => {
                                 e.preventDefault();
-                                router.push('/auth/login');
+                                router.push(ROUTES.LOGIN);
                             }}
                             color="blue"
                         >

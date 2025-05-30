@@ -1,30 +1,47 @@
 'use client';
 
-import { LoadingOverlay } from "@mantine/core";
 import { AdminShell } from "./AdminShell";
-import { useAdminAccess } from '@/hooks/useAdminAccess';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { ROUTES } from '@/config/routes.config';
+import { LoadingOverlay } from "@mantine/core";
 
 interface AdminShellWrapperProps {
     children: React.ReactNode;
 }
 
 export function AdminShellWrapper({ children }: AdminShellWrapperProps) {
-    const { hasAccess, isLoading } = useAdminAccess();
+    const { isAuthenticated, hasAdminAccess, isLoading } = useAuth();
     const router = useRouter();
+    const [isChecking, setIsChecking] = useState(true);
 
     useEffect(() => {
-        if (!isLoading && !hasAccess) {
-            router.replace('/auth/login');
+        // If still loading authentication data, wait
+        if (isLoading) {
+            return;
         }
-    }, [hasAccess, isLoading, router]);
+        
+        // Authentication state is now determined
+        if (!isAuthenticated) {
+            // Not logged in
+            router.replace(ROUTES.LOGIN);
+        } else if (!hasAdminAccess()) {
+            // Logged in but doesn't have admin access
+            router.replace(ROUTES.NO_ACCESS);
+        }
+        
+        // Authentication check is complete
+        setIsChecking(false);
+    }, [hasAdminAccess, isAuthenticated, isLoading, router]);
 
-    if (isLoading) {
-        return <LoadingOverlay visible={true} />;
+    // Show loading overlay while checking authentication or while auth is loading
+    if (isChecking || isLoading) {
+        return <LoadingOverlay visible={true} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />;
     }
 
-    if (!hasAccess) {
+    // Don't render content if user doesn't have admin access
+    if (!hasAdminAccess()) {
         return null;
     }
 
