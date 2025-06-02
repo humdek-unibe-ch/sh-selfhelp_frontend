@@ -14,18 +14,11 @@ import { NavigationApi } from '../api/navigation.api';
 import { IPageItem } from '../types/responses/frontend/frontend.types';
 
 /**
- * Converts AltoRouter-style parameters to Next.js app router dynamic routes
- * e.g., '/nav/[i:nav]' becomes '/nav/[...slug]'
+ * Converts AltoRouter-style parameters to Next.js dynamic routes, e.g., '/nav/[i:nav]' -> '/nav/[nav]'
  */
 const transformDynamicUrl = (url: string | null): string => {
     if (!url) return '/';
-    
-    // Check if it's a dynamic route
-    if (url.includes('[')) {
-        return `/`;
-    }
-    
-    return url;
+    return url.replace(/\[([ias]):([^\]]+)\]/g, '[$2]');
 };
 
 /**

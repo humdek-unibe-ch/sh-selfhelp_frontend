@@ -5,6 +5,7 @@ import { IconChevronRight, IconClipboard } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useNavigationStore, useNavigationOpenItems, useNavigationActiveItem } from '../../../store/navigation.store';
 import classes from './NavbarLinksGroup.module.css';
+import React from 'react';
 
 interface LinkItem {
     label: string;
@@ -58,15 +59,15 @@ export function LinksGroup({ icon, label, initiallyOpened, children, link, right
                     >
                         <Group justify="space-between" gap={0}>
                             <Group gap="sm">
-                                {item.icon ? (
+                                {/* {item.icon ? (
                                     <ThemeIcon variant="light" size={30} opacity={1}>
-                                        {item.icon}
+                                        {React.cloneElement(item.icon, { size: "1rem" })}
                                     </ThemeIcon>
                                 ) : (
-                                    <ThemeIcon variant="light"  size={30}>
-                                        <IconClipboard size={16} opacity={1} />
+                                    <ThemeIcon variant="light" size={30} opacity={0}>
+                                        <div style={{ width: "1rem" }} />
                                     </ThemeIcon>
-                                )}
+                                )} */}
                                 <span>{item.label}</span>
                             </Group>
                             {hasNestedLinks && (

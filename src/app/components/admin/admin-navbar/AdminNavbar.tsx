@@ -10,7 +10,7 @@ import { useAdminPages } from '../../../../hooks/useAdminPages';
 
 export function AdminNavbar() {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const { structuredPages } = useAdminPages();
+    const { pages } = useAdminPages();
 
     const navItems = [
         {
@@ -54,7 +54,7 @@ export function AdminNavbar() {
                     </Box>
                 </Tooltip>
             ),
-            children: structuredPages
+            children: pages
         },
         {
             label: 'Settings',

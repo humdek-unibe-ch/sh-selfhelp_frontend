@@ -16,4 +16,13 @@ export interface IAdminPageSectionsData {
     sections: ISectionItem[];
 }
 
+export interface IAdminPage {
+    id_pages: number;
+    keyword: string;
+    url: string;
+    parent: number | null;
+    nav_position: number | null;
+    is_headless: number;
+}
+
 export type TAdminPageSectionsResponse = IBaseApiResponse<IAdminPageSectionsData>;

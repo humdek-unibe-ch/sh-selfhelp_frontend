@@ -1,16 +1,15 @@
 'use client';
 
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import { useEffect } from 'react';
 import { Container } from '@mantine/core';
-import { useResource } from '@refinedev/core';
 import { PageContentProvider, usePageContentContext } from '../contexts/PageContentContext';
 import { usePageContent } from '../../hooks/usePageContent';
 import { useAppNavigation } from '../../hooks/useAppNavigation';
 
 export default function DynamicPage() {
-    const { resource } = useResource();
-    const keyword = resource?.name || '';
+    const { slug } = useParams();
+    const keyword = Array.isArray(slug) ? slug.join('/') : slug || '';
 
     return (
         <PageContentProvider>

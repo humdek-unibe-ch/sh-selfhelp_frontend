@@ -1,3 +1,4 @@
+import { TStyle } from '../../common/styles.types';
 import { IBaseApiResponse } from '../common/response-envelope.types';
 
 export interface IPageItem {
@@ -18,10 +19,15 @@ export interface IPageItem {
     footer_position: number | null;
     id_type: number;
     id_pageAccessTypes: number;
+    children: IPageItem[];
 }
 
-export interface IFrontendPagesData {
-    pages: IPageItem[];
+export interface IPageContent {
+    content: (TStyle | null)[];
+    title: string;
+    description: string;
+    is_headless: boolean;
 }
 
-export type TFrontendPagesResponse = IBaseApiResponse<IFrontendPagesData>;
+// Removed IFrontendPagesData; API returns data as IPageItem[]
+export type TFrontendPagesResponse = IBaseApiResponse<IPageItem[]>;

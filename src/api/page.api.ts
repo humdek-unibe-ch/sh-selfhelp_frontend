@@ -5,9 +5,10 @@
  * @module api/page.api
  */
 
-import { IApiResponse, IPageContent } from '../types/requests/requests.type';
+import { IPageContent } from '../types/requests/requests.type';
 import { apiClient } from './base.api';
 import { API_CONFIG } from '../config/api.config';
+import { IBaseApiResponse } from '../types/responses/common/response-envelope.types';
 
 export const PageApi = {
     /**
@@ -17,7 +18,7 @@ export const PageApi = {
      * @throws {Error} When API request fails
      */
     async getPageContent(keyword: string): Promise<IPageContent> {
-        const response = await apiClient.get<IApiResponse<IPageContent>>(API_CONFIG.ENDPOINTS.GET_PAGE(keyword));
+        const response = await apiClient.get<IBaseApiResponse<IPageContent>>(API_CONFIG.ENDPOINTS.GET_PAGE(keyword));
         return response.data.data;
     },
     
@@ -26,12 +27,12 @@ export const PageApi = {
      * Updates page content for a specific keyword.
      * @param {string} keyword - The page identifier
      * @param {any} content - The new content to update
-     * @returns {Promise<IApiResponse<any>>} API response with updated data
+     * @returns {Promise<IBaseApiResponse<any>>} API response with updated data
      * @throws {Error} When update fails
      */
-    async updatePageContent(keyword: string, content: any): Promise<IApiResponse<any>> {
+    async updatePageContent(keyword: string, content: any): Promise<IBaseApiResponse<any>> {
         try {
-            const response = await apiClient.put<IApiResponse<any>>(API_CONFIG.ENDPOINTS.GET_PAGE(keyword), content);
+            const response = await apiClient.put<IBaseApiResponse<any>>(API_CONFIG.ENDPOINTS.GET_PAGE(keyword), content);
             return response.data;
         } catch (error: any) {
             if (error.response?.data) {

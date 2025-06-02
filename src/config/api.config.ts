@@ -21,7 +21,6 @@ export const API_CONFIG = {
         LOGOUT: '/auth/logout',
         TWO_FACTOR_VERIFY: '/auth/two-factor-verify',
         ADMIN_PAGES: '/admin/pages',
-        ADMIN_ACCESS: '/admin/access',
         ADMIN_PAGE_FIELDS: (keyword: string) => `/admin/pages/${keyword}/fields`,
         ADMIN_PAGE_SECTIONS: (keyword: string) => `/admin/pages/${keyword}/sections`,
     },

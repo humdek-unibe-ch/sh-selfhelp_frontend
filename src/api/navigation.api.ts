@@ -8,7 +8,7 @@
 import { apiClient } from './base.api';
 import { API_CONFIG } from '../config/api.config';
 import { IBaseApiResponse } from '../types/responses/common/response-envelope.types';
-import { IFrontendPagesData, IPageItem } from '../types/responses/frontend/frontend.types';
+import { IPageItem } from '../types/responses/frontend/frontend.types';
 
 export const NavigationApi = {
     /**
@@ -17,7 +17,7 @@ export const NavigationApi = {
      * @throws {Error} When API request fails
      */
     async getPages(): Promise<IPageItem[]> {
-        const response = await apiClient.get<IBaseApiResponse<IFrontendPagesData>>(API_CONFIG.ENDPOINTS.PAGES);
-        return response.data.data.pages;
+        const response = await apiClient.get<IBaseApiResponse<IPageItem[]>>(API_CONFIG.ENDPOINTS.PAGES);
+        return response.data.data;
     }
 };
