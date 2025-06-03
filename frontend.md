@@ -5,7 +5,7 @@
 ## Navigation System Implementation & UI Optimization (Latest Update)
 
 ### Overview
-Implemented a comprehensive navigation system that fetches page data from the API and organizes it into different navigation contexts for header menus and footer links. Additionally, optimized all UI components to use Mantine UI v7 components with minimal Tailwind CSS for better theming and customization.
+Implemented a comprehensive navigation system that fetches page data from the API and organizes it into different navigation contexts for header menus and footer links. Additionally, optimized all UI components to use Mantine UI v7 components with minimal Tailwind CSS for better theming and customization. Fixed critical interface mismatch causing 404 errors for existing pages.
 
 ### Changes Made
 
@@ -27,6 +27,7 @@ Implemented a comprehensive navigation system that fetches page data from the AP
 - **Mantine Components**: Replaced custom Tailwind classes with Mantine UI components
 - **UnstyledButton**: Used for better theme integration and accessibility
 - **Simplified Logic**: Removed redundant filtering since children are already sorted in API response
+- **Interface Fix**: Updated to use correct field names (`id` instead of `id_pages`, `parent_page_id` instead of `parent`)
 
 **Design Features:**
 - Uses Mantine's `UnstyledButton`, `Group`, `Text`, and `Menu` components
@@ -38,6 +39,7 @@ Implemented a comprehensive navigation system that fetches page data from the AP
 - **Container & Stack**: Used for proper layout and spacing
 - **Anchor Component**: Used for links with proper styling
 - **Divider**: Added visual separation between sections
+- **Interface Fix**: Updated to use correct field names
 
 #### 4. Layout Integration (`src/app/[[...slug]]/layout.tsx`)
 - **AppShell Integration**: Replaced custom flex layout with Mantine's AppShell
@@ -49,7 +51,53 @@ Implemented a comprehensive navigation system that fetches page data from the AP
 - **Container**: Used Mantine Container for consistent spacing
 - **Removed Custom Classes**: Eliminated all custom Tailwind styling
 
-### UI Component Optimization Rules (NEW)
+#### 6. Fixed Page Routing Logic (`src/app/[[...slug]]/page.tsx`) - CRITICAL FIX
+- **Removed Navigation Dependency**: Fixed 404 errors by removing dependency on navigation pages for existence checking
+- **API-Based Existence**: Now relies on page content API response for determining if page exists
+- **Proper Error Handling**: Uses API error status codes to determine 404 vs other errors
+- **Mantine Loading**: Added proper loading states using Mantine components
+
+#### 7. Updated Interface (`src/types/responses/frontend/frontend.types.ts`) - CRITICAL FIX
+- **API Response Alignment**: Updated interface to match actual API response structure
+- **Field Name Corrections**: Changed `parent` to `parent_page_id`, `id_pages` to `id`, etc.
+- **Boolean Types**: Updated `is_headless` from `0 | 1` to `boolean`
+- **Simplified Structure**: Removed unused fields and aligned with actual API
+
+### Critical Bug Fixes
+
+#### 404 Error Resolution
+**Problem**: Pages like `/task1` were showing 404 even though they existed in the API
+**Root Cause**: 
+1. Interface mismatch between API response and TypeScript interface
+2. Page existence logic was checking navigation pages instead of actual page content API
+
+**Solution**:
+1. Updated interface to match actual API response structure
+2. Changed page existence logic to rely on page content API response
+3. Updated all components to use correct field names
+
+#### Interface Alignment
+**Before**: 
+```typescript
+interface IPageItem {
+    id_pages: number;
+    parent: number | null;
+    is_headless: 0 | 1;
+    // ... other mismatched fields
+}
+```
+
+**After**:
+```typescript
+interface IPageItem {
+    id: number;
+    parent_page_id: number | null;
+    is_headless: boolean;
+    // ... aligned with API response
+}
+```
+
+### UI Component Optimization Rules
 
 #### Critical Rule
 **Minimize custom Tailwind CSS and maximize Mantine UI v7 components for better theming and customization.**
@@ -126,8 +174,10 @@ The system integrates with the existing API structure:
 3. `src/app/components/website/WebsiteFooter.tsx` - Converted to use Mantine components
 4. `src/app/components/website/WebsiteHeader.tsx` - Converted to use Mantine components
 5. `src/app/[[...slug]]/layout.tsx` - Updated to use Mantine AppShell
-6. `architecture.md` - Updated with navigation system, React Query, and UI component rules
-7. `frontend.md` - This documentation file
+6. `src/app/[[...slug]]/page.tsx` - Fixed page existence logic and error handling
+7. `src/types/responses/frontend/frontend.types.ts` - Updated interface to match API response
+8. `architecture.md` - Updated with navigation system, React Query, and UI component rules
+9. `frontend.md` - This documentation file
 
 ### Technical Decisions
 - **Component Composition**: Used separate `MenuItem` component for better maintainability
@@ -136,3 +186,191 @@ The system integrates with the existing API structure:
 - **AppShell Layout**: Used Mantine's AppShell for better theme integration
 - **Performance Strategy**: Used React Query select for optimal data transformation caching
 - **Theme Strategy**: Leveraged Mantine's theme system for consistent and customizable styling
+- **Error Handling**: Separated page existence logic from navigation logic for better reliability
+- **Interface Alignment**: Ensured TypeScript interfaces match actual API responses
+
+# Frontend Development Documentation
+
+## Navigation System Implementation
+
+### Overview
+The navigation system fetches page data from API and organizes it into different categories for various UI components. It uses React Query for efficient data fetching and caching.
+
+### Key Components
+
+#### `useAppNavigation` Hook
+- **Location**: `src/hooks/useAppNavigation.ts`
+- **Purpose**: Unified hook for fetching and managing navigation data
+- **Features**:
+  - Uses React Query's `select` option for data transformation caching
+  - Flattens all pages (including children) into routes array
+  - Separates pages into categories: `pages`, `menuPages`, `footerPages`, `routes`
+  - Stores transformed data in `window.__NAVIGATION_DATA__` for debugging
+
+#### Data Structure
+```typescript
+interface INavigationData {
+    pages: IPageItem[];        // All pages from API
+    menuPages: IPageItem[];    // Pages with nav_position (sorted)
+    footerPages: IPageItem[];  // Pages with footer_position (sorted)
+    routes: IPageItem[];       // Flattened array of ALL pages for route checking
+}
+```
+
+#### Page Existence Logic
+- Uses flattened `routes` array to check if a page exists
+- Includes all pages and their children recursively
+- Prevents 404 errors for valid nested pages
+
+### UI Components
+
+#### `WebsiteHeaderMenu`
+- **Location**: `src/app/components/website/WebsiteHeaderMenu.tsx`
+- **Features**: Nested dropdown support using Mantine components
+- **Data Source**: `menuPages` from `useAppNavigation`
+
+#### `WebsiteFooter`
+- **Location**: `src/app/components/website/WebsiteFooter.tsx`
+- **Features**: Proper Mantine styling and responsive design
+- **Data Source**: `footerPages` from `useAppNavigation`
+
+### Performance Optimizations
+
+#### React Query Select
+- Uses `select` option to transform data once and cache results
+- Prevents recalculation on every render
+- Improves performance for complex data transformations
+
+#### Mantine-First Approach
+- Minimizes custom Tailwind CSS
+- Maximizes Mantine UI v7 components for better theming
+- Enables user customization through Mantine's theme system
+
+## Debug System
+
+### Overview
+Comprehensive debug system with flag-based configuration for development and testing environments.
+
+### Key Features
+
+#### Debug Configuration
+- **Location**: `src/config/debug.config.ts`
+- **Purpose**: Centralized debug feature management
+- **Environment-based**: Automatically enables in development, configurable for production
+
+#### Debug Logger
+- **Location**: `src/utils/debug-logger.ts`
+- **Features**:
+  - Structured logging with levels (debug, info, warn, error)
+  - Component-based logging for better traceability
+  - Performance timing utilities
+  - Log storage and export functionality
+  - Memory management (max 1000 logs)
+
+#### Debug Menu
+- **Location**: `src/app/components/common/debug/DebugMenu.tsx`
+- **Features**:
+  - Central debug control panel
+  - Real-time log viewer
+  - Configuration display
+  - Log export/clear functionality
+  - Tabbed interface for different debug aspects
+
+#### Debug Components
+- **Folder**: `src/app/components/common/debug/`
+- **Components**:
+  - `DebugMenu`: Main debug control panel
+  - `NavigationDebug`: Navigation data inspector
+  - Extensible for additional debug tools
+
+### Usage Examples
+
+#### Debug Logging
+```typescript
+import { debug, info, warn, error } from '../utils/debug-logger';
+
+debug('Debug message', 'ComponentName', optionalData);
+info('Info message', 'ComponentName');
+warn('Warning message', 'ComponentName');
+error('Error message', 'ComponentName', errorObject);
+```
+
+#### Component Debug Checks
+```typescript
+import { isDebugEnabled, isDebugComponentEnabled } from '../config/debug.config';
+
+if (isDebugComponentEnabled('navigationDebug')) {
+    // Debug-specific code
+}
+```
+
+### Environment Configuration
+Debug features can be controlled via environment variables:
+- `NEXT_PUBLIC_DEBUG=true` - Master debug flag
+- `NEXT_PUBLIC_DEBUG_LOGGING=true` - Enable logging
+- `NEXT_PUBLIC_DEBUG_NAV=true` - Enable navigation debug
+- See `docs/debug-configuration.md` for complete list
+
+## Bug Fixes and Technical Decisions
+
+### Interface Alignment Issue (Fixed)
+- **Problem**: Interface mismatch between API response and TypeScript interface
+- **Solution**: Updated interface to match actual API field names
+- **Impact**: Fixed 404 errors for existing pages
+
+### Page Existence Logic (Fixed)
+- **Problem**: Checking navigation pages instead of actual page content
+- **Solution**: Use flattened routes array for comprehensive page checking
+- **Impact**: Proper route validation for all pages including nested ones
+
+### Performance Optimization
+- **Implementation**: React Query `select` option for data transformation
+- **Benefit**: Prevents unnecessary recalculations on every render
+- **Rule**: Always use `select` for data transformations in React Query
+
+### UI Architecture
+- **Decision**: Mantine-first approach over custom Tailwind
+- **Reasoning**: Better theming, user customization, and component consistency
+- **Implementation**: Maximize Mantine UI v7 components, minimize custom CSS
+
+## Development Guidelines
+
+### React Query Usage
+- Always use `select` option for data transformations
+- Cache transformed data to prevent recalculation
+- Use appropriate stale times for different data types
+
+### Debug System Usage
+- Use structured logging with component names
+- Enable appropriate debug levels for different environments
+- Export logs for analysis when needed
+
+### Component Organization
+- Debug components in `src/app/components/common/debug/`
+- Flag-based enabling/disabling of debug features
+- Extensible architecture for additional debug tools
+
+### Testing Considerations
+- Debug logging can be enabled for test debugging
+- Environment-based configuration for different test scenarios
+- Log export functionality for test analysis
+
+## Architecture Notes
+
+### Data Flow
+1. API call via `NavigationApi.getPages`
+2. React Query caching and transformation via `select`
+3. Data distribution to UI components via `useAppNavigation`
+4. Route checking via flattened routes array
+
+### Debug Flow
+1. Configuration check via `isDebugEnabled`/`isDebugComponentEnabled`
+2. Structured logging via debug logger
+3. Log storage and management
+4. UI display via debug menu components
+
+### Performance Considerations
+- React Query select optimization
+- Memory management for debug logs
+- Conditional rendering of debug components
+- Efficient data transformation and caching

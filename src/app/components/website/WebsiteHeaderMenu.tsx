@@ -25,7 +25,7 @@ function MenuItem({ item }: IMenuItemProps) {
                     </UnstyledButton>
                 </Menu.Target>
                 <Menu.Dropdown>
-                    {item.children.map(child => (
+                    {item.children?.map(child => (
                         <Menu.Item 
                             key={child.id_pages} 
                             component={Link} 

@@ -5,6 +5,7 @@ import "@mantine/core/styles.css";
 import { MantineProvider, AppShell } from "@mantine/core";
 import { WebsiteHeader } from "../components/website/WebsiteHeader";
 import { WebsiteFooter } from "../components/website/WebsiteFooter";
+import { DebugMenu } from "../components/common/debug";
 import { theme } from "../../../theme";
 
 export default function RootLayout({ children }: { children: any }) {
@@ -26,6 +27,8 @@ export default function RootLayout({ children }: { children: any }) {
                 <AppShell.Footer>
                     <WebsiteFooter />
                 </AppShell.Footer>
+                
+                <DebugMenu />
             </AppShell>
         </MantineProvider>
     );

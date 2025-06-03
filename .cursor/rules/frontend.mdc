@@ -14,6 +14,8 @@ Any important change that is done should be written in [frontend.md](mdc:fronten
 Name every interface with I prefix and every type with T prefix
 Always use React Query's `select` option for data transformations to prevent recalculation on every render.
 Minimize custom Tailwind CSS and maximize Mantine UI v7 components for better theming and customization.
+Always add important and complex features to the debug system provides comprehensive development and testing tools that can be enabled/disabled through environment variables and configuration flags.
+
 
 - You are an expert in TypeScript, Node.js, Next.js, Refine, React 18, Mantine UI V7, and Tailwind and @tanstack/react-query v5.
 
