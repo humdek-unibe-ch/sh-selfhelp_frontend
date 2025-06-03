@@ -23,16 +23,8 @@ export function useAdminPages() {
             return await AdminApi.getAdminPages();
         },
         select: (data: IAdminPage[]) => {
-            debug('Transforming admin pages data', 'useAdminPages', { count: data?.length || 0 });
-            
-            // Sort pages by keyword for better organization
-            const sortedPages = data ? [...data].sort((a, b) => a.keyword.localeCompare(b.keyword)) : [];
-            
             return {
-                pages: sortedPages,
-                totalCount: sortedPages.length,
-                rootPages: sortedPages.filter(page => page.parent === null),
-                childPages: sortedPages.filter(page => page.parent !== null)
+                pages: data,
             };
         },
         staleTime: 1000, // 1 second
@@ -43,9 +35,6 @@ export function useAdminPages() {
 
     return {
         pages: data?.pages || [],
-        totalCount: data?.totalCount || 0,
-        rootPages: data?.rootPages || [],
-        childPages: data?.childPages || [],
         isLoading,
         error
     };
