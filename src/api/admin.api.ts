@@ -9,6 +9,7 @@ import { IPageFieldsResponse, IPageField } from '../types/common/pages.type';
 import { apiClient } from './base.api';
 import { API_CONFIG } from '../config/api.config';
 import { IBaseApiResponse } from '../types/responses/common/response-envelope.types';
+import { IAdminPage } from '../types/responses/admin/admin.types';
 
 export const AdminApi = {
     /**
@@ -16,7 +17,7 @@ export const AdminApi = {
      * @returns {Promise<IAdminPage[]>} Array of admin pages
      * @throws {Error} When API request fails
      */
-    async getAdminPages(): Promise<IBaseApiResponse<IAdminPage[]>> {
+    async getAdminPages(): Promise<IAdminPage[]> {
         const response = await apiClient.get<IBaseApiResponse<IAdminPage[]>>(API_CONFIG.ENDPOINTS.ADMIN_PAGES);
         console.log(response.data.data);
         return response.data.data;

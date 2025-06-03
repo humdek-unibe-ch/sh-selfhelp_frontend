@@ -405,3 +405,37 @@ Debug features can be controlled via environment variables:
   - Better user experience with stable authentication state
   - Visual feedback during refresh process
   - Proper error handling and state recovery
+
+### Admin Pages List Implementation (Latest)
+- **Problem**: Need to display admin pages in a nested, searchable list with proper state management
+- **Solution**: Created comprehensive admin pages management system
+- **Files Created/Modified**: 
+  - `src/app/components/admin/pages/admin-pages-list/AdminPagesList.tsx`
+  - `src/app/components/admin/pages/admin-pages-list/AdminPagesList.module.css`
+  - `src/app/store/admin.store.ts`
+  - `src/hooks/useAdminPages.ts`
+  - `src/api/admin.api.ts`
+  - `src/app/components/common/navbar-links-group/NavbarLinksGroup.tsx`
+- **Key Features**:
+  - **Nested Tree Structure**: Transforms flat API data into hierarchical tree
+  - **Search Functionality**: Real-time filtering by keyword and URL
+  - **State Management**: Zustand store for selected page state
+  - **Mantine-First UI**: Minimal custom CSS, maximum Mantine components
+  - **React Query Integration**: Optimized data fetching with select transformation
+  - **Collapsible Navigation**: Expandable/collapsible parent pages
+  - **Visual Feedback**: Selected state, hover effects, loading states
+  - **Type Safety**: Full TypeScript integration with proper interfaces
+- **UI Optimizations**:
+  - Replaced custom CSS with Mantine theme variables
+  - Used Mantine's built-in components (ThemeIcon, UnstyledButton, Collapse)
+  - Implemented proper loading and error states
+  - Added visual hierarchy with icons and indentation
+- **Performance Features**:
+  - React Query's `select` option for data transformation caching
+  - Memoized tree building and filtering
+  - Efficient state management with Zustand
+- **Benefits**:
+  - Clean, maintainable code structure
+  - Consistent UI with Mantine design system
+  - Proper separation of concerns
+  - Scalable architecture for future features

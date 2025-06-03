@@ -161,7 +161,7 @@ const isLogoutRequest = (config: any) =>
 const isRefreshTokenRequest = (config: any) =>
     config.url === API_CONFIG.ENDPOINTS.REFRESH_TOKEN;
 const isAdminRequest = (config: any) =>
-    config.url?.includes('/admin/') || config.url?.includes('/dashboard/');
+    config.url?.includes('/admin/');
 
 /**
  * Request interceptor to add authentication token to outgoing requests.

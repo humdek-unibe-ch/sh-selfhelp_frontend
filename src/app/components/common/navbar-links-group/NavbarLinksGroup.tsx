@@ -19,17 +19,21 @@ interface LinksGroupProps {
     label: string;
     initiallyOpened?: boolean;
     link?: string;
-    children?: LinkItem[];
+    children?: LinkItem[] | React.ReactNode;
     rightSection?: React.ReactNode;
 }
 
 export function LinksGroup({ icon, label, initiallyOpened, children, link, rightSection }: LinksGroupProps) {
     const router = useRouter();
-    const hasLinks = Array.isArray(children) && children.length > 0;
+    const isLinkArray = Array.isArray(children);
+    const hasLinks = isLinkArray && children.length > 0;
+    const hasCustomContent = !isLinkArray && React.isValidElement(children);
+    const hasAnyContent = hasLinks || hasCustomContent;
+    
     const { toggleItem, setActiveItem } = useNavigationStore();
     const openItems = useNavigationOpenItems();
     const activeItem = useNavigationActiveItem();
-    const isOpen = openItems.includes(label);
+    const isOpen = openItems.includes(label) || Boolean(initiallyOpened);
     const isActive = activeItem === link;
 
     const renderItems = (items: LinkItem[], parentPath = '') => {
@@ -59,15 +63,6 @@ export function LinksGroup({ icon, label, initiallyOpened, children, link, right
                     >
                         <Group justify="space-between" gap={0}>
                             <Group gap="sm">
-                                {/* {item.icon ? (
-                                    <ThemeIcon variant="light" size={30} opacity={1}>
-                                        {React.cloneElement(item.icon, { size: "1rem" })}
-                                    </ThemeIcon>
-                                ) : (
-                                    <ThemeIcon variant="light" size={30} opacity={0}>
-                                        <div style={{ width: "1rem" }} />
-                                    </ThemeIcon>
-                                )} */}
                                 <span>{item.label}</span>
                             </Group>
                             {hasNestedLinks && (
@@ -97,7 +92,7 @@ export function LinksGroup({ icon, label, initiallyOpened, children, link, right
             <UnstyledButton
                 component="div"
                 onClick={() => {
-                    if (hasLinks) {
+                    if (hasAnyContent) {
                         toggleItem(label);
                     }
                     if (link) {
@@ -117,7 +112,7 @@ export function LinksGroup({ icon, label, initiallyOpened, children, link, right
                     </Box>
                     <Group gap={0}>
                         {rightSection}
-                        {hasLinks && (
+                        {hasAnyContent && (
                             <IconChevronRight
                                 className={classes.chevron}
                                 stroke={1.5}
@@ -131,7 +126,17 @@ export function LinksGroup({ icon, label, initiallyOpened, children, link, right
                     </Group>
                 </Group>
             </UnstyledButton>
-            {hasLinks ? <Collapse in={isOpen}>{renderItems(children, label)}</Collapse> : null}
+            {hasAnyContent && (
+                <Collapse in={isOpen}>
+                    {hasLinks ? (
+                        renderItems(children as LinkItem[], label)
+                    ) : (
+                        <div className={classes.children}>
+                            {children as React.ReactNode}
+                        </div>
+                    )}
+                </Collapse>
+            )}
         </>
     );
 }

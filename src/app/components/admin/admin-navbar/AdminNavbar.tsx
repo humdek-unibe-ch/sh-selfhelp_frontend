@@ -4,15 +4,20 @@ import { ScrollArea, ActionIcon, Tooltip, Group, Box } from '@mantine/core';
 import { IconAdjustmentsCog, IconFiles, IconMessageCircleQuestion, IconSettings, IconSettingsAutomation, IconPlus } from '@tabler/icons-react';
 import { LinksGroup } from '../../common/navbar-links-group/NavbarLinksGroup';
 import { CreatePageModal } from '../pages/create-page/CreatePage';
+import { AdminPagesList } from '../pages/admin-pages-list/AdminPagesList';
 import classes from './AdminNavbar.module.css';
 import { useState } from 'react';
-import { useAdminPages } from '../../../../hooks/useAdminPages';
+import { IAdminPage } from '../../../../types/responses/admin/admin.types';
+import { debug } from '../../../../utils/debug-logger';
 
 export function AdminNavbar() {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const { pages } = useAdminPages();
 
-    const navItems = [
+    const handlePageSelect = (page: IAdminPage) => {
+        debug('Page selected in navbar', 'AdminNavbar', { keyword: page.keyword });
+    };
+
+    const staticNavItems = [
         {
             label: 'Configuration',
             icon: <IconSettingsAutomation size="1rem" stroke={1.5} />,
@@ -31,32 +36,6 @@ export function AdminNavbar() {
             ]
         },
         {
-            label: 'Pages',
-            icon: <IconFiles size="1rem" stroke={1.5} />,
-            rightSection: (
-                <Tooltip label="Create new page" position="right">
-                    <Box
-                        component="div"
-                        style={{ display: 'inline-flex' }}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setIsModalOpen(true);
-                        }}
-                    >
-                        <ActionIcon
-                            component="div"
-                            variant="light"
-                            size="sm"
-                            color="blue"
-                        >
-                            <IconPlus size="1rem" stroke={1.5} />
-                        </ActionIcon>
-                    </Box>
-                </Tooltip>
-            ),
-            children: pages
-        },
-        {
             label: 'Settings',
             icon: <IconSettings size="1rem" stroke={1.5} />,
             link: "/admin/settings"
@@ -72,9 +51,40 @@ export function AdminNavbar() {
         <>
             <ScrollArea className={classes.navbar}>
                 <div className={classes.navbarMain}>
-                    {navItems.map((item) => (
+                    {/* Static navigation items */}
+                    {staticNavItems.map((item) => (
                         <LinksGroup {...item} key={item.label} />
                     ))}
+
+                    {/* Pages section with custom component */}
+                    <LinksGroup
+                        label="Pages"
+                        icon={<IconFiles size="1rem" stroke={1.5} />}
+                        rightSection={
+                            <Tooltip label="Create new page" position="right">
+                                <Box
+                                    component="div"
+                                    style={{ display: 'inline-flex' }}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setIsModalOpen(true);
+                                    }}
+                                >
+                                    <ActionIcon
+                                        component="div"
+                                        variant="light"
+                                        size="sm"
+                                        color="blue"
+                                    >
+                                        <IconPlus size="1rem" stroke={1.5} />
+                                    </ActionIcon>
+                                </Box>
+                            </Tooltip>
+                        }
+                        initiallyOpened={true}
+                    >
+                        <AdminPagesList onPageSelect={handlePageSelect} />
+                    </LinksGroup>
                 </div>
             </ScrollArea>
             <CreatePageModal opened={isModalOpen} onClose={() => setIsModalOpen(false)} />

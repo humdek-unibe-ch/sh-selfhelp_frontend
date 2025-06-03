@@ -1,0 +1,24 @@
+.pageItem {
+    border-radius: var(--mantine-radius-sm);
+    transition: background-color 0.15s ease;
+    padding: 0.5rem;
+    margin-bottom: 0.125rem;
+}
+
+.pageItem:hover {
+    background-color: var(--mantine-color-gray-0);
+}
+
+[data-mantine-color-scheme="dark"] .pageItem:hover {
+    background-color: var(--mantine-color-dark-6);
+}
+
+.pageItem[data-selected] {
+    background-color: var(--mantine-color-blue-0);
+    border: 1px solid var(--mantine-color-blue-3);
+}
+
+[data-mantine-color-scheme="dark"] .pageItem[data-selected] {
+    background-color: var(--mantine-color-blue-9);
+    border: 1px solid var(--mantine-color-blue-7);
+} 

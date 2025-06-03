@@ -8,6 +8,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { AdminApi } from '../api/admin.api';
+import { IAdminPage } from '../types/responses/admin/admin.types';
+import { debug } from '../utils/debug-logger';
 
 /**
  * Hook for fetching and managing admin pages data
@@ -17,9 +19,20 @@ export function useAdminPages() {
     const { data, isLoading, error } = useQuery({
         queryKey: ['adminPages'],
         queryFn: async () => {
-            const pages = await AdminApi.getAdminPages();
+            debug('Fetching admin pages', 'useAdminPages');
+            return await AdminApi.getAdminPages();
+        },
+        select: (data: IAdminPage[]) => {
+            debug('Transforming admin pages data', 'useAdminPages', { count: data?.length || 0 });
+            
+            // Sort pages by keyword for better organization
+            const sortedPages = data ? [...data].sort((a, b) => a.keyword.localeCompare(b.keyword)) : [];
+            
             return {
-                pages,
+                pages: sortedPages,
+                totalCount: sortedPages.length,
+                rootPages: sortedPages.filter(page => page.parent === null),
+                childPages: sortedPages.filter(page => page.parent !== null)
             };
         },
         staleTime: 1000, // 1 second
@@ -30,6 +43,9 @@ export function useAdminPages() {
 
     return {
         pages: data?.pages || [],
+        totalCount: data?.totalCount || 0,
+        rootPages: data?.rootPages || [],
+        childPages: data?.childPages || [],
         isLoading,
         error
     };
