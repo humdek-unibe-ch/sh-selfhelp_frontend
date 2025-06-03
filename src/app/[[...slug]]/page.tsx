@@ -19,45 +19,26 @@ export default function DynamicPage() {
 }
 
 function DynamicPageContent({ keyword }: { keyword: string }) {
-    const { content: queryContent, isLoading: pageLoading, isFetching: pageFetching, isSuccess: pageSuccess } = usePageContent(keyword);
+    const { content: queryContent, isLoading: pageLoading } = usePageContent(keyword);
     const { pageContent: contextContent } = usePageContentContext();
     const pageContent = contextContent || queryContent;
 
-    const { routes, isLoading } = useAppNavigation();
-    const currentPath = '/' + keyword;
-    const route = routes?.find(route => {
-        // Replace dynamic parameters in route path with regex pattern
-        const routePattern = route.path.replace(/\[([^\]]+)\]/g, '([^/]+)');
-        const regex = new RegExp(`^${routePattern}$`);
-        return regex.test(currentPath);
-    });
-
-    const isValid = !!route;
-
+    const { pages, isLoading: navLoading } = useAppNavigation();
+    // Find existence of page
+    const exists = pages.some(p => p.keyword === keyword);
     useEffect(() => {
-        if (!isLoading && routes&& routes.length > 0 && !isValid) {
-            notFound();
-        }
-    }, [routes, isValid, isLoading]);
+        if (!navLoading && pages.length > 0 && !exists) notFound();
+    }, [pages, exists, navLoading]);
 
-    if (pageLoading) {
-        return <div>Loading...</div>;
-    }
+    if (pageLoading || navLoading) return <div>Loading...</div>;
 
-    if (!isValid) {
-        return <div>Error loading page content</div>;
-    }
+    if (!exists) return <div>Error loading page</div>;
 
-    if (!pageContent) {
-        return <div>No content found</div>;
-    }
+    if (!pageContent) return <div>No content found</div>;
 
     return (
         <Container size="md">
             TODO load page content
-            {/* {pageContent.content.map((style, index) => (
-                style ? <BasicStyle key={index} style={style} /> : null
-            ))} */}
         </Container>
     );
 }

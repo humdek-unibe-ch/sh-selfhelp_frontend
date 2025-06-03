@@ -15,6 +15,67 @@ This document outlines the frontend architecture for the SH-Self-help project. T
 *   **Performance**: Optimize for Web Vitals (LCP, CLS, FID).
 *   **Accessibility (a11y)**: Build inclusive interfaces.
 
+## 2.1. Navigation System Architecture
+
+The application uses a centralized navigation system that fetches page data from the API and organizes it into different navigation contexts:
+
+### Navigation Data Structure
+- **pages**: All accessible pages for the current user (including non-logged-in users for public pages)
+- **menuPages**: Pages with `nav_position` for header navigation (pre-sorted by API)
+- **footerPages**: Pages with `footer_position` for footer navigation (sorted by `footer_position` value)
+
+### Key Components
+- **useAppNavigation Hook**: Centralized hook for fetching and organizing navigation data using TanStack React Query
+- **WebsiteHeaderMenu**: Responsive header menu with nested dropdown support
+- **WebsiteFooter**: Footer component displaying footer navigation links
+
+### Design Principles
+- Theme-friendly styling using CSS custom properties and Tailwind classes
+- Support for dark/light mode transitions
+- Responsive design with mobile-first approach
+- Proper loading states with skeleton components
+- Nested menu support with hover interactions
+
+## 2.2. React Query Data Transformation Rules
+
+**CRITICAL RULE**: Always use React Query's `select` option for data transformations to prevent recalculation on every render.
+
+### When to Use Select
+- **Data Filtering**: When filtering arrays based on conditions
+- **Data Sorting**: When sorting data by specific criteria
+- **Data Mapping**: When transforming data structure
+- **Data Aggregation**: When combining or grouping data
+
+### Implementation Pattern
+```typescript
+const { data } = useQuery({
+    queryKey: ['data'],
+    queryFn: fetchData,
+    select: (rawData) => {
+        // Transform data once and cache the result
+        return {
+            filtered: rawData.filter(condition),
+            sorted: rawData.sort(compareFn),
+            mapped: rawData.map(transformFn)
+        };
+    }
+});
+```
+
+### Benefits
+- **Performance**: Transformations are cached and only recalculated when source data changes
+- **Memory**: Prevents creating new objects on every render
+- **Consistency**: Ensures transformed data remains stable across renders
+- **Debugging**: Easier to track data flow and transformations
+
+### Anti-Pattern (Avoid)
+```typescript
+// DON'T DO THIS - recalculates on every render
+const { data } = useQuery(['data'], fetchData);
+const filtered = data?.filter(condition) ?? [];
+const sorted = filtered.sort(compareFn);
+```
+
 ## 3. Directory Structure
 
 A clear directory structure is crucial for organization and scalability.
