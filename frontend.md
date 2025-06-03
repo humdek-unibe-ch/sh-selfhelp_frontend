@@ -2,6 +2,137 @@
 
 # Frontend Development Log
 
+## AdminNavbar Search Enhancement (Latest Update)
+
+### Overview
+Enhanced the AdminNavbar Pages section with search functionality, clear button, focus management, collapse/expand for children, and height constraints to improve usability when dealing with many pages.
+
+### Changes Made
+
+#### 1. Added Search Functionality (`src/app/components/admin/admin-navbar/AdminNavbar.tsx`)
+- **Search Input**: Added TextInput with search icon at the top of Pages section
+- **Real-time Filtering**: Filters pages by keyword and URL as user types
+- **Recursive Search**: Searches through nested children and preserves hierarchy
+- **Smart Filtering**: Shows parent pages if children match search criteria
+- **Clear Button**: Added X button to quickly clear search when text is present
+- **Focus Management**: Fixed focus loss issue using useRef and useCallback
+- **Empty State**: Shows "No pages found" message when search yields no results
+
+#### 2. Added Collapse/Expand Functionality
+- **Collapsible Children**: All page items with children can be collapsed/expanded
+- **Chevron Icons**: Visual indicators (right/down arrows) for expandable items
+- **State Management**: Uses Set-based state to track expanded items
+- **Recursive Nesting**: Supports unlimited levels of page hierarchy
+- **Proper Indentation**: Visual hierarchy with increasing indentation levels
+
+#### 3. Implemented Height Constraints
+- **Max Height**: Set 700px maximum height for Pages section
+- **Scrollable Content**: Added ScrollArea for pages list (650px max height)
+- **Overflow Management**: Prevents indefinite growth of navigation menu
+
+#### 4. Enhanced Page Rendering
+- **Custom Page Items**: Replaced LinksGroup with custom page rendering for better control
+- **Navigation Icons**: Blue icons for pages with nav_position
+- **Nested Structure**: Proper indentation for child pages with collapse/expand
+- **Proper Navigation**: Uses Next.js router for seamless navigation
+
+### Technical Implementation
+
+#### Focus Management Fix
+```typescript
+const searchInputRef = useRef<HTMLInputElement>(null);
+
+const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.currentTarget.value);
+}, []);
+
+const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        if (searchInputRef.current) {
+            searchInputRef.current.focus();
+        }
+    }
+}, []);
+```
+
+#### Collapse/Expand State Management
+```typescript
+const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+
+const toggleExpanded = useCallback((itemKey: string) => {
+    setExpandedItems(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(itemKey)) {
+            newSet.delete(itemKey);
+        } else {
+            newSet.add(itemKey);
+        }
+        return newSet;
+    });
+}, []);
+```
+
+#### Recursive Page Rendering
+```typescript
+const renderPageItem = useCallback((item: any, level: number = 0) => {
+    const itemKey = `${item.label}-${level}`;
+    const hasChildren = item.children && item.children.length > 0;
+    const isExpanded = expandedItems.has(itemKey);
+    const indentLevel = level * 20;
+
+    return (
+        <div key={itemKey}>
+            <Group gap="sm" style={{ marginLeft: `${indentLevel}px` }}>
+                {hasChildren && (
+                    <ActionIcon onClick={() => toggleExpanded(itemKey)}>
+                        {isExpanded ? <IconChevronDown /> : <IconChevronRight />}
+                    </ActionIcon>
+                )}
+                {/* Page content */}
+            </Group>
+            {hasChildren && (
+                <Collapse in={isExpanded}>
+                    {item.children.map((child: any) => renderPageItem(child, level + 1))}
+                </Collapse>
+            )}
+        </div>
+    );
+}, [expandedItems, toggleExpanded, router]);
+```
+
+### Key Features
+- **Real-time Search**: Instant filtering as user types without focus loss
+- **Clear Functionality**: One-click search reset with X button
+- **Focus Retention**: Search input maintains focus properly using useRef
+- **Collapse/Expand**: All page items with children can be collapsed/expanded
+- **Visual Hierarchy**: Chevron icons and proper indentation for nested structure
+- **Empty State Feedback**: Clear message when no results found
+- **Hierarchical Preservation**: Maintains parent-child relationships in search results
+- **Visual Indicators**: Blue icons for menu pages (nav_position)
+- **Responsive Design**: Proper spacing and indentation for nested items
+- **Performance Optimized**: useCallback and useMemo to prevent unnecessary re-renders
+- **Height Constrained**: Prevents UI overflow with many pages
+
+### Benefits
+- **Better UX**: Easy to find pages in large page lists with stable search controls
+- **Organized Navigation**: Collapsible structure keeps navigation clean and organized
+- **Maintained Hierarchy**: Search results and navigation preserve page relationships
+- **Consistent UI**: Follows existing admin design patterns
+- **Performance**: Efficient filtering and rendering with proper React optimization
+- **Scalability**: Handles large numbers of pages gracefully with collapse functionality
+- **User Feedback**: Clear indication when search yields no results
+
+### Technical Details
+- **Search Fields**: Filters by both `keyword` and `url` fields
+- **Case Insensitive**: Search is case-insensitive for better usability
+- **Recursive Logic**: Handles unlimited nesting levels for both search and collapse
+- **Mantine Components**: Uses TextInput, ScrollArea, Stack, ActionIcon, Collapse for consistent styling
+- **Next.js Navigation**: Proper router-based navigation for SPA behavior
+- **Event Handling**: Proper keyboard event management and focus control
+- **State Optimization**: useCallback and useMemo prevent unnecessary re-renders
+- **Memory Efficient**: Set-based state management for expanded items
+
 ## AdminNavbar Simplification (Latest Update)
 
 ### Overview
