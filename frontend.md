@@ -2,10 +2,10 @@
 
 # Frontend Development Log
 
-## Navigation System Implementation (Latest Update)
+## Navigation System Implementation & UI Optimization (Latest Update)
 
 ### Overview
-Implemented a comprehensive navigation system that fetches page data from the API and organizes it into different navigation contexts for header menus and footer links.
+Implemented a comprehensive navigation system that fetches page data from the API and organizes it into different navigation contexts for header menus and footer links. Additionally, optimized all UI components to use Mantine UI v7 components with minimal Tailwind CSS for better theming and customization.
 
 ### Changes Made
 
@@ -23,31 +23,51 @@ Implemented a comprehensive navigation system that fetches page data from the AP
 - **Performance**: Data transformations are cached and only recalculated when source data changes
 
 #### 2. Enhanced `WebsiteHeaderMenu` Component (`src/app/components/website/WebsiteHeaderMenu.tsx`)
-- **Nested Menu Support**: Properly handles parent-child page relationships
-- **Improved Design**: Modern styling with hover effects and transitions
-- **Loading States**: Skeleton loading component for better UX
-- **Theme-Friendly**: Dark/light mode support with CSS custom properties
-- **Responsive**: Mobile-first approach with proper breakpoints
+- **Fixed Children Usage**: Now uses existing `children` property from API response instead of manual filtering
+- **Mantine Components**: Replaced custom Tailwind classes with Mantine UI components
+- **UnstyledButton**: Used for better theme integration and accessibility
+- **Simplified Logic**: Removed redundant filtering since children are already sorted in API response
 
 **Design Features:**
-- Hover-triggered dropdowns for nested pages
-- Smooth transitions and animations
-- Proper spacing and typography
-- Icon integration with Tabler Icons
+- Uses Mantine's `UnstyledButton`, `Group`, `Text`, and `Menu` components
+- Proper hover states and accessibility
+- Theme-friendly styling through Mantine props
 
-#### 3. New `WebsiteFooter` Component (`src/app/components/website/WebsiteFooter.tsx`)
-- **Footer Navigation**: Displays pages with `footer_position`
-- **Responsive Layout**: Centered layout with proper spacing
-- **Loading States**: Skeleton component for loading state
-- **Copyright Section**: Automatic year update
-- **Conditional Rendering**: Only shows if footer pages exist
+#### 3. Enhanced `WebsiteFooter` Component (`src/app/components/website/WebsiteFooter.tsx`)
+- **Mantine Components**: Replaced all custom Tailwind with Mantine components
+- **Container & Stack**: Used for proper layout and spacing
+- **Anchor Component**: Used for links with proper styling
+- **Divider**: Added visual separation between sections
 
 #### 4. Layout Integration (`src/app/[[...slug]]/layout.tsx`)
-- **Footer Integration**: Added WebsiteFooter to the main layout
-- **Flex Layout**: Implemented proper flex layout for sticky footer
-- **Responsive**: Ensures footer stays at bottom on all screen sizes
+- **AppShell Integration**: Replaced custom flex layout with Mantine's AppShell
+- **Header/Footer Structure**: Proper header and footer integration
+- **Theme Consistency**: Better integration with Mantine's theme system
 
-### React Query Optimization Rules (NEW)
+#### 5. Enhanced `WebsiteHeader` Component (`src/app/components/website/WebsiteHeader.tsx`)
+- **Mantine Layout**: Replaced custom Tailwind with Mantine's Flex and Group components
+- **Container**: Used Mantine Container for consistent spacing
+- **Removed Custom Classes**: Eliminated all custom Tailwind styling
+
+### UI Component Optimization Rules (NEW)
+
+#### Critical Rule
+**Minimize custom Tailwind CSS and maximize Mantine UI v7 components for better theming and customization.**
+
+#### Mantine First Principles
+- **Use Mantine Components**: Always prefer Mantine components over custom HTML elements
+- **Mantine Props**: Use Mantine's built-in props for styling (size, color, variant, etc.)
+- **Minimal Tailwind**: Only use Tailwind for layout utilities when Mantine doesn't provide equivalent
+- **Theme Integration**: Leverage Mantine's theme system for consistent styling
+
+#### Benefits
+- **Theme Consistency**: Automatic theme integration and customization
+- **User Customization**: Easier for users to apply custom themes
+- **Maintenance**: Centralized styling through Mantine's theme system
+- **Accessibility**: Built-in accessibility features in Mantine components
+- **Performance**: Optimized component rendering and styling
+
+### React Query Optimization Rules
 
 #### Critical Rule
 **Always use React Query's `select` option for data transformations to prevent recalculation on every render.**
@@ -82,15 +102,15 @@ The system integrates with the existing API structure:
 - **Caching**: Optimized with React Query for performance
 
 ### Design System Considerations
-- **Theming Ready**: All components use CSS custom properties and Tailwind classes
-- **Customizable**: Easy to modify colors, spacing, and typography
-- **Consistent**: Follows established design patterns
-- **Accessible**: Proper ARIA attributes and keyboard navigation support
+- **Theming Ready**: All components use Mantine UI components and props
+- **Customizable**: Easy to modify through Mantine's theme system
+- **Consistent**: Follows Mantine design patterns
+- **Accessible**: Built-in accessibility features from Mantine components
 
 ### Performance Optimizations
 - **React Query Caching**: 1-second stale time prevents unnecessary API calls
 - **Select Optimization**: Data transformations cached using React Query's select
-- **Skeleton Loading**: Improves perceived performance
+- **Mantine Components**: Optimized rendering and styling
 - **Conditional Rendering**: Components only render when data is available
 - **Optimized Re-renders**: Proper dependency management
 
@@ -102,15 +122,17 @@ The system integrates with the existing API structure:
 
 ### Files Modified/Created
 1. `src/hooks/useAppNavigation.ts` - Enhanced navigation hook with React Query select optimization
-2. `src/app/components/website/WebsiteHeaderMenu.tsx` - Updated header menu
-3. `src/app/components/website/WebsiteFooter.tsx` - New footer component
-4. `src/app/[[...slug]]/layout.tsx` - Added footer integration with flex layout
-5. `architecture.md` - Updated with navigation system and React Query optimization rules
-6. `frontend.md` - This documentation file
+2. `src/app/components/website/WebsiteHeaderMenu.tsx` - Updated to use children and Mantine components
+3. `src/app/components/website/WebsiteFooter.tsx` - Converted to use Mantine components
+4. `src/app/components/website/WebsiteHeader.tsx` - Converted to use Mantine components
+5. `src/app/[[...slug]]/layout.tsx` - Updated to use Mantine AppShell
+6. `architecture.md` - Updated with navigation system, React Query, and UI component rules
+7. `frontend.md` - This documentation file
 
 ### Technical Decisions
 - **Component Composition**: Used separate `MenuItem` component for better maintainability
-- **Prop Naming**: Renamed `children` to `childPages` to avoid React prop conflicts
-- **Loading Strategy**: Implemented skeleton loading for better UX
-- **Styling Approach**: Combined Mantine components with Tailwind utilities for flexibility
+- **API Response Usage**: Used existing `children` property instead of manual filtering
+- **Mantine First**: Prioritized Mantine components over custom Tailwind styling
+- **AppShell Layout**: Used Mantine's AppShell for better theme integration
 - **Performance Strategy**: Used React Query select for optimal data transformation caching
+- **Theme Strategy**: Leveraged Mantine's theme system for consistent and customizable styling

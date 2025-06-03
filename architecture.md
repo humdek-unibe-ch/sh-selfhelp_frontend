@@ -76,6 +76,86 @@ const filtered = data?.filter(condition) ?? [];
 const sorted = filtered.sort(compareFn);
 ```
 
+## 2.3. UI Component Rules - Mantine First Approach
+
+**CRITICAL RULE**: Minimize custom Tailwind CSS and maximize Mantine UI v7 components for better theming and customization.
+
+### Mantine First Principles
+- **Use Mantine Components**: Always prefer Mantine components over custom HTML elements
+- **Mantine Props**: Use Mantine's built-in props for styling (size, color, variant, etc.)
+- **Minimal Tailwind**: Only use Tailwind for layout utilities when Mantine doesn't provide equivalent
+- **Theme Integration**: Leverage Mantine's theme system for consistent styling
+
+### Preferred Patterns
+
+#### Layout and Structure
+```typescript
+// ✅ GOOD - Use Mantine layout components
+<Container size="xl">
+    <Stack gap="lg">
+        <Group justify="space-between" align="center">
+            <Text size="xl" fw={700}>Title</Text>
+            <Button variant="filled">Action</Button>
+        </Group>
+    </Stack>
+</Container>
+
+// ❌ AVOID - Custom Tailwind classes
+<div className="max-w-7xl mx-auto">
+    <div className="flex flex-col gap-4">
+        <div className="flex justify-between items-center">
+            <h1 className="text-xl font-bold">Title</h1>
+            <button className="bg-blue-500 text-white px-4 py-2">Action</button>
+        </div>
+    </div>
+</div>
+```
+
+#### Typography
+```typescript
+// ✅ GOOD - Use Mantine Text component
+<Text size="sm" c="dimmed" ta="center">
+    Copyright text
+</Text>
+
+// ❌ AVOID - Custom classes
+<p className="text-sm text-gray-500 text-center">
+    Copyright text
+</p>
+```
+
+#### Interactive Elements
+```typescript
+// ✅ GOOD - Use Mantine components
+<UnstyledButton component={Link} href="/path">
+    <Text size="sm" fw={500}>Link Text</Text>
+</UnstyledButton>
+
+// ❌ AVOID - Custom styled elements
+<a href="/path" className="text-sm font-medium hover:text-blue-600">
+    Link Text
+</a>
+```
+
+### When Tailwind is Acceptable
+- **Layout utilities**: `flex`, `grid` when Mantine doesn't provide equivalent
+- **Spacing overrides**: Only when Mantine's spacing system is insufficient
+- **Custom positioning**: `absolute`, `relative`, `fixed` positioning
+- **Responsive breakpoints**: When used with Mantine's responsive props
+
+### Benefits of Mantine First Approach
+- **Theme Consistency**: Automatic theme integration and customization
+- **User Customization**: Easier for users to apply custom themes
+- **Maintenance**: Centralized styling through Mantine's theme system
+- **Accessibility**: Built-in accessibility features in Mantine components
+- **Performance**: Optimized component rendering and styling
+
+### Migration Strategy
+1. **Identify Custom Tailwind**: Find components using extensive Tailwind classes
+2. **Replace with Mantine**: Use equivalent Mantine components and props
+3. **Preserve Functionality**: Ensure all interactive behavior is maintained
+4. **Test Theming**: Verify components work with different Mantine themes
+
 ## 3. Directory Structure
 
 A clear directory structure is crucial for organization and scalability.

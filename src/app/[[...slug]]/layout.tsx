@@ -2,7 +2,7 @@
 
 import "../../globals.css";
 import "@mantine/core/styles.css";
-import { MantineProvider } from "@mantine/core";
+import { MantineProvider, AppShell } from "@mantine/core";
 import { WebsiteHeader } from "../components/website/WebsiteHeader";
 import { WebsiteFooter } from "../components/website/WebsiteFooter";
 import { theme } from "../../../theme";
@@ -11,11 +11,22 @@ export default function RootLayout({ children }: { children: any }) {
 
     return (
         <MantineProvider theme={theme}>
-            <div className="min-h-screen flex flex-col">
-                <WebsiteHeader />   
-                <main className="flex-1">{children}</main>
-                <WebsiteFooter />
-            </div>
+            <AppShell
+                header={{ height: 60 }}
+                footer={{ height: 'auto' }}
+            >
+                <AppShell.Header>
+                    <WebsiteHeader />
+                </AppShell.Header>
+                
+                <AppShell.Main>
+                    {children}
+                </AppShell.Main>
+                
+                <AppShell.Footer>
+                    <WebsiteFooter />
+                </AppShell.Footer>
+            </AppShell>
         </MantineProvider>
     );
 }

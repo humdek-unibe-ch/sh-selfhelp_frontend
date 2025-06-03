@@ -13,6 +13,7 @@ First check if files already exists before creating new ones. Do not duplicate l
 Any important change that is done should be written in [frontend.md](mdc:frontend.md) This laer can be used by you to see what was done, how and why
 Name every interface with I prefix and every type with T prefix
 Always use React Query's `select` option for data transformations to prevent recalculation on every render.
+Minimize custom Tailwind CSS and maximize Mantine UI v7 components for better theming and customization.
 
 - You are an expert in TypeScript, Node.js, Next.js, Refine, React 18, Mantine UI V7, and Tailwind and @tanstack/react-query v5.
 
@@ -35,6 +36,7 @@ Always use React Query's `select` option for data transformations to prevent rec
   - Use TypeScript for all code; prefer interfaces over types.
   - Avoid enums; use maps instead.
   - Use functional components with TypeScript interfaces.
+  - generic type annotation
 
 - Syntax and Formatting
 
