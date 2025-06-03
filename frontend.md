@@ -439,3 +439,38 @@ Debug features can be controlled via environment variables:
   - Consistent UI with Mantine design system
   - Proper separation of concerns
   - Scalable architecture for future features
+
+### Admin Layout Integration & Page Ordering (Latest)
+- **Problem**: Need to integrate with existing admin layout structure and implement proper page ordering with nested children
+- **Solution**: Updated routing to use keyword-based URLs and implemented smart page ordering with nested menu support
+- **Files Modified**: 
+  - `src/app/components/admin/admin-navbar/AdminNavbar.tsx`
+  - `src/app/admin/pages/[keyword]/page.tsx` (new)
+  - `src/app/admin/page.tsx`
+- **Key Features**:
+  - **Keyword-Based Routing**: Changed from `/admin/page/{id}` to `/admin/pages/{keyword}` for better URLs
+  - **Layout Integration**: Content loads in main area between navbar and right sidebar (like settings page)
+  - **Smart Page Ordering**: Menu pages (with nav_position) appear first, sorted by nav_position ascending
+  - **Nested Children Support**: Parent pages with children show expandable/collapsible menus
+  - **Hierarchical Display**: Proper parent-child relationships with nested navigation
+- **Ordering Logic**:
+  - **Menu Pages First**: Pages with `nav_position` appear at top, sorted by position (1, 2, 3...)
+  - **Non-Menu Pages**: Appear below menu pages, sorted alphabetically
+  - **Children Sorting**: Child pages within each parent sorted alphabetically
+  - **Recursive Nesting**: Supports multiple levels of page hierarchy
+- **Layout Structure**:
+  - **No Custom Container**: Content renders directly in admin layout main area
+  - **Consistent Styling**: Matches existing admin pages (settings, etc.)
+  - **Right Sidebar Ready**: Content area leaves space for Properties sidebar
+  - **Responsive Design**: Works with existing admin responsive breakpoints
+- **Navigation Improvements**:
+  - **Visual Hierarchy**: Menu icons clearly distinguish navigation pages
+  - **Expandable Parents**: Pages with children show chevron and expand/collapse
+  - **Proper Nesting**: Children appear indented under their parents
+  - **State Management**: Navigation state persists across page changes
+- **Benefits**:
+  - **Better URLs**: Keyword-based URLs are more user-friendly and SEO-friendly
+  - **Consistent UX**: Matches existing admin interface patterns
+  - **Logical Ordering**: Menu pages prioritized, then alphabetical organization
+  - **Scalable Structure**: Supports unlimited nesting levels
+  - **Maintainable Code**: Clean separation of concerns and reusable components

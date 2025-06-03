@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Collapse, Group, Text, ThemeIcon, UnstyledButton } from '@mantine/core';
-import { IconChevronRight, IconClipboard } from '@tabler/icons-react';
+import { IconChevronRight, IconMenu2 } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useNavigationStore, useNavigationOpenItems, useNavigationActiveItem } from '../../../store/navigation.store';
 import classes from './NavbarLinksGroup.module.css';
@@ -12,6 +12,7 @@ interface LinkItem {
     link?: string;
     children?: LinkItem[];
     icon?: React.ReactNode;
+    hasNavPosition?: boolean;
 }
 
 interface LinksGroupProps {
@@ -63,6 +64,11 @@ export function LinksGroup({ icon, label, initiallyOpened, children, link, right
                     >
                         <Group justify="space-between" gap={0}>
                             <Group gap="sm">
+                                {item.hasNavPosition && (
+                                    <ThemeIcon variant="light" size="xs" color="blue">
+                                        <IconMenu2 size="0.6rem" />
+                                    </ThemeIcon>
+                                )}
                                 <span>{item.label}</span>
                             </Group>
                             {hasNestedLinks && (
