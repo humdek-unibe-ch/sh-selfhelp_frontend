@@ -1,70 +1,55 @@
+/**
+ * Authentication provider for Refine.
+ * Handles user authentication, authorization, and session management.
+ * 
+ * @module providers/auth.provider
+ */
+
 import { AuthProvider } from "@refinedev/core";
 import { ILoginRequest, ITwoFactorVerifyRequest } from "../types/requests/auth/auth.types";
 import { AuthApi } from "../api/auth.api";
 import { ITwoFactorRequiredResponse } from "../types/responses/auth.types";
 import { ROUTES } from "../config/routes.config";
-import { getAccessToken, getCurrentUser, storeTokens, removeTokens } from "../utils/auth.utils";
+import { getAccessToken, getCurrentUser, storeTokens, removeTokens, removeAccessToken, getRefreshToken } from "../utils/auth.utils";
+import { debug, info, warn, error } from '../utils/debug-logger';
 
 // Custom method for 2FA verification that can be used in components
-export const verify2fa = async ({ code }: { code: string }) => {
+export const verifyTwoFactor = async (code: string) => {
+    const pendingUserId = localStorage.getItem("pending_2fa_user_id");
+    
+    if (!pendingUserId) {
+        throw new Error("No pending 2FA verification found");
+    }
+
     try {
-        const userId = localStorage.getItem("pending_2fa_user_id");
+        const response = await AuthApi.verifyTwoFactor({
+            code,
+            id_users: parseInt(pendingUserId)
+        });
 
-        if (!userId) {
-            return {
-                success: false,
-                error: {
-                    message: "No pending 2FA verification",
-                    name: "2FA Error"
-                }
-            };
-        }
+        // Clear the pending 2FA data
+        localStorage.removeItem("pending_2fa_user_id");
 
-        const request: ITwoFactorVerifyRequest = {
-            id_users: parseInt(userId),
-            code
-        };
-
-        try {
-            // Use AuthApi.verifyTwoFactor instead of direct API call
-            await AuthApi.verifyTwoFactor(request);
-
-            return {
-                success: true,
-                redirectTo: ROUTES.HOME
-            };
-        } catch (apiError: any) {
-            return {
-                success: false,
-                error: {
-                    message: apiError.message || "2FA Verification Error",
-                    name: "2FA Verification Error"
-                }
-            };
-        }
-    } catch (error: any) {
-        return {
-            success: false,
-            error: {
-                message: error.message || "2FA verification failed",
-                name: "2FA Error"
-            }
-        };
+        return response;
+    } catch (error) {
+        throw error;
     }
 };
 
 export const authProvider: AuthProvider = {
     login: async ({ email, password }: ILoginRequest) => {
         try {
+            debug('Attempting login', 'AuthProvider', { email });
+            
             try {
                 // Use AuthApi.login instead of direct API call
                 const response = await AuthApi.login({ email, password });
-
+            
                 // Check if 2FA is required based on response type
                 if ('requires_2fa' in response.data) {
                     // This is a 2FA required response
                     const twoFactorData = response as ITwoFactorRequiredResponse;
-
+                
                     // Store the user ID for the 2FA verification step
                     localStorage.setItem("pending_2fa_user_id", twoFactorData.data.id_users.toString());
 
@@ -83,12 +68,14 @@ export const authProvider: AuthProvider = {
                 // This is a successful login response
                 // The localStorage operations are already handled in AuthApi.login
                 // so we don't need to set tokens here
-
+                info('Login successful', 'AuthProvider');
+                
                 return {
                     success: true,
                     redirectTo: ROUTES.HOME
                 };
             } catch (apiError: any) {
+                error('Login API error', 'AuthProvider', apiError);
                 return {
                     success: false,
                     error: {
@@ -98,6 +85,7 @@ export const authProvider: AuthProvider = {
                 };
             }
         } catch (error: any) {
+            error('Login error', 'AuthProvider', error);
             return {
                 success: false,
                 error: {
@@ -110,18 +98,23 @@ export const authProvider: AuthProvider = {
 
     logout: async () => {
         try {
+            debug('Attempting logout', 'AuthProvider');
+            
             // Use AuthApi.logout instead of direct API call
             // This will handle the API call and localStorage cleanup
             await AuthApi.logout();
 
             // Ensure pending 2FA data is also cleared (in case it's not handled in AuthApi)
             localStorage.removeItem("pending_2fa_user_id");
+            
+            info('Logout successful', 'AuthProvider');
 
             return {
                 success: true,
                 redirectTo: ROUTES.LOGIN
             };
         } catch (error: any) {
+            warn('Logout error', 'AuthProvider', error);
             // Even if server logout fails, we still want to clear local storage
             // and redirect to login - AuthApi.logout already handles this in its catch block
             // but we'll add an extra safety check here
@@ -137,9 +130,10 @@ export const authProvider: AuthProvider = {
     check: async () => {
         const token = getAccessToken();
         const pending2fa = localStorage.getItem("pending_2fa_user_id");
-
+        
         // If there's a pending 2FA verification, user is not fully authenticated
         if (pending2fa) {
+            debug('Pending 2FA verification found', 'AuthProvider');
             return {
                 authenticated: false,
                 error: {
@@ -152,6 +146,7 @@ export const authProvider: AuthProvider = {
 
         // No tokens means not authenticated
         if (!token) {
+            debug('No access token found', 'AuthProvider');
             return {
                 authenticated: false,
                 error: {
@@ -162,12 +157,13 @@ export const authProvider: AuthProvider = {
                 redirectTo: ROUTES.LOGIN,
             };
         }
-
+        
         // Get user from token and check if it's valid
         const user = getCurrentUser();
         if (!user) {
+            debug('Invalid user token', 'AuthProvider');
             // Token is invalid or expired
-            removeTokens();
+            removeAccessToken();
             return {
                 authenticated: false,
                 error: {
@@ -179,6 +175,7 @@ export const authProvider: AuthProvider = {
             };
         }
 
+        debug('Authentication check successful', 'AuthProvider', { userId: user.id });
         // We have a valid token and user, so we consider the user authenticated
         return {
             authenticated: true,
@@ -187,6 +184,7 @@ export const authProvider: AuthProvider = {
 
     getPermissions: async () => {
         const user = getCurrentUser();
+        debug('Getting permissions', 'AuthProvider', { userId: user?.id });
         return user?.permissions || [];
     },
 
@@ -196,6 +194,7 @@ export const authProvider: AuthProvider = {
         
         if (!user) return null;
         
+        debug('Getting identity', 'AuthProvider', { userId: user.id });
         return {
             id: user.id,
             name: user.name,
@@ -204,10 +203,10 @@ export const authProvider: AuthProvider = {
         };
     },
 
-
     onError: async (error) => {
         // Check if the error is an authentication error (401)
         if (error.response?.status === 401) {
+            debug('401 error in onError handler', 'AuthProvider');
             return {
                 error: {
                     message: "Authentication failed. Please login again.",
@@ -219,5 +218,62 @@ export const authProvider: AuthProvider = {
         }
 
         return { error };
+    },
+};
+
+/**
+ * Helper function to check if user is authenticated for frontend pages
+ * This is more lenient than Refine's check and allows logged_in: false
+ */
+export const checkFrontendAuth = async (): Promise<{
+    isAuthenticated: boolean;
+    user?: any;
+    shouldRefresh?: boolean;
+}> => {
+    const token = getAccessToken();
+    
+    if (!token) {
+        return { isAuthenticated: false };
+    }
+
+    const user = getCurrentUser();
+    if (!user) {
+        return { 
+            isAuthenticated: false,
+            shouldRefresh: !!getRefreshToken()
+        };
+    }
+
+    debug('Frontend auth check', 'AuthProvider', { 
+        userId: user.id,
+        hasRefreshToken: !!getRefreshToken()
+    });
+
+    return {
+        isAuthenticated: true,
+        user,
+        shouldRefresh: false
+    };
+};
+
+/**
+ * Helper function to force token refresh
+ * Can be called manually when needed
+ */
+export const forceTokenRefresh = async (): Promise<boolean> => {
+    try {
+        debug('Forcing token refresh', 'AuthProvider');
+        
+        const response = await AuthApi.refreshToken();
+        
+        if (response.data.access_token) {
+            info('Manual token refresh successful', 'AuthProvider');
+            return true;
+        }
+        
+        return false;
+    } catch (refreshError) {
+        error('Manual token refresh failed', 'AuthProvider', refreshError);
+        return false;
     }
 };

@@ -374,3 +374,34 @@ Debug features can be controlled via environment variables:
 - Memory management for debug logs
 - Conditional rendering of debug components
 - Efficient data transformation and caching
+
+## Recent Changes and Improvements
+
+### Token Refresh Duplicate Prevention (Latest)
+- **Problem**: Multiple concurrent API calls were triggering duplicate refresh token requests
+- **Solution**: Implemented centralized refresh state management with request queuing
+- **Files Modified**: `src/api/base.api.ts`, `src/providers/auth.provider.ts`
+- **Key Features**:
+  - Single refresh guarantee using shared state
+  - Request queue management for concurrent requests
+  - Preserved both admin (strict) and frontend (lenient) authentication modes
+  - Comprehensive debug logging for troubleshooting
+- **Documentation**: `docs/token-refresh-solution.md`
+
+### AuthButton Stability Fix (Latest)
+- **Problem**: AuthButton was flickering between "Login" and "Profile" during token refresh
+- **Root Cause**: Refine's `useIsAuthenticated` hook was too reactive during token refresh process
+- **Solution**: Implemented stable authentication state management
+- **Files Modified**: `src/app/components/auth/AuthButton.tsx`
+- **Key Features**:
+  - Stable auth state that doesn't flicker during refresh
+  - Token-based authentication check (access_token OR refresh_token)
+  - Storage event listeners for real-time token updates
+  - Refresh state detection with visual feedback (opacity change)
+  - Immediate UI update on logout for better UX
+  - Comprehensive debug logging for auth state changes
+- **Benefits**:
+  - No more UI flickering during token refresh
+  - Better user experience with stable authentication state
+  - Visual feedback during refresh process
+  - Proper error handling and state recovery

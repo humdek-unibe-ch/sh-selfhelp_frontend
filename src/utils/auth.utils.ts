@@ -36,6 +36,18 @@ export const removeTokens = (): void => {
 };
 
 /**
+ * Remove the access token from localStorage
+ */
+export const removeAccessToken = (): void => {
+    if (typeof window === 'undefined') return;
+
+    localStorage.removeItem(TOKEN_KEYS.ACCESS_TOKEN);
+
+    // Also remove from cookies
+    document.cookie = `${TOKEN_KEYS.ACCESS_TOKEN}=; path=/; max-age=0; SameSite=Strict`;
+};
+
+/**
  * Get access token from localStorage
  */
 export const getAccessToken = (): string | null => {
