@@ -23,6 +23,7 @@ export interface IAdminPage {
     parent: number | null;
     nav_position: number | null;
     is_headless: number;
+    children?: IAdminPage[];
 }
 
 export type TAdminPageSectionsResponse = IBaseApiResponse<IAdminPageSectionsData>;

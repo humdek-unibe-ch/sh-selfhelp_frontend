@@ -14,70 +14,23 @@ export function AdminNavbar() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { pages, isLoading } = useAdminPages();
 
-    // Transform pages into LinkItem format for LinksGroup with proper ordering and nesting
+    // Transform pages into LinkItem format recursively using existing structure
     const transformPagesToLinks = (pages: IAdminPage[]) => {
-        const pageMap = new Map<number, any>();
-        const rootPages: any[] = [];
-
-        // First pass: create all page items
-        pages.forEach(page => {
-            pageMap.set(page.id_pages, {
-                label: page.keyword,
-                link: `/admin/pages/${page.keyword}`,
-                hasNavPosition: page.nav_position !== null,
-                navPosition: page.nav_position,
-                pageId: page.id_pages,
-                children: []
-            });
+        const transformPage = (page: IAdminPage): any => ({
+            label: page.keyword,
+            link: `/admin/pages/${page.keyword}`,
+            hasNavPosition: page.nav_position !== null,
+            children: page.children ? page.children.map(transformPage) : []
         });
 
-        // Second pass: build the tree structure
-        pages.forEach(page => {
-            const pageItem = pageMap.get(page.id_pages)!;
-            
-            if (page.parent === null) {
-                // Root level page
-                rootPages.push(pageItem);
-            } else {
-                // Child page
-                const parentPage = pageMap.get(page.parent);
-                if (parentPage) {
-                    parentPage.children.push(pageItem);
-                }
-            }
-        });
-
-        // Sort root pages: menu pages first (by nav_position), then others alphabetically
-        rootPages.sort((a, b) => {
-            // If both have nav_position, sort by nav_position
-            if (a.hasNavPosition && b.hasNavPosition) {
-                return a.navPosition - b.navPosition;
-            }
-            // Menu pages come first
-            if (a.hasNavPosition && !b.hasNavPosition) return -1;
-            if (!a.hasNavPosition && b.hasNavPosition) return 1;
-            // Both non-menu pages, sort alphabetically
-            return a.label.localeCompare(b.label);
-        });
-
-        // Sort children alphabetically within each parent
-        const sortChildren = (items: any[]) => {
-            items.forEach(item => {
-                if (item.children.length > 0) {
-                    item.children.sort((a: any, b: any) => a.label.localeCompare(b.label));
-                    sortChildren(item.children);
-                }
-            });
-        };
-        sortChildren(rootPages);
-
+        const result = pages.map(transformPage);
+        
         debug('Transformed pages for navigation', 'AdminNavbar', { 
             totalPages: pages.length,
-            rootPages: rootPages.length,
-            menuPages: rootPages.filter(p => p.hasNavPosition).length
+            transformedPages: result.length
         });
 
-        return rootPages;
+        return result;
     };
 
     const pageLinks = isLoading ? [] : transformPagesToLinks(pages);

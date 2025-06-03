@@ -2,6 +2,55 @@
 
 # Frontend Development Log
 
+## AdminNavbar Simplification (Latest Update)
+
+### Overview
+Simplified the AdminNavbar component to use the existing page structure with children from the API, removing complex Map-based sorting and transformation logic.
+
+### Changes Made
+
+#### 1. Updated `IAdminPage` Interface (`src/types/responses/admin/admin.types.ts`)
+- **Added Children Property**: Added optional `children?: IAdminPage[]` to match API response structure
+- **API Alignment**: Interface now matches the actual API response that includes nested children
+
+#### 2. Simplified `AdminNavbar` Component (`src/app/components/admin/admin-navbar/AdminNavbar.tsx`)
+- **Removed Complex Logic**: Eliminated Map-based page transformation and sorting
+- **Recursive Transformation**: Simple recursive function that preserves existing page structure
+- **API Structure Usage**: Uses the children property that already comes from the API
+- **Maintained Features**: Still includes nav_position indicators and proper linking
+
+**Before (Complex)**:
+```typescript
+// Complex Map-based transformation with sorting
+const pageMap = new Map<number, any>();
+const rootPages: any[] = [];
+// ... 50+ lines of complex logic
+```
+
+**After (Simple)**:
+```typescript
+// Simple recursive transformation
+const transformPage = (page: IAdminPage): any => ({
+    label: page.keyword,
+    link: `/admin/pages/${page.keyword}`,
+    hasNavPosition: page.nav_position !== null,
+    children: page.children ? page.children.map(transformPage) : []
+});
+```
+
+### Benefits
+- **Simplified Code**: Reduced complexity from ~50 lines to ~10 lines
+- **API Structure Respect**: Uses the existing hierarchical structure from API
+- **Better Performance**: No complex sorting or Map operations
+- **Maintainability**: Easier to understand and modify
+- **Consistency**: Matches the pattern used in frontend navigation
+
+### Technical Details
+- **Recursive Processing**: Handles nested children at any depth
+- **Link Generation**: Properly formats admin page links as `/admin/pages/{keyword}`
+- **Navigation Indicators**: Preserves nav_position indicators for menu pages
+- **Type Safety**: Maintains TypeScript type safety with updated interface
+
 ## Navigation System Implementation & UI Optimization (Latest Update)
 
 ### Overview
