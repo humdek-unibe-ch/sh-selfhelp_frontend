@@ -264,7 +264,6 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
         try {
             const createdPage = await AdminApi.createPage(submitData);
             
-            // Success notification
             notifications.show({
                 title: 'Page Created Successfully',
                 message: `Page "${createdPage.keyword}" was created successfully!`,
@@ -279,124 +278,48 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
             
         } catch (error: any) {
             debug('Error creating page', 'CreatePageModal', { error, submitData });
-            console.log('Full error object:', error);
-            console.log('Error type:', typeof error);
-            console.log('Error keys:', Object.keys(error || {}));
-            console.log('Error response:', error?.response);
-            console.log('Error response data:', error?.response?.data);
             
             let errorMessage = 'Page creation failed. Please try again.';
             let errorTitle = 'Page Creation Failed';
-            let errorCaught = false;
             
-            try {
-                // Handle different types of errors
-                if (error?.response?.data) {
-                    // Axios error with response data (most common case)
-                    const status = error.response.status;
-                    const responseData = error.response.data;
-                    console.log('Axios error with data - Status:', status, 'Data:', responseData);
+            // Handle Axios errors (most common)
+            if (error?.response?.data) {
+                const responseData = error.response.data;
+                
+                // Use backend error message if available
+                if (responseData.error || responseData.message) {
+                    errorMessage = responseData.error || responseData.message;
                     
-                    // Check if responseData has status/message/error fields (your error format)
-                    if (responseData.status || responseData.message || responseData.error) {
-                        const errorStatus = responseData.status || status;
-                        
-                        if (errorStatus === 500) {
-                            errorTitle = 'Server Error';
-                            errorMessage = responseData.error || responseData.message || 'A server error occurred. Please try again later or contact support.';
-                        } else if (errorStatus === 400) {
-                            errorTitle = 'Invalid Request';
-                            errorMessage = responseData.error || responseData.message || 'The request is invalid. Please check your inputs and try again.';
-                        } else if (errorStatus === 422) {
-                            errorTitle = 'Validation Error';
-                            errorMessage = responseData.error || responseData.message || 'Request validation failed. Please check your inputs and try again.';
-                        } else if (errorStatus === 409) {
-                            errorTitle = 'Page Already Exists';
-                            errorMessage = `A page with keyword "${values.keyword}" already exists. Please choose a different keyword.`;
-                        } else {
-                            errorMessage = responseData.error || responseData.message || `Server returned error ${errorStatus}. Please try again.`;
-                        }
-                        errorCaught = true;
-                    } else {
-                        // Standard Axios error response
-                        if (status === 400) {
-                            errorTitle = 'Invalid Page Data';
-                            errorMessage = 'The page data is invalid. Please check your inputs and try again.';
-                        } else if (status === 409) {
-                            errorTitle = 'Page Already Exists';
-                            errorMessage = `A page with keyword "${values.keyword}" already exists. Please choose a different keyword.`;
-                        } else if (status === 422) {
-                            errorTitle = 'Validation Error';
-                            errorMessage = 'Please check your form inputs and try again.';
-                        } else if (status === 500) {
-                            errorTitle = 'Server Error';
-                            errorMessage = 'A server error occurred. Please try again later or contact support.';
-                        } else {
-                            errorMessage = `Server returned error ${status}. Please try again.`;
-                        }
-                        errorCaught = true;
-                    }
-                } else if (error?.response) {
-                    // Axios error without data
-                    const status = error.response.status;
-                    console.log('Axios error without data - Status:', status);
-                    errorMessage = `Server returned error ${status}. Please try again.`;
-                    errorCaught = true;
-                } else if (error?.status) {
-                    // Direct error object with status (your error format)
-                    const status = error.status;
-                    console.log('Direct error object - Status:', status, 'Message:', error.message, 'Error:', error.error);
-                    
+                    // Set appropriate title based on status
+                    const status = responseData.status || error.response.status;
                     if (status === 500) {
                         errorTitle = 'Server Error';
-                        errorMessage = error.error || error.message || 'A server error occurred. Please try again later or contact support.';
-                    } else if (status === 400) {
-                        errorTitle = 'Invalid Request';
-                        errorMessage = error.error || error.message || 'The request is invalid. Please check your inputs and try again.';
-                    } else if (status === 422) {
+                    } else if (status === 400 || status === 422) {
                         errorTitle = 'Validation Error';
-                        errorMessage = error.error || error.message || 'Request validation failed. Please check your inputs and try again.';
-                    } else {
-                        errorMessage = error.error || error.message || `Server returned error ${status}. Please try again.`;
+                    } else if (status === 409) {
+                        errorTitle = 'Page Already Exists';
                     }
-                    errorCaught = true;
-                } else if (error?.message) {
-                    // Network or other errors
-                    console.log('Message-based error:', error.message);
-                    if (error.message.includes('fetch')) {
-                        errorTitle = 'Network Error';
-                        errorMessage = 'Unable to connect to the server. Please check your internet connection and try again.';
-                    } else if (error.message.includes('timeout')) {
-                        errorTitle = 'Request Timeout';
-                        errorMessage = 'The request took too long to complete. Please try again.';
-                    } else {
-                        errorMessage = error.message;
-                    }
-                    errorCaught = true;
-                } else if (typeof error === 'string') {
-                    // String error
-                    console.log('String error:', error);
-                    errorMessage = error;
-                    errorCaught = true;
                 }
-                
-                if (!errorCaught) {
-                    // Completely unknown error format
-                    console.log('Unknown error format, using fallback');
-                    errorTitle = 'Page Creation Failed';
-                    errorMessage = 'An unexpected error occurred. Please try again or contact support if the problem persists.';
+            }
+            // Handle direct error objects
+            else if (error?.status && (error.error || error.message)) {
+                errorMessage = error.error || error.message;
+                if (error.status === 500) {
+                    errorTitle = 'Server Error';
+                } else if (error.status === 400 || error.status === 422) {
+                    errorTitle = 'Validation Error';
                 }
-                
-            } catch (parseError) {
-                // If error parsing fails, use fallback
-                debug('Error parsing error response', 'CreatePageModal', { parseError, originalError: error });
-                console.error('Error parsing failed:', parseError);
-                errorTitle = 'Page Creation Failed';
-                errorMessage = 'An unexpected error occurred. Please try again or contact support if the problem persists.';
+            }
+            // Handle network errors
+            else if (error?.message) {
+                if (error.message.includes('fetch') || error.message.includes('network')) {
+                    errorTitle = 'Network Error';
+                    errorMessage = 'Unable to connect to the server. Please check your connection.';
+                } else {
+                    errorMessage = error.message;
+                }
             }
             
-            // GUARANTEED error notification - this will ALWAYS execute
-            console.log('Showing error notification:', { errorTitle, errorMessage });
             notifications.show({
                 title: errorTitle,
                 message: errorMessage,
@@ -404,13 +327,6 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
                 color: 'red',
                 autoClose: 8000,
                 position: 'top-center',
-            });
-            
-            console.error('Page creation failed:', {
-                error,
-                submitData,
-                errorMessage,
-                errorTitle
             });
         }
     };
