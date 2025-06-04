@@ -60,3 +60,33 @@
     flex: 0 0 auto;
 }
 
+/* Fix for drag-and-drop positioning in modals */
+.dragContainer {
+    position: relative;
+}
+
+/* Modal layout with scrollable content and fixed buttons */
+.modalContainer {
+    position: relative;
+}
+
+.modalContent {
+    display: flex;
+    flex-direction: column;
+    height: 80vh;
+    max-height: 800px;
+}
+
+.scrollableContent {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.actionButtons {
+    flex-shrink: 0;
+    padding: var(--mantine-spacing-lg);
+    border-top: 1px solid var(--mantine-color-gray-3);
+    background-color: var(--mantine-color-gray-0);
+}
+

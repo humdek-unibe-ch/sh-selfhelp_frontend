@@ -257,6 +257,11 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
         onClose();
     };
 
+    // Handle create button click
+    const handleCreateClick = () => {
+        form.onSubmit(handleSubmit)();
+    };
+
     // Handle modal close
     const handleClose = () => {
         form.reset();
@@ -363,18 +368,12 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
         <Modal
             opened={opened}
             onClose={handleClose}
-            title={
-                <Group gap="sm">
-                    <IconPlus size="1.2rem" />
-                    <Title order={3}>Create New Page</Title>
-                </Group>
-            }
+            title="Create New Page"
             size="xl"
             centered
-            padding="lg"
             className={styles.modalContainer}
         >
-            <Box pos="relative">
+            <Box pos="relative" className={styles.modalContent}>
                 <LoadingOverlay visible={pagesLoading} />
                 
                 <DragDropContext 
@@ -386,159 +385,166 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
                         }
                     }}
                 >
-                    <form onSubmit={form.onSubmit(handleSubmit)}>
-                        <Stack gap="lg">
-                            {/* Basic Page Information */}
-                            <Paper p="md" withBorder>
-                                <Stack gap="md">
-                                    <Title order={4} size="h5" c="blue">Basic Information</Title>
-                                    
-                                    <TextInput
-                                        label="Keyword"
-                                        placeholder="Enter page keyword"
-                                        required
-                                        {...form.getInputProps('keyword')}
-                                    />
-
-                                    {/* Page Access Type - Horizontal Layout */}
-                                    <Box>
-                                        <Text size="sm" fw={500} mb="xs">Page Access Type</Text>
-                                        <Radio.Group
-                                            value={form.values.pageAccessType}
-                                            onChange={(value) => form.setFieldValue('pageAccessType', value)}
-                                        >
-                                            <Group gap="xl" className={styles.pageAccessRadioGroup}>
-                                                {pageAccessTypes.map((type) => (
-                                                    <Radio
-                                                        key={type.lookupCode}
-                                                        value={type.lookupCode}
-                                                        label={type.lookupValue}
-                                                    />
-                                                ))}
-                                            </Group>
-                                        </Radio.Group>
-                                    </Box>
-                                </Stack>
-                            </Paper>
-
-                            {/* Page Settings */}
-                            <Paper p="md" withBorder>
-                                <Stack gap="md">
-                                    <Title order={4} size="h5" c="blue">Page Settings</Title>
-                                    
-                                    {/* Horizontal Checkbox Group */}
-                                    <Group gap="xl">
-                                        <Checkbox
-                                            label="Headless Page"
-                                            description="No header/footer layout"
-                                            {...form.getInputProps('headlessPage', { type: 'checkbox' })}
-                                        />
-                                        <Checkbox
-                                            label="Navigation Page"
-                                            description="Add [i:nav] parameter"
-                                            {...form.getInputProps('navigationPage', { type: 'checkbox' })}
-                                        />
-                                        <Checkbox
-                                            label="Open Access"
-                                            description="Public access"
-                                            {...form.getInputProps('openAccess', { type: 'checkbox' })}
-                                        />
-                                    </Group>
-
-                                    {/* URL Pattern with Floating Edit Button */}
-                                    <Box pos="relative">
+                    {/* Scrollable Content Area */}
+                    <Box className={styles.scrollableContent}>
+                        <form onSubmit={form.onSubmit(handleSubmit)}>
+                            <Stack gap="lg" p="lg">
+                                {/* Basic Page Information */}
+                                <Paper p="md" withBorder>
+                                    <Stack gap="md">
+                                        <Title order={4} size="h5" c="blue">Basic Information</Title>
+                                        
                                         <TextInput
-                                            label="URL Pattern"
-                                            placeholder="/your-page-url"
-                                            readOnly={!form.values.customUrlEdit}
-                                            {...form.getInputProps('urlPattern')}
-                                            rightSection={
-                                                <Tooltip 
-                                                    label={form.values.customUrlEdit ? "Lock URL editing" : "Enable URL editing"}
-                                                    position="left"
-                                                >
-                                                    <ActionIcon
-                                                        variant={form.values.customUrlEdit ? "filled" : "subtle"}
-                                                        color={form.values.customUrlEdit ? "blue" : "gray"}
-                                                        onClick={() => form.setFieldValue('customUrlEdit', !form.values.customUrlEdit)}
-                                                        style={{ cursor: 'pointer' }}
+                                            label="Keyword"
+                                            placeholder="Enter page keyword"
+                                            required
+                                            {...form.getInputProps('keyword')}
+                                        />
+
+                                        {/* Page Access Type - Horizontal Layout */}
+                                        <Box>
+                                            <Text size="sm" fw={500} mb="xs">Page Access Type</Text>
+                                            <Radio.Group
+                                                value={form.values.pageAccessType}
+                                                onChange={(value) => form.setFieldValue('pageAccessType', value)}
+                                            >
+                                                <Group gap="xl" className={styles.pageAccessRadioGroup}>
+                                                    {pageAccessTypes.map((type) => (
+                                                        <Radio
+                                                            key={type.lookupCode}
+                                                            value={type.lookupCode}
+                                                            label={type.lookupValue}
+                                                        />
+                                                    ))}
+                                                </Group>
+                                            </Radio.Group>
+                                        </Box>
+                                    </Stack>
+                                </Paper>
+
+                                {/* Page Settings */}
+                                <Paper p="md" withBorder>
+                                    <Stack gap="md">
+                                        <Title order={4} size="h5" c="blue">Page Settings</Title>
+                                        
+                                        {/* Horizontal Checkbox Group */}
+                                        <Group gap="xl">
+                                            <Checkbox
+                                                label="Headless Page"
+                                                description="No header/footer layout"
+                                                {...form.getInputProps('headlessPage', { type: 'checkbox' })}
+                                            />
+                                            <Checkbox
+                                                label="Navigation Page"
+                                                description="Add [i:nav] parameter"
+                                                {...form.getInputProps('navigationPage', { type: 'checkbox' })}
+                                            />
+                                            <Checkbox
+                                                label="Open Access"
+                                                description="Public access"
+                                                {...form.getInputProps('openAccess', { type: 'checkbox' })}
+                                            />
+                                        </Group>
+
+                                        {/* URL Pattern with Floating Edit Button */}
+                                        <Box pos="relative">
+                                            <TextInput
+                                                label="URL Pattern"
+                                                placeholder="/your-page-url"
+                                                readOnly={!form.values.customUrlEdit}
+                                                {...form.getInputProps('urlPattern')}
+                                                rightSection={
+                                                    <Tooltip 
+                                                        label={form.values.customUrlEdit ? "Lock URL editing" : "Enable URL editing"}
+                                                        position="left"
                                                     >
-                                                        {form.values.customUrlEdit ? (
-                                                            <IconEdit size="1rem" />
-                                                        ) : (
-                                                            <IconLock size="1rem" />
+                                                        <ActionIcon
+                                                            variant={form.values.customUrlEdit ? "filled" : "subtle"}
+                                                            color={form.values.customUrlEdit ? "blue" : "gray"}
+                                                            onClick={() => form.setFieldValue('customUrlEdit', !form.values.customUrlEdit)}
+                                                            style={{ cursor: 'pointer' }}
+                                                        >
+                                                            {form.values.customUrlEdit ? (
+                                                                <IconEdit size="1rem" />
+                                                            ) : (
+                                                                <IconLock size="1rem" />
+                                                            )}
+                                                        </ActionIcon>
+                                                    </Tooltip>
+                                                }
+                                            />
+                                        </Box>
+                                    </Stack>
+                                </Paper>
+
+                                {/* Menu Positioning - 2 Columns */}
+                                <Paper p="md" withBorder>
+                                    <Stack gap="md">
+                                        <Title order={4} size="h5" c="blue">Menu Positioning</Title>
+                                        
+                                        <Group gap="md" align="flex-start">
+                                            <Checkbox
+                                                label="Header Menu"
+                                                {...form.getInputProps('headerMenu', { type: 'checkbox' })}
+                                            />
+                                            <Checkbox
+                                                label="Footer Menu"
+                                                {...form.getInputProps('footerMenu', { type: 'checkbox' })}
+                                            />
+                                        </Group>
+
+                                        {(form.values.headerMenu || form.values.footerMenu) && (
+                                            <SimpleGrid cols={2} spacing="md">
+                                                {/* Header Menu */}
+                                                {form.values.headerMenu && (
+                                                    <Box>
+                                                        {renderDragDropArea(
+                                                            addNewPageToHeaderMenu,
+                                                            "header-menu",
+                                                            handleHeaderMenuDragEnd,
+                                                            "Header Menu Position"
                                                         )}
-                                                    </ActionIcon>
-                                                </Tooltip>
-                                            }
-                                        />
-                                    </Box>
-                                </Stack>
-                            </Paper>
+                                                        <Alert icon={<IconInfoCircle size="1rem" />} mt="xs" color="blue">
+                                                            Drag the new page to set its position
+                                                        </Alert>
+                                                    </Box>
+                                                )}
 
-                            {/* Menu Positioning - 2 Columns */}
-                            <Paper p="md" withBorder>
-                                <Stack gap="md">
-                                    <Title order={4} size="h5" c="blue">Menu Positioning</Title>
-                                    
-                                    <Group gap="md" align="flex-start">
-                                        <Checkbox
-                                            label="Header Menu"
-                                            {...form.getInputProps('headerMenu', { type: 'checkbox' })}
-                                        />
-                                        <Checkbox
-                                            label="Footer Menu"
-                                            {...form.getInputProps('footerMenu', { type: 'checkbox' })}
-                                        />
-                                    </Group>
+                                                {/* Footer Menu */}
+                                                {form.values.footerMenu && (
+                                                    <Box>
+                                                        {renderDragDropArea(
+                                                            addNewPageToFooterMenu,
+                                                            "footer-menu",
+                                                            handleFooterMenuDragEnd,
+                                                            "Footer Menu Position"
+                                                        )}
+                                                        <Alert icon={<IconInfoCircle size="1rem" />} mt="xs" color="blue">
+                                                            Drag the new page to set its position
+                                                        </Alert>
+                                                    </Box>
+                                                )}
+                                            </SimpleGrid>
+                                        )}
+                                    </Stack>
+                                </Paper>
+                            </Stack>
+                        </form>
+                    </Box>
 
-                                    {(form.values.headerMenu || form.values.footerMenu) && (
-                                        <SimpleGrid cols={2} spacing="md">
-                                            {/* Header Menu */}
-                                            {form.values.headerMenu && (
-                                                <Box>
-                                                    {renderDragDropArea(
-                                                        addNewPageToHeaderMenu,
-                                                        "header-menu",
-                                                        handleHeaderMenuDragEnd,
-                                                        "Header Menu Position"
-                                                    )}
-                                                    <Alert icon={<IconInfoCircle size="1rem" />} mt="xs" color="blue">
-                                                        Drag the new page to set its position
-                                                    </Alert>
-                                                </Box>
-                                            )}
-
-                                            {/* Footer Menu */}
-                                            {form.values.footerMenu && (
-                                                <Box>
-                                                    {renderDragDropArea(
-                                                        addNewPageToFooterMenu,
-                                                        "footer-menu",
-                                                        handleFooterMenuDragEnd,
-                                                        "Footer Menu Position"
-                                                    )}
-                                                    <Alert icon={<IconInfoCircle size="1rem" />} mt="xs" color="blue">
-                                                        Drag the new page to set its position
-                                                    </Alert>
-                                                </Box>
-                                            )}
-                                        </SimpleGrid>
-                                    )}
-                                </Stack>
-                            </Paper>                            
-
-                            {/* Form Actions */}
-                            <Group justify="flex-end" mt="md">
-                                <Button variant="outline" onClick={handleClose}>
-                                    Cancel
-                                </Button>
-                                <Button type="submit">
-                                    Create Page
-                                </Button>
-                            </Group>
-                        </Stack>
-                    </form>
+                    {/* Fixed Action Buttons */}
+                    <Box className={styles.actionButtons}>
+                        <Group justify="flex-end" gap="md">
+                            <Button variant="outline" onClick={handleClose}>
+                                Cancel
+                            </Button>
+                            <Button 
+                                onClick={handleCreateClick}
+                            >
+                                Create Page
+                            </Button>
+                        </Group>
+                    </Box>
                 </DragDropContext>
             </Box>
         </Modal>
