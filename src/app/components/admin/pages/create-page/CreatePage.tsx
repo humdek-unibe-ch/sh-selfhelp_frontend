@@ -274,6 +274,14 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
             });
             
             debug('Page created successfully', 'CreatePageModal', createdPage);
+            
+            // Reset form and state on successful creation
+            form.reset();
+            setHeaderDroppedIndex(null);
+            setFooterDroppedIndex(null);
+            setHeaderMenuPages(processMenuPages.header);
+            setFooterMenuPages(processMenuPages.footer);
+            
             onClose();
             
         } catch (error: any) {
