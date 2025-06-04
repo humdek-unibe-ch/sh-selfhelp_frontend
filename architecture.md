@@ -156,6 +156,99 @@ const sorted = filtered.sort(compareFn);
 3. **Preserve Functionality**: Ensure all interactive behavior is maintained
 4. **Test Theming**: Verify components work with different Mantine themes
 
+## 2.4. Lookups System Architecture
+
+The application uses a centralized lookups system for managing configuration data and dropdown options.
+
+### Lookups Data Structure
+- **ILookup**: Individual lookup item with id, typeCode, lookupCode, lookupValue, and lookupDescription
+- **ILookupMap**: Key-value map using `typeCode_lookupCode` format for efficient access
+- **ILookupsByType**: Grouped lookups by typeCode for dropdown population
+
+### Key Components
+- **LookupsApi**: API service for fetching lookup data
+- **useLookups Hook**: React Query hook with 24-hour caching and data transformation
+- **useLookupsByType**: Helper hook for getting lookups by specific type
+- **useLookup**: Helper hook for getting specific lookup by type and code
+
+### Lookup Constants
+All lookup type codes and lookup codes are defined in `src/constants/lookups.constants.ts` for consistent access:
+- Type codes: `PAGE_ACCESS_TYPES`, `PAGE_ACTIONS`, `NOTIFICATION_TYPES`, etc.
+- Lookup codes: `PAGE_ACCESS_TYPES_MOBILE`, `PAGE_ACTIONS_SECTIONS`, etc.
+
+### Implementation Pattern
+```typescript
+// Get lookups by type for dropdowns
+const pageAccessTypes = useLookupsByType(PAGE_ACCESS_TYPES);
+
+// Get specific lookup
+const mobileLookup = useLookup(PAGE_ACCESS_TYPES, PAGE_ACCESS_TYPES_MOBILE);
+
+// Use in Radio.Group with descriptions
+<Radio.Group value={value} onChange={onChange}>
+    {pageAccessTypes.map((type) => (
+        <Radio
+            key={type.lookupCode}
+            value={type.lookupCode}
+            label={
+                <Box>
+                    <Text size="sm">{type.lookupValue}</Text>
+                    {type.lookupDescription && (
+                        <Text size="xs" c="dimmed">{type.lookupDescription}</Text>
+                    )}
+                </Box>
+            }
+        />
+    ))}
+</Radio.Group>
+```
+
+### Caching Strategy
+- **24-hour cache**: Lookups are cached for 24 hours as they rarely change
+- **Data transformation**: Uses React Query's `select` option for efficient processing
+- **Memory optimization**: Processed data structures prevent recalculation
+
+## 2.5. Create Page Modal System
+
+The create page modal provides a comprehensive interface for creating new pages with all necessary configuration options.
+
+### Key Features
+- **Form Validation**: Keyword validation with regex patterns
+- **Dynamic URL Generation**: Automatic URL pattern generation based on keyword and navigation settings
+- **Menu Position Management**: Drag-and-drop interface for header and footer menu positioning
+- **Lookups Integration**: Uses lookups system for page types and access types
+- **Real-time Updates**: Form fields update dynamically based on user input
+
+### Form Structure
+```typescript
+interface ICreatePageFormValues {
+    keyword: string;
+    pageType: string;
+    headerMenu: boolean;
+    headerMenuPosition: number | null;
+    footerMenu: boolean;
+    footerMenuPosition: number | null;
+    headlessPage: boolean;
+    pageAccessType: string;
+    urlPattern: string;
+    navigationPage: boolean;
+    openAccess: boolean;
+    customUrlEdit: boolean;
+}
+```
+
+### Menu Management
+- **Header Menu**: Shows existing pages with nav_position, allows drag-and-drop positioning
+- **Footer Menu**: Shows potential footer pages, allows drag-and-drop positioning
+- **Visual Feedback**: New page highlighted in blue with drag handles
+- **Position Calculation**: Automatic position calculation based on surrounding pages
+
+### URL Pattern Logic
+- **Basic Pattern**: `/{keyword}` for standard pages
+- **Navigation Pattern**: `/{keyword}/[i:nav]` for navigation pages
+- **Custom Edit**: Optional manual URL editing when enabled
+- **Read-only Display**: Shows generated pattern when custom edit is disabled
+
 ## 3. Directory Structure
 
 A clear directory structure is crucial for organization and scalability.
