@@ -359,35 +359,6 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
         </Box>
     );
 
-    // Simplified drag drop area for single context
-    const renderSimpleDragDropArea = (
-        items: IMenuPageItem[], 
-        droppableId: string,
-        title: string
-    ) => (
-        <Box className={styles.dragContainer}>
-            <Text size="sm" fw={500} mb="xs">{title}</Text>
-            <Droppable droppableId={droppableId}>
-                {(provided, snapshot) => (
-                    <Box
-                        {...provided.droppableProps}
-                        ref={provided.innerRef}
-                        p="sm"
-                        className={styles.dragArea}
-                    >
-                        {items.map((item, index) => renderMenuItem(item, index))}
-                        {provided.placeholder}
-                        {items.length === 0 && (
-                            <Text size="sm" c="dimmed" ta="center" mt="md">
-                                No pages to display
-                            </Text>
-                        )}
-                    </Box>
-                )}
-            </Droppable>
-        </Box>
-    );
-
     return (
         <Modal
             opened={opened}
@@ -450,58 +421,6 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
                                 </Stack>
                             </Paper>
 
-                            {/* Menu Positioning - 2 Columns */}
-                            <Paper p="md" withBorder>
-                                <Stack gap="md">
-                                    <Title order={4} size="h5" c="blue">Menu Positioning</Title>
-                                    
-                                    <Group gap="md" align="flex-start">
-                                        <Checkbox
-                                            label="Header Menu"
-                                            {...form.getInputProps('headerMenu', { type: 'checkbox' })}
-                                        />
-                                        <Checkbox
-                                            label="Footer Menu"
-                                            {...form.getInputProps('footerMenu', { type: 'checkbox' })}
-                                        />
-                                    </Group>
-
-                                    {(form.values.headerMenu || form.values.footerMenu) && (
-                                        <SimpleGrid cols={2} spacing="md">
-                                            {/* Header Menu */}
-                                            {form.values.headerMenu && (
-                                                <Box>
-                                                    {renderDragDropArea(
-                                                        addNewPageToHeaderMenu,
-                                                        "header-menu",
-                                                        handleHeaderMenuDragEnd,
-                                                        "Header Menu Position"
-                                                    )}
-                                                    <Alert icon={<IconInfoCircle size="1rem" />} mt="xs" color="blue">
-                                                        Drag the new page to set its position
-                                                    </Alert>
-                                                </Box>
-                                            )}
-
-                                            {/* Footer Menu */}
-                                            {form.values.footerMenu && (
-                                                <Box>
-                                                    {renderDragDropArea(
-                                                        addNewPageToFooterMenu,
-                                                        "footer-menu",
-                                                        handleFooterMenuDragEnd,
-                                                        "Footer Menu Position"
-                                                    )}
-                                                    <Alert icon={<IconInfoCircle size="1rem" />} mt="xs" color="blue">
-                                                        Drag the new page to set its position
-                                                    </Alert>
-                                                </Box>
-                                            )}
-                                        </SimpleGrid>
-                                    )}
-                                </Stack>
-                            </Paper>
-
                             {/* Page Settings */}
                             <Paper p="md" withBorder>
                                 <Stack gap="md">
@@ -556,6 +475,58 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
                                     </Box>
                                 </Stack>
                             </Paper>
+
+                            {/* Menu Positioning - 2 Columns */}
+                            <Paper p="md" withBorder>
+                                <Stack gap="md">
+                                    <Title order={4} size="h5" c="blue">Menu Positioning</Title>
+                                    
+                                    <Group gap="md" align="flex-start">
+                                        <Checkbox
+                                            label="Header Menu"
+                                            {...form.getInputProps('headerMenu', { type: 'checkbox' })}
+                                        />
+                                        <Checkbox
+                                            label="Footer Menu"
+                                            {...form.getInputProps('footerMenu', { type: 'checkbox' })}
+                                        />
+                                    </Group>
+
+                                    {(form.values.headerMenu || form.values.footerMenu) && (
+                                        <SimpleGrid cols={2} spacing="md">
+                                            {/* Header Menu */}
+                                            {form.values.headerMenu && (
+                                                <Box>
+                                                    {renderDragDropArea(
+                                                        addNewPageToHeaderMenu,
+                                                        "header-menu",
+                                                        handleHeaderMenuDragEnd,
+                                                        "Header Menu Position"
+                                                    )}
+                                                    <Alert icon={<IconInfoCircle size="1rem" />} mt="xs" color="blue">
+                                                        Drag the new page to set its position
+                                                    </Alert>
+                                                </Box>
+                                            )}
+
+                                            {/* Footer Menu */}
+                                            {form.values.footerMenu && (
+                                                <Box>
+                                                    {renderDragDropArea(
+                                                        addNewPageToFooterMenu,
+                                                        "footer-menu",
+                                                        handleFooterMenuDragEnd,
+                                                        "Footer Menu Position"
+                                                    )}
+                                                    <Alert icon={<IconInfoCircle size="1rem" />} mt="xs" color="blue">
+                                                        Drag the new page to set its position
+                                                    </Alert>
+                                                </Box>
+                                            )}
+                                        </SimpleGrid>
+                                    )}
+                                </Stack>
+                            </Paper>                            
 
                             {/* Form Actions */}
                             <Group justify="flex-end" mt="md">
