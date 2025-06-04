@@ -1,34 +1,40 @@
-.draggableItem {
-  user-select: none;
-  transition: background-color 0.2s ease;
-  position: relative !important;
-  transform-origin: 0 0;
-  contain: layout;
+/* CreatePage Modal Styles */
+
+.dragItem {
+    cursor: grab;
 }
 
-.draggableItem[data-is-dragging="true"] {
-  background: var(--mantine-color-blue-0);
+.dragItem:active {
+    cursor: grabbing;
 }
 
-.dragHandle {
-  cursor: grab;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  color: var(--mantine-color-gray-6);
-  margin-right: var(--mantine-spacing-xs);
+.dragItemDisabled {
+    cursor: not-allowed;
 }
 
-.dragHandle:hover {
-  color: var(--mantine-color-blue-6);
+.dragArea {
+    min-height: 120px;
+    border: 2px dashed var(--mantine-color-gray-4);
+    border-radius: var(--mantine-radius-sm);
+    background-color: var(--mantine-color-gray-0);
 }
 
-.dragHandle:active {
-  cursor: grabbing;
+.dragArea:hover {
+    border-color: var(--mantine-color-blue-4);
+    background-color: var(--mantine-color-blue-0);
 }
 
-.modalBody {
-  max-height: 70vh;
-  overflow-y: auto;
+.newPageItem {
+    background-color: var(--mantine-color-blue-0) !important;
+    border-color: var(--mantine-color-blue-4) !important;
+}
+
+.pageAccessRadioGroup {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.pageAccessRadioGroup > * {
+    flex: 0 0 auto;
 }

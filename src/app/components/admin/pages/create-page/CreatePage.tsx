@@ -11,19 +11,24 @@ import {
     Text, 
     Button, 
     Box,
-    Divider,
     Alert,
-    LoadingOverlay
+    LoadingOverlay,
+    SimpleGrid,
+    ActionIcon,
+    Tooltip,
+    Title,
+    Paper
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { IconGripVertical, IconInfoCircle } from '@tabler/icons-react';
+import { IconGripVertical, IconInfoCircle, IconEdit, IconLock, IconPlus } from '@tabler/icons-react';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
-import { PAGE_ACCESS_TYPES, PAGE_ACTIONS } from '../../../../../constants/lookups.constants';
+import { PAGE_ACCESS_TYPES, PAGE_ACCESS_TYPES_MOBILE_AND_WEB } from '../../../../../constants/lookups.constants';
 import { ICreatePageFormValues, ICreatePageModalProps, IMenuPageItem } from '../../../../../types/forms/create-page.types';
 import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { debug } from '../../../../../utils/debug-logger';
+import styles from './CreatePage.module.css';
 
 export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
     const [headerMenuPages, setHeaderMenuPages] = useState<IMenuPageItem[]>([]);
@@ -31,19 +36,19 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
     
     // Fetch lookups and admin pages
     const pageAccessTypes = useLookupsByType(PAGE_ACCESS_TYPES);
-    const pageTypes = useLookupsByType(PAGE_ACTIONS);
     const { pages, isLoading: pagesLoading } = useAdminPages();
 
+    // Use Mantine's useForm for form management
     const form = useForm<ICreatePageFormValues>({
         initialValues: {
             keyword: '',
-            pageType: 'sections',
+            pageType: 'sections', // Keep for backend compatibility but don't show in UI
             headerMenu: false,
             headerMenuPosition: null,
             footerMenu: false,
             footerMenuPosition: null,
             headlessPage: false,
-            pageAccessType: 'mobile_and_web',
+            pageAccessType: PAGE_ACCESS_TYPES_MOBILE_AND_WEB,
             urlPattern: '',
             navigationPage: false,
             openAccess: false,
@@ -51,8 +56,16 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
         },
         validate: {
             keyword: (value) => {
-                if (!value.trim()) return 'Keyword is required';
+                if (!value?.trim()) return 'Keyword is required';
                 if (!/^[a-zA-Z0-9_-]+$/.test(value)) return 'Keyword can only contain letters, numbers, hyphens, and underscores';
+                return null;
+            },
+            urlPattern: (value) => {
+                if (!value?.trim()) return 'URL pattern is required';
+                // Check for valid URL pattern (no spaces, starts with /, valid characters)
+                if (!/^\/[a-zA-Z0-9_\-\/\[\]:]+$/.test(value)) {
+                    return 'URL pattern must start with / and contain only valid URL characters (no spaces)';
+                }
                 return null;
             },
         },
@@ -61,7 +74,9 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
     // Generate URL pattern based on keyword and navigation page setting
     const generateUrlPattern = (keyword: string, isNavigation: boolean) => {
         if (!keyword.trim()) return '';
-        const baseUrl = `/${keyword}`;
+        // Remove spaces and convert to lowercase for URL safety
+        const cleanKeyword = keyword.trim().toLowerCase().replace(/\s+/g, '-');
+        const baseUrl = `/${cleanKeyword}`;
         return isNavigation ? `${baseUrl}/[i:nav]` : baseUrl;
     };
 
@@ -204,7 +219,7 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
     };
 
     // Handle form submission
-    const handleSubmit = (values: ICreatePageFormValues) => {
+    const handleSubmit = async (values: ICreatePageFormValues) => {
         debug('Creating new page', 'CreatePageModal', values);
         // TODO: Implement API call to create page
         onClose();
@@ -222,237 +237,234 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
     const renderMenuItem = (item: IMenuPageItem, index: number) => (
         <Draggable key={item.id} draggableId={item.id} index={index}>
             {(provided, snapshot) => (
-                <Box
+                <Paper
                     ref={provided.innerRef}
                     {...provided.draggableProps}
-                    style={{
-                        ...provided.draggableProps.style,
-                        backgroundColor: item.isNew ? 'var(--mantine-color-blue-0)' : 'var(--mantine-color-gray-0)',
-                        border: item.isNew ? '2px solid var(--mantine-color-blue-4)' : '1px solid var(--mantine-color-gray-3)',
-                        borderRadius: 'var(--mantine-radius-sm)',
-                        padding: '8px 12px',
-                        marginBottom: '4px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        opacity: snapshot.isDragging ? 0.8 : 1,
-                    }}
+                    p="xs"
+                    mb="xs"
+                    withBorder
+                    className={item.isNew ? styles.newPageItem : ''}
                 >
-                    <Box
-                        {...provided.dragHandleProps}
-                        style={{
-                            cursor: item.isNew ? 'grab' : 'not-allowed',
-                            color: item.isNew ? 'var(--mantine-color-blue-6)' : 'var(--mantine-color-gray-4)',
-                        }}
-                    >
-                        <IconGripVertical size="1rem" />
-                    </Box>
-                    <Text size="sm" fw={item.isNew ? 600 : 400}>
-                        {item.label}
-                    </Text>
-                    {item.isNew && (
-                        <Text size="xs" c="blue" fw={500}>
-                            (New)
+                    <Group gap="xs" wrap="nowrap">
+                        <ActionIcon
+                            {...provided.dragHandleProps}
+                            variant="subtle"
+                            size="sm"
+                            className={item.isNew ? styles.dragItem : styles.dragItemDisabled}
+                        >
+                            <IconGripVertical size="0.8rem" />
+                        </ActionIcon>
+                        <Text size="sm" fw={item.isNew ? 600 : 400} style={{ flex: 1 }}>
+                            {item.label}
                         </Text>
-                    )}
-                </Box>
+                        {item.isNew && (
+                            <Text size="xs" c="blue" fw={500}>
+                                New
+                            </Text>
+                        )}
+                    </Group>
+                </Paper>
             )}
         </Draggable>
+    );
+
+    // Render drag and drop area
+    const renderDragDropArea = (
+        items: IMenuPageItem[], 
+        droppableId: string, 
+        onDragEnd: (result: DropResult) => void,
+        title: string
+    ) => (
+        <Box>
+            <Text size="sm" fw={500} mb="xs">{title}</Text>
+            <DragDropContext onDragEnd={onDragEnd}>
+                <Droppable droppableId={droppableId}>
+                    {(provided, snapshot) => (
+                        <Box
+                            {...provided.droppableProps}
+                            ref={provided.innerRef}
+                            p="sm"
+                            className={styles.dragArea}
+                        >
+                            {items.map((item, index) => renderMenuItem(item, index))}
+                            {provided.placeholder}
+                            {items.length === 0 && (
+                                <Text size="sm" c="dimmed" ta="center" mt="md">
+                                    No pages to display
+                                </Text>
+                            )}
+                        </Box>
+                    )}
+                </Droppable>
+            </DragDropContext>
+        </Box>
     );
 
     return (
         <Modal
             opened={opened}
             onClose={handleClose}
-            title="Create New Page"
-            size="lg"
+            title={
+                <Group gap="sm">
+                    <IconPlus size="1.2rem" />
+                    <Title order={3}>Create New Page</Title>
+                </Group>
+            }
+            size="xl"
             centered
+            padding="lg"
         >
             <Box pos="relative">
                 <LoadingOverlay visible={pagesLoading} />
                 
                 <form onSubmit={form.onSubmit(handleSubmit)}>
-                    <Stack gap="md">
+                    <Stack gap="lg">
                         {/* Basic Page Information */}
-                        <TextInput
-                            label="Keyword"
-                            placeholder="Enter page keyword"
-                            required
-                            {...form.getInputProps('keyword')}
-                        />
+                        <Paper p="md" withBorder>
+                            <Stack gap="md">
+                                <Title order={4} size="h5" c="blue">Basic Information</Title>
+                                
+                                <TextInput
+                                    label="Keyword"
+                                    placeholder="Enter page keyword"
+                                    required
+                                    {...form.getInputProps('keyword')}
+                                />
 
-                        {/* Page Type */}
-                        <Box>
-                            <Text size="sm" fw={500} mb="xs">Page Type</Text>
-                            <Radio.Group
-                                value={form.values.pageType}
-                                onChange={(value) => form.setFieldValue('pageType', value)}
-                            >
-                                <Stack gap="xs">
-                                    {pageTypes.map((type) => (
-                                        <Radio
-                                            key={type.lookupCode}
-                                            value={type.lookupCode}
-                                            label={
-                                                <Box>
-                                                    <Text size="sm">{type.lookupValue}</Text>
-                                                    {type.lookupDescription && (
-                                                        <Text size="xs" c="dimmed">{type.lookupDescription}</Text>
-                                                    )}
-                                                </Box>
-                                            }
-                                        />
-                                    ))}
-                                </Stack>
-                            </Radio.Group>
-                        </Box>
-
-                        <Divider />
-
-                        {/* Header Menu */}
-                        <Box>
-                            <Checkbox
-                                label="Header Menu"
-                                {...form.getInputProps('headerMenu', { type: 'checkbox' })}
-                            />
-                            
-                            {form.values.headerMenu && (
-                                <Box mt="md">
-                                    <Text size="sm" fw={500} mb="xs">Header Menu Position</Text>
-                                    <DragDropContext onDragEnd={handleHeaderMenuDragEnd}>
-                                        <Droppable droppableId="header-menu">
-                                            {(provided) => (
-                                                <Box
-                                                    {...provided.droppableProps}
-                                                    ref={provided.innerRef}
-                                                    style={{
-                                                        minHeight: '100px',
-                                                        padding: '8px',
-                                                        backgroundColor: 'var(--mantine-color-gray-0)',
-                                                        borderRadius: 'var(--mantine-radius-sm)',
-                                                        border: '1px dashed var(--mantine-color-gray-4)',
-                                                    }}
-                                                >
-                                                    {addNewPageToHeaderMenu.map((item, index) => 
-                                                        renderMenuItem(item, index)
-                                                    )}
-                                                    {provided.placeholder}
-                                                </Box>
-                                            )}
-                                        </Droppable>
-                                    </DragDropContext>
-                                    <Alert icon={<IconInfoCircle size="1rem" />} mt="xs" color="blue">
-                                        Drag the new page to set its position in the header menu
-                                    </Alert>
+                                {/* Page Access Type - Horizontal Layout */}
+                                <Box>
+                                    <Text size="sm" fw={500} mb="xs">Page Access Type</Text>
+                                    <Radio.Group
+                                        value={form.values.pageAccessType}
+                                        onChange={(value) => form.setFieldValue('pageAccessType', value)}
+                                    >
+                                        <Group gap="xl" className={styles.pageAccessRadioGroup}>
+                                            {pageAccessTypes.map((type) => (
+                                                <Radio
+                                                    key={type.lookupCode}
+                                                    value={type.lookupCode}
+                                                    label={type.lookupValue}
+                                                />
+                                            ))}
+                                        </Group>
+                                    </Radio.Group>
                                 </Box>
-                            )}
-                        </Box>
+                            </Stack>
+                        </Paper>
 
-                        {/* Footer Menu */}
-                        <Box>
-                            <Checkbox
-                                label="Footer Menu"
-                                {...form.getInputProps('footerMenu', { type: 'checkbox' })}
-                            />
-                            
-                            {form.values.footerMenu && (
-                                <Box mt="md">
-                                    <Text size="sm" fw={500} mb="xs">Footer Menu Position</Text>
-                                    <DragDropContext onDragEnd={handleFooterMenuDragEnd}>
-                                        <Droppable droppableId="footer-menu">
-                                            {(provided) => (
-                                                <Box
-                                                    {...provided.droppableProps}
-                                                    ref={provided.innerRef}
-                                                    style={{
-                                                        minHeight: '100px',
-                                                        padding: '8px',
-                                                        backgroundColor: 'var(--mantine-color-gray-0)',
-                                                        borderRadius: 'var(--mantine-radius-sm)',
-                                                        border: '1px dashed var(--mantine-color-gray-4)',
-                                                    }}
-                                                >
-                                                    {addNewPageToFooterMenu.map((item, index) => 
-                                                        renderMenuItem(item, index)
-                                                    )}
-                                                    {provided.placeholder}
-                                                </Box>
-                                            )}
-                                        </Droppable>
-                                    </DragDropContext>
-                                    <Alert icon={<IconInfoCircle size="1rem" />} mt="xs" color="blue">
-                                        Drag the new page to set its position in the footer menu
-                                    </Alert>
-                                </Box>
-                            )}
-                        </Box>
+                        {/* Menu Positioning - 2 Columns */}
+                        <Paper p="md" withBorder>
+                            <Stack gap="md">
+                                <Title order={4} size="h5" c="blue">Menu Positioning</Title>
+                                
+                                <Group gap="md" align="flex-start">
+                                    <Checkbox
+                                        label="Header Menu"
+                                        {...form.getInputProps('headerMenu', { type: 'checkbox' })}
+                                    />
+                                    <Checkbox
+                                        label="Footer Menu"
+                                        {...form.getInputProps('footerMenu', { type: 'checkbox' })}
+                                    />
+                                </Group>
 
-                        <Divider />
+                                {(form.values.headerMenu || form.values.footerMenu) && (
+                                    <SimpleGrid cols={2} spacing="md">
+                                        {/* Header Menu */}
+                                        {form.values.headerMenu && (
+                                            <Box>
+                                                {renderDragDropArea(
+                                                    addNewPageToHeaderMenu,
+                                                    "header-menu",
+                                                    handleHeaderMenuDragEnd,
+                                                    "Header Menu Position"
+                                                )}
+                                                <Alert icon={<IconInfoCircle size="1rem" />} mt="xs" color="blue">
+                                                    Drag the new page to set its position
+                                                </Alert>
+                                            </Box>
+                                        )}
+
+                                        {/* Footer Menu */}
+                                        {form.values.footerMenu && (
+                                            <Box>
+                                                {renderDragDropArea(
+                                                    addNewPageToFooterMenu,
+                                                    "footer-menu",
+                                                    handleFooterMenuDragEnd,
+                                                    "Footer Menu Position"
+                                                )}
+                                                <Alert icon={<IconInfoCircle size="1rem" />} mt="xs" color="blue">
+                                                    Drag the new page to set its position
+                                                </Alert>
+                                            </Box>
+                                        )}
+                                    </SimpleGrid>
+                                )}
+                            </Stack>
+                        </Paper>
 
                         {/* Page Settings */}
-                        <Checkbox
-                            label="Headless Page"
-                            description="Page without header/footer layout"
-                            {...form.getInputProps('headlessPage', { type: 'checkbox' })}
-                        />
+                        <Paper p="md" withBorder>
+                            <Stack gap="md">
+                                <Title order={4} size="h5" c="blue">Page Settings</Title>
+                                
+                                {/* Horizontal Checkbox Group */}
+                                <Group gap="xl">
+                                    <Checkbox
+                                        label="Headless Page"
+                                        description="No header/footer layout"
+                                        {...form.getInputProps('headlessPage', { type: 'checkbox' })}
+                                    />
+                                    <Checkbox
+                                        label="Navigation Page"
+                                        description="Add [i:nav] parameter"
+                                        {...form.getInputProps('navigationPage', { type: 'checkbox' })}
+                                    />
+                                    <Checkbox
+                                        label="Open Access"
+                                        description="Public access"
+                                        {...form.getInputProps('openAccess', { type: 'checkbox' })}
+                                    />
+                                </Group>
 
-                        {/* Page Access Type */}
-                        <Box>
-                            <Text size="sm" fw={500} mb="xs">Page Access Type</Text>
-                            <Radio.Group
-                                value={form.values.pageAccessType}
-                                onChange={(value) => form.setFieldValue('pageAccessType', value)}
-                            >
-                                <Stack gap="xs">
-                                    {pageAccessTypes.map((type) => (
-                                        <Radio
-                                            key={type.lookupCode}
-                                            value={type.lookupCode}
-                                            label={
-                                                <Box>
-                                                    <Text size="sm">{type.lookupValue}</Text>
-                                                    {type.lookupDescription && (
-                                                        <Text size="xs" c="dimmed">{type.lookupDescription}</Text>
+                                {/* URL Pattern with Floating Edit Button */}
+                                <Box pos="relative">
+                                    <TextInput
+                                        label="URL Pattern"
+                                        placeholder="/your-page-url"
+                                        readOnly={!form.values.customUrlEdit}
+                                        {...form.getInputProps('urlPattern')}
+                                        rightSection={
+                                            <Tooltip 
+                                                label={form.values.customUrlEdit ? "Lock URL editing" : "Enable URL editing"}
+                                                position="left"
+                                            >
+                                                <ActionIcon
+                                                    variant={form.values.customUrlEdit ? "filled" : "subtle"}
+                                                    color={form.values.customUrlEdit ? "blue" : "gray"}
+                                                    onClick={() => form.setFieldValue('customUrlEdit', !form.values.customUrlEdit)}
+                                                    style={{ cursor: 'pointer' }}
+                                                >
+                                                    {form.values.customUrlEdit ? (
+                                                        <IconEdit size="1rem" />
+                                                    ) : (
+                                                        <IconLock size="1rem" />
                                                     )}
-                                                </Box>
-                                            }
-                                        />
-                                    ))}
-                                </Stack>
-                            </Radio.Group>
-                        </Box>
-
-                        {/* URL Pattern */}
-                        <TextInput
-                            label="URL Pattern"
-                            readOnly={!form.values.customUrlEdit}
-                            {...form.getInputProps('urlPattern')}
-                        />
-
-                        <Checkbox
-                            label="Navigation Page"
-                            description="Add [i:nav] parameter to URL"
-                            {...form.getInputProps('navigationPage', { type: 'checkbox' })}
-                        />
-
-                        <Checkbox
-                            label="Open Access"
-                            description="Page accessible without authentication"
-                            {...form.getInputProps('openAccess', { type: 'checkbox' })}
-                        />
-
-                        <Checkbox
-                            label="Custom URL Edit"
-                            description="Enable manual URL pattern editing"
-                            {...form.getInputProps('customUrlEdit', { type: 'checkbox' })}
-                        />
+                                                </ActionIcon>
+                                            </Tooltip>
+                                        }
+                                    />
+                                </Box>
+                            </Stack>
+                        </Paper>
 
                         {/* Form Actions */}
-                        <Group justify="flex-end" mt="xl">
+                        <Group justify="flex-end" mt="md">
                             <Button variant="outline" onClick={handleClose}>
                                 Cancel
                             </Button>
-                            <Button type="submit" loading={false}>
+                            <Button type="submit">
                                 Create Page
                             </Button>
                         </Group>

@@ -6,7 +6,6 @@
 
 export interface ICreatePageFormValues {
     keyword: string;
-    pageType: string;
     headerMenu: boolean;
     headerMenuPosition: number | null;
     footerMenu: boolean;
