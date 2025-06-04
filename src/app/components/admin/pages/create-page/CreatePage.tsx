@@ -42,7 +42,6 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
     const form = useForm<ICreatePageFormValues>({
         initialValues: {
             keyword: '',
-            pageType: 'sections', // Keep for backend compatibility but don't show in UI
             headerMenu: false,
             headerMenuPosition: null,
             footerMenu: false,
@@ -234,39 +233,73 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
     };
 
     // Render menu item for drag and drop
-    const renderMenuItem = (item: IMenuPageItem, index: number) => (
-        <Draggable key={item.id} draggableId={item.id} index={index}>
-            {(provided, snapshot) => (
+    const renderMenuItem = (item: IMenuPageItem, index: number) => {
+        // Only new pages should be draggable
+        if (!item.isNew) {
+            return (
                 <Paper
-                    ref={provided.innerRef}
-                    {...provided.draggableProps}
+                    key={item.id}
                     p="xs"
                     mb="xs"
                     withBorder
-                    className={item.isNew ? styles.newPageItem : ''}
                 >
                     <Group gap="xs" wrap="nowrap">
                         <ActionIcon
-                            {...provided.dragHandleProps}
                             variant="subtle"
                             size="sm"
-                            className={item.isNew ? styles.dragItem : styles.dragItemDisabled}
+                            className={styles.dragItemDisabled}
+                            disabled
                         >
                             <IconGripVertical size="0.8rem" />
                         </ActionIcon>
-                        <Text size="sm" fw={item.isNew ? 600 : 400} style={{ flex: 1 }}>
+                        <Text size="sm" fw={400} style={{ flex: 1 }}>
                             {item.label}
                         </Text>
-                        {item.isNew && (
+                    </Group>
+                </Paper>
+            );
+        }
+
+        // Only render draggable for new pages
+        return (
+            <Draggable key={item.id} draggableId={item.id} index={index}>
+                {(provided, snapshot) => (
+                    <Paper
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        p="xs"
+                        mb="xs"
+                        withBorder
+                        className={styles.newPageItem}
+                        style={{
+                            ...provided.draggableProps.style,
+                            // Override any transform issues
+                            transform: snapshot.isDragging 
+                                ? provided.draggableProps.style?.transform 
+                                : 'none',
+                        }}
+                    >
+                        <Group gap="xs" wrap="nowrap">
+                            <ActionIcon
+                                {...provided.dragHandleProps}
+                                variant="subtle"
+                                size="sm"
+                                className={styles.dragItem}
+                            >
+                                <IconGripVertical size="0.8rem" />
+                            </ActionIcon>
+                            <Text size="sm" fw={600} style={{ flex: 1 }}>
+                                {item.label}
+                            </Text>
                             <Text size="xs" c="blue" fw={500}>
                                 New
                             </Text>
-                        )}
-                    </Group>
-                </Paper>
-            )}
-        </Draggable>
-    );
+                        </Group>
+                    </Paper>
+                )}
+            </Draggable>
+        );
+    };
 
     // Render drag and drop area
     const renderDragDropArea = (
@@ -275,9 +308,11 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
         onDragEnd: (result: DropResult) => void,
         title: string
     ) => (
-        <Box>
+        <Box className={styles.dragContainer}>
             <Text size="sm" fw={500} mb="xs">{title}</Text>
-            <DragDropContext onDragEnd={onDragEnd}>
+            <DragDropContext 
+                onDragEnd={onDragEnd}
+            >
                 <Droppable droppableId={droppableId}>
                     {(provided, snapshot) => (
                         <Box
@@ -313,6 +348,7 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
             size="xl"
             centered
             padding="lg"
+            className={styles.modalContainer}
         >
             <Box pos="relative">
                 <LoadingOverlay visible={pagesLoading} />

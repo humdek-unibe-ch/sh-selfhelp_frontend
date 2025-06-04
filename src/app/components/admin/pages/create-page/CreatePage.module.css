@@ -10,6 +10,7 @@
 
 .dragItemDisabled {
     cursor: not-allowed;
+    opacity: 0.5;
 }
 
 .dragArea {
@@ -37,4 +38,14 @@
 
 .pageAccessRadioGroup > * {
     flex: 0 0 auto;
+}
+
+/* Fix for drag-and-drop positioning in modals */
+.dragContainer {
+    position: relative;
+}
+
+/* Simple modal container without complex overrides */
+.modalContainer {
+    position: relative;
 }
