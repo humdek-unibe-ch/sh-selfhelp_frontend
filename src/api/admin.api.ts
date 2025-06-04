@@ -10,6 +10,7 @@ import { apiClient } from './base.api';
 import { API_CONFIG } from '../config/api.config';
 import { IBaseApiResponse } from '../types/responses/common/response-envelope.types';
 import { IAdminPage } from '../types/responses/admin/admin.types';
+import { ICreatePageRequest } from '../types/requests/admin/create-page.types';
 
 export const AdminApi = {
     /**
@@ -45,6 +46,20 @@ export const AdminApi = {
     async getPageSections(keyword: string): Promise<IPageField[]> {
         const response = await apiClient.get<IPageFieldsResponse>(
             API_CONFIG.ENDPOINTS.ADMIN_PAGE_SECTIONS(keyword)
+        );
+        return response.data.data;
+    },
+
+    /**
+     * Creates a new page
+     * @param {ICreatePageRequest} pageData - The page data to create
+     * @returns {Promise<IAdminPage>} The created page data
+     * @throws {Error} When API request fails
+     */
+    async createPage(pageData: ICreatePageRequest): Promise<IAdminPage> {
+        const response = await apiClient.post<IBaseApiResponse<IAdminPage>>(
+            API_CONFIG.ENDPOINTS.CREATE_PAGE,
+            pageData
         );
         return response.data.data;
     }

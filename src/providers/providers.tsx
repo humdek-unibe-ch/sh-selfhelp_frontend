@@ -1,6 +1,7 @@
 'use client';
 
 import { MantineProvider, createTheme } from '@mantine/core';
+import { Notifications } from '@mantine/notifications';
 import { Refine } from '@refinedev/core';
 import appRouter from '@refinedev/nextjs-router';
 import dataProvider from '@refinedev/simple-rest';
@@ -85,6 +86,7 @@ function Providers({ children }: { children: React.ReactNode }) {
                     // your theme configuration
                 })}
             >
+                <Notifications />
                 <RefineWrapper>
                     {children}
                 </RefineWrapper>
