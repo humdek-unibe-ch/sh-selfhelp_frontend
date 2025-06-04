@@ -7,7 +7,7 @@ export interface ICreatePageRequest {
     keyword: string;
     
     /** Page access type ID (required) - should be the lookup code */
-    page_access_type_id: string;
+    page_access_type_code: string;
     
     /** Whether the page is headless (optional) */
     is_headless?: boolean;

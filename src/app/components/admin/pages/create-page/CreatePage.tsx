@@ -251,10 +251,10 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
 
         const submitData: ICreatePageRequest = {
             keyword: values.keyword,
-            page_access_type_id: values.pageAccessType,
+            page_access_type_code: values.pageAccessType,
             is_headless: values.headlessPage,
             is_open_page: values.openAccess,
-            url: values.customUrlEdit ? values.urlPattern : undefined,
+            url:  values.urlPattern,
             nav_position: finalHeaderPosition || undefined,
             footer_position: finalFooterPosition || undefined,
         };
