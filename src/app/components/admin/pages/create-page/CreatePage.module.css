@@ -1,5 +1,25 @@
 /* CreatePage Modal Styles */
 
+.item {
+    display: flex;
+    align-items: center;
+    border-radius: var(--mantine-radius-md);
+    border: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5));
+    padding: var(--mantine-spacing-xs);
+    background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-5));
+    margin-bottom: var(--mantine-spacing-xs);
+    cursor: grab;
+}
+
+.item:active {
+    cursor: grabbing;
+}
+
+.itemDragging {
+    box-shadow: var(--mantine-shadow-sm);
+    transform: rotate(5deg);
+}
+
 .dragItem {
     cursor: grab;
 }
@@ -40,12 +60,3 @@
     flex: 0 0 auto;
 }
 
-/* Fix for drag-and-drop positioning in modals */
-.dragContainer {
-    position: relative;
-}
-
-/* Simple modal container without complex overrides */
-.modalContainer {
-    position: relative;
-}
