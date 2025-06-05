@@ -274,8 +274,6 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
                 queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
                 // Invalidate navigation pages (for frontend navigation)
                 queryClient.invalidateQueries({ queryKey: ['pages'] }),
-                // Optionally refetch immediately for better UX
-                queryClient.refetchQueries({ queryKey: ['adminPages'] }),
             ]);
             
             notifications.show({
