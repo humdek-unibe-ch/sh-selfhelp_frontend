@@ -66,14 +66,9 @@ const handleTokenRefreshSuccess = (accessToken: string, refreshToken?: string) =
 const handleTokenRefreshFailure = () => {
     removeTokens();
     delete apiClient.defaults.headers.common.Authorization;
-    
-    // Notify Refine auth provider about auth failure
-    authProvider.logout({ redirectPath: ROUTES.LOGIN }).catch(() => {
-        // Fallback if Refine logout fails
-        if (!window.location.pathname.startsWith(ROUTES.LOGIN)) {
-            window.location.href = ROUTES.LOGIN;
-        }
-    });
+    if (!window.location.pathname.startsWith(ROUTES.LOGIN)) {
+        window.location.href = ROUTES.LOGIN;
+    }   
 };
 
 const processQueue = (error: any, token: string | null = null) => {

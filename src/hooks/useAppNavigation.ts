@@ -16,6 +16,7 @@ interface INavigationData {
     menuPages: IPageItem[];
     footerPages: IPageItem[];
     routes: IPageItem[];
+    resources?: any[]; // Refine resources for admin mode
 }
 
 /**
@@ -40,9 +41,12 @@ function flattenPages(pages: IPageItem[]): IPageItem[] {
 /**
  * Unified hook for fetching and managing navigation data for both admin and user interfaces.
  * Uses React Query for data fetching and caching with select to transform data once.
+ * @param {Object} options - Configuration options
+ * @param {boolean} options.isAdmin - Whether to generate admin resources for Refine
  * @returns {Object} Object containing organized navigation data and query state
  */
-export function useAppNavigation() {
+export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
+    const { isAdmin = false } = options;
     const { data, isLoading, error } = useQuery({
         queryKey: ['pages'],
         queryFn: NavigationApi.getPages,
@@ -73,11 +77,40 @@ export function useAppNavigation() {
 
             debug('Transform: Results', 'useAppNavigation', transformResults);
 
+            // Generate Refine resources for admin mode
+            let resources: any[] = [];
+            if (isAdmin) {
+                resources = pages.map(page => ({
+                    name: page.keyword,
+                    list: `/admin/pages/${page.keyword}`,
+                    show: `/admin/pages/${page.keyword}`,
+                    edit: `/admin/pages/${page.keyword}/edit`,
+                    create: `/admin/pages/create`,
+                    meta: {
+                        label: page.keyword,
+                        parent: page.parent ? pages.find(p => p.id_pages === page.parent)?.keyword : undefined,
+                        canDelete: true,
+                        nav: page.nav_position !== null,
+                        navOrder: page.nav_position,
+                        footer: page.footer_position !== null,
+                        footerOrder: page.footer_position,
+                        params: page.url.includes('[') ? { nav: { type: 'number' } } : {},
+                        protocol: ['web']
+                    }
+                }));
+                
+                debug('Generated Refine resources for admin', 'useAppNavigation', { 
+                    resourcesCount: resources.length,
+                    isAdmin 
+                });
+            }
+
             const result = {
                 pages,
                 menuPages,
                 footerPages,
-                routes
+                routes,
+                resources
             };
 
             // Store transformed data in window for DevTools inspection
@@ -95,6 +128,7 @@ export function useAppNavigation() {
         menuPages: data?.menuPages ?? [], 
         footerPages: data?.footerPages ?? [], 
         routes: data?.routes ?? [],
+        resources: data?.resources ?? [],
         isLoading, 
         error 
     };

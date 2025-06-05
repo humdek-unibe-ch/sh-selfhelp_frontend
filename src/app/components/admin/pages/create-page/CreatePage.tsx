@@ -23,6 +23,7 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
+import { useQueryClient } from '@tanstack/react-query';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { IconGripVertical, IconInfoCircle, IconEdit, IconLock, IconPlus, IconCheck, IconX } from '@tabler/icons-react';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
@@ -47,6 +48,9 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
     const [footerMenuPages, setFooterMenuPages] = useState<IMenuPageItem[]>([]);
     const [headerDroppedIndex, setHeaderDroppedIndex] = useState<number | null>(null);
     const [footerDroppedIndex, setFooterDroppedIndex] = useState<number | null>(null);
+    
+    // React Query client for cache invalidation
+    const queryClient = useQueryClient();
     
     // Fetch lookups and admin pages
     const pageAccessTypes = useLookupsByType(PAGE_ACCESS_TYPES);
@@ -264,16 +268,26 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
         try {
             const createdPage = await AdminApi.createPage(submitData);
             
+            // Invalidate and refetch relevant queries to update the UI
+            await Promise.all([
+                // Invalidate admin pages list
+                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+                // Invalidate navigation pages (for frontend navigation)
+                queryClient.invalidateQueries({ queryKey: ['pages'] }),
+                // Optionally refetch immediately for better UX
+                queryClient.refetchQueries({ queryKey: ['adminPages'] }),
+            ]);
+            
             notifications.show({
                 title: 'Page Created Successfully',
-                message: `Page "${createdPage.keyword}" was created successfully!`,
+                message: `Page "${createdPage.keyword}" was created successfully and the page list has been updated!`,
                 icon: <IconCheck size="1rem" />,
                 color: 'green',
                 autoClose: 5000,
                 position: 'top-center',
             });
             
-            debug('Page created successfully', 'CreatePageModal', createdPage);
+            debug('Page created successfully and cache invalidated', 'CreatePageModal', createdPage);
             
             // Reset form and state on successful creation
             form.reset();

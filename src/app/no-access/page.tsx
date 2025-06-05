@@ -3,6 +3,7 @@
 import { Button, Container, Group, Text, Title } from '@mantine/core';
 import { IconArrowLeft, IconLock } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
+import { ROUTES } from '../../config/routes.config';
 
 /**
  * No Access page shown when a user attempts to access a restricted area
@@ -26,7 +27,7 @@ export default function NoAccessPage() {
         <Group>
           <Button 
             leftSection={<IconArrowLeft size={16} />}
-            onClick={() => router.push('/')}
+            onClick={() => router.push(ROUTES.HOME)}
             variant="outline"
           >
             Return to Home

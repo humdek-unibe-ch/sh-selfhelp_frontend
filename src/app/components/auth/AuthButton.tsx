@@ -4,14 +4,14 @@ import { useState, useEffect } from 'react';
 import { Button, Menu } from '@mantine/core';
 import { IconLogin, IconLogout, IconUser } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
-import { useIsAuthenticated } from '@refinedev/core';
+import { useIsAuthenticated, useLogout } from '@refinedev/core';
 import { ROUTES } from '../../../config/routes.config';
-import { AuthApi } from '../../../api/auth.api';
 import { getAccessToken, getRefreshToken } from '../../../utils/auth.utils';
 import { debug } from '../../../utils/debug-logger';
 
 export function AuthButton() {
     const { data: { authenticated } = {}, isLoading: isAuthLoading } = useIsAuthenticated();
+    const { mutate: logout, isLoading: isLoggingOut } = useLogout();
     const [stableAuthState, setStableAuthState] = useState<boolean | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const router = useRouter();
@@ -25,13 +25,6 @@ export function AuthButton() {
             // If we have either token, consider user as authenticated
             // This prevents flickering during token refresh
             const isStablyAuthenticated = hasToken || hasRefreshToken;
-            
-            debug('AuthButton stable auth check', 'AuthButton', {
-                hasToken,
-                hasRefreshToken,
-                isStablyAuthenticated,
-                refineAuthenticated: authenticated
-            });
             
             setStableAuthState(isStablyAuthenticated);
         };
@@ -91,22 +84,20 @@ export function AuthButton() {
         router.push(ROUTES.LOGIN);
     };
 
-    const handleLogout = async () => {
-        try {
-            debug('Logout initiated from AuthButton', 'AuthButton');
-            setStableAuthState(false); // Immediately update UI
-            await AuthApi.logout();
-            router.push(ROUTES.LOGIN);
-        } catch (error) {
-            debug('Logout failed', 'AuthButton', error);
-            // Recheck auth state on logout failure
-            const hasToken = !!getAccessToken() || !!getRefreshToken();
-            setStableAuthState(hasToken);
-        }
+    const handleLogout = () => {
+        debug('Logout initiated from AuthButton', 'AuthButton');
+        setStableAuthState(false); // Immediately update UI
+        
+        // Use Refine's logout hook which will:
+        // 1. Call the auth provider's logout method
+        // 2. Handle the redirect automatically based on redirectTo
+        logout({
+            redirectPath: ROUTES.LOGIN
+        });
     };
 
-    // Show loading state during initial load or when Refine is loading
-    if (isAuthLoading || stableAuthState === null) {
+    // Show loading state during initial load, when Refine is loading, or during logout
+    if (isAuthLoading || stableAuthState === null || isLoggingOut) {
         return null;
     }
 
@@ -158,8 +149,9 @@ export function AuthButton() {
                     color="red"
                     leftSection={<IconLogout size={14} />}
                     onClick={handleLogout}
+                    disabled={isLoggingOut}
                 >
-                    Logout
+                    {isLoggingOut ? 'Logging out...' : 'Logout'}
                 </Menu.Item>
             </Menu.Dropdown>
         </Menu>

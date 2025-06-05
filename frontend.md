@@ -186,6 +186,378 @@ const renderMenuItem = (item: IMenuPageItem, index: number) => (
 - **URL Suggestions**: Could suggest URL patterns based on content
 - **Advanced Validation**: Could add server-side URL uniqueness checking
 
+## Authentication & Data Management Improvements (Latest)
+
+### Authentication Flow Enhancement
+**Problem:** When access token was deleted but refresh token existed, users were immediately redirected to "no access" page even when refresh token was still valid.
+
+**Solution:** Enhanced authentication logic in `src/api/base.api.ts`:
+- Only redirect to login/no-access when refresh token is truly invalid (401/403 status or specific error messages)
+- Allow continued functionality when refresh token might still be valid
+- More intelligent error handling for both 401 errors and logged_in: false responses
+- Prevents premature redirects during token refresh process
+
+### React Query Cache Management
+**Problem:** After creating a page successfully, the admin pages list didn't update automatically.
+
+**Solution:** Implemented proper cache invalidation in `CreatePageModal`:
+- Added `useQueryClient` hook for cache management
+- Invalidate both `['adminPages']` and `['pages']` queries after successful page creation
+- Immediate refetch of admin pages for better UX
+- Updated success notification to confirm list update
+
+**Best Practices Implemented:**
+- `queryClient.invalidateQueries()` - Marks queries as stale
+- `queryClient.refetchQueries()` - Immediately refetches for instant UI update
+- Parallel invalidation using `Promise.all()` for efficiency
+- Comprehensive cache management for both admin and frontend navigation
+
+**Technical Implementation:**
+```typescript
+// Enhanced authentication error handling
+const isRefreshTokenInvalid = (refreshError as any)?.response?.status === 401 || 
+                            (refreshError as any)?.response?.status === 403 ||
+                            (refreshError as any)?.message?.includes('No refresh token available') ||
+                            (refreshError as any)?.message?.includes('refresh token');
+
+if (isRefreshTokenInvalid) {
+    // Only redirect when refresh token is truly invalid
+    authProvider.logout({ redirectPath: ROUTES.LOGIN });
+} else {
+    // Allow continued functionality with limited access
+    debug('Token refresh failed but refresh token may still be valid');
+}
+
+// Cache invalidation after page creation
+await Promise.all([
+    queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+    queryClient.invalidateQueries({ queryKey: ['pages'] }),
+    queryClient.refetchQueries({ queryKey: ['adminPages'] }),
+]);
+```
+
+## Dynamic Refine Resources System (Latest)
+
+### Concept: Context-Aware Resource Generation
+**Problem:** Refine.dev requires static resource definitions, but our application has dynamic pages that change based on user permissions and context (admin vs frontend).
+
+**Solution:** Implemented dynamic resource generation in `useAppNavigation` hook:
+- **Frontend Mode**: Returns navigation data for menus and routing
+- **Admin Mode**: Additionally generates Refine resources for admin interface
+
+### Technical Implementation
+
+#### Enhanced useAppNavigation Hook
+```typescript
+export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
+    const { isAdmin = false } = options;
+    
+    // ... existing navigation logic ...
+    
+    // Generate Refine resources for admin mode
+    let resources: any[] = [];
+    if (isAdmin) {
+        resources = pages.map(page => ({
+            name: page.keyword,
+            list: `/admin/pages/${page.keyword}`,
+            show: `/admin/pages/${page.keyword}`,
+            edit: `/admin/pages/${page.keyword}/edit`,
+            create: `/admin/pages/create`,
+            meta: {
+                label: page.keyword,
+                parent: page.parent ? pages.find(p => p.id_pages === page.parent)?.keyword : undefined,
+                canDelete: true,
+                nav: page.nav_position !== null,
+                navOrder: page.nav_position,
+                footer: page.footer_position !== null,
+                footerOrder: page.footer_position,
+                params: page.url.includes('[') ? { nav: { type: 'number' } } : {},
+                protocol: ['web']
+            }
+        }));
+    }
+    
+    return { pages, menuPages, footerPages, routes, resources, isLoading, error };
+}
+```
+
+#### RefineWrapper Integration
+```typescript
+function RefineWrapper({ children }: { children: React.ReactNode }) {
+    const pathname = usePathname();
+    const isAdmin = pathname?.startsWith('/admin');
+    const { resources, isLoading } = useAppNavigation({ isAdmin });
+
+    return (
+        <Refine
+            routerProvider={appRouter}
+            dataProvider={dataProvider(API_CONFIG.BASE_URL)}
+            authProvider={authProvider}
+            resources={resources} // Dynamic resources based on context
+            options={{
+                syncWithLocation: true,
+                warnWhenUnsavedChanges: true,
+                disableTelemetry: true,
+            }}
+        >
+            {children}
+        </Refine>
+    );
+}
+```
+
+### Benefits of This Approach
+
+#### 1. **Dynamic Resource Management**
+- **Context-Aware**: Different resources for admin vs frontend
+- **Permission-Based**: Only shows resources user has access to
+- **Real-Time Updates**: Resources update when pages are added/removed
+
+#### 2. **Refine.dev Integration**
+- **Automatic Routing**: Refine handles navigation between resources
+- **CRUD Operations**: Built-in support for list, show, edit, create operations
+- **Breadcrumbs**: Automatic breadcrumb generation based on resource hierarchy
+
+#### 3. **Scalability**
+- **No Static Configuration**: Resources generated from API data
+- **Maintainable**: Single source of truth for page structure
+- **Flexible**: Easy to add new resource types or modify existing ones
+
+### Resource Structure Explained
+
+Each generated resource includes:
+- **`name`**: Unique identifier (page keyword)
+- **`list`**: URL for listing items
+- **`show`**: URL for viewing single item
+- **`edit`**: URL for editing item
+- **`create`**: URL for creating new item
+- **`meta`**: Additional metadata for Refine features
+  - **`label`**: Display name
+  - **`parent`**: Hierarchical relationship
+  - **`canDelete`**: Permission flags
+  - **`nav`/`footer`**: Menu positioning info
+  - **`params`**: URL parameter definitions
+  - **`protocol`**: Supported access methods
+
+This system allows Refine to automatically handle:
+- Navigation between pages
+- Breadcrumb generation
+- Permission checking
+- URL parameter parsing
+- CRUD operation routing
+
+## Admin Authentication Flow Enhancement (Latest)
+
+### Problem: Premature Authentication Redirects
+**Issue:** The `AdminShellWrapper` was immediately redirecting users to "no access" when the access token expired, even when a valid refresh token existed that could obtain a new access token.
+
+**Root Cause:** The authentication check was based on the current authentication state without considering that a token refresh process might be in progress.
+
+### Solution: Smart Authentication Waiting Logic
+
+#### Enhanced AdminShellWrapper Logic
+```typescript
+export function AdminShellWrapper({ children }: AdminShellWrapperProps) {
+    const [waitingForRefresh, setWaitingForRefresh] = useState(false);
+    const refreshAttemptRef = useRef(false);
+    const timeoutRef = useRef<NodeJS.Timeout>();
+
+    useEffect(() => {
+        const accessToken = getAccessToken();
+        const refreshToken = getRefreshToken();
+
+        // If not authenticated but we have a refresh token, wait for potential refresh
+        if (!isAuthenticated && refreshToken && !refreshAttemptRef.current) {
+            setWaitingForRefresh(true);
+            refreshAttemptRef.current = true;
+
+            // Set a timeout to stop waiting after 10 seconds
+            timeoutRef.current = setTimeout(() => {
+                setWaitingForRefresh(false);
+                if (!isAuthenticated) {
+                    router.replace(ROUTES.LOGIN);
+                }
+            }, 10000);
+
+            return;
+        }
+
+        // If we were waiting for refresh and now we're authenticated, clear timeout
+        if (waitingForRefresh && isAuthenticated) {
+            clearTimeout(timeoutRef.current);
+            setWaitingForRefresh(false);
+            refreshAttemptRef.current = false;
+        }
+
+        // Proceed with normal auth checks only if not waiting for refresh
+        if (!waitingForRefresh) {
+            if (!isAuthenticated) {
+                router.replace(ROUTES.LOGIN);
+            } else if (!hasAdminAccess()) {
+                router.replace(ROUTES.NO_ACCESS);
+            }
+            setIsChecking(false);
+        }
+    }, [hasAdminAccess, isAuthenticated, isLoading, router, waitingForRefresh]);
+}
+```
+
+### Key Features
+
+#### 1. **Refresh Token Detection**
+- Checks for presence of refresh token before redirecting
+- Only waits for refresh if refresh token exists
+- Prevents unnecessary redirects when token refresh is possible
+
+#### 2. **Smart Waiting Logic**
+- **`waitingForRefresh`**: State to track if we're waiting for token refresh
+- **`refreshAttemptRef`**: Prevents multiple simultaneous refresh attempts
+- **`timeoutRef`**: 10-second timeout to prevent infinite waiting
+
+#### 3. **Enhanced User Experience**
+- Shows "Refreshing authentication..." message during refresh
+- Graceful fallback to login if refresh fails or times out
+- No premature redirects that interrupt user workflow
+
+#### 4. **Robust Error Handling**
+- Timeout mechanism prevents hanging on failed refresh attempts
+- Cleanup of timeouts on component unmount
+- Debug logging for troubleshooting authentication issues
+
+### Benefits
+
+#### ✅ **No More Premature Redirects**
+- Users aren't kicked out when access token expires if refresh token is valid
+- Smooth transition from expired to refreshed authentication state
+- Better user experience during token refresh process
+
+#### ✅ **Intelligent Waiting**
+- Only waits when refresh is actually possible (refresh token exists)
+- Reasonable timeout prevents infinite loading states
+- Clear feedback to user about what's happening
+
+#### ✅ **Backward Compatibility**
+- Still redirects appropriately when no refresh token exists
+- Maintains all existing security checks
+- Works with existing authentication infrastructure
+
+#### ✅ **Debug-Friendly**
+- Comprehensive logging for authentication state changes
+- Easy to troubleshoot authentication issues
+- Clear state tracking for development
+
+### Authentication Flow Sequence
+
+1. **Access Token Expires** → User tries to access admin area
+2. **AdminShellWrapper Checks** → Sees `isAuthenticated = false`
+3. **Refresh Token Check** → Finds valid refresh token in storage
+4. **Wait State** → Shows "Refreshing authentication..." message
+5. **Background Refresh** → Base API interceptor attempts token refresh
+6. **Success Path** → Authentication state updates, user continues
+7. **Failure Path** → Timeout triggers, user redirected to login
+
+This creates a much smoother authentication experience where users aren't unnecessarily interrupted by login prompts when their session can be automatically renewed.
+
+### Critical Fix: Token Refresh Timing Issue
+
+**Additional Problem Discovered:** After successful token refresh, the `hasAdminAccess()` function was still using stale user data, causing users to be redirected to "no access" even though they had valid admin permissions in the new token.
+
+**Root Cause:** Timing mismatch between:
+1. Token refresh completion (new token in localStorage)
+2. Refine's `useIsAuthenticated` updating to `true`
+3. `useAuth` hook's user data updating with new token permissions
+
+**Solution:** Direct token validation bypass for fresh data:
+
+```typescript
+// Instead of relying on potentially stale hook data
+if (!hasAdminAccess()) {
+    router.replace(ROUTES.NO_ACCESS); // ❌ Uses stale data
+}
+
+// Use fresh token data directly
+const currentToken = getAccessToken();
+const currentUser = getCurrentUser();
+const hasCurrentAdminAccess = currentUser ? checkPermission(PERMISSIONS.ADMIN_ACCESS, currentUser) : false;
+
+if (!hasCurrentAdminAccess) {
+    router.replace(ROUTES.NO_ACCESS); // ✅ Uses fresh data
+}
+```
+
+**Additional Safeguards:**
+- **100ms delay** after successful refresh to allow hook state updates
+- **Comprehensive debug logging** to track both hook and direct token data
+- **Fallback validation** using direct token parsing instead of hook state
+
+This ensures that users with valid admin permissions aren't incorrectly redirected after token refresh.
+
+## Proper Logout Implementation with Refine (Latest)
+
+### Problem: Manual Logout Not Using Refine Flow
+**Issue:** The logout functionality was manually calling `AuthApi.logout()` and `router.push()`, which bypassed Refine's authentication flow and didn't properly handle redirects.
+
+**Solution:** Implemented proper Refine logout using `useLogout` hook:
+
+#### Enhanced AuthButton with Refine Logout
+```typescript
+import { useIsAuthenticated, useLogout } from '@refinedev/core';
+
+export function AuthButton() {
+    const { mutate: logout, isLoading: isLoggingOut } = useLogout();
+    
+    const handleLogout = () => {
+        setStableAuthState(false); // Immediate UI update
+        
+        // Use Refine's logout hook which will:
+        // 1. Call the auth provider's logout method
+        // 2. Handle the redirect automatically based on redirectTo
+        logout({
+            redirectPath: ROUTES.LOGIN
+        });
+    };
+
+    return (
+        <Menu.Item
+            color="red"
+            leftSection={<IconLogout size={14} />}
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+        >
+            {isLoggingOut ? 'Logging out...' : 'Logout'}
+        </Menu.Item>
+    );
+}
+```
+
+### Benefits of Refine Logout
+
+#### ✅ **Proper Integration**
+- Uses Refine's authentication flow instead of manual API calls
+- Automatically handles the `redirectTo` value from auth provider
+- Integrates with Refine's internal state management
+
+#### ✅ **Better User Experience**
+- Loading states during logout process
+- Disabled logout button to prevent multiple clicks
+- Immediate UI feedback with "Logging out..." message
+
+#### ✅ **Consistent Behavior**
+- Uses `router.replace()` instead of `router.push()` to prevent back button issues
+- Proper cleanup of authentication state
+- Consistent with Refine's authentication patterns
+
+### Authentication Flow Sequence
+
+1. **User clicks logout** → `handleLogout()` called
+2. **Immediate UI update** → Button shows "Logging out..." and becomes disabled
+3. **Refine logout hook** → Calls `authProvider.logout()`
+4. **Auth provider cleanup** → Calls `AuthApi.logout()` and clears tokens
+5. **Automatic redirect** → Refine handles redirect to `ROUTES.LOGIN`
+6. **AdminShell detection** → Detects unauthenticated state and reinforces redirect
+
+This creates a robust logout flow that properly integrates with Refine's authentication system and provides clear feedback to users throughout the process.
+
 ## CreatePage Modal Redesign - Compact Layout & Enhanced UX (Previous Update)
 
 ### Overview

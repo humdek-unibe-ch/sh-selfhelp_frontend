@@ -26,7 +26,7 @@ export function AdminShell({ children }: AdminShellProps) {
         setLocalAuth(hasToken);
 
         if (!hasToken) {
-            router.push(ROUTES.LOGIN);
+            router.replace(ROUTES.LOGIN);
         }
     }, [router]);
 
@@ -35,7 +35,8 @@ export function AdminShell({ children }: AdminShellProps) {
         if (typeof authenticated !== 'undefined') {
             setLocalAuth(authenticated);
             if (!authenticated) {
-                router.push(ROUTES.LOGIN);
+                // Use replace instead of push to prevent back button issues
+                router.replace(ROUTES.LOGIN);
             }
         }
     }, [authenticated, router]);
