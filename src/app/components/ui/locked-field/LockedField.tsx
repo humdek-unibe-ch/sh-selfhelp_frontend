@@ -2,9 +2,11 @@
 
 import { ActionIcon, TextInput, Tooltip, TextInputProps } from '@mantine/core';
 import { IconEdit, IconLock } from '@tabler/icons-react';
-import { useState } from 'react';
+import { useState, ReactNode } from 'react';
 
-interface ILockedFieldProps extends Omit<TextInputProps, 'rightSection'> {
+interface ILockedFieldProps extends Omit<TextInputProps, 'rightSection' | 'label'> {
+    /** The field label - can be string or ReactNode */
+    label?: ReactNode;
     /** Whether the field starts locked */
     initialLocked?: boolean;
     /** Callback when lock state changes */
@@ -16,6 +18,7 @@ interface ILockedFieldProps extends Omit<TextInputProps, 'rightSection'> {
 }
 
 export function LockedField({
+    label,
     initialLocked = true,
     onLockChange,
     lockedTooltip = "Enable editing",
@@ -33,6 +36,7 @@ export function LockedField({
     return (
         <TextInput
             {...textInputProps}
+            label={label}
             readOnly={isLocked}
             rightSection={
                 <Tooltip 

@@ -76,7 +76,7 @@ export function PageInspector({ page }: PageInspectorProps) {
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [contentExpanded, setContentExpanded] = useState(true);
     const [propertiesExpanded, setPropertiesExpanded] = useState(true);
-    const [activeLanguageTab, setActiveLanguageTab] = useState('de');
+    const [activeLanguageTab, setActiveLanguageTab] = useState<string>('de');
     
     // Fetch page fields when page is selected
     const { 
@@ -114,13 +114,20 @@ export function PageInspector({ page }: PageInspectorProps) {
             const fieldsObject: Record<string, Record<string, string>> = {};
             fields.forEach(field => {
                 fieldsObject[field.name] = {};
+                // Initialize all languages with empty strings first
+                LANGUAGES.forEach(lang => {
+                    fieldsObject[field.name][lang.code] = '';
+                });
+                // Then populate with actual data
                 field.translations.forEach(translation => {
                     // Map language_code to our language codes
                     let langCode = translation.language_code;
                     if (langCode === 'de-CH') langCode = 'de';
                     if (langCode === 'property') langCode = 'en'; // fallback
                     
-                    fieldsObject[field.name][langCode] = translation.content || field.default_value || '';
+                    if (fieldsObject[field.name][langCode] !== undefined) {
+                        fieldsObject[field.name][langCode] = translation.content || field.default_value || '';
+                    }
                 });
             });
 
@@ -311,7 +318,7 @@ export function PageInspector({ page }: PageInspectorProps) {
                             <Box p="md">
                                 {contentFields.length > 0 ? (
                                     hasMultipleLanguages ? (
-                                        <Tabs value={activeLanguageTab} onChange={setActiveLanguageTab}>
+                                        <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || 'de')}>
                                             <Tabs.List>
                                                 {LANGUAGES.map(lang => (
                                                     <Tabs.Tab key={lang.code} value={lang.code}>
@@ -365,98 +372,167 @@ export function PageInspector({ page }: PageInspectorProps) {
                             <Box p="md">
                                 <Stack gap="md">
                                     {/* Page Basic Properties */}
-                                    <LockedField
-                                        label="Keyword"
-                                        {...form.getInputProps('keyword')}
-                                        lockedTooltip="Enable keyword editing"
-                                        unlockedTooltip="Lock keyword editing"
-                                    />
-                                    
-                                    <LockedField
-                                        label="URL"
-                                        {...form.getInputProps('url')}
-                                        lockedTooltip="Enable URL editing"
-                                        unlockedTooltip="Lock URL editing"
-                                    />
+                                    <Paper p="md" withBorder>
+                                        <Stack gap="md">
+                                            <Text size="sm" fw={500} c="blue">Basic Information</Text>
+                                            <LockedField
+                                                label={
+                                                    <FieldLabelWithTooltip 
+                                                        label="Keyword" 
+                                                        tooltip="Unique identifier for the page. Used in URLs and internal references. Cannot contain spaces or special characters."
+                                                    />
+                                                }
+                                                {...form.getInputProps('keyword')}
+                                                lockedTooltip="Enable keyword editing"
+                                                unlockedTooltip="Lock keyword editing"
+                                            />
+                                            
+                                            <LockedField
+                                                label={
+                                                    <FieldLabelWithTooltip 
+                                                        label="URL" 
+                                                        tooltip="The web address path for this page. Should start with / and be user-friendly."
+                                                    />
+                                                }
+                                                {...form.getInputProps('url')}
+                                                lockedTooltip="Enable URL editing"
+                                                unlockedTooltip="Lock URL editing"
+                                            />
+                                        </Stack>
+                                    </Paper>
 
                                     {/* Page Access Type */}
-                                    <Box>
-                                        <FieldLabelWithTooltip 
-                                            label="Page Access Type" 
-                                            tooltip="Controls who can access this page - web only, mobile only, or both platforms"
-                                        />
-                                        <Radio.Group
-                                            value={form.values.pageAccessType}
-                                            onChange={(value) => form.setFieldValue('pageAccessType', value)}
-                                            mt="xs"
-                                        >
-                                            <Stack gap="xs">
-                                                {pageAccessTypes.map((type) => (
-                                                    <Radio
-                                                        key={type.lookupCode}
-                                                        value={type.lookupCode}
-                                                        label={type.lookupValue}
-                                                    />
-                                                ))}
-                                            </Stack>
-                                        </Radio.Group>
-                                    </Box>
+                                    <Paper p="md" withBorder>
+                                        <Stack gap="md">
+                                            <FieldLabelWithTooltip 
+                                                label="Page Access Type" 
+                                                tooltip="Controls who can access this page - web only, mobile only, or both platforms"
+                                            />
+                                            <Radio.Group
+                                                value={form.values.pageAccessType}
+                                                onChange={(value) => form.setFieldValue('pageAccessType', value)}
+                                            >
+                                                <Stack gap="xs">
+                                                    {pageAccessTypes.map((type) => (
+                                                        <Radio
+                                                            key={type.lookupCode}
+                                                            value={type.lookupCode}
+                                                            label={type.lookupValue}
+                                                        />
+                                                    ))}
+                                                </Stack>
+                                            </Radio.Group>
+                                        </Stack>
+                                    </Paper>
 
                                     {/* Menu Positions */}
-                                    <MenuPositionEditor
-                                        currentPage={page}
-                                        menuType="header"
-                                        enabled={form.values.headerMenuEnabled}
-                                        position={form.values.navPosition}
-                                        onEnabledChange={handleHeaderMenuChange}
-                                        onPositionChange={(position) => form.setFieldValue('navPosition', position)}
-                                    />
+                                    <Paper p="md" withBorder>
+                                        <Stack gap="md">
+                                            <Group gap="xs">
+                                                <Text size="sm" fw={500} c="blue">Menu Positions</Text>
+                                                <Tooltip 
+                                                    label="Configure where this page appears in the website navigation menus. You can drag to reorder positions."
+                                                    multiline
+                                                    w={300}
+                                                >
+                                                    <ActionIcon variant="subtle" size="xs" color="gray">
+                                                        <IconInfoCircle size="0.75rem" />
+                                                    </ActionIcon>
+                                                </Tooltip>
+                                            </Group>
+                                            
+                                            <MenuPositionEditor
+                                                currentPage={page}
+                                                menuType="header"
+                                                enabled={form.values.headerMenuEnabled}
+                                                position={form.values.navPosition}
+                                                onEnabledChange={handleHeaderMenuChange}
+                                                onPositionChange={(position) => form.setFieldValue('navPosition', position)}
+                                            />
 
-                                    <MenuPositionEditor
-                                        currentPage={page}
-                                        menuType="footer"
-                                        enabled={form.values.footerMenuEnabled}
-                                        position={form.values.footerPosition}
-                                        onEnabledChange={handleFooterMenuChange}
-                                        onPositionChange={(position) => form.setFieldValue('footerPosition', position)}
-                                    />
+                                            <MenuPositionEditor
+                                                currentPage={page}
+                                                menuType="footer"
+                                                enabled={form.values.footerMenuEnabled}
+                                                position={form.values.footerPosition}
+                                                onEnabledChange={handleFooterMenuChange}
+                                                onPositionChange={(position) => form.setFieldValue('footerPosition', position)}
+                                            />
+                                        </Stack>
+                                    </Paper>
 
                                     {/* Page Settings */}
-                                    <Group>
-                                        <Tooltip label="Page will not include header/footer layout">
-                                            <Checkbox
-                                                label="Headless Page"
-                                                {...form.getInputProps('headless', { type: 'checkbox' })}
-                                            />
-                                        </Tooltip>
-                                        <Tooltip label="Page can be accessed without authentication">
-                                            <Checkbox
-                                                label="Open Access"
-                                                {...form.getInputProps('openAccess', { type: 'checkbox' })}
-                                            />
-                                        </Tooltip>
-                                    </Group>
+                                    <Paper p="md" withBorder>
+                                        <Stack gap="md">
+                                            <Group gap="xs">
+                                                <Text size="sm" fw={500} c="blue">Page Settings</Text>
+                                                <Tooltip 
+                                                    label="Configure special page behaviors and access controls."
+                                                    multiline
+                                                    w={300}
+                                                >
+                                                    <ActionIcon variant="subtle" size="xs" color="gray">
+                                                        <IconInfoCircle size="0.75rem" />
+                                                    </ActionIcon>
+                                                </Tooltip>
+                                            </Group>
+                                            
+                                            <Group>
+                                                <Tooltip label="Page will not include header/footer layout - useful for popups, embeds, or standalone pages">
+                                                    <Checkbox
+                                                        label="Headless Page"
+                                                        {...form.getInputProps('headless', { type: 'checkbox' })}
+                                                    />
+                                                </Tooltip>
+                                                <Tooltip label="Page can be accessed without authentication - visible to all users including guests">
+                                                    <Checkbox
+                                                        label="Open Access"
+                                                        {...form.getInputProps('openAccess', { type: 'checkbox' })}
+                                                    />
+                                                </Tooltip>
+                                            </Group>
+                                        </Stack>
+                                    </Paper>
 
                                     {/* Property Fields */}
-                                    {propertyFields.map(field => (
-                                        <Box key={field.id}>
-                                            {field.type === 'textarea' ? (
-                                                <Textarea
-                                                    label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
-                                                    placeholder={field.default_value || ''}
-                                                    {...form.getInputProps(`fields.${field.name}.de`)}
-                                                    autosize
-                                                    minRows={2}
-                                                />
-                                            ) : (
-                                                <TextInput
-                                                    label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
-                                                    placeholder={field.default_value || ''}
-                                                    {...form.getInputProps(`fields.${field.name}.de`)}
-                                                />
-                                            )}
-                                        </Box>
-                                    ))}
+                                    {propertyFields.length > 0 && (
+                                        <Paper p="md" withBorder>
+                                            <Stack gap="md">
+                                                <Group gap="xs">
+                                                    <Text size="sm" fw={500} c="blue">Additional Properties</Text>
+                                                    <Tooltip 
+                                                        label="Additional configuration fields specific to this page type."
+                                                        multiline
+                                                        w={300}
+                                                    >
+                                                        <ActionIcon variant="subtle" size="xs" color="gray">
+                                                            <IconInfoCircle size="0.75rem" />
+                                                        </ActionIcon>
+                                                    </Tooltip>
+                                                </Group>
+                                                
+                                                {propertyFields.map(field => (
+                                                    <Box key={field.id}>
+                                                        {field.type === 'textarea' ? (
+                                                            <Textarea
+                                                                label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
+                                                                placeholder={field.default_value || ''}
+                                                                {...form.getInputProps(`fields.${field.name}.de`)}
+                                                                autosize
+                                                                minRows={2}
+                                                            />
+                                                        ) : (
+                                                            <TextInput
+                                                                label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
+                                                                placeholder={field.default_value || ''}
+                                                                {...form.getInputProps(`fields.${field.name}.de`)}
+                                                            />
+                                                        )}
+                                                    </Box>
+                                                ))}
+                                            </Stack>
+                                        </Paper>
+                                    )}
                                 </Stack>
                             </Box>
                         </Collapse>
