@@ -19,7 +19,9 @@ import {
     ActionIcon,
     Tooltip,
     Modal,
-    Collapse
+    Collapse,
+    Tabs,
+    Radio
 } from '@mantine/core';
 import { 
     IconInfoCircle, 
@@ -32,11 +34,15 @@ import {
 } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
 import { useHotkeys } from '@mantine/hooks';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { usePageFields } from '../../../../../hooks/usePageDetails';
+import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { LockedField } from '../../../ui/locked-field/LockedField';
+import { MenuPositionEditor } from '../../../ui/menu-position-editor/MenuPositionEditor';
+import { FieldLabelWithTooltip } from '../../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
 import { IPageField, IPageDetails } from '../../../../../types/responses/admin/page-details.types';
+import { PAGE_ACCESS_TYPES } from '../../../../../constants/lookups.constants';
 import { debug } from '../../../../../utils/debug-logger';
 
 interface PageInspectorProps {
@@ -47,23 +53,30 @@ interface IPageFormValues {
     // Page properties
     keyword: string;
     url: string;
-    protocol: string;
     headless: boolean;
     navPosition: number | null;
     footerPosition: number | null;
     openAccess: boolean;
     pageAccessType: string;
-    pageType: string;
+    headerMenuEnabled: boolean;
+    footerMenuEnabled: boolean;
     
-    // Field values (dynamic based on API response)
-    fields: Record<string, string>;
+    // Field values by language (dynamic based on API response)
+    fields: Record<string, Record<string, string>>; // fields[fieldName][languageCode] = content
 }
+
+// Mock languages for now - will be pulled from server later
+const LANGUAGES = [
+    { id: 2, code: 'de', name: 'German' },
+    { id: 3, code: 'en', name: 'English' }
+];
 
 export function PageInspector({ page }: PageInspectorProps) {
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [contentExpanded, setContentExpanded] = useState(true);
     const [propertiesExpanded, setPropertiesExpanded] = useState(true);
+    const [activeLanguageTab, setActiveLanguageTab] = useState('de');
     
     // Fetch page fields when page is selected
     const { 
@@ -72,18 +85,21 @@ export function PageInspector({ page }: PageInspectorProps) {
         error: fieldsError 
     } = usePageFields(page?.keyword || null, !!page);
 
+    // Fetch page access types
+    const pageAccessTypes = useLookupsByType(PAGE_ACCESS_TYPES);
+
     // Form for page editing
     const form = useForm<IPageFormValues>({
         initialValues: {
             keyword: '',
             url: '',
-            protocol: 'GET|POST',
             headless: false,
             navPosition: null,
             footerPosition: null,
             openAccess: false,
             pageAccessType: '',
-            pageType: '',
+            headerMenuEnabled: false,
+            footerMenuEnabled: false,
             fields: {}
         }
     });
@@ -94,26 +110,30 @@ export function PageInspector({ page }: PageInspectorProps) {
             const pageDetails = pageFieldsData.page;
             const fields = pageFieldsData.fields;
             
-            // Create fields object from API response
-            const fieldsObject: Record<string, string> = {};
+            // Create fields object organized by field name and language
+            const fieldsObject: Record<string, Record<string, string>> = {};
             fields.forEach(field => {
-                // Get the content from the first translation (assuming de-CH or property)
-                const translation = field.translations.find(t => t.language_code === 'de-CH') || 
-                                  field.translations.find(t => t.language_code === 'property') ||
-                                  field.translations[0];
-                fieldsObject[field.name] = translation?.content || field.default_value || '';
+                fieldsObject[field.name] = {};
+                field.translations.forEach(translation => {
+                    // Map language_code to our language codes
+                    let langCode = translation.language_code;
+                    if (langCode === 'de-CH') langCode = 'de';
+                    if (langCode === 'property') langCode = 'en'; // fallback
+                    
+                    fieldsObject[field.name][langCode] = translation.content || field.default_value || '';
+                });
             });
 
             form.setValues({
                 keyword: pageDetails.keyword,
                 url: pageDetails.url,
-                protocol: pageDetails.protocol,
                 headless: pageDetails.headless,
                 navPosition: pageDetails.navPosition,
                 footerPosition: pageDetails.footerPosition,
                 openAccess: pageDetails.openAccess,
                 pageAccessType: pageDetails.pageAccessType.lookupCode,
-                pageType: pageDetails.pageType.name,
+                headerMenuEnabled: pageDetails.navPosition !== null,
+                footerMenuEnabled: pageDetails.footerPosition !== null,
                 fields: fieldsObject
             });
         }
@@ -146,6 +166,69 @@ export function PageInspector({ page }: PageInspectorProps) {
             console.log('Delete page:', page?.keyword);
             setDeleteModalOpened(false);
             setDeleteConfirmText('');
+        }
+    };
+
+    const handleHeaderMenuChange = (enabled: boolean) => {
+        form.setFieldValue('headerMenuEnabled', enabled);
+        if (!enabled) {
+            form.setFieldValue('navPosition', null);
+        }
+    };
+
+    const handleFooterMenuChange = (enabled: boolean) => {
+        form.setFieldValue('footerMenuEnabled', enabled);
+        if (!enabled) {
+            form.setFieldValue('footerPosition', null);
+        }
+    };
+
+    // Get fields data for processing (before early returns)
+    const fields = pageFieldsData?.fields || [];
+    const contentFields = fields.filter(field => field.display);
+    const propertyFields = fields.filter(field => !field.display);
+
+    // Check if we have multiple languages for content fields
+    const hasMultipleLanguages = useMemo(() => {
+        return contentFields.some(field => 
+            field.translations.length > 1 && 
+            field.translations.some(t => t.language_code !== 'property')
+        );
+    }, [contentFields]);
+
+    // Render content field based on type and language
+    const renderContentField = (field: IPageField, languageCode: string) => {
+        const fieldKey = `fields.${field.name}.${languageCode}`;
+        
+        if (field.type === 'textarea') {
+            return (
+                <Textarea
+                    key={`${field.id}-${languageCode}`}
+                    label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
+                    placeholder={field.default_value || ''}
+                    {...form.getInputProps(fieldKey)}
+                    autosize
+                    minRows={3}
+                />
+            );
+        } else if (field.type === 'markdown-inline') {
+            return (
+                <TextInput
+                    key={`${field.id}-${languageCode}`}
+                    label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
+                    placeholder={field.default_value || ''}
+                    {...form.getInputProps(fieldKey)}
+                />
+            );
+        } else {
+            return (
+                <TextInput
+                    key={`${field.id}-${languageCode}`}
+                    label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
+                    placeholder={field.default_value || ''}
+                    {...form.getInputProps(fieldKey)}
+                />
+            );
         }
     };
 
@@ -184,11 +267,6 @@ export function PageInspector({ page }: PageInspectorProps) {
     }
 
     const pageDetails = pageFieldsData?.page;
-    const fields = pageFieldsData?.fields || [];
-    
-    // Separate content fields (display: true) from property fields (display: false)
-    const contentFields = fields.filter(field => field.display);
-    const propertyFields = fields.filter(field => !field.display);
 
     return (
         <Stack gap={0} h="100%">
@@ -231,46 +309,39 @@ export function PageInspector({ page }: PageInspectorProps) {
                         <Collapse in={contentExpanded}>
                             <Divider />
                             <Box p="md">
-                                <Text size="sm" c="dimmed" mb="md">
-                                    Content settings for {page.keyword} will be loaded dynamically
-                                </Text>
-                                
-                                <Stack gap="md">
-                                    {contentFields.length > 0 ? (
-                                        contentFields.map(field => (
-                                            <Box key={field.id}>
-                                                {field.type === 'textarea' ? (
-                                                    <Textarea
-                                                        label={field.name}
-                                                        description={field.help}
-                                                        placeholder={field.default_value || ''}
-                                                        {...form.getInputProps(`fields.${field.name}`)}
-                                                        autosize
-                                                        minRows={3}
-                                                    />
-                                                ) : field.type === 'markdown-inline' ? (
-                                                    <TextInput
-                                                        label={field.name}
-                                                        description={field.help}
-                                                        placeholder={field.default_value || ''}
-                                                        {...form.getInputProps(`fields.${field.name}`)}
-                                                    />
-                                                ) : (
-                                                    <TextInput
-                                                        label={field.name}
-                                                        description={field.help}
-                                                        placeholder={field.default_value || ''}
-                                                        {...form.getInputProps(`fields.${field.name}`)}
-                                                    />
-                                                )}
-                                            </Box>
-                                        ))
+                                {contentFields.length > 0 ? (
+                                    hasMultipleLanguages ? (
+                                        <Tabs value={activeLanguageTab} onChange={setActiveLanguageTab}>
+                                            <Tabs.List>
+                                                {LANGUAGES.map(lang => (
+                                                    <Tabs.Tab key={lang.code} value={lang.code}>
+                                                        {lang.name}
+                                                    </Tabs.Tab>
+                                                ))}
+                                            </Tabs.List>
+
+                                            {LANGUAGES.map(lang => (
+                                                <Tabs.Panel key={lang.code} value={lang.code} pt="md">
+                                                    <Stack gap="md">
+                                                        {contentFields.map(field => 
+                                                            renderContentField(field, lang.code)
+                                                        )}
+                                                    </Stack>
+                                                </Tabs.Panel>
+                                            ))}
+                                        </Tabs>
                                     ) : (
-                                        <Alert icon={<IconInfoCircle size="1rem" />} color="blue">
-                                            No content fields available for this page.
-                                        </Alert>
-                                    )}
-                                </Stack>
+                                        <Stack gap="md">
+                                            {contentFields.map(field => 
+                                                renderContentField(field, 'de') // Default to German if single language
+                                            )}
+                                        </Stack>
+                                    )
+                                ) : (
+                                    <Alert icon={<IconInfoCircle size="1rem" />} color="blue">
+                                        No content fields available for this page.
+                                    </Alert>
+                                )}
                             </Box>
                         </Collapse>
                     </Paper>
@@ -292,10 +363,6 @@ export function PageInspector({ page }: PageInspectorProps) {
                         <Collapse in={propertiesExpanded}>
                             <Divider />
                             <Box p="md">
-                                <Text size="sm" c="dimmed" mb="md">
-                                    Properties for {page.keyword} will be loaded dynamically
-                                </Text>
-                                
                                 <Stack gap="md">
                                     {/* Page Basic Properties */}
                                     <LockedField
@@ -312,47 +379,62 @@ export function PageInspector({ page }: PageInspectorProps) {
                                         unlockedTooltip="Lock URL editing"
                                     />
 
-                                    <TextInput
-                                        label="Protocol"
-                                        {...form.getInputProps('protocol')}
-                                        readOnly
+                                    {/* Page Access Type */}
+                                    <Box>
+                                        <FieldLabelWithTooltip 
+                                            label="Page Access Type" 
+                                            tooltip="Controls who can access this page - web only, mobile only, or both platforms"
+                                        />
+                                        <Radio.Group
+                                            value={form.values.pageAccessType}
+                                            onChange={(value) => form.setFieldValue('pageAccessType', value)}
+                                            mt="xs"
+                                        >
+                                            <Stack gap="xs">
+                                                {pageAccessTypes.map((type) => (
+                                                    <Radio
+                                                        key={type.lookupCode}
+                                                        value={type.lookupCode}
+                                                        label={type.lookupValue}
+                                                    />
+                                                ))}
+                                            </Stack>
+                                        </Radio.Group>
+                                    </Box>
+
+                                    {/* Menu Positions */}
+                                    <MenuPositionEditor
+                                        currentPage={page}
+                                        menuType="header"
+                                        enabled={form.values.headerMenuEnabled}
+                                        position={form.values.navPosition}
+                                        onEnabledChange={handleHeaderMenuChange}
+                                        onPositionChange={(position) => form.setFieldValue('navPosition', position)}
                                     />
 
-                                    <Group grow>
-                                        <TextInput
-                                            label="Navigation Position"
-                                            type="number"
-                                            {...form.getInputProps('navPosition')}
-                                        />
-                                        <TextInput
-                                            label="Footer Position"
-                                            type="number"
-                                            {...form.getInputProps('footerPosition')}
-                                        />
-                                    </Group>
+                                    <MenuPositionEditor
+                                        currentPage={page}
+                                        menuType="footer"
+                                        enabled={form.values.footerMenuEnabled}
+                                        position={form.values.footerPosition}
+                                        onEnabledChange={handleFooterMenuChange}
+                                        onPositionChange={(position) => form.setFieldValue('footerPosition', position)}
+                                    />
 
+                                    {/* Page Settings */}
                                     <Group>
-                                        <Checkbox
-                                            label="Headless Page"
-                                            {...form.getInputProps('headless', { type: 'checkbox' })}
-                                        />
-                                        <Checkbox
-                                            label="Open Access"
-                                            {...form.getInputProps('openAccess', { type: 'checkbox' })}
-                                        />
-                                    </Group>
-
-                                    <Group grow>
-                                        <TextInput
-                                            label="Page Access Type"
-                                            value={pageDetails?.pageAccessType.lookupValue || ''}
-                                            readOnly
-                                        />
-                                        <TextInput
-                                            label="Page Type"
-                                            value={pageDetails?.pageType.name || ''}
-                                            readOnly
-                                        />
+                                        <Tooltip label="Page will not include header/footer layout">
+                                            <Checkbox
+                                                label="Headless Page"
+                                                {...form.getInputProps('headless', { type: 'checkbox' })}
+                                            />
+                                        </Tooltip>
+                                        <Tooltip label="Page can be accessed without authentication">
+                                            <Checkbox
+                                                label="Open Access"
+                                                {...form.getInputProps('openAccess', { type: 'checkbox' })}
+                                            />
+                                        </Tooltip>
                                     </Group>
 
                                     {/* Property Fields */}
@@ -360,19 +442,17 @@ export function PageInspector({ page }: PageInspectorProps) {
                                         <Box key={field.id}>
                                             {field.type === 'textarea' ? (
                                                 <Textarea
-                                                    label={field.name}
-                                                    description={field.help}
+                                                    label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
                                                     placeholder={field.default_value || ''}
-                                                    {...form.getInputProps(`fields.${field.name}`)}
+                                                    {...form.getInputProps(`fields.${field.name}.de`)}
                                                     autosize
                                                     minRows={2}
                                                 />
                                             ) : (
                                                 <TextInput
-                                                    label={field.name}
-                                                    description={field.help}
+                                                    label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
                                                     placeholder={field.default_value || ''}
-                                                    {...form.getInputProps(`fields.${field.name}`)}
+                                                    {...form.getInputProps(`fields.${field.name}.de`)}
                                                 />
                                             )}
                                         </Box>
