@@ -1944,3 +1944,120 @@ debug('Processing page for menu', 'CreatePageModal', {
 - **Backend Validation**: Ensure backend consistently returns footer_position field
 - **Migration Strategy**: Handle existing pages that might not have footer_position
 - **Performance**: Monitor cache invalidation performance with larger page sets
+
+## Automatic Menu Positioning Enhancement (Latest Update)
+
+### Overview
+Enhanced the CreatePageModal to automatically position pages at the end of header/footer menus when checkboxes are checked, even without manual dragging. This improves user experience by making menu positioning more intuitive.
+
+### Issue Identified & Fixed
+
+#### Problem
+When users checked "Header Menu" or "Footer Menu" but didn't drag the new page to a specific position, the page would not be added to the menu at all. Users had to manually drag the page to see it in the menu, which was not intuitive.
+
+#### Solution
+Implemented automatic positioning logic that places new pages at the end of the menu list when checkboxes are checked, regardless of whether the user drags them to a specific position.
+
+### Technical Implementation
+
+#### Enhanced Form Submission Logic
+```typescript
+// ✅ NEW - Automatic positioning when checkbox is checked
+if (values.headerMenu) {
+    if (values.headerMenuPosition !== null) {
+        // User dragged to specific position
+        finalHeaderPosition = Math.round(calculateFinalPosition(headerMenuPages, values.headerMenuPosition));
+    } else {
+        // User checked header menu but didn't drag - add at the end
+        finalHeaderPosition = headerMenuPages.length > 0 ? headerMenuPages[headerMenuPages.length - 1].position + 5 : 10;
+    }
+}
+
+if (values.footerMenu) {
+    if (values.footerMenuPosition !== null) {
+        // User dragged to specific position
+        finalFooterPosition = Math.round(calculateFinalPosition(footerMenuPages, values.footerMenuPosition));
+    } else {
+        // User checked footer menu but didn't drag - add at the end
+        finalFooterPosition = footerMenuPages.length > 0 ? footerMenuPages[footerMenuPages.length - 1].position + 5 : 10;
+    }
+}
+```
+
+#### Smart Position Calculation for Proper Reordering
+- **Position Pattern**: Existing pages follow pattern 10, 20, 30, 40, 50, 60...
+- **First Position**: Places at 5 (before first position) for proper ordering
+- **Between Positions**: Places at middle point (15, 25, 35, 45...) between existing pages
+- **End Position**: Adds 5 to last page's position (e.g., 65 after 60)
+- **Default Start**: When no existing pages, starts at position 10
+- **Integer Guarantee**: All positions are guaranteed to be integers for backend compatibility
+
+#### Enhanced Visual Feedback
+```typescript
+// Updated position calculation for visual display - matches backend calculation
+const newPage: IMenuPageItem = {
+    id: 'new-page',
+    keyword: form.values.keyword,
+    label: form.values.keyword,
+    position: headerMenuPages.length > 0 ? headerMenuPages[headerMenuPages.length - 1].position + 5 : 10,
+    isNew: true
+};
+```
+
+### User Experience Improvements
+
+#### 1. Intuitive Behavior
+- **Checkbox = Inclusion**: Simply checking the menu checkbox now guarantees the page will appear in the menu
+- **Default Positioning**: Pages automatically appear at the end of the list as expected
+- **Optional Dragging**: Users can still drag to specific positions if desired
+
+#### 2. Two Positioning Modes
+- **Automatic Mode**: Check checkbox → page appears at end of menu
+- **Manual Mode**: Check checkbox + drag → page appears at dragged position
+
+#### 3. Clear Visual Feedback
+- **Immediate Display**: New page appears in menu list as soon as checkbox is checked
+- **Position Indicator**: Shows where the page will be positioned
+- **Drag Override**: Visual position updates when user drags to different location
+
+### Enhanced Debug Logging
+```typescript
+debug('Creating new page with calculated integer positions', 'CreatePageModal', {
+    // ... existing fields
+    headerPositionSource: values.headerMenu ? (values.headerMenuPosition !== null ? 'dragged' : 'auto-end') : 'none',
+    footerPositionSource: values.footerMenu ? (values.footerMenuPosition !== null ? 'dragged' : 'auto-end') : 'none'
+});
+```
+
+### Benefits Achieved
+
+#### 1. Better User Experience
+- **Reduced Friction**: No need to drag pages just to include them in menus
+- **Predictable Behavior**: Checking checkbox always results in menu inclusion
+- **Flexible Positioning**: Still allows manual positioning when needed
+
+#### 2. Consistent Logic
+- **Header & Footer Parity**: Both menus behave identically
+- **Position Calculation**: Consistent integer-based positioning logic
+- **Default Handling**: Proper fallbacks for empty menu lists
+
+#### 3. Enhanced Debugging
+- **Position Source Tracking**: Know whether position was auto-assigned or dragged
+- **Comprehensive Logging**: Track all positioning decisions and calculations
+- **Troubleshooting Support**: Better visibility into positioning logic
+
+### Usage Patterns
+
+#### Simple Menu Addition (New Default)
+1. Enter page keyword
+2. Check "Header Menu" or "Footer Menu"
+3. Page automatically appears at end of menu list
+4. Submit → Page created with proper menu positioning
+
+#### Custom Menu Positioning (Advanced)
+1. Enter page keyword
+2. Check "Header Menu" or "Footer Menu"
+3. Drag new page to desired position in menu list
+4. Submit → Page created with custom menu positioning
+
+This enhancement makes menu positioning much more user-friendly while maintaining the flexibility for advanced positioning when needed.

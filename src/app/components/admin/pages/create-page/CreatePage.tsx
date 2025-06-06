@@ -201,7 +201,7 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
             id: 'new-page',
             keyword: form.values.keyword,
             label: form.values.keyword,
-            position: (headerMenuPages.length + 1) * 10, // Simple default position
+            position: headerMenuPages.length > 0 ? headerMenuPages[headerMenuPages.length - 1].position + 5 : 10,
             isNew: true
         };
 
@@ -212,7 +212,7 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
             return result;
         }
 
-        // Default: add at the end
+        // Default: add at the end (this will always happen when checkbox is checked)
         return [...headerMenuPages, newPage];
     }, [headerMenuPages, form.values.keyword, form.values.headerMenu, headerDroppedIndex]);
 
@@ -224,7 +224,7 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
             id: 'new-page-footer',
             keyword: form.values.keyword,
             label: form.values.keyword,
-            position: (footerMenuPages.length + 1) * 10, // Simple default position
+            position: footerMenuPages.length > 0 ? footerMenuPages[footerMenuPages.length - 1].position + 5 : 10,
             isNew: true
         };
 
@@ -235,7 +235,7 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
             return result;
         }
 
-        // Default: add at the end
+        // Default: add at the end (this will always happen when checkbox is checked)
         return [...footerMenuPages, newPage];
     }, [footerMenuPages, form.values.keyword, form.values.footerMenu, footerDroppedIndex]);
 
@@ -260,26 +260,32 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
     };
 
     // Calculate final position based on index and existing pages - always returns integer
+    // Positions follow pattern: 10, 20, 30, 40, 50, 60...
+    // New positions are placed at: 5 (first), 15, 25, 35, 45... (between), last+5 (end)
     const calculateFinalPosition = (pages: IMenuPageItem[], targetIndex: number): number => {
         if (targetIndex === 0) {
-            // First position - use position before first page or default to 10
-            return pages.length > 0 ? Math.max(1, pages[0].position - 10) : 10;
+            // First position - place at 5 (before first position of 10)
+            if (pages.length === 0) {
+                return 10; // If no pages, start at 10
+            }
+            return Math.max(5, pages[0].position - 5);
         } else if (targetIndex >= pages.length) {
-            // Last position - add 10 to last page position
-            return pages.length > 0 ? pages[pages.length - 1].position + 10 : 10;
+            // Last position - add 5 to last page position (or start at 10 if no pages)
+            return pages.length > 0 ? pages[pages.length - 1].position + 5 : 10;
         } else {
-            // Between two pages - find a safe integer between them
+            // Between two pages - place exactly in the middle
             const prevPage = pages[targetIndex - 1];
             const nextPage = pages[targetIndex];
-            const gap = nextPage.position - prevPage.position;
+            const middlePosition = Math.floor((prevPage.position + nextPage.position) / 2);
             
-            if (gap > 1) {
-                // There's space between pages, use middle integer
-                return prevPage.position + Math.floor(gap / 2);
-            } else {
-                // No space between pages, shift all subsequent pages by 10
-                return prevPage.position + 10;
+            // Ensure we don't get the same position as existing pages
+            if (middlePosition <= prevPage.position) {
+                return prevPage.position + 5;
+            } else if (middlePosition >= nextPage.position) {
+                return nextPage.position - 5;
             }
+            
+            return middlePosition;
         }
     };
 
@@ -289,12 +295,26 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
         let finalHeaderPosition: number | null = null;
         let finalFooterPosition: number | null = null;
 
-        if (values.headerMenu && values.headerMenuPosition !== null) {
-            finalHeaderPosition = Math.round(calculateFinalPosition(headerMenuPages, values.headerMenuPosition));
+        if (values.headerMenu) {
+            if (values.headerMenuPosition !== null) {
+                // User dragged to specific position
+                finalHeaderPosition = Math.round(calculateFinalPosition(headerMenuPages, values.headerMenuPosition));
+                finalHeaderPosition = finalHeaderPosition < 0 ? 1 : finalHeaderPosition;
+            } else {
+                // User checked header menu but didn't drag - add at the end
+                finalHeaderPosition = headerMenuPages.length > 0 ? headerMenuPages[headerMenuPages.length - 1].position + 5 : 10;
+            }
         }
 
-        if (values.footerMenu && values.footerMenuPosition !== null) {
-            finalFooterPosition = Math.round(calculateFinalPosition(footerMenuPages, values.footerMenuPosition));
+        if (values.footerMenu) {
+            if (values.footerMenuPosition !== null) {
+                // User dragged to specific position
+                finalFooterPosition = Math.round(calculateFinalPosition(footerMenuPages, values.footerMenuPosition));
+                finalFooterPosition = finalFooterPosition < 0 ? 1 : finalFooterPosition;
+            } else {
+                // User checked footer menu but didn't drag - add at the end
+                finalFooterPosition = footerMenuPages.length > 0 ? footerMenuPages[footerMenuPages.length - 1].position + 5 : 10;
+            }
         }
 
         const submitData: ICreatePageRequest = {
@@ -313,7 +333,13 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
             headerPositionType: typeof finalHeaderPosition,
             footerPositionType: typeof finalFooterPosition,
             isHeaderInteger: Number.isInteger(finalHeaderPosition),
-            isFooterInteger: Number.isInteger(finalFooterPosition)
+            isFooterInteger: Number.isInteger(finalFooterPosition),
+            headerMenuChecked: values.headerMenu,
+            footerMenuChecked: values.footerMenu,
+            headerMenuPosition: values.headerMenuPosition,
+            footerMenuPosition: values.footerMenuPosition,
+            headerPositionSource: values.headerMenu ? (values.headerMenuPosition !== null ? 'dragged' : 'auto-end') : 'none',
+            footerPositionSource: values.footerMenu ? (values.footerMenuPosition !== null ? 'dragged' : 'auto-end') : 'none'
         });
         
         // Use the mutation instead of direct API call
