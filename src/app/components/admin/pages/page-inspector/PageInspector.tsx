@@ -39,7 +39,7 @@ import { LockedField } from '../../../ui/locked-field/LockedField';
 import { IPageField, IPageDetails } from '../../../../../types/responses/admin/page-details.types';
 import { debug } from '../../../../../utils/debug-logger';
 
-interface PageContentProps {
+interface PageInspectorProps {
     page: IAdminPage | null;
 }
 
@@ -59,7 +59,7 @@ interface IPageFormValues {
     fields: Record<string, string>;
 }
 
-export function PageContent({ page }: PageContentProps) {
+export function PageInspector({ page }: PageInspectorProps) {
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [contentExpanded, setContentExpanded] = useState(true);
@@ -128,20 +128,20 @@ export function PageContent({ page }: PageContentProps) {
     ]);
 
     const handleSave = () => {
-        debug('Saving page data', 'PageContent', form.values);
+        debug('Saving page data', 'PageInspector', form.values);
         // TODO: Implement save mutation
         console.log('Save page:', form.values);
     };
 
     const handleCreateChildPage = () => {
-        debug('Creating child page', 'PageContent', { parentPage: page });
+        debug('Creating child page', 'PageInspector', { parentPage: page });
         // TODO: Open create page modal with parent set
         console.log('Create child page for:', page?.keyword);
     };
 
     const handleDeletePage = () => {
         if (deleteConfirmText === page?.keyword) {
-            debug('Deleting page', 'PageContent', { page: page?.keyword });
+            debug('Deleting page', 'PageInspector', { page: page?.keyword });
             // TODO: Implement delete mutation
             console.log('Delete page:', page?.keyword);
             setDeleteModalOpened(false);

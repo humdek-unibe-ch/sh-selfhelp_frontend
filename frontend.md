@@ -862,6 +862,158 @@ Completely redesigned the CreatePage modal to be more compact, user-friendly, an
 
 #### 2. Interaction Design
 - **Intuitive Controls**: Edit button directly integrated with URL field
+
+## Page Content Management System Implementation
+
+### Overview
+Enhanced the page content editing system with dynamic field loading, proper form management, and improved user experience. The system now supports editing both content fields and page properties with proper validation and safety features.
+
+### Key Features Implemented
+
+#### 1. Enhanced Type System
+```typescript
+// Updated page details types to match API response
+export interface IPageFieldTranslation {
+    language_id: number;
+    language_code: string;
+    content: string;
+}
+
+export interface IPageField {
+    id: number;
+    name: string;
+    type: string;
+    default_value: string | null;
+    help: string;
+    display: boolean;
+    translations: IPageFieldTranslation[];
+}
+
+export interface IPageDetails {
+    id: number;
+    keyword: string;
+    url: string;
+    protocol: string;
+    action: IPageAction;
+    navigationSection: any | null;
+    parentPage: any | null;
+    pageType: IPageType;
+    pageAccessType: IPageAccessType;
+    headless: boolean;
+    navPosition: number | null;
+    footerPosition: number | null;
+    openAccess: boolean;
+    system: boolean;
+}
+```
+
+#### 2. Reusable Locked Field Component
+```typescript
+// src/app/components/ui/locked-field/LockedField.tsx
+export function LockedField({
+    initialLocked = true,
+    onLockChange,
+    lockedTooltip = "Enable editing",
+    unlockedTooltip = "Lock editing",
+    ...textInputProps
+}: ILockedFieldProps) {
+    const [isLocked, setIsLocked] = useState(initialLocked);
+
+    return (
+        <TextInput
+            {...textInputProps}
+            readOnly={isLocked}
+            rightSection={
+                <ActionIcon onClick={handleToggleLock}>
+                    {isLocked ? <IconLock /> : <IconEdit />}
+                </ActionIcon>
+            }
+        />
+    );
+}
+```
+
+#### 3. Enhanced PageInspector Component (renamed from PageContent)
+- **Dynamic Field Loading**: Fetches page fields from API based on selected page
+- **Content/Properties Separation**: Fields with `display: true` are content, `display: false` are properties
+- **Form Management**: Mantine form with proper state synchronization
+- **Save Functionality**: Fixed save button with Ctrl+S hotkey support
+- **Collapsible Sections**: Content and Properties sections can be collapsed/expanded
+- **Action Buttons**: Create child page and delete page with confirmation
+- **Right Sidebar Integration**: Integrated into admin page as a 400px wide inspector panel
+
+#### 4. User Experience Features
+```typescript
+// Fixed save button with scrollable content
+<Stack gap={0} h="100%">
+    {/* Fixed Save Button */}
+    <Paper p="md" withBorder style={{ borderBottom: 'none' }}>
+        <Group justify="space-between" align="center">
+            <Title order={2}>{page.keyword}</Title>
+            <Button leftSection={<IconDeviceFloppy />} onClick={handleSave}>
+                Save
+            </Button>
+        </Group>
+    </Paper>
+
+    {/* Scrollable Content */}
+    <ScrollArea flex={1}>
+        {/* Content and Properties sections */}
+    </ScrollArea>
+</Stack>
+
+// Keyboard shortcuts
+useHotkeys([
+    ['ctrl+S', (e) => {
+        e.preventDefault();
+        handleSave();
+    }]
+]);
+```
+
+#### 5. Delete Confirmation System
+```typescript
+// Type-to-confirm deletion modal
+<Modal opened={deleteModalOpened} title="Delete Page">
+    <Alert color="red" title="Warning">
+        This action cannot be undone.
+    </Alert>
+    <Text>
+        Type the page keyword: <Text span fw={700}>{page.keyword}</Text>
+    </Text>
+    <TextInput
+        placeholder={`Type "${page.keyword}" to confirm`}
+        value={deleteConfirmText}
+        onChange={(e) => setDeleteConfirmText(e.target.value)}
+    />
+    <Button
+        color="red"
+        disabled={deleteConfirmText !== page.keyword}
+        onClick={handleDeletePage}
+    >
+        Delete Page
+    </Button>
+</Modal>
+```
+
+### API Integration Updates
+- Updated `AdminApi.getPageFields()` to return full page details with fields
+- Enhanced `usePageFields` hook to handle new response structure
+- Proper error handling and loading states
+
+### Integration with Admin Page
+- **Component Renaming**: Renamed `PageContent` to `PageInspector` for better clarity
+- **Right Sidebar**: Integrated as 400px wide inspector panel in admin page
+- **Responsive Layout**: Uses Flex layout with proper overflow handling
+- **Reusable Design**: Will be used for sections editing later with same functionality
+
+### Benefits
+- **Safety**: Locked fields prevent accidental changes to critical properties
+- **Efficiency**: Keyboard shortcuts and fixed save button improve workflow
+- **Consistency**: Standardized editing interface across all pages
+- **Data Integrity**: Proper form validation and confirmation dialogs
+- **User Experience**: Collapsible sections, loading states, and clear visual hierarchy
+- **Better Naming**: "Inspector" better describes the functionality than "Content"
 - **Visual Feedback**: Hover states, tooltips, and state-based styling
 - **Logical Flow**: Information organized in order of typical user workflow
 - **Compact Presentation**: Maximum information in minimal space

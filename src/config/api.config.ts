@@ -21,10 +21,11 @@ export const API_CONFIG = {
         LOGOUT: '/auth/logout',
         TWO_FACTOR_VERIFY: '/auth/two-factor-verify',
         ADMIN_PAGES: '/admin/pages',
-        ADMIN_PAGE_FIELDS: (keyword: string) => `/admin/pages/${keyword}/fields`,
         ADMIN_PAGE_SECTIONS: (keyword: string) => `/admin/pages/${keyword}/sections`,
-        LOOKUPS: '/admin/lookups',
-        CREATE_PAGE: '/admin/page',
+        ADMIN_PAGE_FIELDS: (keyword: string) => `/admin/pages/${keyword}/fields`,
+        ADMIN_DELETE_PAGE: (keyword: string) => `/admin/pages/${keyword}/delete`,
+        ADMIN_CREATE_PAGE: '/admin/page',
+        LOOKUPS: '/admin/lookups',        
     },
     CORS_CONFIG: {
         credentials: true, // Required for cookies, authorization headers with HTTPS

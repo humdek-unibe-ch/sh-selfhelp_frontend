@@ -11,6 +11,7 @@ import { API_CONFIG } from '../config/api.config';
 import { IBaseApiResponse } from '../types/responses/common/response-envelope.types';
 import { IAdminPage } from '../types/responses/admin/admin.types';
 import { ICreatePageRequest } from '../types/requests/admin/create-page.types';
+import { TPageFieldsResponse, IPageFieldsData } from '../types/responses/admin/page-details.types';
 
 export const AdminApi = {
     /**
@@ -27,11 +28,11 @@ export const AdminApi = {
     /**
      * Fetches page fields for a specific page by keyword.
      * @param {string} keyword - The page keyword to fetch fields for
-     * @returns {Promise<IPageFieldsResponse>} Page fields response
+     * @returns {Promise<IPageFieldsData>} Page fields response with page details
      * @throws {Error} When API request fails
      */
-    async getPageFields(keyword: string): Promise<IPageField[]> {
-        const response = await apiClient.get<IPageFieldsResponse>(
+    async getPageFields(keyword: string): Promise<IPageFieldsData> {
+        const response = await apiClient.get<TPageFieldsResponse>(
             API_CONFIG.ENDPOINTS.ADMIN_PAGE_FIELDS(keyword)
         );
         return response.data.data;
@@ -58,9 +59,21 @@ export const AdminApi = {
      */
     async createPage(pageData: ICreatePageRequest): Promise<IAdminPage> {
         const response = await apiClient.post<IBaseApiResponse<IAdminPage>>(
-            API_CONFIG.ENDPOINTS.CREATE_PAGE,
+            API_CONFIG.ENDPOINTS.ADMIN_CREATE_PAGE,
             pageData
         );
         return response.data.data;
+    },
+
+    /**
+     * Deletes a page by keyword
+     * @param {string} keyword - The page keyword to delete
+     * @returns {Promise<void>} Success response
+     * @throws {Error} When API request fails
+     */
+    async deletePage(keyword: string): Promise<void> {
+        await apiClient.delete(
+            API_CONFIG.ENDPOINTS.ADMIN_DELETE_PAGE(keyword)
+        );
     }
 };

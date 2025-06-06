@@ -220,8 +220,13 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
                 size="sm"
             />
 
-            <ScrollArea style={{ height: 'calc(100vh - 200px)' }}>
-                <Stack gap={2}>
+            <ScrollArea 
+                style={{ height: 'calc(100vh - 200px)' }}
+                scrollbarSize={6}
+                scrollHideDelay={1000}
+            >
+                test
+                <Stack gap={2} pb="md">
                     {filteredPages.length > 0 ? (
                         filteredPages.map(page => renderPageItem(page))
                     ) : (

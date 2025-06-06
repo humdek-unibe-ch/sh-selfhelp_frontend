@@ -7,30 +7,22 @@ import {
   Text, 
   Group, 
   Button, 
-  ActionIcon, 
-  Paper, 
   Divider, 
   Stack, 
-  ScrollArea,
-  Collapse,
-  Accordion,
   rem,
   Flex,
   Badge,
   Alert,
   Loader
 } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
 import { 
-  IconChevronRight,
-  IconChevronDown,
-  IconSettings,
   IconEye,
   IconDeviceFloppy,
   IconInfoCircle,
   IconAlertCircle
 } from '@tabler/icons-react';
 import { PageSectionsList } from '../../components/admin/page-sections';
+import { PageInspector } from '../../components/admin/pages/page-inspector/PageInspector';
 import { useAdminPages } from '../../../hooks/useAdminPages';
 import { useMemo } from 'react';
 import { debug } from '../../../utils/debug-logger';
@@ -39,10 +31,6 @@ export default function AdminPage() {
   const params = useParams();
   const path = params.slug ? (Array.isArray(params.slug) ? params.slug.join('/') : params.slug) : '';
   const { pages, isLoading, error } = useAdminPages();
-  
-  // State for content and properties panels
-  const [contentOpened, { toggle: toggleContent }] = useDisclosure(true);
-  const [propertiesOpened, { toggle: toggleProperties }] = useDisclosure(true);
 
   // Check if this is a page edit route
   const isPageRoute = path.startsWith('pages/');
@@ -194,52 +182,14 @@ export default function AdminPage() {
         {renderMainContent()}
       </Box>
       
-      {/* Right Sidebar - Properties Panel */}
+      {/* Right Sidebar - Page Inspector */}
       <Box style={{ 
-        width: rem(300), 
+        width: rem(400), 
         borderLeft: '1px solid var(--mantine-color-gray-3)', 
         height: '100%',
-        overflowY: 'auto'
+        overflowY: 'hidden'
       }}>
-        {/* Content Panel */}
-        <Box p="md">
-          <Group justify="space-between" mb="xs" onClick={toggleContent} style={{ cursor: 'pointer' }}>
-            <Title order={5}>Content</Title>
-            {contentOpened ? <IconChevronDown size={16} /> : <IconChevronRight size={16} />}
-          </Group>
-          <Collapse in={contentOpened}>
-            <Paper withBorder p="md" mb="md">
-              <Text size="sm" c="dimmed" mb="md">
-                {isPageRoute && selectedPage 
-                  ? `Content settings for ${selectedPage.keyword} will be loaded dynamically`
-                  : 'Content settings will be loaded dynamically'
-                }
-              </Text>
-              <Divider mb="md" />
-              <Button fullWidth variant="light">Edit Content</Button>
-            </Paper>
-          </Collapse>
-        </Box>
-        
-        {/* Properties Panel */}
-        <Box p="md">
-          <Group justify="space-between" mb="xs" onClick={toggleProperties} style={{ cursor: 'pointer' }}>
-            <Title order={5}>Properties</Title>
-            {propertiesOpened ? <IconChevronDown size={16} /> : <IconChevronRight size={16} />}
-          </Group>
-          <Collapse in={propertiesOpened}>
-            <Paper withBorder p="md">
-              <Text size="sm" c="dimmed" mb="md">
-                {isPageRoute && selectedPage 
-                  ? `Properties for ${selectedPage.keyword} will be loaded dynamically`
-                  : 'Properties will be loaded dynamically'
-                }
-              </Text>
-              <Divider mb="md" />
-              <Button fullWidth leftSection={<IconSettings size={16} />} variant="light">Configure</Button>
-            </Paper>
-          </Collapse>
-        </Box>
+        <PageInspector page={selectedPage} />
       </Box>
     </Flex>
   );

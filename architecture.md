@@ -357,6 +357,66 @@ const processMenuPages = useMemo(() => {
 
 This enhancement ensures that page creation respects the hierarchical structure and provides users with contextually relevant menu positioning options.
 
+## 2.5. Page Content Management System
+
+**CRITICAL FEATURE**: Enhanced page content editing with dynamic field loading and proper form management.
+
+### Page Content Architecture
+- **Dynamic Field Loading**: Page fields are fetched from API based on selected page keyword
+- **Content vs Properties Separation**: Fields with `display: true` are content fields, `display: false` are property fields
+- **Locked Field Component**: Reusable component for keyword/URL editing with lock/unlock mechanism
+- **Form State Management**: Mantine form with proper validation and state synchronization
+- **Save Functionality**: Ctrl+S hotkey support with fixed save button
+
+### Key Components
+- **PageInspector**: Main component for editing page content and properties (renamed from PageContent for clarity)
+- **LockedField**: Reusable component for fields that need lock/unlock functionality
+- **Page Field Types**: Support for text, textarea, markdown-inline field types
+- **Translation Support**: Handles multiple language translations for field content
+
+### Implementation Features
+```typescript
+// Page Content Structure
+interface IPageFormValues {
+    // Page properties
+    keyword: string;
+    url: string;
+    protocol: string;
+    headless: boolean;
+    navPosition: number | null;
+    footerPosition: number | null;
+    openAccess: boolean;
+    pageAccessType: string;
+    pageType: string;
+    
+    // Dynamic field values
+    fields: Record<string, string>;
+}
+
+// Locked Field Component
+<LockedField
+    label="Keyword"
+    initialLocked={true}
+    lockedTooltip="Enable keyword editing"
+    unlockedTooltip="Lock keyword editing"
+    {...form.getInputProps('keyword')}
+/>
+```
+
+### User Experience Features
+- **Collapsible Sections**: Content and Properties sections can be collapsed/expanded
+- **Fixed Save Button**: Always visible save button with scroll area for content
+- **Keyboard Shortcuts**: Ctrl+S for save functionality
+- **Delete Confirmation**: Type-to-confirm deletion with modal
+- **Action Buttons**: Create child page and delete page functionality
+- **Loading States**: Proper loading and error handling for API calls
+
+### Benefits
+- **Consistent UX**: Standardized editing interface across all pages
+- **Safety Features**: Locked fields prevent accidental changes to critical properties
+- **Efficient Workflow**: Keyboard shortcuts and fixed save button improve productivity
+- **Data Integrity**: Proper form validation and confirmation dialogs prevent data loss
+
 ## 3. Directory Structure
 
 A clear directory structure is crucial for organization and scalability.
