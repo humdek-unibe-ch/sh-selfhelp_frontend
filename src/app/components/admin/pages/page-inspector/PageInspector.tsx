@@ -131,16 +131,30 @@ export function PageInspector({ page }: PageInspectorProps) {
             });
 
             form.setValues({
-                keyword: pageDetails.keyword,
-                url: pageDetails.url,
-                headless: pageDetails.headless,
+                keyword: pageDetails.keyword || '',
+                url: pageDetails.url || '',
+                headless: pageDetails.headless || false,
                 navPosition: pageDetails.navPosition,
                 footerPosition: pageDetails.footerPosition,
-                openAccess: pageDetails.openAccess,
-                pageAccessType: pageDetails.pageAccessType.lookupCode,
+                openAccess: pageDetails.openAccess || false,
+                pageAccessType: pageDetails.pageAccessType?.lookupCode || '',
                 headerMenuEnabled: pageDetails.navPosition !== null,
                 footerMenuEnabled: pageDetails.footerPosition !== null,
                 fields: fieldsObject
+            });
+        } else {
+            // Reset form when no page is selected
+            form.setValues({
+                keyword: '',
+                url: '',
+                headless: false,
+                navPosition: null,
+                footerPosition: null,
+                openAccess: false,
+                pageAccessType: '',
+                headerMenuEnabled: false,
+                footerMenuEnabled: false,
+                fields: {}
             });
         }
     }, [page, pageFieldsData]);
@@ -206,13 +220,20 @@ export function PageInspector({ page }: PageInspectorProps) {
     const renderContentField = (field: IPageField, languageCode: string) => {
         const fieldKey = `fields.${field.name}.${languageCode}`;
         
+        // Ensure the field path exists in form state to prevent controlled/uncontrolled warnings
+        const fieldValue = form.values.fields?.[field.name]?.[languageCode] ?? '';
+        const inputProps = {
+            ...form.getInputProps(fieldKey),
+            value: fieldValue // Explicitly set value to ensure it's always defined
+        };
+        
         if (field.type === 'textarea') {
             return (
                 <Textarea
                     key={`${field.id}-${languageCode}`}
                     label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
                     placeholder={field.default_value || ''}
-                    {...form.getInputProps(fieldKey)}
+                    {...inputProps}
                     autosize
                     minRows={3}
                 />
@@ -223,7 +244,7 @@ export function PageInspector({ page }: PageInspectorProps) {
                     key={`${field.id}-${languageCode}`}
                     label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
                     placeholder={field.default_value || ''}
-                    {...form.getInputProps(fieldKey)}
+                    {...inputProps}
                 />
             );
         } else {
@@ -232,7 +253,7 @@ export function PageInspector({ page }: PageInspectorProps) {
                     key={`${field.id}-${languageCode}`}
                     label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
                     placeholder={field.default_value || ''}
-                    {...form.getInputProps(fieldKey)}
+                    {...inputProps}
                 />
             );
         }
@@ -516,25 +537,34 @@ export function PageInspector({ page }: PageInspectorProps) {
                                                     </Tooltip>
                                                 </Group>
                                                 
-                                                {propertyFields.map(field => (
-                                                    <Box key={field.id}>
-                                                        {field.type === 'textarea' ? (
-                                                            <Textarea
-                                                                label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
-                                                                placeholder={field.default_value || ''}
-                                                                {...form.getInputProps(`fields.${field.name}.de`)}
-                                                                autosize
-                                                                minRows={2}
-                                                            />
-                                                        ) : (
-                                                            <TextInput
-                                                                label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
-                                                                placeholder={field.default_value || ''}
-                                                                {...form.getInputProps(`fields.${field.name}.de`)}
-                                                            />
-                                                        )}
-                                                    </Box>
-                                                ))}
+                                                {propertyFields.map(field => {
+                                                    const fieldKey = `fields.${field.name}.de`;
+                                                    const fieldValue = form.values.fields?.[field.name]?.de ?? '';
+                                                    const inputProps = {
+                                                        ...form.getInputProps(fieldKey),
+                                                        value: fieldValue
+                                                    };
+                                                    
+                                                    return (
+                                                        <Box key={field.id}>
+                                                            {field.type === 'textarea' ? (
+                                                                <Textarea
+                                                                    label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
+                                                                    placeholder={field.default_value || ''}
+                                                                    {...inputProps}
+                                                                    autosize
+                                                                    minRows={2}
+                                                                />
+                                                            ) : (
+                                                                <TextInput
+                                                                    label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
+                                                                    placeholder={field.default_value || ''}
+                                                                    {...inputProps}
+                                                                />
+                                                            )}
+                                                        </Box>
+                                                    );
+                                                })}
                                             </Stack>
                                         </Paper>
                                     )}
