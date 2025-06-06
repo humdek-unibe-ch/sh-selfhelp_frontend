@@ -10,12 +10,14 @@ import { useRouter } from 'next/navigation';
 import { IAdminPage } from '../../../../types/responses/admin/admin.types';
 import { debug } from '../../../../utils/debug-logger';
 import { useAdminPages } from '../../../../hooks/useAdminPages';
+import { useSelectedPage } from '../../../store/admin.store';
 
 export function AdminNavbar() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
     const { pages, isLoading } = useAdminPages();
+    const selectedPage = useSelectedPage();
     const router = useRouter();
     const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -279,7 +281,11 @@ export function AdminNavbar() {
                     ))}
                 </div>
             </ScrollArea>
-            <CreatePageModal opened={isModalOpen} onClose={() => setIsModalOpen(false)} />
+            <CreatePageModal 
+                opened={isModalOpen} 
+                onClose={() => setIsModalOpen(false)} 
+                parentPage={selectedPage}
+            />
         </>
     );
 }

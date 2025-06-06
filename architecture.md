@@ -300,6 +300,63 @@ interface ICreatePageFormValues {
 - **Custom Edit**: Optional manual URL editing when enabled
 - **Read-only Display**: Shows generated pattern when custom edit is disabled
 
+## 2.5. Enhanced Page Creation System - Context-Aware Menu Filtering
+
+**CRITICAL ENHANCEMENT**: The CreatePageModal now supports context-aware page creation with intelligent menu filtering based on page hierarchy.
+
+### Context-Aware Page Creation
+- **Root Page Creation**: When no parent is selected, shows only root-level pages (parent: null) in menu positioning
+- **Child Page Creation**: When a parent page is selected, shows only sibling pages (children of the same parent) in menu positioning
+- **Visual Context**: Modal title and alert clearly indicate whether creating root or child page
+
+### Implementation Details
+```typescript
+// Enhanced Modal Props
+interface ICreatePageModalProps {
+    opened: boolean;
+    onClose: () => void;
+    parentPage?: IAdminPage | null; // New: Optional parent context
+}
+
+// Context-Aware Menu Processing
+const processMenuPages = useMemo(() => {
+    let pagesToProcess: IAdminPage[] = [];
+    
+    if (parentPage) {
+        // Child page: show only siblings (children of parent)
+        pagesToProcess = parentPage.children || [];
+    } else {
+        // Root page: show only root pages (parent: null)
+        pagesToProcess = pages.filter(page => page.parent === null);
+    }
+    
+    // Process filtered pages for menu positioning
+}, [pages, parentPage]);
+```
+
+### Integration with Admin Store
+- **Selected Page Context**: Uses `useSelectedPage()` from admin store to determine parent context
+- **Automatic Parent Assignment**: Form automatically includes parent ID when creating child pages
+- **Consistent UX**: Clear visual indicators for page creation context
+
+### Benefits
+- **Improved UX**: Users see only relevant pages for menu positioning
+- **Reduced Confusion**: Clear separation between root and child page creation
+- **Hierarchical Consistency**: Maintains proper page hierarchy structure
+- **Context Awareness**: Modal adapts behavior based on selected parent page
+
+### Usage Pattern
+```typescript
+// In AdminNavbar - passes selected page as parent context
+<CreatePageModal 
+    opened={isModalOpen} 
+    onClose={() => setIsModalOpen(false)} 
+    parentPage={selectedPage} // Current selected page becomes parent
+/>
+```
+
+This enhancement ensures that page creation respects the hierarchical structure and provides users with contextually relevant menu positioning options.
+
 ## 3. Directory Structure
 
 A clear directory structure is crucial for organization and scalability.

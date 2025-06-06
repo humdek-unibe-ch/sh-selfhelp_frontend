@@ -4,6 +4,8 @@
  * @module types/forms/create-page.types
  */
 
+import { IAdminPage } from '../responses/admin/admin.types';
+
 export interface ICreatePageFormValues {
     keyword: string;
     headerMenu: boolean;
@@ -16,6 +18,7 @@ export interface ICreatePageFormValues {
     navigationPage: boolean;
     openAccess: boolean;
     customUrlEdit: boolean;
+    parentPage?: number | null;
 }
 
 export interface IMenuPageItem {
@@ -29,4 +32,5 @@ export interface IMenuPageItem {
 export interface ICreatePageModalProps {
     opened: boolean;
     onClose: () => void;
+    parentPage?: IAdminPage | null;
 } 

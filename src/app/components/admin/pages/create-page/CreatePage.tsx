@@ -41,7 +41,7 @@ const DragClonePortal = ({ children }: { children: React.ReactNode }) => {
     return createPortal(children, document.body);
 };
 
-export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
+export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreatePageModalProps) => {
     const [headerMenuPages, setHeaderMenuPages] = useState<IMenuPageItem[]>([]);
     const [footerMenuPages, setFooterMenuPages] = useState<IMenuPageItem[]>([]);
     const [headerDroppedIndex, setHeaderDroppedIndex] = useState<number | null>(null);
@@ -81,6 +81,7 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
             navigationPage: false,
             openAccess: false,
             customUrlEdit: false,
+            parentPage: parentPage?.id_pages || null,
         },
         validate: {
             keyword: (value) => {
@@ -114,12 +115,30 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
         form.setFieldValue('urlPattern', urlPattern);
     }, [form.values.keyword, form.values.navigationPage]);
 
-    // Process admin pages into menu items
+    // Process admin pages into menu items based on context (root vs child page creation)
     const processMenuPages = useMemo(() => {
         if (!pages.length) return { header: [], footer: [] };
 
         const headerPages: IMenuPageItem[] = [];
         const footerPages: IMenuPageItem[] = [];
+
+        // Determine which pages to show based on context
+        let pagesToProcess: IAdminPage[] = [];
+
+        if (parentPage) {
+            // Creating a child page - show only children of the parent
+            pagesToProcess = parentPage.children || [];
+            debug('Processing child pages for parent', 'CreatePageModal', {
+                parentKeyword: parentPage.keyword,
+                childrenCount: pagesToProcess.length
+            });
+        } else {
+            // Creating a root page - show only root pages (pages with parent: null)
+            pagesToProcess = pages.filter(page => page.parent === null);
+            debug('Processing root pages', 'CreatePageModal', {
+                rootPagesCount: pagesToProcess.length
+            });
+        }
 
         const processPage = (page: IAdminPage) => {
             // Header menu pages (pages with nav_position)
@@ -132,35 +151,35 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
                 });
             }
 
-            // Footer menu pages (for now, we'll use pages without nav_position as potential footer pages)
-            // This might need adjustment based on actual footer_position field
-            if (page.nav_position === null) {
+            // Footer menu pages (pages with footer_position)
+            // Note: footer_position might not exist in IAdminPage, so we check if it exists
+            const footerPosition = (page as any).footer_position;
+            if (footerPosition !== null && footerPosition !== undefined) {
                 footerPages.push({
                     id: page.id_pages.toString(),
                     keyword: page.keyword,
                     label: page.keyword,
-                    position: footerPages.length + 1
+                    position: footerPosition
                 });
-            }
-
-            // Process children recursively
-            if (page.children) {
-                page.children.forEach(processPage);
             }
         };
 
-        pages.forEach(processPage);
+        // Process only the relevant pages (no recursive processing since we're filtering by level)
+        pagesToProcess.forEach(processPage);
 
-        // Sort header pages by position
+        // Sort pages by position
         headerPages.sort((a, b) => a.position - b.position);
+        footerPages.sort((a, b) => a.position - b.position);
 
         debug('Processed menu pages', 'CreatePageModal', {
+            context: parentPage ? 'child' : 'root',
+            parentKeyword: parentPage?.keyword,
             headerPagesCount: headerPages.length,
             footerPagesCount: footerPages.length
         });
 
         return { header: headerPages, footer: footerPages };
-    }, [pages]);
+    }, [pages, parentPage]);
 
     // Initialize menu pages when data is available
     useEffect(() => {
@@ -272,6 +291,7 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
             url:  values.urlPattern,
             nav_position: finalHeaderPosition || undefined,
             footer_position: finalFooterPosition || undefined,
+            parent: values.parentPage || undefined,
         };
 
         debug('Creating new page with calculated positions', 'CreatePageModal', submitData);
@@ -391,7 +411,7 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
         <Modal
             opened={opened}
             onClose={handleClose}
-            title="Create New Page"
+            title={parentPage ? `Create Child Page under "${parentPage.keyword}"` : "Create New Page"}
             size="xl"
             centered
             className={styles.modalContainer}
@@ -412,6 +432,15 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
                     <Box className={styles.scrollableContent}>
                         <form onSubmit={form.onSubmit(handleSubmit)}>
                             <Stack gap="lg" p="lg">
+                                {/* Context Information */}
+                                {parentPage && (
+                                    <Alert icon={<IconInfoCircle size="1rem" />} color="blue" mb="md">
+                                        <Text size="sm">
+                                            Creating a child page under: <Text span fw={600}>{parentPage.keyword}</Text>
+                                        </Text>
+                                    </Alert>
+                                )}
+
                                 {/* Basic Page Information */}
                                 <Paper p="md" withBorder>
                                     <Stack gap="md">
