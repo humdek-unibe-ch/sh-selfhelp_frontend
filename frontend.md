@@ -1539,3 +1539,120 @@ Debug features can be controlled via environment variables:
   - **Logical Ordering**: Menu pages prioritized, then alphabetical organization
   - **Scalable Structure**: Supports unlimited nesting levels
   - **Maintainable Code**: Clean separation of concerns and reusable components
+
+## React Query Mutations Implementation (Latest)
+
+### State-of-the-Art Data Manipulation Approach
+
+**Date**: Current Session  
+**Implementation**: React Query `useMutation` for all data manipulation operations
+
+#### Problem Analysis
+The user questioned whether wrapping API calls in React Query mutations was the proper approach and if it was state-of-the-art. Analysis confirmed that React Query mutations are indeed the **industry standard** for data manipulation in modern React applications.
+
+#### Benefits Identified
+1. **Declarative State Management**: Automatic loading, error, and success states
+2. **Cache Invalidation**: Automatic cache management and synchronization  
+3. **Error Handling**: Centralized, consistent error handling patterns
+4. **Loading States**: Built-in pending states for better UX
+5. **TypeScript Support**: Full type safety for mutations
+6. **Optimistic Updates**: Update UI immediately, rollback on failure
+7. **DevTools Integration**: Excellent debugging capabilities
+
+#### Implementation Standards Created
+
+**Mutation Hook Structure**:
+```typescript
+// src/hooks/mutations/use[Entity][Action]Mutation.ts
+export function use[Entity][Action]Mutation(options = {}) {
+    const queryClient = useQueryClient();
+    
+    return useMutation({
+        mutationFn: (data) => [Entity]Api.[action](data),
+        onSuccess: async (result) => {
+            // Invalidate relevant queries
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: ['[entity]'] }),
+                queryClient.invalidateQueries({ queryKey: ['[relatedEntity]'] }),
+            ]);
+            // Show success notification
+            // Call custom success handler
+        },
+        onError: (error) => {
+            // Centralized error handling with parseApiError
+            // Show error notification  
+            // Call custom error handler
+        },
+    });
+}
+```
+
+**Component Usage Pattern**:
+```typescript
+const createMutation = useCreateEntityMutation({
+    onSuccess: (data) => {
+        form.reset();
+        onClose();
+    }
+});
+
+const handleSubmit = (values) => {
+    createMutation.mutate(values);
+};
+
+// UI with loading states
+<Button 
+    loading={createMutation.isPending}
+    disabled={createMutation.isPending}
+>
+    Create Entity
+</Button>
+```
+
+#### Files Created/Modified
+
+**New Files**:
+- `src/hooks/mutations/useCreatePageMutation.ts` - Standardized page creation mutation
+- `docs/react-query-mutations.md` - Comprehensive documentation and standards
+
+**Modified Files**:
+- `src/app/components/admin/pages/create-page/CreatePage.tsx` - Converted to use mutation hook
+- `architecture.md` - Added React Query mutations as critical rule
+- `frontend.md` - Documented implementation approach
+
+#### Migration Strategy Defined
+
+**Phase 1**: Create mutation hooks for all existing API operations
+**Phase 2**: Update components to use mutation hooks instead of direct API calls  
+**Phase 3**: Add optimistic updates and advanced features
+
+#### Required Mutations for Each Entity
+- `useCreate[Entity]Mutation` - Create operations
+- `useUpdate[Entity]Mutation` - Update operations  
+- `useDelete[Entity]Mutation` - Delete operations
+- `useBulkCreate[Entity]Mutation` - Bulk operations (if needed)
+- `useRestore[Entity]Mutation` - Restore operations (if applicable)
+
+#### File Organization Structure
+```
+src/hooks/mutations/
+├── pages/
+│   ├── useCreatePageMutation.ts
+│   ├── useUpdatePageMutation.ts
+│   ├── useDeletePageMutation.ts
+│   └── index.ts
+├── users/
+│   └── [similar structure]
+└── index.ts
+```
+
+#### Best Practices Established
+- Always use mutations for data manipulation (POST, PUT, DELETE)
+- Use queries for data fetching (GET)
+- Invalidate related queries after mutations
+- Provide loading states in UI
+- Handle errors gracefully with notifications
+- Use TypeScript for type safety
+- Follow consistent naming conventions
+
+This implementation establishes React Query mutations as the **state-of-the-art standard** for all data manipulation operations in the project, ensuring consistency, better UX, maintainability, and excellent developer experience.

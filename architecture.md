@@ -76,7 +76,58 @@ const filtered = data?.filter(condition) ?? [];
 const sorted = filtered.sort(compareFn);
 ```
 
-## 2.3. UI Component Rules - Mantine First Approach
+## 2.3. React Query Mutations - State-of-the-Art Data Manipulation
+
+**CRITICAL RULE**: Always use React Query's `useMutation` for data manipulation operations (Create, Update, Delete). This is the state-of-the-art approach.
+
+### Mutation Standards
+- **All Data Manipulation**: Use mutations for POST, PUT, DELETE operations
+- **Consistent Structure**: Follow standardized mutation hook patterns
+- **Cache Invalidation**: Always invalidate related queries after mutations
+- **Error Handling**: Use centralized error handling with notifications
+- **Loading States**: Utilize built-in `isPending` states for UI feedback
+- **TypeScript**: Full type safety for all mutation operations
+
+### Implementation Pattern
+```typescript
+// Mutation Hook Structure
+export function use[Entity][Action]Mutation(options = {}) {
+    const queryClient = useQueryClient();
+    
+    return useMutation({
+        mutationFn: (data) => [Entity]Api.[action](data),
+        onSuccess: async (result) => {
+            // Invalidate cache
+            await queryClient.invalidateQueries({ queryKey: ['[entity]'] });
+            // Show success notification
+            // Call custom success handler
+        },
+        onError: (error) => {
+            // Centralized error handling
+            // Show error notification
+            // Call custom error handler
+        },
+    });
+}
+
+// Component Usage
+const createMutation = useCreateEntityMutation({
+    onSuccess: () => { form.reset(); onClose(); }
+});
+
+const handleSubmit = (values) => {
+    createMutation.mutate(values);
+};
+```
+
+### Benefits
+- **Declarative State Management**: Automatic loading, error, success states
+- **Cache Synchronization**: Automatic cache invalidation and updates
+- **Optimistic Updates**: Update UI immediately, rollback on failure
+- **Consistent UX**: Standardized loading states and error handling
+- **Developer Experience**: Excellent debugging with React Query DevTools
+
+## 2.4. UI Component Rules - Mantine First Approach
 
 **CRITICAL RULE**: Minimize custom Tailwind CSS and maximize Mantine UI v7 components for better theming and customization.
 

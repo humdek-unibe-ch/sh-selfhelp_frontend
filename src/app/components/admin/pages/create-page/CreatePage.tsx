@@ -19,16 +19,14 @@ import {
     Tooltip,
     Title,
     Paper,
-    Portal
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
+import { useCreatePageMutation } from '../../../../../hooks/mutations/useCreatePageMutation';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { IconGripVertical, IconInfoCircle, IconEdit, IconLock, IconPlus, IconCheck, IconX } from '@tabler/icons-react';
+import { IconGripVertical, IconInfoCircle, IconEdit, IconLock } from '@tabler/icons-react';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
-import { AdminApi } from '../../../../../api/admin.api';
 import { PAGE_ACCESS_TYPES, PAGE_ACCESS_TYPES_MOBILE_AND_WEB } from '../../../../../constants/lookups.constants';
 import { ICreatePageFormValues, ICreatePageModalProps, IMenuPageItem } from '../../../../../types/forms/create-page.types';
 import { ICreatePageRequest } from '../../../../../types/requests/admin/create-page.types';
@@ -51,6 +49,19 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
     
     // React Query client for cache invalidation
     const queryClient = useQueryClient();
+    
+    // Create page mutation
+    const createPageMutation = useCreatePageMutation({
+        onSuccess: (createdPage) => {
+            // Reset form and state on successful creation
+            form.reset();
+            setHeaderDroppedIndex(null);
+            setFooterDroppedIndex(null);
+            setHeaderMenuPages(processMenuPages.header);
+            setFooterMenuPages(processMenuPages.footer);
+            onClose();
+        }
+    });
     
     // Fetch lookups and admin pages
     const pageAccessTypes = useLookupsByType(PAGE_ACCESS_TYPES);
@@ -265,90 +276,8 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
 
         debug('Creating new page with calculated positions', 'CreatePageModal', submitData);
         
-        try {
-            const createdPage = await AdminApi.createPage(submitData);
-            
-            // Invalidate and refetch relevant queries to update the UI
-            await Promise.all([
-                // Invalidate admin pages list
-                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
-                // Invalidate navigation pages (for frontend navigation)
-                queryClient.invalidateQueries({ queryKey: ['pages'] }),
-            ]);
-            
-            notifications.show({
-                title: 'Page Created Successfully',
-                message: `Page "${createdPage.keyword}" was created successfully and the page list has been updated!`,
-                icon: <IconCheck size="1rem" />,
-                color: 'green',
-                autoClose: 5000,
-                position: 'top-center',
-            });
-            
-            debug('Page created successfully and cache invalidated', 'CreatePageModal', createdPage);
-            
-            // Reset form and state on successful creation
-            form.reset();
-            setHeaderDroppedIndex(null);
-            setFooterDroppedIndex(null);
-            setHeaderMenuPages(processMenuPages.header);
-            setFooterMenuPages(processMenuPages.footer);
-            
-            onClose();
-            
-        } catch (error: any) {
-            debug('Error creating page', 'CreatePageModal', { error, submitData });
-            
-            let errorMessage = 'Page creation failed. Please try again.';
-            let errorTitle = 'Page Creation Failed';
-            
-            // Handle Axios errors (most common)
-            if (error?.response?.data) {
-                const responseData = error.response.data;
-                
-                // Use backend error message if available
-                if (responseData.error || responseData.message) {
-                    errorMessage = responseData.error || responseData.message;
-                    
-                    // Set appropriate title based on status
-                    const status = responseData.status || error.response.status;
-                    if (status === 500) {
-                        errorTitle = 'Server Error';
-                    } else if (status === 400 || status === 422) {
-                        errorTitle = 'Validation Error';
-                    } else if (status === 409) {
-                        errorTitle = 'Page Already Exists';
-                    }
-                }
-            }
-            // Handle direct error objects
-            else if (error?.status && (error.error || error.message)) {
-                errorMessage = error.error || error.message;
-                if (error.status === 500) {
-                    errorTitle = 'Server Error';
-                } else if (error.status === 400 || error.status === 422) {
-                    errorTitle = 'Validation Error';
-                }
-            }
-            // Handle network errors
-            else if (error?.message) {
-                if (error.message.includes('fetch') || error.message.includes('network')) {
-                    errorTitle = 'Network Error';
-                    errorMessage = 'Unable to connect to the server. Please check your connection.';
-                } else {
-                    errorMessage = error.message;
-                }
-            }
-            
-            notifications.show({
-                title: errorTitle,
-                message: errorMessage,
-                icon: <IconX size="1rem" />,
-                color: 'red',
-                autoClose: 8000,
-                position: 'top-center',
-            });
-        }
+        // Use the mutation instead of direct API call
+        createPageMutation.mutate(submitData);
     };
 
     // Handle create button click
@@ -634,6 +563,8 @@ export const CreatePageModal = ({ opened, onClose }: ICreatePageModalProps) => {
                             </Button>
                             <Button 
                                 onClick={handleCreateClick}
+                                loading={createPageMutation.isPending}
+                                disabled={createPageMutation.isPending}
                             >
                                 Create Page
                             </Button>
