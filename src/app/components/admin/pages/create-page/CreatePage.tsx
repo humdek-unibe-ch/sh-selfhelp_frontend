@@ -253,34 +253,42 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
         setFooterDroppedIndex(destinationIndex);
     };
 
-    // Calculate final position based on index and existing pages
-    const calculateFinalPosition = (pages: IMenuPageItem[], targetIndex: number) => {
+    // Calculate final position based on index and existing pages - always returns integer
+    const calculateFinalPosition = (pages: IMenuPageItem[], targetIndex: number): number => {
         if (targetIndex === 0) {
-            // First position
-            return pages.length > 0 ? pages[0].position / 2 : 10;
+            // First position - use position before first page or default to 10
+            return pages.length > 0 ? Math.max(1, pages[0].position - 10) : 10;
         } else if (targetIndex >= pages.length) {
-            // Last position
+            // Last position - add 10 to last page position
             return pages.length > 0 ? pages[pages.length - 1].position + 10 : 10;
         } else {
-            // Between two pages
+            // Between two pages - find a safe integer between them
             const prevPage = pages[targetIndex - 1];
             const nextPage = pages[targetIndex];
-            return (prevPage.position + nextPage.position) / 2;
+            const gap = nextPage.position - prevPage.position;
+            
+            if (gap > 1) {
+                // There's space between pages, use middle integer
+                return prevPage.position + Math.floor(gap / 2);
+            } else {
+                // No space between pages, shift all subsequent pages by 10
+                return prevPage.position + 10;
+            }
         }
     };
 
     // Handle form submission
     const handleSubmit = async (values: ICreatePageFormValues) => {
-        // Calculate final positions only on submit
-        let finalHeaderPosition = null;
-        let finalFooterPosition = null;
+        // Calculate final positions only on submit - ensure integers
+        let finalHeaderPosition: number | null = null;
+        let finalFooterPosition: number | null = null;
 
         if (values.headerMenu && values.headerMenuPosition !== null) {
-            finalHeaderPosition = calculateFinalPosition(headerMenuPages, values.headerMenuPosition);
+            finalHeaderPosition = Math.round(calculateFinalPosition(headerMenuPages, values.headerMenuPosition));
         }
 
         if (values.footerMenu && values.footerMenuPosition !== null) {
-            finalFooterPosition = calculateFinalPosition(footerMenuPages, values.footerMenuPosition);
+            finalFooterPosition = Math.round(calculateFinalPosition(footerMenuPages, values.footerMenuPosition));
         }
 
         const submitData: ICreatePageRequest = {
@@ -294,7 +302,13 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
             parent: values.parentPage || undefined,
         };
 
-        debug('Creating new page with calculated positions', 'CreatePageModal', submitData);
+        debug('Creating new page with calculated integer positions', 'CreatePageModal', {
+            ...submitData,
+            headerPositionType: typeof finalHeaderPosition,
+            footerPositionType: typeof finalFooterPosition,
+            isHeaderInteger: Number.isInteger(finalHeaderPosition),
+            isFooterInteger: Number.isInteger(finalFooterPosition)
+        });
         
         // Use the mutation instead of direct API call
         createPageMutation.mutate(submitData);

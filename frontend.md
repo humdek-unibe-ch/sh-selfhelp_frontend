@@ -73,17 +73,60 @@ const selectedPage = useSelectedPage();
 
 ### Technical Implementation Details
 
-#### Enhanced Form Submission
+#### Enhanced Form Submission with Integer Position Enforcement
 ```typescript
+// Calculate final positions - ensure integers for backend compatibility
+let finalHeaderPosition: number | null = null;
+let finalFooterPosition: number | null = null;
+
+if (values.headerMenu && values.headerMenuPosition !== null) {
+    finalHeaderPosition = Math.round(calculateFinalPosition(headerMenuPages, values.headerMenuPosition));
+}
+
+if (values.footerMenu && values.footerMenuPosition !== null) {
+    finalFooterPosition = Math.round(calculateFinalPosition(footerMenuPages, values.footerMenuPosition));
+}
+
 const submitData: ICreatePageRequest = {
     keyword: values.keyword,
     page_access_type_code: values.pageAccessType,
     is_headless: values.headlessPage,
     is_open_page: values.openAccess,
     url: values.urlPattern,
-    nav_position: finalHeaderPosition || undefined,
-    footer_position: finalFooterPosition || undefined,
+    nav_position: finalHeaderPosition || undefined, // Always integer
+    footer_position: finalFooterPosition || undefined, // Always integer
     parent: values.parentPage || undefined, // New: Parent assignment
+};
+```
+
+#### Integer Position Calculation
+- **Backend Compatibility**: All nav_position and footer_position values are guaranteed to be integers
+- **Smart Gap Detection**: When inserting between pages, uses integer math to find safe positions
+- **Collision Avoidance**: When no space exists between pages, automatically shifts positions by 10
+- **Type Safety**: Explicit type annotations and Math.round() ensure integer values
+
+```typescript
+const calculateFinalPosition = (pages: IMenuPageItem[], targetIndex: number): number => {
+    if (targetIndex === 0) {
+        // First position - use position before first page or default to 10
+        return pages.length > 0 ? Math.max(1, pages[0].position - 10) : 10;
+    } else if (targetIndex >= pages.length) {
+        // Last position - add 10 to last page position
+        return pages.length > 0 ? pages[pages.length - 1].position + 10 : 10;
+    } else {
+        // Between two pages - find a safe integer between them
+        const prevPage = pages[targetIndex - 1];
+        const nextPage = pages[targetIndex];
+        const gap = nextPage.position - prevPage.position;
+        
+        if (gap > 1) {
+            // There's space between pages, use middle integer
+            return prevPage.position + Math.floor(gap / 2);
+        } else {
+            // No space between pages, shift all subsequent pages by 10
+            return prevPage.position + 10;
+        }
+    }
 };
 ```
 
