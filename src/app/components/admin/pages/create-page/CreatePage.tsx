@@ -57,8 +57,8 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
             form.reset();
             setHeaderDroppedIndex(null);
             setFooterDroppedIndex(null);
-            setHeaderMenuPages(processMenuPages.header);
-            setFooterMenuPages(processMenuPages.footer);
+            // Don't reset menu pages here - let cache invalidation handle the refresh
+            // The useEffect will automatically update menu pages when new data arrives
             onClose();
         }
     });
@@ -141,6 +141,14 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
         }
 
         const processPage = (page: IAdminPage) => {
+            // Debug: Log page structure to understand available fields
+            debug('Processing page for menu', 'CreatePageModal', {
+                keyword: page.keyword,
+                nav_position: page.nav_position,
+                footer_position: page.footer_position,
+                allFields: Object.keys(page)
+            });
+
             // Header menu pages (pages with nav_position)
             if (page.nav_position !== null) {
                 headerPages.push({
@@ -152,14 +160,12 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
             }
 
             // Footer menu pages (pages with footer_position)
-            // Note: footer_position might not exist in IAdminPage, so we check if it exists
-            const footerPosition = (page as any).footer_position;
-            if (footerPosition !== null && footerPosition !== undefined) {
+            if (page.footer_position !== null && page.footer_position !== undefined) {
                 footerPages.push({
                     id: page.id_pages.toString(),
                     keyword: page.keyword,
                     label: page.keyword,
-                    position: footerPosition
+                    position: page.footer_position
                 });
             }
         };
@@ -326,8 +332,7 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
         form.setFieldValue('footerMenuPosition', null);
         setHeaderDroppedIndex(null);
         setFooterDroppedIndex(null);
-        setHeaderMenuPages(processMenuPages.header);
-        setFooterMenuPages(processMenuPages.footer);
+        // Don't reset menu pages to old values - they should reflect current state
         onClose();
     };
 

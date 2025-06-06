@@ -22,6 +22,7 @@ export interface IAdminPage {
     url: string;
     parent: number | null;
     nav_position: number | null;
+    footer_position?: number | null;
     is_headless: number;
     children?: IAdminPage[];
 }

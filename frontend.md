@@ -1835,3 +1835,112 @@ src/hooks/mutations/
 - Follow consistent naming conventions
 
 This implementation establishes React Query mutations as the **state-of-the-art standard** for all data manipulation operations in the project, ensuring consistency, better UX, maintainability, and excellent developer experience.
+
+## Footer Menu Cache Invalidation Fix (Latest Update)
+
+### Overview
+Fixed a critical issue where footer menu pages were not appearing after creating a new page with footer positioning. The problem was caused by improper cache handling and missing type definitions.
+
+### Issues Identified & Fixed
+
+#### 1. Cache Invalidation Problem
+**Problem**: After creating a page with footer positioning, the footer menu list would not show the newly created page until a full page reload.
+
+**Root Cause**: The `onSuccess` callback in CreatePageModal was immediately resetting menu pages to old cached values instead of allowing React Query's cache invalidation to work properly.
+
+**Solution**: Removed manual menu page resets from success and close handlers:
+```typescript
+// ❌ BEFORE - Immediately reset to old values
+const createPageMutation = useCreatePageMutation({
+    onSuccess: (createdPage) => {
+        form.reset();
+        setHeaderDroppedIndex(null);
+        setFooterDroppedIndex(null);
+        setHeaderMenuPages(processMenuPages.header); // ❌ Reset to old values
+        setFooterMenuPages(processMenuPages.footer);  // ❌ Reset to old values
+        onClose();
+    }
+});
+
+// ✅ AFTER - Let cache invalidation handle the refresh
+const createPageMutation = useCreatePageMutation({
+    onSuccess: (createdPage) => {
+        form.reset();
+        setHeaderDroppedIndex(null);
+        setFooterDroppedIndex(null);
+        // Don't reset menu pages here - let cache invalidation handle the refresh
+        // The useEffect will automatically update menu pages when new data arrives
+        onClose();
+    }
+});
+```
+
+#### 2. Missing Type Definition
+**Problem**: The `footer_position` field was not defined in the `IAdminPage` interface, causing TypeScript errors and potential runtime issues.
+
+**Solution**: Added `footer_position` field to the interface:
+```typescript
+export interface IAdminPage {
+    id_pages: number;
+    keyword: string;
+    url: string;
+    parent: number | null;
+    nav_position: number | null;
+    footer_position?: number | null; // ✅ Added footer position support
+    is_headless: number;
+    children?: IAdminPage[];
+}
+```
+
+#### 3. Enhanced Debug Logging
+**Added**: Comprehensive debug logging to track page processing and field availability:
+```typescript
+debug('Processing page for menu', 'CreatePageModal', {
+    keyword: page.keyword,
+    nav_position: page.nav_position,
+    footer_position: page.footer_position,
+    allFields: Object.keys(page)
+});
+```
+
+### Technical Implementation Details
+
+#### Cache Flow Fix
+1. **Page Creation**: User creates page with footer positioning
+2. **API Call**: Backend receives and saves page with footer_position
+3. **Cache Invalidation**: React Query invalidates `['adminPages']` cache
+4. **Data Refetch**: Fresh data is fetched from backend including new page
+5. **UI Update**: `useEffect` automatically updates menu pages when new data arrives
+6. **Menu Display**: Footer menu now shows the newly created page
+
+#### Type Safety Improvements
+- **Proper Typing**: `footer_position` is now properly typed as `number | null`
+- **Optional Field**: Marked as optional to handle cases where backend doesn't return it
+- **No More Type Assertions**: Removed `(page as any)` type assertions
+
+### Benefits Achieved
+
+#### 1. Consistent Menu Updates
+- **Header & Footer Parity**: Both header and footer menus now update consistently
+- **Real-time Updates**: No more need for manual page reloads
+- **Cache Synchronization**: Proper React Query cache invalidation flow
+
+#### 2. Better Type Safety
+- **TypeScript Compliance**: No more type assertion workarounds
+- **Runtime Safety**: Proper null checks for optional footer_position field
+- **IDE Support**: Better autocomplete and error detection
+
+#### 3. Improved Debugging
+- **Comprehensive Logging**: Track page processing and field availability
+- **Cache Flow Visibility**: Debug cache invalidation and data refresh process
+- **Field Inspection**: Log all available fields on page objects
+
+### Architecture Impact
+- **Type Definitions**: Updated `IAdminPage` interface to match backend reality
+- **Cache Strategy**: Aligned with React Query best practices for cache invalidation
+- **Debug System**: Enhanced logging for better troubleshooting capabilities
+
+### Future Considerations
+- **Backend Validation**: Ensure backend consistently returns footer_position field
+- **Migration Strategy**: Handle existing pages that might not have footer_position
+- **Performance**: Monitor cache invalidation performance with larger page sets
