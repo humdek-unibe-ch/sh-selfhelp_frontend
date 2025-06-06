@@ -15,7 +15,6 @@ import {
     TextInput,
     Textarea,
     Checkbox,
-    Select,
     ActionIcon,
     Tooltip,
     Modal,
@@ -39,9 +38,9 @@ import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { usePageFields } from '../../../../../hooks/usePageDetails';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { LockedField } from '../../../ui/locked-field/LockedField';
-import { MenuPositionEditor } from '../../../ui/menu-position-editor/MenuPositionEditor';
+import { DragDropMenuPositioner } from '../../../ui/drag-drop-menu-positioner/DragDropMenuPositioner';
 import { FieldLabelWithTooltip } from '../../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
-import { IPageField, IPageDetails } from '../../../../../types/responses/admin/page-details.types';
+import { IPageField } from '../../../../../types/responses/admin/page-details.types';
 import { PAGE_ACCESS_TYPES } from '../../../../../constants/lookups.constants';
 import { debug } from '../../../../../utils/debug-logger';
 
@@ -441,23 +440,29 @@ export function PageInspector({ page }: PageInspectorProps) {
                                                 </Tooltip>
                                             </Group>
                                             
-                                            <MenuPositionEditor
-                                                currentPage={page}
-                                                menuType="header"
-                                                enabled={form.values.headerMenuEnabled}
-                                                position={form.values.navPosition}
-                                                onEnabledChange={handleHeaderMenuChange}
-                                                onPositionChange={(position) => form.setFieldValue('navPosition', position)}
-                                            />
+                                                                        <DragDropMenuPositioner
+                                currentPage={page}
+                                menuType="header"
+                                title="Header Menu Position"
+                                enabled={form.values.headerMenuEnabled}
+                                position={form.values.navPosition}
+                                onEnabledChange={handleHeaderMenuChange}
+                                onPositionChange={(position) => form.setFieldValue('navPosition', position)}
+                                checkboxLabel="Header Menu"
+                                showAlert={false}
+                            />
 
-                                            <MenuPositionEditor
-                                                currentPage={page}
-                                                menuType="footer"
-                                                enabled={form.values.footerMenuEnabled}
-                                                position={form.values.footerPosition}
-                                                onEnabledChange={handleFooterMenuChange}
-                                                onPositionChange={(position) => form.setFieldValue('footerPosition', position)}
-                                            />
+                            <DragDropMenuPositioner
+                                currentPage={page}
+                                menuType="footer"
+                                title="Footer Menu Position"
+                                enabled={form.values.footerMenuEnabled}
+                                position={form.values.footerPosition}
+                                onEnabledChange={handleFooterMenuChange}
+                                onPositionChange={(position) => form.setFieldValue('footerPosition', position)}
+                                checkboxLabel="Footer Menu"
+                                showAlert={false}
+                            />
                                         </Stack>
                                     </Paper>
 

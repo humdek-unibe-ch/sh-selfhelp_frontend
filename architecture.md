@@ -198,6 +198,61 @@ const handleSubmit = (values) => {
 - **Theme Consistency**: Automatic theme integration and customization
 - **User Customization**: Easier for users to apply custom themes
 - **Maintenance**: Centralized styling through Mantine's theme system
+
+## 2.5. Component Reusability Rules
+
+**CRITICAL RULE**: Always extract components into separate reusable components if they are used in more than one place.
+
+### Reusability Principles
+- **Single Responsibility**: Each component should have one clear purpose
+- **Prop-Based Configuration**: Use props to make components flexible and configurable
+- **Consistent API**: Follow consistent patterns for prop naming and behavior
+- **Documentation**: Include clear prop interfaces and usage examples
+
+### Implementation Pattern
+```typescript
+// ✅ GOOD - Reusable component with clear interface
+interface IReusableComponentProps {
+    title: string;
+    enabled: boolean;
+    onEnabledChange: (enabled: boolean) => void;
+    // ... other props
+}
+
+export function ReusableComponent({ 
+    title, 
+    enabled, 
+    onEnabledChange,
+    ...props 
+}: IReusableComponentProps) {
+    // Component implementation
+}
+
+// Usage in multiple places
+<ReusableComponent 
+    title="Header Menu" 
+    enabled={headerEnabled}
+    onEnabledChange={setHeaderEnabled}
+/>
+```
+
+### Component Organization
+- **UI Components**: Place in `src/app/components/ui/` for general-purpose components
+- **Feature Components**: Place in feature-specific directories for domain components
+- **Shared Logic**: Extract custom hooks for shared business logic
+- **Type Definitions**: Create shared interfaces for component props
+
+### Examples of Reusable Components
+- **DragDropMenuPositioner**: Drag-and-drop menu positioning with smooth animations
+- **LockedField**: Input fields with lock/unlock functionality
+- **FieldLabelWithTooltip**: Labels with info tooltips for form fields
+- **MenuPositionEditor**: Menu position management (deprecated - use DragDropMenuPositioner)
+
+### Benefits
+- **Code Reuse**: Eliminate duplication across the application
+- **Consistency**: Ensure consistent behavior and styling
+- **Maintainability**: Single source of truth for component logic
+- **Testing**: Easier to test isolated, reusable components
 - **Accessibility**: Built-in accessibility features in Mantine components
 - **Performance**: Optimized component rendering and styling
 

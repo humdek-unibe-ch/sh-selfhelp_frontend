@@ -2,7 +2,219 @@
 
 # Frontend Development Log
 
-## Context-Aware Page Creation Enhancement (Latest Update)
+## DragDropMenuPositioner - Reusable Component Extraction (Latest Update)
+
+### Overview
+Extracted the smooth drag-and-drop menu positioning functionality from CreatePage into a reusable component called `DragDropMenuPositioner`. This follows our architecture principle of always creating reusable components when functionality is used in more than one place.
+
+### Key Features Implemented
+
+#### 1. Reusable Component Architecture
+- **Single Source of Truth**: One component handles all drag-and-drop menu positioning
+- **Consistent Behavior**: Same smooth animations and interactions across all usage
+- **Configurable Interface**: Flexible props for different use cases
+- **Type Safety**: Full TypeScript support with clear interfaces
+
+#### 2. Component Interface
+```typescript
+interface IDragDropMenuPositionerProps {
+    // Menu configuration
+    menuType: 'header' | 'footer';
+    title: string;
+    
+    // Current page being positioned
+    currentPage?: IAdminPage | null;
+    newPageKeyword?: string;
+    
+    // Menu state
+    enabled: boolean;
+    position: number | null;
+    
+    // Callbacks
+    onEnabledChange: (enabled: boolean) => void;
+    onPositionChange: (position: number | null) => void;
+    
+    // Context for filtering pages
+    parentPage?: IAdminPage | null;
+    
+    // Optional styling
+    showCheckbox?: boolean;
+    checkboxLabel?: string;
+    showAlert?: boolean;
+    alertMessage?: string;
+}
+```
+
+#### 3. Smooth Drag-and-Drop Implementation
+- **Portal Rendering**: Uses `createPortal` to render dragging elements outside container transforms
+- **Visual Feedback**: Smooth animations with rotation and shadow effects during drag
+- **Disabled State**: Existing pages are non-draggable, only new/current page can be repositioned
+- **Position Calculation**: Intelligent position calculation between existing pages
+
+#### 4. Updated Component Usage
+
+**CreatePage Modal**:
+```typescript
+<DragDropMenuPositioner
+    menuType="header"
+    title="Header Menu Position"
+    newPageKeyword={form.values.keyword}
+    enabled={form.values.headerMenu}
+    position={form.values.headerMenuPosition}
+    onEnabledChange={(enabled) => form.setFieldValue('headerMenu', enabled)}
+    onPositionChange={(position) => form.setFieldValue('headerMenuPosition', position)}
+    parentPage={parentPage}
+    checkboxLabel="Header Menu"
+/>
+```
+
+**PageInspector**:
+```typescript
+<DragDropMenuPositioner
+    currentPage={page}
+    menuType="header"
+    title="Header Menu Position"
+    enabled={form.values.headerMenuEnabled}
+    position={form.values.navPosition}
+    onEnabledChange={handleHeaderMenuChange}
+    onPositionChange={(position) => form.setFieldValue('navPosition', position)}
+    checkboxLabel="Header Menu"
+    showAlert={false}
+/>
+```
+
+### Technical Implementation Details
+
+#### 1. Context-Aware Page Processing
+```typescript
+const processMenuPages = useMemo(() => {
+    let pagesToProcess: IAdminPage[] = [];
+
+    if (parentPage) {
+        // Show only children of the parent
+        pagesToProcess = parentPage.children || [];
+    } else {
+        // Show only root pages (parent: null)
+        pagesToProcess = pages.filter(page => page.parent === null);
+    }
+
+    // Filter by menu type and sort by position
+    const menuPages: IMenuPageItem[] = [];
+    pagesToProcess.forEach(page => {
+        const positionField = menuType === 'header' ? 'nav_position' : 'footer_position';
+        const pagePosition = page[positionField];
+        
+        if (pagePosition !== null && pagePosition !== undefined) {
+            menuPages.push({
+                id: page.id_pages.toString(),
+                keyword: page.keyword,
+                label: page.keyword,
+                position: pagePosition
+            });
+        }
+    });
+
+    return menuPages.sort((a, b) => a.position - b.position);
+}, [pages, parentPage, menuType]);
+```
+
+#### 2. Drag Clone Portal for Smooth Dragging
+```typescript
+const DragClonePortal = ({ children }: { children: React.ReactNode }) => {
+    if (typeof window === "undefined") return null;
+    return createPortal(children, document.body);
+};
+
+// Usage in draggable items
+if (snapshot.isDragging) {
+    return <DragClonePortal>{draggableContent}</DragClonePortal>;
+}
+```
+
+#### 3. CSS Module Styling
+```css
+/* DragDropMenuPositioner.module.css */
+.item {
+    cursor: grab;
+    border-radius: var(--mantine-radius-md);
+    transition: all 0.2s ease;
+}
+
+.item:active {
+    cursor: grabbing;
+}
+
+.itemDragging {
+    box-shadow: var(--mantine-shadow-sm);
+    transform: rotate(5deg);
+}
+
+.newPageItem {
+    background-color: var(--mantine-color-blue-0) !important;
+    border-color: var(--mantine-color-blue-4) !important;
+}
+```
+
+### Code Cleanup and Refactoring
+
+#### 1. CreatePage Simplification
+- **Removed Duplicate Code**: Eliminated 200+ lines of drag-and-drop implementation
+- **Simplified State**: Removed complex state management for menu positioning
+- **Cleaner Imports**: Removed unused drag-and-drop imports and utilities
+- **Focused Responsibility**: Component now focuses on form management and page creation
+
+#### 2. PageInspector Update
+- **Consistent Interface**: Now uses same drag-and-drop component as CreatePage
+- **Better UX**: Users get the same smooth experience in both contexts
+- **Reduced Maintenance**: Single component to maintain for all menu positioning
+
+#### 3. Type System Updates
+- **Shared Interfaces**: `IMenuPageItem` interface used across components
+- **Clear Separation**: Component-specific types vs shared types properly organized
+- **Export Strategy**: Proper exports for reusable interfaces
+
+### Architecture Benefits
+
+#### 1. Code Reuse
+- **DRY Principle**: No duplication of drag-and-drop logic
+- **Consistent Behavior**: Same animations and interactions everywhere
+- **Single Source of Truth**: One component handles all menu positioning
+
+#### 2. Maintainability
+- **Centralized Logic**: All menu positioning logic in one place
+- **Easier Testing**: Single component to test for all drag-and-drop functionality
+- **Bug Fixes**: Fix once, benefits all usage locations
+
+#### 3. User Experience
+- **Consistent Interface**: Users learn the interaction once, use it everywhere
+- **Smooth Performance**: Optimized drag-and-drop with portal rendering
+- **Visual Feedback**: Consistent visual cues across all contexts
+
+### Updated Architecture Rules
+
+Added new rule to architecture.md:
+
+**CRITICAL RULE**: Always extract components into separate reusable components if they are used in more than one place.
+
+#### Component Organization Guidelines
+- **UI Components**: Place in `src/app/components/ui/` for general-purpose components
+- **Feature Components**: Place in feature-specific directories for domain components
+- **Shared Logic**: Extract custom hooks for shared business logic
+- **Type Definitions**: Create shared interfaces for component props
+
+#### Examples of Reusable Components
+- **DragDropMenuPositioner**: Drag-and-drop menu positioning with smooth animations ✨ NEW
+- **LockedField**: Input fields with lock/unlock functionality
+- **FieldLabelWithTooltip**: Labels with info tooltips for form fields
+- **MenuPositionEditor**: Menu position management (deprecated - use DragDropMenuPositioner)
+
+### Future Enhancements
+- **Animation Customization**: Could support custom animation configurations
+- **Multi-Select**: Could support moving multiple items at once
+- **Keyboard Navigation**: Could add keyboard support for accessibility
+- **Touch Support**: Could enhance touch interactions for mobile devices
+
+## Context-Aware Page Creation Enhancement
 
 ### Overview
 Enhanced the CreatePageModal to support intelligent menu filtering based on page hierarchy context. The modal now adapts its behavior when creating root pages versus child pages, showing only relevant pages for menu positioning.

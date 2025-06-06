@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useMemo } from 'react';
-import { createPortal } from 'react-dom';
+import { useEffect} from 'react';
+
 import { 
     Modal, 
     Stack, 
@@ -23,29 +23,21 @@ import {
 import { useForm } from '@mantine/form';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCreatePageMutation } from '../../../../../hooks/mutations/useCreatePageMutation';
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { IconGripVertical, IconInfoCircle, IconEdit, IconLock } from '@tabler/icons-react';
+
+import { IconInfoCircle, IconEdit, IconLock } from '@tabler/icons-react';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { PAGE_ACCESS_TYPES, PAGE_ACCESS_TYPES_MOBILE_AND_WEB } from '../../../../../constants/lookups.constants';
 import { ICreatePageFormValues, ICreatePageModalProps, IMenuPageItem } from '../../../../../types/forms/create-page.types';
+import { DragDropMenuPositioner } from '../../../ui/drag-drop-menu-positioner/DragDropMenuPositioner';
 import { ICreatePageRequest } from '../../../../../types/requests/admin/create-page.types';
-import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { debug } from '../../../../../utils/debug-logger';
 import styles from './CreatePage.module.css';
 
-// DragClonePortal: render children in a portal to <body>
-const DragClonePortal = ({ children }: { children: React.ReactNode }) => {
-    // Make sure we're in the browser
-    if (typeof window === "undefined") return null;
-    return createPortal(children, document.body);
-};
+
 
 export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreatePageModalProps) => {
-    const [headerMenuPages, setHeaderMenuPages] = useState<IMenuPageItem[]>([]);
-    const [footerMenuPages, setFooterMenuPages] = useState<IMenuPageItem[]>([]);
-    const [headerDroppedIndex, setHeaderDroppedIndex] = useState<number | null>(null);
-    const [footerDroppedIndex, setFooterDroppedIndex] = useState<number | null>(null);
+
     
     // React Query client for cache invalidation
     const queryClient = useQueryClient();
@@ -53,13 +45,9 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
     // Create page mutation
     const createPageMutation = useCreatePageMutation({
         onSuccess: (createdPage) => {
-            // Reset form and state on successful creation
-            form.reset();
-            setHeaderDroppedIndex(null);
-            setFooterDroppedIndex(null);
-            // Don't reset menu pages here - let cache invalidation handle the refresh
-            // The useEffect will automatically update menu pages when new data arrives
-            onClose();
+                    // Reset form and state on successful creation
+        form.reset();
+        onClose();
         }
     });
     
@@ -115,231 +103,29 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
         form.setFieldValue('urlPattern', urlPattern);
     }, [form.values.keyword, form.values.navigationPage]);
 
-    // Process admin pages into menu items based on context (root vs child page creation)
-    const processMenuPages = useMemo(() => {
-        if (!pages.length) return { header: [], footer: [] };
 
-        const headerPages: IMenuPageItem[] = [];
-        const footerPages: IMenuPageItem[] = [];
 
-        // Determine which pages to show based on context
-        let pagesToProcess: IAdminPage[] = [];
 
-        if (parentPage) {
-            // Creating a child page - show only children of the parent
-            pagesToProcess = parentPage.children || [];
-            debug('Processing child pages for parent', 'CreatePageModal', {
-                parentKeyword: parentPage.keyword,
-                childrenCount: pagesToProcess.length
-            });
-        } else {
-            // Creating a root page - show only root pages (pages with parent: null)
-            pagesToProcess = pages.filter(page => page.parent === null);
-            debug('Processing root pages', 'CreatePageModal', {
-                rootPagesCount: pagesToProcess.length
-            });
-        }
-
-        const processPage = (page: IAdminPage) => {
-            // Debug: Log page structure to understand available fields
-            debug('Processing page for menu', 'CreatePageModal', {
-                keyword: page.keyword,
-                nav_position: page.nav_position,
-                footer_position: page.footer_position,
-                allFields: Object.keys(page)
-            });
-
-            // Header menu pages (pages with nav_position)
-            if (page.nav_position !== null) {
-                headerPages.push({
-                    id: page.id_pages.toString(),
-                    keyword: page.keyword,
-                    label: page.keyword,
-                    position: page.nav_position
-                });
-            }
-
-            // Footer menu pages (pages with footer_position)
-            if (page.footer_position !== null && page.footer_position !== undefined) {
-                footerPages.push({
-                    id: page.id_pages.toString(),
-                    keyword: page.keyword,
-                    label: page.keyword,
-                    position: page.footer_position
-                });
-            }
-        };
-
-        // Process only the relevant pages (no recursive processing since we're filtering by level)
-        pagesToProcess.forEach(processPage);
-
-        // Sort pages by position
-        headerPages.sort((a, b) => a.position - b.position);
-        footerPages.sort((a, b) => a.position - b.position);
-
-        debug('Processed menu pages', 'CreatePageModal', {
-            context: parentPage ? 'child' : 'root',
-            parentKeyword: parentPage?.keyword,
-            headerPagesCount: headerPages.length,
-            footerPagesCount: footerPages.length
-        });
-
-        return { header: headerPages, footer: footerPages };
-    }, [pages, parentPage]);
-
-    // Initialize menu pages when data is available
-    useEffect(() => {
-        setHeaderMenuPages(processMenuPages.header);
-        setFooterMenuPages(processMenuPages.footer);
-    }, [processMenuPages]);
-
-    // Add new page to header menu list
-    const addNewPageToHeaderMenu = useMemo(() => {
-        if (!form.values.keyword || !form.values.headerMenu) return headerMenuPages;
-        
-        const newPage: IMenuPageItem = {
-            id: 'new-page',
-            keyword: form.values.keyword,
-            label: form.values.keyword,
-            position: headerMenuPages.length > 0 ? headerMenuPages[headerMenuPages.length - 1].position + 5 : 10,
-            isNew: true
-        };
-
-        // If we have a dropped index, insert at that position
-        if (headerDroppedIndex !== null) {
-            const result = [...headerMenuPages];
-            result.splice(headerDroppedIndex, 0, newPage);
-            return result;
-        }
-
-        // Default: add at the end (this will always happen when checkbox is checked)
-        return [...headerMenuPages, newPage];
-    }, [headerMenuPages, form.values.keyword, form.values.headerMenu, headerDroppedIndex]);
-
-    // Add new page to footer menu list
-    const addNewPageToFooterMenu = useMemo(() => {
-        if (!form.values.keyword || !form.values.footerMenu) return footerMenuPages;
-        
-        const newPage: IMenuPageItem = {
-            id: 'new-page-footer',
-            keyword: form.values.keyword,
-            label: form.values.keyword,
-            position: footerMenuPages.length > 0 ? footerMenuPages[footerMenuPages.length - 1].position + 5 : 10,
-            isNew: true
-        };
-
-        // If we have a dropped index, insert at that position
-        if (footerDroppedIndex !== null) {
-            const result = [...footerMenuPages];
-            result.splice(footerDroppedIndex, 0, newPage);
-            return result;
-        }
-
-        // Default: add at the end (this will always happen when checkbox is checked)
-        return [...footerMenuPages, newPage];
-    }, [footerMenuPages, form.values.keyword, form.values.footerMenu, footerDroppedIndex]);
-
-    // Handle drag end for header menu - just store the final index
-    const handleHeaderMenuDragEnd = (result: DropResult) => {
-        if (!result.destination || !form.values.keyword) return;
-        
-        // Store both the form position and the visual dropped index
-        const destinationIndex = result.destination.index;
-        form.setFieldValue('headerMenuPosition', destinationIndex);
-        setHeaderDroppedIndex(destinationIndex);
-    };
-
-    // Handle drag end for footer menu - just store the final index
-    const handleFooterMenuDragEnd = (result: DropResult) => {
-        if (!result.destination || !form.values.keyword) return;
-        
-        // Store both the form position and the visual dropped index
-        const destinationIndex = result.destination.index;
-        form.setFieldValue('footerMenuPosition', destinationIndex);
-        setFooterDroppedIndex(destinationIndex);
-    };
-
-    // Calculate final position based on index and existing pages - always returns integer
-    // Positions follow pattern: 10, 20, 30, 40, 50, 60...
-    // New positions are placed at: 5 (first), 15, 25, 35, 45... (between), last+5 (end)
-    const calculateFinalPosition = (pages: IMenuPageItem[], targetIndex: number): number => {
-        if (targetIndex === 0) {
-            // First position - place at 5 (before first position of 10)
-            if (pages.length === 0) {
-                return 10; // If no pages, start at 10
-            }
-            return Math.max(5, pages[0].position - 5);
-        } else if (targetIndex >= pages.length) {
-            // Last position - add 5 to last page position (or start at 10 if no pages)
-            return pages.length > 0 ? pages[pages.length - 1].position + 5 : 10;
-        } else {
-            // Between two pages - place exactly in the middle
-            const prevPage = pages[targetIndex - 1];
-            const nextPage = pages[targetIndex];
-            const middlePosition = Math.floor((prevPage.position + nextPage.position) / 2);
-            
-            // Ensure we don't get the same position as existing pages
-            if (middlePosition <= prevPage.position) {
-                return prevPage.position + 5;
-            } else if (middlePosition >= nextPage.position) {
-                return nextPage.position - 5;
-            }
-            
-            return middlePosition;
-        }
-    };
 
     // Handle form submission
     const handleSubmit = async (values: ICreatePageFormValues) => {
-        // Calculate final positions only on submit - ensure integers
-        let finalHeaderPosition: number | null = null;
-        let finalFooterPosition: number | null = null;
-
-        if (values.headerMenu) {
-            if (values.headerMenuPosition !== null) {
-                // User dragged to specific position
-                finalHeaderPosition = Math.round(calculateFinalPosition(headerMenuPages, values.headerMenuPosition));
-                finalHeaderPosition = finalHeaderPosition < 0 ? 1 : finalHeaderPosition;
-            } else {
-                // User checked header menu but didn't drag - add at the end
-                finalHeaderPosition = headerMenuPages.length > 0 ? headerMenuPages[headerMenuPages.length - 1].position + 5 : 10;
-            }
-        }
-
-        if (values.footerMenu) {
-            if (values.footerMenuPosition !== null) {
-                // User dragged to specific position
-                finalFooterPosition = Math.round(calculateFinalPosition(footerMenuPages, values.footerMenuPosition));
-                finalFooterPosition = finalFooterPosition < 0 ? 1 : finalFooterPosition;
-            } else {
-                // User checked footer menu but didn't drag - add at the end
-                finalFooterPosition = footerMenuPages.length > 0 ? footerMenuPages[footerMenuPages.length - 1].position + 5 : 10;
-            }
-        }
-
+        // The DragDropMenuPositioner component handles position calculation internally
+        // We just need to pass the position values from the form
         const submitData: ICreatePageRequest = {
             keyword: values.keyword,
             page_access_type_code: values.pageAccessType,
             is_headless: values.headlessPage,
             is_open_page: values.openAccess,
-            url:  values.urlPattern,
-            nav_position: finalHeaderPosition || undefined,
-            footer_position: finalFooterPosition || undefined,
+            url: values.urlPattern,
+            nav_position: values.headerMenu && values.headerMenuPosition !== null ? values.headerMenuPosition : undefined,
+            footer_position: values.footerMenu && values.footerMenuPosition !== null ? values.footerMenuPosition : undefined,
             parent: values.parentPage || undefined,
         };
 
-        debug('Creating new page with calculated integer positions', 'CreatePageModal', {
+        debug('Creating new page', 'CreatePageModal', {
             ...submitData,
-            headerPositionType: typeof finalHeaderPosition,
-            footerPositionType: typeof finalFooterPosition,
-            isHeaderInteger: Number.isInteger(finalHeaderPosition),
-            isFooterInteger: Number.isInteger(finalFooterPosition),
-            headerMenuChecked: values.headerMenu,
-            footerMenuChecked: values.footerMenu,
-            headerMenuPosition: values.headerMenuPosition,
-            footerMenuPosition: values.footerMenuPosition,
-            headerPositionSource: values.headerMenu ? (values.headerMenuPosition !== null ? 'dragged' : 'auto-end') : 'none',
-            footerPositionSource: values.footerMenu ? (values.footerMenuPosition !== null ? 'dragged' : 'auto-end') : 'none'
+            headerMenuEnabled: values.headerMenu,
+            footerMenuEnabled: values.footerMenu,
         });
         
         // Use the mutation instead of direct API call
@@ -356,101 +142,10 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
         form.reset();
         form.setFieldValue('headerMenuPosition', null);
         form.setFieldValue('footerMenuPosition', null);
-        setHeaderDroppedIndex(null);
-        setFooterDroppedIndex(null);
-        // Don't reset menu pages to old values - they should reflect current state
         onClose();
     };
 
-    // Render menu item for drag and drop
-    const renderMenuItem = (item: IMenuPageItem, index: number) => {
-        return (
-            <Draggable 
-                key={item.id} 
-                draggableId={item.id} 
-                index={index}
-                isDragDisabled={!item.isNew} // Only new pages can be dragged
-            >
-                {(provided, snapshot) => {
-                    const draggableContent = (
-                        <Paper
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...(item.isNew ? provided.dragHandleProps : {})} // Only apply drag handle to new items
-                            p="xs"
-                            mb="xs"
-                            withBorder
-                            className={`${styles.item} ${item.isNew ? styles.newPageItem : ''} ${snapshot.isDragging ? styles.itemDragging : ''}`}
-                            style={{
-                                ...provided.draggableProps.style,
-                            }}
-                        >
-                            <Group gap="xs" wrap="nowrap">
-                                <ActionIcon
-                                    variant="subtle"
-                                    size="sm"
-                                    className={item.isNew ? styles.dragItem : styles.dragItemDisabled}
-                                    style={{ pointerEvents: 'none' }}
-                                >
-                                    <IconGripVertical size="0.8rem" />
-                                </ActionIcon>
-                                <Text size="sm" fw={item.isNew ? 600 : 400} style={{ flex: 1 }}>
-                                    {item.label}
-                                </Text>
-                                {item.isNew && (
-                                    <Text size="xs" c="blue" fw={500}>
-                                        New
-                                    </Text>
-                                )}
-                            </Group>
-                        </Paper>
-                    );
 
-                    // If dragging, render in portal to escape modal transform
-                    if (snapshot.isDragging) {
-                        return <DragClonePortal>{draggableContent}</DragClonePortal>;
-                    }
-                    
-                    // Normal rendering
-                    return draggableContent;
-                }}
-            </Draggable>
-        );
-    };
-
-    // Render drag and drop area
-    const renderDragDropArea = (
-        items: IMenuPageItem[], 
-        droppableId: string, 
-        onDragEnd: (result: DropResult) => void,
-        title: string
-    ) => (
-        <Box className={styles.dragContainer}>
-            <Text size="sm" fw={500} mb="xs">{title}</Text>
-            <DragDropContext 
-                onDragEnd={onDragEnd}
-            >
-                <Droppable droppableId={droppableId}>
-                    {(provided, snapshot) => (
-                        <Box
-                            {...provided.droppableProps}
-                            ref={provided.innerRef}
-                            p="sm"
-                            className={styles.dragArea}
-                        >
-                            {items.map((item, index) => renderMenuItem(item, index))}
-                            {provided.placeholder}
-                            {items.length === 0 && (
-                                <Text size="sm" c="dimmed" ta="center" mt="md">
-                                    No pages to display
-                                </Text>
-                            )}
-                        </Box>
-                    )}
-                </Droppable>
-            </DragDropContext>
-        </Box>
-    );
 
     return (
         <Modal
@@ -464,15 +159,7 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
             <Box pos="relative" className={styles.modalContent}>
                 <LoadingOverlay visible={pagesLoading} />
                 
-                <DragDropContext 
-                    onDragEnd={(result) => {
-                        if (result.source.droppableId === 'header-menu') {
-                            handleHeaderMenuDragEnd(result);
-                        } else if (result.source.droppableId === 'footer-menu') {
-                            handleFooterMenuDragEnd(result);
-                        }
-                    }}
-                >
+
                     {/* Scrollable Content Area */}
                     <Box className={styles.scrollableContent}>
                         <form onSubmit={form.onSubmit(handleSubmit)}>
@@ -579,50 +266,33 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
                                     <Stack gap="md">
                                         <Title order={4} size="h5" c="blue">Menu Positioning</Title>
                                         
-                                        <Group gap="md" align="flex-start">
-                                            <Checkbox
-                                                label="Header Menu"
-                                                {...form.getInputProps('headerMenu', { type: 'checkbox' })}
+                                        <SimpleGrid cols={2} spacing="md">
+                                            {/* Header Menu */}
+                                            <DragDropMenuPositioner
+                                                menuType="header"
+                                                title="Header Menu Position"
+                                                newPageKeyword={form.values.keyword}
+                                                enabled={form.values.headerMenu}
+                                                position={form.values.headerMenuPosition}
+                                                onEnabledChange={(enabled) => form.setFieldValue('headerMenu', enabled)}
+                                                onPositionChange={(position) => form.setFieldValue('headerMenuPosition', position)}
+                                                parentPage={parentPage}
+                                                checkboxLabel="Header Menu"
                                             />
-                                            <Checkbox
-                                                label="Footer Menu"
-                                                {...form.getInputProps('footerMenu', { type: 'checkbox' })}
+
+                                            {/* Footer Menu */}
+                                            <DragDropMenuPositioner
+                                                menuType="footer"
+                                                title="Footer Menu Position"
+                                                newPageKeyword={form.values.keyword}
+                                                enabled={form.values.footerMenu}
+                                                position={form.values.footerMenuPosition}
+                                                onEnabledChange={(enabled) => form.setFieldValue('footerMenu', enabled)}
+                                                onPositionChange={(position) => form.setFieldValue('footerMenuPosition', position)}
+                                                parentPage={parentPage}
+                                                checkboxLabel="Footer Menu"
                                             />
-                                        </Group>
-
-                                        {(form.values.headerMenu || form.values.footerMenu) && (
-                                            <SimpleGrid cols={2} spacing="md">
-                                                {/* Header Menu */}
-                                                {form.values.headerMenu && (
-                                                    <Box>
-                                                        {renderDragDropArea(
-                                                            addNewPageToHeaderMenu,
-                                                            "header-menu",
-                                                            handleHeaderMenuDragEnd,
-                                                            "Header Menu Position"
-                                                        )}
-                                                        <Alert icon={<IconInfoCircle size="1rem" />} mt="xs" color="blue">
-                                                            Drag the new page to set its position
-                                                        </Alert>
-                                                    </Box>
-                                                )}
-
-                                                {/* Footer Menu */}
-                                                {form.values.footerMenu && (
-                                                    <Box>
-                                                        {renderDragDropArea(
-                                                            addNewPageToFooterMenu,
-                                                            "footer-menu",
-                                                            handleFooterMenuDragEnd,
-                                                            "Footer Menu Position"
-                                                        )}
-                                                        <Alert icon={<IconInfoCircle size="1rem" />} mt="xs" color="blue">
-                                                            Drag the new page to set its position
-                                                        </Alert>
-                                                    </Box>
-                                                )}
-                                            </SimpleGrid>
-                                        )}
+                                        </SimpleGrid>
                                     </Stack>
                                 </Paper>
                             </Stack>
@@ -644,7 +314,6 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
                             </Button>
                         </Group>
                     </Box>
-                </DragDropContext>
             </Box>
         </Modal>
     );

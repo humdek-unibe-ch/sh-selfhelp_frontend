@@ -15,9 +15,7 @@ import {
     TextInput,
     Textarea,
     Checkbox,
-    Select,
     ActionIcon,
-    Tooltip,
     Modal,
     Collapse
 } from '@mantine/core';
@@ -36,7 +34,6 @@ import { useState, useEffect } from 'react';
 import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { usePageFields } from '../../../../../hooks/usePageDetails';
 import { LockedField } from '../../../ui/locked-field/LockedField';
-import { IPageField, IPageDetails } from '../../../../../types/responses/admin/page-details.types';
 import { debug } from '../../../../../utils/debug-logger';
 
 interface PageContentProps {

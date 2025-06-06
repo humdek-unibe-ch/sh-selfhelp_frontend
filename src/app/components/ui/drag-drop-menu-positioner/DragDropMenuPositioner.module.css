@@ -1,0 +1,56 @@
+/* DragDropMenuPositioner Styles */
+
+.item {
+    display: flex;
+    align-items: center;
+    border-radius: var(--mantine-radius-md);
+    border: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5));
+    padding: var(--mantine-spacing-xs);
+    background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-5));
+    margin-bottom: var(--mantine-spacing-xs);
+    cursor: grab;
+}
+
+.item:active {
+    cursor: grabbing;
+}
+
+.itemDragging {
+    box-shadow: var(--mantine-shadow-sm);
+    transform: rotate(5deg);
+}
+
+.dragItem {
+    cursor: grab;
+}
+
+.dragItem:active {
+    cursor: grabbing;
+}
+
+.dragItemDisabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.dragArea {
+    min-height: 120px;
+    border: 2px dashed var(--mantine-color-gray-4);
+    border-radius: var(--mantine-radius-sm);
+    background-color: var(--mantine-color-gray-0);
+}
+
+.dragArea:hover {
+    border-color: var(--mantine-color-blue-4);
+    background-color: var(--mantine-color-blue-0);
+}
+
+.newPageItem {
+    background-color: var(--mantine-color-blue-0) !important;
+    border-color: var(--mantine-color-blue-4) !important;
+}
+
+/* Fix for drag-and-drop positioning in modals and containers */
+.dragContainer {
+    position: relative;
+} 
