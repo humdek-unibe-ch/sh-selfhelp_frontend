@@ -12,6 +12,7 @@ import { IBaseApiResponse } from '../types/responses/common/response-envelope.ty
 import { IAdminPage } from '../types/responses/admin/admin.types';
 import { ICreatePageRequest } from '../types/requests/admin/create-page.types';
 import { TPageFieldsResponse, IPageFieldsData } from '../types/responses/admin/page-details.types';
+import { TLanguagesResponse, ILanguage } from '../types/responses/admin/languages.types';
 
 export const AdminApi = {
     /**
@@ -22,6 +23,16 @@ export const AdminApi = {
     async getAdminPages(): Promise<IAdminPage[]> {
         const response = await apiClient.get<IBaseApiResponse<IAdminPage[]>>(API_CONFIG.ENDPOINTS.ADMIN_PAGES);
         console.log(response.data.data);
+        return response.data.data;
+    },
+
+    /**
+     * Fetches all available languages.
+     * @returns {Promise<ILanguage[]>} Array of available languages
+     * @throws {Error} When API request fails
+     */
+    async getLanguages(): Promise<ILanguage[]> {
+        const response = await apiClient.get<TLanguagesResponse>(API_CONFIG.ENDPOINTS.ADMIN_LANGUAGES);
         return response.data.data;
     },
 

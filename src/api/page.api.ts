@@ -5,7 +5,7 @@
  * @module api/page.api
  */
 
-import { IPageContent } from '../types/requests/requests.type';
+import { IPageContent } from '../types/responses/frontend/frontend.types';
 import { apiClient } from './base.api';
 import { API_CONFIG } from '../config/api.config';
 import { IBaseApiResponse } from '../types/responses/common/response-envelope.types';

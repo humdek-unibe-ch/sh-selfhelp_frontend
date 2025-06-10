@@ -9,7 +9,7 @@
 "use client";
 import { createContext, useContext, useState, ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { IPageContent } from '../../types/requests/requests.type';
+import { IPageContent } from '../../types/responses/frontend/frontend.types';
 
 /**
  * Page content context type definition

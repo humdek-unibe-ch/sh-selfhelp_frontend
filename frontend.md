@@ -1148,7 +1148,10 @@ export function LockedField({
 #### 3. Enhanced PageInspector Component (renamed from PageContent)
 - **Dynamic Field Loading**: Fetches page fields from API based on selected page
 - **Content/Properties Separation**: Fields with `display: true` are content, `display: false` are properties
-- **Multi-Language Support**: Language tabs for content fields with German/English support
+- **Dynamic Multi-Language Support**: Language tabs fetched from API with automatic locale mapping
+- **Always Available Languages**: Language tabs always shown regardless of existing translations
+- **Smart Language Matching**: Matches API translations to languages by locale (e.g., 'de-CH' → 'de')
+- **1-Day Language Caching**: Languages cached for 24 hours for optimal performance
 - **Form Management**: Mantine form with proper state synchronization
 - **Save Functionality**: Fixed save button with Ctrl+S hotkey support
 - **Collapsible Sections**: Content and Properties sections can be collapsed/expanded
@@ -1242,9 +1245,96 @@ const handleDeletePage = () => {
 - **Navigation Update**: Invalidates navigation queries to update frontend menus
 
 ### API Integration Updates
+- **New Languages API**: Added `AdminApi.getLanguages()` to fetch available languages from `/admin/languages`
+- **Dynamic Language Support**: Created `useLanguages()` hook with 1-day caching for optimal performance
+- **Language Types**: Added `ILanguage` interface and `TLanguagesResponse` type for type safety
 - Updated `AdminApi.getPageFields()` to return full page details with fields
 - Enhanced `usePageFields` hook to handle new response structure
 - Proper error handling and loading states
+
+### New API Integration: Languages
+
+#### 1. Languages API Endpoint
+```typescript
+// New endpoint added to API_CONFIG
+ADMIN_LANGUAGES: '/admin/languages'
+
+// API response structure
+{
+    "status": 200,
+    "message": "OK",
+    "data": [
+        {
+            "id": 2,
+            "locale": "de-CH",
+            "language": "Deutsch (Schweiz)",
+            "csvSeparator": ","
+        },
+        {
+            "id": 3,
+            "locale": "en-GB", 
+            "language": "English (GB)",
+            "csvSeparator": ","
+        }
+    ]
+}
+```
+
+#### 2. Language Types and Interfaces
+```typescript
+// src/types/responses/admin/languages.types.ts
+export interface ILanguage {
+    id: number;
+    locale: string;
+    language: string;
+    csvSeparator: string;
+}
+
+export type TLanguagesResponse = IBaseApiResponse<ILanguage[]>;
+```
+
+#### 3. Languages Hook with Caching
+```typescript
+// src/hooks/useLanguages.ts
+export function useLanguages() {
+    const { data, isLoading, error } = useQuery({
+        queryKey: ['languages'],
+        queryFn: async () => {
+            return await AdminApi.getLanguages();
+        },
+        select: (data: ILanguage[]) => {
+            // Transform locale codes for easier use in the UI
+            return data.map(lang => ({
+                ...lang,
+                // Extract language code from locale (e.g., 'de-CH' -> 'de')
+                code: lang.locale.split('-')[0]
+            }));
+        },
+        staleTime: 24 * 60 * 60 * 1000, // 1 day
+        gcTime: 24 * 60 * 60 * 1000, // Keep in cache for 1 day
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+        retry: 2
+    });
+
+    return {
+        languages: data || [],
+        isLoading,
+        error
+    };
+}
+```
+
+#### 4. AdminApi Integration
+```typescript
+// src/api/admin.api.ts
+async getLanguages(): Promise<ILanguage[]> {
+    const response = await apiClient.get<TLanguagesResponse>(
+        API_CONFIG.ENDPOINTS.ADMIN_LANGUAGES
+    );
+    return response.data.data;
+}
+```
 
 ### New Reusable Components Created
 
@@ -1321,11 +1411,14 @@ const handleDeletePage = () => {
 - **Help System**: Tooltip icons for all fields with helpful explanations
 - **Locked Fields**: Keyword and URL fields with lock/unlock mechanism
 
-#### 3. Multi-Language Content Support
-- **Language Tabs**: Separate tabs for German and English content
-- **Smart Tab Display**: Only shows tabs when multiple languages are available
+#### 3. Dynamic Multi-Language Content Support
+- **API-Driven Languages**: Fetches available languages from `/admin/languages` endpoint
+- **Language Tabs**: Dynamic tabs based on API response (e.g., "Deutsch (Schweiz)", "English (GB)")
+- **Always Available**: Language tabs shown even if no existing translations
+- **Smart Locale Mapping**: Maps API locales to language codes ('de-CH' → 'de', 'en-GB' → 'en')
+- **Fallback Handling**: Graceful fallback for unmatched language codes
 - **Proper Data Structure**: Organized by field name and language code
-- **Translation Mapping**: Maps API language codes to UI language codes
+- **1-Day Caching**: Languages cached for 24 hours to reduce API calls
 
 #### 4. Improved User Experience
 - **Visual Feedback**: Current page highlighting in menu position editor
@@ -2544,3 +2637,56 @@ debug('Creating new page with calculated integer positions', 'CreatePageModal', 
 4. Submit → Page created with custom menu positioning
 
 This enhancement makes menu positioning much more user-friendly while maintaining the flexibility for advanced positioning when needed.
+
+### Component Consolidation
+- **Removed Duplicate Component**: Deleted `PageContent.tsx` as it was a duplicate of `PageInspector.tsx`
+- **Single Source of Truth**: `PageInspector.tsx` is now the only page editing component
+- **Feature Parity**: All functionality from `PageContent` was already present in `PageInspector`
+- **Better Architecture**: Eliminates code duplication and maintenance overhead
+
+### Bug Fixes
+
+#### AdminNavbar Infinite Re-render Fix
+- **Issue**: Maximum update depth exceeded error caused by circular dependencies in `useMemo` and `useCallback`
+- **Root Cause**: `filterPages` and `transformPagesToLinks` functions were wrapped in `useCallback` but used as dependencies in `pageLinks` useMemo
+- **Solution**: Moved filter and transform logic inside the `pageLinks` useMemo to eliminate circular dependencies
+- **Additional Fix**: Removed `PagesSection` useMemo and inlined it to prevent further circular dependencies
+- **Result**: Eliminated infinite re-render loop and improved performance
+
+#### PageInspector Infinite Re-render Fix
+- **Issue**: Maximum update depth exceeded error in PageInspector component around line 172
+- **Root Cause**: `form` object from Mantine's `useForm` hook was included in useEffect dependency array
+- **Problem**: The `form` object is recreated on every render, causing useEffect to run infinitely
+- **Solution**: Removed `form` from the dependency array since `form.setValues` is stable
+- **Result**: Fixed infinite re-render loop in page editing interface
+
+```typescript
+// Before (causing infinite re-renders)
+const filterPages = useCallback((pages, searchTerm) => { ... }, []);
+const transformPagesToLinks = useCallback((pages) => { ... }, []);
+const pageLinks = useMemo(() => {
+    const filteredPages = filterPages(pages, searchTerm);
+    return transformPagesToLinks(filteredPages);
+}, [pages, searchTerm, isLoading, filterPages, transformPagesToLinks]); // Circular dependency!
+
+// After (fixed)
+const pageLinks = useMemo(() => {
+    const filterPages = (pages, searchTerm) => { ... }; // Inline function
+    const transformPagesToLinks = (pages) => { ... }; // Inline function
+    const filteredPages = filterPages(pages, searchTerm);
+    return transformPagesToLinks(filteredPages);
+}, [pages, searchTerm, isLoading]); // Clean dependencies
+
+// PageInspector fix
+// Before (causing infinite re-renders)
+useEffect(() => {
+    // Form update logic
+}, [page, pageFieldsData, languages, form]); // form object recreated every render!
+
+// After (fixed)
+useEffect(() => {
+    // Form update logic
+}, [page, pageFieldsData, languages]); // Removed unstable form dependency
+```
+
+### Key Improvements Made
