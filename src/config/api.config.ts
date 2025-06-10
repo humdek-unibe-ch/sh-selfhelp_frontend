@@ -24,7 +24,7 @@ export const API_CONFIG = {
         ADMIN_PAGE_SECTIONS: (keyword: string) => `/admin/pages/${keyword}/sections`,
         ADMIN_PAGE_FIELDS: (keyword: string) => `/admin/pages/${keyword}/fields`,
         ADMIN_DELETE_PAGE: (keyword: string) => `/admin/pages/${keyword}/delete`,
-        ADMIN_CREATE_PAGE: '/admin/page',
+        ADMIN_CREATE_PAGE: '/admin/pages',
         LOOKUPS: '/admin/lookups',        
     },
     CORS_CONFIG: {

@@ -115,7 +115,7 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
             keyword: values.keyword,
             page_access_type_code: values.pageAccessType,
             is_headless: values.headlessPage,
-            is_open_page: values.openAccess,
+            is_open_access: values.openAccess,
             url: values.urlPattern,
             nav_position: values.headerMenu && values.headerMenuPosition !== null ? values.headerMenuPosition : undefined,
             footer_position: values.footerMenu && values.footerMenuPosition !== null ? values.footerMenuPosition : undefined,

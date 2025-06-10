@@ -13,7 +13,7 @@ export interface ICreatePageRequest {
     is_headless?: boolean;
     
     /** Whether the page has open access (optional) */
-    is_open_page?: boolean;
+    is_open_access?: boolean;
     
     /** Custom URL pattern (optional) */
     url?: string;
