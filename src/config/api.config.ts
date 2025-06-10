@@ -23,7 +23,7 @@ export const API_CONFIG = {
         ADMIN_PAGES: '/admin/pages',
         ADMIN_PAGE_SECTIONS: (keyword: string) => `/admin/pages/${keyword}/sections`,
         ADMIN_PAGE_FIELDS: (keyword: string) => `/admin/pages/${keyword}/fields`,
-        ADMIN_DELETE_PAGE: (keyword: string) => `/admin/pages/${keyword}/delete`,
+        ADMIN_DELETE_PAGE: (keyword: string) => `/admin/pages/${keyword}`,
         ADMIN_CREATE_PAGE: '/admin/pages',
         LOOKUPS: '/admin/lookups',        
     },

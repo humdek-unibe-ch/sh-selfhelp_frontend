@@ -1187,12 +1187,23 @@ useHotkeys([
 ]);
 ```
 
-#### 5. Delete Confirmation System
+#### 5. Delete Confirmation System with Mutation Hook
 ```typescript
-// Type-to-confirm deletion modal
+// Integrated useDeletePageMutation for proper page deletion
+const deletePageMutation = useDeletePageMutation({
+    onSuccess: () => {
+        setDeleteModalOpened(false);
+        setDeleteConfirmText('');
+    },
+    onError: (error) => {
+        debug('Delete page error in PageInspector', 'PageInspector', { error });
+    }
+});
+
+// Type-to-confirm deletion modal with loading state
 <Modal opened={deleteModalOpened} title="Delete Page">
     <Alert color="red" title="Warning">
-        This action cannot be undone.
+        This action cannot be undone. The page and all its content will be permanently deleted.
     </Alert>
     <Text>
         Type the page keyword: <Text span fw={700}>{page.keyword}</Text>
@@ -1205,12 +1216,30 @@ useHotkeys([
     <Button
         color="red"
         disabled={deleteConfirmText !== page.keyword}
+        loading={deletePageMutation.isPending}
         onClick={handleDeletePage}
     >
         Delete Page
     </Button>
 </Modal>
+
+// Enhanced delete handler with proper API integration
+const handleDeletePage = () => {
+    if (deleteConfirmText === page?.keyword && page?.keyword) {
+        debug('Deleting page', 'PageInspector', { page: page.keyword });
+        deletePageMutation.mutate(page.keyword);
+    }
+};
 ```
+
+**Delete Functionality Features:**
+- **Proper API Integration**: Uses `useDeletePageMutation` hook with `AdminApi.deletePage()`
+- **Cache Invalidation**: Automatically updates admin pages list and removes cached page data
+- **Success Notifications**: Shows green notification when page is deleted successfully
+- **Error Handling**: Displays error notifications with proper error parsing
+- **Loading States**: Button shows loading spinner during deletion process
+- **Query Cache Cleanup**: Removes specific page data from React Query cache
+- **Navigation Update**: Invalidates navigation queries to update frontend menus
 
 ### API Integration Updates
 - Updated `AdminApi.getPageFields()` to return full page details with fields
@@ -1272,6 +1301,12 @@ useHotkeys([
 - **Right Sidebar**: Integrated as 400px wide inspector panel in admin page
 - **Responsive Layout**: Uses Flex layout with proper overflow handling
 - **Reusable Design**: Will be used for sections editing later with same functionality
+
+### Component Consolidation
+- **Removed Duplicate Component**: Deleted `PageContent.tsx` as it was a duplicate of `PageInspector.tsx`
+- **Single Source of Truth**: `PageInspector.tsx` is now the only page editing component
+- **Feature Parity**: All functionality from `PageContent` was already present in `PageInspector`
+- **Better Architecture**: Eliminates code duplication and maintenance overhead
 
 ### Key Improvements Made
 

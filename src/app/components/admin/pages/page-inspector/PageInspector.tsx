@@ -37,6 +37,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { usePageFields } from '../../../../../hooks/usePageDetails';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
+import { useDeletePageMutation } from '../../../../../hooks/mutations/useDeletePageMutation';
 import { LockedField } from '../../../ui/locked-field/LockedField';
 import { DragDropMenuPositioner } from '../../../ui/drag-drop-menu-positioner/DragDropMenuPositioner';
 import { FieldLabelWithTooltip } from '../../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
@@ -86,6 +87,19 @@ export function PageInspector({ page }: PageInspectorProps) {
 
     // Fetch page access types
     const pageAccessTypes = useLookupsByType(PAGE_ACCESS_TYPES);
+
+    // Delete page mutation
+    const deletePageMutation = useDeletePageMutation({
+        onSuccess: () => {
+            setDeleteModalOpened(false);
+            setDeleteConfirmText('');
+            // Additional success handling can be added here if needed
+        },
+        onError: (error) => {
+            debug('Delete page error in PageInspector', 'PageInspector', { error });
+            // Error is already handled by the mutation hook with notifications
+        }
+    });
 
     // Form for page editing
     const form = useForm<IPageFormValues>({
@@ -180,12 +194,9 @@ export function PageInspector({ page }: PageInspectorProps) {
     };
 
     const handleDeletePage = () => {
-        if (deleteConfirmText === page?.keyword) {
-            debug('Deleting page', 'PageInspector', { page: page?.keyword });
-            // TODO: Implement delete mutation
-            console.log('Delete page:', page?.keyword);
-            setDeleteModalOpened(false);
-            setDeleteConfirmText('');
+        if (deleteConfirmText === page?.keyword && page?.keyword) {
+            debug('Deleting page', 'PageInspector', { page: page.keyword });
+            deletePageMutation.mutate(page.keyword);
         }
     };
 
@@ -637,6 +648,7 @@ export function PageInspector({ page }: PageInspectorProps) {
                         <Button
                             color="red"
                             disabled={deleteConfirmText !== page.keyword}
+                            loading={deletePageMutation.isPending}
                             onClick={handleDeletePage}
                         >
                             Delete Page
