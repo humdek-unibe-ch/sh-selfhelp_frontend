@@ -18,7 +18,7 @@ export const PageApi = {
      * @throws {Error} When API request fails
      */
     async getPageContent(keyword: string): Promise<IPageContent> {
-        const response = await apiClient.get<IBaseApiResponse<IPageContent>>(API_CONFIG.ENDPOINTS.GET_PAGE(keyword));
+        const response = await apiClient.get<IBaseApiResponse<IPageContent>>(API_CONFIG.ENDPOINTS.PAGES_GET_ONE(keyword));
         return response.data.data;
     },
     
@@ -32,7 +32,7 @@ export const PageApi = {
      */
     async updatePageContent(keyword: string, content: any): Promise<IBaseApiResponse<any>> {
         try {
-            const response = await apiClient.put<IBaseApiResponse<any>>(API_CONFIG.ENDPOINTS.GET_PAGE(keyword), content);
+            const response = await apiClient.put<IBaseApiResponse<any>>(API_CONFIG.ENDPOINTS.PAGES_GET_ONE(keyword), content);
             return response.data;
         } catch (error: any) {
             if (error.response?.data) {

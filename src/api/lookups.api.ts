@@ -16,7 +16,7 @@ export const LookupsApi = {
      * @throws {Error} When API request fails
      */
     async getLookups(): Promise<ILookup[]> {
-        const response = await apiClient.get<ILookupsResponse>(API_CONFIG.ENDPOINTS.LOOKUPS);
+        const response = await apiClient.get<ILookupsResponse>(API_CONFIG.ENDPOINTS.ADMIN_LOOKUPS);
         return response.data.data;
     }
 }; 

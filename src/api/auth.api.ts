@@ -40,7 +40,7 @@ export const AuthApi = {
      */
     async login(credentials: ILoginRequest): Promise<ILoginSuccessResponse | ITwoFactorRequiredResponse> {
         const response = await apiClient.post<ILoginSuccessResponse | ITwoFactorRequiredResponse>(
-            API_CONFIG.ENDPOINTS.LOGIN,
+            API_CONFIG.ENDPOINTS.AUTH_LOGIN,
             credentials
         );
 
@@ -111,7 +111,7 @@ export const AuthApi = {
 
         try {
             const response = await apiClient.post<TRefreshTokenSuccessResponse>(
-                API_CONFIG.ENDPOINTS.REFRESH_TOKEN,
+                API_CONFIG.ENDPOINTS.AUTH_REFRESH_TOKEN,
                 { refresh_token: refreshToken } as IRefreshTokenRequest
             );
 
@@ -149,7 +149,7 @@ export const AuthApi = {
 
         try {
             response = await apiClient.post<ILogoutSuccessResponse>(
-                API_CONFIG.ENDPOINTS.LOGOUT,
+                API_CONFIG.ENDPOINTS.AUTH_LOGOUT,
                 { refresh_token: refreshToken } as ILogoutRequest
             );
 

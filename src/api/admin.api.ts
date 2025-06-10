@@ -21,7 +21,7 @@ export const AdminApi = {
      * @throws {Error} When API request fails
      */
     async getAdminPages(): Promise<IAdminPage[]> {
-        const response = await apiClient.get<IBaseApiResponse<IAdminPage[]>>(API_CONFIG.ENDPOINTS.ADMIN_PAGES);
+        const response = await apiClient.get<IBaseApiResponse<IAdminPage[]>>(API_CONFIG.ENDPOINTS.ADMIN_PAGES_GET_ALL);
         console.log(response.data.data);
         return response.data.data;
     },
@@ -44,7 +44,7 @@ export const AdminApi = {
      */
     async getPageFields(keyword: string): Promise<IPageFieldsData> {
         const response = await apiClient.get<TPageFieldsResponse>(
-            API_CONFIG.ENDPOINTS.ADMIN_PAGE_FIELDS(keyword)
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_GET_ONE(keyword)
         );
         return response.data.data;
     },
@@ -57,7 +57,7 @@ export const AdminApi = {
      */
     async getPageSections(keyword: string): Promise<IPageField[]> {
         const response = await apiClient.get<IPageFieldsResponse>(
-            API_CONFIG.ENDPOINTS.ADMIN_PAGE_SECTIONS(keyword)
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_SECTIONS_GET(keyword)
         );
         return response.data.data;
     },
@@ -70,7 +70,7 @@ export const AdminApi = {
      */
     async createPage(pageData: ICreatePageRequest): Promise<IAdminPage> {
         const response = await apiClient.post<IBaseApiResponse<IAdminPage>>(
-            API_CONFIG.ENDPOINTS.ADMIN_CREATE_PAGE,
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_CREATE,
             pageData
         );
         return response.data.data;
@@ -84,7 +84,7 @@ export const AdminApi = {
      */
     async deletePage(keyword: string): Promise<void> {
         await apiClient.delete(
-            API_CONFIG.ENDPOINTS.ADMIN_DELETE_PAGE(keyword)
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_DELETE(keyword)
         );
     }
 };

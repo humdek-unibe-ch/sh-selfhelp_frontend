@@ -17,7 +17,7 @@ export const NavigationApi = {
      * @throws {Error} When API request fails
      */
     async getPages(): Promise<IPageItem[]> {
-        const response = await apiClient.get<IBaseApiResponse<IPageItem[]>>(API_CONFIG.ENDPOINTS.PAGES);
+        const response = await apiClient.get<IBaseApiResponse<IPageItem[]>>(API_CONFIG.ENDPOINTS.PAGES_GET_ALL);
         return response.data.data;
     }
 };

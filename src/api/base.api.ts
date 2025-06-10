@@ -152,9 +152,9 @@ const handleRefreshWithQueue = async (originalRequest: InternalAxiosRequestConfi
 
 // Helper functions to identify specific request types
 const isLogoutRequest = (config: any) =>
-    config.url === API_CONFIG.ENDPOINTS.LOGOUT;
+    config.url === API_CONFIG.ENDPOINTS.AUTH_LOGOUT;
 const isRefreshTokenRequest = (config: any) =>
-    config.url === API_CONFIG.ENDPOINTS.REFRESH_TOKEN;
+    config.url === API_CONFIG.ENDPOINTS.AUTH_REFRESH_TOKEN;
 const isAdminRequest = (config: any) =>
     config.url?.includes('/admin/');
 
