@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef} from 'react';
+import { useRouter } from 'next/navigation';
 
 import { 
     Modal, 
@@ -37,6 +38,7 @@ import styles from './CreatePage.module.css';
 
 
 export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreatePageModalProps) => {
+    const router = useRouter();
 
     // References to get final positions from DragDropMenuPositioner components
     const headerMenuGetFinalPosition = useRef<(() => number | null) | null>(null);
@@ -48,9 +50,19 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
     // Create page mutation
     const createPageMutation = useCreatePageMutation({
         onSuccess: (createdPage) => {
-                    // Reset form and state on successful creation
-        form.reset();
-        onClose();
+            debug('Page created successfully, navigating to page', 'CreatePageModal', {
+                createdPage: createdPage.keyword,
+                navigatingTo: `/admin/pages/${createdPage.keyword}`
+            });
+            
+            // Reset form and state on successful creation
+            form.reset();
+            onClose();
+            
+            // Navigate to the created page after a short delay to allow modal to close
+            setTimeout(() => {
+                router.push(`/admin/pages/${createdPage.keyword}`);
+            }, 100);
         }
     });
     
@@ -118,13 +130,13 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
         
         const submitData: ICreatePageRequest = {
             keyword: values.keyword,
-            page_access_type_code: values.pageAccessType,
-            is_headless: values.headlessPage,
-            is_open_access: values.openAccess,
+            pageAccessTypeCode: values.pageAccessType,
+            headless: values.headlessPage,
+            openAccess: values.openAccess,
             url: values.urlPattern,
-            nav_position: finalHeaderPosition || undefined,
-            footer_position: finalFooterPosition || undefined,
-            parent: values.parentPage || undefined,
+            navPosition: finalHeaderPosition,
+            footerPosition: finalFooterPosition,
+            parent: values.parentPage,
         };
 
         debug('Creating new page with final positions', 'CreatePageModal', {

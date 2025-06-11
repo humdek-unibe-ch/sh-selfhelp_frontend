@@ -2,7 +2,84 @@
 
 # Frontend Development Log
 
-## DragDropMenuPositioner - Reusable Component Extraction (Latest Update)
+## Field Handling and Menu Positioning Fixes (Latest Update)
+
+### Overview
+Fixed critical issues with field handling and menu positioning in the PageInspector and DragDropMenuPositioner components to ensure proper data persistence and accurate drag-and-drop positioning.
+
+### Issues Resolved
+
+#### 1. Empty Field Translation Handling
+**Problem**: Empty field translations weren't being sent to backend, preventing deletion of cleared content.
+**Solution**: Modified field processing to always send all fields, including empty ones with empty string content.
+
+```typescript
+// Before: Only non-empty fields were sent
+if (content.trim()) {
+    fields.push({ fieldId: field.id, languageId: language.id, content });
+}
+
+// After: All fields are sent, including empty ones for deletion
+fields.push({
+    fieldId: field.id,
+    languageId: language.id,
+    content: content, // Send empty string if content is empty
+});
+```
+
+#### 2. Menu Position Null Handling
+**Problem**: Unchecking menu checkboxes didn't properly set positions to null in the backend payload.
+**Solution**: Fixed position logic to respect menu enabled state.
+
+```typescript
+const pageData: IUpdatePageData = {
+    navPosition: form.values.headerMenuEnabled ? finalHeaderPosition : null,
+    footerPosition: form.values.footerMenuEnabled ? finalFooterPosition : null,
+    // ... other fields
+};
+```
+
+#### 3. Drag and Drop Positioning Accuracy
+**Problem**: Drag and drop had off-by-one errors due to complex index adjustment logic.
+**Solution**: Simplified visual reordering by removing complex index adjustments.
+
+```typescript
+// Before: Complex index adjustment causing off-by-one errors
+const adjustedDropIndex = droppedIndex > existingPageIndex ? droppedIndex - 1 : droppedIndex;
+updatedPages.splice(adjustedDropIndex, 0, currentPageItem);
+
+// After: Simple reordering without adjustment
+updatedPages = updatedPages.filter((_, index) => index !== existingPageIndex);
+updatedPages.splice(droppedIndex, 0, currentPageItem);
+```
+
+#### 4. Position Calculation Timing
+**Problem**: Position calculation happened during drag, causing inconsistent results.
+**Solution**: Store visual index during drag, calculate actual position only on submit.
+
+```typescript
+// During drag: Store visual index only
+onPositionChange(destinationIndex);
+
+// On submit: Calculate actual position
+const finalPosition = calculateFinalPosition(reorderedPages.filter(p => p.keyword !== pageKeyword), droppedIndex);
+```
+
+### Technical Benefits
+- ✅ **Field Deletion**: Empty fields are properly sent for backend deletion
+- ✅ **Menu State Consistency**: Positions correctly set to null when menus disabled
+- ✅ **Accurate Positioning**: Drag and drop now places items in correct positions
+- ✅ **Performance**: Position calculation only happens when needed (on submit)
+- ✅ **Visual Feedback**: Immediate visual reordering during drag operations
+- ✅ **Debug Logging**: Enhanced logging for troubleshooting positioning issues
+
+### Files Modified
+- `src/app/components/admin/pages/page-inspector/PageInspector.tsx`
+- `src/app/components/ui/drag-drop-menu-positioner/DragDropMenuPositioner.tsx`
+
+---
+
+## DragDropMenuPositioner - Reusable Component Extraction
 
 ### Overview
 Extracted the smooth drag-and-drop menu positioning functionality from CreatePage into a reusable component called `DragDropMenuPositioner`. This follows our architecture principle of always creating reusable components when functionality is used in more than one place.
@@ -2819,37 +2896,6 @@ This enhancement makes menu positioning much more user-friendly while maintainin
 - **Solution**: Removed `form` from the dependency array since `form.setValues` is stable
 - **Result**: Fixed infinite re-render loop in page editing interface
 
-```typescript
-// Before (causing infinite re-renders)
-const filterPages = useCallback((pages, searchTerm) => { ... }, []);
-const transformPagesToLinks = useCallback((pages) => { ... }, []);
-const pageLinks = useMemo(() => {
-    const filteredPages = filterPages(pages, searchTerm);
-    return transformPagesToLinks(filteredPages);
-}, [pages, searchTerm, isLoading, filterPages, transformPagesToLinks]); // Circular dependency!
-
-// After (fixed)
-const pageLinks = useMemo(() => {
-    const filterPages = (pages, searchTerm) => { ... }; // Inline function
-    const transformPagesToLinks = (pages) => { ... }; // Inline function
-    const filteredPages = filterPages(pages, searchTerm);
-    return transformPagesToLinks(filteredPages);
-}, [pages, searchTerm, isLoading]); // Clean dependencies
-
-// PageInspector fix
-// Before (causing infinite re-renders)
-useEffect(() => {
-    // Form update logic
-}, [page, pageFieldsData, languages, form]); // form object recreated every render!
-
-// After (fixed)
-useEffect(() => {
-    // Form update logic
-}, [page, pageFieldsData, languages]); // Removed unstable form dependency
-```
-
-### Key Improvements Made
-
 ## DragDropMenuPositioner - getFinalPosition Implementation (Latest Update)
 
 ### Overview
@@ -2901,3 +2947,369 @@ const finalFooterPosition = footerMenuGetFinalPosition.current ? footerMenuGetFi
 
 ### Technical Implementation
 The component exposes its internal `getFinalPosition` function through a callback prop, allowing parent components to access the calculated position at the time of form submission. This ensures that the most up-to-date position calculation is used, taking into account any changes in the menu structure.
+
+## Page Creation Navigation & Menu Positioning Fixes (Latest Update)
+
+### Overview
+Fixed critical issues with page creation workflow and menu positioning system to provide a seamless user experience and prevent menu duplication problems.
+
+### Issues Resolved
+
+#### 1. Automatic Navigation After Page Creation
+**Problem**: After creating a page, users remained on the create page modal without being directed to edit the newly created page.
+
+**Solution**: Implemented automatic navigation to the created page using Next.js router.
+```typescript
+const createPageMutation = useCreatePageMutation({
+    onSuccess: (createdPage) => {
+        debug('Page created successfully, navigating to page', 'CreatePageModal', {
+            createdPage: createdPage.keyword,
+            navigatingTo: `/admin/pages/${createdPage.keyword}`
+        });
+        
+        form.reset();
+        onClose();
+        
+        // Navigate to the created page after modal close
+        setTimeout(() => {
+            router.push(`/admin/pages/${createdPage.keyword}`);
+        }, 100);
+    }
+});
+```
+
+#### 2. Menu Positioning Issues
+**Problem**: Pages added to menus appeared at the end instead of their proper position, and menu reordering caused duplication.
+
+**Solution**: Enhanced cache invalidation strategy and improved position calculation algorithm.
+
+##### Enhanced Cache Invalidation
+```typescript
+// Enhanced cache invalidation strategy to prevent menu duplication
+await Promise.all([
+    // Invalidate admin pages list (for admin interface)
+    queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+    // Invalidate navigation pages (for frontend navigation and menus)
+    queryClient.invalidateQueries({ queryKey: ['pages'] }),
+    // Force refetch to ensure fresh data
+    queryClient.refetchQueries({ queryKey: ['adminPages'] }),
+    queryClient.refetchQueries({ queryKey: ['pages'] }),
+]);
+
+// Clear any stale cached data that might cause duplication
+queryClient.removeQueries({ queryKey: ['adminPages'], exact: false });
+queryClient.removeQueries({ queryKey: ['pages'], exact: false });
+```
+
+##### Improved Position Calculation
+```typescript
+const calculateFinalPosition = (pages: IMenuPageItem[], targetIndex: number): number => {
+    // If no existing pages, start at position 10
+    if (pages.length === 0) {
+        return 10;
+    }
+    
+    if (targetIndex === 0) {
+        // First position - place before the first existing page
+        const firstPagePosition = pages[0].position;
+        return Math.max(1, firstPagePosition - 10);
+    } else if (targetIndex >= pages.length) {
+        // Last position - place after the last existing page
+        const lastPagePosition = pages[pages.length - 1].position;
+        return lastPagePosition + 10;
+    } else {
+        // Between two pages - calculate middle position with proper spacing
+        const prevPage = pages[targetIndex - 1];
+        const nextPage = pages[targetIndex];
+        const gap = nextPage.position - prevPage.position;
+        
+        // If there's enough gap, place in the middle
+        if (gap > 2) {
+            return Math.floor((prevPage.position + nextPage.position) / 2);
+        } else {
+            // Not enough gap - place with proper spacing
+            return prevPage.position + 5;
+        }
+    }
+};
+```
+
+#### 3. Menu State Management
+**Problem**: Menu state wasn't properly updated after changes, leading to inconsistent UI.
+
+**Solution**: Improved state management with proper cleanup and reset mechanisms.
+```typescript
+// Reset dropped index when menu is disabled
+useEffect(() => {
+    if (!enabled && droppedIndex !== null) {
+        setDroppedIndex(null);
+    }
+}, [enabled, droppedIndex]);
+
+// Enhanced drag handling with debug logging
+const handleDragEnd = (result: DropResult) => {
+    const pageKeyword = newPageKeyword || currentPage?.keyword;
+    if (!result.destination || !pageKeyword) {
+        debug('Drag cancelled or invalid', 'DragDropMenuPositioner', { 
+            hasDestination: !!result.destination,
+            pageKeyword 
+        });
+        return;
+    }
+    
+    const destinationIndex = result.destination.index;
+    debug('Drag completed', 'DragDropMenuPositioner', {
+        menuType,
+        sourceIndex: result.source.index,
+        destinationIndex,
+        pageKeyword
+    });
+    
+    setDroppedIndex(destinationIndex);
+    onPositionChange(destinationIndex);
+};
+```
+
+#### 4. Menu Duplication Fix for Existing Pages (Latest)
+**Problem**: When editing an existing page that was already in the menu, it appeared duplicated instead of being marked as current.
+
+**Solution**: Enhanced logic to distinguish between create mode (new page) and edit mode (existing page).
+```typescript
+// Check if the page already exists in the menu
+const existingPageIndex = menuPages.findIndex(page => page.keyword === pageKeyword);
+
+if (existingPageIndex !== -1) {
+    // Page already exists in menu - mark it as current instead of adding duplicate
+    const updatedPages = menuPages.map((page, index) => ({
+        ...page,
+        isNew: index === existingPageIndex // Mark the existing page as current
+    }));
+    
+    debug('Page already exists in menu, marking as current', 'DragDropMenuPositioner', {
+        menuType,
+        pageKeyword,
+        existingPageIndex,
+        menuPagesCount: menuPages.length
+    });
+    
+    return updatedPages;
+} else {
+    // Page doesn't exist in menu - add as new (for create mode)
+    const newPage: IMenuPageItem = {
+        id: currentPage ? `current-page-${currentPage.id_pages}` : 'new-page',
+        keyword: pageKeyword,
+        label: pageKeyword,
+        position: menuPages.length > 0 ? menuPages[menuPages.length - 1].position + 10 : 10,
+        isNew: true
+    };
+    
+    // Add to menu with proper positioning
+    return [...menuPages, newPage];
+}
+```
+
+**Position Handling for Existing Pages**:
+```typescript
+if (existingPageIndex !== -1) {
+    // Page already exists in menu
+    if (position !== null && droppedIndex !== null) {
+        // User dragged to a new position - calculate new position
+        const finalPosition = calculateFinalPosition(menuPages, droppedIndex);
+        return finalPosition;
+    } else {
+        // User didn't drag - keep existing position
+        const existingPosition = menuPages[existingPageIndex].position;
+        return existingPosition;
+    }
+}
+```
+
+### Technical Benefits
+
+#### 1. Improved User Experience
+- **Seamless Workflow**: Users are automatically taken to edit the newly created page
+- **Immediate Feedback**: Pages appear in correct menu positions immediately
+- **No Duplication**: Menu items no longer appear duplicated after reordering
+
+#### 2. Better Cache Management
+- **Consistent State**: Enhanced cache invalidation ensures UI consistency
+- **Performance**: Proper cache cleanup prevents memory leaks
+- **Reliability**: Force refetch ensures fresh data after mutations
+
+#### 3. Enhanced Debugging
+- **Comprehensive Logging**: Debug information for navigation and positioning flows
+- **State Tracking**: Better visibility into drag operations and position calculations
+- **Error Handling**: Improved error detection and logging
+
+### Architecture Impact
+- **Navigation Flow**: Established pattern for post-creation navigation
+- **Cache Strategy**: Enhanced React Query cache management patterns
+- **State Management**: Improved component state lifecycle management
+- **Debug System**: Enhanced logging for complex UI interactions
+
+### Future Considerations
+- **Performance Monitoring**: Track cache invalidation performance with larger datasets
+- **User Preferences**: Consider user preferences for post-creation navigation
+- **Batch Operations**: Optimize cache invalidation for bulk page operations
+
+#### 5. Drag and Drop Position Persistence Fix (Latest)
+**Problem**: When dragging existing pages in the menu, they would snap back to their original position instead of staying in the new position.
+
+**Solution**: Enhanced drag handling with proper reordering logic and position calculation.
+
+**Visual Reordering Implementation**:
+```typescript
+// If user has dragged to a new position, reorder the pages
+if (droppedIndex !== null && droppedIndex !== existingPageIndex) {
+    // Remove the current page from its original position
+    const currentPageItem = updatedPages[existingPageIndex];
+    updatedPages = updatedPages.filter((_, index) => index !== existingPageIndex);
+    
+    // Insert at the new position
+    const adjustedDropIndex = droppedIndex > existingPageIndex ? droppedIndex - 1 : droppedIndex;
+    updatedPages.splice(adjustedDropIndex, 0, currentPageItem);
+    
+    debug('Reordering existing page in menu', 'DragDropMenuPositioner', {
+        menuType,
+        pageKeyword,
+        originalIndex: existingPageIndex,
+        newIndex: adjustedDropIndex,
+        droppedIndex
+    });
+}
+```
+
+**Position Calculation for Reordered Items**:
+```typescript
+if (position !== null && droppedIndex !== null && droppedIndex !== existingPageIndex) {
+    // User dragged to a new position - calculate based on the final reordered position
+    const reorderedPages = [...menuPages];
+    const currentPageItem = reorderedPages[existingPageIndex];
+    reorderedPages.splice(existingPageIndex, 1);
+    
+    const adjustedDropIndex = droppedIndex > existingPageIndex ? droppedIndex - 1 : droppedIndex;
+    const finalPosition = calculateFinalPosition(reorderedPages, adjustedDropIndex);
+    
+    return finalPosition;
+}
+```
+
+#### 6. Menu Disable Position Reset Fix (Latest)
+**Problem**: When unchecking the menu checkbox to disable a page from appearing in the menu, the position was not being set to null.
+
+**Solution**: Enhanced useEffect to properly reset position when menu is disabled.
+
+```typescript
+// Reset dropped index when menu is disabled and set position to null
+useEffect(() => {
+    if (!enabled) {
+        if (droppedIndex !== null) {
+            setDroppedIndex(null);
+        }
+        // Set position to null when menu is disabled
+        onPositionChange(null);
+    }
+}, [enabled, droppedIndex, onPositionChange]);
+```
+
+**Improved Drag Handling**:
+```typescript
+// Only update if the position actually changed
+if (sourceIndex !== destinationIndex) {
+    debug('Drag completed with position change', 'DragDropMenuPositioner', {
+        menuType,
+        sourceIndex,
+        destinationIndex,
+        pageKeyword
+    });
+    
+    setDroppedIndex(destinationIndex);
+    onPositionChange(destinationIndex);
+} else {
+    debug('Drag completed but no position change', 'DragDropMenuPositioner', {
+        menuType,
+        sourceIndex,
+        destinationIndex,
+        pageKeyword
+    });
+}
+```
+
+## Recent Changes and Implementations
+
+### Page Creation Navigation & Menu Positioning System (Latest)
+
+#### Problem: Interface Schema Validation Updates
+**Date**: Current
+**Issue**: Backend API now requires specific JSON schema validation for create and update page requests
+**Root Cause**: The TypeScript interfaces didn't match the exact structure expected by the backend API validation
+
+**Solution Implemented**:
+1. **Updated Create Page Interface**: Modified `ICreatePageRequest` to match JSON schema exactly
+   ```typescript
+   export interface ICreatePageRequest {
+       keyword: string;                    // Required
+       pageTypeId?: number;               // Optional
+       pageAccessTypeCode: string;        // Required - changed from page_access_type_code
+       headless?: boolean;                // Optional - changed from is_headless
+       openAccess?: boolean;              // Optional - changed from is_open_access
+       url?: string | null;               // Optional
+       protocol?: string | null;          // Optional - new field
+       navPosition?: number | null;       // Optional - changed from nav_position
+       footerPosition?: number | null;    // Optional - changed from footer_position
+       parent?: number | null;            // Optional
+   }
+   ```
+
+2. **Updated Update Page Interface**: Restructured to use nested interfaces matching schema
+   ```typescript
+   export interface IUpdatePageData {
+       url?: string | null;
+       protocol?: string | null;
+       headless?: boolean;
+       navPosition?: number | null;
+       footerPosition?: number | null;
+       openAccess?: boolean;
+       pageAccessTypeCode?: string;       // Changed from pageAccessType
+       parent?: number | null;
+   }
+
+   export interface IUpdatePageField {
+       fieldId: number;
+       languageId: number;
+       content: string | null;            // Removed debugging fields
+   }
+
+   export interface IUpdatePageRequest {
+       pageData: IUpdatePageData;
+       fields: IUpdatePageField[];
+   }
+   ```
+
+3. **Updated Component Usage**: Modified CreatePageModal and PageInspector to use new property names
+   - `pageAccessTypeCode` instead of `page_access_type_code`
+   - `headless` instead of `is_headless`
+   - `openAccess` instead of `is_open_access`
+   - `navPosition` instead of `nav_position`
+   - `footerPosition` instead of `footer_position`
+
+4. **Removed Debugging Fields**: Cleaned up field update structure to match schema exactly
+   - Removed `fieldName` and `languageCode` debugging properties
+   - Kept only required fields: `fieldId`, `languageId`, `content`
+
+**Technical Benefits**:
+- ✅ **Schema Compliance**: Interfaces now match backend validation exactly
+- ✅ **Type Safety**: Proper TypeScript validation for all API requests
+- ✅ **Cleaner Code**: Removed unnecessary debugging fields from production payloads
+- ✅ **Consistent Naming**: CamelCase property names throughout the frontend
+- ✅ **Null Safety**: Proper handling of nullable fields with `| null` types
+
+**Files Modified**:
+- `src/types/requests/admin/create-page.types.ts`
+- `src/types/requests/admin/update-page.types.ts`
+- `src/app/components/admin/pages/create-page/CreatePage.tsx`
+- `src/app/components/admin/pages/page-inspector/PageInspector.tsx`
+
+---
+
+#### Problem: Infinite Loop in PageInspector Component

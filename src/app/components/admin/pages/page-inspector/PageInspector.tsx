@@ -33,7 +33,7 @@ import {
 } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
 import { useHotkeys } from '@mantine/hooks';
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { usePageFields } from '../../../../../hooks/usePageDetails';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
@@ -44,7 +44,7 @@ import { LockedField } from '../../../ui/locked-field/LockedField';
 import { DragDropMenuPositioner } from '../../../ui/drag-drop-menu-positioner/DragDropMenuPositioner';
 import { FieldLabelWithTooltip } from '../../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
 import { IPageField } from '../../../../../types/responses/admin/page-details.types';
-import { IUpdatePageField } from '../../../../../types/requests/admin/update-page.types';
+import { IUpdatePageField, IUpdatePageData, IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
 import { PAGE_ACCESS_TYPES } from '../../../../../constants/lookups.constants';
 import { debug } from '../../../../../utils/debug-logger';
 
@@ -67,8 +67,6 @@ interface IPageFormValues {
     // Field values by language (dynamic based on API response)
     fields: Record<string, Record<string, string>>; // fields[fieldName][languageCode] = content
 }
-
-
 
 export function PageInspector({ page }: PageInspectorProps) {
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
@@ -219,15 +217,13 @@ export function PageInspector({ page }: PageInspectorProps) {
         const finalFooterPosition = footerMenuGetFinalPosition.current ? footerMenuGetFinalPosition.current() : null;
         
         // Prepare data structure for backend with field IDs and language IDs
-        const pageData = {
-            // Page basic properties
-            keyword: form.values.keyword,
+        const pageData: IUpdatePageData = {
             url: form.values.url,
             headless: form.values.headless,
-            navPosition: finalHeaderPosition,
-            footerPosition: finalFooterPosition,
+            navPosition: form.values.headerMenuEnabled ? finalHeaderPosition : null,
+            footerPosition: form.values.footerMenuEnabled ? finalFooterPosition : null,
             openAccess: form.values.openAccess,
-            pageAccessType: form.values.pageAccessType,
+            pageAccessTypeCode: form.values.pageAccessType,
         };
 
         // Prepare field translations with field IDs and language IDs
@@ -237,15 +233,12 @@ export function PageInspector({ page }: PageInspectorProps) {
         contentFields.forEach(field => {
             languages.forEach(language => {
                 const content = form.values.fields?.[field.name]?.[language.code] || '';
-                if (content.trim()) { // Only include non-empty content
-                    fields.push({
-                        fieldId: field.id,
-                        languageId: language.id,
-                        content: content,
-                        fieldName: field.name, // For debugging
-                        languageCode: language.code // For debugging
-                    });
-                }
+                // Always send all fields, including empty ones (for deletion)
+                fields.push({
+                    fieldId: field.id,
+                    languageId: language.id,
+                    content: content, // Send empty string if content is empty
+                });
             });
         });
 
@@ -253,18 +246,15 @@ export function PageInspector({ page }: PageInspectorProps) {
         propertyFields.forEach(field => {
             const firstLanguageCode = languages[0]?.code || 'de';
             const content = form.values.fields?.[field.name]?.[firstLanguageCode] || '';
-            if (content.trim()) { // Only include non-empty content
-                fields.push({
-                    fieldId: field.id,
-                    languageId: 1, // Hardcoded for property fields
-                    content: content,
-                    fieldName: field.name, // For debugging
-                    languageCode: 'property' // For debugging
-                });
-            }
+            // Always send all fields, including empty ones (for deletion)
+            fields.push({
+                fieldId: field.id,
+                languageId: 1, // Hardcoded for property fields
+                content: content, // Send empty string if content is empty
+            });
         });
 
-        const backendPayload = {
+        const backendPayload: IUpdatePageRequest = {
             pageData,
             fields: fields
         };
@@ -277,12 +267,15 @@ export function PageInspector({ page }: PageInspectorProps) {
                 originalFooterPosition: form.values.footerPosition,
                 finalHeaderPosition,
                 finalFooterPosition,
+                headerMenuEnabled: form.values.headerMenuEnabled,
+                footerMenuEnabled: form.values.footerMenuEnabled,
             },
             summary: {
                 pageProperties: Object.keys(pageData).length,
                 totalFieldTranslations: fields.length,
                 contentFieldTranslations: fields.filter(ft => ft.languageId !== 1).length,
                 propertyFieldTranslations: fields.filter(ft => ft.languageId === 1).length,
+                emptyFieldTranslations: fields.filter(ft => !(ft.content || '').trim()).length,
                 availableLanguages: languages.map(l => ({ id: l.id, code: l.code, locale: l.locale })),
                 contentFields: contentFields.map(f => ({ id: f.id, name: f.name, display: f.display })),
                 propertyFields: propertyFields.map(f => ({ id: f.id, name: f.name, display: f.display }))
@@ -326,6 +319,23 @@ export function PageInspector({ page }: PageInspectorProps) {
             form.setFieldValue('footerPosition', null);
         }
     };
+
+    // Stable callbacks for position changes to prevent infinite loops
+    const handleHeaderPositionChange = useCallback((position: number | null) => {
+        debug('Header position change requested', 'PageInspector', { 
+            newPosition: position, 
+            currentPosition: form.values.navPosition 
+        });
+        form.setFieldValue('navPosition', position);
+    }, []); // Empty dependency array since form.setFieldValue is stable
+
+    const handleFooterPositionChange = useCallback((position: number | null) => {
+        debug('Footer position change requested', 'PageInspector', { 
+            newPosition: position, 
+            currentPosition: form.values.footerPosition 
+        });
+        form.setFieldValue('footerPosition', position);
+    }, []); // Empty dependency array since form.setFieldValue is stable
 
     // Get fields data for processing (before early returns)
     const fields = pageFieldsData?.fields || [];
@@ -591,7 +601,7 @@ export function PageInspector({ page }: PageInspectorProps) {
                                 enabled={form.values.headerMenuEnabled}
                                 position={form.values.navPosition}
                                 onEnabledChange={handleHeaderMenuChange}
-                                onPositionChange={(position) => form.setFieldValue('navPosition', position)}
+                                onPositionChange={handleHeaderPositionChange}
                                 onGetFinalPosition={(getFinalPositionFn) => {
                                     headerMenuGetFinalPosition.current = getFinalPositionFn;
                                 }}
@@ -606,7 +616,7 @@ export function PageInspector({ page }: PageInspectorProps) {
                                 enabled={form.values.footerMenuEnabled}
                                 position={form.values.footerPosition}
                                 onEnabledChange={handleFooterMenuChange}
-                                onPositionChange={(position) => form.setFieldValue('footerPosition', position)}
+                                onPositionChange={handleFooterPositionChange}
                                 onGetFinalPosition={(getFinalPositionFn) => {
                                     footerMenuGetFinalPosition.current = getFinalPositionFn;
                                 }}

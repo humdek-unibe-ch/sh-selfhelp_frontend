@@ -36,13 +36,32 @@ export function useCreatePageMutation(options: ICreatePageMutationOptions = {}) 
         onSuccess: async (createdPage: IAdminPage) => {
             debug('Page created successfully', 'useCreatePageMutation', createdPage);
             
-            // Invalidate and refetch relevant queries to update the UI
+            // Enhanced cache invalidation strategy to prevent menu duplication
             await Promise.all([
-                // Invalidate admin pages list
+                // Invalidate admin pages list (for admin interface)
                 queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
-                // Invalidate navigation pages (for frontend navigation)
+                // Invalidate navigation pages (for frontend navigation and menus)
                 queryClient.invalidateQueries({ queryKey: ['pages'] }),
+                // Force refetch to ensure fresh data
+                queryClient.refetchQueries({ queryKey: ['adminPages'] }),
+                queryClient.refetchQueries({ queryKey: ['pages'] }),
             ]);
+            
+            // Clear any stale cached data that might cause duplication
+            queryClient.removeQueries({ 
+                queryKey: ['adminPages'], 
+                exact: false 
+            });
+            queryClient.removeQueries({ 
+                queryKey: ['pages'], 
+                exact: false 
+            });
+            
+            debug('Cache invalidation completed for page creation', 'useCreatePageMutation', {
+                createdPageKeyword: createdPage.keyword,
+                hasNavPosition: createdPage.nav_position !== null,
+                hasFooterPosition: createdPage.footer_position !== null
+            });
             
             if (showNotifications) {
                 notifications.show({

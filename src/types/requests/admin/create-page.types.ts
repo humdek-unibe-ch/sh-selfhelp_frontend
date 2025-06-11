@@ -1,29 +1,36 @@
 /**
  * Request interface for creating a new page
  * Based on backend API route: admin_create_page
+ * Updated to match JSON schema validation requirements
  */
 export interface ICreatePageRequest {
-    /** Page keyword (required) */
+    /** Page keyword (required) - unique identifier for the page */
     keyword: string;
     
-    /** Page access type ID (required) - should be the lookup code */
-    page_access_type_code: string;
+    /** ID of the page type (optional) */
+    pageTypeId?: number;
     
-    /** Whether the page is headless (optional) */
-    is_headless?: boolean;
+    /** Access type code from lookups with typeCode=pageAccessTypes (required) */
+    pageAccessTypeCode: string;
     
-    /** Whether the page has open access (optional) */
-    is_open_access?: boolean;
+    /** Whether the page is headless (optional, default: false) */
+    headless?: boolean;
     
-    /** Custom URL pattern (optional) */
-    url?: string;
+    /** Whether the page has open access (optional, default: false) */
+    openAccess?: boolean;
     
-    /** Navigation menu position (optional) */
-    nav_position?: number;
+    /** URL path for the page (optional) */
+    url?: string | null;
     
-    /** Footer menu position (optional) */
-    footer_position?: number;
+    /** HTTP methods supported by the page - pipe separated list (optional) */
+    protocol?: string | null;
     
-    /** Parent page ID (optional) */
-    parent?: number;
+    /** Navigation position (optional) */
+    navPosition?: number | null;
+    
+    /** Footer position (optional) */
+    footerPosition?: number | null;
+    
+    /** ID of the parent page (optional) */
+    parent?: number | null;
 } 

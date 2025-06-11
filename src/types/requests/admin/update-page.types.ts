@@ -1,52 +1,59 @@
 /**
  * Request interface for updating an existing page
  * Based on backend API route: admin_update_page
+ * Updated to match JSON schema validation requirements
  */
 
+/**
+ * Page data structure for updates
+ */
 export interface IUpdatePageData {
-    /** Page keyword */
-    keyword: string;
+    /** URL path for the page */
+    url?: string | null;
     
-    /** Page URL */
-    url: string;
+    /** HTTP methods supported by the page - pipe separated list */
+    protocol?: string | null;
     
     /** Whether the page is headless */
-    headless: boolean;
+    headless?: boolean;
     
-    /** Navigation menu position (null if not in nav) */
-    navPosition: number | null;
+    /** Navigation position */
+    navPosition?: number | null;
     
-    /** Footer menu position (null if not in footer) */
-    footerPosition: number | null;
+    /** Footer position */
+    footerPosition?: number | null;
     
     /** Whether the page has open access */
-    openAccess: boolean;
+    openAccess?: boolean;
     
-    /** Page access type code */
-    pageAccessType: string;
+    /** Access type code from lookups with typeCode=pageAccessTypes */
+    pageAccessTypeCode?: string;
+    
+    /** ID of the parent page */
+    parent?: number | null;
 }
 
+/**
+ * Field update structure - references common update_field.json schema
+ */
 export interface IUpdatePageField {
-    /** Field ID from database */
+    /** ID of the field to update */
     fieldId: number;
     
-    /** Language ID (1 for properties, actual language ID for content) */
+    /** ID of the language for the field content */
     languageId: number;
     
-    /** Field content */
-    content: string;
-    
-    /** Field name (for debugging) */
-    fieldName?: string;
-    
-    /** Language code (for debugging) */
-    languageCode?: string;
+    /** Content of the field */
+    content: string | null;
 }
 
+/**
+ * Main update page request structure
+ */
 export interface IUpdatePageRequest {
-    /** Page basic properties */
+    /** Page data to update */
     pageData: IUpdatePageData;
     
-    /** Field translations array */
+    /** List of field translations to update */
     fields: IUpdatePageField[];
 } 

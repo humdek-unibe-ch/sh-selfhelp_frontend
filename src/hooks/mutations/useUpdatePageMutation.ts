@@ -45,16 +45,35 @@ export function useUpdatePageMutation(options: IUpdatePageMutationOptions = {}) 
                 updatedPage: updatedPage.keyword 
             });
             
-            // Invalidate and refetch relevant queries to update the UI
+            // Enhanced cache invalidation strategy to prevent menu duplication
             await Promise.all([
-                // Invalidate admin pages list
+                // Invalidate admin pages list (for admin interface)
                 queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
-                // Invalidate navigation pages (for frontend navigation)
+                // Invalidate navigation pages (for frontend navigation and menus)
                 queryClient.invalidateQueries({ queryKey: ['pages'] }),
                 // Invalidate specific page data to refetch updated content
                 queryClient.invalidateQueries({ queryKey: ['pageFields', keyword] }),
                 queryClient.invalidateQueries({ queryKey: ['pageSections', keyword] }),
+                // Force refetch to ensure fresh data
+                queryClient.refetchQueries({ queryKey: ['adminPages'] }),
+                queryClient.refetchQueries({ queryKey: ['pages'] }),
             ]);
+            
+            // Clear any stale cached data that might cause duplication
+            queryClient.removeQueries({ 
+                queryKey: ['adminPages'], 
+                exact: false 
+            });
+            queryClient.removeQueries({ 
+                queryKey: ['pages'], 
+                exact: false 
+            });
+            
+            debug('Cache invalidation completed for page update', 'useUpdatePageMutation', {
+                updatedPageKeyword: updatedPage.keyword,
+                hasNavPosition: updatedPage.nav_position !== null,
+                hasFooterPosition: updatedPage.footer_position !== null
+            });
             
             if (showNotifications) {
                 notifications.show({

@@ -15,7 +15,144 @@ This document outlines the frontend architecture for the SH-Self-help project. T
 *   **Performance**: Optimize for Web Vitals (LCP, CLS, FID).
 *   **Accessibility (a11y)**: Build inclusive interfaces.
 
-## 2.1. Navigation System Architecture
+## 2.1. Page Creation and Navigation System (Latest Update)
+
+### API Schema Compliance (Latest)
+Updated all page creation and update interfaces to match backend JSON schema validation requirements exactly.
+
+#### Interface Structure Changes
+**Create Page Interface**:
+```typescript
+export interface ICreatePageRequest {
+    keyword: string;                    // Required - unique page identifier
+    pageTypeId?: number;               // Optional - page type classification
+    pageAccessTypeCode: string;        // Required - access control (was page_access_type_code)
+    headless?: boolean;                // Optional - layout control (was is_headless)
+    openAccess?: boolean;              // Optional - public access (was is_open_access)
+    url?: string | null;               // Optional - URL path
+    protocol?: string | null;          // Optional - HTTP methods (new field)
+    navPosition?: number | null;       // Optional - header menu position (was nav_position)
+    footerPosition?: number | null;    // Optional - footer menu position (was footer_position)
+    parent?: number | null;            // Optional - parent page ID
+}
+```
+
+**Update Page Interface** (Nested Structure):
+```typescript
+export interface IUpdatePageData {
+    url?: string | null;
+    protocol?: string | null;
+    headless?: boolean;
+    navPosition?: number | null;
+    footerPosition?: number | null;
+    openAccess?: boolean;
+    pageAccessTypeCode?: string;       // Changed from pageAccessType
+    parent?: number | null;
+}
+
+export interface IUpdatePageField {
+    fieldId: number;                   // Field database ID
+    languageId: number;                // Language database ID
+    content: string | null;            // Field content (removed debug fields)
+}
+
+export interface IUpdatePageRequest {
+    pageData: IUpdatePageData;         // Page properties
+    fields: IUpdatePageField[];        // Field translations
+}
+```
+
+#### Key Changes Made
+1. **Property Name Standardization**: All properties now use camelCase consistently
+2. **Nested Structure**: Update requests use proper nested structure for validation
+3. **Null Safety**: Proper `| null` types for optional nullable fields
+4. **Schema Compliance**: Exact match with backend JSON schema validation
+5. **Clean Payloads**: Removed debugging fields from production API calls
+
+#### Benefits
+- ✅ **Backend Validation**: All requests pass JSON schema validation
+- ✅ **Type Safety**: Full TypeScript validation for API requests
+- ✅ **Consistency**: Uniform naming conventions across frontend
+- ✅ **Maintainability**: Clear separation of concerns in nested structures
+
+### Automatic Navigation After Page Creation
+The page creation system now automatically navigates users to the newly created page for immediate editing and content management.
+
+#### Implementation Details
+- **Automatic Redirect**: After successful page creation, users are automatically redirected to `/admin/pages/{keyword}`
+- **Modal Close Timing**: Modal closes before navigation to prevent UI conflicts
+- **Debug Logging**: Comprehensive logging for navigation flow tracking
+
+```typescript
+const createPageMutation = useCreatePageMutation({
+    onSuccess: (createdPage) => {
+        debug('Page created successfully, navigating to page', 'CreatePageModal', {
+            createdPage: createdPage.keyword,
+            navigatingTo: `/admin/pages/${createdPage.keyword}`
+        });
+        
+        form.reset();
+        onClose();
+        
+        // Navigate after modal close
+        setTimeout(() => {
+            router.push(`/admin/pages/${createdPage.keyword}`);
+        }, 100);
+    }
+});
+```
+
+### Enhanced Menu Positioning System
+Fixed critical issues with menu positioning and duplication to ensure proper menu state management.
+
+#### Issues Resolved
+1. **Menu Duplication**: Pages no longer appear duplicated after reordering
+2. **Position Accuracy**: Pages appear in their correct menu positions immediately
+3. **Cache Synchronization**: Proper React Query cache invalidation prevents stale data
+
+#### Technical Implementation
+```typescript
+// Enhanced cache invalidation strategy
+await Promise.all([
+    queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+    queryClient.invalidateQueries({ queryKey: ['pages'] }),
+    queryClient.refetchQueries({ queryKey: ['adminPages'] }),
+    queryClient.refetchQueries({ queryKey: ['pages'] }),
+]);
+
+// Clear stale cached data
+queryClient.removeQueries({ queryKey: ['adminPages'], exact: false });
+queryClient.removeQueries({ queryKey: ['pages'], exact: false });
+```
+
+#### Improved Position Calculation
+- **Proper Spacing**: Menu items maintain consistent 10-unit spacing
+- **Gap Detection**: Intelligent gap detection for optimal positioning
+- **Boundary Handling**: Proper handling of first/last positions
+
+```typescript
+const calculateFinalPosition = (pages: IMenuPageItem[], targetIndex: number): number => {
+    if (pages.length === 0) return 10;
+    
+    if (targetIndex === 0) {
+        const firstPagePosition = pages[0].position;
+        return Math.max(1, firstPagePosition - 10);
+    } else if (targetIndex >= pages.length) {
+        const lastPagePosition = pages[pages.length - 1].position;
+        return lastPagePosition + 10;
+    } else {
+        const prevPage = pages[targetIndex - 1];
+        const nextPage = pages[targetIndex];
+        const gap = nextPage.position - prevPage.position;
+        
+        return gap > 2 
+            ? Math.floor((prevPage.position + nextPage.position) / 2)
+            : prevPage.position + 5;
+    }
+};
+```
+
+## 2.2. Navigation System Architecture
 
 The application uses a centralized navigation system that fetches page data from the API and organizes it into different navigation contexts:
 
@@ -36,7 +173,7 @@ The application uses a centralized navigation system that fetches page data from
 - Proper loading states with skeleton components
 - Nested menu support with hover interactions
 
-## 2.2. React Query Data Transformation Rules
+## 2.3. React Query Data Transformation Rules
 
 **CRITICAL RULE**: Always use React Query's `select` option for data transformations to prevent recalculation on every render.
 
@@ -76,7 +213,7 @@ const filtered = data?.filter(condition) ?? [];
 const sorted = filtered.sort(compareFn);
 ```
 
-## 2.3. React Query Mutations - State-of-the-Art Data Manipulation
+## 2.4. React Query Mutations - State-of-the-Art Data Manipulation
 
 **CRITICAL RULE**: Always use React Query's `useMutation` for data manipulation operations (Create, Update, Delete). This is the state-of-the-art approach.
 
@@ -127,7 +264,7 @@ const handleSubmit = (values) => {
 - **Consistent UX**: Standardized loading states and error handling
 - **Developer Experience**: Excellent debugging with React Query DevTools
 
-## 2.4. UI Component Rules - Mantine First Approach
+## 2.5. UI Component Rules - Mantine First Approach
 
 **CRITICAL RULE**: Minimize custom Tailwind CSS and maximize Mantine UI v7 components for better theming and customization.
 
@@ -199,7 +336,7 @@ const handleSubmit = (values) => {
 - **User Customization**: Easier for users to apply custom themes
 - **Maintenance**: Centralized styling through Mantine's theme system
 
-## 2.5. Component Reusability Rules
+## 2.6. Component Reusability Rules
 
 **CRITICAL RULE**: Always extract components into separate reusable components if they are used in more than one place.
 
@@ -262,7 +399,7 @@ export function ReusableComponent({
 3. **Preserve Functionality**: Ensure all interactive behavior is maintained
 4. **Test Theming**: Verify components work with different Mantine themes
 
-## 2.4. Lookups System Architecture
+## 2.7. Lookups System Architecture
 
 The application uses a centralized lookups system for managing configuration data and dropdown options.
 
@@ -314,7 +451,7 @@ const mobileLookup = useLookup(PAGE_ACCESS_TYPES, PAGE_ACCESS_TYPES_MOBILE);
 - **Data transformation**: Uses React Query's `select` option for efficient processing
 - **Memory optimization**: Processed data structures prevent recalculation
 
-## 2.5. Create Page Modal System
+## 2.8. Create Page Modal System
 
 The create page modal provides a comprehensive interface for creating new pages with all necessary configuration options.
 
@@ -355,7 +492,7 @@ interface ICreatePageFormValues {
 - **Custom Edit**: Optional manual URL editing when enabled
 - **Read-only Display**: Shows generated pattern when custom edit is disabled
 
-## 2.5. Enhanced Page Creation System - Context-Aware Menu Filtering
+## 2.9. Enhanced Page Creation System - Context-Aware Menu Filtering
 
 **CRITICAL ENHANCEMENT**: The CreatePageModal now supports context-aware page creation with intelligent menu filtering based on page hierarchy.
 
@@ -412,7 +549,7 @@ const processMenuPages = useMemo(() => {
 
 This enhancement ensures that page creation respects the hierarchical structure and provides users with contextually relevant menu positioning options.
 
-## 2.5. Page Content Management System
+## 2.10. Page Content Management System
 
 **CRITICAL FEATURE**: Enhanced page content editing with dynamic field loading and proper form management.
 
