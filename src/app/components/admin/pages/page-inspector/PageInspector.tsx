@@ -38,11 +38,13 @@ import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { usePageFields } from '../../../../../hooks/usePageDetails';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { useDeletePageMutation } from '../../../../../hooks/mutations/useDeletePageMutation';
+import { useUpdatePageMutation } from '../../../../../hooks/mutations/useUpdatePageMutation';
 import { useLanguages } from '../../../../../hooks/useLanguages';
 import { LockedField } from '../../../ui/locked-field/LockedField';
 import { DragDropMenuPositioner } from '../../../ui/drag-drop-menu-positioner/DragDropMenuPositioner';
 import { FieldLabelWithTooltip } from '../../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
 import { IPageField } from '../../../../../types/responses/admin/page-details.types';
+import { IUpdatePageField } from '../../../../../types/requests/admin/update-page.types';
 import { PAGE_ACCESS_TYPES } from '../../../../../constants/lookups.constants';
 import { debug } from '../../../../../utils/debug-logger';
 
@@ -94,6 +96,21 @@ export function PageInspector({ page }: PageInspectorProps) {
             setActiveLanguageTab(languages[0].code);
         }
     }, [languages, activeLanguageTab]);
+
+    // Update page mutation
+    const updatePageMutation = useUpdatePageMutation({
+        onSuccess: (updatedPage, keyword) => {
+            debug('Page updated successfully in PageInspector', 'PageInspector', { 
+                keyword, 
+                updatedPage: updatedPage.keyword 
+            });
+            // Additional success handling can be added here if needed
+        },
+        onError: (error, keyword) => {
+            debug('Update page error in PageInspector', 'PageInspector', { error, keyword });
+            // Error is already handled by the mutation hook with notifications
+        }
+    });
 
     // Delete page mutation
     const deletePageMutation = useDeletePageMutation({
@@ -193,9 +210,80 @@ export function PageInspector({ page }: PageInspectorProps) {
     ]);
 
     const handleSave = () => {
-        debug('Saving page data', 'PageInspector', form.values);
-        // TODO: Implement save mutation
-        console.log('Save page:', form.values);
+        // Prepare data structure for backend with field IDs and language IDs
+        const pageData = {
+            // Page basic properties
+            keyword: form.values.keyword,
+            url: form.values.url,
+            headless: form.values.headless,
+            navPosition: form.values.navPosition,
+            footerPosition: form.values.footerPosition,
+            openAccess: form.values.openAccess,
+            pageAccessType: form.values.pageAccessType,
+        };
+
+        // Prepare field translations with field IDs and language IDs
+        const fields: IUpdatePageField[] = [];
+
+        // Process content fields (display: true) - these are translated
+        contentFields.forEach(field => {
+            languages.forEach(language => {
+                const content = form.values.fields?.[field.name]?.[language.code] || '';
+                if (content.trim()) { // Only include non-empty content
+                    fields.push({
+                        fieldId: field.id,
+                        languageId: language.id,
+                        content: content,
+                        fieldName: field.name, // For debugging
+                        languageCode: language.code // For debugging
+                    });
+                }
+            });
+        });
+
+        // Process property fields (display: false) - these use hardcoded language ID 1
+        propertyFields.forEach(field => {
+            const firstLanguageCode = languages[0]?.code || 'de';
+            const content = form.values.fields?.[field.name]?.[firstLanguageCode] || '';
+            if (content.trim()) { // Only include non-empty content
+                fields.push({
+                    fieldId: field.id,
+                    languageId: 1, // Hardcoded for property fields
+                    content: content,
+                    fieldName: field.name, // For debugging
+                    languageCode: 'property' // For debugging
+                });
+            }
+        });
+
+        const backendPayload = {
+            pageData,
+            fields: fields
+        };
+
+        debug('Saving page data - Backend payload structure', 'PageInspector', {
+            originalFormValues: form.values,
+            backendPayload,
+            summary: {
+                pageProperties: Object.keys(pageData).length,
+                totalFieldTranslations: fields.length,
+                contentFieldTranslations: fields.filter(ft => ft.languageId !== 1).length,
+                propertyFieldTranslations: fields.filter(ft => ft.languageId === 1).length,
+                availableLanguages: languages.map(l => ({ id: l.id, code: l.code, locale: l.locale })),
+                contentFields: contentFields.map(f => ({ id: f.id, name: f.name, display: f.display })),
+                propertyFields: propertyFields.map(f => ({ id: f.id, name: f.name, display: f.display }))
+            }
+        });
+
+        // Submit the update to the backend
+        if (page?.keyword) {
+            updatePageMutation.mutate({
+                keyword: page.keyword,
+                updateData: backendPayload
+            });
+        } else {
+            debug('Cannot save page - no page keyword available', 'PageInspector');
+        }
     };
 
     const handleCreateChildPage = () => {
@@ -329,6 +417,8 @@ export function PageInspector({ page }: PageInspectorProps) {
                         leftSection={<IconDeviceFloppy size="1rem" />}
                         onClick={handleSave}
                         variant="filled"
+                        loading={updatePageMutation.isPending}
+                        disabled={!page?.keyword}
                     >
                         Save
                     </Button>

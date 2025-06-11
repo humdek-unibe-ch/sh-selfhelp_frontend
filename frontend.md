@@ -1252,6 +1252,165 @@ const handleDeletePage = () => {
 - Enhanced `usePageFields` hook to handle new response structure
 - Proper error handling and loading states
 
+### New API Integration: Page Updates
+
+#### 1. Update Page API Endpoint
+```typescript
+// New endpoint added to API_CONFIG
+ADMIN_PAGES_UPDATE: (keyword: string) => `/admin/pages/${keyword}`
+
+// API method with PUT request
+async updatePage(keyword: string, updateData: IUpdatePageRequest): Promise<IAdminPage> {
+    const response = await apiClient.put<IBaseApiResponse<IAdminPage>>(
+        API_CONFIG.ENDPOINTS.ADMIN_PAGES_UPDATE(keyword),
+        updateData
+    );
+    return response.data.data;
+}
+```
+
+#### 2. Update Page Request Types
+```typescript
+// src/types/requests/admin/update-page.types.ts
+export interface IUpdatePageData {
+    keyword: string;
+    url: string;
+    headless: boolean;
+    navPosition: number | null;
+    footerPosition: number | null;
+    openAccess: boolean;
+    pageAccessType: string;
+}
+
+export interface IUpdatePageField {
+    fieldId: number;           // Field ID from database
+    languageId: number;        // Language ID (1 for properties, actual ID for content)
+    content: string;           // Field content
+    fieldName?: string;        // For debugging
+    languageCode?: string;     // For debugging
+}
+
+export interface IUpdatePageRequest {
+    pageData: IUpdatePageData;
+    fields: IUpdatePageField[];
+}
+```
+
+#### 3. Update Page Mutation Hook
+```typescript
+// src/hooks/mutations/useUpdatePageMutation.ts
+export function useUpdatePageMutation(options: IUpdatePageMutationOptions = {}) {
+    const queryClient = useQueryClient();
+    
+    return useMutation({
+        mutationFn: ({ keyword, updateData }: IUpdatePageMutationVariables) => 
+            AdminApi.updatePage(keyword, updateData),
+        
+        onSuccess: async (updatedPage: IAdminPage, { keyword }) => {
+            // Invalidate relevant queries
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+                queryClient.invalidateQueries({ queryKey: ['pages'] }),
+                queryClient.invalidateQueries({ queryKey: ['pageFields', keyword] }),
+                queryClient.invalidateQueries({ queryKey: ['pageSections', keyword] }),
+            ]);
+            
+            // Show success notification
+            notifications.show({
+                title: 'Page Updated Successfully',
+                message: `Page "${keyword}" has been updated successfully with all changes saved!`,
+                icon: <IconCheck size="1rem" />,
+                color: 'green',
+                autoClose: 5000,
+                position: 'top-center',
+            });
+        },
+        
+        onError: (error: any, { keyword }) => {
+            // Show error notification with parsed error message
+            const { errorMessage, errorTitle } = parseApiError(error);
+            notifications.show({
+                title: errorTitle || 'Update Failed',
+                message: errorMessage || `Failed to update page "${keyword}". Please try again.`,
+                icon: <IconX size="1rem" />,
+                color: 'red',
+                autoClose: 8000,
+                position: 'top-center',
+            });
+        },
+    });
+}
+```
+
+#### 4. Enhanced Save Functionality in PageInspector
+```typescript
+const handleSave = () => {
+    // Prepare page data
+    const pageData = {
+        keyword: form.values.keyword,
+        url: form.values.url,
+        headless: form.values.headless,
+        navPosition: form.values.navPosition,
+        footerPosition: form.values.footerPosition,
+        openAccess: form.values.openAccess,
+        pageAccessType: form.values.pageAccessType,
+    };
+
+    // Prepare field translations with field IDs and language IDs
+    const fields: IUpdatePageField[] = [];
+
+    // Content fields (display: true) - translated per language
+    contentFields.forEach(field => {
+        languages.forEach(language => {
+            const content = form.values.fields?.[field.name]?.[language.code] || '';
+            if (content.trim()) {
+                fields.push({
+                    fieldId: field.id,
+                    languageId: language.id,
+                    content: content,
+                    fieldName: field.name,
+                    languageCode: language.code
+                });
+            }
+        });
+    });
+
+    // Property fields (display: false) - hardcoded language ID 1
+    propertyFields.forEach(field => {
+        const firstLanguageCode = languages[0]?.code || 'de';
+        const content = form.values.fields?.[field.name]?.[firstLanguageCode] || '';
+        if (content.trim()) {
+            fields.push({
+                fieldId: field.id,
+                languageId: 1, // Hardcoded for property fields
+                content: content,
+                fieldName: field.name,
+                languageCode: 'property'
+            });
+        }
+    });
+
+    // Submit to backend
+    if (page?.keyword) {
+        updatePageMutation.mutate({
+            keyword: page.keyword,
+            updateData: { pageData, fields }
+        });
+    }
+};
+
+// Enhanced Save button with loading state
+<Button
+    leftSection={<IconDeviceFloppy size="1rem" />}
+    onClick={handleSave}
+    variant="filled"
+    loading={updatePageMutation.isPending}
+    disabled={!page?.keyword}
+>
+    Save
+</Button>
+```
+
 ### New API Integration: Languages
 
 #### 1. Languages API Endpoint

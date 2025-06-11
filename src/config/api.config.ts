@@ -24,6 +24,7 @@ export const API_CONFIG = {
         ADMIN_PAGES_SECTIONS_GET: (keyword: string) => `/admin/pages/${keyword}/sections`,
         ADMIN_PAGES_GET_ONE: (keyword: string) => `/admin/pages/${keyword}`,
         ADMIN_PAGES_DELETE: (keyword: string) => `/admin/pages/${keyword}`,
+        ADMIN_PAGES_UPDATE: (keyword: string) => `/admin/pages/${keyword}`,
         ADMIN_PAGES_CREATE: '/admin/pages',
         ADMIN_LANGUAGES: '/admin/languages',
         ADMIN_LOOKUPS: '/admin/lookups',        

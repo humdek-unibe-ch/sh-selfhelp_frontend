@@ -11,6 +11,7 @@ import { API_CONFIG } from '../config/api.config';
 import { IBaseApiResponse } from '../types/responses/common/response-envelope.types';
 import { IAdminPage } from '../types/responses/admin/admin.types';
 import { ICreatePageRequest } from '../types/requests/admin/create-page.types';
+import { IUpdatePageRequest } from '../types/requests/admin/update-page.types';
 import { TPageFieldsResponse, IPageFieldsData } from '../types/responses/admin/page-details.types';
 import { TLanguagesResponse, ILanguage } from '../types/responses/admin/languages.types';
 
@@ -72,6 +73,21 @@ export const AdminApi = {
         const response = await apiClient.post<IBaseApiResponse<IAdminPage>>(
             API_CONFIG.ENDPOINTS.ADMIN_PAGES_CREATE,
             pageData
+        );
+        return response.data.data;
+    },
+
+    /**
+     * Updates an existing page
+     * @param {string} keyword - The page keyword to update
+     * @param {IUpdatePageRequest} updateData - The page data and fields to update
+     * @returns {Promise<IAdminPage>} The updated page data
+     * @throws {Error} When API request fails
+     */
+    async updatePage(keyword: string, updateData: IUpdatePageRequest): Promise<IAdminPage> {
+        const response = await apiClient.put<IBaseApiResponse<IAdminPage>>(
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_UPDATE(keyword),
+            updateData
         );
         return response.data.data;
     },
