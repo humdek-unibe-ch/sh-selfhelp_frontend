@@ -42,6 +42,7 @@ interface IDragDropMenuPositionerProps {
     // Callbacks
     onEnabledChange: (enabled: boolean) => void;
     onPositionChange: (position: number | null) => void;
+    onGetFinalPosition?: (getFinalPositionFn: () => number | null) => void;
     
     // Context for filtering pages (for child page creation)
     parentPage?: IAdminPage | null;
@@ -68,6 +69,7 @@ export function DragDropMenuPositioner({
     position,
     onEnabledChange,
     onPositionChange,
+    onGetFinalPosition,
     parentPage = null,
     showCheckbox = true,
     checkboxLabel,
@@ -218,6 +220,13 @@ export function DragDropMenuPositioner({
             return menuPages.length > 0 ? menuPages[menuPages.length - 1].position + 5 : 10;
         }
     };
+
+    // Expose getFinalPosition function to parent component
+    useEffect(() => {
+        if (onGetFinalPosition) {
+            onGetFinalPosition(getFinalPosition);
+        }
+    }, [onGetFinalPosition, enabled, position, menuPages]);
 
     // Render menu item for drag and drop
     const renderMenuItem = (item: IMenuPageItem, index: number) => {

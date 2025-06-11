@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect} from 'react';
+import { useEffect, useRef} from 'react';
 
 import { 
     Modal, 
@@ -38,6 +38,9 @@ import styles from './CreatePage.module.css';
 
 export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreatePageModalProps) => {
 
+    // References to get final positions from DragDropMenuPositioner components
+    const headerMenuGetFinalPosition = useRef<(() => number | null) | null>(null);
+    const footerMenuGetFinalPosition = useRef<(() => number | null) | null>(null);
     
     // React Query client for cache invalidation
     const queryClient = useQueryClient();
@@ -109,23 +112,29 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
 
     // Handle form submission
     const handleSubmit = async (values: ICreatePageFormValues) => {
-        // The DragDropMenuPositioner component handles position calculation internally
-        // We just need to pass the position values from the form
+        // Get final calculated positions from DragDropMenuPositioner components
+        const finalHeaderPosition = headerMenuGetFinalPosition.current ? headerMenuGetFinalPosition.current() : null;
+        const finalFooterPosition = footerMenuGetFinalPosition.current ? footerMenuGetFinalPosition.current() : null;
+        
         const submitData: ICreatePageRequest = {
             keyword: values.keyword,
             page_access_type_code: values.pageAccessType,
             is_headless: values.headlessPage,
             is_open_access: values.openAccess,
             url: values.urlPattern,
-            nav_position: values.headerMenu && values.headerMenuPosition !== null ? values.headerMenuPosition : undefined,
-            footer_position: values.footerMenu && values.footerMenuPosition !== null ? values.footerMenuPosition : undefined,
+            nav_position: finalHeaderPosition || undefined,
+            footer_position: finalFooterPosition || undefined,
             parent: values.parentPage || undefined,
         };
 
-        debug('Creating new page', 'CreatePageModal', {
+        debug('Creating new page with final positions', 'CreatePageModal', {
             ...submitData,
             headerMenuEnabled: values.headerMenu,
             footerMenuEnabled: values.footerMenu,
+            originalHeaderPosition: values.headerMenuPosition,
+            originalFooterPosition: values.footerMenuPosition,
+            finalHeaderPosition,
+            finalFooterPosition,
         });
         
         // Use the mutation instead of direct API call
@@ -276,6 +285,9 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
                                                 position={form.values.headerMenuPosition}
                                                 onEnabledChange={(enabled) => form.setFieldValue('headerMenu', enabled)}
                                                 onPositionChange={(position) => form.setFieldValue('headerMenuPosition', position)}
+                                                onGetFinalPosition={(getFinalPositionFn) => {
+                                                    headerMenuGetFinalPosition.current = getFinalPositionFn;
+                                                }}
                                                 parentPage={parentPage}
                                                 checkboxLabel="Header Menu"
                                             />
@@ -289,6 +301,9 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
                                                 position={form.values.footerMenuPosition}
                                                 onEnabledChange={(enabled) => form.setFieldValue('footerMenu', enabled)}
                                                 onPositionChange={(position) => form.setFieldValue('footerMenuPosition', position)}
+                                                onGetFinalPosition={(getFinalPositionFn) => {
+                                                    footerMenuGetFinalPosition.current = getFinalPositionFn;
+                                                }}
                                                 parentPage={parentPage}
                                                 checkboxLabel="Footer Menu"
                                             />

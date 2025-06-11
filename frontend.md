@@ -2849,3 +2849,55 @@ useEffect(() => {
 ```
 
 ### Key Improvements Made
+
+## DragDropMenuPositioner - getFinalPosition Implementation (Latest Update)
+
+### Overview
+Enhanced the `DragDropMenuPositioner` component to expose the `getFinalPosition` function to parent components, ensuring that the correct calculated position values are sent to the backend when submitting forms.
+
+### Problem Solved
+Previously, the form was storing the drag index (0, 1, 2, etc.) instead of the actual position values that the backend expects. The `DragDropMenuPositioner` component had internal logic to calculate the final position based on existing page positions, but this wasn't being used during form submission.
+
+### Implementation Details
+
+#### 1. Enhanced Component Interface
+```typescript
+interface IDragDropMenuPositionerProps {
+    // ... existing props
+    onGetFinalPosition?: (getFinalPositionFn: () => number | null) => void;
+}
+```
+
+#### 2. Position Calculation Logic
+The `getFinalPosition` function calculates the actual position value based on:
+- **First position**: Places at position 5 or before the first existing page
+- **Last position**: Adds 5 to the last page's position
+- **Between pages**: Calculates the middle position between two existing pages
+- **Enabled state**: Returns null if menu is disabled
+
+#### 3. Parent Component Integration
+Both `CreatePage.tsx` and `PageInspector.tsx` now use refs to store the `getFinalPosition` function:
+
+```typescript
+// Store references to getFinalPosition functions
+const headerMenuGetFinalPosition = useRef<(() => number | null) | null>(null);
+const footerMenuGetFinalPosition = useRef<(() => number | null) | null>(null);
+
+// Get final positions during form submission
+const finalHeaderPosition = headerMenuGetFinalPosition.current ? headerMenuGetFinalPosition.current() : null;
+const finalFooterPosition = footerMenuGetFinalPosition.current ? footerMenuGetFinalPosition.current() : null;
+```
+
+#### 4. Form Submission Updates
+- **CreatePage**: Uses final positions for `nav_position` and `footer_position` in the API request
+- **PageInspector**: Uses final positions in the `pageData` object sent to the backend
+- **Debug Logging**: Enhanced to show both original form positions and final calculated positions
+
+### Benefits
+1. **Accurate Positioning**: Backend receives the correct position values for proper menu ordering
+2. **Consistent Behavior**: Same position calculation logic used across create and edit scenarios
+3. **Better Debugging**: Clear visibility into position transformations through enhanced logging
+4. **Maintainable Code**: Single source of truth for position calculation logic
+
+### Technical Implementation
+The component exposes its internal `getFinalPosition` function through a callback prop, allowing parent components to access the calculated position at the time of form submission. This ensures that the most up-to-date position calculation is used, taking into account any changes in the menu structure.

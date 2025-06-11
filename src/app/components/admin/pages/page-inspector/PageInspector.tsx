@@ -33,7 +33,7 @@ import {
 } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
 import { useHotkeys } from '@mantine/hooks';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { usePageFields } from '../../../../../hooks/usePageDetails';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
@@ -76,6 +76,10 @@ export function PageInspector({ page }: PageInspectorProps) {
     const [contentExpanded, setContentExpanded] = useState(true);
     const [propertiesExpanded, setPropertiesExpanded] = useState(true);
     const [activeLanguageTab, setActiveLanguageTab] = useState<string>('');
+    
+    // References to get final positions from DragDropMenuPositioner components
+    const headerMenuGetFinalPosition = useRef<(() => number | null) | null>(null);
+    const footerMenuGetFinalPosition = useRef<(() => number | null) | null>(null);
     
     // Fetch page fields when page is selected
     const { 
@@ -210,14 +214,18 @@ export function PageInspector({ page }: PageInspectorProps) {
     ]);
 
     const handleSave = () => {
+        // Get final calculated positions from DragDropMenuPositioner components
+        const finalHeaderPosition = headerMenuGetFinalPosition.current ? headerMenuGetFinalPosition.current() : null;
+        const finalFooterPosition = footerMenuGetFinalPosition.current ? footerMenuGetFinalPosition.current() : null;
+        
         // Prepare data structure for backend with field IDs and language IDs
         const pageData = {
             // Page basic properties
             keyword: form.values.keyword,
             url: form.values.url,
             headless: form.values.headless,
-            navPosition: form.values.navPosition,
-            footerPosition: form.values.footerPosition,
+            navPosition: finalHeaderPosition,
+            footerPosition: finalFooterPosition,
             openAccess: form.values.openAccess,
             pageAccessType: form.values.pageAccessType,
         };
@@ -264,6 +272,12 @@ export function PageInspector({ page }: PageInspectorProps) {
         debug('Saving page data - Backend payload structure', 'PageInspector', {
             originalFormValues: form.values,
             backendPayload,
+            finalPositions: {
+                originalHeaderPosition: form.values.navPosition,
+                originalFooterPosition: form.values.footerPosition,
+                finalHeaderPosition,
+                finalFooterPosition,
+            },
             summary: {
                 pageProperties: Object.keys(pageData).length,
                 totalFieldTranslations: fields.length,
@@ -578,6 +592,9 @@ export function PageInspector({ page }: PageInspectorProps) {
                                 position={form.values.navPosition}
                                 onEnabledChange={handleHeaderMenuChange}
                                 onPositionChange={(position) => form.setFieldValue('navPosition', position)}
+                                onGetFinalPosition={(getFinalPositionFn) => {
+                                    headerMenuGetFinalPosition.current = getFinalPositionFn;
+                                }}
                                 checkboxLabel="Header Menu"
                                 showAlert={false}
                             />
@@ -590,6 +607,9 @@ export function PageInspector({ page }: PageInspectorProps) {
                                 position={form.values.footerPosition}
                                 onEnabledChange={handleFooterMenuChange}
                                 onPositionChange={(position) => form.setFieldValue('footerPosition', position)}
+                                onGetFinalPosition={(getFinalPositionFn) => {
+                                    footerMenuGetFinalPosition.current = getFinalPositionFn;
+                                }}
                                 checkboxLabel="Footer Menu"
                                 showAlert={false}
                             />
