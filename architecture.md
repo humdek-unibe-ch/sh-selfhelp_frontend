@@ -609,6 +609,84 @@ interface IPageFormValues {
 - **Efficient Workflow**: Keyboard shortcuts and fixed save button improve productivity
 - **Data Integrity**: Proper form validation and confirmation dialogs prevent data loss
 
+## 2.11. Page Sections Modular Architecture (Latest Update)
+
+### Component Structure
+The page sections interface has been restructured into a modular architecture with clear separation of concerns:
+
+#### Core Components
+1. **PageSections** - Main container component that handles data fetching and state management
+2. **SectionsList** - Manages drag-and-drop context and section rendering
+3. **PageSection** - Individual section wrapper with drag functionality
+4. **SectionHeader** - Section header with drag handle, expand/collapse, and action buttons
+5. **SectionChildrenArea** - Drop zone for child sections with visual feedback
+6. **SectionDragOverlay** - Visual feedback during drag operations
+
+#### Architecture Benefits
+- **Separation of Concerns**: Each component has a single responsibility
+- **Reusability**: Components can be used independently or combined
+- **Maintainability**: Clear component boundaries make debugging easier
+- **Performance**: Optimized rendering with minimal re-renders
+- **Accessibility**: Proper drag-and-drop accessibility support
+
+#### Component Hierarchy
+```
+PageSections (Main Container)
+├── SectionsList (Drag Context)
+    ├── PageSection (Individual Section)
+        ├── SectionHeader (Header with Controls)
+        └── SectionChildrenArea (Drop Zone)
+            └── PageSection (Recursive Children)
+    └── SectionDragOverlay (Drag Feedback)
+```
+
+#### Key Features
+- **Smart Drag & Drop**: Parent sections automatically include all children when dragged
+- **Conditional Functionality**: Only sections with `can_have_children: true` can accept drops
+- **Visual Feedback**: Clear visual indicators for valid drop targets
+- **Hierarchical Display**: Clean nested structure with proper indentation
+- **Compact UI**: Optimized for space efficiency while maintaining clarity
+
+#### Technical Implementation
+```typescript
+// Main container with state management
+export function PageSections({ keyword }: PageSectionsProps) {
+    const { data, isLoading, error } = usePageSections(keyword);
+    const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
+    
+    return (
+        <SectionsList
+            sections={data.sections}
+            expandedSections={expandedSections}
+            onToggleExpand={handleToggleExpand}
+            onSectionMove={handleSectionMove}
+        />
+    );
+}
+
+// Drag context with validation
+export function SectionsList({ sections, onSectionMove }: SectionsListProps) {
+    return (
+        <DndContext onDragEnd={handleDragEnd}>
+            <SortableContext items={allSectionIds}>
+                {sections.map(section => (
+                    <PageSection key={section.id} section={section} />
+                ))}
+            </SortableContext>
+        </DndContext>
+    );
+}
+```
+
+#### Drag & Drop Logic
+- **Parent-Children Movement**: Dragging a parent automatically includes all descendants
+- **Smart Validation**: Prevents circular references and invalid drops
+- **Visual Feedback**: Green borders for valid drop targets, reduced opacity for invalid ones
+- **Backend Integration**: Comprehensive logging for backend synchronization
+
+#### Type Safety
+All components use the consolidated `IPageField` interface from `pages.type.ts`, eliminating duplicate type definitions and ensuring consistency across the application.
+
 ## 3. Directory Structure
 
 A clear directory structure is crucial for organization and scalability.

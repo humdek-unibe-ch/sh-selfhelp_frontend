@@ -1,0 +1,131 @@
+'use client';
+
+import { Group, Text, Badge, ActionIcon, Tooltip } from '@mantine/core';
+import { 
+    IconGripVertical,
+    IconChevronDown,
+    IconChevronRight,
+    IconPlus,
+    IconCopy,
+    IconTrash
+} from '@tabler/icons-react';
+import { IPageField } from '../../../../../types/common/pages.type';
+import styles from './PageSections.module.css';
+
+interface SectionHeaderProps {
+    section: IPageField;
+    level: number;
+    hasChildren: boolean;
+    isExpanded: boolean;
+    onToggleExpand: (sectionId: number) => void;
+    dragHandleProps: any;
+    isDragging: boolean;
+    isValidDropTarget: boolean;
+    isDragActive: boolean;
+}
+
+export function SectionHeader({
+    section,
+    level,
+    hasChildren,
+    isExpanded,
+    onToggleExpand,
+    dragHandleProps,
+    isDragging,
+    isValidDropTarget,
+    isDragActive
+}: SectionHeaderProps) {
+    const getSectionTitle = (section: IPageField) => {
+        const nameParts = section.name.split('-');
+        return nameParts.length > 1 ? nameParts[1] : section.name;
+    };
+
+    return (
+        <Group 
+            justify="space-between" 
+            wrap="nowrap" 
+            gap="xs"
+            p="xs"
+            style={{
+                borderRadius: '4px',
+                backgroundColor: isValidDropTarget && isDragActive ? 'var(--mantine-color-green-0)' : undefined,
+                border: isValidDropTarget && isDragActive ? '2px solid var(--mantine-color-green-6)' : '1px solid var(--mantine-color-gray-3)',
+                opacity: isDragActive && !section.can_have_children ? 0.3 : 1,
+                cursor: isDragging ? 'grabbing' : 'default'
+            }}
+        >
+            <Group gap="xs" style={{ flex: 1, minWidth: 0 }}>
+                {/* Drag Handle */}
+                <ActionIcon 
+                    variant="subtle" 
+                    size="xs" 
+                    className={styles.dragHandle}
+                    style={{ cursor: 'grab', flexShrink: 0 }}
+                    {...dragHandleProps}
+                >
+                    <IconGripVertical size={12} />
+                </ActionIcon>
+
+                {/* Expand/Collapse Button */}
+                {hasChildren ? (
+                    <ActionIcon 
+                        variant="subtle" 
+                        size="xs"
+                        style={{ flexShrink: 0 }}
+                        onClick={() => onToggleExpand(section.id)}
+                    >
+                        {isExpanded ? <IconChevronDown size={12} /> : <IconChevronRight size={12} />}
+                    </ActionIcon>
+                ) : (
+                    <div style={{ width: 20 }} /> // Spacer for alignment
+                )}
+
+                {/* Section Info */}
+                <Group gap="xs" style={{ flex: 1, minWidth: 0 }}>
+                    <Tooltip label={`${section.name} | Path: ${section.path} | ID: ${section.id}`} position="top" withArrow>
+                        <Text fw={500} size="xs" className={styles.truncateText} style={{ minWidth: 0, flex: 1 }}>
+                            {getSectionTitle(section)}
+                        </Text>
+                    </Tooltip>
+                    <Badge size="xs" variant="light" color="blue" style={{ flexShrink: 0 }}>
+                        {section.style_name}
+                    </Badge>
+                    <Badge size="xs" variant="outline" color="gray" style={{ flexShrink: 0 }}>
+                        {section.position}
+                    </Badge>
+                    {hasChildren && (
+                        <Badge 
+                            size="xs" 
+                            variant="dot" 
+                            color="green" 
+                            style={{ flexShrink: 0 }} 
+                            title={`Has ${section.children.length} children (will move together)`}
+                        >
+                            {section.children.length}
+                        </Badge>
+                    )}
+                    {section.can_have_children && (
+                        <Badge size="xs" variant="dot" color="blue" style={{ flexShrink: 0 }} title="Can accept children">
+                            📁
+                        </Badge>
+                    )}
+                </Group>
+            </Group>
+
+            {/* Action Buttons */}
+            <Group gap={4} style={{ flexShrink: 0 }}>
+                {section.can_have_children && (
+                    <ActionIcon variant="subtle" size="xs" color="blue" title="Add child section">
+                        <IconPlus size={12} />
+                    </ActionIcon>
+                )}
+                <ActionIcon variant="subtle" size="xs" color="gray" title="Copy section">
+                    <IconCopy size={12} />
+                </ActionIcon>
+                <ActionIcon variant="subtle" size="xs" color="red" title="Delete section">
+                    <IconTrash size={12} />
+                </ActionIcon>
+            </Group>
+        </Group>
+    );
+} 
