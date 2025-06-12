@@ -1,0 +1,62 @@
+ /* Compact sections container */
+.sectionsContainer {
+    /* max-height: 70vh; */
+    overflow-y: auto;
+}
+
+/* Enhanced visual hierarchy for nested sections */
+.sectionItem {
+    transition: all 0.2s ease;
+}
+
+.sectionItem:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Different border colors for different nesting levels */
+/* .level0 {
+    border-left: none !important;
+}
+
+.level1 {
+    border-left: 2px solid var(--mantine-color-blue-4) !important;
+    background-color: var(--mantine-color-blue-0) !important;
+}
+
+.level2 {
+    border-left: 2px solid var(--mantine-color-green-4) !important;
+    background-color: var(--mantine-color-green-0) !important;
+}
+
+.level3 {
+    border-left: 2px solid var(--mantine-color-orange-4) !important;
+    background-color: var(--mantine-color-orange-0) !important;
+}
+
+.level4 {
+    border-left: 2px solid var(--mantine-color-purple-4) !important;
+    background-color: var(--mantine-color-purple-0) !important;
+} */
+
+/* Drag handle styling */
+.dragHandle {
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+}
+
+.dragHandle:hover {
+    opacity: 1;
+}
+
+/* Compact spacing */
+.compactGroup {
+    gap: 4px !important;
+}
+
+/* Truncate long text */
+.truncateText {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 150px;
+}

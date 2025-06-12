@@ -13,7 +13,8 @@ import {
     Badge,
     ActionIcon,
     Button,
-    Collapse
+    Collapse,
+    Tooltip
 } from '@mantine/core';
 import { 
     IconInfoCircle, 
@@ -49,6 +50,7 @@ import {
 } from '@dnd-kit/utilities';
 import { usePageSections } from '../../../../../hooks/usePageDetails';
 import { ISectionItem } from '../../../../../types/responses/admin/admin.types';
+import styles from './PageSections.module.css';
 
 interface PageSectionsProps {
     keyword: string | null;
@@ -94,73 +96,75 @@ function DraggableSectionItem({ section, level = 0, onToggleExpand, isExpanded, 
     return (
         <Box ref={setNodeRef} style={style}>
             <Paper 
-                p="md" 
+                p="xs" 
                 withBorder 
-                mb="xs"
+                mb={2}
+                className={`${styles.sectionItem} ${styles[`level${Math.min(level, 4)}`]}`}
                 style={{ 
-                    marginLeft: level * 20,
-                    borderLeft: level > 0 ? '3px solid var(--mantine-color-blue-4)' : undefined,
+                    marginLeft: level * 12,
+                    borderRadius: '4px',
                     cursor: isDragging ? 'grabbing' : 'default'
                 }}
             >
-                <Group justify="space-between" wrap="nowrap">
-                    <Group gap="xs" style={{ flex: 1 }}>
+                <Group justify="space-between" wrap="nowrap" gap="xs">
+                    <Group gap="xs" style={{ flex: 1, minWidth: 0 }}>
                         {/* Drag Handle */}
                         <ActionIcon 
                             variant="subtle" 
-                            size="sm" 
-                            style={{ cursor: 'grab' }}
+                            size="xs" 
+                            className={styles.dragHandle}
+                            style={{ cursor: 'grab', flexShrink: 0 }}
                             {...attributes}
                             {...listeners}
                         >
-                            <IconGripVertical size={16} />
+                            <IconGripVertical size={12} />
                         </ActionIcon>
 
                         {/* Expand/Collapse Button */}
-                        {hasChildren && (
+                        {hasChildren ? (
                             <ActionIcon 
                                 variant="subtle" 
-                                size="sm"
+                                size="xs"
+                                style={{ flexShrink: 0 }}
                                 onClick={() => onToggleExpand(section.id)}
                             >
-                                {isExpanded ? <IconChevronDown size={16} /> : <IconChevronRight size={16} />}
+                                {isExpanded ? <IconChevronDown size={12} /> : <IconChevronRight size={12} />}
                             </ActionIcon>
+                        ) : (
+                            <Box w={20} /> // Spacer for alignment
                         )}
 
-                        {/* Section Info */}
-                        <Box style={{ flex: 1 }}>
-                            <Group gap="xs" mb="xs">
-                                <Text fw={500} size="sm">
+                        {/* Section Info - Compact */}
+                        <Group gap="xs" style={{ flex: 1, minWidth: 0 }}>
+                            <Tooltip label={`${section.name} | Path: ${section.path} | ID: ${section.id}`} position="top" withArrow>
+                                <Text fw={500} size="xs" className={styles.truncateText} style={{ minWidth: 0, flex: 1 }}>
                                     {getSectionTitle(section)}
                                 </Text>
-                                <Badge size="xs" variant="light" color="blue">
-                                    {section.style_name}
+                            </Tooltip>
+                            <Badge size="xs" variant="light" color="blue" style={{ flexShrink: 0 }}>
+                                {section.style_name}
+                            </Badge>
+                            <Badge size="xs" variant="outline" color="gray" style={{ flexShrink: 0 }}>
+                                {section.position}
+                            </Badge>
+                            {hasChildren && (
+                                <Badge size="xs" variant="dot" color="green" style={{ flexShrink: 0 }}>
+                                    {section.children.length}
                                 </Badge>
-                                <Badge size="xs" variant="outline">
-                                    Pos: {section.position}
-                                </Badge>
-                                {hasChildren && (
-                                    <Badge size="xs" variant="light" color="green">
-                                        {section.children.length} children
-                                    </Badge>
-                                )}
-                            </Group>
-                            <Text size="xs" c="dimmed">
-                                Path: {section.path} | ID: {section.id}
-                            </Text>
-                        </Box>
+                            )}
+                        </Group>
                     </Group>
 
-                    {/* Action Buttons */}
-                    <Group gap="xs">
-                        <ActionIcon variant="subtle" size="sm" color="blue">
-                            <IconPlus size={16} />
+                    {/* Action Buttons - Compact */}
+                    <Group gap={4} style={{ flexShrink: 0 }}>
+                        <ActionIcon variant="subtle" size="xs" color="blue">
+                            <IconPlus size={12} />
                         </ActionIcon>
-                        <ActionIcon variant="subtle" size="sm" color="gray">
-                            <IconCopy size={16} />
+                        <ActionIcon variant="subtle" size="xs" color="gray">
+                            <IconCopy size={12} />
                         </ActionIcon>
-                        <ActionIcon variant="subtle" size="sm" color="red">
-                            <IconTrash size={16} />
+                        <ActionIcon variant="subtle" size="xs" color="red">
+                            <IconTrash size={12} />
                         </ActionIcon>
                     </Group>
                 </Group>
@@ -305,63 +309,63 @@ export function PageSections({ keyword }: PageSectionsProps) {
     }
 
     return (
-        <Stack gap="lg">
-            {/* Header */}
-            <Paper p="lg" withBorder>
+        <Stack gap="md">
+            {/* Header - Compact */}
+            <Paper p="md" withBorder>
                 <Group justify="space-between" align="center">
-                    <div>
-                        <Title order={3}>Page Sections</Title>
-                        <Text c="dimmed" size="sm">
-                            Content sections for page: <Text span fw={500}>{keyword}</Text>
-                        </Text>
-                    </div>
                     <Group gap="xs">
-                        <Badge color="blue" variant="light">
-                            {sections.length} sections
+                        <Title order={4} size="md">Page Sections</Title>
+                        <Badge color="blue" variant="light" size="sm">
+                            {sections.length}
                         </Badge>
-                        <Button size="xs" leftSection={<IconPlus size={16} />}>
-                            Add Section
-                        </Button>
                     </Group>
+                    <Button size="xs" leftSection={<IconPlus size={14} />} variant="light">
+                        Add Section
+                    </Button>
                 </Group>
             </Paper>
 
-            {/* Sections List with Drag and Drop */}
-            <Paper p="lg" withBorder>
+                        {/* Sections List with Drag and Drop */}
+            <Paper p="md" withBorder>
                 {sections.length > 0 ? (
-                    <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragStart={handleDragStart}
-                        onDragEnd={handleDragEnd}
-                    >
-                        <SortableContext
-                            items={flatSections.map(s => s.id)}
-                            strategy={verticalListSortingStrategy}
+                    <Box className={styles.sectionsContainer}>
+                        <DndContext
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragStart={handleDragStart}
+                            onDragEnd={handleDragEnd}
                         >
-                            <Stack gap="xs">
-                                {flatSections.map(section => (
-                                    <DraggableSectionItem
-                                        key={section.id}
-                                        section={section}
-                                        level={section.level}
-                                        onToggleExpand={handleToggleExpand}
-                                        isExpanded={expandedSections.has(section.id)}
-                                    />
-                                ))}
-                            </Stack>
-                        </SortableContext>
+                            <SortableContext
+                                items={flatSections.map(s => s.id)}
+                                strategy={verticalListSortingStrategy}
+                            >
+                                <Stack gap={2}>
+                                    {flatSections.map(section => (
+                                        <DraggableSectionItem
+                                            key={section.id}
+                                            section={section}
+                                            level={section.level}
+                                            onToggleExpand={handleToggleExpand}
+                                            isExpanded={expandedSections.has(section.id)}
+                                        />
+                                    ))}
+                                </Stack>
+                            </SortableContext>
 
-                        <DragOverlay>
-                            {activeId ? (
-                                <Paper p="md" withBorder shadow="lg" style={{ opacity: 0.8 }}>
-                                    <Text fw={500}>
-                                        Dragging section {activeId}
-                                    </Text>
-                                </Paper>
-                            ) : null}
-                        </DragOverlay>
-                    </DndContext>
+                                                 <DragOverlay>
+                             {activeId ? (
+                                 <Paper p="xs" withBorder shadow="lg" style={{ opacity: 0.9, backgroundColor: 'var(--mantine-color-blue-1)' }}>
+                                     <Group gap="xs">
+                                         <IconGripVertical size={12} />
+                                         <Text fw={500} size="xs">
+                                             Moving section {activeId}
+                                         </Text>
+                                     </Group>
+                                 </Paper>
+                             ) : null}
+                                                  </DragOverlay>
+                         </DndContext>
+                     </Box>
                 ) : (
                     <Stack align="center" gap="md" py="xl">
                         <IconInfoCircle size="2rem" color="var(--mantine-color-gray-5)" />
