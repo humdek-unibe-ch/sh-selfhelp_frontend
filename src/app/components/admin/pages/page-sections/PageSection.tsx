@@ -15,6 +15,7 @@ interface PageSectionProps {
     onToggleExpand: (sectionId: number) => void;
     isDragActive: boolean;
     overId: string | number | null;
+    draggedSectionId?: number | null;
 }
 
 export function PageSection({
@@ -23,7 +24,8 @@ export function PageSection({
     expandedSections,
     onToggleExpand,
     isDragActive,
-    overId
+    overId,
+    draggedSectionId
 }: PageSectionProps) {
     const {
         attributes,
@@ -43,6 +45,10 @@ export function PageSection({
     const hasChildren = section.children && section.children.length > 0;
     const isExpanded = expandedSections.has(section.id);
     const isValidDropTarget = section.can_have_children && overId === section.id;
+    
+    // Check if this section or any of its ancestors is being dragged
+    const isBeingDragged = draggedSectionId === section.id;
+    const isChildOfDraggedSection = draggedSectionId && section.id !== draggedSectionId && isDragActive;
 
     const dragHandleProps = {
         ...attributes,
@@ -59,6 +65,7 @@ export function PageSection({
             onToggleExpand={onToggleExpand}
             isDragActive={isDragActive}
             overId={overId}
+            draggedSectionId={draggedSectionId}
         />
     );
 
@@ -80,18 +87,21 @@ export function PageSection({
                 isDragging={isDragging}
                 isValidDropTarget={isValidDropTarget}
                 isDragActive={isDragActive}
+                isBeingDragged={isBeingDragged}
             />
 
-            {/* Children Area */}
-            <SectionChildrenArea
-                section={section}
-                level={level}
-                childSections={section.children}
-                isExpanded={isExpanded}
-                isDragActive={isDragActive}
-                overId={overId}
-                renderChild={renderChild}
-            />
+            {/* Children Area - Hide children of dragged element */}
+            {!isBeingDragged && (
+                <SectionChildrenArea
+                    section={section}
+                    level={level}
+                    childSections={section.children}
+                    isExpanded={isExpanded}
+                    isDragActive={isDragActive}
+                    overId={overId}
+                    renderChild={renderChild}
+                />
+            )}
         </Box>
     );
 } 

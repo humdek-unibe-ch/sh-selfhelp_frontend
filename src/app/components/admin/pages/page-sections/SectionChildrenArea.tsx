@@ -30,7 +30,13 @@ export function SectionChildrenArea({
         disabled: !section.can_have_children
     });
 
-    if (!section.can_have_children || !isExpanded) {
+    // Only show if section can have children AND (has children OR is dragging)
+    const shouldShow = section.can_have_children && (
+        (childSections && childSections.length > 0 && isExpanded) || 
+        isDragActive
+    );
+
+    if (!shouldShow) {
         return null;
     }
 
@@ -44,8 +50,8 @@ export function SectionChildrenArea({
             style={{
                 marginLeft: 16,
                 marginTop: 4,
-                minHeight: hasChildren ? 'auto' : 40,
-                borderLeft: '2px solid var(--mantine-color-gray-3)',
+                minHeight: hasChildren && isExpanded ? 'auto' : isDragActive ? 40 : 0,
+                borderLeft: hasChildren && isExpanded ? '2px solid var(--mantine-color-gray-3)' : 'none',
                 paddingLeft: 8,
                 backgroundColor: isHighlighted ? 'var(--mantine-color-green-0)' : 
                                 isValidDropZone ? 'var(--mantine-color-gray-0)' : 'transparent',
@@ -53,15 +59,16 @@ export function SectionChildrenArea({
                         isValidDropZone ? '1px dashed var(--mantine-color-gray-4)' : 'none',
                 borderRadius: '4px',
                 padding: isValidDropZone ? '4px' : '0',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
+                display: isDragActive || (hasChildren && isExpanded) ? 'block' : 'none'
             }}
         >
-            {hasChildren ? (
+            {hasChildren && isExpanded ? (
                 <Stack gap={2}>
                     {childSections.map(child => renderChild(child, level + 1))}
                 </Stack>
             ) : (
-                isValidDropZone && (
+                isDragActive && (
                     <Box
                         style={{
                             display: 'flex',

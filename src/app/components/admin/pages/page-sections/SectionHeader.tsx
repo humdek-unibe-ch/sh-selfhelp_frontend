@@ -22,6 +22,7 @@ interface SectionHeaderProps {
     isDragging: boolean;
     isValidDropTarget: boolean;
     isDragActive: boolean;
+    isBeingDragged: boolean;
 }
 
 export function SectionHeader({
@@ -33,7 +34,8 @@ export function SectionHeader({
     dragHandleProps,
     isDragging,
     isValidDropTarget,
-    isDragActive
+    isDragActive,
+    isBeingDragged
 }: SectionHeaderProps) {
     const getSectionTitle = (section: IPageField) => {
         const nameParts = section.name.split('-');
@@ -48,8 +50,10 @@ export function SectionHeader({
             p="xs"
             style={{
                 borderRadius: '4px',
-                backgroundColor: isValidDropTarget && isDragActive ? 'var(--mantine-color-green-0)' : undefined,
-                border: isValidDropTarget && isDragActive ? '2px solid var(--mantine-color-green-6)' : '1px solid var(--mantine-color-gray-3)',
+                backgroundColor: isValidDropTarget && isDragActive ? 'var(--mantine-color-green-0)' : 
+                                isBeingDragged ? 'var(--mantine-color-blue-0)' : undefined,
+                border: isValidDropTarget && isDragActive ? '2px solid var(--mantine-color-green-6)' : 
+                        isBeingDragged ? '2px solid var(--mantine-color-blue-6)' : '1px solid var(--mantine-color-gray-3)',
                 opacity: isDragActive && !section.can_have_children ? 0.3 : 1,
                 cursor: isDragging ? 'grabbing' : 'default'
             }}
@@ -66,8 +70,8 @@ export function SectionHeader({
                     <IconGripVertical size={12} />
                 </ActionIcon>
 
-                {/* Expand/Collapse Button */}
-                {hasChildren ? (
+                {/* Expand/Collapse Button - Hide when being dragged */}
+                {hasChildren && !isBeingDragged ? (
                     <ActionIcon 
                         variant="subtle" 
                         size="xs"
@@ -97,11 +101,14 @@ export function SectionHeader({
                         <Badge 
                             size="xs" 
                             variant="dot" 
-                            color="green" 
+                            color={isBeingDragged ? "orange" : "green"}
                             style={{ flexShrink: 0 }} 
-                            title={`Has ${section.children.length} children (will move together)`}
+                            title={isBeingDragged ? 
+                                `Moving with ${section.children.length} children` : 
+                                `Has ${section.children.length} children (will move together)`
+                            }
                         >
-                            {section.children.length}
+                            {isBeingDragged ? `+${section.children.length}` : section.children.length}
                         </Badge>
                     )}
                     {section.can_have_children && (

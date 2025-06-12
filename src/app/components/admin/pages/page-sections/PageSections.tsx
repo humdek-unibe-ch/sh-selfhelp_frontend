@@ -43,8 +43,23 @@ export function PageSections({ keyword }: PageSectionsProps) {
     };
 
     const handleSectionMove = (moveData: any) => {
-        // Log the move operation for backend integration
-        console.log('Section Move Operation:', moveData);
+        // Log the comprehensive move data for backend integration
+        console.log('📦 Complete Section Move Data for Backend:', {
+            operation: 'MOVE_SECTION',
+            timestamp: new Date().toISOString(),
+            data: moveData
+        });
+        
+        // TODO: Implement actual backend API call here
+        // Example:
+        // try {
+        //     await moveSectionAPI(moveData);
+        //     // Refresh sections data on success
+        //     queryClient.invalidateQueries(['pageSections', keyword]);
+        // } catch (error) {
+        //     console.error('Failed to move section:', error);
+        //     // Handle error - maybe show notification
+        // }
     };
 
     // Auto-expand sections with children on initial load
@@ -124,6 +139,7 @@ export function PageSections({ keyword }: PageSectionsProps) {
                 expandedSections={expandedSections}
                 onToggleExpand={handleToggleExpand}
                 onSectionMove={handleSectionMove}
+                pageKeyword={keyword || undefined}
             />
         </Paper>
     );
