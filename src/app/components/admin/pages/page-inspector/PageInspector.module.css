@@ -1,0 +1,29 @@
+/* Force Mantine input components to give full width to custom labels */
+.fullWidthLabel :global(.mantine-InputWrapper-label) {
+    width: 100% !important;
+    display: flex !important;
+}
+
+.fullWidthLabel :global(.mantine-Input-label) {
+    width: 100% !important;
+    display: flex !important;
+}
+
+.fullWidthLabel :global(.mantine-Textarea-label) {
+    width: 100% !important;
+    display: flex !important;
+}
+
+.fullWidthLabel :global(.mantine-TextInput-label) {
+    width: 100% !important;
+    display: flex !important;
+}
+
+/* Ensure the input wrapper itself allows full width labels */
+.fullWidthLabel {
+    width: 100%;
+}
+
+.fullWidthLabel :global(.mantine-InputWrapper-root) {
+    width: 100%;
+} 

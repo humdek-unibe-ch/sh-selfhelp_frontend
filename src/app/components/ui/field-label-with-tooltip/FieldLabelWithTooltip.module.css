@@ -1,0 +1,11 @@
+.labelContainer {
+    width: 100% !important;
+    display: flex !important;
+}
+
+.labelWrapper {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+} 

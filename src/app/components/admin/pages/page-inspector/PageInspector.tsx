@@ -47,6 +47,7 @@ import { IPageField } from '../../../../../types/responses/admin/page-details.ty
 import { IUpdatePageField, IUpdatePageData, IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
 import { PAGE_ACCESS_TYPES } from '../../../../../constants/lookups.constants';
 import { debug } from '../../../../../utils/debug-logger';
+import styles from './PageInspector.module.css';
 
 interface PageInspectorProps {
     page: IAdminPage | null;
@@ -351,6 +352,10 @@ export function PageInspector({ page }: PageInspectorProps) {
     const renderContentField = (field: IPageField, languageCode: string) => {
         const fieldKey = `fields.${field.name}.${languageCode}`;
         
+        // Find the language object to get the locale
+        const currentLanguage = languages.find(lang => lang.code === languageCode);
+        const locale = hasMultipleLanguages && currentLanguage ? currentLanguage.locale : undefined;
+        
         // Ensure the field path exists in form state to prevent controlled/uncontrolled warnings
         const fieldValue = form.values.fields?.[field.name]?.[languageCode] ?? '';
         const inputProps = {
@@ -362,7 +367,8 @@ export function PageInspector({ page }: PageInspectorProps) {
             return (
                 <Textarea
                     key={`${field.id}-${languageCode}`}
-                    label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
+                    className={styles.fullWidthLabel}
+                    label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} locale={locale} />}
                     placeholder={field.default_value || ''}
                     {...inputProps}
                     autosize
@@ -373,7 +379,8 @@ export function PageInspector({ page }: PageInspectorProps) {
             return (
                 <TextInput
                     key={`${field.id}-${languageCode}`}
-                    label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
+                    className={styles.fullWidthLabel}
+                    label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} locale={locale} />}
                     placeholder={field.default_value || ''}
                     {...inputProps}
                 />
@@ -382,7 +389,8 @@ export function PageInspector({ page }: PageInspectorProps) {
             return (
                 <TextInput
                     key={`${field.id}-${languageCode}`}
-                    label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
+                    className={styles.fullWidthLabel}
+                    label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} locale={locale} />}
                     placeholder={field.default_value || ''}
                     {...inputProps}
                 />
