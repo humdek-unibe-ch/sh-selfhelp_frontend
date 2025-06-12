@@ -21,7 +21,7 @@ import {
   IconInfoCircle,
   IconAlertCircle
 } from '@tabler/icons-react';
-import { PageSectionsList } from '../../components/admin/page-sections';
+import { PageSections } from '../../components/admin/pages/page-sections/PageSections';
 import { PageInspector } from '../../components/admin/pages/page-inspector/PageInspector';
 import { useAdminPages } from '../../../hooks/useAdminPages';
 import { useMemo } from 'react';
@@ -135,28 +135,21 @@ export default function AdminPage() {
           </div>
 
           {/* Page Sections */}
-          <Stack gap="md">
-            <Group gap="xs">
-              <IconInfoCircle size="1.2rem" color="var(--mantine-color-blue-6)" />
-              <Title order={3}>Page Sections</Title>
-            </Group>
-            
-            <Alert 
-              icon={<IconInfoCircle size="1rem" />} 
-              title="Content sections will be loaded dynamically" 
-              color="blue"
-              variant="light"
-            >
-              This area will display the page sections and content fields for editing.
-              The sections will be fetched from the API using page keyword: <strong>{selectedPage.keyword}</strong>
-            </Alert>
-          </Stack>
+          <PageSections keyword={selectedPage.keyword} />
         </Stack>
       );
     }
 
     // Default dashboard content
-    return <PageSectionsList />;
+    return (
+      <Stack align="center" py="xl">
+        <IconInfoCircle size="3rem" color="var(--mantine-color-gray-5)" />
+        <Title order={3} c="dimmed">Welcome to Admin Dashboard</Title>
+        <Text c="dimmed" ta="center">
+          Select a page from the navigation to start editing its content and sections.
+        </Text>
+      </Stack>
+    );
   };
 
   const getPageTitle = () => {

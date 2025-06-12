@@ -60,7 +60,7 @@ export const AdminApi = {
         const response = await apiClient.get<IPageFieldsResponse>(
             API_CONFIG.ENDPOINTS.ADMIN_PAGES_SECTIONS_GET(keyword)
         );
-        return response.data.data;
+        return response.data.data.sections;
     },
 
     /**

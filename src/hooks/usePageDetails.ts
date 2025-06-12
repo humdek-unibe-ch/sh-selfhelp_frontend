@@ -25,8 +25,6 @@ export function usePageSections(keyword: string | null, enabled: boolean = true)
             return { sections, page_keyword: keyword };
         },
         enabled: enabled && !!keyword,
-        staleTime: 5 * 60 * 1000, // 5 minutes
-        gcTime: 10 * 60 * 1000, // 10 minutes
     });
 }
 

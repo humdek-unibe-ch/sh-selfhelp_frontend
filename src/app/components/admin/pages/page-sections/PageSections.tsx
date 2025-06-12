@@ -62,6 +62,8 @@ export function PageSections({ keyword }: PageSectionsProps) {
         );
     }
 
+    console.log(data);
+
     const renderSection = (section: ISectionItem, level: number = 0) => (
         <Box key={section.id} style={{ marginLeft: level * 20 }}>
             <Paper p="md" withBorder mb="sm">

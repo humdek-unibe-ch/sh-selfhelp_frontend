@@ -3,24 +3,27 @@
  */
 
 export interface IPageField {
-  id: number;
-  name: string;
-  id_styles: number;
-  style_name: string;
-  position: number;
-  level: number;
-  path: string;
-  children: IPageField[];
+    id: number;
+    name: string;
+    id_styles: number;
+    style_name: string;
+    position: number;
+    level: number;
+    path: string;
+    children: IPageField[];
 }
 
 export interface IPageFieldsResponse {
-  status: number;
-  message: string;
-  error: null | string;
-  logged_in: boolean;
-  meta: {
-    version: string;
-    timestamp: string;
-  };
-  data: IPageField[];
+    status: number;
+    message: string;
+    error: null | string;
+    logged_in: boolean;
+    meta: {
+        version: string;
+        timestamp: string;
+    };
+    data: {
+        sections: IPageField[];
+        page_keyword: string;
+    }
 }
