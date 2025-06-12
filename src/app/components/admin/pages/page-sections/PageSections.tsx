@@ -37,7 +37,8 @@ import {
     DragEndEvent,
     DragOverlay,
     DragStartEvent,
-    UniqueIdentifier
+    UniqueIdentifier,
+    DragOverEvent
 } from '@dnd-kit/core';
 import {
     SortableContext,
@@ -62,6 +63,8 @@ interface SectionItemProps {
     onToggleExpand: (sectionId: number) => void;
     isExpanded: boolean;
     onSectionMove?: (movedSections: ISectionItem[]) => void;
+    isDragActive?: boolean;
+    isValidDropTarget?: boolean;
 }
 
 interface FlatSection extends ISectionItem {
@@ -70,7 +73,7 @@ interface FlatSection extends ISectionItem {
 }
 
 // Draggable Section Item Component
-function DraggableSectionItem({ section, level = 0, onToggleExpand, isExpanded, onSectionMove }: SectionItemProps) {
+function DraggableSectionItem({ section, level = 0, onToggleExpand, isExpanded, onSectionMove, isDragActive = false, isValidDropTarget = false }: SectionItemProps) {
     const {
         attributes,
         listeners,
@@ -103,7 +106,11 @@ function DraggableSectionItem({ section, level = 0, onToggleExpand, isExpanded, 
                 style={{ 
                     marginLeft: level * 12,
                     borderRadius: '4px',
-                    cursor: isDragging ? 'grabbing' : 'default'
+                    cursor: isDragging ? 'grabbing' : 'default',
+                    borderColor: isValidDropTarget && isDragActive ? 'var(--mantine-color-green-6)' : undefined,
+                    borderWidth: isValidDropTarget && isDragActive ? '2px' : undefined,
+                    backgroundColor: isValidDropTarget && isDragActive ? 'var(--mantine-color-green-0)' : undefined,
+                    opacity: isDragActive && !section.can_have_children ? 0.3 : 1
                 }}
             >
                 <Group justify="space-between" wrap="nowrap" gap="xs">
@@ -152,18 +159,25 @@ function DraggableSectionItem({ section, level = 0, onToggleExpand, isExpanded, 
                                     {section.children.length}
                                 </Badge>
                             )}
+                            {section.can_have_children && (
+                                <Badge size="xs" variant="dot" color="blue" style={{ flexShrink: 0 }} title="Can have children">
+                                    📁
+                                </Badge>
+                            )}
                         </Group>
                     </Group>
 
                     {/* Action Buttons - Compact */}
                     <Group gap={4} style={{ flexShrink: 0 }}>
-                        <ActionIcon variant="subtle" size="xs" color="blue">
-                            <IconPlus size={12} />
-                        </ActionIcon>
-                        <ActionIcon variant="subtle" size="xs" color="gray">
+                        {section.can_have_children && (
+                            <ActionIcon variant="subtle" size="xs" color="blue" title="Add child section">
+                                <IconPlus size={12} />
+                            </ActionIcon>
+                        )}
+                        <ActionIcon variant="subtle" size="xs" color="gray" title="Copy section">
                             <IconCopy size={12} />
                         </ActionIcon>
-                        <ActionIcon variant="subtle" size="xs" color="red">
+                        <ActionIcon variant="subtle" size="xs" color="red" title="Delete section">
                             <IconTrash size={12} />
                         </ActionIcon>
                     </Group>
@@ -178,6 +192,7 @@ export function PageSections({ keyword }: PageSectionsProps) {
     const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
     const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
     const [sections, setSections] = useState<ISectionItem[]>([]);
+    const [overId, setOverId] = useState<UniqueIdentifier | null>(null);
 
     // Update local sections when data changes
     useEffect(() => {
@@ -238,19 +253,49 @@ export function PageSections({ keyword }: PageSectionsProps) {
         setActiveId(event.active.id);
     };
 
+    const handleDragOver = (event: DragOverEvent) => {
+        const { over } = event;
+        setOverId(over?.id || null);
+    };
+
     const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event;
         setActiveId(null);
+        setOverId(null);
 
         if (!over || active.id === over.id) {
             return;
         }
 
         // Find the sections being moved
-        const activeIndex = flatSections.findIndex(section => section.id === active.id);
-        const overIndex = flatSections.findIndex(section => section.id === over.id);
+        const activeSection = flatSections.find(section => section.id === active.id);
+        const overSection = flatSections.find(section => section.id === over.id);
 
-        if (activeIndex === -1 || overIndex === -1) {
+        if (!activeSection || !overSection) {
+            return;
+        }
+
+        // Check if the target section can have children
+        if (!overSection.can_have_children) {
+            console.log('Cannot drop on section that cannot have children:', overSection.name);
+            return;
+        }
+
+        // Prevent dropping a section on itself or its descendants
+        const isDescendant = (parentId: number, childId: number): boolean => {
+            const checkChildren = (sections: ISectionItem[]): boolean => {
+                return sections.some(section => {
+                    if (section.id === childId) return true;
+                    return section.children && checkChildren(section.children);
+                });
+            };
+            
+            const parent = flatSections.find(s => s.id === parentId);
+            return parent ? checkChildren(parent.children) : false;
+        };
+
+        if (activeSection.id === overSection.id || isDescendant(activeSection.id, overSection.id)) {
+            console.log('Cannot drop section on itself or its descendants');
             return;
         }
 
@@ -259,10 +304,10 @@ export function PageSections({ keyword }: PageSectionsProps) {
         console.log('Moving section:', {
             activeId: active.id,
             overId: over.id,
-            activeIndex,
-            overIndex,
-            activeSection: flatSections[activeIndex],
-            overSection: flatSections[overIndex]
+            activeSection,
+            overSection,
+            canAcceptChildren: overSection.can_have_children,
+            action: 'move_to_parent'
         });
 
         // For now, just log the change - you'll implement the actual reordering later
@@ -333,6 +378,7 @@ export function PageSections({ keyword }: PageSectionsProps) {
                             sensors={sensors}
                             collisionDetection={closestCenter}
                             onDragStart={handleDragStart}
+                            onDragOver={handleDragOver}
                             onDragEnd={handleDragEnd}
                         >
                             <SortableContext
@@ -347,6 +393,8 @@ export function PageSections({ keyword }: PageSectionsProps) {
                                             level={section.level}
                                             onToggleExpand={handleToggleExpand}
                                             isExpanded={expandedSections.has(section.id)}
+                                            isDragActive={!!activeId}
+                                            isValidDropTarget={section.can_have_children && overId === section.id}
                                         />
                                     ))}
                                 </Stack>

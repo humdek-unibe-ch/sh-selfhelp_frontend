@@ -6,6 +6,7 @@ export interface ISectionItem {
     id_styles: number;
     style_name: string;
     position: number;
+    can_have_children: boolean;
     level: number;
     path: string;
     children: ISectionItem[];
