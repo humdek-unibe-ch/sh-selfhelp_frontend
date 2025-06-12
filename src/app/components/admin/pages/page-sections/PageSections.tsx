@@ -50,7 +50,7 @@ import {
     CSS
 } from '@dnd-kit/utilities';
 import { usePageSections } from '../../../../../hooks/usePageDetails';
-import { ISectionItem } from '../../../../../types/responses/admin/admin.types';
+import { IPageField } from '../../../../../types/common/pages.type';
 import styles from './PageSections.module.css';
 
 interface PageSectionsProps {
@@ -58,16 +58,16 @@ interface PageSectionsProps {
 }
 
 interface SectionItemProps {
-    section: ISectionItem;
+    section: IPageField;
     level?: number;
     onToggleExpand: (sectionId: number) => void;
     isExpanded: boolean;
-    onSectionMove?: (movedSections: ISectionItem[]) => void;
+    onSectionMove?: (movedSections: IPageField[]) => void;
     isDragActive?: boolean;
     isValidDropTarget?: boolean;
 }
 
-interface FlatSection extends ISectionItem {
+interface FlatSection extends IPageField {
     level: number;
     parentId: number | null;
 }
@@ -91,7 +91,7 @@ function DraggableSectionItem({ section, level = 0, onToggleExpand, isExpanded, 
 
     const hasChildren = section.children && section.children.length > 0;
 
-    const getSectionTitle = (section: ISectionItem) => {
+    const getSectionTitle = (section: IPageField) => {
         const nameParts = section.name.split('-');
         return nameParts.length > 1 ? nameParts[1] : section.name;
     };
@@ -155,12 +155,18 @@ function DraggableSectionItem({ section, level = 0, onToggleExpand, isExpanded, 
                                 {section.position}
                             </Badge>
                             {hasChildren && (
-                                <Badge size="xs" variant="dot" color="green" style={{ flexShrink: 0 }}>
+                                <Badge 
+                                    size="xs" 
+                                    variant="dot" 
+                                    color="green" 
+                                    style={{ flexShrink: 0 }} 
+                                    title={`Has ${section.children.length} children (will move together)`}
+                                >
                                     {section.children.length}
                                 </Badge>
                             )}
                             {section.can_have_children && (
-                                <Badge size="xs" variant="dot" color="blue" style={{ flexShrink: 0 }} title="Can have children">
+                                <Badge size="xs" variant="dot" color="blue" style={{ flexShrink: 0 }} title="Can accept children">
                                     📁
                                 </Badge>
                             )}
@@ -191,7 +197,7 @@ export function PageSections({ keyword }: PageSectionsProps) {
     const { data, isLoading, error } = usePageSections(keyword);
     const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
     const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
-    const [sections, setSections] = useState<ISectionItem[]>([]);
+    const [sections, setSections] = useState<IPageField[]>([]);
     const [overId, setOverId] = useState<UniqueIdentifier | null>(null);
 
     // Update local sections when data changes
@@ -200,21 +206,21 @@ export function PageSections({ keyword }: PageSectionsProps) {
             setSections(data.sections);
             // Auto-expand all sections initially
             const allIds = new Set<number>();
-            const collectIds = (items: ISectionItem[]) => {
-                items.forEach(item => {
-                    allIds.add(item.id);
-                    if (item.children) {
-                        collectIds(item.children);
-                    }
-                });
-            };
+                    const collectIds = (items: IPageField[]) => {
+            items.forEach(item => {
+                allIds.add(item.id);
+                if (item.children) {
+                    collectIds(item.children);
+                }
+            });
+        };
             collectIds(data.sections);
             setExpandedSections(allIds);
         }
     }, [data?.sections]);
 
     // Flatten sections for drag and drop
-    const flattenSections = (items: ISectionItem[], level = 0, parentId: number | null = null): FlatSection[] => {
+    const flattenSections = (items: IPageField[], level = 0, parentId: number | null = null): FlatSection[] => {
         const result: FlatSection[] = [];
         
         items.forEach(item => {
@@ -226,6 +232,34 @@ export function PageSections({ keyword }: PageSectionsProps) {
         });
         
         return result;
+    };
+
+    // Get all descendants of a section (for dragging parent with children)
+    const getAllDescendants = (sectionId: number): number[] => {
+        const descendants: number[] = [];
+        
+        const collectDescendants = (items: IPageField[]) => {
+            items.forEach(item => {
+                if (item.id === sectionId) {
+                    const addChildren = (children: IPageField[]) => {
+                        children.forEach(child => {
+                            descendants.push(child.id);
+                            if (child.children) {
+                                addChildren(child.children);
+                            }
+                        });
+                    };
+                    if (item.children) {
+                        addChildren(item.children);
+                    }
+                } else if (item.children) {
+                    collectDescendants(item.children);
+                }
+            });
+        };
+        
+        collectDescendants(sections);
+        return descendants;
     };
 
     const flatSections = useMemo(() => flattenSections(sections), [sections, expandedSections]);
@@ -283,7 +317,7 @@ export function PageSections({ keyword }: PageSectionsProps) {
 
         // Prevent dropping a section on itself or its descendants
         const isDescendant = (parentId: number, childId: number): boolean => {
-            const checkChildren = (sections: ISectionItem[]): boolean => {
+            const checkChildren = (sections: IPageField[]): boolean => {
                 return sections.some(section => {
                     if (section.id === childId) return true;
                     return section.children && checkChildren(section.children);
@@ -299,13 +333,18 @@ export function PageSections({ keyword }: PageSectionsProps) {
             return;
         }
 
+        // Get all descendants that will move with the parent
+        const descendantIds = getAllDescendants(activeSection.id);
+        
         // TODO: Implement the actual reordering logic
         // This is where you would update the sections array and send to backend
-        console.log('Moving section:', {
+        console.log('Moving section with children:', {
             activeId: active.id,
             overId: over.id,
             activeSection,
             overSection,
+            descendantIds,
+            totalMovingItems: descendantIds.length + 1, // +1 for the parent itself
             canAcceptChildren: overSection.can_have_children,
             action: 'move_to_parent'
         });
@@ -400,18 +439,25 @@ export function PageSections({ keyword }: PageSectionsProps) {
                                 </Stack>
                             </SortableContext>
 
-                                                 <DragOverlay>
-                             {activeId ? (
-                                 <Paper p="xs" withBorder shadow="lg" style={{ opacity: 0.9, backgroundColor: 'var(--mantine-color-blue-1)' }}>
-                                     <Group gap="xs">
-                                         <IconGripVertical size={12} />
-                                         <Text fw={500} size="xs">
-                                             Moving section {activeId}
-                                         </Text>
-                                     </Group>
-                                 </Paper>
-                             ) : null}
-                                                  </DragOverlay>
+                                                                         <DragOverlay>
+                            {activeId ? (() => {
+                                const draggedSection = flatSections.find(s => s.id === activeId);
+                                const childrenCount = draggedSection ? getAllDescendants(draggedSection.id).length : 0;
+                                return (
+                                    <Paper p="xs" withBorder shadow="lg" style={{ opacity: 0.9, backgroundColor: 'var(--mantine-color-blue-1)' }}>
+                                        <Group gap="xs">
+                                            <IconGripVertical size={12} />
+                                            <Text fw={500} size="xs">
+                                                Moving {draggedSection?.name || activeId}
+                                                {childrenCount > 0 && (
+                                                    <Text span c="dimmed" size="xs"> (+{childrenCount} children)</Text>
+                                                )}
+                                            </Text>
+                                        </Group>
+                                    </Paper>
+                                );
+                            })() : null}
+                        </DragOverlay>
                          </DndContext>
                      </Box>
                 ) : (
