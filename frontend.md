@@ -2,7 +2,75 @@
 
 # Frontend Development Log
 
-## Field Handling and Menu Positioning Fixes (Latest Update)
+## Page Sections Drag & Drop Library Migration (Latest Update)
+
+### Overview
+Migrated page sections drag and drop from `@dnd-kit` to `@hello-pangea/dnd` for improved performance and smoother user experience. This aligns with the existing menu positioning implementation and provides better accessibility support.
+
+### Migration Details
+
+#### 1. Library Change Rationale
+- **Consistency**: Now uses the same drag library as the successful menu positioning feature
+- **Performance**: `@hello-pangea/dnd` provides smoother animations and better performance
+- **Accessibility**: Better screen reader support and keyboard navigation
+- **Maintenance**: Maintained fork of react-beautiful-dnd with active development
+
+#### 2. Implementation Changes
+- **Flattened Structure**: Converted nested drag structure to flattened approach for better performance
+- **Simplified Components**: Removed complex nested drop zones in favor of clear, level-based drop areas
+- **Enhanced Visual Feedback**: Clear drop zone indicators with descriptive labels
+- **Improved Validation**: Better prevention of circular references and invalid drops
+
+#### 3. Component Updates
+```typescript
+// Before: Complex nested structure with @dnd-kit
+<DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+    <SortableContext items={allSectionIds}>
+        {/* Complex nested drop zones */}
+    </SortableContext>
+</DndContext>
+
+// After: Clean flattened structure with @hello-pangea/dnd
+<DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <Droppable droppableId="sections-list">
+        {(provided, snapshot) => (
+            <Box ref={provided.innerRef} {...provided.droppableProps}>
+                {flatSections.map((item, index) => (
+                    <SectionDraggableItem key={item.id} item={item} index={index} />
+                ))}
+            </Box>
+        )}
+    </Droppable>
+</DragDropContext>
+```
+
+#### 4. Removed Dependencies
+- Uninstalled `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`
+- Deleted unused components: `SectionChildrenArea`, `SectionDragOverlay`
+- Simplified component hierarchy
+
+### Technical Benefits
+- ✅ **Smoother Animations**: Better drag feedback and transitions
+- ✅ **Improved Performance**: Flattened structure reduces re-renders
+- ✅ **Better Accessibility**: Enhanced screen reader and keyboard support
+- ✅ **Consistent UX**: Same drag behavior as menu positioning
+- ✅ **Cleaner Code**: Simplified component structure and logic
+- ✅ **Reduced Bundle Size**: Removed unused @dnd-kit dependencies
+
+### Files Modified
+- `src/app/components/admin/pages/page-sections/SectionsList.tsx`
+- `src/app/components/admin/pages/page-sections/PageSection.tsx`
+- `src/app/components/admin/pages/page-sections/SectionHeader.tsx`
+- `architecture.md` - Updated drag & drop documentation
+- `package.json` - Removed @dnd-kit dependencies
+
+### Files Deleted
+- `src/app/components/admin/pages/page-sections/SectionChildrenArea.tsx`
+- `src/app/components/admin/pages/page-sections/SectionDragOverlay.tsx`
+
+---
+
+## Field Handling and Menu Positioning Fixes
 
 ### Overview
 Fixed critical issues with field handling and menu positioning in the PageInspector and DragDropMenuPositioner components to ensure proper data persistence and accurate drag-and-drop positioning.

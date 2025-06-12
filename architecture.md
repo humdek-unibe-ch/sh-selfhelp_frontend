@@ -679,9 +679,11 @@ export function SectionsList({ sections, onSectionMove }: SectionsListProps) {
 ```
 
 #### Drag & Drop Logic
+- **Library**: Uses `@hello-pangea/dnd` (maintained fork of react-beautiful-dnd) for smooth, accessible drag and drop
+- **Flattened Structure**: Sections are flattened for drag operations while preserving visual hierarchy
 - **Parent-Children Movement**: Dragging a parent automatically includes all descendants
 - **Smart Validation**: Prevents circular references and invalid drops
-- **Visual Feedback**: Green borders for valid drop targets, reduced opacity for invalid ones
+- **Visual Feedback**: Clear drop zones with level-based styling and descriptive labels
 - **Backend Integration**: Comprehensive logging for backend synchronization
 
 #### Type Safety
