@@ -12,7 +12,7 @@ import {
 import { IPageField } from '../../../../../types/common/pages.type';
 import styles from './PageSections.module.css';
 
-interface SectionHeaderProps {
+interface ISectionHeaderProps {
     section: IPageField;
     level: number;
     hasChildren: boolean;
@@ -36,7 +36,7 @@ export function SectionHeader({
     isValidDropTarget,
     isDragActive,
     isBeingDragged
-}: SectionHeaderProps) {
+}: ISectionHeaderProps) {
     const getSectionTitle = (section: IPageField) => {
         const nameParts = section.name.split('-');
         return nameParts.length > 1 ? nameParts[1] : section.name;
@@ -54,7 +54,7 @@ export function SectionHeader({
                                 isBeingDragged ? 'var(--mantine-color-blue-0)' : undefined,
                 border: isValidDropTarget && isDragActive ? '2px solid var(--mantine-color-green-6)' : 
                         isBeingDragged ? '2px solid var(--mantine-color-blue-6)' : '1px solid var(--mantine-color-gray-3)',
-                opacity: isDragActive && !section.can_have_children ? 0.3 : 1,
+                opacity: isDragActive && !Boolean(section.can_have_children) ? 0.3 : 1,
                 cursor: isDragging ? 'grabbing' : 'default'
             }}
         >
@@ -104,14 +104,14 @@ export function SectionHeader({
                             color={isBeingDragged ? "orange" : "green"}
                             style={{ flexShrink: 0 }} 
                             title={isBeingDragged ? 
-                                `Moving with ${section.children.length} children` : 
-                                `Has ${section.children.length} children (will move together)`
+                                `Moving with ${section.children?.length || 0} children` : 
+                                `Has ${section.children?.length || 0} children (will move together)`
                             }
                         >
-                            {isBeingDragged ? `+${section.children.length}` : section.children.length}
+                            {isBeingDragged ? `+${section.children?.length || 0}` : section.children?.length || 0}
                         </Badge>
                     )}
-                    {section.can_have_children && (
+                    {Boolean(section.can_have_children) && (
                         <Badge size="xs" variant="dot" color="blue" style={{ flexShrink: 0 }} title="Can accept children">
                             📁
                         </Badge>
@@ -121,7 +121,7 @@ export function SectionHeader({
 
             {/* Action Buttons */}
             <Group gap={4} style={{ flexShrink: 0 }}>
-                {section.can_have_children && (
+                {Boolean(section.can_have_children) && (
                     <ActionIcon variant="subtle" size="xs" color="blue" title="Add child section">
                         <IconPlus size={12} />
                     </ActionIcon>

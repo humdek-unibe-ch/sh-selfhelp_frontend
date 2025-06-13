@@ -7,7 +7,7 @@ import { IPageField } from '../../../../../types/common/pages.type';
 import { PageSection } from './PageSection';
 import styles from './PageSections.module.css';
 
-interface SectionsListProps {
+interface ISectionsListProps {
     sections: IPageField[];
     expandedSections: Set<number>;
     onToggleExpand: (sectionId: number) => void;
@@ -15,7 +15,7 @@ interface SectionsListProps {
     pageKeyword?: string;
 }
 
-interface MoveData {
+interface IMoveData {
     draggedSectionId: number;
     newParentId: number | null;
     pageKeyword?: string;
@@ -27,7 +27,7 @@ interface MoveData {
 }
 
 // Flatten sections for drag and drop while preserving hierarchy info
-interface FlatSection {
+interface IFlatSection {
     section: IPageField;
     level: number;
     parentId: number | null;
@@ -42,12 +42,12 @@ export function SectionsList({
     onToggleExpand,
     onSectionMove,
     pageKeyword
-}: SectionsListProps) {
+}: ISectionsListProps) {
     const [draggedSectionId, setDraggedSectionId] = useState<number | null>(null);
 
     // Flatten sections for drag and drop
-    const flattenSections = (items: IPageField[], level = 0, parentId: number | null = null): FlatSection[] => {
-        const result: FlatSection[] = [];
+    const flattenSections = (items: IPageField[], level = 0, parentId: number | null = null): IFlatSection[] => {
+        const result: IFlatSection[] = [];
         
         items.forEach((item, index) => {
             // Add the section itself
@@ -59,16 +59,7 @@ export function SectionsList({
                 originalIndex: index
             });
             
-            // Add child drop zone if section can have children and (is expanded or dragging)
-            if (item.can_have_children && (expandedSections.has(item.id) || draggedSectionId)) {
-                result.push({
-                    section: item,
-                    level: level + 1,
-                    parentId: item.id,
-                    canAcceptChildren: false,
-                    isChildDropZone: true
-                });
-            }
+            // Note: Child drop zones are now rendered inside PageSection component
             
             // Add children if expanded or dragging
             if (item.children && (expandedSections.has(item.id) || draggedSectionId)) {
@@ -187,18 +178,29 @@ export function SectionsList({
         let newParentId: number | null = null;
         let dropIndex = 0;
 
-        if (destinationItem.isChildDropZone) {
-            // Dropping into a child zone
-            newParentId = destinationItem.parentId;
-            const parent = findSection(newParentId!);
-            dropIndex = parent?.children?.length || 0;
+        // Improved drop detection logic
+        const targetSection = destinationItem.section;
+        const hasChildren = targetSection.children && targetSection.children.length > 0;
+        const canAcceptChildren = targetSection.can_have_children;
+        
+        // Check if we're dropping after the last child of a parent
+        const isDroppingAfterLastChild = hasChildren && canAcceptChildren && 
+            destinationIndex > 0 && 
+            flatSections[destinationIndex - 1]?.parentId === targetSection.id;
+        
+        if (canAcceptChildren && !hasChildren) {
+            // Dropping on a section that can accept children but has none - make it first child
+            newParentId = targetSection.id;
+            dropIndex = 0;
+        } else if (isDroppingAfterLastChild) {
+            // Dropping after the last child - add as last child of the parent
+            newParentId = targetSection.id;
+            dropIndex = targetSection.children?.length || 0;
         } else {
-            // Dropping at same level or root
+            // Dropping at same level as the target section
             newParentId = destinationItem.parentId;
             // Calculate index among siblings
-            const siblings = flatSections.filter(item => 
-                !item.isChildDropZone && item.parentId === newParentId
-            );
+            const siblings = flatSections.filter(item => item.parentId === newParentId);
             dropIndex = siblings.findIndex(item => item.section.id === destinationItem.section.id);
             if (dropIndex === -1) dropIndex = siblings.length;
         }
@@ -235,7 +237,7 @@ export function SectionsList({
         const newPosition = calculateNewPosition(targetParent, dropIndex);
         
         // Prepare move data for backend
-        const moveData: MoveData = {
+        const moveData: IMoveData = {
             draggedSectionId: draggedSection.id,
             newParentId,
             pageKeyword,
@@ -286,8 +288,8 @@ export function SectionsList({
 }
 
 // Individual draggable section item
-interface SectionDraggableItemProps {
-    item: FlatSection;
+interface ISectionDraggableItemProps {
+    item: IFlatSection;
     index: number;
     expandedSections: Set<number>;
     onToggleExpand: (sectionId: number) => void;
@@ -300,7 +302,7 @@ function SectionDraggableItem({
     expandedSections,
     onToggleExpand,
     draggedSectionId
-}: SectionDraggableItemProps) {
+}: ISectionDraggableItemProps) {
     const isDraggedSection = draggedSectionId === item.section.id;
     const isChildOfDraggedSection = draggedSectionId && 
         item.section.id !== draggedSectionId && 
@@ -311,45 +313,7 @@ function SectionDraggableItem({
         return null;
     }
 
-    if (item.isChildDropZone) {
-        // Render child drop zone
-        return (
-            <Draggable 
-                draggableId={`drop-${item.section.id}-${item.level}`} 
-                index={index}
-                isDragDisabled={true}
-            >
-                {(provided, snapshot) => (
-                    <Box
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        style={{
-                            marginLeft: item.level * 16,
-                            minHeight: 50,
-                            padding: '12px',
-                                                                                      backgroundColor: 'var(--mantine-color-gray-0)',
-                            border: `2px dashed ${item.level > 1 ? 'var(--mantine-color-blue-5)' : 'var(--mantine-color-gray-5)'}`,
-                            borderRadius: '8px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'all 0.2s ease',
-                            ...provided.draggableProps.style
-                        }}
-                    >
-                        <Text 
-                            size="sm" 
-                            fw={500}
-                            c={item.level > 1 ? "blue.6" : "gray.6"}
-                            ta="center"
-                        >
-                            📁 Drop here to add as child (Level {item.level})
-                        </Text>
-                    </Box>
-                )}
-            </Draggable>
-        );
-    }
+        // Child drop zones are now handled inside PageSection component
 
     // Render regular section
     return (

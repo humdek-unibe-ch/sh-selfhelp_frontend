@@ -22,11 +22,11 @@ import { usePageSections } from '../../../../../hooks/usePageDetails';
 import { IPageField } from '../../../../../types/common/pages.type';
 import { SectionsList } from './SectionsList';
 
-interface PageSectionsProps {
+interface IPageSectionsProps {
     keyword: string | null;
 }
 
-export function PageSections({ keyword }: PageSectionsProps) {
+export function PageSections({ keyword }: IPageSectionsProps) {
     const { data, isLoading, error } = usePageSections(keyword);
     const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
 

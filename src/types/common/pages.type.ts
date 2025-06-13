@@ -8,7 +8,7 @@ export interface IPageField {
     id_styles: number;
     style_name: string;
     position: number;
-    can_have_children: boolean;
+    can_have_children: number | boolean;  // Accepts both MySQL TINYINT (0|1) and boolean
     level: number;
     path: string;
     children: IPageField[];
