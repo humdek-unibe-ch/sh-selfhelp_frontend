@@ -27,7 +27,15 @@ export const API_CONFIG = {
         ADMIN_PAGES_UPDATE: (keyword: string) => `/admin/pages/${keyword}`,
         ADMIN_PAGES_CREATE: '/admin/pages',
         ADMIN_LANGUAGES: '/admin/languages',
-        ADMIN_LOOKUPS: '/admin/lookups',        
+        ADMIN_LOOKUPS: '/admin/lookups',
+        // Section management endpoints
+        ADMIN_PAGES_SECTIONS_ADD: (keyword: string) => `/admin/pages/${keyword}/sections`,
+        ADMIN_PAGES_SECTIONS_UPDATE: (keyword: string, sectionId: number) => `/admin/pages/${keyword}/sections/${sectionId}`,
+        ADMIN_PAGES_SECTIONS_REMOVE: (keyword: string, sectionId: number) => `/admin/pages/${keyword}/sections/${sectionId}`,
+        ADMIN_SECTIONS_ADD_TO_SECTION: (parentSectionId: number) => `/admin/sections/${parentSectionId}/sections`,
+        ADMIN_SECTIONS_UPDATE_IN_SECTION: (parentSectionId: number, childSectionId: number) => `/admin/sections/${parentSectionId}/sections/${childSectionId}`,
+        ADMIN_SECTIONS_REMOVE_FROM_SECTION: (parentSectionId: number, childSectionId: number) => `/admin/sections/${parentSectionId}/sections/${childSectionId}`,
+        ADMIN_SECTIONS_DELETE: (sectionId: number) => `/admin/sections/${sectionId}`,
     },
     CORS_CONFIG: {
         credentials: true, // Required for cookies, authorization headers with HTTPS

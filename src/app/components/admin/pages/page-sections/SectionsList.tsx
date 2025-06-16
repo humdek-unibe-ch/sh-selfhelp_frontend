@@ -12,7 +12,9 @@ interface ISectionsListProps {
     expandedSections: Set<number>;
     onToggleExpand: (sectionId: number) => void;
     onSectionMove: (moveData: any) => void;
+    onRemoveSection: (sectionId: number, parentId: number | null) => void;
     pageKeyword?: string;
+    isProcessing?: boolean;
 }
 
 interface IMoveData {
@@ -41,7 +43,9 @@ export function SectionsList({
     expandedSections,
     onToggleExpand,
     onSectionMove,
-    pageKeyword
+    onRemoveSection,
+    pageKeyword,
+    isProcessing = false
 }: ISectionsListProps) {
     const [draggedSectionId, setDraggedSectionId] = useState<number | null>(null);
 
@@ -274,6 +278,7 @@ export function SectionsList({
                                         index={index}
                                         expandedSections={expandedSections}
                                         onToggleExpand={onToggleExpand}
+                                        onRemoveSection={onRemoveSection}
                                         draggedSectionId={draggedSectionId}
                                     />
                                 ))}
@@ -293,6 +298,7 @@ interface ISectionDraggableItemProps {
     index: number;
     expandedSections: Set<number>;
     onToggleExpand: (sectionId: number) => void;
+    onRemoveSection: (sectionId: number, parentId: number | null) => void;
     draggedSectionId: number | null;
 }
 
@@ -301,6 +307,7 @@ function SectionDraggableItem({
     index,
     expandedSections,
     onToggleExpand,
+    onRemoveSection,
     draggedSectionId
 }: ISectionDraggableItemProps) {
     const isDraggedSection = draggedSectionId === item.section.id;
@@ -334,8 +341,10 @@ function SectionDraggableItem({
                     <PageSection
                         section={item.section}
                         level={item.level}
+                        parentId={item.parentId}
                         expandedSections={expandedSections}
                         onToggleExpand={onToggleExpand}
+                        onRemoveSection={onRemoveSection}
                         isDragActive={!!draggedSectionId}
                         overId={null}
                         draggedSectionId={draggedSectionId}

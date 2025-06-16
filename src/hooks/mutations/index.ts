@@ -7,10 +7,13 @@
 
 // Page mutations
 export { useCreatePageMutation } from './useCreatePageMutation';
+export { useUpdatePageMutation } from './useUpdatePageMutation';
+export { useDeletePageMutation } from './useDeletePageMutation';
+
+// Section mutations
+export * from './sections';
 
 // Future mutations will be exported here:
-// export { useUpdatePageMutation } from './useUpdatePageMutation';
-// export { useDeletePageMutation } from './useDeletePageMutation';
 // export { useCreateUserMutation } from './useCreateUserMutation';
 // export { useUpdateUserMutation } from './useUpdateUserMutation';
 // export { useDeleteUserMutation } from './useDeleteUserMutation';

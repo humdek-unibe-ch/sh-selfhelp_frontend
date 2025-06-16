@@ -102,5 +102,95 @@ export const AdminApi = {
         await apiClient.delete(
             API_CONFIG.ENDPOINTS.ADMIN_PAGES_DELETE(keyword)
         );
+    },
+
+    // Section Management API Methods
+
+    /**
+     * Adds a section to a page
+     * @param {string} keyword - The page keyword
+     * @param {any} sectionData - The section data to add
+     * @returns {Promise<any>} The created section data
+     * @throws {Error} When API request fails
+     */
+    async addSectionToPage(keyword: string, sectionData: any): Promise<any> {
+        const response = await apiClient.post(
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_SECTIONS_ADD(keyword),
+            sectionData
+        );
+        return response.data.data;
+    },
+
+    /**
+     * Updates a section in a page
+     * @param {string} keyword - The page keyword
+     * @param {number} sectionId - The section ID to update
+     * @param {any} sectionData - The section data to update
+     * @returns {Promise<any>} The updated section data
+     * @throws {Error} When API request fails
+     */
+    async updateSectionInPage(keyword: string, sectionId: number, sectionData: any): Promise<any> {
+        const response = await apiClient.put(
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_SECTIONS_UPDATE(keyword, sectionId),
+            sectionData
+        );
+        return response.data.data;
+    },
+
+    /**
+     * Removes a section from a page
+     * @param {string} keyword - The page keyword
+     * @param {number} sectionId - The section ID to remove
+     * @returns {Promise<void>} Success response
+     * @throws {Error} When API request fails
+     */
+    async removeSectionFromPage(keyword: string, sectionId: number): Promise<void> {
+        await apiClient.delete(
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_SECTIONS_REMOVE(keyword, sectionId)
+        );
+    },
+
+    /**
+     * Adds a section to another section
+     * @param {number} parentSectionId - The parent section ID
+     * @param {any} sectionData - The section data to add
+     * @returns {Promise<any>} The created section data
+     * @throws {Error} When API request fails
+     */
+    async addSectionToSection(parentSectionId: number, sectionData: any): Promise<any> {
+        const response = await apiClient.post(
+            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_ADD_TO_SECTION(parentSectionId),
+            sectionData
+        );
+        return response.data.data;
+    },
+
+    /**
+     * Updates a section within another section
+     * @param {number} parentSectionId - The parent section ID
+     * @param {number} childSectionId - The child section ID to update
+     * @param {any} sectionData - The section data to update
+     * @returns {Promise<any>} The updated section data
+     * @throws {Error} When API request fails
+     */
+    async updateSectionInSection(parentSectionId: number, childSectionId: number, sectionData: any): Promise<any> {
+        const response = await apiClient.put(
+            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_UPDATE_IN_SECTION(parentSectionId, childSectionId),
+            sectionData
+        );
+        return response.data.data;
+    },
+
+    /**
+     * Removes a section from another section
+     * @param {number} parentSectionId - The parent section ID
+     * @param {number} childSectionId - The child section ID to remove
+     * @returns {Promise<void>} Success response
+     * @throws {Error} When API request fails
+     */
+    async removeSectionFromSection(parentSectionId: number, childSectionId: number): Promise<void> {
+        await apiClient.delete(
+            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_REMOVE_FROM_SECTION(parentSectionId, childSectionId)
+        );
     }
 };

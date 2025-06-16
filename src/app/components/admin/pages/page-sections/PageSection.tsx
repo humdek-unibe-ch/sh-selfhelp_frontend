@@ -9,8 +9,10 @@ import styles from './PageSections.module.css';
 interface IPageSectionProps {
     section: IPageField;
     level: number;
+    parentId: number | null;
     expandedSections: Set<number>;
     onToggleExpand: (sectionId: number) => void;
+    onRemoveSection: (sectionId: number, parentId: number | null) => void;
     isDragActive: boolean;
     overId: string | number | null;
     draggedSectionId?: number | null;
@@ -21,8 +23,10 @@ interface IPageSectionProps {
 export function PageSection({
     section,
     level,
+    parentId,
     expandedSections,
     onToggleExpand,
+    onRemoveSection,
     isDragActive,
     overId,
     draggedSectionId,
@@ -52,9 +56,11 @@ export function PageSection({
             <SectionHeader
                 section={section}
                 level={level}
+                parentId={parentId}
                 hasChildren={hasChildren}
                 isExpanded={isExpanded}
                 onToggleExpand={onToggleExpand}
+                onRemoveSection={onRemoveSection}
                 dragHandleProps={dragHandleProps}
                 isDragging={isDragging}
                 isValidDropTarget={isValidDropTarget}

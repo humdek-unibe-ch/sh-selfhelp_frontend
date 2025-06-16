@@ -15,7 +15,88 @@ This document outlines the frontend architecture for the SH-Self-help project. T
 *   **Performance**: Optimize for Web Vitals (LCP, CLS, FID).
 *   **Accessibility (a11y)**: Build inclusive interfaces.
 
-## 2.1. Page Creation and Navigation System (Latest Update)
+## 2.1. Section Management System (Latest Update)
+
+### Comprehensive Section Operations
+Implemented a complete section management system with full CRUD operations and advanced positioning capabilities.
+
+#### New API Endpoints
+Added 6 new API endpoints for section management:
+- **Page-Section Operations**:
+  - `POST /admin/pages/{pageKeyword}/sections` - Add section to page
+  - `PUT /admin/pages/{pageKeyword}/sections/{sectionId}` - Update section in page
+  - `DELETE /admin/pages/{pageKeyword}/sections/{sectionId}` - Remove section from page
+
+- **Section-Section Operations**:
+  - `POST /admin/sections/{parentSectionId}/sections` - Add section to section
+  - `PUT /admin/sections/{parentSectionId}/sections/{childSectionId}` - Update section in section
+  - `DELETE /admin/sections/{parentSectionId}/sections/{childSectionId}` - Remove section from section
+
+#### React Query Mutations
+Created comprehensive mutation hooks following the established pattern:
+
+```typescript
+// Page-Section mutations
+useAddSectionToPageMutation()
+useUpdateSectionInPageMutation()
+useRemoveSectionFromPageMutation()
+
+// Section-Section mutations  
+useAddSectionToSectionMutation()
+useUpdateSectionInSectionMutation()
+useRemoveSectionFromSectionMutation()
+```
+
+#### Advanced Drag & Drop with Backend Integration
+- **Real-time Position Updates**: Drag operations now trigger actual backend API calls
+- **Smart Position Calculation**: Maintains 5, 15, 25, 35... positioning pattern
+- **Hierarchical Movement**: Supports moving sections between pages and parent sections
+- **Optimistic Updates**: UI updates immediately with proper error handling and rollback
+
+#### Section Removal System
+- **Context-Aware Removal**: Sections are removed from their current parent (page or section)
+- **Parent ID Tracking**: System tracks parent relationships for proper API calls
+- **Safe Operations**: Remove operations (not delete) preserve section data for potential restoration
+
+#### Enhanced UI Components
+- **Processing States**: Visual feedback during API operations
+- **Error Handling**: Comprehensive error messages and notifications
+- **Debug Integration**: Full debug logging for development and troubleshooting
+
+#### Technical Implementation
+```typescript
+const handleSectionMove = async (moveData: IMoveData) => {
+    const { draggedSectionId, newParentId, newPosition, pageKeyword } = moveData;
+    
+    const sectionUpdateData = { position: newPosition };
+
+    if (newParentId === null) {
+        // Moving to page level
+        await updateSectionInPageMutation.mutateAsync({
+            keyword: pageKeyword,
+            sectionId: draggedSectionId,
+            sectionData: sectionUpdateData
+        });
+    } else {
+        // Moving to another section
+        await updateSectionInSectionMutation.mutateAsync({
+            parentSectionId: newParentId,
+            childSectionId: draggedSectionId,
+            sectionData: sectionUpdateData
+        });
+    }
+};
+```
+
+#### Benefits
+- ✅ **Full CRUD Operations**: Complete section management capabilities
+- ✅ **Real Backend Integration**: All operations persist to database
+- ✅ **Hierarchical Support**: Move sections between pages and parent sections
+- ✅ **Position Management**: Intelligent position calculation and updates
+- ✅ **Error Resilience**: Comprehensive error handling and user feedback
+- ✅ **Debug Support**: Full logging for development and troubleshooting
+
+## 2.2. Page Creation and Navigation System (Previous Update)
 
 ### API Schema Compliance (Latest)
 Updated all page creation and update interfaces to match backend JSON schema validation requirements exactly.
@@ -152,7 +233,7 @@ const calculateFinalPosition = (pages: IMenuPageItem[], targetIndex: number): nu
 };
 ```
 
-## 2.2. Navigation System Architecture
+## 2.3. Navigation System Architecture
 
 The application uses a centralized navigation system that fetches page data from the API and organizes it into different navigation contexts:
 
@@ -173,7 +254,7 @@ The application uses a centralized navigation system that fetches page data from
 - Proper loading states with skeleton components
 - Nested menu support with hover interactions
 
-## 2.3. React Query Data Transformation Rules
+## 2.4. React Query Data Transformation Rules
 
 **CRITICAL RULE**: Always use React Query's `select` option for data transformations to prevent recalculation on every render.
 
@@ -213,7 +294,7 @@ const filtered = data?.filter(condition) ?? [];
 const sorted = filtered.sort(compareFn);
 ```
 
-## 2.4. React Query Mutations - State-of-the-Art Data Manipulation
+## 2.5. React Query Mutations - State-of-the-Art Data Manipulation
 
 **CRITICAL RULE**: Always use React Query's `useMutation` for data manipulation operations (Create, Update, Delete). This is the state-of-the-art approach.
 
@@ -264,7 +345,7 @@ const handleSubmit = (values) => {
 - **Consistent UX**: Standardized loading states and error handling
 - **Developer Experience**: Excellent debugging with React Query DevTools
 
-## 2.5. UI Component Rules - Mantine First Approach
+## 2.6. UI Component Rules - Mantine First Approach
 
 **CRITICAL RULE**: Minimize custom Tailwind CSS and maximize Mantine UI v7 components for better theming and customization.
 
@@ -336,7 +417,7 @@ const handleSubmit = (values) => {
 - **User Customization**: Easier for users to apply custom themes
 - **Maintenance**: Centralized styling through Mantine's theme system
 
-## 2.6. Component Reusability Rules
+## 2.7. Component Reusability Rules
 
 **CRITICAL RULE**: Always extract components into separate reusable components if they are used in more than one place.
 
@@ -399,7 +480,7 @@ export function ReusableComponent({
 3. **Preserve Functionality**: Ensure all interactive behavior is maintained
 4. **Test Theming**: Verify components work with different Mantine themes
 
-## 2.7. Lookups System Architecture
+## 2.8. Lookups System Architecture
 
 The application uses a centralized lookups system for managing configuration data and dropdown options.
 
@@ -451,7 +532,7 @@ const mobileLookup = useLookup(PAGE_ACCESS_TYPES, PAGE_ACCESS_TYPES_MOBILE);
 - **Data transformation**: Uses React Query's `select` option for efficient processing
 - **Memory optimization**: Processed data structures prevent recalculation
 
-## 2.8. Create Page Modal System
+## 2.9. Create Page Modal System
 
 The create page modal provides a comprehensive interface for creating new pages with all necessary configuration options.
 
@@ -492,7 +573,7 @@ interface ICreatePageFormValues {
 - **Custom Edit**: Optional manual URL editing when enabled
 - **Read-only Display**: Shows generated pattern when custom edit is disabled
 
-## 2.9. Enhanced Page Creation System - Context-Aware Menu Filtering
+## 2.10. Enhanced Page Creation System - Context-Aware Menu Filtering
 
 **CRITICAL ENHANCEMENT**: The CreatePageModal now supports context-aware page creation with intelligent menu filtering based on page hierarchy.
 
@@ -549,7 +630,7 @@ const processMenuPages = useMemo(() => {
 
 This enhancement ensures that page creation respects the hierarchical structure and provides users with contextually relevant menu positioning options.
 
-## 2.10. Page Content Management System
+## 2.11. Page Content Management System
 
 **CRITICAL FEATURE**: Enhanced page content editing with dynamic field loading and proper form management.
 
@@ -609,7 +690,7 @@ interface IPageFormValues {
 - **Efficient Workflow**: Keyboard shortcuts and fixed save button improve productivity
 - **Data Integrity**: Proper form validation and confirmation dialogs prevent data loss
 
-## 2.11. Page Sections Modular Architecture (Latest Update)
+## 2.12. Page Sections Modular Architecture (Latest Update)
 
 ### Component Structure
 The page sections interface has been restructured into a modular architecture with clear separation of concerns:

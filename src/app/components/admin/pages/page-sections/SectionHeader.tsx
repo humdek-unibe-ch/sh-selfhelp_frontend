@@ -15,9 +15,11 @@ import styles from './PageSections.module.css';
 interface ISectionHeaderProps {
     section: IPageField;
     level: number;
+    parentId: number | null;
     hasChildren: boolean;
     isExpanded: boolean;
     onToggleExpand: (sectionId: number) => void;
+    onRemoveSection: (sectionId: number, parentId: number | null) => void;
     dragHandleProps: any;
     isDragging: boolean;
     isValidDropTarget: boolean;
@@ -28,9 +30,11 @@ interface ISectionHeaderProps {
 export function SectionHeader({
     section,
     level,
+    parentId,
     hasChildren,
     isExpanded,
     onToggleExpand,
+    onRemoveSection,
     dragHandleProps,
     isDragging,
     isValidDropTarget,
@@ -129,7 +133,13 @@ export function SectionHeader({
                 <ActionIcon variant="subtle" size="xs" color="gray" title="Copy section">
                     <IconCopy size={12} />
                 </ActionIcon>
-                <ActionIcon variant="subtle" size="xs" color="red" title="Delete section">
+                <ActionIcon 
+                    variant="subtle" 
+                    size="xs" 
+                    color="red" 
+                    title="Remove section"
+                    onClick={() => onRemoveSection(section.id, parentId)}
+                >
                     <IconTrash size={12} />
                 </ActionIcon>
             </Group>

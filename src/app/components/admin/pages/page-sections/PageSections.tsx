@@ -19,16 +19,66 @@ import {
     IconPlus
 } from '@tabler/icons-react';
 import { usePageSections } from '../../../../../hooks/usePageDetails';
+import { 
+    useUpdateSectionInPageMutation,
+    useUpdateSectionInSectionMutation,
+    useAddSectionToPageMutation,
+    useRemoveSectionFromPageMutation,
+    useRemoveSectionFromSectionMutation
+} from '../../../../../hooks/mutations';
 import { IPageField } from '../../../../../types/common/pages.type';
 import { SectionsList } from './SectionsList';
+import { debug } from '../../../../../utils/debug-logger';
 
 interface IPageSectionsProps {
     keyword: string | null;
 }
 
+interface IMoveData {
+    draggedSectionId: number;
+    newParentId: number | null;
+    pageKeyword?: string;
+    newPosition: number;
+    draggedSection: IPageField;
+    newParent: IPageField | null;
+    descendantIds: number[];
+    totalMovingItems: number;
+}
+
 export function PageSections({ keyword }: IPageSectionsProps) {
     const { data, isLoading, error } = usePageSections(keyword);
     const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
+
+    // Section mutations
+    const updateSectionInPageMutation = useUpdateSectionInPageMutation({
+        showNotifications: true,
+        onSuccess: () => {
+            debug('Section position updated in page successfully', 'PageSections');
+        }
+    });
+
+    const updateSectionInSectionMutation = useUpdateSectionInSectionMutation({
+        showNotifications: true,
+        pageKeyword: keyword || undefined,
+        onSuccess: () => {
+            debug('Section position updated in section successfully', 'PageSections');
+        }
+    });
+
+    const removeSectionFromPageMutation = useRemoveSectionFromPageMutation({
+        showNotifications: true,
+        onSuccess: () => {
+            debug('Section removed from page successfully', 'PageSections');
+        }
+    });
+
+    const removeSectionFromSectionMutation = useRemoveSectionFromSectionMutation({
+        showNotifications: true,
+        pageKeyword: keyword || undefined,
+        onSuccess: () => {
+            debug('Section removed from section successfully', 'PageSections');
+        }
+    });
 
     const handleToggleExpand = (sectionId: number) => {
         setExpandedSections(prev => {
@@ -42,24 +92,78 @@ export function PageSections({ keyword }: IPageSectionsProps) {
         });
     };
 
-    const handleSectionMove = (moveData: any) => {
-        // Log the comprehensive move data for backend integration
-        console.log('📦 Complete Section Move Data for Backend:', {
-            operation: 'MOVE_SECTION',
-            timestamp: new Date().toISOString(),
-            data: moveData
-        });
+    const handleSectionMove = async (moveData: IMoveData) => {
+        debug('Processing section move', 'PageSections', moveData);
         
-        // TODO: Implement actual backend API call here
-        // Example:
-        // try {
-        //     await moveSectionAPI(moveData);
-        //     // Refresh sections data on success
-        //     queryClient.invalidateQueries(['pageSections', keyword]);
-        // } catch (error) {
-        //     console.error('Failed to move section:', error);
-        //     // Handle error - maybe show notification
-        // }
+        try {
+            const { draggedSectionId, newParentId, newPosition, pageKeyword } = moveData;
+            
+            // Prepare section data with new position
+            const sectionUpdateData = {
+                position: newPosition,
+                // Add any other fields that need to be updated during move
+            };
+
+            if (newParentId === null) {
+                // Moving to page level - use page mutation
+                if (!pageKeyword) {
+                    throw new Error('Page keyword is required for page-level moves');
+                }
+                
+                await updateSectionInPageMutation.mutateAsync({
+                    keyword: pageKeyword,
+                    sectionId: draggedSectionId,
+                    sectionData: sectionUpdateData
+                });
+            } else {
+                // Moving to another section - use section mutation
+                await updateSectionInSectionMutation.mutateAsync({
+                    parentSectionId: newParentId,
+                    childSectionId: draggedSectionId,
+                    sectionData: sectionUpdateData
+                });
+            }
+            
+            debug('Section move completed successfully', 'PageSections', {
+                sectionId: draggedSectionId,
+                newParentId,
+                newPosition
+            });
+            
+        } catch (error) {
+            debug('Error moving section', 'PageSections', { error, moveData });
+            // Error handling is done by the mutation hooks
+        }
+    };
+
+    const handleRemoveSection = async (sectionId: number, parentId: number | null) => {
+        debug('Removing section', 'PageSections', { sectionId, parentId });
+        
+        try {
+            if (parentId === null) {
+                // Remove from page
+                if (!keyword) {
+                    throw new Error('Page keyword is required for removing sections from page');
+                }
+                
+                await removeSectionFromPageMutation.mutateAsync({
+                    keyword,
+                    sectionId
+                });
+            } else {
+                // Remove from parent section
+                await removeSectionFromSectionMutation.mutateAsync({
+                    parentSectionId: parentId,
+                    childSectionId: sectionId
+                });
+            }
+            
+            debug('Section removed successfully', 'PageSections', { sectionId, parentId });
+            
+        } catch (error) {
+            debug('Error removing section', 'PageSections', { error, sectionId, parentId });
+            // Error handling is done by the mutation hooks
+        }
     };
 
     // Auto-expand sections with children on initial load
@@ -117,6 +221,9 @@ export function PageSections({ keyword }: IPageSectionsProps) {
         );
     }
 
+    const isProcessingMove = updateSectionInPageMutation.isPending || updateSectionInSectionMutation.isPending;
+    const isProcessingRemove = removeSectionFromPageMutation.isPending || removeSectionFromSectionMutation.isPending;
+
     return (
         <Paper p="xs" withBorder style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             {/* Header */}
@@ -127,6 +234,11 @@ export function PageSections({ keyword }: IPageSectionsProps) {
                     <Badge size="xs" variant="light" color="blue">
                         {data.sections.length}
                     </Badge>
+                    {(isProcessingMove || isProcessingRemove) && (
+                        <Badge size="xs" variant="light" color="orange">
+                            Processing...
+                        </Badge>
+                    )}
                 </Group>
                 <Button leftSection={<IconPlus size={14} />} size="xs" variant="light">
                     Add Section
@@ -139,7 +251,9 @@ export function PageSections({ keyword }: IPageSectionsProps) {
                 expandedSections={expandedSections}
                 onToggleExpand={handleToggleExpand}
                 onSectionMove={handleSectionMove}
+                onRemoveSection={handleRemoveSection}
                 pageKeyword={keyword || undefined}
+                isProcessing={isProcessingMove || isProcessingRemove}
             />
         </Paper>
     );
