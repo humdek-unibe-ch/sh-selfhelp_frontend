@@ -28,6 +28,7 @@ import {
 } from '../../../../../hooks/mutations';
 import { IPageField } from '../../../../../types/common/pages.type';
 import { SectionsList } from './SectionsList';
+import { AddSectionModal } from './AddSectionModal';
 import { debug } from '../../../../../utils/debug-logger';
 
 interface IPageSectionsProps {
@@ -48,6 +49,8 @@ interface IMoveData {
 export function PageSections({ keyword }: IPageSectionsProps) {
     const { data, isLoading, error } = usePageSections(keyword);
     const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
+    const [addSectionModalOpened, setAddSectionModalOpened] = useState(false);
+    const [selectedParentSectionId, setSelectedParentSectionId] = useState<number | null>(null);
 
     // Section mutations
     const updateSectionInPageMutation = useUpdateSectionInPageMutation({
@@ -166,6 +169,33 @@ export function PageSections({ keyword }: IPageSectionsProps) {
         }
     };
 
+    const handleAddChildSection = (parentSectionId: number) => {
+        debug('Opening add child section modal', 'PageSections', { parentSectionId });
+        setSelectedParentSectionId(parentSectionId);
+        setAddSectionModalOpened(true);
+    };
+
+    const handleAddSiblingAbove = (referenceSectionId: number, parentId: number | null) => {
+        debug('Adding sibling above section', 'PageSections', { referenceSectionId, parentId });
+        // TODO: Implement sibling above creation with position calculation (-5)
+        // For now, open the modal with the parent context
+        setSelectedParentSectionId(parentId);
+        setAddSectionModalOpened(true);
+    };
+
+    const handleAddSiblingBelow = (referenceSectionId: number, parentId: number | null) => {
+        debug('Adding sibling below section', 'PageSections', { referenceSectionId, parentId });
+        // TODO: Implement sibling below creation with position calculation (+5)
+        // For now, open the modal with the parent context
+        setSelectedParentSectionId(parentId);
+        setAddSectionModalOpened(true);
+    };
+
+    const handleCloseAddSectionModal = () => {
+        setAddSectionModalOpened(false);
+        setSelectedParentSectionId(null);
+    };
+
     // Auto-expand sections with children on initial load
     useEffect(() => {
         if (data?.sections && data.sections.length > 0) {
@@ -213,7 +243,12 @@ export function PageSections({ keyword }: IPageSectionsProps) {
                     <Text size="sm" mb="md">
                         This page doesn&apos;t have any sections yet.
                     </Text>
-                    <Button leftSection={<IconPlus size={16} />} size="sm" variant="light">
+                    <Button 
+                        leftSection={<IconPlus size={16} />} 
+                        size="sm" 
+                        variant="light"
+                        onClick={() => setAddSectionModalOpened(true)}
+                    >
                         Add First Section
                     </Button>
                 </Alert>
@@ -240,7 +275,12 @@ export function PageSections({ keyword }: IPageSectionsProps) {
                         </Badge>
                     )}
                 </Group>
-                <Button leftSection={<IconPlus size={14} />} size="xs" variant="light">
+                <Button 
+                    leftSection={<IconPlus size={14} />} 
+                    size="xs" 
+                    variant="light"
+                    onClick={() => setAddSectionModalOpened(true)}
+                >
                     Add Section
                 </Button>
             </Group>
@@ -252,8 +292,20 @@ export function PageSections({ keyword }: IPageSectionsProps) {
                 onToggleExpand={handleToggleExpand}
                 onSectionMove={handleSectionMove}
                 onRemoveSection={handleRemoveSection}
+                onAddChildSection={handleAddChildSection}
+                onAddSiblingAbove={handleAddSiblingAbove}
+                onAddSiblingBelow={handleAddSiblingBelow}
                 pageKeyword={keyword || undefined}
                 isProcessing={isProcessingMove || isProcessingRemove}
+            />
+
+            {/* Add Section Modal */}
+            <AddSectionModal
+                opened={addSectionModalOpened}
+                onClose={handleCloseAddSectionModal}
+                pageKeyword={keyword || undefined}
+                parentSectionId={selectedParentSectionId}
+                title={selectedParentSectionId ? "Add Child Section" : "Add Section to Page"}
             />
         </Paper>
     );

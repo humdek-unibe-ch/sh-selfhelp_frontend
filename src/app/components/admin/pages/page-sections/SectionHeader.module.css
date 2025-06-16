@@ -1,0 +1,115 @@
+.sectionContainer {
+    position: relative;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    border: 1.5px solid var(--mantine-color-gray-4);
+}
+
+.sectionContainer:hover {
+    border-color: var(--mantine-color-blue-6);
+}
+
+.sectionContainer:hover .buttonsHolder {
+    display: flex !important;
+    z-index: 100;
+}
+
+.buttonsHolder {
+    display: none;
+    position: absolute;
+    top: -18px;
+    bottom: -18px;
+    left: -18px;
+    right: -18px;
+    pointer-events: none;
+    justify-content: space-between;
+}
+
+/* Left side - Add sibling buttons */
+.leftAddButtons {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    pointer-events: auto;
+}
+
+/* Left side grouped menu - Eye and Square buttons */
+.leftMenuHolder {
+    margin-left: 20px;
+    display: flex;
+    justify-content: center;
+    pointer-events: auto;
+}
+
+.menuHolder {
+    display: flex;
+    background: white;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    padding: 3px;
+    border-radius: 6px;
+    border: 1px solid var(--mantine-color-blue-6);
+    height: 26px;
+    align-items: center;
+    gap: 2px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Center - Move up/down buttons */
+.centerButtons {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin: auto;
+    height: 100%;
+    pointer-events: auto;
+}
+
+/* Right side - Remove button */
+.rightButtons {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    pointer-events: auto;
+}
+
+/* Button styling */
+.sectionBtn {
+    cursor: pointer;
+    height: 24px;
+    width: 24px;
+    padding: 4px;
+    pointer-events: auto;
+    border-radius: 50%;
+    border: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.menuBtn {
+    cursor: pointer;
+    pointer-events: auto;
+    height: 20px;
+    width: 20px;
+    padding: 2px;
+    border: none;
+    background: none;
+    border-radius: 3px;
+}
+
+.iconButtonWhite {
+    background-image: radial-gradient(at center, white 20%, transparent 20%);
+}
+
+.truncateText {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dragHandle {
+    cursor: grab;
+}
+
+.dragHandle:active {
+    cursor: grabbing;
+} 

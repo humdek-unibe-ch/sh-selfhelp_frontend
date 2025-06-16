@@ -13,4 +13,8 @@ export { useRemoveSectionFromPageMutation } from './useRemoveSectionFromPageMuta
 // Section-Section mutations
 export { useAddSectionToSectionMutation } from './useAddSectionToSectionMutation';
 export { useUpdateSectionInSectionMutation } from './useUpdateSectionInSectionMutation';
-export { useRemoveSectionFromSectionMutation } from './useRemoveSectionFromSectionMutation'; 
+export { useRemoveSectionFromSectionMutation } from './useRemoveSectionFromSectionMutation';
+
+// Section creation mutations
+export { useCreateSectionInPageMutation } from './useCreateSectionInPageMutation';
+export { useCreateSectionInSectionMutation } from './useCreateSectionInSectionMutation'; 

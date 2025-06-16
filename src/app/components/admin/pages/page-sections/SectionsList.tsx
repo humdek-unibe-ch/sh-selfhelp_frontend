@@ -13,6 +13,9 @@ interface ISectionsListProps {
     onToggleExpand: (sectionId: number) => void;
     onSectionMove: (moveData: any) => void;
     onRemoveSection: (sectionId: number, parentId: number | null) => void;
+    onAddChildSection?: (parentSectionId: number) => void;
+    onAddSiblingAbove?: (referenceSectionId: number, parentId: number | null) => void;
+    onAddSiblingBelow?: (referenceSectionId: number, parentId: number | null) => void;
     pageKeyword?: string;
     isProcessing?: boolean;
 }
@@ -44,6 +47,9 @@ export function SectionsList({
     onToggleExpand,
     onSectionMove,
     onRemoveSection,
+    onAddChildSection,
+    onAddSiblingAbove,
+    onAddSiblingBelow,
     pageKeyword,
     isProcessing = false
 }: ISectionsListProps) {
@@ -59,7 +65,7 @@ export function SectionsList({
                 section: item,
                 level,
                 parentId,
-                canAcceptChildren: item.can_have_children,
+                canAcceptChildren: !!item.can_have_children,
                 originalIndex: index
             });
             
@@ -279,6 +285,9 @@ export function SectionsList({
                                         expandedSections={expandedSections}
                                         onToggleExpand={onToggleExpand}
                                         onRemoveSection={onRemoveSection}
+                                        onAddChildSection={onAddChildSection}
+                                        onAddSiblingAbove={onAddSiblingAbove}
+                                        onAddSiblingBelow={onAddSiblingBelow}
                                         draggedSectionId={draggedSectionId}
                                     />
                                 ))}
@@ -299,6 +308,9 @@ interface ISectionDraggableItemProps {
     expandedSections: Set<number>;
     onToggleExpand: (sectionId: number) => void;
     onRemoveSection: (sectionId: number, parentId: number | null) => void;
+    onAddChildSection?: (parentSectionId: number) => void;
+    onAddSiblingAbove?: (referenceSectionId: number, parentId: number | null) => void;
+    onAddSiblingBelow?: (referenceSectionId: number, parentId: number | null) => void;
     draggedSectionId: number | null;
 }
 
@@ -308,6 +320,9 @@ function SectionDraggableItem({
     expandedSections,
     onToggleExpand,
     onRemoveSection,
+    onAddChildSection,
+    onAddSiblingAbove,
+    onAddSiblingBelow,
     draggedSectionId
 }: ISectionDraggableItemProps) {
     const isDraggedSection = draggedSectionId === item.section.id;
@@ -345,6 +360,9 @@ function SectionDraggableItem({
                         expandedSections={expandedSections}
                         onToggleExpand={onToggleExpand}
                         onRemoveSection={onRemoveSection}
+                        onAddChildSection={onAddChildSection}
+                        onAddSiblingAbove={onAddSiblingAbove}
+                        onAddSiblingBelow={onAddSiblingBelow}
                         isDragActive={!!draggedSectionId}
                         overId={null}
                         draggedSectionId={draggedSectionId}

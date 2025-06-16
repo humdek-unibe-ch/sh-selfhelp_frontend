@@ -13,6 +13,9 @@ interface IPageSectionProps {
     expandedSections: Set<number>;
     onToggleExpand: (sectionId: number) => void;
     onRemoveSection: (sectionId: number, parentId: number | null) => void;
+    onAddChildSection?: (parentSectionId: number) => void;
+    onAddSiblingAbove?: (referenceSectionId: number, parentId: number | null) => void;
+    onAddSiblingBelow?: (referenceSectionId: number, parentId: number | null) => void;
     isDragActive: boolean;
     overId: string | number | null;
     draggedSectionId?: number | null;
@@ -27,6 +30,9 @@ export function PageSection({
     expandedSections,
     onToggleExpand,
     onRemoveSection,
+    onAddChildSection,
+    onAddSiblingAbove,
+    onAddSiblingBelow,
     isDragActive,
     overId,
     draggedSectionId,
@@ -35,13 +41,13 @@ export function PageSection({
 }: IPageSectionProps) {
     const hasChildren = section.children && section.children.length > 0;
     const isExpanded = expandedSections.has(section.id);
-    const isValidDropTarget = Boolean(section.can_have_children) && overId === section.id;
+    const isValidDropTarget = !!section.can_have_children && overId === section.id;
     
     // Check if this section or any of its ancestors is being dragged
     const isBeingDragged = draggedSectionId === section.id;
     
     // Show child drop zone if: can have children, has no children, and someone is dragging (but not this element)
-    const shouldShowChildDropZone = Boolean(section.can_have_children) && !hasChildren && isDragActive && !isBeingDragged;
+    const shouldShowChildDropZone = !!section.can_have_children && !hasChildren && isDragActive && !isBeingDragged;
 
     return (
         <Box 
@@ -61,6 +67,13 @@ export function PageSection({
                 isExpanded={isExpanded}
                 onToggleExpand={onToggleExpand}
                 onRemoveSection={onRemoveSection}
+                onAddChildSection={onAddChildSection}
+                onAddSiblingAbove={onAddSiblingAbove}
+                onAddSiblingBelow={onAddSiblingBelow}
+                onMoveUp={(sectionId, parentId) => console.log('Move up placeholder', { sectionId, parentId })}
+                onMoveDown={(sectionId, parentId) => console.log('Move down placeholder', { sectionId, parentId })}
+                onInspectSection={(sectionId) => console.log('Inspect section placeholder', { sectionId })}
+                onNavigateToSection={(sectionId) => console.log('Navigate to section placeholder', { sectionId })}
                 dragHandleProps={dragHandleProps}
                 isDragging={isDragging}
                 isValidDropTarget={isValidDropTarget}

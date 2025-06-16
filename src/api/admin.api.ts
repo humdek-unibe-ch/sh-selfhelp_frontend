@@ -14,6 +14,8 @@ import { ICreatePageRequest } from '../types/requests/admin/create-page.types';
 import { IUpdatePageRequest } from '../types/requests/admin/update-page.types';
 import { TPageFieldsResponse, IPageFieldsData } from '../types/responses/admin/page-details.types';
 import { TLanguagesResponse, ILanguage } from '../types/responses/admin/languages.types';
+import { TStyleGroupsResponse, IStyleGroup } from '../types/responses/admin/styles.types';
+import { ICreateSectionRequest } from '../types/requests/admin/create-section.types';
 
 export const AdminApi = {
     /**
@@ -192,5 +194,47 @@ export const AdminApi = {
         await apiClient.delete(
             API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_REMOVE_FROM_SECTION(parentSectionId, childSectionId)
         );
+    },
+
+    // Style Management API Methods
+
+    /**
+     * Fetches all style groups.
+     * @returns {Promise<IStyleGroup[]>} Array of style groups
+     * @throws {Error} When API request fails
+     */
+    async getStyleGroups(): Promise<IStyleGroup[]> {
+        const response = await apiClient.get<TStyleGroupsResponse>(API_CONFIG.ENDPOINTS.ADMIN_STYLES_GET_ALL);
+        return response.data.data;
+    },
+
+    /**
+     * Creates a new section in a page
+     * @param {string} keyword - The page keyword
+     * @param {ICreateSectionRequest} sectionData - The section data to create
+     * @returns {Promise<any>} The created section data
+     * @throws {Error} When API request fails
+     */
+    async createSectionInPage(keyword: string, sectionData: ICreateSectionRequest): Promise<any> {
+        const response = await apiClient.post<IBaseApiResponse<any>>(
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_SECTIONS_CREATE(keyword),
+            sectionData
+        );
+        return response.data.data;
+    },
+
+    /**
+     * Creates a new section in another section
+     * @param {number} parentSectionId - The parent section ID
+     * @param {ICreateSectionRequest} sectionData - The section data to create
+     * @returns {Promise<any>} The created section data
+     * @throws {Error} When API request fails
+     */
+    async createSectionInSection(parentSectionId: number, sectionData: ICreateSectionRequest): Promise<any> {
+        const response = await apiClient.post<IBaseApiResponse<any>>(
+            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_CREATE_IN_SECTION(parentSectionId),
+            sectionData
+        );
+        return response.data.data;
     }
 };

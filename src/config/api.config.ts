@@ -36,6 +36,11 @@ export const API_CONFIG = {
         ADMIN_SECTIONS_UPDATE_IN_SECTION: (parentSectionId: number, childSectionId: number) => `/admin/sections/${parentSectionId}/sections/${childSectionId}`,
         ADMIN_SECTIONS_REMOVE_FROM_SECTION: (parentSectionId: number, childSectionId: number) => `/admin/sections/${parentSectionId}/sections/${childSectionId}`,
         ADMIN_SECTIONS_DELETE: (sectionId: number) => `/admin/sections/${sectionId}`,
+        // Styles endpoints
+        ADMIN_STYLES_GET_ALL: '/admin/styles',
+        // Section creation endpoints
+        ADMIN_PAGES_SECTIONS_CREATE: (keyword: string) => `/admin/pages/${keyword}/sections/create`,
+        ADMIN_SECTIONS_CREATE_IN_SECTION: (parentSectionId: number) => `/admin/sections/${parentSectionId}/sections/create`,
     },
     CORS_CONFIG: {
         credentials: true, // Required for cookies, authorization headers with HTTPS

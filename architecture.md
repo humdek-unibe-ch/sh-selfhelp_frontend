@@ -18,19 +18,24 @@ This document outlines the frontend architecture for the SH-Self-help project. T
 ## 2.1. Section Management System (Latest Update)
 
 ### Comprehensive Section Operations
-Implemented a complete section management system with full CRUD operations and advanced positioning capabilities.
+Implemented a complete section management system with full CRUD operations, advanced positioning capabilities, and a comprehensive section creation UI.
 
 #### New API Endpoints
-Added 6 new API endpoints for section management:
+Added 8 new API endpoints for section management:
 - **Page-Section Operations**:
   - `POST /admin/pages/{pageKeyword}/sections` - Add section to page
   - `PUT /admin/pages/{pageKeyword}/sections/{sectionId}` - Update section in page
   - `DELETE /admin/pages/{pageKeyword}/sections/{sectionId}` - Remove section from page
+  - `POST /admin/pages/{pageKeyword}/sections/create` - Create new section in page
 
 - **Section-Section Operations**:
   - `POST /admin/sections/{parentSectionId}/sections` - Add section to section
   - `PUT /admin/sections/{parentSectionId}/sections/{childSectionId}` - Update section in section
   - `DELETE /admin/sections/{parentSectionId}/sections/{childSectionId}` - Remove section from section
+  - `POST /admin/sections/{parentSectionId}/sections/create` - Create new section in section
+
+- **Style Management**:
+  - `GET /admin/styles` - Fetch all available styles grouped by categories
 
 #### React Query Mutations
 Created comprehensive mutation hooks following the established pattern:
@@ -45,7 +50,117 @@ useRemoveSectionFromPageMutation()
 useAddSectionToSectionMutation()
 useUpdateSectionInSectionMutation()
 useRemoveSectionFromSectionMutation()
+
+// Section creation mutations
+useCreateSectionInPageMutation()
+useCreateSectionInSectionMutation()
 ```
+
+#### Section Creation UI System
+Implemented a comprehensive modal-based section creation system with style selection:
+
+**AddSectionModal Component Features**:
+- **Tabbed Interface**: New Section, Unassigned Section, Reference Section, Import Section
+- **Style Browser**: Hierarchical display of all available styles grouped by categories
+- **Search Functionality**: Real-time search across style names and descriptions
+- **Style Selection**: Visual style selection with detailed descriptions and type badges
+- **Context-Aware Creation**: Automatically detects whether creating in page or parent section
+- **Custom Naming**: Optional custom section names with fallback to style names
+
+**Style Management Integration**:
+```typescript
+// New hook for fetching style groups
+const { data: styleGroups } = useStyleGroups(opened);
+
+// Style group structure
+interface IStyleGroup {
+    id: number;
+    name: string;
+    description: string | null;
+    position: number;
+    styles: IStyle[];
+}
+
+interface IStyle {
+    id: number;
+    name: string;
+    description: string | null;
+    typeId: number;
+    type: string;
+}
+```
+
+**Integration Points**:
+- **Page Level**: "Add Section" button opens modal for page-level section creation (adds as last child)
+- **Child Creation**: "+" button on sections with `can_have_children` opens modal for child creation
+- **Sibling Creation**: Arrow buttons above/below each section for precise positioning
+  - Green arrow up (↑) button above each section creates sibling above (position - 5)
+  - Green arrow down (↓) button below each section creates sibling below (position + 5)
+- **Context Detection**: Modal automatically determines creation context (page vs parent section)
+- **Cache Invalidation**: All creation operations invalidate relevant queries for immediate UI updates
+
+**Position Calculation System**:
+- **Last Child Creation**: Automatically calculates highest position + 10 for new sections
+- **Sibling Above**: Reference section position - 5
+- **Sibling Below**: Reference section position + 5
+- **Future Normalization**: Position cleanup planned to maintain clean 5, 15, 25, 35... pattern
+
+**UI Enhancements**:
+- **Fixed Layout**: Modal header and footer always visible, content scrolls between them
+- **Hover-Based Controls**: Developer tools inspired border button system
+- **Smart Positioning**: Automatic position calculation based on reference section context
+
+**Hover Button System (Developer Tools Inspired)**:
+Implemented a sophisticated hover-based button system that mimics browser developer tools interface:
+
+**Layout Structure**:
+- **Left Side - Add Buttons**: Sibling above (top) and sibling below (bottom) positioned at left border
+- **Left Side - Menu Group**: Eye (inspect) and Square (navigate) buttons grouped with white background and blue border
+- **Center - Move Buttons**: Move up (top) and move down (bottom) positioned at center of top/bottom borders
+- **Right Side - Delete**: Remove button positioned at top-right corner
+
+**Visual Design**:
+- **Border Interaction**: Section border changes from gray to blue on hover with subtle shadow
+- **Button Positioning**: Buttons positioned outside section borders (-18px offset)
+- **Icon Styling**: 16px icons with radial gradient white background for visibility
+- **Menu Grouping**: Left-side menu buttons have white background with blue border for clear grouping
+- **Smooth Transitions**: CSS transitions for all hover states and button appearances
+
+**Technical Implementation**:
+```css
+.sectionContainer {
+    border: 1.5px solid var(--mantine-color-gray-4);
+    transition: all 0.2s ease;
+}
+
+.sectionContainer:hover {
+    border-color: var(--mantine-color-blue-6);
+}
+
+.buttonsHolder {
+    display: none;
+    position: absolute;
+    top: -18px; bottom: -18px; left: -18px; right: -18px;
+    justify-content: space-between;
+    pointer-events: none;
+}
+
+.sectionContainer:hover .buttonsHolder {
+    display: flex !important;
+    z-index: 100;
+}
+```
+
+**Button Categories**:
+- **Green Icons**: Add operations (plus icons for sibling creation)
+- **Blue Icons**: Move operations (arrow icons for reordering) and inspection (eye/square icons)
+- **Red Icons**: Delete operations (trash icon for removal)
+
+**User Experience**:
+- **Hover Activation**: Buttons only appear when hovering over section
+- **Clear Visual Hierarchy**: Different colors and positioning for different action types
+- **Tooltip Support**: Each button has descriptive tooltips
+- **Pointer Events**: Proper event handling to prevent interference with section content
 
 #### Advanced Drag & Drop with Backend Integration
 - **Real-time Position Updates**: Drag operations now trigger actual backend API calls

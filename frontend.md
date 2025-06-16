@@ -5,10 +5,10 @@
 ## Section Management System Implementation (Latest Update)
 
 ### Overview
-Implemented comprehensive section management system with full CRUD operations, real backend integration, and advanced positioning capabilities. This system allows users to reorder sections, move them between pages and parent sections, and remove sections with proper API calls.
+Implemented comprehensive section management system with full CRUD operations, real backend integration, advanced positioning capabilities, and a complete section creation UI with style selection. This system allows users to create, reorder, move, and remove sections with proper API calls and an intuitive modal-based creation interface.
 
 ### New API Endpoints and Mutations
-Added 6 new API endpoints and corresponding React Query mutations for complete section management:
+Added 8 new API endpoints and corresponding React Query mutations for complete section management:
 
 #### API Configuration Updates
 ```typescript
@@ -19,6 +19,13 @@ ADMIN_PAGES_SECTIONS_REMOVE: (keyword: string, sectionId: number) => `/admin/pag
 ADMIN_SECTIONS_ADD_TO_SECTION: (parentSectionId: number) => `/admin/sections/${parentSectionId}/sections`,
 ADMIN_SECTIONS_UPDATE_IN_SECTION: (parentSectionId: number, childSectionId: number) => `/admin/sections/${parentSectionId}/sections/${childSectionId}`,
 ADMIN_SECTIONS_REMOVE_FROM_SECTION: (parentSectionId: number, childSectionId: number) => `/admin/sections/${parentSectionId}/sections/${childSectionId}`,
+
+// Section creation endpoints
+ADMIN_PAGES_SECTIONS_CREATE: (keyword: string) => `/admin/pages/${keyword}/sections/create`,
+ADMIN_SECTIONS_CREATE_IN_SECTION: (parentSectionId: number) => `/admin/sections/${parentSectionId}/sections/create`,
+
+// Style management
+ADMIN_STYLES_GET_ALL: '/admin/styles',
 ```
 
 #### New Mutation Hooks
@@ -32,6 +39,145 @@ useRemoveSectionFromPageMutation()
 useAddSectionToSectionMutation()
 useUpdateSectionInSectionMutation()
 useRemoveSectionFromSectionMutation()
+
+// Section Creation Operations
+useCreateSectionInPageMutation()
+useCreateSectionInSectionMutation()
+```
+
+### Section Creation UI System
+
+#### 1. AddSectionModal Component
+Implemented a comprehensive modal-based section creation system with the following features:
+
+**Core Features**:
+- **Tabbed Interface**: New Section, Unassigned Section, Reference Section, Import Section (only New Section implemented)
+- **Compact Design**: Fixed header/footer layout with scrollable content area between header and footer
+- **Style Browser**: Hierarchical display of all available styles grouped by categories
+- **Search Functionality**: Real-time search across style names and descriptions
+- **Clear Style Selection**: Enhanced visual indicators with "SELECTED" badges and blue highlighting
+- **Context-Aware Creation**: Automatically detects whether creating in page or parent section
+- **Custom Naming**: Optional custom section names with fallback to style names
+- **Fixed Footer**: Always visible action buttons with status feedback
+- **Position Calculation**: Smart position calculation for adding sections as last child
+- **Sibling Creation**: Add sections above/below existing sections with precise positioning
+
+**Technical Implementation**:
+```typescript
+// Style group structure from backend
+interface IStyleGroup {
+    id: number;
+    name: string;
+    description: string | null;
+    position: number;
+    styles: IStyle[];
+}
+
+interface IStyle {
+    id: number;
+    name: string;
+    description: string | null;
+    typeId: number;
+    type: string;
+}
+
+// Section creation request
+interface ICreateSectionRequest {
+    styleId: number;
+    name?: string;
+    position?: number;
+}
+```
+
+#### 2. Style Management Integration
+**New Hook**: `useStyleGroups(enabled: boolean)`
+- Fetches all available styles grouped by categories
+- Sorts style groups by position for consistent display
+- Provides caching and error handling
+
+**Style Display Features**:
+- **Grouped Organization**: Styles organized by categories (Wrapper, Text, Link, Media, etc.)
+- **Enhanced Visual Indicators**: "SELECTED" badges, type badges, blue highlighting with thicker borders
+- **Search Filtering**: Real-time filtering across all styles and descriptions
+- **Compact Layout**: Reduced padding and spacing for better information density
+- **Fixed Layout**: Header with search/inputs, scrollable content, fixed footer with buttons
+- **Clear Instructions**: Helpful text guiding users to click styles for selection
+
+#### 3. Integration Points
+**Page Level Creation**:
+- "Add Section" button in PageSections header opens modal
+- "Add First Section" button when no sections exist
+- Modal configured for page-level section creation
+
+**Section Level Creation**:
+- "+" button on sections with `can_have_children` capability for child creation
+- Small arrow buttons above/below each section for sibling creation
+- Context-aware modal title and behavior
+- Proper parent section ID tracking
+
+**Hover-Based Border Button System (Developer Tools Inspired)**:
+Completely redesigned the hover system to match the vanilla JS implementation with proper positioning and beautiful styling:
+
+**Layout Structure**:
+- **Left Side - Add Buttons**: Sibling above (top) and sibling below (bottom) positioned at left border
+- **Left Side - Menu Group**: Eye (inspect) and Square (navigate) buttons grouped with white background and blue border
+- **Center - Move Buttons**: Move up (top) and move down (bottom) positioned at center of top/bottom borders  
+- **Right Side - Delete**: Remove button positioned at top-right corner
+
+**Visual Design**:
+- **Border Interaction**: Section border changes from gray to blue on hover with subtle shadow
+- **Button Positioning**: Buttons positioned outside section borders (-18px offset)
+- **Icon Styling**: 16px icons with radial gradient white background for visibility
+- **Menu Grouping**: Left-side menu buttons have white background with blue border for clear grouping
+- **Smooth Transitions**: CSS transitions for all hover states and button appearances
+
+**Technical Implementation**:
+```css
+.sectionContainer {
+    border: 1.5px solid var(--mantine-color-gray-4);
+    transition: all 0.2s ease;
+}
+
+.sectionContainer:hover {
+    border-color: var(--mantine-color-blue-6);
+}
+
+.buttonsHolder {
+    display: none;
+    position: absolute;
+    top: -18px; bottom: -18px; left: -18px; right: -18px;
+    justify-content: space-between;
+    pointer-events: none;
+}
+
+.sectionContainer:hover .buttonsHolder {
+    display: flex !important;
+    z-index: 100;
+}
+```
+
+**Button Categories**:
+- **Green Icons**: Add operations (plus icons for sibling creation)
+- **Blue Icons**: Move operations (arrow icons for reordering) and inspection (eye/square icons)
+- **Red Icons**: Delete operations (trash icon for removal)
+
+**User Experience**:
+- **Hover Activation**: Buttons only appear when hovering over section
+- **Clear Visual Hierarchy**: Different colors and positioning for different action types
+- **Tooltip Support**: Each button has descriptive tooltips matching vanilla JS implementation
+- **Pointer Events**: Proper event handling to prevent interference with section content
+
+**Component Hierarchy Updates**:
+```typescript
+// Updated component interfaces to support section creation
+interface ISectionHeaderProps {
+    // ... existing props
+    onAddChildSection?: (parentSectionId: number) => void;
+}
+
+// Modal state management in PageSections
+const [addSectionModalOpened, setAddSectionModalOpened] = useState(false);
+const [selectedParentSectionId, setSelectedParentSectionId] = useState<number | null>(null);
 ```
 
 ### Enhanced Section Management Features
@@ -106,24 +252,33 @@ const handleRemoveSection = async (sectionId: number, parentId: number | null) =
 - Enhanced component interfaces for new functionality
 
 ### Benefits Achieved
-- ✅ **Complete CRUD Operations**: Full section management capabilities
+- ✅ **Complete CRUD Operations**: Full section management capabilities including creation
 - ✅ **Real Backend Integration**: All operations persist to database immediately
-- ✅ **Hierarchical Support**: Move sections between pages and parent sections
+- ✅ **Hierarchical Support**: Create, move sections between pages and parent sections
 - ✅ **Position Management**: Intelligent position calculation and updates
 - ✅ **Error Resilience**: Comprehensive error handling and user feedback
 - ✅ **Debug Support**: Full logging for development and troubleshooting
 - ✅ **Processing States**: Visual feedback during API operations
 - ✅ **Type Safety**: Full TypeScript support for all new operations
+- ✅ **Intuitive UI**: Modal-based section creation with style browser
+- ✅ **Style Management**: Complete integration with backend style system
+- ✅ **Context Awareness**: Smart detection of creation context (page vs section)
+- ✅ **Search & Filter**: Real-time style search and filtering capabilities
 
 ### Files Modified
-- `src/config/api.config.ts` - Added new API endpoints
-- `src/api/admin.api.ts` - Added section management API methods
-- `src/hooks/mutations/sections/` - Created new mutation hooks directory
-- `src/app/components/admin/pages/page-sections/PageSections.tsx` - Integrated mutations
-- `src/app/components/admin/pages/page-sections/SectionsList.tsx` - Enhanced functionality
-- `src/app/components/admin/pages/page-sections/PageSection.tsx` - Added parent tracking
-- `src/app/components/admin/pages/page-sections/SectionHeader.tsx` - Functional remove button
-- `architecture.md` - Updated with section management documentation
+- `src/config/api.config.ts` - Added new API endpoints including styles and section creation
+- `src/api/admin.api.ts` - Added section management and style fetching API methods
+- `src/hooks/mutations/sections/` - Created new mutation hooks directory with creation mutations
+- `src/hooks/useStyleGroups.ts` - New hook for fetching style groups
+- `src/types/responses/admin/styles.types.ts` - New types for style management
+- `src/types/requests/admin/create-section.types.ts` - New types for section creation
+- `src/app/components/admin/pages/page-sections/PageSections.tsx` - Integrated mutations and modal
+- `src/app/components/admin/pages/page-sections/SectionsList.tsx` - Enhanced functionality with creation support
+- `src/app/components/admin/pages/page-sections/PageSection.tsx` - Added parent tracking and creation handlers
+- `src/app/components/admin/pages/page-sections/SectionHeader.tsx` - Functional remove and add buttons
+- `src/app/components/admin/pages/page-sections/AddSectionModal.tsx` - New comprehensive creation modal
+- `architecture.md` - Updated with section management and creation documentation
+- `frontend.md` - Updated with complete section creation system documentation
 
 ---
 
