@@ -76,13 +76,8 @@
 /* Button styling */
 .sectionBtn {
     cursor: pointer;
-    height: 24px;
-    width: 24px;
-    padding: 4px;
-    pointer-events: auto;
     border-radius: 50%;
-    border: none;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    margin: 7px;
 }
 
 .menuBtn {
@@ -94,10 +89,6 @@
     border: none;
     background: none;
     border-radius: 3px;
-}
-
-.iconButtonWhite {
-    background-image: radial-gradient(at center, white 20%, transparent 20%);
 }
 
 .truncateText {

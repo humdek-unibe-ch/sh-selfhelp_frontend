@@ -88,7 +88,7 @@ export function SectionHeader({
                             color="green"
                             onClick={() => onAddSiblingAbove(section.id, parentId)}
                             title="Add new section above"
-                            className={`${headerStyles.sectionBtn} ${headerStyles.iconButtonWhite}`}
+                            className={`${headerStyles.sectionBtn}`}
                         >
                             <IconPlus size={12} />
                         </ActionIcon>
@@ -100,7 +100,7 @@ export function SectionHeader({
                             color="green"
                             onClick={() => onAddSiblingBelow(section.id, parentId)}
                             title="Add new section below"
-                            className={`${headerStyles.sectionBtn} ${headerStyles.iconButtonWhite}`}
+                            className={`${headerStyles.sectionBtn}`}
                         >
                             <IconPlus size={12} />
                         </ActionIcon>
@@ -141,7 +141,7 @@ export function SectionHeader({
                         color="blue"
                         onClick={() => onMoveUp?.(section.id, parentId)}
                         title="Move the section up"
-                        className={`${headerStyles.sectionBtn} ${headerStyles.iconButtonWhite}`}
+                        className={`${headerStyles.sectionBtn}`}
                     >
                         <IconChevronUp size={12} />
                     </ActionIcon>
@@ -151,7 +151,7 @@ export function SectionHeader({
                         color="blue"
                         onClick={() => onMoveDown?.(section.id, parentId)}
                         title="Move the section down"
-                        className={`${headerStyles.sectionBtn} ${headerStyles.iconButtonWhite}`}
+                        className={`${headerStyles.sectionBtn}`}
                     >
                         <IconChevronDownMove size={12} />
                     </ActionIcon>
@@ -165,7 +165,7 @@ export function SectionHeader({
                         color="red"
                         onClick={() => onRemoveSection(section.id, parentId)}
                         title="Remove the section"
-                        className={`${headerStyles.sectionBtn} ${headerStyles.iconButtonWhite}`}
+                        className={`${headerStyles.sectionBtn}`}
                     >
                         <IconTrash size={12} />
                     </ActionIcon>
