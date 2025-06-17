@@ -7,14 +7,16 @@
 
 // Page-Section mutations
 export { useAddSectionToPageMutation } from './useAddSectionToPageMutation';
-export { useUpdateSectionInPageMutation } from './useUpdateSectionInPageMutation';
 export { useRemoveSectionFromPageMutation } from './useRemoveSectionFromPageMutation';
 
 // Section-Section mutations
 export { useAddSectionToSectionMutation } from './useAddSectionToSectionMutation';
-export { useUpdateSectionInSectionMutation } from './useUpdateSectionInSectionMutation';
 export { useRemoveSectionFromSectionMutation } from './useRemoveSectionFromSectionMutation';
 
 // Section creation mutations
 export { useCreateSectionInPageMutation } from './useCreateSectionInPageMutation';
-export { useCreateSectionInSectionMutation } from './useCreateSectionInSectionMutation'; 
+export { useCreateSectionInSectionMutation } from './useCreateSectionInSectionMutation';
+
+// Sibling creation mutations
+export { useCreateSiblingAboveMutation } from './useCreateSiblingAboveMutation';
+export { useCreateSiblingBelowMutation } from './useCreateSiblingBelowMutation'; 

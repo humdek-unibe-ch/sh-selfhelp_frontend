@@ -12,7 +12,6 @@ import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin.api';
 import { debug } from '../../../utils/debug-logger';
 import { parseApiError } from '../../../utils/mutation-error-handler';
-import { ICreateSectionInPageVariables } from '../../../types/requests/admin/create-section.types';
 
 interface ICreateSectionInPageMutationOptions {
     onSuccess?: (data: any, variables: ICreateSectionInPageVariables) => void;
@@ -20,8 +19,18 @@ interface ICreateSectionInPageMutationOptions {
     showNotifications?: boolean;
 }
 
+interface ICreateSectionInPageData {
+    styleId: number;
+    position: number;
+}
+
+interface ICreateSectionInPageVariables {
+    keyword: string;
+    sectionData: ICreateSectionInPageData;
+}
+
 /**
- * React Query mutation hook for creating sections in pages
+ * React Query mutation hook for creating new sections in pages from styles
  * @param options Configuration options for the mutation
  * @returns useMutation result with enhanced error handling and notifications
  */
@@ -35,7 +44,9 @@ export function useCreateSectionInPageMutation(options: ICreateSectionInPageMuta
         
         onSuccess: async (createdSection: any, variables: ICreateSectionInPageVariables) => {
             debug('Section created in page successfully', 'useCreateSectionInPageMutation', { 
-                keyword: variables.keyword, 
+                keyword: variables.keyword,
+                styleId: variables.sectionData.styleId,
+                position: variables.sectionData.position,
                 createdSection 
             });
             

@@ -14,7 +14,7 @@ import { debug } from '../../../utils/debug-logger';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IRemoveSectionFromPageMutationOptions {
-    onSuccess?: (variables: { keyword: string; sectionId: number }) => void;
+    onSuccess?: (data: any, variables: { keyword: string; sectionId: number }) => void;
     onError?: (error: any, variables: { keyword: string; sectionId: number }) => void;
     showNotifications?: boolean;
 }
@@ -37,11 +37,11 @@ export function useRemoveSectionFromPageMutation(options: IRemoveSectionFromPage
         mutationFn: ({ keyword, sectionId }: IRemoveSectionFromPageVariables) => 
             AdminApi.removeSectionFromPage(keyword, sectionId),
         
-        onSuccess: async (result, variables: IRemoveSectionFromPageVariables) => {
+        onSuccess: async (result: any, variables: IRemoveSectionFromPageVariables) => {
             debug('Section removed from page successfully', 'useRemoveSectionFromPageMutation', { 
-                keyword: variables.keyword, 
+                keyword: variables.keyword,
                 sectionId: variables.sectionId,
-                result
+                result 
             });
             
             // Invalidate relevant queries to update the UI
@@ -63,7 +63,7 @@ export function useRemoveSectionFromPageMutation(options: IRemoveSectionFromPage
             }
             
             // Call custom success handler if provided
-            onSuccess?.(variables);
+            onSuccess?.(result, variables);
         },
         
         onError: (error: any, variables: IRemoveSectionFromPageVariables) => {

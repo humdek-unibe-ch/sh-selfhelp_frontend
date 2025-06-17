@@ -14,7 +14,7 @@ import { debug } from '../../../utils/debug-logger';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IRemoveSectionFromSectionMutationOptions {
-    onSuccess?: (variables: { parentSectionId: number; childSectionId: number }) => void;
+    onSuccess?: (data: any, variables: { parentSectionId: number; childSectionId: number }) => void;
     onError?: (error: any, variables: { parentSectionId: number; childSectionId: number }) => void;
     showNotifications?: boolean;
     pageKeyword?: string; // Optional page keyword for cache invalidation
@@ -38,11 +38,11 @@ export function useRemoveSectionFromSectionMutation(options: IRemoveSectionFromS
         mutationFn: ({ parentSectionId, childSectionId }: IRemoveSectionFromSectionVariables) => 
             AdminApi.removeSectionFromSection(parentSectionId, childSectionId),
         
-        onSuccess: async (result, variables: IRemoveSectionFromSectionVariables) => {
+        onSuccess: async (result: any, variables: IRemoveSectionFromSectionVariables) => {
             debug('Section removed from section successfully', 'useRemoveSectionFromSectionMutation', { 
                 parentSectionId: variables.parentSectionId,
                 childSectionId: variables.childSectionId,
-                result
+                result 
             });
             
             // Invalidate relevant queries to update the UI
@@ -72,7 +72,7 @@ export function useRemoveSectionFromSectionMutation(options: IRemoveSectionFromS
             }
             
             // Call custom success handler if provided
-            onSuccess?.(variables);
+            onSuccess?.(result, variables);
         },
         
         onError: (error: any, variables: IRemoveSectionFromSectionVariables) => {

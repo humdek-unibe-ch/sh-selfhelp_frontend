@@ -2,7 +2,91 @@
 
 # Frontend Development Log
 
-## API Delete Operations 204 No Content Fix (Latest Update)
+## Section Management API Parameter Alignment - Final (Latest Update)
+
+### Problem
+The section management mutations were using inconsistent parameter structures that didn't match the backend SQL schema requirements. This was causing API calls to fail or send incorrect data to the backend.
+
+### Solution
+Updated all section management mutations and API methods to use precise parameter structures that match the backend SQL schema (final version):
+
+#### API Parameter Structure Updates (Final)
+Based on the backend SQL schema, implemented precise parameter structures:
+
+**Add Section Operations** (Adding existing sections via PUT):
+- `PUT /admin/pages/{page_keyword}/sections` - Body: `{ section_id: number, position: number }`
+- `PUT /admin/sections/{parent_section_id}/sections` - Body: `{ section_id: number, position: number }`
+
+**Create Section Operations** (Create from style then add via POST):
+- `POST /admin/pages/{page_keyword}/sections/create` - Body: `{ styleId: number, position: number }`
+- `POST /admin/sections/{parent_section_id}/sections/create` - Body: `{ styleId: number, position: number }`
+
+**Remove Section Operations** (DELETE with path parameters only):
+- `DELETE /admin/pages/{page_keyword}/sections/{section_id}` - No body parameters
+- `DELETE /admin/sections/{parent_section_id}/sections/{child_section_id}` - No body parameters
+
+#### TypeScript Interface Updates
+Created comprehensive strongly-typed interfaces:
+
+```typescript
+// Add operations - for existing sections (section_id passed as parameter)
+interface IAddSectionToPageData {
+    position: number; // Only position in body, section_id is parameter
+}
+
+interface IAddSectionToSectionData {
+    position: number; // Only position in body, section_id is parameter
+}
+
+// Create operations - create from style
+interface ICreateSectionInPageData {
+    styleId: number;
+    position: number;
+}
+
+interface ICreateSectionInSectionData {
+    styleId: number;
+    position: number;
+}
+```
+
+#### Files Modified
+- **Mutation Hooks**:
+  - `useAddSectionToPageMutation.ts` - Added proper typing for styleId/position
+  - `useAddSectionToSectionMutation.ts` - Added proper typing for styleId/position  
+  - `useCreateSectionInPageMutation.ts` - Updated to use styleId/position structure
+  - `useCreateSectionInSectionMutation.ts` - Updated to use styleId/position structure
+  - `useUpdateSectionInPageMutation.ts` - Simplified to position-only updates
+  - `useUpdateSectionInSectionMutation.ts` - Simplified to position-only updates
+  - `useCreateSiblingAboveMutation.ts` - Updated parameter structure
+  - `useCreateSiblingBelowMutation.ts` - Updated parameter structure
+
+- **API Client**:
+  - `admin.api.ts` - Added proper TypeScript interfaces for all section operations
+  
+- **Type Definitions**:
+  - `create-section.types.ts` - Added comprehensive interfaces for all operation types
+
+#### Operation Distinctions
+- **Add Operations**: For adding already existing sections to pages or parent sections
+- **Create Operations**: First create a new section from a style, then add it to the target
+- **Backend Behavior**: Both operations result in the same outcome but serve different use cases
+- **Frontend Usage**: Create operations are used for new section creation, Add operations for moving existing sections
+
+### Benefits
+- **Type Safety**: All mutations now use strongly typed interfaces
+- **API Alignment**: Parameters match exactly what backend expects per SQL schema
+- **Operation Clarity**: Clear distinction between Add (existing) vs Create (from style) operations
+- **Better Error Handling**: Proper parameter validation and error messages
+- **Consistent API**: All section operations follow the same parameter patterns
+
+### Testing Requirements
+- Verify all section operations work with new parameter structure
+- Test position calculations in sibling creation
+- Confirm proper error handling with typed parameters
+- Validate cache invalidation still works correctly
+
+## API Delete Operations 204 No Content Fix (Previous Update)
 
 ### Problem
 All delete API operations now return 204 No Content status instead of 200 with response body. This was causing the mutation hooks to throw errors even when the delete operations were successful, because:

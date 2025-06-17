@@ -14,18 +14,23 @@ import { debug } from '../../../utils/debug-logger';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IAddSectionToPageMutationOptions {
-    onSuccess?: (data: any, variables: { keyword: string; sectionData: any }) => void;
-    onError?: (error: any, variables: { keyword: string; sectionData: any }) => void;
+    onSuccess?: (data: any, variables: { keyword: string; sectionId: number; sectionData: IAddSectionToPageData }) => void;
+    onError?: (error: any, variables: { keyword: string; sectionId: number; sectionData: IAddSectionToPageData }) => void;
     showNotifications?: boolean;
+}
+
+interface IAddSectionToPageData {
+    position: number;
 }
 
 interface IAddSectionToPageVariables {
     keyword: string;
-    sectionData: any;
+    sectionId: number;
+    sectionData: IAddSectionToPageData;
 }
 
 /**
- * React Query mutation hook for adding sections to pages
+ * React Query mutation hook for adding existing sections to pages
  * @param options Configuration options for the mutation
  * @returns useMutation result with enhanced error handling and notifications
  */
@@ -34,12 +39,14 @@ export function useAddSectionToPageMutation(options: IAddSectionToPageMutationOp
     const { onSuccess, onError, showNotifications = true } = options;
 
     return useMutation({
-        mutationFn: ({ keyword, sectionData }: IAddSectionToPageVariables) => 
-            AdminApi.addSectionToPage(keyword, sectionData),
+        mutationFn: ({ keyword, sectionId, sectionData }: IAddSectionToPageVariables) => 
+            AdminApi.addSectionToPage(keyword, sectionId, sectionData),
         
         onSuccess: async (createdSection: any, variables: IAddSectionToPageVariables) => {
             debug('Section added to page successfully', 'useAddSectionToPageMutation', { 
                 keyword: variables.keyword, 
+                sectionId: variables.sectionId,
+                position: variables.sectionData.position,
                 createdSection 
             });
             

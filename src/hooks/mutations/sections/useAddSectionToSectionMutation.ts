@@ -1,5 +1,5 @@
 /**
- * React Query mutation hook for adding sections to other sections.
+ * React Query mutation hook for adding existing sections to other sections.
  * Provides error handling, cache invalidation, and success notifications.
  * 
  * @module hooks/mutations/sections/useAddSectionToSectionMutation
@@ -14,19 +14,24 @@ import { debug } from '../../../utils/debug-logger';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IAddSectionToSectionMutationOptions {
-    onSuccess?: (data: any, variables: { parentSectionId: number; sectionData: any }) => void;
-    onError?: (error: any, variables: { parentSectionId: number; sectionData: any }) => void;
+    onSuccess?: (data: any, variables: { parentSectionId: number; sectionId: number; sectionData: IAddSectionToSectionData }) => void;
+    onError?: (error: any, variables: { parentSectionId: number; sectionId: number; sectionData: IAddSectionToSectionData }) => void;
     showNotifications?: boolean;
     pageKeyword?: string; // Optional page keyword for cache invalidation
 }
 
+interface IAddSectionToSectionData {
+    position: number;
+}
+
 interface IAddSectionToSectionVariables {
     parentSectionId: number;
-    sectionData: any;
+    sectionId: number;
+    sectionData: IAddSectionToSectionData;
 }
 
 /**
- * React Query mutation hook for adding sections to other sections
+ * React Query mutation hook for adding existing sections to other sections
  * @param options Configuration options for the mutation
  * @returns useMutation result with enhanced error handling and notifications
  */
@@ -35,12 +40,14 @@ export function useAddSectionToSectionMutation(options: IAddSectionToSectionMuta
     const { onSuccess, onError, showNotifications = true, pageKeyword } = options;
 
     return useMutation({
-        mutationFn: ({ parentSectionId, sectionData }: IAddSectionToSectionVariables) => 
-            AdminApi.addSectionToSection(parentSectionId, sectionData),
+        mutationFn: ({ parentSectionId, sectionId, sectionData }: IAddSectionToSectionVariables) => 
+            AdminApi.addSectionToSection(parentSectionId, sectionId, sectionData),
         
         onSuccess: async (createdSection: any, variables: IAddSectionToSectionVariables) => {
             debug('Section added to section successfully', 'useAddSectionToSectionMutation', { 
-                parentSectionId: variables.parentSectionId, 
+                parentSectionId: variables.parentSectionId,
+                sectionId: variables.sectionId,
+                position: variables.sectionData.position,
                 createdSection 
             });
             

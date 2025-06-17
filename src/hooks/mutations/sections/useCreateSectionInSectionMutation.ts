@@ -1,5 +1,5 @@
 /**
- * React Query mutation hook for creating sections in other sections.
+ * React Query mutation hook for creating sections within other sections.
  * Provides error handling, cache invalidation, and success notifications.
  * 
  * @module hooks/mutations/sections/useCreateSectionInSectionMutation
@@ -12,7 +12,6 @@ import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin.api';
 import { debug } from '../../../utils/debug-logger';
 import { parseApiError } from '../../../utils/mutation-error-handler';
-import { ICreateSectionInSectionVariables } from '../../../types/requests/admin/create-section.types';
 
 interface ICreateSectionInSectionMutationOptions {
     onSuccess?: (data: any, variables: ICreateSectionInSectionVariables) => void;
@@ -21,8 +20,18 @@ interface ICreateSectionInSectionMutationOptions {
     pageKeyword?: string; // Optional page keyword for cache invalidation
 }
 
+interface ICreateSectionInSectionData {
+    styleId: number;
+    position: number;
+}
+
+interface ICreateSectionInSectionVariables {
+    parentSectionId: number;
+    sectionData: ICreateSectionInSectionData;
+}
+
 /**
- * React Query mutation hook for creating sections in other sections
+ * React Query mutation hook for creating new sections within other sections from styles
  * @param options Configuration options for the mutation
  * @returns useMutation result with enhanced error handling and notifications
  */
@@ -36,7 +45,9 @@ export function useCreateSectionInSectionMutation(options: ICreateSectionInSecti
         
         onSuccess: async (createdSection: any, variables: ICreateSectionInSectionVariables) => {
             debug('Section created in section successfully', 'useCreateSectionInSectionMutation', { 
-                parentSectionId: variables.parentSectionId, 
+                parentSectionId: variables.parentSectionId,
+                styleId: variables.sectionData.styleId,
+                position: variables.sectionData.position,
                 createdSection 
             });
             
@@ -58,7 +69,7 @@ export function useCreateSectionInSectionMutation(options: ICreateSectionInSecti
             if (showNotifications) {
                 notifications.show({
                     title: 'Section Created Successfully',
-                    message: `Section was created in parent section successfully!`,
+                    message: `Section was created within parent section successfully!`,
                     icon: React.createElement(IconCheck, { size: '1rem' }),
                     color: 'green',
                     autoClose: 5000,
@@ -79,7 +90,7 @@ export function useCreateSectionInSectionMutation(options: ICreateSectionInSecti
             if (showNotifications) {
                 notifications.show({
                     title: errorTitle || 'Create Section Failed',
-                    message: errorMessage || `Failed to create section in parent section. Please try again.`,
+                    message: errorMessage || `Failed to create section within parent section. Please try again.`,
                     icon: React.createElement(IconX, { size: '1rem' }),
                     color: 'red',
                     autoClose: 8000,

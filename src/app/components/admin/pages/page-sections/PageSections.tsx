@@ -20,11 +20,10 @@ import {
 } from '@tabler/icons-react';
 import { usePageSections } from '../../../../../hooks/usePageDetails';
 import { 
-    useUpdateSectionInPageMutation,
-    useUpdateSectionInSectionMutation,
     useAddSectionToPageMutation,
     useRemoveSectionFromPageMutation,
-    useRemoveSectionFromSectionMutation
+    useRemoveSectionFromSectionMutation,
+    useAddSectionToSectionMutation
 } from '../../../../../hooks/mutations';
 import { IPageField } from '../../../../../types/common/pages.type';
 import { SectionsList } from './SectionsList';
@@ -53,18 +52,18 @@ export function PageSections({ keyword }: IPageSectionsProps) {
     const [selectedParentSectionId, setSelectedParentSectionId] = useState<number | null>(null);
 
     // Section mutations
-    const updateSectionInPageMutation = useUpdateSectionInPageMutation({
+    const addSectionToPageMutation = useAddSectionToPageMutation({
         showNotifications: true,
         onSuccess: () => {
-            debug('Section position updated in page successfully', 'PageSections');
+            debug('Section added to page successfully', 'PageSections');
         }
     });
 
-    const updateSectionInSectionMutation = useUpdateSectionInSectionMutation({
+    const addSectionToSectionMutation = useAddSectionToSectionMutation({
         showNotifications: true,
         pageKeyword: keyword || undefined,
         onSuccess: () => {
-            debug('Section position updated in section successfully', 'PageSections');
+            debug('Section added to section successfully', 'PageSections');
         }
     });
 
@@ -102,9 +101,8 @@ export function PageSections({ keyword }: IPageSectionsProps) {
             const { draggedSectionId, newParentId, newPosition, pageKeyword } = moveData;
             
             // Prepare section data with new position
-            const sectionUpdateData = {
-                position: newPosition,
-                // Add any other fields that need to be updated during move
+            const sectionData = {
+                position: newPosition
             };
 
             if (newParentId === null) {
@@ -113,17 +111,17 @@ export function PageSections({ keyword }: IPageSectionsProps) {
                     throw new Error('Page keyword is required for page-level moves');
                 }
                 
-                await updateSectionInPageMutation.mutateAsync({
+                await addSectionToPageMutation.mutateAsync({
                     keyword: pageKeyword,
                     sectionId: draggedSectionId,
-                    sectionData: sectionUpdateData
+                    sectionData: sectionData
                 });
             } else {
                 // Moving to another section - use section mutation
-                await updateSectionInSectionMutation.mutateAsync({
+                await addSectionToSectionMutation.mutateAsync({
                     parentSectionId: newParentId,
-                    childSectionId: draggedSectionId,
-                    sectionData: sectionUpdateData
+                    sectionId: draggedSectionId,
+                    sectionData: sectionData
                 });
             }
             
@@ -256,7 +254,7 @@ export function PageSections({ keyword }: IPageSectionsProps) {
         );
     }
 
-    const isProcessingMove = updateSectionInPageMutation.isPending || updateSectionInSectionMutation.isPending;
+    const isProcessingMove = addSectionToPageMutation.isPending || addSectionToSectionMutation.isPending;
     const isProcessingRemove = removeSectionFromPageMutation.isPending || removeSectionFromSectionMutation.isPending;
 
     return (

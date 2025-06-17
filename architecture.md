@@ -20,6 +20,56 @@ This document outlines the frontend architecture for the SH-Self-help project. T
 ### Comprehensive Section Operations
 Implemented a complete section management system with full CRUD operations, advanced positioning capabilities, and a comprehensive section creation UI.
 
+#### API Parameter Structure (Updated - Final)
+Based on the backend SQL schema, the section operations now use precise parameter structures:
+
+**Add Section Operations** (Adding existing sections via PUT):
+- `PUT /admin/pages/{page_keyword}/sections` - Body: `{ section_id: number, position: number }`
+- `PUT /admin/sections/{parent_section_id}/sections` - Body: `{ section_id: number, position: number }`
+
+**Create Section Operations** (Create from style then add via POST):
+- `POST /admin/pages/{page_keyword}/sections/create` - Body: `{ styleId: number, position: number }`
+- `POST /admin/sections/{parent_section_id}/sections/create` - Body: `{ styleId: number, position: number }`
+
+**Remove Section Operations** (DELETE with path parameters only):
+- `DELETE /admin/pages/{page_keyword}/sections/{section_id}` - No body parameters
+- `DELETE /admin/sections/{parent_section_id}/sections/{child_section_id}` - No body parameters
+
+**Update Section Operations** (Deferred for later implementation):
+- `PUT /admin/sections/{section_id}` - To be implemented later
+
+#### TypeScript Interface Updates (Final)
+Updated all mutation hooks and API methods to use strongly typed interfaces:
+
+```typescript
+// Add operations - for existing sections (section_id passed as parameter)
+interface IAddSectionToPageData {
+    position: number; // Only position in body, section_id is parameter
+}
+
+interface IAddSectionToSectionData {
+    position: number; // Only position in body, section_id is parameter
+}
+
+// Create operations - create from style
+interface ICreateSectionInPageData {
+    styleId: number;
+    position: number;
+}
+
+interface ICreateSectionInSectionData {
+    styleId: number;
+    position: number;
+}
+```
+
+#### Operation Distinctions (Final)
+- **Add Operations**: For adding existing sections (requires section_id as parameter + position in body, uses PUT)
+- **Create Operations**: First create a new section from a style, then add it (requires styleId + position in body, uses POST)
+- **Remove Operations**: Delete operations using path parameters only (no body, uses DELETE)
+- **Backend Behavior**: Add and Create result in same outcome but serve different use cases
+- **Frontend Usage**: Create operations for new section creation, Add operations for moving existing sections
+
 #### New API Endpoints
 Added 8 new API endpoints for section management:
 - **Page-Section Operations**:
@@ -54,6 +104,10 @@ useRemoveSectionFromSectionMutation()
 // Section creation mutations
 useCreateSectionInPageMutation()
 useCreateSectionInSectionMutation()
+
+// Sibling creation mutations
+useCreateSiblingAboveMutation()
+useCreateSiblingBelowMutation()
 ```
 
 #### Section Creation UI System

@@ -3,12 +3,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { AdminApi } from '../../../api/admin.api';
-import { ICreateSectionRequest } from '../../../types/requests/admin/create-section.types';
+import { ICreateSectionInPageData, ICreateSectionInSectionData } from '../../../types/requests/admin/create-section.types';
+
 interface ICreateSiblingAboveParams {
     referenceSectionId: number;
     parentId: number | null;
     pageKeyword?: string;
-    sectionData: ICreateSectionRequest;
+    sectionData: ICreateSectionInPageData | ICreateSectionInSectionData; // Both have same structure
 }
 
 export function useCreateSiblingAboveMutation() {
@@ -28,7 +29,7 @@ export function useCreateSiblingAboveMutation() {
             const calculatedPosition = (sectionData.position || 10) - 5;
             
             const finalSectionData = {
-                ...sectionData,
+                styleId: sectionData.styleId,
                 position: calculatedPosition
             };
 
