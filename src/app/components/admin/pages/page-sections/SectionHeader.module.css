@@ -3,6 +3,10 @@
     border-radius: 4px;
     transition: all 0.2s ease;
     border: 1.5px solid var(--mantine-color-gray-4);
+    /* Reserve space for buttons to prevent layout shifts */
+    margin: 5px 18px;
+    /* Ensure the container creates a stacking context */
+    isolation: isolate;
 }
 
 .sectionContainer:hover {
@@ -10,19 +14,25 @@
 }
 
 .sectionContainer:hover .buttonsHolder {
-    display: flex !important;
-    z-index: 100;
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 9999;
 }
 
 .buttonsHolder {
-    display: none;
+    opacity: 0;
+    pointer-events: none;
     position: absolute;
     top: -18px;
     bottom: -18px;
     left: -18px;
     right: -18px;
-    pointer-events: none;
+    display: flex;
     justify-content: space-between;
+    transition: opacity 0.2s ease;
+    z-index: 9999;
+    /* Ensure buttons are not clipped by overflow */
+    transform: translateZ(0);
 }
 
 /* Left side - Add sibling buttons */
@@ -31,6 +41,7 @@
     flex-direction: column;
     justify-content: space-between;
     pointer-events: auto;
+    z-index: 10000;
 }
 
 /* Left side grouped menu - Eye and Square buttons */
@@ -39,6 +50,7 @@
     display: flex;
     justify-content: center;
     pointer-events: auto;
+    z-index: 10000;
 }
 
 .menuHolder {
@@ -52,7 +64,8 @@
     height: 26px;
     align-items: center;
     gap: 2px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 10000;
 }
 
 /* Center - Move up/down buttons */
@@ -63,6 +76,7 @@
     margin: auto;
     height: 100%;
     pointer-events: auto;
+    z-index: 10000;
 }
 
 /* Right side - Remove button */
@@ -71,6 +85,7 @@
     flex-direction: column;
     justify-content: flex-start;
     pointer-events: auto;
+    z-index: 10000;
 }
 
 /* Button styling */
@@ -78,6 +93,10 @@
     cursor: pointer;
     border-radius: 50%;
     margin: 7px;
+    pointer-events: auto;
+    z-index: 10001;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .menuBtn {
@@ -89,6 +108,8 @@
     border: none;
     background: none;
     border-radius: 3px;
+    z-index: 10001;
+    position: relative;
 }
 
 .truncateText {
