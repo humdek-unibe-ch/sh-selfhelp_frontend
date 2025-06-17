@@ -260,7 +260,7 @@ export function PageSections({ keyword }: IPageSectionsProps) {
     const isProcessingRemove = removeSectionFromPageMutation.isPending || removeSectionFromSectionMutation.isPending;
 
     return (
-        <Paper p="xs" withBorder style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'visible' }}>
+        <Paper p="xs" withBorder style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             {/* Header */}
             <Group justify="space-between" mb="xs" px="xs">
                 <Group gap="xs">

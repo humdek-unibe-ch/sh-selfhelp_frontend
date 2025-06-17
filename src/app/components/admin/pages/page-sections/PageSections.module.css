@@ -2,12 +2,6 @@
 .sectionsContainer {
     /* max-height: 70vh; */
     overflow-y: auto;
-    /* Ensure buttons are not cut off */
-    overflow-x: visible;
-    padding: 18px 0;
-    /* Create a new stacking context to prevent z-index issues */
-    position: relative;
-    z-index: 1;
 }
 
 /* Enhanced visual hierarchy for nested sections */

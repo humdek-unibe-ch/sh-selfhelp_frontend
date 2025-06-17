@@ -1,17 +1,12 @@
 'use client';
 
-import { Group, Text, Badge, ActionIcon, Tooltip, Box } from '@mantine/core';
+import { Group, Text, Badge, ActionIcon, Tooltip, Box, Button } from '@mantine/core';
 import { 
     IconGripVertical,
     IconChevronDown,
     IconChevronRight,
     IconPlus,
-    IconCopy,
     IconTrash,
-    IconArrowUp,
-    IconArrowDown,
-    IconEye,
-    IconExternalLink,
     IconChevronUp,
     IconChevronDown as IconChevronDownMove
 } from '@tabler/icons-react';
@@ -67,6 +62,12 @@ export function SectionHeader({
         return nameParts.length > 1 ? nameParts[1] : section.name;
     };
 
+    const handleRemoveClick = () => {
+        if (window.confirm(`Are you sure you want to remove section "${getSectionTitle(section)}"?`)) {
+            onRemoveSection(section.id, parentId);
+        }
+    };
+
     return (
         <Box
             className={headerStyles.sectionContainer}
@@ -77,108 +78,8 @@ export function SectionHeader({
                 cursor: isDragging ? 'grabbing' : 'default'
             }}
         >
-            {/* Buttons Holder - Only visible on hover */}
-            <Box className={headerStyles.buttonsHolder}>
-                {/* Left side - Add sibling buttons */}
-                <Box className={headerStyles.leftAddButtons}>
-                    {onAddSiblingAbove && !isBeingDragged && (
-                        <ActionIcon
-                            variant="filled"
-                            size="sm"
-                            color="green"
-                            onClick={() => onAddSiblingAbove(section.id, parentId)}
-                            title="Add new section above"
-                            className={`${headerStyles.sectionBtn}`}
-                        >
-                            <IconPlus size={12} />
-                        </ActionIcon>
-                    )}
-                    {onAddSiblingBelow && !isBeingDragged && (
-                        <ActionIcon
-                            variant="filled"
-                            size="sm"
-                            color="green"
-                            onClick={() => onAddSiblingBelow(section.id, parentId)}
-                            title="Add new section below"
-                            className={`${headerStyles.sectionBtn}`}
-                        >
-                            <IconPlus size={12} />
-                        </ActionIcon>
-                    )}
-                </Box>
-
-                {/* Left side grouped menu - Eye and Square buttons */}
-                <Box className={headerStyles.leftMenuHolder}>
-                    <Box className={headerStyles.menuHolder}>
-                        <ActionIcon
-                            variant="subtle"
-                            size="xs"
-                            color="blue"
-                            onClick={() => onInspectSection?.(section.id)}
-                            title="Show Section Fields"
-                            className={headerStyles.menuBtn}
-                        >
-                            <IconEye size={10} />
-                        </ActionIcon>
-                        <ActionIcon
-                            variant="subtle"
-                            size="xs"
-                            color="blue"
-                            onClick={() => onNavigateToSection?.(section.id)}
-                            title="Go To Section"
-                            className={headerStyles.menuBtn}
-                        >
-                            <IconExternalLink size={10} />
-                        </ActionIcon>
-                    </Box>
-                </Box>
-
-                {/* Center - Move up/down buttons */}
-                <Box className={headerStyles.centerButtons}>
-                    <ActionIcon
-                        variant="filled"
-                        size="sm"
-                        color="blue"
-                        onClick={() => onMoveUp?.(section.id, parentId)}
-                        title="Move the section up"
-                        className={`${headerStyles.sectionBtn}`}
-                    >
-                        <IconChevronUp size={12} />
-                    </ActionIcon>
-                    <ActionIcon
-                        variant="filled"
-                        size="sm"
-                        color="blue"
-                        onClick={() => onMoveDown?.(section.id, parentId)}
-                        title="Move the section down"
-                        className={`${headerStyles.sectionBtn}`}
-                    >
-                        <IconChevronDownMove size={12} />
-                    </ActionIcon>
-                </Box>
-
-                {/* Right side - Remove button */}
-                <Box className={headerStyles.rightButtons}>
-                    <ActionIcon
-                        variant="filled"
-                        size="sm"
-                        color="red"
-                        onClick={() => onRemoveSection(section.id, parentId)}
-                        title="Remove the section"
-                        className={`${headerStyles.sectionBtn}`}
-                    >
-                        <IconTrash size={12} />
-                    </ActionIcon>
-                </Box>
-            </Box>
-
-            {/* Main Section Content */}
-            <Group 
-                justify="space-between" 
-                wrap="nowrap" 
-                gap="xs"
-                p="xs"
-            >
+            <Group justify="space-between" wrap="nowrap" gap="xs" p="xs">
+                {/* Left Side - Drag Handle + Expand/Collapse + Section Info */}
                 <Group gap="xs" style={{ flex: 1, minWidth: 0 }}>
                     {/* Drag Handle */}
                     <ActionIcon 
@@ -191,7 +92,7 @@ export function SectionHeader({
                         <IconGripVertical size={12} />
                     </ActionIcon>
 
-                    {/* Expand/Collapse Button - Hide when being dragged */}
+                    {/* Expand/Collapse Button */}
                     {hasChildren && !isBeingDragged ? (
                         <ActionIcon 
                             variant="subtle" 
@@ -202,22 +103,30 @@ export function SectionHeader({
                             {isExpanded ? <IconChevronDown size={12} /> : <IconChevronRight size={12} />}
                         </ActionIcon>
                     ) : (
-                        <div style={{ width: 20 }} /> // Spacer for alignment
+                        <div style={{ width: 20 }} />
                     )}
 
                     {/* Section Info */}
                     <Group gap="xs" style={{ flex: 1, minWidth: 0 }}>
-                        <Tooltip label={`${section.name} | Path: ${section.path} | ID: ${section.id}`} position="top" withArrow>
+                        <Tooltip label={`${section.name} | Path: ${section.path}`} position="top" withArrow>
                             <Text fw={500} size="xs" className={`${styles.truncateText} ${headerStyles.truncateText}`} style={{ minWidth: 0, flex: 1 }}>
                                 {getSectionTitle(section)}
                             </Text>
                         </Tooltip>
+                        
+                        {/* Section ID Badge */}
+                        <Badge size="xs" variant="outline" color="gray" style={{ flexShrink: 0 }}>
+                            ID: {section.id}
+                        </Badge>
+                        
                         <Badge size="xs" variant="light" color="blue" style={{ flexShrink: 0 }}>
                             {section.style_name}
                         </Badge>
+                        
                         <Badge size="xs" variant="outline" color="gray" style={{ flexShrink: 0 }}>
                             {section.position}
                         </Badge>
+                        
                         {hasChildren && (
                             <Badge 
                                 size="xs" 
@@ -232,6 +141,7 @@ export function SectionHeader({
                                 {isBeingDragged ? `+${section.children?.length || 0}` : section.children?.length || 0}
                             </Badge>
                         )}
+                        
                         {section.can_have_children && (
                             <Badge size="xs" variant="dot" color="blue" style={{ flexShrink: 0 }} title="Can accept children">
                                 📁
@@ -240,24 +150,65 @@ export function SectionHeader({
                     </Group>
                 </Group>
 
-                {/* Child Creation Button (Inside Section) */}
+                {/* Right Side - Action Buttons */}
                 <Group gap={4} style={{ flexShrink: 0 }}>
-                    {onAddChildSection && !!section.can_have_children && (
-                        <Tooltip label="Add child section">
+                    {/* Add Sibling Above */}
+                    {onAddSiblingAbove && (
+                        <Tooltip label="Add section above">
                             <ActionIcon
                                 variant="light"
-                                size="sm"
+                                size="xs"
                                 color="green"
-                                onClick={() => onAddChildSection(section.id)}
-                                style={{
-                                    backgroundColor: 'var(--mantine-color-green-0)',
-                                    border: '1px dashed var(--mantine-color-green-5)'
-                                }}
+                                onClick={() => onAddSiblingAbove(section.id, parentId)}
+                                className={headerStyles.actionBtn}
                             >
-                                <IconPlus size={16} />
+                                <IconChevronUp size={10} />
                             </ActionIcon>
                         </Tooltip>
                     )}
+
+                    {/* Add Sibling Below */}
+                    {onAddSiblingBelow && (
+                        <Tooltip label="Add section below">
+                            <ActionIcon
+                                variant="light"
+                                size="xs"
+                                color="green"
+                                onClick={() => onAddSiblingBelow(section.id, parentId)}
+                                className={headerStyles.actionBtn}
+                            >
+                                <IconChevronDownMove size={10} />
+                            </ActionIcon>
+                        </Tooltip>
+                    )}
+
+                    {/* Add Child Section */}
+                    {onAddChildSection && section.can_have_children && (
+                        <Tooltip label="Add child section">
+                            <ActionIcon
+                                variant="light"
+                                size="xs"
+                                color="blue"
+                                onClick={() => onAddChildSection(section.id)}
+                                className={headerStyles.actionBtn}
+                            >
+                                <IconPlus size={10} />
+                            </ActionIcon>
+                        </Tooltip>
+                    )}
+
+                    {/* Remove Section */}
+                    <Tooltip label="Remove section">
+                        <ActionIcon
+                            variant="light"
+                            size="xs"
+                            color="red"
+                            onClick={handleRemoveClick}
+                            className={headerStyles.actionBtn}
+                        >
+                            <IconTrash size={10} />
+                        </ActionIcon>
+                    </Tooltip>
                 </Group>
             </Group>
         </Box>
