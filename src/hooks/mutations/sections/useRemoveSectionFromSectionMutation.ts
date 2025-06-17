@@ -38,10 +38,11 @@ export function useRemoveSectionFromSectionMutation(options: IRemoveSectionFromS
         mutationFn: ({ parentSectionId, childSectionId }: IRemoveSectionFromSectionVariables) => 
             AdminApi.removeSectionFromSection(parentSectionId, childSectionId),
         
-        onSuccess: async (_, variables: IRemoveSectionFromSectionVariables) => {
+        onSuccess: async (result, variables: IRemoveSectionFromSectionVariables) => {
             debug('Section removed from section successfully', 'useRemoveSectionFromSectionMutation', { 
                 parentSectionId: variables.parentSectionId,
-                childSectionId: variables.childSectionId
+                childSectionId: variables.childSectionId,
+                result
             });
             
             // Invalidate relevant queries to update the UI

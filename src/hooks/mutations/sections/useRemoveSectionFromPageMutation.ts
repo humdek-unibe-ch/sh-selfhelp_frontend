@@ -37,10 +37,11 @@ export function useRemoveSectionFromPageMutation(options: IRemoveSectionFromPage
         mutationFn: ({ keyword, sectionId }: IRemoveSectionFromPageVariables) => 
             AdminApi.removeSectionFromPage(keyword, sectionId),
         
-        onSuccess: async (_, variables: IRemoveSectionFromPageVariables) => {
+        onSuccess: async (result, variables: IRemoveSectionFromPageVariables) => {
             debug('Section removed from page successfully', 'useRemoveSectionFromPageMutation', { 
                 keyword: variables.keyword, 
-                sectionId: variables.sectionId
+                sectionId: variables.sectionId,
+                result
             });
             
             // Invalidate relevant queries to update the UI

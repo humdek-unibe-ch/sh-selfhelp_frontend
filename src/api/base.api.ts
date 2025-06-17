@@ -197,8 +197,13 @@ apiClient.interceptors.response.use(
             return response;
         }
 
-        // Check for logged_in flag in successful responses
-        if ('logged_in' in response.data) {
+        // Skip check for 204 No Content responses (no response body)
+        if (response.status === 204) {
+            return response;
+        }
+
+        // Check for logged_in flag in successful responses (only if response.data exists)
+        if (response.data && 'logged_in' in response.data) {
             // If server says not logged in but we have tokens, attempt to refresh
             if (!response.data.logged_in && getRefreshToken()) {
                 const originalRequest = response.config;

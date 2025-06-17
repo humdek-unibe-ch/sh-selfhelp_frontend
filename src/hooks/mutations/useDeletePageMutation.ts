@@ -31,8 +31,8 @@ export function useDeletePageMutation(options: IDeletePageMutationOptions = {}) 
     return useMutation({
         mutationFn: (keyword: string) => AdminApi.deletePage(keyword),
         
-        onSuccess: async (_, keyword: string) => {
-            debug('Page deleted successfully', 'useDeletePageMutation', { keyword });
+        onSuccess: async (result, keyword: string) => {
+            debug('Page deleted successfully', 'useDeletePageMutation', { keyword, result });
             
             // Invalidate and refetch relevant queries to update the UI
             await Promise.all([

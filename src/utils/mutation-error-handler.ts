@@ -20,13 +20,22 @@ export function parseApiError(error: any): IParsedError {
     let errorTitle = 'Operation Failed';
     
     // Handle Axios errors (most common)
-    if (error?.response?.data) {
+    if (error?.response) {
+        const status = error.response.status;
+        
+        // 204 No Content is a success status, not an error
+        if (status === 204) {
+            return {
+                errorMessage: 'Operation completed successfully.',
+                errorTitle: 'Success'
+            };
+        }
+        
         const responseData = error.response.data;
         
-        if (responseData.error || responseData.message) {
+        if (responseData?.error || responseData?.message) {
             errorMessage = responseData.error || responseData.message;
             
-            const status = responseData.status || error.response.status;
             if (status === 500) {
                 errorTitle = 'Server Error';
             } else if (status === 400 || status === 422) {
@@ -37,6 +46,23 @@ export function parseApiError(error: any): IParsedError {
                 errorTitle = 'Access Denied';
             } else if (status === 404) {
                 errorTitle = 'Not Found';
+            }
+        } else {
+            // No response data, use status-based messages
+            if (status === 500) {
+                errorTitle = 'Server Error';
+                errorMessage = 'Internal server error occurred.';
+            } else if (status === 400) {
+                errorTitle = 'Bad Request';
+                errorMessage = 'Invalid request data.';
+            } else if (status === 403) {
+                errorTitle = 'Access Denied';
+                errorMessage = 'You do not have permission to perform this action.';
+            } else if (status === 404) {
+                errorTitle = 'Not Found';
+                errorMessage = 'The requested resource was not found.';
+            } else if (status >= 400) {
+                errorMessage = `Request failed with status ${status}.`;
             }
         }
     }

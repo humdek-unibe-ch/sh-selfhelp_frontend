@@ -2,7 +2,102 @@
 
 # Frontend Development Log
 
-## Section Header Always-Visible Button System (Latest Update)
+## API Delete Operations 204 No Content Fix (Latest Update)
+
+### Problem
+All delete API operations now return 204 No Content status instead of 200 with response body. This was causing the mutation hooks to throw errors even when the delete operations were successful, because:
+
+1. **React Query Expected Data**: Mutations expected some response data but 204 returns no body
+2. **Error Parsing Issues**: The `parseApiError` function was treating empty responses as errors
+3. **Void Return Types**: API methods returning `Promise<void>` provided no success indication
+
+### Solution
+Implemented comprehensive fixes to handle 204 No Content responses properly:
+
+#### 1. **Updated API Methods**
+Changed all delete operations to return success indicators instead of void:
+
+```typescript
+// Before
+async removeSectionFromPage(keyword: string, sectionId: number): Promise<void> {
+    await apiClient.delete(endpoint);
+}
+
+// After  
+async removeSectionFromPage(keyword: string, sectionId: number): Promise<{ success: boolean }> {
+    const response = await apiClient.delete(endpoint);
+    return { success: response.status === 204 || response.status === 200 };
+}
+```
+
+#### 2. **Enhanced Error Parser**
+Updated `parseApiError` to properly handle 204 responses as success:
+
+```typescript
+// Added 204 handling
+if (status === 204) {
+    return {
+        errorMessage: 'Operation completed successfully.',
+        errorTitle: 'Success'
+    };
+}
+```
+
+#### 3. **Improved Response Handling**
+- Added proper status checking for both 200 and 204 responses
+- Enhanced error parsing for responses without data
+- Better status-based error messages for different HTTP codes
+
+#### 4. **Updated Mutation Hooks**
+Modified success handlers to work with the new return type:
+
+```typescript
+// Before
+onSuccess: async (_, variables) => { ... }
+
+// After
+onSuccess: async (result, variables) => {
+    debug('Operation successful', 'Hook', { variables, result });
+    // result = { success: true }
+}
+```
+
+### Technical Details
+
+#### **Files Modified**
+- `src/api/admin.api.ts` - Updated delete methods to return success indicators
+- `src/utils/mutation-error-handler.ts` - Enhanced 204 handling and error parsing
+- `src/hooks/mutations/sections/useRemoveSectionFromPageMutation.ts` - Updated success handler
+- `src/hooks/mutations/sections/useRemoveSectionFromSectionMutation.ts` - Updated success handler  
+- `src/hooks/mutations/useDeletePageMutation.ts` - Updated success handler
+
+#### **Benefits**
+- **Proper 204 Handling**: No more false errors for successful delete operations
+- **Better Error Messages**: Status-based error messages when response data is missing
+- **Consistent API**: All delete operations now have consistent return types
+- **Enhanced Debugging**: Success results are logged for better troubleshooting
+
+#### 5. **Fixed Axios Response Interceptor**
+The critical issue was in the Axios response interceptor trying to check `logged_in` in empty 204 responses:
+
+```typescript
+// Problem: TypeError on 204 responses
+if ('logged_in' in response.data) { // response.data is null/empty for 204
+
+// Solution: Skip 204 responses and check data exists
+if (response.status === 204) {
+    return response;
+}
+
+if (response.data && 'logged_in' in response.data) {
+    // Safe to check logged_in now
+}
+```
+
+### Result
+Delete operations now work correctly with 204 No Content responses, showing success notifications instead of error messages when operations complete successfully. The Axios interceptor no longer throws errors when processing 204 responses.
+
+## Section Header Always-Visible Button System (Previous Update)
 
 ### Overview
 Redesigned the section header from a hover-based button system to always-visible, compact action buttons. This provides better UX by making all actions immediately visible and accessible without requiring hover states.

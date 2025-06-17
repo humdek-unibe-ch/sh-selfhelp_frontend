@@ -97,13 +97,15 @@ export const AdminApi = {
     /**
      * Deletes a page by keyword
      * @param {string} keyword - The page keyword to delete
-     * @returns {Promise<void>} Success response
+     * @returns {Promise<{ success: boolean }>} Success response
      * @throws {Error} When API request fails
      */
-    async deletePage(keyword: string): Promise<void> {
-        await apiClient.delete(
+    async deletePage(keyword: string): Promise<{ success: boolean }> {
+        const response = await apiClient.delete(
             API_CONFIG.ENDPOINTS.ADMIN_PAGES_DELETE(keyword)
         );
+        // For 204 No Content responses, return success indicator
+        return { success: response.status === 204 || response.status === 200 };
     },
 
     // Section Management API Methods
@@ -143,13 +145,15 @@ export const AdminApi = {
      * Removes a section from a page
      * @param {string} keyword - The page keyword
      * @param {number} sectionId - The section ID to remove
-     * @returns {Promise<void>} Success response
+     * @returns {Promise<{ success: boolean }>} Success response
      * @throws {Error} When API request fails
      */
-    async removeSectionFromPage(keyword: string, sectionId: number): Promise<void> {
-        await apiClient.delete(
+    async removeSectionFromPage(keyword: string, sectionId: number): Promise<{ success: boolean }> {
+        const response = await apiClient.delete(
             API_CONFIG.ENDPOINTS.ADMIN_PAGES_SECTIONS_REMOVE(keyword, sectionId)
         );
+        // For 204 No Content responses, return success indicator
+        return { success: response.status === 204 || response.status === 200 };
     },
 
     /**
@@ -187,13 +191,15 @@ export const AdminApi = {
      * Removes a section from another section
      * @param {number} parentSectionId - The parent section ID
      * @param {number} childSectionId - The child section ID to remove
-     * @returns {Promise<void>} Success response
+     * @returns {Promise<{ success: boolean }>} Success response
      * @throws {Error} When API request fails
      */
-    async removeSectionFromSection(parentSectionId: number, childSectionId: number): Promise<void> {
-        await apiClient.delete(
+    async removeSectionFromSection(parentSectionId: number, childSectionId: number): Promise<{ success: boolean }> {
+        const response = await apiClient.delete(
             API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_REMOVE_FROM_SECTION(parentSectionId, childSectionId)
         );
+        // For 204 No Content responses, return success indicator
+        return { success: response.status === 204 || response.status === 200 };
     },
 
     // Style Management API Methods
