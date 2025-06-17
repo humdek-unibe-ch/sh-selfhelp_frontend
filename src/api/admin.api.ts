@@ -180,7 +180,7 @@ export const AdminApi = {
      */
     async addSectionToSection(parentSectionId: number, sectionId: number, sectionData: IAddSectionToSectionData): Promise<any> {
         const requestBody = {
-            sectionId: sectionId,
+            childSectionId: sectionId,
             position: sectionData.position
         };
         

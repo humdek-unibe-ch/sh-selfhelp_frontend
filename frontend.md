@@ -2,7 +2,65 @@
 
 # Frontend Development Log
 
-## Section Management API Parameter Alignment - Final (Latest Update)
+## Position Calculation System Update (Latest Update)
+
+### Problem
+The position calculation system was using 5, 15, 25... pattern but needed to be changed to support a new system where first element gets -1, then 5, 15, 25... and after normalization becomes 0, 10, 20, 30...
+
+### Solution
+Updated all position calculation logic across the application to use the new system:
+
+#### New Position Calculation Rules
+- **First Element**: Gets position -1 (temporary)
+- **Second Element**: Gets position 5
+- **Subsequent Elements**: 15, 25, 35... (previous + 10)
+- **Sibling Above**: Reference section position - 1
+- **Sibling Below**: Reference section position + 1
+- **Normalization**: Backend will normalize to clean 0, 10, 20, 30... pattern
+
+#### Files Modified
+- **Utility Created**:
+  - `src/utils/position-calculator.ts` - New utility class for position calculations
+  
+- **Components Updated**:
+  - `SectionsList.tsx` - Updated drag & drop position calculation
+  - `DragDropMenuPositioner.tsx` - Updated menu position calculation
+  
+- **Mutations Updated**:
+  - `useCreateSiblingAboveMutation.ts` - Changed from -5 to -1
+  - `useCreateSiblingBelowMutation.ts` - Changed from +5 to +1
+  
+- **Documentation Updated**:
+  - `architecture.md` - Updated position calculation documentation
+  - `PageSections.tsx` - Updated TODO comments
+
+#### Position Calculation Examples
+```typescript
+// Old system: 5, 15, 25, 35...
+// New system: -1, 5, 15, 25, 35...
+// After normalization: 0, 10, 20, 30...
+
+// First element
+calculateEndPosition([]) // Returns -1
+
+// Second element  
+calculateEndPosition([{id: 1, position: -1}]) // Returns 5
+
+// Third element
+calculateEndPosition([{id: 1, position: -1}, {id: 2, position: 5}]) // Returns 15
+
+// Sibling operations
+calculateSiblingAbovePosition(15) // Returns 14
+calculateSiblingBelowPosition(15) // Returns 16
+```
+
+#### Benefits
+- **Consistent Ordering**: Clear progression from -1 to positive numbers
+- **Easy Normalization**: Backend can easily normalize to 0, 10, 20, 30...
+- **Collision Avoidance**: Reduced chance of position collisions
+- **Future-Proof**: System supports both temporary and normalized positions
+
+## Section Management API Parameter Alignment - Final (Previous Update)
 
 ### Problem
 The section management mutations were using inconsistent parameter structures that didn't match the backend SQL schema requirements. This was causing API calls to fail or send incorrect data to the backend.

@@ -175,7 +175,7 @@ export function PageSections({ keyword }: IPageSectionsProps) {
 
     const handleAddSiblingAbove = (referenceSectionId: number, parentId: number | null) => {
         debug('Adding sibling above section', 'PageSections', { referenceSectionId, parentId });
-        // TODO: Implement sibling above creation with position calculation (-5)
+        // TODO: Implement sibling above creation with position calculation (reference position - 1)
         // For now, open the modal with the parent context
         setSelectedParentSectionId(parentId);
         setAddSectionModalOpened(true);
@@ -183,7 +183,7 @@ export function PageSections({ keyword }: IPageSectionsProps) {
 
     const handleAddSiblingBelow = (referenceSectionId: number, parentId: number | null) => {
         debug('Adding sibling below section', 'PageSections', { referenceSectionId, parentId });
-        // TODO: Implement sibling below creation with position calculation (+5)
+        // TODO: Implement sibling below creation with position calculation (reference position + 1)
         // For now, open the modal with the parent context
         setSelectedParentSectionId(parentId);
         setAddSectionModalOpened(true);

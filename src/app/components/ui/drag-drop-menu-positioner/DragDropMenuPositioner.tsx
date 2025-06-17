@@ -279,21 +279,27 @@ export function DragDropMenuPositioner({
         }
     };
 
-    // Calculate final position based on index and existing pages
+    // Calculate final position based on index and existing pages using new system
     const calculateFinalPosition = (pages: IMenuPageItem[], targetIndex: number): number => {
-        // If no existing pages, start at position 10
+        // If no existing pages, start at position -1 (first element)
         if (pages.length === 0) {
-            return 10;
+            return -1;
         }
         
         if (targetIndex === 0) {
             // First position - place before the first existing page
             const firstPagePosition = pages[0].position;
-            return Math.max(1, firstPagePosition - 10);
+            if (firstPagePosition === -1) {
+                return -11; // New first item when current first is -1
+            }
+            return Math.min(-1, firstPagePosition - 10);
         } else if (targetIndex >= pages.length) {
             // Last position - place after the last existing page
             const lastPagePosition = pages[pages.length - 1].position;
-            return lastPagePosition + 10;
+            if (lastPagePosition === -1) {
+                return 5; // Second element gets 5
+            }
+            return lastPagePosition + 10; // Continue with 15, 25, 35...
         } else {
             // Between two pages - calculate middle position with proper spacing
             const prevPage = pages[targetIndex - 1];
@@ -304,8 +310,8 @@ export function DragDropMenuPositioner({
             if (gap > 2) {
                 return Math.floor((prevPage.position + nextPage.position) / 2);
             } else {
-                // Not enough gap - shift all subsequent pages by 10 and place in between
-                return prevPage.position + 5;
+                // Not enough gap - use next available position
+                return prevPage.position + 1;
             }
         }
     };
@@ -373,7 +379,9 @@ export function DragDropMenuPositioner({
                 return finalPosition;
             } else {
                 // User enabled menu but didn't drag - add at the end
-                const endPosition = menuPages.length > 0 ? menuPages[menuPages.length - 1].position + 10 : 10;
+                const endPosition = menuPages.length > 0 ? 
+                    (menuPages[menuPages.length - 1].position === -1 ? 5 : menuPages[menuPages.length - 1].position + 10) : 
+                    -1;
                 debug('Calculating final position for new page (no drag)', 'DragDropMenuPositioner', {
                     menuType,
                     pageKeyword,

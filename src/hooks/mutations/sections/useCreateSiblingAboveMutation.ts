@@ -24,9 +24,9 @@ export function useCreateSiblingAboveMutation() {
                 sectionData
             });
 
-            // Calculate position: reference position - 5
+            // Calculate position: reference position - 1
             // TODO: Get reference section position from cache or API
-            const calculatedPosition = (sectionData.position || 10) - 5;
+            const calculatedPosition = (sectionData.position || 10) - 1;
             
             const finalSectionData = {
                 styleId: sectionData.styleId,

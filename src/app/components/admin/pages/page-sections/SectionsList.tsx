@@ -122,34 +122,40 @@ export function SectionsList({
         return null;
     };
 
-    // Calculate position based on 5, 15, 25, 35... pattern
+    // Calculate position based on new system: -1, 5, 15, 25... -> normalized to 0, 10, 20, 30...
     const calculateNewPosition = (targetParent: IPageField | null, dropIndex: number): number => {
         const siblings = targetParent ? (targetParent.children || []) : sections;
         const sortedSiblings = [...siblings].sort((a, b) => a.position - b.position);
         
         if (sortedSiblings.length === 0) {
-            return 5; // First item
+            return -1; // First item gets -1
         }
         
         if (dropIndex === 0) {
             // Dropping at the beginning
             const firstPosition = sortedSiblings[0].position;
-            return Math.max(5, firstPosition - 10);
+            if (firstPosition === -1) {
+                return -11; // New first item when current first is -1
+            }
+            return Math.min(-1, firstPosition - 10);
         } else if (dropIndex >= sortedSiblings.length) {
             // Dropping at the end
             const lastPosition = sortedSiblings[sortedSiblings.length - 1].position;
-            return lastPosition + 10;
+            if (lastPosition === -1) {
+                return 5; // Second element gets 5
+            }
+            return lastPosition + 10; // Continue with 15, 25, 35...
         } else {
             // Dropping in the middle
             const prevPosition = sortedSiblings[dropIndex - 1].position;
             const nextPosition = sortedSiblings[dropIndex].position;
             const gap = nextPosition - prevPosition;
             
-            if (gap > 10) {
+            if (gap > 2) {
                 return Math.floor((prevPosition + nextPosition) / 2);
             } else {
-                // Use the 5, 15, 25 pattern
-                return prevPosition + 5;
+                // Not enough gap - use next available position
+                return prevPosition + 1;
             }
         }
     };

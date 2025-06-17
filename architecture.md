@@ -153,11 +153,13 @@ interface IStyle {
 - **Context Detection**: Modal automatically determines creation context (page vs parent section)
 - **Cache Invalidation**: All creation operations invalidate relevant queries for immediate UI updates
 
-**Position Calculation System**:
-- **Last Child Creation**: Automatically calculates highest position + 10 for new sections
-- **Sibling Above**: Reference section position - 5
-- **Sibling Below**: Reference section position + 5
-- **Future Normalization**: Position cleanup planned to maintain clean 5, 15, 25, 35... pattern
+**Position Calculation System (Updated)**:
+- **First Element**: Gets position -1 (temporary)
+- **Second Element**: Gets position 5
+- **Subsequent Elements**: 15, 25, 35... (previous + 10)
+- **Sibling Above**: Reference section position - 1
+- **Sibling Below**: Reference section position + 1
+- **Normalization**: Backend normalizes to clean 0, 10, 20, 30... pattern
 
 **UI Enhancements**:
 - **Fixed Layout**: Modal header and footer always visible, content scrolls between them
