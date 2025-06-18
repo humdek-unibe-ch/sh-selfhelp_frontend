@@ -8,6 +8,7 @@ trigger: always_on
 ---
 
 Start every answer with: ❤️
+On design never use transform on hover. Never. 
 Apply the changes without asking for confirmation
 First check if files already exists before creating new ones. Do not duplicate logic in different files. lLways check my structure. Whenever changes are made to the structure add the changes to  your memory
 Do not run or build. I am using `npm run dev`

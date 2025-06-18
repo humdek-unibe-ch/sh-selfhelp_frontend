@@ -41,6 +41,9 @@ interface ISectionsListProps {
     onAddChildSection?: (parentSectionId: number) => void;
     onAddSiblingAbove?: (referenceSectionId: number, parentId: number | null) => void;
     onAddSiblingBelow?: (referenceSectionId: number, parentId: number | null) => void;
+    onSectionSelect?: (sectionId: number) => void;
+    selectedSectionId?: number | null;
+    focusedSectionId?: number | null;
     pageKeyword?: string;
     isProcessing?: boolean;
 }
@@ -55,6 +58,9 @@ interface ISectionItemProps {
     onAddChildSection?: (parentSectionId: number) => void;
     onAddSiblingAbove?: (referenceSectionId: number, parentId: number | null) => void;
     onAddSiblingBelow?: (referenceSectionId: number, parentId: number | null) => void;
+    onSectionSelect?: (sectionId: number) => void;
+    selectedSectionId?: number | null;
+    focusedSectionId?: number | null;
 }
 
 interface IDragState {
@@ -84,7 +90,10 @@ function SectionItem({
     onRemoveSection,
     onAddChildSection,
     onAddSiblingAbove,
-    onAddSiblingBelow
+    onAddSiblingBelow,
+    onSectionSelect,
+    selectedSectionId,
+    focusedSectionId
 }: ISectionItemProps) {
     const dragContext = useContext(DragContext);
     const elementRef = useRef<HTMLDivElement>(null);
@@ -92,6 +101,7 @@ function SectionItem({
     const actionMenuRef = useRef<HTMLButtonElement>(null);
     
     const [isDragging, setIsDragging] = useState(false);
+    const [isParentHovered, setIsParentHovered] = useState(false);
     const [dropState, setDropState] = useState<IDropState>({
         closestEdge: null,
         isDropTarget: false,
@@ -274,7 +284,7 @@ function SectionItem({
 
     // Get wrapper classes based on states
     const getWrapperClasses = () => {
-        const classes = [styles.sectionItemWrapper, styles[`level${Math.min(level, 5)}`]];
+        const classes = [styles.sectionItemWrapper];
         
         if (isDragging) classes.push(styles.isDragging);
         if (dropState.isDropTarget) classes.push(styles.isDropTarget);
@@ -283,12 +293,19 @@ function SectionItem({
         if (dragContext.isDragActive && (isBeingDragged || isDescendantOfDragged())) {
             classes.push(styles.isDraggedOrChild);
         }
+        if (isParentHovered && hasChildren) {
+            classes.push(styles.parentHovered, styles[`level${level}`]);
+        }
         
         return classes.join(' ');
     };
 
     return (
-        <Box className={getWrapperClasses()}>
+        <Box 
+            className={getWrapperClasses()}
+            onMouseEnter={() => setIsParentHovered(true)}
+            onMouseLeave={() => setIsParentHovered(false)}
+        >
             {/* Top drop indicator - Green line for sibling drops */}
             {dropState.closestEdge === 'top' && (
                 <Box className={`${styles.dropIndicatorWrapper} ${styles.top}`}>
@@ -321,6 +338,9 @@ function SectionItem({
                 actionMenuRef={actionMenuRef}
                 customStyle={{}}
                 showInsideDropZone={dropState.isContainerTarget}
+                onSectionSelect={onSectionSelect}
+                selectedSectionId={selectedSectionId}
+                focusedSectionId={focusedSectionId}
             />
 
             {/* Bottom drop indicator - Green line for sibling drops */}
@@ -346,6 +366,9 @@ function SectionItem({
                             onAddChildSection={onAddChildSection}
                             onAddSiblingAbove={onAddSiblingAbove}
                             onAddSiblingBelow={onAddSiblingBelow}
+                            onSectionSelect={onSectionSelect}
+                            selectedSectionId={selectedSectionId}
+                            focusedSectionId={focusedSectionId}
                         />
                     ))}
                 </Box>
@@ -378,6 +401,9 @@ export function SectionsList({
     onAddChildSection,
     onAddSiblingAbove,
     onAddSiblingBelow,
+    onSectionSelect,
+    selectedSectionId,
+    focusedSectionId,
     pageKeyword,
     isProcessing = false
 }: ISectionsListProps) {
@@ -603,6 +629,9 @@ export function SectionsList({
                                     onAddChildSection={onAddChildSection}
                                     onAddSiblingAbove={onAddSiblingAbove}
                                     onAddSiblingBelow={onAddSiblingBelow}
+                                    onSectionSelect={onSectionSelect}
+                                    selectedSectionId={selectedSectionId}
+                                    focusedSectionId={focusedSectionId}
                                 />
                             ))}
                         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
     Paper, 
     Title, 
@@ -10,13 +10,23 @@ import {
     Alert,
     Group,
     Badge,
-    Button
+    Button,
+    TextInput,
+    ActionIcon,
+    Tooltip,
+    Box
 } from '@mantine/core';
 import { 
     IconInfoCircle, 
     IconAlertCircle, 
     IconFile, 
-    IconPlus
+    IconPlus,
+    IconSearch,
+    IconChevronUp,
+    IconChevronDown,
+    IconX,
+    IconArrowLeft,
+    IconArrowRight
 } from '@tabler/icons-react';
 import { usePageSections } from '../../../../../hooks/usePageDetails';
 import { 
@@ -51,6 +61,13 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
     const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
     const [addSectionModalOpened, setAddSectionModalOpened] = useState(false);
     const [selectedParentSectionId, setSelectedParentSectionId] = useState<number | null>(null);
+    const [selectedSectionId, setSelectedSectionId] = useState<number | null>(null);
+    
+    // Search functionality
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<number[]>([]);
+    const [currentSearchIndex, setCurrentSearchIndex] = useState(-1);
+    const [focusedSectionId, setFocusedSectionId] = useState<number | null>(null);
 
     // Section mutations
     const addSectionToPageMutation = useAddSectionToPageMutation({
@@ -83,6 +100,77 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
         }
     });
 
+    // Search functionality
+    const searchInSections = useCallback((sections: IPageField[], query: string): number[] => {
+        const results: number[] = [];
+        const searchLower = query.toLowerCase();
+        
+        const searchRecursive = (items: IPageField[]) => {
+            items.forEach(item => {
+                if (item.name.toLowerCase().includes(searchLower) || 
+                    item.style_name.toLowerCase().includes(searchLower) ||
+                    item.id.toString().includes(query)) {
+                    results.push(item.id);
+                }
+                if (item.children) {
+                    searchRecursive(item.children);
+                }
+            });
+        };
+        
+        searchRecursive(sections);
+        return results;
+    }, []);
+
+    // Update search results when query changes
+    useEffect(() => {
+        if (searchQuery.trim() && data?.sections) {
+            const results = searchInSections(data.sections, searchQuery.trim());
+            setSearchResults(results);
+            setCurrentSearchIndex(results.length > 0 ? 0 : -1);
+            setFocusedSectionId(results.length > 0 ? results[0] : null);
+        } else {
+            setSearchResults([]);
+            setCurrentSearchIndex(-1);
+            setFocusedSectionId(null);
+        }
+    }, [searchQuery, data?.sections, searchInSections]);
+
+    // Expand all sections that contain search results
+    useEffect(() => {
+        if (searchResults.length > 0 && data?.sections) {
+            const sectionsToExpand = new Set<number>();
+            
+            const findParentsOfResults = (sections: IPageField[], parentId: number | null = null) => {
+                sections.forEach(section => {
+                    if (section.children) {
+                        const hasResultInChildren = section.children.some(child => 
+                            searchResults.includes(child.id) || 
+                            hasDeepResult(child, searchResults)
+                        );
+                        
+                        if (hasResultInChildren) {
+                            sectionsToExpand.add(section.id);
+                        }
+                        
+                        findParentsOfResults(section.children, section.id);
+                    }
+                });
+            };
+            
+            const hasDeepResult = (section: IPageField, results: number[]): boolean => {
+                if (results.includes(section.id)) return true;
+                if (section.children) {
+                    return section.children.some(child => hasDeepResult(child, results));
+                }
+                return false;
+            };
+            
+            findParentsOfResults(data.sections);
+            setExpandedSections(prev => new Set([...Array.from(prev), ...Array.from(sectionsToExpand)]));
+        }
+    }, [searchResults, data?.sections]);
+
     const handleToggleExpand = (sectionId: number) => {
         setExpandedSections(prev => {
             const newSet = new Set(prev);
@@ -93,6 +181,63 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
             }
             return newSet;
         });
+    };
+
+    const handleSectionSelect = (sectionId: number) => {
+        setSelectedSectionId(sectionId);
+        debug('Section selected for inspector', 'PageSections', { sectionId });
+    };
+
+    // Collapse/Expand all functionality
+    const handleExpandAll = () => {
+        if (!data?.sections) return;
+        
+        const allSectionIds = new Set<number>();
+        const collectAllIds = (sections: IPageField[]) => {
+            sections.forEach(section => {
+                if (section.children && section.children.length > 0) {
+                    allSectionIds.add(section.id);
+                    collectAllIds(section.children);
+                }
+            });
+        };
+        
+        collectAllIds(data.sections);
+        setExpandedSections(allSectionIds);
+        debug('Expanded all sections', 'PageSections', { count: allSectionIds.size });
+    };
+
+    const handleCollapseAll = () => {
+        setExpandedSections(new Set());
+        debug('Collapsed all sections', 'PageSections');
+    };
+
+    // Search navigation
+    const handleSearchNext = () => {
+        if (searchResults.length === 0) return;
+        
+        const nextIndex = (currentSearchIndex + 1) % searchResults.length;
+        setCurrentSearchIndex(nextIndex);
+        setFocusedSectionId(searchResults[nextIndex]);
+        setSelectedSectionId(searchResults[nextIndex]);
+        debug('Search next', 'PageSections', { index: nextIndex, sectionId: searchResults[nextIndex] });
+    };
+
+    const handleSearchPrevious = () => {
+        if (searchResults.length === 0) return;
+        
+        const prevIndex = currentSearchIndex === 0 ? searchResults.length - 1 : currentSearchIndex - 1;
+        setCurrentSearchIndex(prevIndex);
+        setFocusedSectionId(searchResults[prevIndex]);
+        setSelectedSectionId(searchResults[prevIndex]);
+        debug('Search previous', 'PageSections', { index: prevIndex, sectionId: searchResults[prevIndex] });
+    };
+
+    const handleSearchClear = () => {
+        setSearchQuery('');
+        setSearchResults([]);
+        setCurrentSearchIndex(-1);
+        setFocusedSectionId(null);
     };
 
     const handleSectionMove = async (moveData: IMoveData) => {
@@ -276,15 +421,89 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
                         </Badge>
                     )}
                 </Group>
-                <Button 
-                    leftSection={<IconPlus size={14} />} 
-                    size="xs" 
-                    variant="light"
-                    onClick={() => setAddSectionModalOpened(true)}
-                >
-                    Add Section
-                </Button>
+                <Group gap="xs">
+                    <Tooltip label="Expand All">
+                        <ActionIcon 
+                            size="xs" 
+                            variant="subtle" 
+                            color="blue"
+                            onClick={handleExpandAll}
+                        >
+                            <IconChevronDown size={12} />
+                        </ActionIcon>
+                    </Tooltip>
+                    <Tooltip label="Collapse All">
+                        <ActionIcon 
+                            size="xs" 
+                            variant="subtle" 
+                            color="blue"
+                            onClick={handleCollapseAll}
+                        >
+                            <IconChevronUp size={12} />
+                        </ActionIcon>
+                    </Tooltip>
+                    <Button 
+                        leftSection={<IconPlus size={14} />} 
+                        size="xs" 
+                        variant="light"
+                        onClick={() => setAddSectionModalOpened(true)}
+                    >
+                        Add Section
+                    </Button>
+                </Group>
             </Group>
+
+            {/* Search Bar */}
+            <Box mb="xs" px="xs">
+                <Group gap="xs" align="flex-end">
+                    <TextInput
+                        placeholder="Search sections by name, style, or ID..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.currentTarget.value)}
+                        leftSection={<IconSearch size={14} />}
+                        rightSection={
+                            searchQuery && (
+                                <ActionIcon 
+                                    size="xs" 
+                                    variant="subtle" 
+                                    onClick={handleSearchClear}
+                                >
+                                    <IconX size={12} />
+                                </ActionIcon>
+                            )
+                        }
+                        size="xs"
+                        style={{ flex: 1 }}
+                    />
+                    {searchResults.length > 0 && (
+                        <Group gap="xs">
+                            <Text size="xs" c="dimmed">
+                                {currentSearchIndex + 1} of {searchResults.length}
+                            </Text>
+                            <Tooltip label="Previous">
+                                <ActionIcon 
+                                    size="xs" 
+                                    variant="subtle" 
+                                    onClick={handleSearchPrevious}
+                                    disabled={searchResults.length === 0}
+                                >
+                                    <IconArrowLeft size={12} />
+                                </ActionIcon>
+                            </Tooltip>
+                            <Tooltip label="Next">
+                                <ActionIcon 
+                                    size="xs" 
+                                    variant="subtle" 
+                                    onClick={handleSearchNext}
+                                    disabled={searchResults.length === 0}
+                                >
+                                    <IconArrowRight size={12} />
+                                </ActionIcon>
+                            </Tooltip>
+                        </Group>
+                    )}
+                </Group>
+            </Box>
 
             {/* Sections List */}
             <SectionsList
@@ -296,6 +515,9 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
                 onAddChildSection={handleAddChildSection}
                 onAddSiblingAbove={handleAddSiblingAbove}
                 onAddSiblingBelow={handleAddSiblingBelow}
+                onSectionSelect={handleSectionSelect}
+                selectedSectionId={selectedSectionId}
+                focusedSectionId={focusedSectionId}
                 pageKeyword={keyword || undefined}
                 isProcessing={isProcessingMove || isProcessingRemove}
             />

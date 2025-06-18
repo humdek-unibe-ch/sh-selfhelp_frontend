@@ -25,6 +25,9 @@ interface IPageSectionProps {
     onAddChildSection?: (parentSectionId: number) => void;
     onAddSiblingAbove?: (referenceSectionId: number, parentId: number | null) => void;
     onAddSiblingBelow?: (referenceSectionId: number, parentId: number | null) => void;
+    onSectionSelect?: (sectionId: number) => void;
+    selectedSectionId?: number | null;
+    focusedSectionId?: number | null;
     isDragActive: boolean;
     overId: string | number | null;
     draggedSectionId?: number | null;
@@ -45,6 +48,9 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     onAddChildSection,
     onAddSiblingAbove,
     onAddSiblingBelow,
+    onSectionSelect,
+    selectedSectionId,
+    focusedSectionId,
     isDragActive,
     overId,
     draggedSectionId,
@@ -59,12 +65,13 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     const canHaveChildren = !!section.can_have_children;
     const isBeingDragged = draggedSectionId === section.id;
     const isValidDropTarget = canHaveChildren && overId === section.id;
+    const isSelected = selectedSectionId === section.id;
+    const isFocused = focusedSectionId === section.id;
 
-    // Compact styling based on level
+    // Dynamic indentation aligned with chevron - 12px per level to align with chevron positioning
     const getIndentationStyle = () => ({
-        marginLeft: `${level * 16}px`,
-        borderLeft: level > 0 ? `2px solid var(--mantine-color-gray-2)` : 'none',
-        paddingLeft: level > 0 ? '8px' : '0'
+        marginLeft: `${level * 12}px`,
+        position: 'relative' as const
     });
 
     const getSectionTypeColor = () => {
@@ -74,9 +81,20 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
 
     const getSectionIcon = () => {
         if (canHaveChildren) {
-            return hasChildren && isExpanded ? <IconFolderOpen size={14} /> : <IconFolder size={14} />;
+            return hasChildren && isExpanded ? <IconFolderOpen size={10} /> : <IconFolder size={10} />;
         }
-        return <IconFile size={14} />;
+        return <IconFile size={10} />;
+    };
+
+    // Get level class with support for 30+ levels
+    const getLevelClass = () => {
+        const maxDefinedLevel = 29;
+        if (level <= maxDefinedLevel) {
+            return styles[`level${level}`];
+        }
+        // For levels beyond 29, cycle through the first 12 levels with different shades
+        const cycleLevel = level % 12;
+        return styles[`level${cycleLevel + 18}`]; // Use levels 18-29 for cycling
     };
 
     const handleToggleExpand = () => {
@@ -109,29 +127,19 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
         }
     };
 
+    const handleSectionClick = () => {
+        if (onSectionSelect) {
+            onSectionSelect(section.id);
+        }
+    };
+
     return (
         <div style={getIndentationStyle()}>
             <Paper
                 ref={ref}
-                className={`${styles.sectionItem} ${styles[`level${Math.min(level, 4)}`]}`}
-                style={{
-                    backgroundColor: isBeingDragged 
-                        ? 'var(--mantine-color-blue-0)' 
-                        : isValidDropTarget && isDragActive 
-                        ? 'var(--mantine-color-green-0)'
-                        : 'white',
-                    borderColor: isBeingDragged 
-                        ? 'var(--mantine-color-blue-4)' 
-                        : isValidDropTarget && isDragActive 
-                        ? 'var(--mantine-color-green-4)'
-                        : 'var(--mantine-color-gray-3)',
-                    borderWidth: isBeingDragged || (isValidDropTarget && isDragActive) ? '2px' : '1px',
-                    borderStyle: isBeingDragged ? 'dashed' : 'solid',
-                    opacity: isDragging ? 0.6 : 1,
-                    cursor: isDragging ? 'grabbing' : 'default',
-                    marginBottom: '4px',
-                    ...customStyle
-                }}
+                className={`${styles.sectionItem} ${getLevelClass()} ${isSelected ? styles.selected : ''} ${isFocused ? styles.focused : ''}`}
+                onClick={handleSectionClick}
+                style={{ cursor: 'pointer' }}
             >
                 <Group gap="xs" p="xs" wrap="nowrap" align="center" className={styles.compactGroup}>
                     {/* Drag Handle - properly connected */}
@@ -146,7 +154,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                                 opacity: isDragActive ? 1 : 0.6
                             }}
                         >
-                            <IconGripVertical size={12} />
+                            <IconGripVertical size={8} />
                         </ActionIcon>
                     </div>
 
@@ -155,13 +163,16 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                         <ActionIcon
                             variant="subtle"
                             size="xs"
-                            onClick={handleToggleExpand}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleToggleExpand();
+                            }}
                             className={styles.expandButton}
                         >
-                            {isExpanded ? <IconChevronDown size={12} /> : <IconChevronRight size={12} />}
+                            {isExpanded ? <IconChevronDown size={8} /> : <IconChevronRight size={8} />}
                         </ActionIcon>
                     ) : (
-                        <Box w={20} />
+                        <Box w={12} />
                     )}
 
                     {/* Section Icon */}
@@ -173,11 +184,11 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                         {getSectionIcon()}
                     </Box>
 
-                    {/* Section Info - Compact */}
+                    {/* Section Info - Ultra Compact */}
                     <Box style={{ flex: 1, minWidth: 0 }}>
-                        <Group gap={4} wrap="nowrap" align="center">
+                        <Group gap={3} wrap="nowrap" align="center">
                             <Text 
-                                size="sm" 
+                                size="xs" 
                                 fw={500} 
                                 className={styles.sectionName}
                                 title={section.name}
@@ -203,18 +214,21 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                         </Text>
                     </Box>
 
-                    {/* Action Buttons - Compact and hover-based */}
-                    <Group gap={2} className={styles.actionButtons}>
+                    {/* Action Buttons - Ultra compact and hover-based */}
+                    <Group gap={1} className={styles.actionButtons}>
                         {canHaveChildren && (
                             <Tooltip label="Add child" position="top" withArrow>
                                 <ActionIcon
                                     size="xs"
                                     variant="subtle"
                                     color="green"
-                                    onClick={handleAddChild}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleAddChild();
+                                    }}
                                     className={styles.actionButton}
                                 >
-                                    <IconPlus size={12} />
+                                    <IconPlus size={8} />
                                 </ActionIcon>
                             </Tooltip>
                         )}
@@ -224,10 +238,13 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                                 size="xs"
                                 variant="subtle"
                                 color="blue"
-                                onClick={handleAddSiblingAbove}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAddSiblingAbove();
+                                }}
                                 className={styles.actionButton}
                             >
-                                <IconPlus size={12} />
+                                <IconPlus size={8} />
                             </ActionIcon>
                         </Tooltip>
                         
@@ -236,10 +253,13 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                                 size="xs"
                                 variant="subtle"
                                 color="blue"
-                                onClick={handleAddSiblingBelow}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAddSiblingBelow();
+                                }}
                                 className={styles.actionButton}
                             >
-                                <IconPlus size={12} />
+                                <IconPlus size={8} />
                             </ActionIcon>
                         </Tooltip>
 
@@ -249,10 +269,13 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                                 size="xs"
                                 variant="subtle"
                                 color="red"
-                                onClick={handleRemoveSection}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRemoveSection();
+                                }}
                                 className={styles.actionButton}
                             >
-                                <IconTrash size={12} />
+                                <IconTrash size={8} />
                             </ActionIcon>
                         </Tooltip>
                     </Group>

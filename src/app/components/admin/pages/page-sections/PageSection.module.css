@@ -1,14 +1,17 @@
 /* Compact section item styling */
 .sectionItem {
     transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 6px;
+    border-radius: 3px;
     border: 1px solid var(--mantine-color-gray-3);
     background: white;
     position: relative;
+    margin-bottom: 1px;
 }
 
+/* Hover state - Light amber color */
 .sectionItem:hover {
-    border-color: var(--mantine-color-blue-4);
+    border-color: var(--mantine-color-amber-4);
+    background-color: var(--mantine-color-amber-0);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
@@ -16,21 +19,51 @@
     opacity: 1;
 }
 
-/* Compact group spacing */
+/* Selected state - Blue color */
+.sectionItem.selected {
+    border-color: var(--mantine-color-blue-5);
+    background-color: var(--mantine-color-blue-0);
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.15);
+}
+
+.sectionItem.selected:hover {
+    border-color: var(--mantine-color-blue-6);
+    background-color: var(--mantine-color-blue-1);
+}
+
+/* Focused state - Yellow highlight for search results */
+.sectionItem.focused {
+    border-color: var(--mantine-color-yellow-5);
+    background-color: var(--mantine-color-yellow-0);
+    box-shadow: 0 2px 6px rgba(234, 179, 8, 0.25);
+    animation: focusPulse 1s ease-in-out 2;
+}
+
+@keyframes focusPulse {
+    0%, 100% {
+        box-shadow: 0 2px 6px rgba(234, 179, 8, 0.25);
+    }
+    50% {
+        box-shadow: 0 4px 12px rgba(234, 179, 8, 0.4);
+    }
+}
+
+/* Ultra compact group spacing */
 .compactGroup {
-    gap: 6px !important;
-    min-height: 32px;
+    gap: 3px !important;
+    min-height: 22px;
+    padding: 2px 4px !important;
 }
 
 /* Drag handle styling */
 .dragHandle {
-    opacity: 0.4;
+    opacity: 0.3;
     transition: opacity 0.15s ease;
     cursor: grab !important;
 }
 
 .dragHandle:hover {
-    opacity: 0.8;
+    opacity: 0.7;
 }
 
 .dragHandle:active {
@@ -39,89 +72,105 @@
 
 /* Expand button */
 .expandButton {
-    transition: transform 0.15s ease;
+    transition: opacity 0.15s ease;
 }
 
 .expandButton:hover {
-    transform: scale(1.1);
+    opacity: 0.8;
 }
 
 /* Section name truncation */
 .sectionName {
-    max-width: 160px;
+    max-width: 140px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-size: 11px !important;
 }
 
-/* Badge styling */
+/* Badge styling - even smaller */
 .styleBadge {
-    font-size: 10px !important;
-    height: 16px !important;
+    font-size: 8px !important;
+    height: 12px !important;
     font-weight: 500;
+    padding: 0 3px !important;
 }
 
 .childCount {
-    font-size: 9px !important;
-    height: 14px !important;
-    min-width: 18px;
-    padding: 0 4px !important;
+    font-size: 7px !important;
+    height: 10px !important;
+    min-width: 14px;
+    padding: 0 2px !important;
 }
 
 /* Section metadata */
 .sectionMeta {
-    font-size: 10px !important;
+    font-size: 8px !important;
     line-height: 1.2;
-    margin-top: 2px;
+    margin-top: 1px;
 }
 
 /* Action buttons - hidden by default, shown on hover */
 .actionButtons {
     opacity: 0;
     transition: opacity 0.15s ease;
-    gap: 2px !important;
+    gap: 1px !important;
 }
 
 .actionButton {
-    min-width: 20px !important;
-    width: 20px !important;
-    height: 20px !important;
-    transition: all 0.15s ease;
+    min-width: 14px !important;
+    width: 14px !important;
+    height: 14px !important;
+    transition: opacity 0.15s ease;
 }
 
 .actionButton:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    opacity: 0.8;
 }
 
-/* Level-based styling for visual hierarchy */
-.level0 {
-    border-left: 3px solid var(--mantine-color-blue-5);
-}
+/* Level-based styling with VERY distinct colors - high contrast between siblings (NO BLUE - reserved for selection) */
+.level0 { border-left: 3px solid var(--mantine-color-red-6); }      /* Red */
+.level1 { border-left: 3px solid var(--mantine-color-green-6); }    /* Green - very different from red */
+.level2 { border-left: 3px solid var(--mantine-color-orange-6); }   /* Orange - very different from green */
+.level3 { border-left: 3px solid var(--mantine-color-violet-6); }   /* Purple - very different from orange */
+.level4 { border-left: 3px solid var(--mantine-color-teal-6); }     /* Teal - very different from purple */
+.level5 { border-left: 3px solid var(--mantine-color-pink-6); }     /* Pink - very different from teal */
+.level6 { border-left: 3px solid var(--mantine-color-lime-6); }     /* Lime - very different from pink */
+.level7 { border-left: 3px solid var(--mantine-color-indigo-6); }   /* Indigo - very different from lime */
+.level8 { border-left: 3px solid var(--mantine-color-yellow-6); }   /* Yellow - very different from indigo */
+.level9 { border-left: 3px solid var(--mantine-color-cyan-6); }     /* Cyan - very different from yellow */
+.level10 { border-left: 3px solid var(--mantine-color-grape-6); }   /* Grape - very different from cyan */
+.level11 { border-left: 3px solid var(--mantine-color-dark-6); }    /* Dark - very different from grape */
 
-.level1 {
-    border-left: 3px solid var(--mantine-color-green-5);
-}
+/* Continue with darker shades for deeper levels */
+.level12 { border-left: 3px solid var(--mantine-color-red-7); }
+.level13 { border-left: 3px solid var(--mantine-color-green-7); }
+.level14 { border-left: 3px solid var(--mantine-color-orange-7); }
+.level15 { border-left: 3px solid var(--mantine-color-violet-7); }
+.level16 { border-left: 3px solid var(--mantine-color-teal-7); }
+.level17 { border-left: 3px solid var(--mantine-color-pink-7); }
+.level18 { border-left: 3px solid var(--mantine-color-lime-7); }
+.level19 { border-left: 3px solid var(--mantine-color-indigo-7); }
+.level20 { border-left: 3px solid var(--mantine-color-yellow-7); }
+.level21 { border-left: 3px solid var(--mantine-color-cyan-7); }
+.level22 { border-left: 3px solid var(--mantine-color-grape-7); }
+.level23 { border-left: 3px solid var(--mantine-color-dark-7); }
 
-.level2 {
-    border-left: 3px solid var(--mantine-color-orange-5);
-}
-
-.level3 {
-    border-left: 3px solid var(--mantine-color-purple-5);
-}
-
-.level4 {
-    border-left: 3px solid var(--mantine-color-pink-5);
-}
+/* For even deeper levels, use lighter shades */
+.level24 { border-left: 3px solid var(--mantine-color-red-4); }
+.level25 { border-left: 3px solid var(--mantine-color-green-4); }
+.level26 { border-left: 3px solid var(--mantine-color-orange-4); }
+.level27 { border-left: 3px solid var(--mantine-color-violet-4); }
+.level28 { border-left: 3px solid var(--mantine-color-teal-4); }
+.level29 { border-left: 3px solid var(--mantine-color-pink-4); }
 
 /* Drop zone for empty containers */
 .dropZone {
-    margin: 4px 8px 8px 8px;
-    min-height: 24px;
+    margin: 1px 2px 2px 2px;
+    min-height: 16px;
     background-color: var(--mantine-color-blue-0);
     border: 1px dashed var(--mantine-color-blue-4);
-    border-radius: 4px;
+    border-radius: 2px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -141,12 +190,10 @@
 @keyframes containerPulse {
     from {
         opacity: 0.8;
-        transform: scale(0.98);
         box-shadow: 0 0 0 0 var(--mantine-color-green-4);
     }
     to {
         opacity: 1;
-        transform: scale(1);
         box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2);
     }
 }
@@ -154,7 +201,7 @@
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .sectionName {
-        max-width: 120px;
+        max-width: 100px;
     }
     
     .styleBadge {
