@@ -460,6 +460,51 @@ export function PageInspector({ page }: PageInspectorProps) {
             {/* Scrollable Content */}
             <ScrollArea flex={1}>
                 <Stack gap="lg" p="md">
+                    {/* Page Information Section */}
+                    <Paper withBorder style={{ backgroundColor: 'var(--mantine-color-blue-0)' }}>
+                        <Box p="md">
+                            <Group gap="xs" mb="sm">
+                                <IconInfoCircle size={16} style={{ color: 'var(--mantine-color-blue-6)' }} />
+                                <Text size="sm" fw={500} c="blue">Page Information</Text>
+                            </Group>
+                            
+                            <Stack gap="xs">
+                                <Group gap="md" wrap="wrap">
+                                    <Box>
+                                        <Text size="xs" fw={500} c="dimmed">Keyword</Text>
+                                        <Text size="sm" style={{ fontFamily: 'monospace' }}>{page.keyword}</Text>
+                                    </Box>
+                                    <Box>
+                                        <Text size="xs" fw={500} c="dimmed">URL</Text>
+                                        <Text size="sm" style={{ fontFamily: 'monospace' }}>{page.url}</Text>
+                                    </Box>
+                                    <Box>
+                                        <Text size="xs" fw={500} c="dimmed">Page ID</Text>
+                                        <Text size="sm">{pageDetails?.id || page.id_pages}</Text>
+                                    </Box>
+                                </Group>
+                                
+                                <Group gap="xs" mt="xs">
+                                    {page.is_headless === 1 && (
+                                        <Badge color="orange" variant="light" size="sm">
+                                            Headless
+                                        </Badge>
+                                    )}
+                                    {page.nav_position !== null && (
+                                        <Badge color="blue" variant="light" size="sm">
+                                            Menu Position: {page.nav_position}
+                                        </Badge>
+                                    )}
+                                    {page.parent !== null && (
+                                        <Badge color="green" variant="light" size="sm">
+                                            Child Page
+                                        </Badge>
+                                    )}
+                                </Group>
+                            </Stack>
+                        </Box>
+                    </Paper>
+
                     {/* Content Section */}
                     <Paper withBorder>
                         <Group 

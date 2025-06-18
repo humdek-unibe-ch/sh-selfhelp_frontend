@@ -1,7 +1,6 @@
 'use client';
 
 import { Box, Text } from '@mantine/core';
-import { DraggableProvidedDragHandleProps } from '@hello-pangea/dnd';
 import { IPageField } from '../../../../../types/common/pages.type';
 import { SectionHeader } from './SectionHeader';
 import styles from './PageSections.module.css';
@@ -19,7 +18,7 @@ interface IPageSectionProps {
     isDragActive: boolean;
     overId: string | number | null;
     draggedSectionId?: number | null;
-    dragHandleProps?: DraggableProvidedDragHandleProps | null;
+    dragHandleProps?: any; // Generic drag handle props for Pragmatic Drag and Drop
     isDragging?: boolean;
 }
 
@@ -82,13 +81,12 @@ export function PageSection({
             />
             
             {/* Child Drop Zone - moves with the element */}
-            {shouldShowChildDropZone  && (
+            {shouldShowChildDropZone && (
                 <Box
                     style={{
                         marginTop: 8,
                         marginLeft: 16, // Additional indentation for child level
                         minHeight: 40,
-                        // padding: '12px',
                         backgroundColor: 'var(--mantine-color-gray-0)',
                         border: '2px dashed var(--mantine-color-blue-5)',
                         borderRadius: '8px',

@@ -84,59 +84,10 @@ export default function AdminPage() {
       }
 
       return (
-        <Stack gap="lg">
-          {/* Page Header */}
-          <div>
-            <Group justify="space-between" align="flex-start" mb="md">
-              <div>
-                <Group gap="xs" mb="xs">
-                  {selectedPage.is_headless === 1 && (
-                    <Badge color="orange" variant="light">
-                      Headless
-                    </Badge>
-                  )}
-                  {selectedPage.nav_position !== null && (
-                    <Badge color="blue" variant="light">
-                      Menu Position: {selectedPage.nav_position}
-                    </Badge>
-                  )}
-                  {selectedPage.parent !== null && (
-                    <Badge color="green" variant="light">
-                      Child Page
-                    </Badge>
-                  )}
-                </Group>
-                <Text c="dimmed" size="sm">Page ID: {selectedPage.id_pages}</Text>
-              </div>
-            </Group>
-
-            <Divider mb="lg" />
-
-            <Group gap="lg" wrap="wrap" mb="lg">
-              <Box>
-                <Text size="sm" fw={500} c="dimmed">Keyword</Text>
-                <Text size="sm" style={{ fontFamily: 'monospace' }}>{selectedPage.keyword}</Text>
-              </Box>
-              <Box>
-                <Text size="sm" fw={500} c="dimmed">URL</Text>
-                <Text size="sm" style={{ fontFamily: 'monospace' }}>{selectedPage.url}</Text>
-              </Box>
-              <Box>
-                <Text size="sm" fw={500} c="dimmed">Page ID</Text>
-                <Text size="sm">{selectedPage.id_pages}</Text>
-              </Box>
-              {selectedPage.parent !== null && (
-                <Box>
-                  <Text size="sm" fw={500} c="dimmed">Parent ID</Text>
-                  <Text size="sm">{selectedPage.parent}</Text>
-                </Box>
-              )}
-            </Group>
-          </div>
-
-          {/* Page Sections */}
+        <Box style={{ height: '100%' }}>
+          {/* Page Sections - Full height */}
           <PageSections keyword={selectedPage.keyword} />
-        </Stack>
+        </Box>
       );
     }
 
@@ -154,7 +105,7 @@ export default function AdminPage() {
 
   const getPageTitle = () => {
     if (isPageRoute && selectedPage) {
-      return selectedPage.keyword;
+      return `Page: ${selectedPage.keyword}`;
     }
     return path || 'Dashboard';
   };

@@ -15,7 +15,78 @@ This document outlines the frontend architecture for the SH-Self-help project. T
 *   **Performance**: Optimize for Web Vitals (LCP, CLS, FID).
 *   **Accessibility (a11y)**: Build inclusive interfaces.
 
-## 2.1. Section Management System (Latest Update)
+## 2.1. Enhanced Tree Interface with Pragmatic Drag and Drop (Latest Update)
+
+### Complete Tree Interface Overhaul
+Implemented a professional-grade tree interface using Pragmatic Drag and Drop library with advanced features, improved UI/UX, and reorganized page information architecture.
+
+#### Key Features
+- **Advanced Drag & Drop**: Hitboxes, auto-scroll, visual feedback, and performance optimization
+- **Smart Positioning**: Dynamic position calculation based on drop location and gap management
+- **Clean UI Design**: Hover states, smooth animations, and clear visual hierarchy
+- **Enhanced Tree Logic**: Circular reference prevention and context-aware operations
+- **Page Info Reorganization**: Moved from main content to right inspector panel
+
+#### Technical Architecture
+```typescript
+// Context-based state management
+interface ISectionsTreeContext {
+    dispatch: (action: ITreeAction) => void;
+    uniqueContextId: symbol;
+    getPathToItem: (targetId: string) => IPageField[];
+    getMoveTargets: (args: { itemId: string }) => IPageField[];
+    getChildrenOfItem: (itemId: string) => IPageField[];
+    expandedSections: Set<number>;
+    onToggleExpand: (sectionId: number) => void;
+    registerTreeItem: (args: {
+        itemId: string;
+        element: HTMLElement;
+        actionMenuTrigger: HTMLElement;
+    }) => () => void;
+}
+
+// Smart positioning algorithm
+const calculateNewPosition = (targetSection, edge, targetParentId) => {
+    const siblings = getSiblingsAtLevel(targetParentId);
+    const sortedSiblings = siblings.sort((a, b) => a.position - b.position);
+    
+    if (edge === 'top') {
+        const targetIndex = sortedSiblings.findIndex(s => s.id === targetSection.id);
+        if (targetIndex === 0) return targetSection.position - 10;
+        
+        const prevPosition = sortedSiblings[targetIndex - 1].position;
+        const gap = targetSection.position - prevPosition;
+        return gap > 2 ? Math.floor((prevPosition + targetSection.position) / 2) : prevPosition + 1;
+    }
+    // Similar logic for bottom edge...
+};
+```
+
+#### Component Architecture
+- **SectionsTreeContext**: Provides state management across tree components
+- **TreeItem**: Recursive component handling individual tree nodes
+- **Registry Pattern**: Manages element references for post-move effects
+- **Memoization**: Optimizes performance with `memoizeOne`
+
+#### Performance Benefits
+- **Bundle Size Reduction**: ~85% smaller (31kB → 4.7kB) vs previous drag-drop library
+- **Optimized Rendering**: Memoized operations and smart re-renders
+- **Memory Efficiency**: Registry pattern for element management
+- **Accessibility**: Built-in screen reader and keyboard navigation support
+
+#### UI/UX Improvements
+- **Visual Hierarchy**: 20px indentation per level, clear container indicators
+- **Hover-Based Actions**: Controls only visible on hover for cleaner interface
+- **Smooth Transitions**: 0.15s animations for all interactions
+- **Color-Coded Actions**: Green (add child), Blue (add sibling), Red (remove)
+- **Post-Move Feedback**: Flash effects and live region announcements
+
+#### Page Information Architecture
+- **Main Content**: Now focused solely on section tree manipulation
+- **Right Inspector**: Contains page info (keyword, URL, ID, badges), content fields, and properties
+- **Information Hierarchy**: Page details → Content → Properties → Actions
+
+## 2.2. Section Management System (Previous Update)
 
 ### Comprehensive Section Operations
 Implemented a complete section management system with full CRUD operations, advanced positioning capabilities, and a comprehensive section creation UI.
@@ -899,44 +970,214 @@ PageSections (Main Container)
 - **Hierarchical Display**: Clean nested structure with proper indentation
 - **Compact UI**: Optimized for space efficiency while maintaining clarity
 
-#### Technical Implementation
+#### Technical Implementation - Tree Architecture
 ```typescript
-// Main container with state management
-export function PageSections({ keyword }: PageSectionsProps) {
-    const { data, isLoading, error } = usePageSections(keyword);
-    const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
+// Tree Context and Reducer for state management
+const SectionsTreeContext = createContext<ISectionsTreeContext | null>(null);
+
+function sectionsTreeReducer(state: ISectionsTreeState, action: ITreeAction): ISectionsTreeState {
+    if (action.type === 'instruction') {
+        // Handle tree manipulation with drag and drop
+        return { ...state, data: newTreeData, lastAction: action };
+    }
+    return state;
+}
+
+// Main tree component with context provider
+export function SectionsList({ sections, onSectionMove }: SectionsListProps) {
+    const [state, dispatch] = useReducer(sectionsTreeReducer, sections, getInitialTreeState);
+    const [{ registry, registerTreeItem }] = useState(createTreeItemRegistry);
+    
+    // Memoized operations for performance
+    const getPathToItem = useMemo(() => 
+        memoizeOne((targetId: string) => findPath(state.data, targetId) || [])
+    , [state.data]);
+    
+    const contextValue = useMemo<ISectionsTreeContext>(() => ({
+        dispatch,
+        uniqueContextId: Symbol('sections-tree'),
+        getPathToItem,
+        getMoveTargets,
+        getChildrenOfItem,
+        expandedSections,
+        onToggleExpand,
+        registerTreeItem,
+    }), [dependencies]);
+    
+    // Global monitor for tree drag operations
+    useEffect(() => {
+        return monitorForElements({
+            canMonitor: ({ source }) => 
+                source.data.uniqueContextId === contextValue.uniqueContextId,
+            onDrop: ({ source, location }) => {
+                const itemId = source.data.itemId as string;
+                const target = location.current.dropTargets[0];
+                const edge = extractClosestEdge(target.data);
+                onSectionMove(createMoveData(itemId, target, edge));
+            }
+        });
+    }, [contextValue.uniqueContextId]);
     
     return (
-        <SectionsList
-            sections={data.sections}
-            expandedSections={expandedSections}
-            onToggleExpand={handleToggleExpand}
-            onSectionMove={handleSectionMove}
-        />
+        <SectionsTreeContext.Provider value={contextValue}>
+            <Stack gap="xs">
+                {sections.map((section, index) => (
+                    <TreeItem key={section.id} item={section} level={0} index={index} />
+                ))}
+            </Stack>
+        </SectionsTreeContext.Provider>
     );
 }
 
-// Drag context with validation
-export function SectionsList({ sections, onSectionMove }: SectionsListProps) {
+// Individual tree item with hierarchical rendering
+function TreeItem({ item, level, index }: TreeItemProps) {
+    const context = useContext(SectionsTreeContext);
+    const elementRef = useRef<HTMLDivElement>(null);
+    const dragHandleRef = useRef<HTMLDivElement>(null);
+    
+    const [dragState, setDragState] = useState<'idle' | 'preview' | 'is-dragging'>('idle');
+    const [closestEdge, setClosestEdge] = useState<Edge | null>(null);
+    
+    const { expandedSections, onToggleExpand, registerTreeItem, uniqueContextId } = context;
+    const isExpanded = expandedSections.has(item.id);
+    const hasChildren = item.children && item.children.length > 0;
+    const canHaveChildren = !!item.can_have_children;
+    
+    // Register with tree registry for post-move effects
+    useEffect(() => {
+        if (!elementRef.current) return;
+        return registerTreeItem({
+            itemId: item.id.toString(),
+            element: elementRef.current,
+            actionMenuTrigger: elementRef.current
+        });
+    }, [item.id, registerTreeItem]);
+    
+    // Setup draggable and drop target with tree-specific logic
+    useEffect(() => {
+        const element = elementRef.current;
+        const dragHandle = dragHandleRef.current;
+        if (!element || !dragHandle) return;
+        
+        return combine(
+            draggable({
+                element: dragHandle,
+                getInitialData: () => ({
+                    type: 'tree-item',
+                    itemId: item.id.toString(),
+                    uniqueContextId,
+                    level,
+                    canHaveChildren
+                }),
+                onGenerateDragPreview: () => setDragState('preview'),
+                onDragStart: () => setDragState('is-dragging'),
+                onDrop: () => setDragState('idle')
+            }),
+            dropTargetForElements({
+                element,
+                canDrop: ({ source }) => 
+                    source.data.uniqueContextId === uniqueContextId &&
+                    source.data.itemId !== item.id.toString(),
+                getData: ({ input, element }) => 
+                    attachClosestEdge({
+                        type: 'tree-item',
+                        itemId: item.id.toString(),
+                        level,
+                        canHaveChildren
+                    }, { input, element, allowedEdges: ['top', 'bottom'] }),
+                onDragEnter: ({ self }) => setClosestEdge(extractClosestEdge(self.data)),
+                onDragLeave: () => setClosestEdge(null)
+            })
+        );
+    }, [item.id, level, uniqueContextId, canHaveChildren]);
+    
     return (
-        <DndContext onDragEnd={handleDragEnd}>
-            <SortableContext items={allSectionIds}>
-                {sections.map(section => (
-                    <PageSection key={section.id} section={section} />
-                ))}
-            </SortableContext>
-        </DndContext>
+        <div>
+            {/* Drop indicators with precise positioning */}
+            {closestEdge === 'top' && <DropIndicator edge="top" gap="8px" />}
+            
+            {/* Tree item with visual hierarchy */}
+            <Box
+                ref={elementRef}
+                style={{
+                    marginLeft: `${level * 24}px`, // 24px indentation per level
+                    opacity: dragState === 'is-dragging' ? 0.5 : 1,
+                    backgroundColor: dragState === 'is-dragging' ? 'var(--mantine-color-blue-0)' : undefined
+                }}
+                p="xs"
+            >
+                <Group gap="xs" wrap="nowrap">
+                    {/* Dedicated drag handle */}
+                    <div ref={dragHandleRef} style={{ cursor: 'grab', padding: '4px' }}>
+                        <IconGripVertical size={16} />
+                    </div>
+                    
+                    {/* Expand/collapse control */}
+                    <ActionIcon
+                        size="sm"
+                        onClick={() => onToggleExpand(item.id)}
+                        disabled={!hasChildren}
+                        style={{ visibility: hasChildren ? 'visible' : 'hidden' }}
+                    >
+                        {isExpanded ? <IconChevronDown /> : <IconChevronRight />}
+                    </ActionIcon>
+                    
+                    {/* Section information */}
+                    <Box style={{ flex: 1 }}>
+                        <Group gap="xs">
+                            <Text size="sm" fw={500}>{item.name}</Text>
+                            <Text size="xs" c="dimmed">ID: {item.id}</Text>
+                            <Text size="xs" c="dimmed">Style: {item.style_name}</Text>
+                            {canHaveChildren && <Text size="xs" c="blue">Can have children</Text>}
+                        </Group>
+                    </Box>
+                    
+                    {/* Contextual action buttons */}
+                    <Group gap="xs">
+                        {canHaveChildren && (
+                            <ActionIcon size="sm" color="green" onClick={() => onAddChild(item.id)}>
+                                <IconPlus size={14} />
+                            </ActionIcon>
+                        )}
+                        <ActionIcon size="sm" color="red" onClick={() => onRemove(item.id)}>
+                            <IconTrash size={14} />
+                        </ActionIcon>
+                    </Group>
+                </Group>
+            </Box>
+            
+            {closestEdge === 'bottom' && <DropIndicator edge="bottom" gap="8px" />}
+            
+            {/* Recursive children rendering when expanded */}
+            {isExpanded && hasChildren && (
+                <div>
+                    {item.children.map((child, childIndex) => (
+                        <TreeItem
+                            key={child.id}
+                            item={child}
+                            level={level + 1}
+                            index={childIndex}
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
     );
 }
 ```
 
-#### Drag & Drop Logic
-- **Library**: Uses `@hello-pangea/dnd` (maintained fork of react-beautiful-dnd) for smooth, accessible drag and drop
-- **Flattened Structure**: Sections are flattened for drag operations while preserving visual hierarchy
-- **Parent-Children Movement**: Dragging a parent automatically includes all descendants
-- **Smart Validation**: Prevents circular references and invalid drops
-- **Visual Feedback**: Clear drop zones with level-based styling and descriptive labels
-- **Backend Integration**: Comprehensive logging for backend synchronization
+#### Drag & Drop Logic - Tree-Like Interface
+- **Library**: Uses **Pragmatic Drag and Drop** by Atlassian with tree-specific enhancements (~4.7kB total)
+- **Tree Architecture**: Hierarchical tree structure with context-based state management
+- **Registry Pattern**: Efficient element reference management for tree items
+- **Context & Reducer**: React Context with useReducer for predictable state updates
+- **Memoized Operations**: Performance-optimized path calculations with memoizeOne
+- **Visual Hierarchy**: Clear parent-child relationships with 24px indentation per level
+- **Smart Controls**: Only sections with `can_have_children` show child management options
+- **Expand/Collapse**: Interactive tree navigation with visual expand/collapse indicators
+- **Drag Handles**: Dedicated grip handles for intuitive drag operations
+- **Live Region**: Accessibility announcements for screen reader users
+- **Post-Move Flash**: Visual feedback with flourish effects after successful moves
 
 #### Type Safety
 All components use the consolidated `IPageField` interface from `pages.type.ts`, eliminating duplicate type definitions and ensuring consistency across the application.
