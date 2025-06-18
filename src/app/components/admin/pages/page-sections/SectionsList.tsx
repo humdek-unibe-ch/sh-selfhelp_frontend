@@ -9,10 +9,6 @@ import {
     createContext 
 } from 'react';
 import { Box, Text, Paper } from '@mantine/core';
-import invariant from 'tiny-invariant';
-
-import { DropIndicator } from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box';
-import { combine } from '@atlaskit/pragmatic-drag-and-drop/combine';
 import {
     draggable,
     dropTargetForElements,
@@ -101,7 +97,6 @@ function SectionItem({
     const actionMenuRef = useRef<HTMLButtonElement>(null);
     
     const [isDragging, setIsDragging] = useState(false);
-    const [isParentHovered, setIsParentHovered] = useState(false);
     const [dropState, setDropState] = useState<IDropState>({
         closestEdge: null,
         isDropTarget: false,
@@ -293,9 +288,6 @@ function SectionItem({
         if (dragContext.isDragActive && (isBeingDragged || isDescendantOfDragged())) {
             classes.push(styles.isDraggedOrChild);
         }
-        if (isParentHovered && hasChildren) {
-            classes.push(styles.parentHovered, styles[`level${level}`]);
-        }
         
         return classes.join(' ');
     };
@@ -303,8 +295,6 @@ function SectionItem({
     return (
         <Box 
             className={getWrapperClasses()}
-            onMouseEnter={() => setIsParentHovered(true)}
-            onMouseLeave={() => setIsParentHovered(false)}
         >
             {/* Top drop indicator - Green line for sibling drops */}
             {dropState.closestEdge === 'top' && (
@@ -353,7 +343,7 @@ function SectionItem({
 
             {/* Render children if expanded */}
             {isExpanded && hasChildren && (
-                <Box className={styles.childrenContainer}>
+                <Box className={`${styles.childrenContainer} ${styles[`level${level}`] || styles.level0}`}>
                     {section.children.map((child, childIndex) => (
                         <SectionItem
                             key={child.id}

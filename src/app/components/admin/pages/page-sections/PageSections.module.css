@@ -24,10 +24,6 @@
     border-radius: 3px;
 }
 
-.sectionsContainer::-webkit-scrollbar-thumb:hover {
-    background: var(--mantine-color-gray-5);
-}
-
 /* Sections list wrapper */
 .sectionsList {
     display: flex;

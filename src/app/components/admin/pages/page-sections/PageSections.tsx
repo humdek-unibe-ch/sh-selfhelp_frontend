@@ -486,11 +486,11 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
 
     return (
         <Paper p="xs" withBorder style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            {/* Header */}
-            <Group justify="space-between" mb="xs" px="xs">
-                <Group gap="xs">
+            {/* Header with Search */}
+            <Group justify="space-between" mb="xs" px="xs" wrap="nowrap">
+                <Group gap="xs" wrap="nowrap">
                     <IconFile size={16} />
-                    <Title order={6} size="sm">
+                    <Title order={6} size="sm" style={{ whiteSpace: 'nowrap' }}>
                         {pageName ? `${pageName} - Sections` : 'Page Sections'}
                     </Title>
                     <Badge size="xs" variant="light" color="blue">
@@ -502,7 +502,70 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
                         </Badge>
                     )}
                 </Group>
-                <Group gap="xs">
+
+                {/* Search Bar - Flexible width */}
+                <Group gap="xs" style={{ flex: 1, maxWidth: '400px', minWidth: '200px' }} wrap="nowrap">
+                    <TextInput
+                        placeholder="Search sections..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.currentTarget.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && searchResults.length > 0) {
+                                e.preventDefault();
+                                handleSearchNext();
+                            }
+                            if (e.key === 'Escape') {
+                                e.preventDefault();
+                                handleSearchClear();
+                            }
+                        }}
+                        leftSection={<IconSearch size={14} />}
+                        rightSection={
+                            searchQuery && (
+                                <ActionIcon 
+                                    size="xs" 
+                                    variant="subtle" 
+                                    onClick={handleSearchClear}
+                                >
+                                    <IconX size={12} />
+                                </ActionIcon>
+                            )
+                        }
+                        size="xs"
+                        style={{ flex: 1 }}
+                    />
+                    {searchResults.length > 0 && (
+                        <>
+                            <Text size="xs" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
+                                {currentSearchIndex + 1}/{searchResults.length}
+                            </Text>
+                            <Group gap={2}>
+                                <Tooltip label="Previous">
+                                    <ActionIcon 
+                                        size="xs" 
+                                        variant="subtle" 
+                                        onClick={handleSearchPrevious}
+                                        disabled={searchResults.length === 0}
+                                    >
+                                        <IconArrowLeft size={12} />
+                                    </ActionIcon>
+                                </Tooltip>
+                                <Tooltip label="Next">
+                                    <ActionIcon 
+                                        size="xs" 
+                                        variant="subtle" 
+                                        onClick={handleSearchNext}
+                                        disabled={searchResults.length === 0}
+                                    >
+                                        <IconArrowRight size={12} />
+                                    </ActionIcon>
+                                </Tooltip>
+                            </Group>
+                        </>
+                    )}
+                </Group>
+
+                <Group gap="xs" wrap="nowrap">
                     <Tooltip label="Expand All">
                         <ActionIcon 
                             size="xs" 
@@ -533,68 +596,6 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
                     </Button>
                 </Group>
             </Group>
-
-            {/* Search Bar */}
-            <Box mb="xs" px="xs">
-                <Group gap="xs" align="flex-end">
-                    <TextInput
-                        placeholder="Search sections by name, style, or ID..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.currentTarget.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && searchResults.length > 0) {
-                                e.preventDefault();
-                                handleSearchNext();
-                            }
-                            if (e.key === 'Escape') {
-                                e.preventDefault();
-                                handleSearchClear();
-                            }
-                        }}
-                        leftSection={<IconSearch size={14} />}
-                        rightSection={
-                            searchQuery && (
-                                <ActionIcon 
-                                    size="xs" 
-                                    variant="subtle" 
-                                    onClick={handleSearchClear}
-                                >
-                                    <IconX size={12} />
-                                </ActionIcon>
-                            )
-                        }
-                        size="xs"
-                        style={{ flex: 1 }}
-                    />
-                    {searchResults.length > 0 && (
-                        <Group gap="xs">
-                            <Text size="xs" c="dimmed">
-                                {currentSearchIndex + 1} of {searchResults.length}
-                            </Text>
-                            <Tooltip label="Previous">
-                                <ActionIcon 
-                                    size="xs" 
-                                    variant="subtle" 
-                                    onClick={handleSearchPrevious}
-                                    disabled={searchResults.length === 0}
-                                >
-                                    <IconArrowLeft size={12} />
-                                </ActionIcon>
-                            </Tooltip>
-                            <Tooltip label="Next">
-                                <ActionIcon 
-                                    size="xs" 
-                                    variant="subtle" 
-                                    onClick={handleSearchNext}
-                                    disabled={searchResults.length === 0}
-                                >
-                                    <IconArrowRight size={12} />
-                                </ActionIcon>
-                            </Tooltip>
-                        </Group>
-                    )}
-                </Group>
-            </Box>
 
             {/* Sections List */}
             <SectionsList

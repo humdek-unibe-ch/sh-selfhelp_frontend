@@ -25,10 +25,6 @@
     border-radius: 3px;
 }
 
-.sectionsContainer::-webkit-scrollbar-thumb:hover {
-    background: var(--mantine-color-gray-5);
-}
-
 /* Sections list */
 .sectionsList {
     display: flex;
@@ -145,124 +141,13 @@
     }
 }
 
-/* Children container - dynamic positioning and colors with proper indentation */
+/* Children container - clean with no connecting lines */
 .childrenContainer {
-    margin-top: 4px;
+    margin-top: 2px;
     padding-left: 0;
     position: relative;
-    /* Remove static border and margin - will be set dynamically */
-}
-
-/* Base connecting line - hidden by default, positioned dynamically per level */
-.childrenContainer::before {
-    content: '';
-    position: absolute;
-    top: -8px;
-    bottom: 0;
-    width: 2px;
-    background: transparent;
-    transition: background-color 200ms ease;
-    border-radius: 1px;
-}
-
-/* Parent hover states for each level - shows connecting line in parent's color with proper indentation */
-.parentHovered.level0 .childrenContainer::before { 
-    background: var(--mantine-color-red-6); 
-    left: 6px; /* Align with level 0 chevron */
-}
-.parentHovered.level1 .childrenContainer::before { 
-    background: var(--mantine-color-green-6); 
-    left: 18px; /* 12px indent + 6px chevron offset */
-}
-.parentHovered.level2 .childrenContainer::before { 
-    background: var(--mantine-color-orange-6); 
-    left: 30px; /* 24px indent + 6px chevron offset */
-}
-.parentHovered.level3 .childrenContainer::before { 
-    background: var(--mantine-color-violet-6); 
-    left: 42px; /* 36px indent + 6px chevron offset */
-}
-.parentHovered.level4 .childrenContainer::before { 
-    background: var(--mantine-color-teal-6); 
-    left: 54px; /* 48px indent + 6px chevron offset */
-}
-.parentHovered.level5 .childrenContainer::before { 
-    background: var(--mantine-color-pink-6); 
-    left: 66px; /* 60px indent + 6px chevron offset */
-}
-.parentHovered.level6 .childrenContainer::before { 
-    background: var(--mantine-color-lime-6); 
-    left: 78px; /* 72px indent + 6px chevron offset */
-}
-.parentHovered.level7 .childrenContainer::before { 
-    background: var(--mantine-color-indigo-6); 
-    left: 90px; /* 84px indent + 6px chevron offset */
-}
-.parentHovered.level8 .childrenContainer::before { 
-    background: var(--mantine-color-yellow-6); 
-    left: 102px; /* 96px indent + 6px chevron offset */
-}
-.parentHovered.level9 .childrenContainer::before { 
-    background: var(--mantine-color-cyan-6); 
-    left: 114px; /* 108px indent + 6px chevron offset */
-}
-.parentHovered.level10 .childrenContainer::before { 
-    background: var(--mantine-color-grape-6); 
-    left: 126px; /* 120px indent + 6px chevron offset */
-}
-.parentHovered.level11 .childrenContainer::before { 
-    background: var(--mantine-color-dark-6); 
-    left: 138px; /* 132px indent + 6px chevron offset */
-}
-
-/* Deeper levels with calculated positioning */
-.parentHovered.level12 .childrenContainer::before { 
-    background: var(--mantine-color-red-7); 
-    left: 150px; /* 144px indent + 6px chevron offset */
-}
-.parentHovered.level13 .childrenContainer::before { 
-    background: var(--mantine-color-green-7); 
-    left: 162px; /* 156px indent + 6px chevron offset */
-}
-.parentHovered.level14 .childrenContainer::before { 
-    background: var(--mantine-color-orange-7); 
-    left: 174px; /* 168px indent + 6px chevron offset */
-}
-.parentHovered.level15 .childrenContainer::before { 
-    background: var(--mantine-color-violet-7); 
-    left: 186px; /* 180px indent + 6px chevron offset */
-}
-.parentHovered.level16 .childrenContainer::before { 
-    background: var(--mantine-color-teal-7); 
-    left: 198px; /* 192px indent + 6px chevron offset */
-}
-.parentHovered.level17 .childrenContainer::before { 
-    background: var(--mantine-color-pink-7); 
-    left: 210px; /* 204px indent + 6px chevron offset */
-}
-.parentHovered.level18 .childrenContainer::before { 
-    background: var(--mantine-color-lime-7); 
-    left: 222px; /* 216px indent + 6px chevron offset */
-}
-.parentHovered.level19 .childrenContainer::before { 
-    background: var(--mantine-color-indigo-7); 
-    left: 234px; /* 228px indent + 6px chevron offset */
-}
-.parentHovered.level20 .childrenContainer::before { 
-    background: var(--mantine-color-yellow-7); 
-    left: 246px; /* 240px indent + 6px chevron offset */
-}
-.parentHovered.level21 .childrenContainer::before { 
-    background: var(--mantine-color-cyan-7); 
-    left: 258px; /* 252px indent + 6px chevron offset */
-}
-.parentHovered.level22 .childrenContainer::before { 
-    background: var(--mantine-color-grape-7); 
-    left: 270px; /* 264px indent + 6px chevron offset */
-}
-.parentHovered.level23 .childrenContainer::before { 
-    background: var(--mantine-color-dark-7); 
-    left: 282px; /* 276px indent + 6px chevron offset */
+    border-radius: 4px;
+    padding: 2px 0;
 }
 
 /* Empty state */

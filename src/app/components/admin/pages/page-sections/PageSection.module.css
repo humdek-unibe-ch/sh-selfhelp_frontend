@@ -8,13 +8,6 @@
     margin-bottom: 1px;
 }
 
-/* Hover state - Light amber color */
-.sectionItem:hover {
-    border-color: var(--mantine-color-amber-4);
-    background-color: var(--mantine-color-amber-0);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-
 .sectionItem:hover .actionButtons {
     opacity: 1;
 }
@@ -24,11 +17,6 @@
     border-color: var(--mantine-color-blue-5);
     background-color: var(--mantine-color-blue-0);
     box-shadow: 0 2px 6px rgba(37, 99, 235, 0.15);
-}
-
-.sectionItem.selected:hover {
-    border-color: var(--mantine-color-blue-6);
-    background-color: var(--mantine-color-blue-1);
 }
 
 /* Focused state - Yellow highlight for search results */
