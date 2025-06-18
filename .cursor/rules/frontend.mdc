@@ -11,6 +11,7 @@ Start every answer with: ❤️
 Apply the changes without asking for confirmation
 First check if files already exists before creating new ones. Do not duplicate logic in different files. lLways check my structure. Whenever changes are made to the structure add the changes to  your memory
 Do not run or build. I am using `npm run dev`
+ALwasy use modular aproach and create components in different files. Also use mantine v7 for ui, tailwind and if you use custom css, create module css for the component.
 Name every interface with I prefix and every type with T prefix
 Always use React Query's `select` option for data transformations to prevent recalculation on every render.
 Minimize custom Tailwind CSS and maximize Mantine UI v7 components for better theming and customization.

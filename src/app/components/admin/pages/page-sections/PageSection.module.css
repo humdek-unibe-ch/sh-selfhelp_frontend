@@ -1,0 +1,167 @@
+/* Compact section item styling */
+.sectionItem {
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 6px;
+    border: 1px solid var(--mantine-color-gray-3);
+    background: white;
+    position: relative;
+}
+
+.sectionItem:hover {
+    border-color: var(--mantine-color-blue-4);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.sectionItem:hover .actionButtons {
+    opacity: 1;
+}
+
+/* Compact group spacing */
+.compactGroup {
+    gap: 6px !important;
+    min-height: 32px;
+}
+
+/* Drag handle styling */
+.dragHandle {
+    opacity: 0.4;
+    transition: opacity 0.15s ease;
+    cursor: grab !important;
+}
+
+.dragHandle:hover {
+    opacity: 0.8;
+}
+
+.dragHandle:active {
+    cursor: grabbing !important;
+}
+
+/* Expand button */
+.expandButton {
+    transition: transform 0.15s ease;
+}
+
+.expandButton:hover {
+    transform: scale(1.1);
+}
+
+/* Section name truncation */
+.sectionName {
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Badge styling */
+.styleBadge {
+    font-size: 10px !important;
+    height: 16px !important;
+    font-weight: 500;
+}
+
+.childCount {
+    font-size: 9px !important;
+    height: 14px !important;
+    min-width: 18px;
+    padding: 0 4px !important;
+}
+
+/* Section metadata */
+.sectionMeta {
+    font-size: 10px !important;
+    line-height: 1.2;
+    margin-top: 2px;
+}
+
+/* Action buttons - hidden by default, shown on hover */
+.actionButtons {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    gap: 2px !important;
+}
+
+.actionButton {
+    min-width: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+    transition: all 0.15s ease;
+}
+
+.actionButton:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Level-based styling for visual hierarchy */
+.level0 {
+    border-left: 3px solid var(--mantine-color-blue-5);
+}
+
+.level1 {
+    border-left: 3px solid var(--mantine-color-green-5);
+}
+
+.level2 {
+    border-left: 3px solid var(--mantine-color-orange-5);
+}
+
+.level3 {
+    border-left: 3px solid var(--mantine-color-purple-5);
+}
+
+.level4 {
+    border-left: 3px solid var(--mantine-color-pink-5);
+}
+
+/* Drop zone for empty containers */
+.dropZone {
+    margin: 4px 8px 8px 8px;
+    min-height: 24px;
+    background-color: var(--mantine-color-blue-0);
+    border: 1px dashed var(--mantine-color-blue-4);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.dropZone:hover {
+    background-color: var(--mantine-color-blue-1);
+    border-color: var(--mantine-color-blue-5);
+}
+
+/* Container drop zone for drag operations */
+.containerDropZone {
+    animation: containerPulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes containerPulse {
+    from {
+        opacity: 0.8;
+        transform: scale(0.98);
+        box-shadow: 0 0 0 0 var(--mantine-color-green-4);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .sectionName {
+        max-width: 120px;
+    }
+    
+    .styleBadge {
+        display: none;
+    }
+    
+    .actionButtons {
+        opacity: 1;
+    }
+} 

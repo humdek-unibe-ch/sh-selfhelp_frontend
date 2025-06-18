@@ -1,56 +1,60 @@
- /* Compact sections container */
+/* Compact sections container */
 .sectionsContainer {
-    /* max-height: 70vh; */
+    max-height: 75vh;
     overflow-y: auto;
+    overflow-x: hidden;
+    padding: 8px;
+    background: var(--mantine-color-gray-0);
+    border-radius: 8px;
+    border: 1px solid var(--mantine-color-gray-2);
 }
 
-/* Enhanced visual hierarchy for nested sections */
-.sectionItem {
-    transition: all 0.2s ease;
+/* Custom scrollbar */
+.sectionsContainer::-webkit-scrollbar {
+    width: 6px;
 }
 
-.sectionItem:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.sectionsContainer::-webkit-scrollbar-track {
+    background: var(--mantine-color-gray-1);
+    border-radius: 3px;
 }
 
-/* Different border colors for different nesting levels */
-/* .level0 {
-    border-left: none !important;
+.sectionsContainer::-webkit-scrollbar-thumb {
+    background: var(--mantine-color-gray-4);
+    border-radius: 3px;
 }
 
-.level1 {
-    border-left: 2px solid var(--mantine-color-blue-4) !important;
-    background-color: var(--mantine-color-blue-0) !important;
+.sectionsContainer::-webkit-scrollbar-thumb:hover {
+    background: var(--mantine-color-gray-5);
 }
 
-.level2 {
-    border-left: 2px solid var(--mantine-color-green-4) !important;
-    background-color: var(--mantine-color-green-0) !important;
-}
-
-.level3 {
-    border-left: 2px solid var(--mantine-color-orange-4) !important;
-    background-color: var(--mantine-color-orange-0) !important;
-}
-
-.level4 {
-    border-left: 2px solid var(--mantine-color-purple-4) !important;
-    background-color: var(--mantine-color-purple-0) !important;
-} */
-
-/* Drag handle styling */
-.dragHandle {
-    opacity: 0.5;
-    transition: opacity 0.2s ease;
-}
-
-.dragHandle:hover {
-    opacity: 1;
+/* Sections list wrapper */
+.sectionsList {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 
 /* Compact spacing */
 .compactGroup {
     gap: 4px !important;
+}
+
+/* Professional drag handle styling */
+.dragHandle {
+    opacity: 0.3;
+    transition: all 0.15s ease;
+    cursor: grab;
+}
+
+.dragHandle:hover {
+    opacity: 0.7;
+    transform: scale(1.05);
+}
+
+.dragHandle:active {
+    cursor: grabbing;
+    opacity: 1;
 }
 
 /* Truncate long text */
@@ -59,4 +63,36 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     max-width: 150px;
+}
+
+/* Drop indicators */
+.dropIndicator {
+    height: 2px;
+    background: linear-gradient(90deg, var(--mantine-color-blue-5), var(--mantine-color-blue-4));
+    border-radius: 1px;
+    box-shadow: 0 0 4px var(--mantine-color-blue-4);
+    animation: pulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+    from {
+        opacity: 0.7;
+        transform: scaleY(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scaleY(1);
+    }
+}
+
+/* Empty state */
+.emptyState {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--mantine-color-gray-6);
+}
+
+.emptyState svg {
+    opacity: 0.5;
+    margin-bottom: 16px;
 }

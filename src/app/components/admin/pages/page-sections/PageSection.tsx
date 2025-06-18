@@ -1,7 +1,7 @@
 'use client';
 
 import { forwardRef, RefObject } from 'react';
-import { Box, Text, Paper, Group, Badge, ActionIcon, Tooltip } from '@mantine/core';
+import { Box, Text, Paper, Group, Badge, ActionIcon, Tooltip, Stack } from '@mantine/core';
 import { 
     IconChevronRight, 
     IconChevronDown, 
@@ -9,9 +9,11 @@ import {
     IconTrash, 
     IconGripVertical,
     IconFolder,
-    IconFolderOpen
+    IconFolderOpen,
+    IconFile
 } from '@tabler/icons-react';
 import { IPageField } from '../../../../../types/common/pages.type';
+import styles from './PageSection.module.css';
 
 interface IPageSectionProps {
     section: IPageField;
@@ -58,7 +60,13 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     const isBeingDragged = draggedSectionId === section.id;
     const isValidDropTarget = canHaveChildren && overId === section.id;
 
-    // Modern CMS styling
+    // Compact styling based on level
+    const getIndentationStyle = () => ({
+        marginLeft: `${level * 16}px`,
+        borderLeft: level > 0 ? `2px solid var(--mantine-color-gray-2)` : 'none',
+        paddingLeft: level > 0 ? '8px' : '0'
+    });
+
     const getSectionTypeColor = () => {
         if (canHaveChildren) return 'blue';
         return 'gray';
@@ -66,9 +74,9 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
 
     const getSectionIcon = () => {
         if (canHaveChildren) {
-            return hasChildren && isExpanded ? <IconFolderOpen size={16} /> : <IconFolder size={16} />;
+            return hasChildren && isExpanded ? <IconFolderOpen size={14} /> : <IconFolder size={14} />;
         }
-        return null;
+        return <IconFile size={14} />;
     };
 
     const handleToggleExpand = () => {
@@ -102,162 +110,186 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     };
 
     return (
-        <Paper
-            ref={ref}
-            withBorder
-            style={{
-                backgroundColor: isBeingDragged 
-                    ? 'var(--mantine-color-blue-0)' 
-                    : isValidDropTarget && isDragActive 
-                    ? 'var(--mantine-color-green-0)'
-                    : 'white',
-                borderColor: isBeingDragged 
-                    ? 'var(--mantine-color-blue-4)' 
-                    : isValidDropTarget && isDragActive 
-                    ? 'var(--mantine-color-green-4)'
-                    : 'var(--mantine-color-gray-3)',
-                borderWidth: isBeingDragged || (isValidDropTarget && isDragActive) ? '2px' : '1px',
-                borderStyle: isBeingDragged ? 'dashed' : 'solid',
-                opacity: isDragging ? 0.6 : 1,
-                transition: 'all 0.2s ease',
-                cursor: isDragging ? 'grabbing' : 'default',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                ...customStyle
-            }}
-            {...dragHandleProps}
-        >
-            <Group gap="sm" p="md" wrap="nowrap" align="center">
-                {/* Drag Handle */}
-                <ActionIcon
-                    variant="subtle"
-                    size="sm"
-                    color="gray"
-                    style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
-                >
-                    <IconGripVertical size={16} />
-                </ActionIcon>
+        <div style={getIndentationStyle()}>
+            <Paper
+                ref={ref}
+                className={`${styles.sectionItem} ${styles[`level${Math.min(level, 4)}`]}`}
+                style={{
+                    backgroundColor: isBeingDragged 
+                        ? 'var(--mantine-color-blue-0)' 
+                        : isValidDropTarget && isDragActive 
+                        ? 'var(--mantine-color-green-0)'
+                        : 'white',
+                    borderColor: isBeingDragged 
+                        ? 'var(--mantine-color-blue-4)' 
+                        : isValidDropTarget && isDragActive 
+                        ? 'var(--mantine-color-green-4)'
+                        : 'var(--mantine-color-gray-3)',
+                    borderWidth: isBeingDragged || (isValidDropTarget && isDragActive) ? '2px' : '1px',
+                    borderStyle: isBeingDragged ? 'dashed' : 'solid',
+                    opacity: isDragging ? 0.6 : 1,
+                    cursor: isDragging ? 'grabbing' : 'default',
+                    marginBottom: '4px',
+                    ...customStyle
+                }}
+            >
+                <Group gap="xs" p="xs" wrap="nowrap" align="center" className={styles.compactGroup}>
+                    {/* Drag Handle - properly connected */}
+                    <div {...dragHandleProps}>
+                        <ActionIcon
+                            variant="subtle"
+                            size="xs"
+                            color="gray"
+                            className={styles.dragHandle}
+                            style={{ 
+                                cursor: isDragging ? 'grabbing' : 'grab',
+                                opacity: isDragActive ? 1 : 0.6
+                            }}
+                        >
+                            <IconGripVertical size={12} />
+                        </ActionIcon>
+                    </div>
 
-                {/* Expand/Collapse Toggle */}
-                <ActionIcon
-                    variant="subtle"
-                    size="sm"
-                    onClick={handleToggleExpand}
-                    disabled={!hasChildren}
-                    style={{ 
-                        opacity: hasChildren ? 1 : 0.3,
-                        cursor: hasChildren ? 'pointer' : 'default'
-                    }}
-                >
+                    {/* Expand/Collapse Toggle - only show if has children */}
                     {hasChildren ? (
-                        isExpanded ? <IconChevronDown size={16} /> : <IconChevronRight size={16} />
+                        <ActionIcon
+                            variant="subtle"
+                            size="xs"
+                            onClick={handleToggleExpand}
+                            className={styles.expandButton}
+                        >
+                            {isExpanded ? <IconChevronDown size={12} /> : <IconChevronRight size={12} />}
+                        </ActionIcon>
                     ) : (
-                        <Box style={{ width: 16, height: 16 }} />
+                        <Box w={20} />
                     )}
-                </ActionIcon>
 
-                {/* Section Icon */}
-                <Box style={{ color: `var(--mantine-color-${getSectionTypeColor()}-6)` }}>
-                    {getSectionIcon()}
-                </Box>
+                    {/* Section Icon */}
+                    <Box style={{ 
+                        color: `var(--mantine-color-${getSectionTypeColor()}-6)`,
+                        display: 'flex',
+                        alignItems: 'center'
+                    }}>
+                        {getSectionIcon()}
+                    </Box>
 
-                {/* Section Info */}
-                <Box style={{ flex: 1, minWidth: 0 }}>
-                    <Group gap="xs" wrap="nowrap">
-                        <Text size="sm" fw={500} truncate>
-                            {section.name}
-                        </Text>
-                        <Badge size="xs" variant="light" color={getSectionTypeColor()}>
-                            {section.style_name}
-                        </Badge>
-                        {canHaveChildren && (
-                            <Badge size="xs" variant="dot" color="blue">
-                                Container
-                            </Badge>
-                        )}
-                        {hasChildren && (
-                            <Badge size="xs" variant="outline" color="gray">
-                                {section.children?.length || 0} items
-                            </Badge>
-                        )}
-                    </Group>
-                    <Text size="xs" c="dimmed">
-                        ID: {section.id} • Position: {section.position}
-                    </Text>
-                </Box>
-
-                {/* Action Buttons */}
-                <Group gap={4}>
-                    {canHaveChildren && (
-                        <Tooltip label="Add child section">
-                            <ActionIcon
-                                size="sm"
-                                variant="light"
-                                color="green"
-                                onClick={handleAddChild}
+                    {/* Section Info - Compact */}
+                    <Box style={{ flex: 1, minWidth: 0 }}>
+                        <Group gap={4} wrap="nowrap" align="center">
+                            <Text 
+                                size="sm" 
+                                fw={500} 
+                                className={styles.sectionName}
+                                title={section.name}
                             >
-                                <IconPlus size={14} />
+                                {section.name}
+                            </Text>
+                            <Badge 
+                                size="xs" 
+                                variant="light" 
+                                color={getSectionTypeColor()}
+                                className={styles.styleBadge}
+                            >
+                                {section.style_name}
+                            </Badge>
+                            {hasChildren && (
+                                <Badge size="xs" variant="outline" color="gray" className={styles.childCount}>
+                                    {section.children?.length}
+                                </Badge>
+                            )}
+                        </Group>
+                        <Text size="xs" c="dimmed" className={styles.sectionMeta}>
+                            #{section.id} • pos:{section.position}
+                        </Text>
+                    </Box>
+
+                    {/* Action Buttons - Compact and hover-based */}
+                    <Group gap={2} className={styles.actionButtons}>
+                        {canHaveChildren && (
+                            <Tooltip label="Add child" position="top" withArrow>
+                                <ActionIcon
+                                    size="xs"
+                                    variant="subtle"
+                                    color="green"
+                                    onClick={handleAddChild}
+                                    className={styles.actionButton}
+                                >
+                                    <IconPlus size={12} />
+                                </ActionIcon>
+                            </Tooltip>
+                        )}
+                        
+                        <Tooltip label="Add above" position="top" withArrow>
+                            <ActionIcon
+                                size="xs"
+                                variant="subtle"
+                                color="blue"
+                                onClick={handleAddSiblingAbove}
+                                className={styles.actionButton}
+                            >
+                                <IconPlus size={12} />
                             </ActionIcon>
                         </Tooltip>
-                    )}
-                    
-                    <Tooltip label="Add section above">
-                        <ActionIcon
-                            size="sm"
-                            variant="light"
-                            color="blue"
-                            onClick={handleAddSiblingAbove}
-                        >
-                            <IconPlus size={14} />
-                        </ActionIcon>
-                    </Tooltip>
-                    
-                    <Tooltip label="Add section below">
-                        <ActionIcon
-                            size="sm"
-                            variant="light"
-                            color="blue"
-                            onClick={handleAddSiblingBelow}
-                        >
-                            <IconPlus size={14} />
-                        </ActionIcon>
-                    </Tooltip>
+                        
+                        <Tooltip label="Add below" position="top" withArrow>
+                            <ActionIcon
+                                size="xs"
+                                variant="subtle"
+                                color="blue"
+                                onClick={handleAddSiblingBelow}
+                                className={styles.actionButton}
+                            >
+                                <IconPlus size={12} />
+                            </ActionIcon>
+                        </Tooltip>
 
-                    <Tooltip label="Remove section">
-                        <ActionIcon
-                            ref={actionMenuRef}
-                            size="sm"
-                            variant="light"
-                            color="red"
-                            onClick={handleRemoveSection}
-                        >
-                            <IconTrash size={14} />
-                        </ActionIcon>
-                    </Tooltip>
+                        <Tooltip label="Remove" position="top" withArrow>
+                            <ActionIcon
+                                ref={actionMenuRef}
+                                size="xs"
+                                variant="subtle"
+                                color="red"
+                                onClick={handleRemoveSection}
+                                className={styles.actionButton}
+                            >
+                                <IconTrash size={12} />
+                            </ActionIcon>
+                        </Tooltip>
+                    </Group>
                 </Group>
-            </Group>
 
-            {/* Child Drop Zone for empty containers */}
-            {showInsideDropZone && (
-                <Box
-                    style={{
-                        margin: '8px 16px 16px 16px',
-                        minHeight: 40,
-                        backgroundColor: 'var(--mantine-color-blue-0)',
-                        border: '2px dashed var(--mantine-color-blue-4)',
-                        borderRadius: '8px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        transition: 'all 0.2s ease'
-                    }}
-                >
-                    <Text size="sm" c="blue.6" ta="center">
-                        📁 Drop here to add first child section
-                    </Text>
-                </Box>
-            )}
-        </Paper>
+                {/* Child Drop Zone for empty containers */}
+                {showInsideDropZone && canHaveChildren && !hasChildren && (
+                    <Box className={styles.dropZone}>
+                        <Text size="xs" c="blue.6" ta="center">
+                            Drop here to add first child
+                        </Text>
+                    </Box>
+                )}
+
+                {/* Container Drop Zone - shows when dragging over empty container */}
+                {isDragActive && canHaveChildren && !hasChildren && isValidDropTarget && (
+                    <Box 
+                        className={styles.containerDropZone}
+                        style={{
+                            margin: '4px 8px 8px 8px',
+                            minHeight: '32px',
+                            backgroundColor: 'var(--mantine-color-green-0)',
+                            border: '2px dashed var(--mantine-color-green-5)',
+                            borderRadius: '6px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            animation: 'pulse 1.5s ease-in-out infinite alternate'
+                        }}
+                    >
+                        <Text size="sm" c="green.7" fw={500} ta="center">
+                            📁 Drop inside this container
+                        </Text>
+                    </Box>
+                )}
+            </Paper>
+        </div>
     );
 });
 

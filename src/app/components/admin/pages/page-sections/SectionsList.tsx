@@ -36,6 +36,7 @@ import { setCustomNativeDragPreview } from '@atlaskit/pragmatic-drag-and-drop/el
 
 import { IPageField } from '../../../../../types/common/pages.type';
 import { PageSection } from './PageSection';
+import styles from './PageSections.module.css';
 
 // Types for tree management
 interface ISectionsTreeState {
@@ -162,6 +163,7 @@ function SectionItem({
     const [dragState, setDragState] = useState<'idle' | 'preview' | 'is-dragging'>('idle');
     const [closestEdge, setClosestEdge] = useState<Edge | null>(null);
     const [isDropTarget, setIsDropTarget] = useState(false);
+    const [isContainerDropTarget, setIsContainerDropTarget] = useState(false);
 
     invariant(context);
     const { 
@@ -178,143 +180,15 @@ function SectionItem({
     const canHaveChildren = !!section.can_have_children;
     const isBeingDragged = draggedSectionId === section.id;
 
-    // Register tree item
-    useEffect(() => {
-        if (!elementRef.current || !actionMenuRef.current) return;
-        
-        return registerTreeItem({
-            itemId: section.id.toString(),
-            element: elementRef.current,
-            actionMenuTrigger: actionMenuRef.current
-        });
-    }, [section.id, registerTreeItem]);
+    // Helper function to check if this section is being dragged or is a child of dragged section
+    const isBeingDraggedOrChild = (): boolean => {
+        if (!draggedSectionId) return false;
+        if (section.id === draggedSectionId) return true;
+        return isDescendantOf(draggedSectionId, section.id);
+    };
 
-    // Setup draggable with enhanced preview and feedback
-    useEffect(() => {
-        const element = elementRef.current;
-        const dragHandle = dragHandleRef.current;
-        
-        if (!element || !dragHandle) return;
-
-        return combine(
-            autoScrollForElements({
-                element: element.closest('[data-scroll-container]') || document.body,
-            }),
-            draggable({
-                element: dragHandle,
-                getInitialData: () => ({
-                    type: 'section-item',
-                    itemId: section.id.toString(),
-                    uniqueContextId,
-                    level,
-                    canHaveChildren,
-                    parentId: parentId?.toString() || null,
-                    sectionName: section.name,
-                    index
-                }),
-                onGenerateDragPreview: ({ nativeSetDragImage }) => {
-                    setDragState('preview');
-                    
-                    // Create custom drag preview
-                    setCustomNativeDragPreview({
-                        nativeSetDragImage,
-                        getOffset: pointerOutsideOfPreview({
-                            x: '16px',
-                            y: '8px',
-                        }),
-                        render: ({ container }) => {
-                            const preview = document.createElement('div');
-                            preview.style.cssText = `
-                                background: white;
-                                border: 2px solid var(--mantine-color-blue-4);
-                                border-radius: 8px;
-                                padding: 12px;
-                                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                font-size: 14px;
-                                font-weight: 500;
-                                color: var(--mantine-color-gray-9);
-                                max-width: 250px;
-                                white-space: nowrap;
-                                overflow: hidden;
-                                text-overflow: ellipsis;
-                            `;
-                            preview.textContent = section.name;
-                            container.appendChild(preview);
-                        },
-                    });
-                    return () => {};
-                },
-                onDragStart: () => {
-                    setDragState('is-dragging');
-                    setIsDragging(true);
-                },
-                onDrop: () => {
-                    setDragState('idle');
-                    setIsDragging(false);
-                }
-            }),
-            dropTargetForElements({
-                element,
-                canDrop: ({ source }) => {
-                    const draggedId = source.data.itemId as string;
-                    
-                    // Can't drop on itself
-                    if (draggedId === section.id.toString()) return false;
-                    
-                    // Can't drop parent on its own child (prevent circular reference)
-                    if (isDescendantOf(parseInt(draggedId), section.id)) return false;
-                    
-                    return (
-                        source.data.uniqueContextId === uniqueContextId &&
-                        source.data.type === 'section-item'
-                    );
-                },
-                getIsSticky: () => true,
-                getData: ({ input, element }) => {
-                    const data = {
-                        type: 'section-item',
-                        itemId: section.id.toString(),
-                        level,
-                        canHaveChildren,
-                        parentId: parentId?.toString() || null,
-                        index
-                    };
-
-                    return attachClosestEdge(data, {
-                        input,
-                        element,
-                        allowedEdges: ['top', 'bottom']
-                    });
-                },
-                onDragEnter: ({ self, source }) => {
-                    const edge = extractClosestEdge(self.data);
-                    setClosestEdge(edge);
-                    setIsDropTarget(true);
-                    
-                    // Announce to screen readers
-                    const draggedName = source.data.sectionName as string;
-                    const targetName = section.name;
-                    const position = edge === 'top' ? 'above' : 'below';
-                    
-                    liveRegion.announce(
-                        `Moving ${draggedName} ${position} ${targetName}`
-                    );
-                },
-                onDragLeave: () => {
-                    setClosestEdge(null);
-                    setIsDropTarget(false);
-                },
-                onDrop: () => {
-                    setClosestEdge(null);
-                    setIsDropTarget(false);
-                }
-            })
-        );
-    }, [section.id, level, uniqueContextId, canHaveChildren, parentId, index]);
-
-    // Helper function to check if a section is descendant of another
-    const isDescendantOf = (ancestorId: number, descendantId: number): boolean => {
+    // Helper function to check if a section is descendant of another (memoized for stability)
+    const isDescendantOf = useCallback((ancestorId: number, descendantId: number): boolean => {
         const findInChildren = (children: IPageField[]): boolean => {
             return children.some(child => {
                 if (child.id === descendantId) return true;
@@ -337,15 +211,202 @@ function SectionItem({
         
         const ancestor = findAncestor(context.getChildrenOfItem(''));
         return ancestor ? findInChildren(ancestor.children || []) : false;
-    };
+    }, [context]);
+
+    // Register tree item
+    useEffect(() => {
+        if (!elementRef.current || !actionMenuRef.current) return;
+        
+        return registerTreeItem({
+            itemId: section.id.toString(),
+            element: elementRef.current,
+            actionMenuTrigger: actionMenuRef.current
+        });
+    }, [section.id, registerTreeItem]);
+
+    // Memoize stable values to prevent unnecessary re-registrations
+    const stableData = useMemo(() => ({
+        sectionId: section.id,
+        sectionName: section.name,
+        level,
+        canHaveChildren,
+        parentId,
+        hasChildren,
+        index
+    }), [section.id, section.name, level, canHaveChildren, parentId, hasChildren, index]);
+
+    // Setup draggable with enhanced preview and feedback
+    useEffect(() => {
+        const element = elementRef.current;
+        const dragHandle = dragHandleRef.current;
+        
+        if (!element || !dragHandle) return;
+
+        const cleanupFunctions = [
+            draggable({
+                element: element, // Use the main element for dragging
+                dragHandle: dragHandle, // But use the handle for initiation
+                getInitialData: () => ({
+                    type: 'section-item',
+                    itemId: stableData.sectionId.toString(),
+                    uniqueContextId,
+                    level: stableData.level,
+                    canHaveChildren: stableData.canHaveChildren,
+                    parentId: stableData.parentId?.toString() || null,
+                    sectionName: stableData.sectionName,
+                    index: stableData.index
+                }),
+                onGenerateDragPreview: ({ nativeSetDragImage }) => {
+                    setDragState('preview');
+                    
+                    // Create custom drag preview
+                    setCustomNativeDragPreview({
+                        nativeSetDragImage,
+                        getOffset: pointerOutsideOfPreview({
+                            x: '16px',
+                            y: '8px',
+                        }),
+                        render: ({ container }) => {
+                            const preview = document.createElement('div');
+                            preview.style.cssText = `
+                                background: white;
+                                border: 2px solid var(--mantine-color-blue-4);
+                                border-radius: 6px;
+                                padding: 8px 12px;
+                                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                                font-size: 13px;
+                                font-weight: 500;
+                                color: var(--mantine-color-gray-9);
+                                max-width: 200px;
+                                white-space: nowrap;
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                            `;
+                            preview.textContent = `📄 ${stableData.sectionName}`;
+                            container.appendChild(preview);
+                        },
+                    });
+                    return () => {};
+                },
+                onDragStart: () => {
+                    setDragState('is-dragging');
+                    setIsDragging(true);
+                },
+                onDrop: () => {
+                    setDragState('idle');
+                    setIsDragging(false);
+                }
+            }),
+            // Main drop target for edge positioning
+            dropTargetForElements({
+                element,
+                canDrop: ({ source }) => {
+                    const draggedId = source.data.itemId as string;
+                    
+                    // Can't drop on itself
+                    if (draggedId === stableData.sectionId.toString()) return false;
+                    
+                    // Can't drop parent on its own child (prevent circular reference)
+                    if (isDescendantOf(parseInt(draggedId), stableData.sectionId)) return false;
+                    
+                    return (
+                        source.data.uniqueContextId === uniqueContextId &&
+                        source.data.type === 'section-item'
+                    );
+                },
+                getIsSticky: () => true,
+                getData: ({ input, element }) => {
+                    const data = {
+                        type: 'section-item',
+                        itemId: stableData.sectionId.toString(),
+                        level: stableData.level,
+                        canHaveChildren: stableData.canHaveChildren,
+                        parentId: stableData.parentId?.toString() || null,
+                        index: stableData.index,
+                        hasChildren: stableData.hasChildren
+                    };
+
+                    // Always allow top/bottom positioning
+                    return attachClosestEdge(data, {
+                        input,
+                        element,
+                        allowedEdges: ['top', 'bottom']
+                    });
+                },
+                onDragEnter: ({ self, source }) => {
+                    const edge = extractClosestEdge(self.data);
+                    setClosestEdge(edge);
+                    setIsDropTarget(true);
+                    
+                    // Announce to screen readers
+                    const draggedName = source.data.sectionName as string;
+                    const targetName = stableData.sectionName;
+                    const position = edge === 'top' ? 'above' : 'below';
+                    liveRegion.announce(`Moving ${draggedName} ${position} ${targetName}`);
+                },
+                onDragLeave: () => {
+                    setClosestEdge(null);
+                    setIsDropTarget(false);
+                },
+                onDrop: () => {
+                    setClosestEdge(null);
+                    setIsDropTarget(false);
+                }
+            })
+        ];
+
+        // Add container drop target if applicable
+        if (stableData.canHaveChildren && !stableData.hasChildren) {
+            cleanupFunctions.push(
+                dropTargetForElements({
+                    element,
+                    canDrop: ({ source }) => {
+                        const draggedId = source.data.itemId as string;
+                        
+                        // Can't drop on itself
+                        if (draggedId === stableData.sectionId.toString()) return false;
+                        
+                        // Can't drop parent on its own child
+                        if (isDescendantOf(parseInt(draggedId), stableData.sectionId)) return false;
+                        
+                        return (
+                            source.data.uniqueContextId === uniqueContextId &&
+                            source.data.type === 'section-item'
+                        );
+                    },
+                    getData: () => ({
+                        type: 'container-drop',
+                        itemId: stableData.sectionId.toString(),
+                        canHaveChildren: true,
+                        parentId: stableData.parentId?.toString() || null
+                    }),
+                    onDragEnter: ({ source }) => {
+                        setIsContainerDropTarget(true);
+                        
+                        const draggedName = source.data.sectionName as string;
+                        liveRegion.announce(`Moving ${draggedName} into ${stableData.sectionName} container`);
+                    },
+                    onDragLeave: () => {
+                        setIsContainerDropTarget(false);
+                    },
+                    onDrop: () => {
+                        setIsContainerDropTarget(false);
+                    }
+                })
+            );
+        }
+
+        return combine(...cleanupFunctions);
+    }, [stableData, uniqueContextId, isDescendantOf]);
 
     // Get background color based on drop state
     const getBackgroundColor = () => {
         if (isBeingDragged) {
             return 'var(--mantine-color-blue-0)';
         }
-        if (isDropTarget && isDragActive) {
-            return 'var(--mantine-color-blue-0)'; // Edge drop zone
+        if ((isDropTarget || isContainerDropTarget) && isDragActive) {
+            return isContainerDropTarget ? 'var(--mantine-color-green-0)' : 'var(--mantine-color-blue-0)';
         }
         return 'white';
     };
@@ -355,8 +416,8 @@ function SectionItem({
         if (isBeingDragged) {
             return 'var(--mantine-color-blue-4)';
         }
-        if (isDropTarget && isDragActive) {
-            return 'var(--mantine-color-blue-4)';
+        if ((isDropTarget || isContainerDropTarget) && isDragActive) {
+            return isContainerDropTarget ? 'var(--mantine-color-green-4)' : 'var(--mantine-color-blue-4)';
         }
         return 'var(--mantine-color-gray-3)';
     };
@@ -419,7 +480,7 @@ function SectionItem({
                 onAddSiblingAbove={onAddSiblingAbove}
                 onAddSiblingBelow={onAddSiblingBelow}
                 isDragActive={isDragActive}
-                overId={isDropTarget ? section.id : null}
+                overId={isDropTarget || isContainerDropTarget ? section.id : null}
                 draggedSectionId={draggedSectionId}
                 isDragging={isDragging}
                 dragHandleProps={{
@@ -433,11 +494,12 @@ function SectionItem({
                 customStyle={{
                     backgroundColor: getBackgroundColor(),
                     borderColor: getBorderColor(),
-                    borderWidth: isBeingDragged || isDropTarget ? '2px' : '1px',
+                    borderWidth: isBeingDragged || isDropTarget || isContainerDropTarget ? '2px' : '1px',
                     borderStyle: isBeingDragged ? 'dashed' : 'solid',
-                    opacity: isDragging ? 0.6 : 1,
+                    opacity: isDragging || (isDragActive && isBeingDraggedOrChild()) ? 0.4 : 1,
                     transition: 'all 0.2s cubic-bezier(0.15, 1.0, 0.3, 1.0)',
-                    transform: 'scale(1)',
+                    transform: isDragging ? 'scale(0.98)' : 'scale(1)',
+                    filter: isDragActive && isBeingDraggedOrChild() ? 'grayscale(0.3)' : 'none'
                 }}
                 showInsideDropZone={false}
             />
@@ -480,9 +542,9 @@ function SectionItem({
                 </Box>
             )}
 
-            {/* Render children if expanded with modern indentation */}
+            {/* Render children if expanded with compact indentation */}
             {isExpanded && hasChildren && (
-                <Box style={{ marginTop: '8px' }}>
+                <Box style={{ marginTop: '2px' }}>
                     {section.children.map((child, childIndex) => (
                         <SectionItem
                             key={child.id}
@@ -692,6 +754,15 @@ export function SectionsList({
         }
     };
 
+    // Set up auto-scroll for the container
+    useEffect(() => {
+        if (!containerRef.current) return;
+
+        return autoScrollForElements({
+            element: containerRef.current,
+        });
+    }, []);
+
     // Monitor for drag and drop with enhanced feedback
     useEffect(() => {
         if (!containerRef.current) return;
@@ -722,39 +793,56 @@ export function SectionsList({
                 const itemId = source.data.itemId as string;
                 const target = location.current.dropTargets[0];
                 const targetId = target.data.itemId as string;
-                const edge = extractClosestEdge(target.data);
                 
-                // Dropping above or below the target
-                const targetParentId = target.data.parentId ? parseInt(target.data.parentId as string) : null;
-
                 // Handle the drop with proper positioning
                 const draggedSection = findSectionById(parseInt(itemId), sections);
                 const targetSection = findSectionById(parseInt(targetId), sections);
 
                 if (draggedSection && onSectionMove) {
-                    const newPosition = calculateNewPosition(targetSection, edge, targetParentId);
-                    
-                    // Create move data
-                    const moveData = {
-                        draggedSectionId: parseInt(itemId),
-                        newParentId: targetParentId,
-                        pageKeyword,
-                        newPosition,
-                        draggedSection,
-                        newParent: targetParentId ? findSectionById(targetParentId, sections) : null,
-                        descendantIds: getAllDescendantIds(draggedSection),
-                        totalMovingItems: 1 + getAllDescendantIds(draggedSection).length,
-                        edge
-                    };
+                    let moveData;
+                    let announcement = '';
+
+                    // Check if this is a container drop
+                    if (target.data.type === 'container-drop') {
+                        // Dropping into an empty container
+                        moveData = {
+                            draggedSectionId: parseInt(itemId),
+                            newParentId: parseInt(targetId),
+                            pageKeyword,
+                            newPosition: 0, // First child
+                            draggedSection,
+                            newParent: targetSection,
+                            descendantIds: getAllDescendantIds(draggedSection),
+                            totalMovingItems: 1 + getAllDescendantIds(draggedSection).length,
+                            edge: null
+                        };
+                        
+                        announcement = `Moved ${draggedSection.name} into ${targetSection?.name} container`;
+                    } else {
+                        // Regular edge drop
+                        const edge = extractClosestEdge(target.data);
+                        const targetParentId = target.data.parentId ? parseInt(target.data.parentId as string) : null;
+                        const newPosition = calculateNewPosition(targetSection, edge, targetParentId);
+                        
+                        moveData = {
+                            draggedSectionId: parseInt(itemId),
+                            newParentId: targetParentId,
+                            pageKeyword,
+                            newPosition,
+                            draggedSection,
+                            newParent: targetParentId ? findSectionById(targetParentId, sections) : null,
+                            descendantIds: getAllDescendantIds(draggedSection),
+                            totalMovingItems: 1 + getAllDescendantIds(draggedSection).length,
+                            edge
+                        };
+                        
+                        const targetName = targetSection?.name || 'page';
+                        const position = edge === 'top' ? 'above' : 'below';
+                        announcement = `Moved ${draggedSection.name} ${position} ${targetName}`;
+                    }
 
                     onSectionMove(moveData);
-                    
-                    // Announce successful drop
-                    const targetName = targetSection?.name || 'page';
-                    const position = edge === 'top' ? 'above' : 'below';
-                    liveRegion.announce(
-                        `Moved ${draggedSection.name} ${position} ${targetName}`
-                    );
+                    liveRegion.announce(announcement);
                 }
 
                 // Update local state for UI feedback
@@ -804,28 +892,34 @@ export function SectionsList({
             <Box
                 ref={containerRef}
                 data-scroll-container
+                className={styles.sectionsContainer}
                 style={{
                     minHeight: '200px',
-                    padding: '16px',
+                    maxHeight: '75vh',
+                    overflowY: 'auto',
+                    overflowX: 'hidden',
+                    padding: '8px',
                     backgroundColor: 'var(--mantine-color-gray-0)',
-                    borderRadius: '8px'
+                    borderRadius: '8px',
+                    border: '1px solid var(--mantine-color-gray-2)'
                 }}
             >
                 {sections.length === 0 ? (
-                    <Paper p="xl" ta="center" withBorder style={{ 
+                    <Paper p="lg" ta="center" withBorder style={{ 
                         backgroundColor: 'white',
                         border: '2px dashed var(--mantine-color-gray-4)',
-                        borderRadius: '12px'
+                        borderRadius: '8px',
+                        margin: '8px'
                     }}>
-                        <Text size="sm" c="dimmed">
-                            No sections in this page yet.
+                        <Text size="sm" c="dimmed" fw={500}>
+                            📄 No sections yet
                         </Text>
-                        <Text size="xs" c="dimmed" mt="xs">
-                            Add your first section to get started.
+                        <Text size="xs" c="dimmed" mt={4}>
+                            Add your first section to get started
                         </Text>
                     </Paper>
                 ) : (
-                    <Stack gap="md">
+                    <div className={styles.sectionsList}>
                         {sections.map((section, index) => (
                             <SectionItem
                                 key={section.id}
@@ -839,7 +933,7 @@ export function SectionsList({
                                 onAddSiblingBelow={onAddSiblingBelow}
                             />
                         ))}
-                    </Stack>
+                    </div>
                 )}
             </Box>
         </SectionsTreeContext.Provider>
