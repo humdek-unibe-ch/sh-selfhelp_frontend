@@ -10,8 +10,7 @@ import {
     useState, 
     createContext 
 } from 'react';
-import { Stack, Box, Text, Group, ActionIcon, Tooltip, Paper } from '@mantine/core';
-import { IconChevronRight, IconChevronDown, IconPlus, IconTrash, IconGripVertical } from '@tabler/icons-react';
+import { Stack, Box, Text, Group, Paper } from '@mantine/core';
 import memoizeOne from 'memoize-one';
 import invariant from 'tiny-invariant';
 
@@ -23,7 +22,6 @@ import { combine } from '@atlaskit/pragmatic-drag-and-drop/combine';
 import {
     draggable,
     dropTargetForElements,
-    type ElementDropTargetEventBasePayload,
     monitorForElements,
 } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
 import { 
@@ -31,9 +29,13 @@ import {
     extractClosestEdge,
     type Edge 
 } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
+import { getReorderDestinationIndex } from '@atlaskit/pragmatic-drag-and-drop-hitbox/util/get-reorder-destination-index';
 import { autoScrollForElements } from '@atlaskit/pragmatic-drag-and-drop-auto-scroll/element';
+import { pointerOutsideOfPreview } from '@atlaskit/pragmatic-drag-and-drop/element/pointer-outside-of-preview';
+import { setCustomNativeDragPreview } from '@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview';
 
 import { IPageField } from '../../../../../types/common/pages.type';
+import { PageSection } from './PageSection';
 
 // Types for tree management
 interface ISectionsTreeState {
@@ -62,6 +64,8 @@ interface ISectionsTreeContext {
         element: HTMLElement;
         actionMenuTrigger: HTMLElement;
     }) => () => void;
+    isDragActive: boolean;
+    draggedSectionId: number | null;
 }
 
 interface ISectionsListProps {
@@ -127,9 +131,9 @@ function createTreeItemRegistry() {
     return { registry, registerTreeItem };
 }
 
-// Individual tree item component
-interface ITreeItemProps {
-    item: IPageField;
+// Enhanced Section Item Component with proper drop indicators
+interface ISectionItemProps {
+    section: IPageField;
     level: number;
     index: number;
     parentId: number | null;
@@ -139,8 +143,8 @@ interface ITreeItemProps {
     onAddSiblingBelow?: (referenceSectionId: number, parentId: number | null) => void;
 }
 
-function TreeItem({ 
-    item, 
+function SectionItem({ 
+    section, 
     level, 
     index,
     parentId,
@@ -148,7 +152,7 @@ function TreeItem({
     onAddChildSection,
     onAddSiblingAbove,
     onAddSiblingBelow
-}: ITreeItemProps) {
+}: ISectionItemProps) {
     const context = useContext(SectionsTreeContext);
     const elementRef = useRef<HTMLDivElement>(null);
     const dragHandleRef = useRef<HTMLDivElement>(null);
@@ -157,32 +161,35 @@ function TreeItem({
     const [isDragging, setIsDragging] = useState(false);
     const [dragState, setDragState] = useState<'idle' | 'preview' | 'is-dragging'>('idle');
     const [closestEdge, setClosestEdge] = useState<Edge | null>(null);
-    const [isHovered, setIsHovered] = useState(false);
+    const [isDropTarget, setIsDropTarget] = useState(false);
 
     invariant(context);
     const { 
         expandedSections, 
         onToggleExpand, 
         registerTreeItem, 
-        uniqueContextId 
+        uniqueContextId,
+        isDragActive,
+        draggedSectionId
     } = context;
 
-    const isExpanded = expandedSections.has(item.id);
-    const hasChildren = item.children && item.children.length > 0;
-    const canHaveChildren = !!item.can_have_children;
+    const isExpanded = expandedSections.has(section.id);
+    const hasChildren = section.children && section.children.length > 0;
+    const canHaveChildren = !!section.can_have_children;
+    const isBeingDragged = draggedSectionId === section.id;
 
     // Register tree item
     useEffect(() => {
         if (!elementRef.current || !actionMenuRef.current) return;
         
         return registerTreeItem({
-            itemId: item.id.toString(),
+            itemId: section.id.toString(),
             element: elementRef.current,
             actionMenuTrigger: actionMenuRef.current
         });
-    }, [item.id, registerTreeItem]);
+    }, [section.id, registerTreeItem]);
 
-    // Setup draggable with auto-scroll
+    // Setup draggable with enhanced preview and feedback
     useEffect(() => {
         const element = elementRef.current;
         const dragHandle = dragHandleRef.current;
@@ -196,15 +203,47 @@ function TreeItem({
             draggable({
                 element: dragHandle,
                 getInitialData: () => ({
-                    type: 'tree-item',
-                    itemId: item.id.toString(),
+                    type: 'section-item',
+                    itemId: section.id.toString(),
                     uniqueContextId,
                     level,
                     canHaveChildren,
-                    parentId: parentId?.toString() || null
+                    parentId: parentId?.toString() || null,
+                    sectionName: section.name,
+                    index
                 }),
-                onGenerateDragPreview: () => {
+                onGenerateDragPreview: ({ nativeSetDragImage }) => {
                     setDragState('preview');
+                    
+                    // Create custom drag preview
+                    setCustomNativeDragPreview({
+                        nativeSetDragImage,
+                        getOffset: pointerOutsideOfPreview({
+                            x: '16px',
+                            y: '8px',
+                        }),
+                        render: ({ container }) => {
+                            const preview = document.createElement('div');
+                            preview.style.cssText = `
+                                background: white;
+                                border: 2px solid var(--mantine-color-blue-4);
+                                border-radius: 8px;
+                                padding: 12px;
+                                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                                font-size: 14px;
+                                font-weight: 500;
+                                color: var(--mantine-color-gray-9);
+                                max-width: 250px;
+                                white-space: nowrap;
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                            `;
+                            preview.textContent = section.name;
+                            container.appendChild(preview);
+                        },
+                    });
+                    return () => {};
                 },
                 onDragStart: () => {
                     setDragState('is-dragging');
@@ -219,27 +258,27 @@ function TreeItem({
                 element,
                 canDrop: ({ source }) => {
                     const draggedId = source.data.itemId as string;
-                    const draggedParentId = source.data.parentId as string | null;
                     
                     // Can't drop on itself
-                    if (draggedId === item.id.toString()) return false;
+                    if (draggedId === section.id.toString()) return false;
                     
                     // Can't drop parent on its own child (prevent circular reference)
-                    if (isDescendantOf(parseInt(draggedId), item.id)) return false;
+                    if (isDescendantOf(parseInt(draggedId), section.id)) return false;
                     
                     return (
                         source.data.uniqueContextId === uniqueContextId &&
-                        source.data.type === 'tree-item'
+                        source.data.type === 'section-item'
                     );
                 },
                 getIsSticky: () => true,
                 getData: ({ input, element }) => {
                     const data = {
-                        type: 'tree-item',
-                        itemId: item.id.toString(),
+                        type: 'section-item',
+                        itemId: section.id.toString(),
                         level,
                         canHaveChildren,
-                        parentId: parentId?.toString() || null
+                        parentId: parentId?.toString() || null,
+                        index
                     };
 
                     return attachClosestEdge(data, {
@@ -251,16 +290,28 @@ function TreeItem({
                 onDragEnter: ({ self, source }) => {
                     const edge = extractClosestEdge(self.data);
                     setClosestEdge(edge);
+                    setIsDropTarget(true);
+                    
+                    // Announce to screen readers
+                    const draggedName = source.data.sectionName as string;
+                    const targetName = section.name;
+                    const position = edge === 'top' ? 'above' : 'below';
+                    
+                    liveRegion.announce(
+                        `Moving ${draggedName} ${position} ${targetName}`
+                    );
                 },
                 onDragLeave: () => {
                     setClosestEdge(null);
+                    setIsDropTarget(false);
                 },
                 onDrop: () => {
                     setClosestEdge(null);
+                    setIsDropTarget(false);
                 }
             })
         );
-    }, [item.id, level, uniqueContextId, canHaveChildren, parentId]);
+    }, [section.id, level, uniqueContextId, canHaveChildren, parentId, index]);
 
     // Helper function to check if a section is descendant of another
     const isDescendantOf = (ancestorId: number, descendantId: number): boolean => {
@@ -288,201 +339,166 @@ function TreeItem({
         return ancestor ? findInChildren(ancestor.children || []) : false;
     };
 
-    const handleToggleExpand = () => {
-        onToggleExpand(item.id);
-    };
-
-    const handleRemoveSection = () => {
-        onRemoveSection(item.id, parentId);
-    };
-
-    const handleAddChild = () => {
-        if (canHaveChildren && onAddChildSection) {
-            onAddChildSection(item.id);
+    // Get background color based on drop state
+    const getBackgroundColor = () => {
+        if (isBeingDragged) {
+            return 'var(--mantine-color-blue-0)';
         }
+        if (isDropTarget && isDragActive) {
+            return 'var(--mantine-color-blue-0)'; // Edge drop zone
+        }
+        return 'white';
     };
 
-    const handleAddSiblingAbove = () => {
-        if (onAddSiblingAbove) {
-            onAddSiblingAbove(item.id, parentId);
+    // Get border color based on drop state
+    const getBorderColor = () => {
+        if (isBeingDragged) {
+            return 'var(--mantine-color-blue-4)';
         }
-    };
-
-    const handleAddSiblingBelow = () => {
-        if (onAddSiblingBelow) {
-            onAddSiblingBelow(item.id, parentId);
+        if (isDropTarget && isDragActive) {
+            return 'var(--mantine-color-blue-4)';
         }
+        return 'var(--mantine-color-gray-3)';
     };
 
     return (
-        <div>
-            {/* Drop indicator for top edge */}
+        <Box
+            style={{
+                marginLeft: level > 0 ? `${level * 24}px` : 0,
+                position: 'relative'
+            }}
+        >
+            {/* Enhanced Drop indicator for top edge */}
             {closestEdge === 'top' && (
-                <DropIndicator edge="top" gap="4px" />
+                <Box style={{ 
+                    position: 'relative', 
+                    marginBottom: '8px',
+                    height: '2px'
+                }}>
+                    <DropIndicator edge="top" gap="8px" />
+                    <Box
+                        style={{
+                            position: 'absolute',
+                            top: '-1px',
+                            left: '-4px',
+                            right: '0',
+                            height: '2px',
+                            backgroundColor: 'var(--mantine-color-blue-6)',
+                            borderRadius: '1px',
+                            boxShadow: '0 0 8px var(--mantine-color-blue-4)',
+                            zIndex: 10
+                        }}
+                    />
+                    {/* Terminal dot */}
+                    <Box
+                        style={{
+                            position: 'absolute',
+                            top: '-4px',
+                            left: '-8px',
+                            width: '8px',
+                            height: '8px',
+                            backgroundColor: 'var(--mantine-color-blue-6)',
+                            borderRadius: '50%',
+                            boxShadow: '0 0 4px var(--mantine-color-blue-4)',
+                            zIndex: 11
+                        }}
+                    />
+                </Box>
             )}
             
-            <Paper
+            {/* Modern CMS-style Section Component with enhanced feedback */}
+            <PageSection
                 ref={elementRef}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-                style={{
-                    marginLeft: `${level * 20}px`,
-                    opacity: isDragging ? 0.4 : 1,
-                    backgroundColor: dragState === 'is-dragging' 
-                        ? 'var(--mantine-color-blue-0)' 
-                        : isHovered 
-                        ? 'var(--mantine-color-gray-0)'
-                        : 'transparent',
-                    transition: 'all 0.15s ease',
-                    border: dragState === 'is-dragging' 
-                        ? '2px dashed var(--mantine-color-blue-4)' 
-                        : '1px solid transparent',
-                    borderRadius: '6px',
-                    cursor: isDragging ? 'grabbing' : 'default'
+                section={section}
+                level={level}
+                parentId={parentId}
+                expandedSections={expandedSections}
+                onToggleExpand={onToggleExpand}
+                onRemoveSection={onRemoveSection}
+                onAddChildSection={onAddChildSection}
+                onAddSiblingAbove={onAddSiblingAbove}
+                onAddSiblingBelow={onAddSiblingBelow}
+                isDragActive={isDragActive}
+                overId={isDropTarget ? section.id : null}
+                draggedSectionId={draggedSectionId}
+                isDragging={isDragging}
+                dragHandleProps={{
+                    ref: dragHandleRef,
+                    'data-drag-handle': true,
+                    style: { 
+                        cursor: isDragging ? 'grabbing' : 'grab'
+                    }
                 }}
-                p="xs"
-                mb={4}
-                withBorder={isHovered || dragState === 'is-dragging'}
-            >
-                <Group gap="xs" wrap="nowrap" align="center">
-                    {/* Expand/collapse toggle - moved to front */}
-                    <ActionIcon
-                        size="sm"
-                        variant="subtle"
-                        onClick={handleToggleExpand}
-                        disabled={!hasChildren}
-                        style={{ 
-                            visibility: hasChildren ? 'visible' : 'hidden',
-                            opacity: hasChildren ? 1 : 0,
-                            minWidth: '24px'
-                        }}
-                    >
-                        {isExpanded ? (
-                            <IconChevronDown size={14} />
-                        ) : (
-                            <IconChevronRight size={14} />
-                        )}
-                    </ActionIcon>
+                actionMenuRef={actionMenuRef}
+                customStyle={{
+                    backgroundColor: getBackgroundColor(),
+                    borderColor: getBorderColor(),
+                    borderWidth: isBeingDragged || isDropTarget ? '2px' : '1px',
+                    borderStyle: isBeingDragged ? 'dashed' : 'solid',
+                    opacity: isDragging ? 0.6 : 1,
+                    transition: 'all 0.2s cubic-bezier(0.15, 1.0, 0.3, 1.0)',
+                    transform: 'scale(1)',
+                }}
+                showInsideDropZone={false}
+            />
 
-                    {/* Section info */}
-                    <Box style={{ flex: 1, minWidth: 0 }}>
-                        <Group gap="xs" wrap="nowrap">
-                            <Text size="sm" fw={500} truncate>
-                                {item.name}
-                            </Text>
-                            <Group gap={4}>
-                                <Text size="xs" c="dimmed">
-                                    #{item.id}
-                                </Text>
-                                <Text size="xs" c="dimmed">
-                                    {item.style_name}
-                                </Text>
-                                {canHaveChildren && (
-                                    <Text size="xs" c="blue" fw={500}>
-                                        Container
-                                    </Text>
-                                )}
-                            </Group>
-                        </Group>
-                    </Box>
-
-                    {/* Action buttons - only show on hover or when dragging */}
-                    <Group gap={4} style={{ 
-                        opacity: isHovered || dragState === 'is-dragging' ? 1 : 0,
-                        transition: 'opacity 0.15s ease'
-                    }}>
-                        {canHaveChildren && (
-                            <Tooltip label="Add child section" position="top">
-                                <ActionIcon
-                                    size="sm"
-                                    variant="subtle"
-                                    color="green"
-                                    onClick={handleAddChild}
-                                >
-                                    <IconPlus size={12} />
-                                </ActionIcon>
-                            </Tooltip>
-                        )}
-                        
-                        <Tooltip label="Add section above" position="top">
-                            <ActionIcon
-                                size="sm"
-                                variant="subtle"
-                                color="blue"
-                                onClick={handleAddSiblingAbove}
-                            >
-                                <IconPlus size={12} />
-                            </ActionIcon>
-                        </Tooltip>
-                        
-                        <Tooltip label="Add section below" position="top">
-                            <ActionIcon
-                                size="sm"
-                                variant="subtle"
-                                color="blue"
-                                onClick={handleAddSiblingBelow}
-                            >
-                                <IconPlus size={12} />
-                            </ActionIcon>
-                        </Tooltip>
-
-                        <Tooltip label="Remove section" position="top">
-                            <ActionIcon
-                                ref={actionMenuRef}
-                                size="sm"
-                                variant="subtle"
-                                color="red"
-                                onClick={handleRemoveSection}
-                            >
-                                <IconTrash size={12} />
-                            </ActionIcon>
-                        </Tooltip>
-                    </Group>
-
-                    {/* Drag handle - moved to back */}
-                    <div
-                        ref={dragHandleRef}
-                        style={{ 
-                            cursor: isDragging ? 'grabbing' : 'grab',
-                            display: 'flex',
-                            alignItems: 'center',
-                            padding: '2px',
-                            opacity: isHovered || dragState === 'is-dragging' ? 1 : 0.3,
-                            transition: 'opacity 0.15s ease'
-                        }}
-                    >
-                        <IconGripVertical 
-                            size={16} 
-                            style={{ color: 'var(--mantine-color-gray-6)' }} 
-                        />
-                    </div>
-                </Group>
-            </Paper>
-
-            {/* Drop indicator for bottom edge */}
+            {/* Enhanced Drop indicator for bottom edge */}
             {closestEdge === 'bottom' && (
-                <DropIndicator edge="bottom" gap="4px" />
+                <Box style={{ 
+                    position: 'relative', 
+                    marginTop: '8px',
+                    height: '2px'
+                }}>
+                    <DropIndicator edge="bottom" gap="8px" />
+                    <Box
+                        style={{
+                            position: 'absolute',
+                            bottom: '-1px',
+                            left: '-4px',
+                            right: '0',
+                            height: '2px',
+                            backgroundColor: 'var(--mantine-color-blue-6)',
+                            borderRadius: '1px',
+                            boxShadow: '0 0 8px var(--mantine-color-blue-4)',
+                            zIndex: 10
+                        }}
+                    />
+                    {/* Terminal dot */}
+                    <Box
+                        style={{
+                            position: 'absolute',
+                            bottom: '-4px',
+                            left: '-8px',
+                            width: '8px',
+                            height: '8px',
+                            backgroundColor: 'var(--mantine-color-blue-6)',
+                            borderRadius: '50%',
+                            boxShadow: '0 0 4px var(--mantine-color-blue-4)',
+                            zIndex: 11
+                        }}
+                    />
+                </Box>
             )}
 
-            {/* Render children if expanded */}
+            {/* Render children if expanded with modern indentation */}
             {isExpanded && hasChildren && (
-                <div style={{ marginTop: '4px' }}>
-                    {item.children.map((child, childIndex) => (
-                        <TreeItem
+                <Box style={{ marginTop: '8px' }}>
+                    {section.children.map((child, childIndex) => (
+                        <SectionItem
                             key={child.id}
-                            item={child}
+                            section={child}
                             level={level + 1}
                             index={childIndex}
-                            parentId={item.id}
+                            parentId={section.id}
                             onRemoveSection={onRemoveSection}
                             onAddChildSection={onAddChildSection}
                             onAddSiblingAbove={onAddSiblingAbove}
                             onAddSiblingBelow={onAddSiblingBelow}
                         />
                     ))}
-                </div>
+                </Box>
             )}
-        </div>
+        </Box>
     );
 }
 
@@ -502,6 +518,8 @@ export function SectionsList({
     const [state, dispatch] = useReducer(sectionsTreeReducer, sections, getInitialTreeState);
     const containerRef = useRef<HTMLDivElement>(null);
     const [{ registry, registerTreeItem }] = useState(createTreeItemRegistry);
+    const [isDragActive, setIsDragActive] = useState(false);
+    const [draggedSectionId, setDraggedSectionId] = useState<number | null>(null);
 
     const { data, lastAction } = state;
     const lastStateRef = useRef<IPageField[]>(data);
@@ -510,7 +528,7 @@ export function SectionsList({
         lastStateRef.current = sections; // Use live sections data
     }, [sections]);
 
-    // Handle post-move effects
+    // Handle post-move effects with enhanced flash
     useEffect(() => {
         if (lastAction === null) return;
 
@@ -540,7 +558,7 @@ export function SectionsList({
                 }
                 return;
             }
-        });
+        }, 100); // Slight delay for better visual feedback
     }, [lastAction, registry]);
 
     // Cleanup live region
@@ -620,7 +638,7 @@ export function SectionsList({
         })
     , [sections]);
 
-    // Context value
+    // Context value with drag state
     const contextValue = useMemo<ISectionsTreeContext>(() => ({
         dispatch,
         uniqueContextId: Symbol('sections-tree'),
@@ -630,16 +648,20 @@ export function SectionsList({
         expandedSections,
         onToggleExpand,
         registerTreeItem,
+        isDragActive,
+        draggedSectionId,
     }), [
         getChildrenOfItem, 
         getMoveTargets, 
         registerTreeItem, 
         expandedSections, 
         onToggleExpand, 
-        getPathToItem
+        getPathToItem,
+        isDragActive,
+        draggedSectionId
     ]);
 
-    // Calculate new position based on drop location
+    // Enhanced position calculation with reorder utilities
     const calculateNewPosition = (targetSection: IPageField | null, edge: Edge | null, targetParentId: number | null): number => {
         // Get siblings at the target level
         const siblings = targetParentId 
@@ -650,68 +672,59 @@ export function SectionsList({
         
         if (!targetSection) {
             // Dropping at the end
-            if (sortedSiblings.length === 0) return -1; // First item
+            if (sortedSiblings.length === 0) return 0; // First item
             const lastPosition = sortedSiblings[sortedSiblings.length - 1].position;
             return lastPosition + 10;
         }
         
         const targetIndex = sortedSiblings.findIndex(s => s.id === targetSection.id);
         
+        // Note: 'inside' edge is not supported in this implementation
+        
         if (edge === 'top') {
-            // Dropping above target
-            if (targetIndex === 0) {
-                // Dropping at the very beginning
-                const firstPosition = sortedSiblings[0].position;
-                return firstPosition - 10;
-            } else {
-                // Dropping between items
-                const prevPosition = sortedSiblings[targetIndex - 1].position;
-                const currentPosition = sortedSiblings[targetIndex].position;
-                const gap = currentPosition - prevPosition;
-                
-                if (gap > 2) {
-                    return Math.floor((prevPosition + currentPosition) / 2);
-                } else {
-                    return prevPosition + 1;
-                }
-            }
+            // Use reorder utility for better positioning
+            const destinationIndex = Math.max(0, targetIndex);
+            return destinationIndex * 10;
         } else {
-            // Dropping below target
-            if (targetIndex === sortedSiblings.length - 1) {
-                // Dropping at the very end
-                return targetSection.position + 10;
-            } else {
-                // Dropping between items
-                const currentPosition = sortedSiblings[targetIndex].position;
-                const nextPosition = sortedSiblings[targetIndex + 1].position;
-                const gap = nextPosition - currentPosition;
-                
-                if (gap > 2) {
-                    return Math.floor((currentPosition + nextPosition) / 2);
-                } else {
-                    return currentPosition + 1;
-                }
-            }
+            // Bottom edge
+            const destinationIndex = targetIndex + 1;
+            return destinationIndex * 10;
         }
     };
 
-    // Monitor for drag and drop
+    // Monitor for drag and drop with enhanced feedback
     useEffect(() => {
         if (!containerRef.current) return;
 
         return monitorForElements({
             canMonitor: ({ source }) =>
                 source.data.uniqueContextId === contextValue.uniqueContextId &&
-                source.data.type === 'tree-item',
+                source.data.type === 'section-item',
+            onDragStart: ({ source }) => {
+                setIsDragActive(true);
+                setDraggedSectionId(parseInt(source.data.itemId as string));
+                
+                // Announce drag start
+                const sectionName = source.data.sectionName as string;
+                liveRegion.announce(`Started dragging ${sectionName}`);
+            },
             onDrop(args) {
                 const { location, source } = args;
                 
-                if (!location.current.dropTargets.length) return;
+                setIsDragActive(false);
+                setDraggedSectionId(null);
+                
+                if (!location.current.dropTargets.length) {
+                    liveRegion.announce('Drop cancelled');
+                    return;
+                }
 
                 const itemId = source.data.itemId as string;
                 const target = location.current.dropTargets[0];
                 const targetId = target.data.itemId as string;
                 const edge = extractClosestEdge(target.data);
+                
+                // Dropping above or below the target
                 const targetParentId = target.data.parentId ? parseInt(target.data.parentId as string) : null;
 
                 // Handle the drop with proper positioning
@@ -730,10 +743,18 @@ export function SectionsList({
                         draggedSection,
                         newParent: targetParentId ? findSectionById(targetParentId, sections) : null,
                         descendantIds: getAllDescendantIds(draggedSection),
-                        totalMovingItems: 1 + getAllDescendantIds(draggedSection).length
+                        totalMovingItems: 1 + getAllDescendantIds(draggedSection).length,
+                        edge
                     };
 
                     onSectionMove(moveData);
+                    
+                    // Announce successful drop
+                    const targetName = targetSection?.name || 'page';
+                    const position = edge === 'top' ? 'above' : 'below';
+                    liveRegion.announce(
+                        `Moved ${draggedSection.name} ${position} ${targetName}`
+                    );
                 }
 
                 // Update local state for UI feedback
@@ -785,13 +806,16 @@ export function SectionsList({
                 data-scroll-container
                 style={{
                     minHeight: '200px',
-                    padding: '8px'
+                    padding: '16px',
+                    backgroundColor: 'var(--mantine-color-gray-0)',
+                    borderRadius: '8px'
                 }}
             >
                 {sections.length === 0 ? (
                     <Paper p="xl" ta="center" withBorder style={{ 
-                        backgroundColor: 'var(--mantine-color-gray-0)',
-                        border: '2px dashed var(--mantine-color-gray-4)'
+                        backgroundColor: 'white',
+                        border: '2px dashed var(--mantine-color-gray-4)',
+                        borderRadius: '12px'
                     }}>
                         <Text size="sm" c="dimmed">
                             No sections in this page yet.
@@ -801,11 +825,11 @@ export function SectionsList({
                         </Text>
                     </Paper>
                 ) : (
-                    <Stack gap={2}>
+                    <Stack gap="md">
                         {sections.map((section, index) => (
-                            <TreeItem
+                            <SectionItem
                                 key={section.id}
-                                item={section}
+                                section={section}
                                 level={0}
                                 index={index}
                                 parentId={null}

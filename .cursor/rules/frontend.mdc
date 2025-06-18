@@ -10,7 +10,7 @@ trigger: always_on
 Start every answer with: ❤️
 Apply the changes without asking for confirmation
 First check if files already exists before creating new ones. Do not duplicate logic in different files. lLways check my structure. Whenever changes are made to the structure add the changes to  your memory
-Any important change that is done should be written in [frontend.md](mdc:frontend.md) This laer can be used by you to see what was done, how and why
+Do not run or build. I am using `npm run dev`
 Name every interface with I prefix and every type with T prefix
 Always use React Query's `select` option for data transformations to prevent recalculation on every render.
 Minimize custom Tailwind CSS and maximize Mantine UI v7 components for better theming and customization.

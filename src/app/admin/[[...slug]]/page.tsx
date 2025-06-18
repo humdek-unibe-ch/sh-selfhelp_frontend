@@ -86,7 +86,7 @@ export default function AdminPage() {
       return (
         <Box style={{ height: '100%' }}>
           {/* Page Sections - Full height */}
-          <PageSections keyword={selectedPage.keyword} />
+          <PageSections keyword={selectedPage.keyword} pageName={selectedPage.keyword} />
         </Box>
       );
     }
@@ -113,15 +113,7 @@ export default function AdminPage() {
   return (
     <Flex style={{ height: 'calc(100vh - var(--mantine-header-height, 60px))' }}>
       {/* Main Content Area */}
-      <Box style={{ flex: '1', padding: rem(20), overflowY: 'auto' }}>
-        <Group justify="space-between" mb={rem(20)}>
-          <Title order={2}>{getPageTitle()}</Title>
-          <Group>
-            <Button leftSection={<IconEye size={16} />} variant="light">Preview</Button>
-            <Button leftSection={<IconDeviceFloppy size={16} />} color="blue">Save</Button>
-          </Group>
-        </Group>
-        
+      <Box style={{ flex: '1', overflowY: 'auto' }}>
         {/* Dynamic Content */}
         {renderMainContent()}
       </Box>

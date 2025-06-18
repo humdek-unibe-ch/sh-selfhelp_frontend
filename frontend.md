@@ -2,7 +2,208 @@
 
 # Frontend Development Log
 
-## Enhanced Tree Interface with Pragmatic Drag and Drop (Latest Update)
+## Enhanced Drag & Drop with Professional Visual Feedback (Latest Update)
+
+**Date**: Current Session  
+**Changes**: Implemented professional-grade drag and drop experience with enhanced visual feedback, custom previews, and proper drop indicators following Pragmatic DnD best practices
+
+### Key Improvements
+
+#### 1. Professional Drop Indicators
+- **Precise Edge Detection**: Enhanced hitboxes for accurate drop targeting
+- **Visual Drop Lines**: Blue lines with terminal dots showing exact drop location
+- **Real-time Feedback**: Immediate visual response during drag operations
+- **Glowing Effects**: Subtle shadows and glows for better visibility
+- **Z-index Management**: Proper layering to ensure indicators are always visible
+
+#### 2. Custom Drag Preview
+- **Professional Design**: Clean white card with blue border and shadow
+- **Custom Positioning**: Preview positioned outside cursor for better visibility
+- **Section Name Display**: Shows the section being dragged with proper typography
+- **Responsive Sizing**: Adapts to content while maintaining maximum width
+- **Smooth Transitions**: Proper easing and animation timing
+
+#### 3. Enhanced Visual States
+- **Drag States**: Clear visual distinction between idle, dragging, and drop target states
+- **Color Coding**: Blue for general drag operations, consistent with design system
+- **Border Animations**: Dynamic border styles (solid/dashed) based on state
+- **Opacity Changes**: Subtle opacity adjustments during drag operations
+- **Smooth Transitions**: CSS transitions with proper easing curves
+
+#### 4. Accessibility Enhancements
+- **Screen Reader Announcements**: Live region updates for drag operations
+- **Keyboard Navigation**: Full keyboard support for all operations
+- **Focus Management**: Proper focus handling after operations complete
+- **ARIA Labels**: Comprehensive labeling for assistive technologies
+- **Status Updates**: Clear announcements for start, move, and completion
+
+#### 5. Performance Optimizations
+- **Auto-scroll**: Smooth scrolling during drag operations
+- **Efficient Rendering**: Optimized re-renders with proper memoization
+- **Event Handling**: Debounced updates for smooth performance
+- **Memory Management**: Proper cleanup of event listeners and references
+
+### Technical Implementation
+
+#### Drop Indicator System
+```typescript
+// Enhanced drop indicators with terminal dots
+{closestEdge === 'top' && (
+  <Box style={{ position: 'relative', height: '2px' }}>
+    <DropIndicator edge="top" gap="8px" />
+    <Box style={{
+      position: 'absolute',
+      backgroundColor: 'var(--mantine-color-blue-6)',
+      height: '2px',
+      boxShadow: '0 0 8px var(--mantine-color-blue-4)',
+      zIndex: 10
+    }} />
+    <Box style={{
+      width: '8px',
+      height: '8px',
+      backgroundColor: 'var(--mantine-color-blue-6)',
+      borderRadius: '50%',
+      zIndex: 11
+    }} />
+  </Box>
+)}
+```
+
+#### Custom Drag Preview
+```typescript
+setCustomNativeDragPreview({
+  nativeSetDragImage,
+  getOffset: pointerOutsideOfPreview({ x: '16px', y: '8px' }),
+  render: ({ container }) => {
+    const preview = document.createElement('div');
+    preview.style.cssText = `
+      background: white;
+      border: 2px solid var(--mantine-color-blue-4);
+      border-radius: 8px;
+      padding: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      font-weight: 500;
+      max-width: 250px;
+    `;
+    preview.textContent = section.name;
+    container.appendChild(preview);
+  },
+});
+```
+
+#### Visual State Management
+```typescript
+const getBackgroundColor = () => {
+  if (isBeingDragged) return 'var(--mantine-color-blue-0)';
+  if (isDropTarget && isDragActive) return 'var(--mantine-color-blue-0)';
+  return 'white';
+};
+
+const getBorderColor = () => {
+  if (isBeingDragged) return 'var(--mantine-color-blue-4)';
+  if (isDropTarget && isDragActive) return 'var(--mantine-color-blue-4)';
+  return 'var(--mantine-color-gray-3)';
+};
+```
+
+### Design Guidelines Compliance
+
+Following Pragmatic DnD design guidelines:
+
+#### Drop Placement Indication
+- **Drop Indicator Lines**: 2px stroke with blue color (`color.border.selected`)
+- **Terminal Dots**: 8px diameter with proper bleeding
+- **Background Changes**: Applied only when valid drop operations are possible
+- **Animation Timing**: 350ms duration with proper easing curves
+
+#### Post-Move Flash
+- **Flash Effect**: Implemented using `triggerPostMoveFlash` from flourish package
+- **Background Color**: Uses `color.background.selected` with 700ms duration
+- **Timing**: Slight delay for better visual feedback
+
+#### Accessibility
+- **Live Regions**: Screen reader announcements for all drag operations
+- **Focus Management**: Proper focus restoration after operations
+- **Keyboard Support**: Full keyboard navigation support
+
+### Benefits Achieved
+
+- **Professional UX**: Industry-standard drag and drop experience
+- **Clear Feedback**: Users always know where items will be dropped
+- **Accessibility**: Full support for assistive technologies
+- **Performance**: Smooth animations and efficient rendering
+- **Consistency**: Follows established design patterns and guidelines
+
+The interface now provides a professional, accessible, and visually clear drag-and-drop experience that meets modern UX standards and follows Pragmatic DnD best practices.
+
+## Modern CMS-Style Sections Interface (Previous Update)
+
+**Date**: Previous Session  
+**Changes**: Complete refactoring to modular components with modern CMS design and enhanced drag feedback
+
+### Key Improvements
+
+#### 1. Modular Component Architecture
+- **Refactored SectionsList**: Now uses existing `PageSection` component instead of custom tree items
+- **Enhanced PageSection**: Converted to forwardRef with modern CMS card design
+- **Removed Redundancy**: Eliminated duplicate code between components
+- **Clean Separation**: Clear separation between tree logic and UI presentation
+
+#### 2. Modern CMS Design
+- **Card-Based Layout**: Each section is now a modern card with rounded corners and shadows
+- **Visual Hierarchy**: Clear distinction between containers and regular sections
+- **Color-Coded Elements**: Blue for containers, gray for regular sections
+- **Professional Icons**: Folder icons for containers, proper visual indicators
+- **Smooth Animations**: Hover effects and transitions for better UX
+
+#### 3. Enhanced Drag & Drop Feedback
+- **Improved Hitboxes**: Better edge detection with visual feedback
+- **Enhanced Drop Indicators**: Glowing blue lines with shadows for precise targeting
+- **Real-time Feedback**: Visual states for dragging, dropping, and valid targets
+- **Auto-scroll**: Smooth scrolling during drag operations
+- **Accessibility**: Screen reader announcements and keyboard navigation
+
+#### 4. UI/UX Improvements
+- **Removed Page Header**: Cleaned up admin interface by removing preview/save buttons
+- **Page Name Integration**: Added page name directly to sections header
+- **Better Spacing**: Improved margins and padding for modern look
+- **Consistent Styling**: Unified design language across all section components
+- **Mobile-Friendly**: Responsive design that works on all screen sizes
+
+#### 5. Technical Enhancements
+- **ForwardRef Pattern**: Proper ref forwarding for drag operations
+- **Context Integration**: Better state management with drag context
+- **Performance**: Optimized rendering with proper memoization
+- **Type Safety**: Enhanced TypeScript interfaces for better development experience
+
+### Code Structure
+
+```typescript
+// Modern modular approach
+<SectionItem>
+  <PageSection> // Reusable component
+    <ActionButtons>
+    <DragHandle>
+    <SectionInfo>
+  </PageSection>
+</SectionItem>
+```
+
+### Visual Design Features
+- **Rounded Cards**: 12px border radius for modern look
+- **Subtle Shadows**: Elevation for depth perception
+- **Color States**: Different colors for drag states and drop targets
+- **Smooth Transitions**: 0.2s ease transitions for all interactions
+- **Professional Typography**: Clear hierarchy with proper font weights
+
+### Benefits Achieved
+- **Better UX**: More intuitive and visually appealing interface
+- **Maintainability**: Modular components reduce code duplication
+- **Consistency**: Unified design language across the application
+- **Performance**: Optimized rendering and smooth animations
+- **Accessibility**: Better support for screen readers and keyboard navigation
+
+## Enhanced Tree Interface with Pragmatic Drag and Drop (Previous Update)
 
 **Date**: Current Session  
 **Changes**: Complete overhaul of the sections tree interface with advanced features and UI reorganization
@@ -1493,6 +1694,562 @@ const calculateFinalPosition = (pages: IMenuPageItem[], targetIndex: number): nu
 - **Bulk Operations**: Could support creating multiple child pages at once
 - **Template System**: Could provide templates based on parent page structure
 - **Advanced Positioning**: Could support more sophisticated menu positioning algorithms
+
+## CreatePage Modal Redesign - Enhanced UX & Drag-and-Drop Fixes (Latest Update)
+
+### Overview
+Further enhanced the CreatePage modal with improved drag-and-drop functionality, better URL validation, streamlined layout, and proper CSS module usage following Mantine UI best practices.
+
+### Key Improvements Made
+
+#### 1. Drag-and-Drop Fixes
+- **Fixed Positioning Issues**: Resolved drag element positioning problems that made precise dropping difficult
+- **Smooth Dragging**: Implemented proper cursor states and visual feedback following [Mantine UI drag-and-drop examples](https://ui.mantine.dev/category/dnd/)
+- **CSS Module Styling**: Moved all custom styling to `CreatePage.module.css` for better maintainability
+- **Proper Cursor States**: Added grab/grabbing cursors for better user feedback
+
+#### 2. URL Validation & Safety
+- **Space Prevention**: URL pattern now prevents spaces and converts them to hyphens
+- **Valid URL Characters**: Added regex validation for URL-safe characters only
+- **Auto-formatting**: Keyword automatically converted to lowercase with spaces replaced by hyphens
+- **Router Compatibility**: URLs now compatible with auto-router systems
+
+#### 3. Streamlined Layout
+- **Removed Page Type**: Eliminated unnecessary page type selection (kept in backend for compatibility)
+- **Horizontal Radio Layout**: Page access type options now displayed horizontally for better space usage
+- **Cleaner Interface**: Simplified form with only essential fields visible
+
+#### 4. CSS Module Implementation
+- **Proper Styling Separation**: All custom styles moved to CSS module
+- **Mantine Variable Usage**: Uses Mantine CSS custom properties for theme consistency
+- **Hover Effects**: Enhanced drag area hover states for better UX
+
+### Technical Implementation Details
+
+#### CSS Module Structure (`CreatePage.module.css`)
+```css
+.dragItem {
+    cursor: grab;
+}
+
+.dragItem:active {
+    cursor: grabbing;
+}
+
+.dragArea {
+    min-height: 120px;
+    border: 2px dashed var(--mantine-color-gray-4);
+    border-radius: var(--mantine-radius-sm);
+    background-color: var(--mantine-color-gray-0);
+}
+
+.dragArea:hover {
+    border-color: var(--mantine-color-blue-4);
+    background-color: var(--mantine-color-blue-0);
+}
+
+.pageAccessRadioGroup {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+```
+
+#### Enhanced URL Validation
+```typescript
+validate: {
+    keyword: (value) => {
+        if (!value?.trim()) return 'Keyword is required';
+        if (!/^[a-zA-Z0-9_-]+$/.test(value)) return 'Keyword can only contain letters, numbers, hyphens, and underscores';
+        return null;
+    },
+    urlPattern: (value) => {
+        if (!value?.trim()) return 'URL pattern is required';
+        if (!/^\/[a-zA-Z0-9_\-\/\[\]:]+$/.test(value)) {
+            return 'URL pattern must start with / and contain only valid URL characters (no spaces)';
+        }
+        return null;
+    },
+}
+```
+
+#### Smart URL Generation
+```typescript
+const generateUrlPattern = (keyword: string, isNavigation: boolean) => {
+    if (!keyword.trim()) return '';
+    // Remove spaces and convert to lowercase for URL safety
+    const cleanKeyword = keyword.trim().toLowerCase().replace(/\s+/g, '-');
+    const baseUrl = `/${cleanKeyword}`;
+    return isNavigation ? `${baseUrl}/[i:nav]` : baseUrl;
+};
+```
+
+#### Improved Drag-and-Drop Implementation
+```typescript
+const renderMenuItem = (item: IMenuPageItem, index: number) => (
+    <Draggable key={item.id} draggableId={item.id} index={index}>
+        {(provided, snapshot) => (
+            <Paper
+                ref={provided.innerRef}
+                {...provided.draggableProps}
+                className={item.isNew ? styles.newPageItem : ''}
+            >
+                <ActionIcon
+                    {...provided.dragHandleProps}
+                    className={item.isNew ? styles.dragItem : styles.dragItemDisabled}
+                >
+                    <IconGripVertical />
+                </ActionIcon>
+                {/* Content */}
+            </Paper>
+        )}
+    </Draggable>
+);
+```
+
+### User Experience Improvements
+
+#### 1. Drag-and-Drop Enhancements
+- **Precise Positioning**: Fixed cursor offset issues for accurate dropping
+- **Visual Feedback**: Clear hover states and cursor changes
+- **Smooth Interaction**: Follows Mantine UI drag-and-drop patterns
+- **Better Performance**: Optimized rendering during drag operations
+
+#### 2. Form Simplification
+- **Reduced Cognitive Load**: Removed unnecessary page type selection
+- **Horizontal Layout**: Page access options displayed in single row
+- **Clear Validation**: Immediate feedback for invalid URLs
+- **Auto-formatting**: Smart keyword-to-URL conversion
+
+#### 3. URL Safety Features
+- **Space Prevention**: Automatic space-to-hyphen conversion
+- **Lowercase Conversion**: Consistent URL formatting
+- **Character Validation**: Only URL-safe characters allowed
+- **Router Compatibility**: URLs work with modern routing systems
+
+### Design System Compliance
+
+#### CSS Module Benefits
+- **Theme Integration**: Uses Mantine CSS custom properties
+- **Maintainability**: Centralized styling in dedicated file
+- **Performance**: Scoped styles prevent conflicts
+- **Consistency**: Follows Mantine design patterns
+
+#### Mantine-First Approach
+- **Component Usage**: Maximized use of Mantine components
+- **Minimal Custom CSS**: Only essential custom styles in module
+- **Theme Variables**: Consistent with Mantine color system
+- **Responsive Design**: Inherits Mantine responsive behavior
+
+### Performance Optimizations
+- **CSS Modules**: Scoped styles with better performance
+- **Reduced Re-renders**: Optimized drag-and-drop state management
+- **Efficient Validation**: Regex patterns for fast URL validation
+- **Memory Management**: Proper cleanup of drag state
+
+### Accessibility Improvements
+- **Keyboard Navigation**: Full keyboard support for drag-and-drop
+- **Screen Reader Support**: Proper ARIA attributes maintained
+- **Focus Management**: Clear focus indicators during interactions
+- **Error Messaging**: Clear validation feedback for users
+
+### Benefits Achieved
+
+#### 1. Better Drag-and-Drop UX
+- **Precise Control**: Elements follow cursor accurately during drag
+- **Visual Clarity**: Clear feedback for drag states and drop zones
+- **Smooth Performance**: No lag or positioning issues
+- **Intuitive Interaction**: Follows established UI patterns
+
+#### 2. URL Safety & Validation
+- **Router Compatibility**: URLs work with auto-router systems
+- **Error Prevention**: Invalid characters blocked at input level
+- **Consistent Formatting**: Automatic standardization of URL patterns
+- **User Guidance**: Clear validation messages and placeholders
+
+#### 3. Streamlined Interface
+- **Faster Completion**: Fewer fields to complete
+- **Better Space Usage**: Horizontal layouts maximize screen real estate
+- **Cleaner Design**: Focus on essential functionality only
+- **Improved Readability**: Better visual hierarchy and organization
+
+### Future Enhancements
+- **Drag Preview**: Could add custom drag preview images
+- **Batch Operations**: Could support multiple page creation
+- **URL Suggestions**: Could suggest URL patterns based on content
+- **Advanced Validation**: Could add server-side URL uniqueness checking
+
+## Authentication & Data Management Improvements (Latest)
+
+### Authentication Flow Enhancement
+**Problem:** When access token was deleted but refresh token existed, users were immediately redirected to "no access" page even when refresh token was still valid.
+
+**Solution:** Enhanced authentication logic in `src/api/base.api.ts`:
+- Only redirect to login/no-access when refresh token is truly invalid (401/403 status or specific error messages)
+- Allow continued functionality when refresh token might still be valid
+- More intelligent error handling for both 401 errors and logged_in: false responses
+- Prevents premature redirects during token refresh process
+
+### React Query Cache Management
+**Problem:** After creating a page successfully, the admin pages list didn't update automatically.
+
+**Solution:** Implemented proper cache invalidation in `CreatePageModal`:
+- Added `useQueryClient` hook for cache management
+- Invalidate both `['adminPages']` and `['pages']` queries after successful page creation
+- Immediate refetch of admin pages for better UX
+- Updated success notification to confirm list update
+
+**Best Practices Implemented:**
+- `queryClient.invalidateQueries()` - Marks queries as stale
+- `queryClient.refetchQueries()` - Immediately refetches for instant UI update
+- Parallel invalidation using `Promise.all()` for efficiency
+- Comprehensive cache management for both admin and frontend navigation
+
+**Technical Implementation:**
+```typescript
+// Enhanced authentication error handling
+const isRefreshTokenInvalid = (refreshError as any)?.response?.status === 401 || 
+                            (refreshError as any)?.response?.status === 403 ||
+                            (refreshError as any)?.message?.includes('No refresh token available') ||
+                            (refreshError as any)?.message?.includes('refresh token');
+
+if (isRefreshTokenInvalid) {
+    // Only redirect when refresh token is truly invalid
+    authProvider.logout({ redirectPath: ROUTES.LOGIN });
+} else {
+    // Allow continued functionality with limited access
+    debug('Token refresh failed but refresh token may still be valid');
+}
+
+// Cache invalidation after page creation
+await Promise.all([
+    queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+    queryClient.invalidateQueries({ queryKey: ['pages'] }),
+    queryClient.refetchQueries({ queryKey: ['adminPages'] }),
+]);
+```
+
+## Dynamic Refine Resources System (Latest)
+
+### Concept: Context-Aware Resource Generation
+**Problem:** Refine.dev requires static resource definitions, but our application has dynamic pages that change based on user permissions and context (admin vs frontend).
+
+**Solution:** Implemented dynamic resource generation in `useAppNavigation` hook:
+- **Frontend Mode**: Returns navigation data for menus and routing
+- **Admin Mode**: Additionally generates Refine resources for admin interface
+
+### Technical Implementation
+
+#### Enhanced useAppNavigation Hook
+```typescript
+export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
+    const { isAdmin = false } = options;
+    
+    // ... existing navigation logic ...
+    
+    // Generate Refine resources for admin mode
+    let resources: any[] = [];
+    if (isAdmin) {
+        resources = pages.map(page => ({
+            name: page.keyword,
+            list: `/admin/pages/${page.keyword}`,
+            show: `/admin/pages/${page.keyword}`,
+            edit: `/admin/pages/${page.keyword}/edit`,
+            create: `/admin/pages/create`,
+            meta: {
+                label: page.keyword,
+                parent: page.parent ? pages.find(p => p.id_pages === page.parent)?.keyword : undefined,
+                canDelete: true,
+                nav: page.nav_position !== null,
+                navOrder: page.nav_position,
+                footer: page.footer_position !== null,
+                footerOrder: page.footer_position,
+                params: page.url.includes('[') ? { nav: { type: 'number' } } : {},
+                protocol: ['web']
+            }
+        }));
+    }
+    
+    return { pages, menuPages, footerPages, routes, resources, isLoading, error };
+}
+```
+
+#### RefineWrapper Integration
+```typescript
+function RefineWrapper({ children }: { children: React.ReactNode }) {
+    const pathname = usePathname();
+    const isAdmin = pathname?.startsWith('/admin');
+    const { resources, isLoading } = useAppNavigation({ isAdmin });
+
+    return (
+        <Refine
+            routerProvider={appRouter}
+            dataProvider={dataProvider(API_CONFIG.BASE_URL)}
+            authProvider={authProvider}
+            resources={resources} // Dynamic resources based on context
+            options={{
+                syncWithLocation: true,
+                warnWhenUnsavedChanges: true,
+                disableTelemetry: true,
+            }}
+        >
+            {children}
+        </Refine>
+    );
+}
+```
+
+### Benefits of This Approach
+
+#### 1. **Dynamic Resource Management**
+- **Context-Aware**: Different resources for admin vs frontend
+- **Permission-Based**: Only shows resources user has access to
+- **Real-Time Updates**: Resources update when pages are added/removed
+
+#### 2. **Refine.dev Integration**
+- **Automatic Routing**: Refine handles navigation between resources
+- **CRUD Operations**: Built-in support for list, show, edit, create operations
+- **Breadcrumbs**: Automatic breadcrumb generation based on resource hierarchy
+
+#### 3. **Scalability**
+- **No Static Configuration**: Resources generated from API data
+- **Maintainable**: Single source of truth for page structure
+- **Flexible**: Easy to add new resource types or modify existing ones
+
+### Resource Structure Explained
+
+Each generated resource includes:
+- **`name`**: Unique identifier (page keyword)
+- **`list`**: URL for listing items
+- **`show`**: URL for viewing single item
+- **`edit`**: URL for editing item
+- **`create`**: URL for creating new item
+- **`meta`**: Additional metadata for Refine features
+  - **`label`**: Display name
+  - **`parent`**: Hierarchical relationship
+  - **`canDelete`**: Permission flags
+  - **`nav`/`footer`**: Menu positioning info
+  - **`params`**: URL parameter definitions
+  - **`protocol`**: Supported access methods
+
+This system allows Refine to automatically handle:
+- Navigation between pages
+- Breadcrumb generation
+- Permission checking
+- URL parameter parsing
+- CRUD operation routing
+
+## Admin Authentication Flow Enhancement (Latest)
+
+### Problem: Premature Authentication Redirects
+**Issue:** The `AdminShellWrapper` was immediately redirecting users to "no access" when the access token expired, even when a valid refresh token existed that could obtain a new access token.
+
+**Root Cause:** The authentication check was based on the current authentication state without considering that a token refresh process might be in progress.
+
+### Solution: Smart Authentication Waiting Logic
+
+#### Enhanced AdminShellWrapper Logic
+```typescript
+export function AdminShellWrapper({ children }: AdminShellWrapperProps) {
+    const [waitingForRefresh, setWaitingForRefresh] = useState(false);
+    const refreshAttemptRef = useRef(false);
+    const timeoutRef = useRef<NodeJS.Timeout>();
+
+    useEffect(() => {
+        const accessToken = getAccessToken();
+        const refreshToken = getRefreshToken();
+
+        // If not authenticated but we have a refresh token, wait for potential refresh
+        if (!isAuthenticated && refreshToken && !refreshAttemptRef.current) {
+            setWaitingForRefresh(true);
+            refreshAttemptRef.current = true;
+
+            // Set a timeout to stop waiting after 10 seconds
+            timeoutRef.current = setTimeout(() => {
+                setWaitingForRefresh(false);
+                if (!isAuthenticated) {
+                    router.replace(ROUTES.LOGIN);
+                }
+            }, 10000);
+
+            return;
+        }
+
+        // If we were waiting for refresh and now we're authenticated, clear timeout
+        if (waitingForRefresh && isAuthenticated) {
+            clearTimeout(timeoutRef.current);
+            setWaitingForRefresh(false);
+            refreshAttemptRef.current = false;
+        }
+
+        // Proceed with normal auth checks only if not waiting for refresh
+        if (!waitingForRefresh) {
+            if (!isAuthenticated) {
+                router.replace(ROUTES.LOGIN);
+            } else if (!hasAdminAccess()) {
+                router.replace(ROUTES.NO_ACCESS);
+            }
+            setIsChecking(false);
+        }
+    }, [hasAdminAccess, isAuthenticated, isLoading, router, waitingForRefresh]);
+}
+```
+
+### Key Features
+
+#### 1. **Refresh Token Detection**
+- Checks for presence of refresh token before redirecting
+- Only waits for refresh if refresh token exists
+- Prevents unnecessary redirects when token refresh is possible
+
+#### 2. **Smart Waiting Logic**
+- **`waitingForRefresh`**: State to track if we're waiting for token refresh
+- **`refreshAttemptRef`**: Prevents multiple simultaneous refresh attempts
+- **`timeoutRef`**: 10-second timeout to prevent infinite waiting
+
+#### 3. **Enhanced User Experience**
+- Shows "Refreshing authentication..." message during refresh
+- Graceful fallback to login if refresh fails or times out
+- No premature redirects that interrupt user workflow
+
+#### 4. **Robust Error Handling**
+- Timeout mechanism prevents hanging on failed refresh attempts
+- Cleanup of timeouts on component unmount
+- Debug logging for troubleshooting authentication issues
+
+### Benefits
+
+#### ✅ **No More Premature Redirects**
+- Users aren't kicked out when access token expires if refresh token is valid
+- Smooth transition from expired to refreshed authentication state
+- Better user experience during token refresh process
+
+#### ✅ **Intelligent Waiting**
+- Only waits when refresh is actually possible (refresh token exists)
+- Reasonable timeout prevents infinite loading states
+- Clear feedback to user about what's happening
+
+#### ✅ **Backward Compatibility**
+- Still redirects appropriately when no refresh token exists
+- Maintains all existing security checks
+- Works with existing authentication infrastructure
+
+#### ✅ **Debug-Friendly**
+- Comprehensive logging for authentication state changes
+- Easy to troubleshoot authentication issues
+- Clear state tracking for development
+
+### Authentication Flow Sequence
+
+1. **Access Token Expires** → User tries to access admin area
+2. **AdminShellWrapper Checks** → Sees `isAuthenticated = false`
+3. **Refresh Token Check** → Finds valid refresh token in storage
+4. **Wait State** → Shows "Refreshing authentication..." message
+5. **Background Refresh** → Base API interceptor attempts token refresh
+6. **Success Path** → Authentication state updates, user continues
+7. **Failure Path** → Timeout triggers, user redirected to login
+
+This creates a much smoother authentication experience where users aren't unnecessarily interrupted by login prompts when their session can be automatically renewed.
+
+### Critical Fix: Token Refresh Timing Issue
+
+**Additional Problem Discovered:** After successful token refresh, the `hasAdminAccess()` function was still using stale user data, causing users to be redirected to "no access" even though they had valid admin permissions in the new token.
+
+**Root Cause:** Timing mismatch between:
+1. Token refresh completion (new token in localStorage)
+2. Refine's `useIsAuthenticated` updating to `true`
+3. `useAuth` hook's user data updating with new token permissions
+
+**Solution:** Direct token validation bypass for fresh data:
+
+```typescript
+// Instead of relying on potentially stale hook data
+if (!hasAdminAccess()) {
+    router.replace(ROUTES.NO_ACCESS); // ❌ Uses stale data
+}
+
+// Use fresh token data directly
+const currentToken = getAccessToken();
+const currentUser = getCurrentUser();
+const hasCurrentAdminAccess = currentUser ? checkPermission(PERMISSIONS.ADMIN_ACCESS, currentUser) : false;
+
+if (!hasCurrentAdminAccess) {
+    router.replace(ROUTES.NO_ACCESS); // ✅ Uses fresh data
+}
+```
+
+**Additional Safeguards:**
+- **100ms delay** after successful refresh to allow hook state updates
+- **Comprehensive debug logging** to track both hook and direct token data
+- **Fallback validation** using direct token parsing instead of hook state
+
+This ensures that users with valid admin permissions aren't incorrectly redirected after token refresh.
+
+## Proper Logout Implementation with Refine (Latest)
+
+### Problem: Manual Logout Not Using Refine Flow
+**Issue:** The logout functionality was manually calling `AuthApi.logout()` and `router.push()`, which bypassed Refine's authentication flow and didn't properly handle redirects.
+
+**Solution:** Implemented proper Refine logout using `useLogout` hook:
+
+#### Enhanced AuthButton with Refine Logout
+```typescript
+import { useIsAuthenticated, useLogout } from '@refinedev/core';
+
+export function AuthButton() {
+    const { mutate: logout, isLoading: isLoggingOut } = useLogout();
+    
+    const handleLogout = () => {
+        setStableAuthState(false); // Immediate UI update
+        
+        // Use Refine's logout hook which will:
+        // 1. Call the auth provider's logout method
+        // 2. Handle the redirect automatically based on redirectTo
+        logout({
+            redirectPath: ROUTES.LOGIN
+        });
+    };
+
+    return (
+        <Menu.Item
+            color="red"
+            leftSection={<IconLogout size={14} />}
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+        >
+            {isLoggingOut ? 'Logging out...' : 'Logout'}
+        </Menu.Item>
+    );
+}
+```
+
+### Benefits of Refine Logout
+
+#### ✅ **Proper Integration**
+- Uses Refine's authentication flow instead of manual API calls
+- Automatically handles the `redirectTo` value from auth provider
+- Integrates with Refine's internal state management
+
+#### ✅ **Better User Experience**
+- Loading states during logout process
+- Disabled logout button to prevent multiple clicks
+- Immediate UI feedback with "Logging out..." message
+
+#### ✅ **Consistent Behavior**
+- Uses `router.replace()` instead of `router.push()` to prevent back button issues
+- Proper cleanup of authentication state
+- Consistent with Refine's authentication patterns
+
+### Authentication Flow Sequence
+
+1. **User clicks logout** → `handleLogout()` called
+2. **Immediate UI update** → Button shows "Logging out..." and becomes disabled
+3. **Refine logout hook** → Calls `authProvider.logout()`
+4. **Auth provider cleanup** → Calls `AuthApi.logout()` and clears tokens
+5. **Automatic redirect** → Refine handles redirect to `ROUTES.LOGIN`
+6. **AdminShell detection** → Detects unauthenticated state and reinforces redirect
+
+This creates a robust logout flow that properly integrates with Refine's authentication system and provides clear feedback to users throughout the process.
 
 ## CreatePage Modal Redesign - Enhanced UX & Drag-and-Drop Fixes (Latest Update)
 

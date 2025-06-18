@@ -1,9 +1,17 @@
 'use client';
 
-import { Box, Text } from '@mantine/core';
+import { forwardRef, RefObject } from 'react';
+import { Box, Text, Paper, Group, Badge, ActionIcon, Tooltip } from '@mantine/core';
+import { 
+    IconChevronRight, 
+    IconChevronDown, 
+    IconPlus, 
+    IconTrash, 
+    IconGripVertical,
+    IconFolder,
+    IconFolderOpen
+} from '@tabler/icons-react';
 import { IPageField } from '../../../../../types/common/pages.type';
-import { SectionHeader } from './SectionHeader';
-import styles from './PageSections.module.css';
 
 interface IPageSectionProps {
     section: IPageField;
@@ -18,11 +26,14 @@ interface IPageSectionProps {
     isDragActive: boolean;
     overId: string | number | null;
     draggedSectionId?: number | null;
-    dragHandleProps?: any; // Generic drag handle props for Pragmatic Drag and Drop
+    dragHandleProps?: any;
     isDragging?: boolean;
+    actionMenuRef?: RefObject<HTMLButtonElement>;
+    customStyle?: React.CSSProperties;
+    showInsideDropZone?: boolean;
 }
 
-export function PageSection({
+export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     section,
     level,
     parentId,
@@ -36,77 +47,218 @@ export function PageSection({
     overId,
     draggedSectionId,
     dragHandleProps,
-    isDragging = false
-}: IPageSectionProps) {
+    isDragging = false,
+    actionMenuRef,
+    customStyle,
+    showInsideDropZone = false
+}, ref) => {
     const hasChildren = section.children && section.children.length > 0;
     const isExpanded = expandedSections.has(section.id);
-    const isValidDropTarget = !!section.can_have_children && overId === section.id;
-    
-    // Check if this section or any of its ancestors is being dragged
+    const canHaveChildren = !!section.can_have_children;
     const isBeingDragged = draggedSectionId === section.id;
-    
-    // Show child drop zone if: can have children, has no children, and someone is dragging (but not this element)
-    const shouldShowChildDropZone = !!section.can_have_children && !hasChildren && isDragActive && !isBeingDragged;
+    const isValidDropTarget = canHaveChildren && overId === section.id;
+
+    // Modern CMS styling
+    const getSectionTypeColor = () => {
+        if (canHaveChildren) return 'blue';
+        return 'gray';
+    };
+
+    const getSectionIcon = () => {
+        if (canHaveChildren) {
+            return hasChildren && isExpanded ? <IconFolderOpen size={16} /> : <IconFolder size={16} />;
+        }
+        return null;
+    };
+
+    const handleToggleExpand = () => {
+        if (hasChildren) {
+            onToggleExpand(section.id);
+        }
+    };
+
+    const handleRemoveSection = () => {
+        if (window.confirm(`Remove section "${section.name}"?`)) {
+            onRemoveSection(section.id, parentId);
+        }
+    };
+
+    const handleAddChild = () => {
+        if (canHaveChildren && onAddChildSection) {
+            onAddChildSection(section.id);
+        }
+    };
+
+    const handleAddSiblingAbove = () => {
+        if (onAddSiblingAbove) {
+            onAddSiblingAbove(section.id, parentId);
+        }
+    };
+
+    const handleAddSiblingBelow = () => {
+        if (onAddSiblingBelow) {
+            onAddSiblingBelow(section.id, parentId);
+        }
+    };
 
     return (
-        <Box 
-            className={`${styles.sectionItem} ${styles[`level${Math.min(level, 4)}`]}`}
-            mb={2}
+        <Paper
+            ref={ref}
+            withBorder
             style={{
-                opacity: isDragging ? 0.5 : 1,
-                marginLeft: level * 16, // Indentation based on level
+                backgroundColor: isBeingDragged 
+                    ? 'var(--mantine-color-blue-0)' 
+                    : isValidDropTarget && isDragActive 
+                    ? 'var(--mantine-color-green-0)'
+                    : 'white',
+                borderColor: isBeingDragged 
+                    ? 'var(--mantine-color-blue-4)' 
+                    : isValidDropTarget && isDragActive 
+                    ? 'var(--mantine-color-green-4)'
+                    : 'var(--mantine-color-gray-3)',
+                borderWidth: isBeingDragged || (isValidDropTarget && isDragActive) ? '2px' : '1px',
+                borderStyle: isBeingDragged ? 'dashed' : 'solid',
+                opacity: isDragging ? 0.6 : 1,
+                transition: 'all 0.2s ease',
+                cursor: isDragging ? 'grabbing' : 'default',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                ...customStyle
             }}
+            {...dragHandleProps}
         >
-            {/* Section Header */}
-            <SectionHeader
-                section={section}
-                level={level}
-                parentId={parentId}
-                hasChildren={hasChildren}
-                isExpanded={isExpanded}
-                onToggleExpand={onToggleExpand}
-                onRemoveSection={onRemoveSection}
-                onAddChildSection={onAddChildSection}
-                onAddSiblingAbove={onAddSiblingAbove}
-                onAddSiblingBelow={onAddSiblingBelow}
-                onMoveUp={(sectionId, parentId) => console.log('Move up placeholder', { sectionId, parentId })}
-                onMoveDown={(sectionId, parentId) => console.log('Move down placeholder', { sectionId, parentId })}
-                onInspectSection={(sectionId) => console.log('Inspect section placeholder', { sectionId })}
-                onNavigateToSection={(sectionId) => console.log('Navigate to section placeholder', { sectionId })}
-                dragHandleProps={dragHandleProps}
-                isDragging={isDragging}
-                isValidDropTarget={isValidDropTarget}
-                isDragActive={isDragActive}
-                isBeingDragged={isBeingDragged}
-            />
-            
-            {/* Child Drop Zone - moves with the element */}
-            {shouldShowChildDropZone && (
+            <Group gap="sm" p="md" wrap="nowrap" align="center">
+                {/* Drag Handle */}
+                <ActionIcon
+                    variant="subtle"
+                    size="sm"
+                    color="gray"
+                    style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+                >
+                    <IconGripVertical size={16} />
+                </ActionIcon>
+
+                {/* Expand/Collapse Toggle */}
+                <ActionIcon
+                    variant="subtle"
+                    size="sm"
+                    onClick={handleToggleExpand}
+                    disabled={!hasChildren}
+                    style={{ 
+                        opacity: hasChildren ? 1 : 0.3,
+                        cursor: hasChildren ? 'pointer' : 'default'
+                    }}
+                >
+                    {hasChildren ? (
+                        isExpanded ? <IconChevronDown size={16} /> : <IconChevronRight size={16} />
+                    ) : (
+                        <Box style={{ width: 16, height: 16 }} />
+                    )}
+                </ActionIcon>
+
+                {/* Section Icon */}
+                <Box style={{ color: `var(--mantine-color-${getSectionTypeColor()}-6)` }}>
+                    {getSectionIcon()}
+                </Box>
+
+                {/* Section Info */}
+                <Box style={{ flex: 1, minWidth: 0 }}>
+                    <Group gap="xs" wrap="nowrap">
+                        <Text size="sm" fw={500} truncate>
+                            {section.name}
+                        </Text>
+                        <Badge size="xs" variant="light" color={getSectionTypeColor()}>
+                            {section.style_name}
+                        </Badge>
+                        {canHaveChildren && (
+                            <Badge size="xs" variant="dot" color="blue">
+                                Container
+                            </Badge>
+                        )}
+                        {hasChildren && (
+                            <Badge size="xs" variant="outline" color="gray">
+                                {section.children?.length || 0} items
+                            </Badge>
+                        )}
+                    </Group>
+                    <Text size="xs" c="dimmed">
+                        ID: {section.id} • Position: {section.position}
+                    </Text>
+                </Box>
+
+                {/* Action Buttons */}
+                <Group gap={4}>
+                    {canHaveChildren && (
+                        <Tooltip label="Add child section">
+                            <ActionIcon
+                                size="sm"
+                                variant="light"
+                                color="green"
+                                onClick={handleAddChild}
+                            >
+                                <IconPlus size={14} />
+                            </ActionIcon>
+                        </Tooltip>
+                    )}
+                    
+                    <Tooltip label="Add section above">
+                        <ActionIcon
+                            size="sm"
+                            variant="light"
+                            color="blue"
+                            onClick={handleAddSiblingAbove}
+                        >
+                            <IconPlus size={14} />
+                        </ActionIcon>
+                    </Tooltip>
+                    
+                    <Tooltip label="Add section below">
+                        <ActionIcon
+                            size="sm"
+                            variant="light"
+                            color="blue"
+                            onClick={handleAddSiblingBelow}
+                        >
+                            <IconPlus size={14} />
+                        </ActionIcon>
+                    </Tooltip>
+
+                    <Tooltip label="Remove section">
+                        <ActionIcon
+                            ref={actionMenuRef}
+                            size="sm"
+                            variant="light"
+                            color="red"
+                            onClick={handleRemoveSection}
+                        >
+                            <IconTrash size={14} />
+                        </ActionIcon>
+                    </Tooltip>
+                </Group>
+            </Group>
+
+            {/* Child Drop Zone for empty containers */}
+            {showInsideDropZone && (
                 <Box
                     style={{
-                        marginTop: 8,
-                        marginLeft: 16, // Additional indentation for child level
+                        margin: '8px 16px 16px 16px',
                         minHeight: 40,
-                        backgroundColor: 'var(--mantine-color-gray-0)',
-                        border: '2px dashed var(--mantine-color-blue-5)',
+                        backgroundColor: 'var(--mantine-color-blue-0)',
+                        border: '2px dashed var(--mantine-color-blue-4)',
                         borderRadius: '8px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        transition: 'all 0.2s ease',
-                        opacity: isDragging ? 0.5 : 1, // Same opacity as parent when dragging
+                        transition: 'all 0.2s ease'
                     }}
                 >
-                    <Text 
-                        size="sm" 
-                        fw={500}
-                        c={level > 0 ? "blue.6" : "gray.6"}
-                        ta="center"
-                    >
-                        📁 Drop here to add first child
+                    <Text size="sm" c="blue.6" ta="center">
+                        📁 Drop here to add first child section
                     </Text>
                 </Box>
             )}
-        </Box>
+        </Paper>
     );
-} 
+});
+
+PageSection.displayName = 'PageSection'; 

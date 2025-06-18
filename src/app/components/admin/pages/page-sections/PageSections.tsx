@@ -32,6 +32,7 @@ import { debug } from '../../../../../utils/debug-logger';
 
 interface IPageSectionsProps {
     keyword: string | null;
+    pageName?: string;
 }
 
 interface IMoveData {
@@ -45,7 +46,7 @@ interface IMoveData {
     totalMovingItems: number;
 }
 
-export function PageSections({ keyword }: IPageSectionsProps) {
+export function PageSections({ keyword, pageName }: IPageSectionsProps) {
     const { data, isLoading, error } = usePageSections(keyword);
     const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
     const [addSectionModalOpened, setAddSectionModalOpened] = useState(false);
@@ -263,7 +264,9 @@ export function PageSections({ keyword }: IPageSectionsProps) {
             <Group justify="space-between" mb="xs" px="xs">
                 <Group gap="xs">
                     <IconFile size={16} />
-                    <Title order={6} size="sm">Page Sections</Title>
+                    <Title order={6} size="sm">
+                        {pageName ? `${pageName} - Sections` : 'Page Sections'}
+                    </Title>
                     <Badge size="xs" variant="light" color="blue">
                         {data.sections.length}
                     </Badge>
