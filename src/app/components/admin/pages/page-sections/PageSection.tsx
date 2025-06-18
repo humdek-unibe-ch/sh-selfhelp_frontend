@@ -140,6 +140,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                 className={`${styles.sectionItem} ${getLevelClass()} ${isSelected ? styles.selected : ''} ${isFocused ? styles.focused : ''}`}
                 onClick={handleSectionClick}
                 style={{ cursor: 'pointer' }}
+                data-section-id={section.id}
             >
                 <Group gap="xs" p="xs" wrap="nowrap" align="center" className={styles.compactGroup}>
                     {/* Drag Handle - properly connected */}

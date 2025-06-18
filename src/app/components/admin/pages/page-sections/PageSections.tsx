@@ -122,19 +122,82 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
         return results;
     }, []);
 
+    // Helper function to expand all parent sections of a given section
+    const expandParentsOfSection = useCallback((sectionId: number) => {
+        if (!data?.sections) return;
+        
+        const parentsToExpand = new Set<number>();
+        
+        const findParents = (sections: IPageField[], parentId: number | null = null): boolean => {
+            for (const section of sections) {
+                if (section.id === sectionId) {
+                    return true; // Found the target section
+                }
+                
+                if (section.children) {
+                    const foundInChildren = findParents(section.children, section.id);
+                    if (foundInChildren) {
+                        parentsToExpand.add(section.id); // This section contains the target
+                        return true;
+                    }
+                }
+            }
+            return false;
+        };
+        
+        findParents(data.sections);
+        
+        if (parentsToExpand.size > 0) {
+            setExpandedSections(prev => new Set([...Array.from(prev), ...Array.from(parentsToExpand)]));
+            debug('Auto-expanded parent sections', 'PageSections', { 
+                sectionId, 
+                expandedParents: Array.from(parentsToExpand) 
+            });
+        }
+    }, [data?.sections]);
+
+    // Helper function to scroll to a section element
+    const scrollToSection = useCallback((sectionId: number) => {
+        // Use setTimeout to ensure the DOM has updated after expansion
+        setTimeout(() => {
+            const sectionElement = document.querySelector(`[data-section-id="${sectionId}"]`);
+            if (sectionElement) {
+                sectionElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center',
+                    inline: 'nearest'
+                });
+                debug('Auto-scrolled to section', 'PageSections', { sectionId });
+            } else {
+                debug('Section element not found for auto-scroll', 'PageSections', { sectionId });
+            }
+        }, 100); // Small delay to allow for DOM updates
+    }, []);
+
     // Update search results when query changes
     useEffect(() => {
         if (searchQuery.trim() && data?.sections) {
             const results = searchInSections(data.sections, searchQuery.trim());
             setSearchResults(results);
-            setCurrentSearchIndex(results.length > 0 ? 0 : -1);
-            setFocusedSectionId(results.length > 0 ? results[0] : null);
+            if (results.length > 0) {
+                const firstResultId = results[0];
+                setCurrentSearchIndex(0);
+                setFocusedSectionId(firstResultId);
+                setSelectedSectionId(firstResultId);
+                
+                // Auto-expand and scroll to first result
+                expandParentsOfSection(firstResultId);
+                scrollToSection(firstResultId);
+            } else {
+                setCurrentSearchIndex(-1);
+                setFocusedSectionId(null);
+            }
         } else {
             setSearchResults([]);
             setCurrentSearchIndex(-1);
             setFocusedSectionId(null);
         }
-    }, [searchQuery, data?.sections, searchInSections]);
+    }, [searchQuery, data?.sections, searchInSections, expandParentsOfSection, scrollToSection]);
 
     // Expand all sections that contain search results
     useEffect(() => {
@@ -217,20 +280,38 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
         if (searchResults.length === 0) return;
         
         const nextIndex = (currentSearchIndex + 1) % searchResults.length;
+        const nextSectionId = searchResults[nextIndex];
+        
         setCurrentSearchIndex(nextIndex);
-        setFocusedSectionId(searchResults[nextIndex]);
-        setSelectedSectionId(searchResults[nextIndex]);
-        debug('Search next', 'PageSections', { index: nextIndex, sectionId: searchResults[nextIndex] });
+        setFocusedSectionId(nextSectionId);
+        setSelectedSectionId(nextSectionId);
+        
+        // Auto-expand parent sections containing the focused result
+        expandParentsOfSection(nextSectionId);
+        
+        // Auto-scroll to the focused element
+        scrollToSection(nextSectionId);
+        
+        debug('Search next', 'PageSections', { index: nextIndex, sectionId: nextSectionId });
     };
 
     const handleSearchPrevious = () => {
         if (searchResults.length === 0) return;
         
         const prevIndex = currentSearchIndex === 0 ? searchResults.length - 1 : currentSearchIndex - 1;
+        const prevSectionId = searchResults[prevIndex];
+        
         setCurrentSearchIndex(prevIndex);
-        setFocusedSectionId(searchResults[prevIndex]);
-        setSelectedSectionId(searchResults[prevIndex]);
-        debug('Search previous', 'PageSections', { index: prevIndex, sectionId: searchResults[prevIndex] });
+        setFocusedSectionId(prevSectionId);
+        setSelectedSectionId(prevSectionId);
+        
+        // Auto-expand parent sections containing the focused result
+        expandParentsOfSection(prevSectionId);
+        
+        // Auto-scroll to the focused element
+        scrollToSection(prevSectionId);
+        
+        debug('Search previous', 'PageSections', { index: prevIndex, sectionId: prevSectionId });
     };
 
     const handleSearchClear = () => {
@@ -460,6 +541,16 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
                         placeholder="Search sections by name, style, or ID..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.currentTarget.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && searchResults.length > 0) {
+                                e.preventDefault();
+                                handleSearchNext();
+                            }
+                            if (e.key === 'Escape') {
+                                e.preventDefault();
+                                handleSearchClear();
+                            }
+                        }}
                         leftSection={<IconSearch size={14} />}
                         rightSection={
                             searchQuery && (
