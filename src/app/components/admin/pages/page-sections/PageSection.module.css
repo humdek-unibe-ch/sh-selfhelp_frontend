@@ -76,7 +76,7 @@
     font-size: 11px !important;
 }
 
-/* Badge styling - even smaller */
+/* Badge styling */
 .styleBadge {
     font-size: 8px !important;
     height: 12px !important;
@@ -106,9 +106,9 @@
 }
 
 .actionButton {
-    min-width: 14px !important;
-    width: 14px !important;
-    height: 14px !important;
+    min-width: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
     transition: opacity 0.15s ease;
 }
 
@@ -116,21 +116,21 @@
     opacity: 0.8;
 }
 
-/* Level-based styling with VERY distinct colors - high contrast between siblings (NO BLUE - reserved for selection) */
-.level0 { border-left: 3px solid var(--mantine-color-red-6); }      /* Red */
-.level1 { border-left: 3px solid var(--mantine-color-green-6); }    /* Green - very different from red */
-.level2 { border-left: 3px solid var(--mantine-color-orange-6); }   /* Orange - very different from green */
-.level3 { border-left: 3px solid var(--mantine-color-violet-6); }   /* Purple - very different from orange */
-.level4 { border-left: 3px solid var(--mantine-color-teal-6); }     /* Teal - very different from purple */
-.level5 { border-left: 3px solid var(--mantine-color-pink-6); }     /* Pink - very different from teal */
-.level6 { border-left: 3px solid var(--mantine-color-lime-6); }     /* Lime - very different from pink */
-.level7 { border-left: 3px solid var(--mantine-color-indigo-6); }   /* Indigo - very different from lime */
-.level8 { border-left: 3px solid var(--mantine-color-yellow-6); }   /* Yellow - very different from indigo */
-.level9 { border-left: 3px solid var(--mantine-color-cyan-6); }     /* Cyan - very different from yellow */
-.level10 { border-left: 3px solid var(--mantine-color-grape-6); }   /* Grape - very different from cyan */
-.level11 { border-left: 3px solid var(--mantine-color-dark-6); }    /* Dark - very different from grape */
+/* Level-based styling with distinct colors for hierarchy */
+.level0 { border-left: 3px solid var(--mantine-color-red-6); }
+.level1 { border-left: 3px solid var(--mantine-color-green-6); }
+.level2 { border-left: 3px solid var(--mantine-color-orange-6); }
+.level3 { border-left: 3px solid var(--mantine-color-violet-6); }
+.level4 { border-left: 3px solid var(--mantine-color-teal-6); }
+.level5 { border-left: 3px solid var(--mantine-color-pink-6); }
+.level6 { border-left: 3px solid var(--mantine-color-lime-6); }
+.level7 { border-left: 3px solid var(--mantine-color-indigo-6); }
+.level8 { border-left: 3px solid var(--mantine-color-yellow-6); }
+.level9 { border-left: 3px solid var(--mantine-color-cyan-6); }
+.level10 { border-left: 3px solid var(--mantine-color-grape-6); }
+.level11 { border-left: 3px solid var(--mantine-color-dark-6); }
 
-/* Continue with darker shades for deeper levels */
+/* Deeper levels with darker shades */
 .level12 { border-left: 3px solid var(--mantine-color-red-7); }
 .level13 { border-left: 3px solid var(--mantine-color-green-7); }
 .level14 { border-left: 3px solid var(--mantine-color-orange-7); }
@@ -144,47 +144,13 @@
 .level22 { border-left: 3px solid var(--mantine-color-grape-7); }
 .level23 { border-left: 3px solid var(--mantine-color-dark-7); }
 
-/* For even deeper levels, use lighter shades */
+/* Even deeper levels with lighter shades */
 .level24 { border-left: 3px solid var(--mantine-color-red-4); }
 .level25 { border-left: 3px solid var(--mantine-color-green-4); }
 .level26 { border-left: 3px solid var(--mantine-color-orange-4); }
 .level27 { border-left: 3px solid var(--mantine-color-violet-4); }
 .level28 { border-left: 3px solid var(--mantine-color-teal-4); }
 .level29 { border-left: 3px solid var(--mantine-color-pink-4); }
-
-/* Drop zone for empty containers */
-.dropZone {
-    margin: 1px 2px 2px 2px;
-    min-height: 16px;
-    background-color: var(--mantine-color-blue-0);
-    border: 1px dashed var(--mantine-color-blue-4);
-    border-radius: 2px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s ease;
-}
-
-.dropZone:hover {
-    background-color: var(--mantine-color-blue-1);
-    border-color: var(--mantine-color-blue-5);
-}
-
-/* Container drop zone for drag operations */
-.containerDropZone {
-    animation: containerPulse 1.5s ease-in-out infinite alternate;
-}
-
-@keyframes containerPulse {
-    from {
-        opacity: 0.8;
-        box-shadow: 0 0 0 0 var(--mantine-color-green-4);
-    }
-    to {
-        opacity: 1;
-        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2);
-    }
-}
 
 /* Responsive adjustments */
 @media (max-width: 768px) {

@@ -38,18 +38,7 @@
     transition: background-color 200ms ease;
 }
 
-.sectionItemIndented {
-    margin-left: 24px;
-}
-
 /* Drag and drop states */
-.sectionItem {
-    background-color: white;
-    border: 1px solid var(--mantine-color-gray-3);
-    border-radius: 6px;
-    transition: all 0.2s cubic-bezier(0.15, 1.0, 0.3, 1.0);
-}
-
 .sectionItemWrapper.isDragging {
     opacity: 0.5;
 }
@@ -119,29 +108,7 @@
     box-shadow: 0 0 4px var(--mantine-color-green-4);
 }
 
-/* Make child indicator */
-.makeChildIndicator {
-    padding: 4px 8px;
-    margin: 4px 0;
-    background-color: var(--mantine-color-green-0);
-    border: 1px dashed var(--mantine-color-green-4);
-    border-radius: 4px;
-    text-align: center;
-    animation: containerPulse 2s ease-in-out infinite;
-}
-
-@keyframes containerPulse {
-    0%, 100% {
-        background-color: var(--mantine-color-green-0);
-        border-color: var(--mantine-color-green-4);
-    }
-    50% {
-        background-color: var(--mantine-color-green-1);
-        border-color: var(--mantine-color-green-5);
-    }
-}
-
-/* Children container - clean with no connecting lines */
+/* Children container */
 .childrenContainer {
     margin-top: 2px;
     padding-left: 0;
@@ -222,6 +189,9 @@
     background: var(--mantine-color-blue-1);
     color: var(--mantine-color-blue-7);
 }
+
+/* Level classes for dynamic level assignment */
+.level0 { }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {

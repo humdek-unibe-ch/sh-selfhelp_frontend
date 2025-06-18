@@ -155,7 +155,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                                 opacity: isDragActive ? 1 : 0.6
                             }}
                         >
-                            <IconGripVertical size={8} />
+                            <IconGripVertical />
                         </ActionIcon>
                     </div>
 
@@ -170,7 +170,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                             }}
                             className={styles.expandButton}
                         >
-                            {isExpanded ? <IconChevronDown size={8} /> : <IconChevronRight size={8} />}
+                            {isExpanded ? <IconChevronDown  /> : <IconChevronRight  />}
                         </ActionIcon>
                     ) : (
                         <Box w={12} />
@@ -229,40 +229,40 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                                     }}
                                     className={styles.actionButton}
                                 >
-                                    <IconPlus size={8} />
+                                    <IconPlus />
                                 </ActionIcon>
                             </Tooltip>
                         )}
                         
-                        <Tooltip label="Add above" position="top" withArrow>
-                            <ActionIcon
-                                size="xs"
-                                variant="subtle"
-                                color="blue"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleAddSiblingAbove();
-                                }}
-                                className={styles.actionButton}
-                            >
-                                <IconPlus size={8} />
-                            </ActionIcon>
-                        </Tooltip>
+                                                    <Tooltip label="Add above" position="top" withArrow>
+                                <ActionIcon
+                                    size="xs"
+                                    variant="subtle"
+                                    color="blue"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleAddSiblingAbove();
+                                    }}
+                                    className={styles.actionButton}
+                                >
+                                    <IconPlus />
+                                </ActionIcon>
+                            </Tooltip>
                         
-                        <Tooltip label="Add below" position="top" withArrow>
-                            <ActionIcon
-                                size="xs"
-                                variant="subtle"
-                                color="blue"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleAddSiblingBelow();
-                                }}
-                                className={styles.actionButton}
-                            >
-                                <IconPlus size={8} />
-                            </ActionIcon>
-                        </Tooltip>
+                                                    <Tooltip label="Add below" position="top" withArrow>
+                                <ActionIcon
+                                    size="xs"
+                                    variant="subtle"
+                                    color="blue"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleAddSiblingBelow();
+                                    }}
+                                    className={styles.actionButton}
+                                >
+                                    <IconPlus />
+                                </ActionIcon>
+                            </Tooltip>
 
                         <Tooltip label="Remove" position="top" withArrow>
                             <ActionIcon
@@ -276,7 +276,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                                 }}
                                 className={styles.actionButton}
                             >
-                                <IconTrash size={8} />
+                                <IconTrash />
                             </ActionIcon>
                         </Tooltip>
                     </Group>

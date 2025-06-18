@@ -1,42 +1,4 @@
-/* Compact sections container */
-.sectionsContainer {
-    max-height: 75vh;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 8px;
-    background: var(--mantine-color-gray-0);
-    border-radius: 8px;
-    border: 1px solid var(--mantine-color-gray-2);
-}
-
-/* Custom scrollbar */
-.sectionsContainer::-webkit-scrollbar {
-    width: 6px;
-}
-
-.sectionsContainer::-webkit-scrollbar-track {
-    background: var(--mantine-color-gray-1);
-    border-radius: 3px;
-}
-
-.sectionsContainer::-webkit-scrollbar-thumb {
-    background: var(--mantine-color-gray-4);
-    border-radius: 3px;
-}
-
-/* Sections list wrapper */
-.sectionsList {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-/* Compact spacing */
-.compactGroup {
-    gap: 4px !important;
-}
-
-/* Professional drag handle styling */
+/* Drag handle styling */
 .dragHandle {
     opacity: 0.3;
     transition: all 0.15s ease;
@@ -45,7 +7,6 @@
 
 .dragHandle:hover {
     opacity: 0.7;
-    transform: scale(1.05);
 }
 
 .dragHandle:active {
@@ -59,36 +20,4 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     max-width: 150px;
-}
-
-/* Drop indicators */
-.dropIndicator {
-    height: 2px;
-    background: linear-gradient(90deg, var(--mantine-color-blue-5), var(--mantine-color-blue-4));
-    border-radius: 1px;
-    box-shadow: 0 0 4px var(--mantine-color-blue-4);
-    animation: pulse 1s ease-in-out infinite alternate;
-}
-
-@keyframes pulse {
-    from {
-        opacity: 0.7;
-        transform: scaleY(0.8);
-    }
-    to {
-        opacity: 1;
-        transform: scaleY(1);
-    }
-}
-
-/* Empty state */
-.emptyState {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--mantine-color-gray-6);
-}
-
-.emptyState svg {
-    opacity: 0.5;
-    margin-bottom: 16px;
 }
