@@ -8,6 +8,10 @@
     margin-bottom: 1px;
 }
 
+.sectionItem:hover {
+    border-color: black;
+}
+
 .sectionItem:hover .actionButtons {
     opacity: 1;
 }
