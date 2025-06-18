@@ -1,0 +1,304 @@
+/* SectionsList Component Styles */
+
+/* Container styles */
+.sectionsContainer {
+    padding: 16px;
+    min-height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: var(--mantine-color-gray-0);
+    border-radius: 8px;
+}
+
+/* Custom scrollbar */
+.sectionsContainer::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sectionsContainer::-webkit-scrollbar-track {
+    background: var(--mantine-color-gray-1);
+    border-radius: 3px;
+}
+
+.sectionsContainer::-webkit-scrollbar-thumb {
+    background: var(--mantine-color-gray-4);
+    border-radius: 3px;
+}
+
+.sectionsContainer::-webkit-scrollbar-thumb:hover {
+    background: var(--mantine-color-gray-5);
+}
+
+/* Sections list */
+.sectionsList {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* Section item wrapper */
+.sectionItemWrapper {
+    position: relative;
+    transition: background-color 200ms ease;
+}
+
+.sectionItemIndented {
+    margin-left: 24px;
+}
+
+/* Drag and drop states */
+.sectionItem {
+    background-color: white;
+    border: 1px solid var(--mantine-color-gray-3);
+    border-radius: 6px;
+    transition: all 0.2s cubic-bezier(0.15, 1.0, 0.3, 1.0);
+}
+
+.sectionItemWrapper.isDragging {
+    opacity: 0.5;
+}
+
+.sectionItemWrapper.isDropTarget {
+    /* No background change for edge drops - only show line */
+}
+
+.sectionItemWrapper.isContainerDropTarget {
+    background: var(--mantine-color-green-0);
+    border: 2px solid var(--mantine-color-green-4);
+    border-radius: 6px;
+    transition: all 200ms ease;
+}
+
+.sectionItemWrapper.isBeingDragged {
+    background-color: var(--mantine-color-blue-0);
+    border-color: var(--mantine-color-blue-4);
+    border-width: 2px;
+    border-style: dashed;
+}
+
+.sectionItemWrapper.isDraggedOrChild {
+    opacity: 0.4;
+    transition: opacity 200ms ease;
+}
+
+/* Drop indicators */
+.dropIndicatorWrapper {
+    position: relative;
+    height: 8px;
+    margin: 4px 0;
+    z-index: 10;
+}
+
+.dropIndicatorWrapper.top {
+    margin-top: 0;
+    margin-bottom: 8px;
+}
+
+.dropIndicatorWrapper.bottom {
+    margin-top: 8px;
+    margin-bottom: 0;
+}
+
+.dropIndicatorLine {
+    position: absolute;
+    top: 50%;
+    left: -4px;
+    right: 0;
+    height: 3px;
+    background: var(--mantine-color-green-6);
+    border-radius: 2px;
+    transform: translateY(-50%);
+    box-shadow: 0 0 4px var(--mantine-color-green-4);
+}
+
+.dropIndicatorDot {
+    position: absolute;
+    top: 50%;
+    left: -8px;
+    width: 10px;
+    height: 10px;
+    background: var(--mantine-color-green-6);
+    border-radius: 50%;
+    transform: translateY(-50%);
+    box-shadow: 0 0 4px var(--mantine-color-green-4);
+}
+
+/* Make child indicator */
+.makeChildIndicator {
+    padding: 4px 8px;
+    margin: 4px 0;
+    background-color: var(--mantine-color-green-0);
+    border: 1px dashed var(--mantine-color-green-4);
+    border-radius: 4px;
+    text-align: center;
+    animation: containerPulse 2s ease-in-out infinite;
+}
+
+@keyframes containerPulse {
+    0%, 100% {
+        background-color: var(--mantine-color-green-0);
+        border-color: var(--mantine-color-green-4);
+    }
+    50% {
+        background-color: var(--mantine-color-green-1);
+        border-color: var(--mantine-color-green-5);
+    }
+}
+
+/* Children container */
+.childrenContainer {
+    margin-top: 8px;
+    padding-left: 0;
+    border-left: 2px solid var(--mantine-color-gray-2);
+    margin-left: 12px;
+    position: relative;
+}
+
+.childrenContainer::before {
+    content: '';
+    position: absolute;
+    left: -2px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--mantine-color-gray-2);
+    transition: background-color 200ms ease;
+}
+
+.childrenContainer:hover::before {
+    background: var(--mantine-color-blue-3);
+}
+
+/* Empty state */
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
+    background: var(--mantine-color-gray-0);
+    border: 2px dashed var(--mantine-color-gray-3);
+    border-radius: 8px;
+    min-height: 200px;
+}
+
+.emptyStateIcon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.6;
+}
+
+.emptyStateTitle {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--mantine-color-gray-8);
+    margin-bottom: 8px;
+}
+
+.emptyStateSubtitle {
+    font-size: 14px;
+    color: var(--mantine-color-gray-6);
+    max-width: 300px;
+}
+
+/* Processing state */
+.processingState {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    min-height: 200px;
+}
+
+.processingText {
+    font-size: 16px;
+    color: var(--mantine-color-gray-6);
+    font-weight: 500;
+}
+
+/* Drag handle styles */
+.dragHandle {
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    color: var(--mantine-color-gray-6);
+    transition: all 150ms ease;
+}
+
+.dragHandle:hover {
+    background: var(--mantine-color-gray-1);
+    color: var(--mantine-color-gray-8);
+}
+
+.dragHandle:active,
+.dragHandle.isDragging {
+    cursor: grabbing;
+    background: var(--mantine-color-blue-1);
+    color: var(--mantine-color-blue-7);
+}
+
+/* Level indentation */
+.level0 { margin-left: 0; }
+.level1 { margin-left: 24px; }
+.level2 { margin-left: 48px; }
+.level3 { margin-left: 72px; }
+.level4 { margin-left: 96px; }
+.level5 { margin-left: 120px; }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .level1 { margin-left: 16px; }
+    .level2 { margin-left: 32px; }
+    .level3 { margin-left: 48px; }
+    .level4 { margin-left: 64px; }
+    .level5 { margin-left: 80px; }
+    
+    .sectionsContainer {
+        max-height: 60vh;
+        padding: 4px;
+    }
+    
+    .childrenContainer {
+        margin-left: 8px;
+    }
+    
+    .dragHandle {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    .sectionItemWrapper,
+    .dropIndicatorLine,
+    .dropIndicatorDot,
+    .dragHandle {
+        animation: none;
+        transition: none;
+    }
+}
+
+/* Focus States */
+.dragHandle:focus {
+    outline: 2px solid var(--mantine-color-blue-6);
+    outline-offset: 2px;
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+    .dropIndicatorLine,
+    .dropIndicatorDot {
+        background: var(--mantine-color-green-9);
+    }
+    
+    .sectionItemWrapper.isContainerDropTarget {
+        background: var(--mantine-color-green-1);
+        border: 2px solid var(--mantine-color-green-9);
+    }
+} 

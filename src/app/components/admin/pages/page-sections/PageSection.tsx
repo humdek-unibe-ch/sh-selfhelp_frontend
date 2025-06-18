@@ -257,37 +257,6 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                         </Tooltip>
                     </Group>
                 </Group>
-
-                {/* Child Drop Zone for empty containers */}
-                {showInsideDropZone && canHaveChildren && !hasChildren && (
-                    <Box className={styles.dropZone}>
-                        <Text size="xs" c="blue.6" ta="center">
-                            Drop here to add first child
-                        </Text>
-                    </Box>
-                )}
-
-                {/* Container Drop Zone - shows when dragging over empty container */}
-                {isDragActive && canHaveChildren && !hasChildren && isValidDropTarget && (
-                    <Box 
-                        className={styles.containerDropZone}
-                        style={{
-                            margin: '4px 8px 8px 8px',
-                            minHeight: '32px',
-                            backgroundColor: 'var(--mantine-color-green-0)',
-                            border: '2px dashed var(--mantine-color-green-5)',
-                            borderRadius: '6px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            animation: 'pulse 1.5s ease-in-out infinite alternate'
-                        }}
-                    >
-                        <Text size="sm" c="green.7" fw={500} ta="center">
-                            📁 Drop inside this container
-                        </Text>
-                    </Box>
-                )}
             </Paper>
         </div>
     );
