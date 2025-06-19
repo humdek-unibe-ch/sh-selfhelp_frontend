@@ -277,23 +277,15 @@ export function MenuPositionEditor({
 
         if (edge === 'top') {
             if (targetIndex === 0) {
-                // Dropping above the first element
-                return targetPage.position - 10;
+                // Dropping above the first element - first position gets -1
+                return -1;
             }
-            // Dropping above target - take position between previous and target
+            // Dropping above target - take the position of the page above and add +5
             const previousPage = sortedPages[targetIndex - 1];
-            const gap = targetPage.position - previousPage.position;
-            return gap > 2 ? Math.floor((previousPage.position + targetPage.position) / 2) : previousPage.position + 1;
+            return previousPage.position + 5;
         } else {
-            // Dropping below target
-            if (targetIndex === sortedPages.length - 1) {
-                // Dropping below the last element
-                return targetPage.position + 10;
-            }
-            // Dropping below target - take position between target and next
-            const nextPage = sortedPages[targetIndex + 1];
-            const gap = nextPage.position - targetPage.position;
-            return gap > 2 ? Math.floor((targetPage.position + nextPage.position) / 2) : targetPage.position + 1;
+            // Dropping below target - take target's position and add +5
+            return targetPage.position + 5;
         }
     }, []);
 

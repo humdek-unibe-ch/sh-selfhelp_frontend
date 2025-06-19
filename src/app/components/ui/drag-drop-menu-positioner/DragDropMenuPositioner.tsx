@@ -298,23 +298,15 @@ export function DragDropMenuPositioner({
 
         if (edge === 'top') {
             if (targetIndex === 0) {
-                // Dropping above the first element
-                return targetPage.position - 10;
+                // Dropping above the first element - first position gets -1
+                return -1;
             }
-            // Dropping above target - take position between previous and target
+            // Dropping above target - take the position of the page above and add +5
             const previousPage = sortedPages[targetIndex - 1];
-            const gap = targetPage.position - previousPage.position;
-            return gap > 2 ? Math.floor((previousPage.position + targetPage.position) / 2) : previousPage.position + 1;
+            return previousPage.position + 5;
         } else {
-            // Dropping below target
-            if (targetIndex === sortedPages.length - 1) {
-                // Dropping below the last element
-                return targetPage.position + 10;
-            }
-            // Dropping below target - take position between target and next
-            const nextPage = sortedPages[targetIndex + 1];
-            const gap = nextPage.position - targetPage.position;
-            return gap > 2 ? Math.floor((targetPage.position + nextPage.position) / 2) : targetPage.position + 1;
+            // Dropping below target - take target's position and add +5
+            return targetPage.position + 5;
         }
     }, []);
 
@@ -540,27 +532,18 @@ export function DragDropMenuPositioner({
     // Calculate final position helper
     const calculateFinalPosition = (pages: IMenuPageItem[], targetIndex: number): number => {
         if (targetIndex <= 0) {
-            // First position
-            return pages.length > 0 ? pages[0].position - 10 : -1;
+            // First position gets -1
+            return -1;
         }
         
         if (targetIndex >= pages.length) {
-            // Last position
-            return pages.length > 0 ? pages[pages.length - 1].position + 10 : -1;
+            // Last position - take last page's position and add +5
+            return pages.length > 0 ? pages[pages.length - 1].position + 5 : -1;
         }
         
-        // Middle position - calculate between two existing positions
+        // Middle position - take the position of the page before the target index and add +5
         const prevPage = pages[targetIndex - 1];
-        const nextPage = pages[targetIndex];
-        const gap = nextPage.position - prevPage.position;
-        
-        // If there's enough gap, place in the middle
-        if (gap > 2) {
-            return Math.floor((prevPage.position + nextPage.position) / 2);
-        } else {
-            // Not enough gap - use next available position
-            return prevPage.position + 1;
-        }
+        return prevPage.position + 5;
     };
 
     // Get final calculated position for external use

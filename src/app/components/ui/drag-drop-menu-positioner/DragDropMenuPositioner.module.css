@@ -17,7 +17,6 @@
 
 .itemDragging {
     box-shadow: var(--mantine-shadow-sm);
-    transform: rotate(5deg);
 }
 
 .dragItem {
