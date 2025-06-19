@@ -29,6 +29,7 @@ import { DropIndicator } from '@atlaskit/pragmatic-drag-and-drop-react-drop-indi
 
 import { useAdminPages } from '../../../../hooks/useAdminPages';
 import { IAdminPage } from '../../../../types/responses/admin/admin.types';
+import { calculateMenuPosition } from '../../../../utils/position-calculator';
 
 interface IMenuPageItem {
     id: string;
@@ -272,21 +273,7 @@ export function MenuPositionEditor({
         edge: Edge | null,
         pages: IMenuPageItem[]
     ): number => {
-        const sortedPages = [...pages].sort((a, b) => a.position - b.position);
-        const targetIndex = sortedPages.findIndex(p => p.id === targetPage.id);
-
-        if (edge === 'top') {
-            if (targetIndex === 0) {
-                // Dropping above the first element - first position gets -1
-                return -1;
-            }
-            // Dropping above target - take the position of the page above and add +5
-            const previousPage = sortedPages[targetIndex - 1];
-            return previousPage.position + 5;
-        } else {
-            // Dropping below target - take target's position and add +5
-            return targetPage.position + 5;
-        }
+        return calculateMenuPosition(targetPage, edge, pages);
     }, []);
 
     // Filter and prepare menu pages

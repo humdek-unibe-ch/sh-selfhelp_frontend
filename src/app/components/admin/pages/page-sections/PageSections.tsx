@@ -39,6 +39,7 @@ import {
 import { IPageField } from '../../../../../types/common/pages.type';
 import { SectionsList } from './SectionsList';
 import { AddSectionModal } from './AddSectionModal';
+import { calculateSiblingBelowPosition } from '../../../../../utils/position-calculator';
 import styles from './PageSections.module.css';
 
 interface IPageSectionsProps {
@@ -433,10 +434,10 @@ export function PageSections({ keyword, pageName, initialSelectedSectionId }: IP
         const referenceSection = findSectionById(referenceSectionId, data.sections);
         if (!referenceSection) return;
         
-        const newPosition = referenceSection.position + 5;
+        const result = calculateSiblingBelowPosition(referenceSection, parentId);
         
         setSelectedParentSectionId(parentId);
-        setSpecificPosition(newPosition);
+        setSpecificPosition(result.newPosition);
         setAddSectionModalOpened(true);
     };
 

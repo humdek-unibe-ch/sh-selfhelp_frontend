@@ -29,6 +29,7 @@ import { DropIndicator } from '@atlaskit/pragmatic-drag-and-drop-react-drop-indi
 import { useAdminPages } from '../../../../hooks/useAdminPages';
 import { IAdminPage } from '../../../../types/responses/admin/admin.types';
 import { debug } from '../../../../utils/debug-logger';
+import { calculateMenuPosition, calculateFinalMenuPosition } from '../../../../utils/position-calculator';
 import styles from './DragDropMenuPositioner.module.css';
 
 export interface IMenuPageItem {
@@ -293,21 +294,7 @@ export function DragDropMenuPositioner({
         edge: Edge | null,
         pages: IMenuPageItem[]
     ): number => {
-        const sortedPages = [...pages].sort((a, b) => a.position - b.position);
-        const targetIndex = sortedPages.findIndex(p => p.id === targetPage.id);
-
-        if (edge === 'top') {
-            if (targetIndex === 0) {
-                // Dropping above the first element - first position gets -1
-                return -1;
-            }
-            // Dropping above target - take the position of the page above and add +5
-            const previousPage = sortedPages[targetIndex - 1];
-            return previousPage.position + 5;
-        } else {
-            // Dropping below target - take target's position and add +5
-            return targetPage.position + 5;
-        }
+        return calculateMenuPosition(targetPage, edge, pages);
     }, []);
 
     // Process admin pages into menu items based on context
@@ -531,19 +518,7 @@ export function DragDropMenuPositioner({
 
     // Calculate final position helper
     const calculateFinalPosition = (pages: IMenuPageItem[], targetIndex: number): number => {
-        if (targetIndex <= 0) {
-            // First position gets -1
-            return -1;
-        }
-        
-        if (targetIndex >= pages.length) {
-            // Last position - take last page's position and add +5
-            return pages.length > 0 ? pages[pages.length - 1].position + 5 : -1;
-        }
-        
-        // Middle position - take the position of the page before the target index and add +5
-        const prevPage = pages[targetIndex - 1];
-        return prevPage.position + 5;
+        return calculateFinalMenuPosition(pages, targetIndex);
     };
 
     // Get final calculated position for external use

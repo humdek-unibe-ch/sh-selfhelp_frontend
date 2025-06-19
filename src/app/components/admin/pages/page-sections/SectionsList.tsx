@@ -27,6 +27,7 @@ import { DropIndicator } from '@atlaskit/pragmatic-drag-and-drop-react-drop-indi
 
 import { IPageField } from '../../../../../types/common/pages.type';
 import { PageSection } from './PageSection';
+import { calculateDragDropPosition, calculateContainerDropPosition } from '../../../../../utils/position-calculator';
 import styles from './SectionsList.module.css';
 
 // Types
@@ -642,13 +643,7 @@ export function SectionsList({
     }, []);
 
     /**
-     * Calculates the new position for a dropped section using simple positioning logic:
-     * 
-     * Position Logic:
-     * - First element: -1
-     * - Any other position: previous sibling's position + 5
-     * 
-     * This ensures we always place the element after the intended sibling.
+     * Calculates the new position for a dropped section using centralized positioning logic
      */
     const calculateNewPosition = useCallback((
         targetSection: IPageField,
@@ -658,9 +653,10 @@ export function SectionsList({
     ): { newParentId: number | null; newPosition: number } => {
         if (isContainerDrop) {
             // Dropping into a container - becomes first child
+            const result = calculateContainerDropPosition(targetSection.id);
             return {
-                newParentId: targetSection.id,
-                newPosition: -1
+                newParentId: result.newParentId as number | null,
+                newPosition: result.newPosition
             };
         }
 
@@ -669,31 +665,11 @@ export function SectionsList({
             ? (findSectionById(targetParentId, sections)?.children || [])
             : sections;
 
-        const sortedSiblings = [...siblings].sort((a, b) => a.position - b.position);
-        const targetIndex = sortedSiblings.findIndex(s => s.id === targetSection.id);
-
-        if (edge === 'top') {
-            if (targetIndex === 0) {
-                // Dropping above the first element - becomes new first element
-                return {
-                    newParentId: targetParentId,
-                    newPosition: -1
-                };
-            }
-            // Dropping above target - take position of previous sibling + 5
-            const previousSibling = sortedSiblings[targetIndex - 1];
-            return {
-                newParentId: targetParentId,
-                newPosition: previousSibling.position + 5
-            };
-        } else {
-            // Dropping below target - take target's position + 5
-            // This ensures we always add AFTER the target section
-            return {
-                newParentId: targetParentId,
-                newPosition: targetSection.position + 5
-            };
-        }
+        const result = calculateDragDropPosition(targetSection, edge, siblings, targetParentId);
+        return {
+            newParentId: result.newParentId as number | null,
+            newPosition: result.newPosition
+        };
     }, [sections, findSectionById]);
 
     // Set up auto-scroll with proper reinitialization
