@@ -9,6 +9,7 @@ import {
     createContext 
 } from 'react';
 import { Box, Text, Paper } from '@mantine/core';
+import { IconPlus } from '@tabler/icons-react';
 import {
     draggable,
     dropTargetForElements,
@@ -70,6 +71,7 @@ interface IDropState {
     closestEdge: Edge | null;
     isDropTarget: boolean;
     isContainerTarget: boolean;
+    isDropZoneHover: boolean;
 }
 
 // Context for drag state
@@ -102,7 +104,8 @@ function SectionItem({
     const [dropState, setDropState] = useState<IDropState>({
         closestEdge: null,
         isDropTarget: false,
-        isContainerTarget: false
+        isContainerTarget: false,
+        isDropZoneHover: false
     });
 
     const { expandedSections, onToggleExpand } = useSectionsContext();
@@ -215,9 +218,26 @@ function SectionItem({
             getData: ({ input, element }) => {
                 const rect = element.getBoundingClientRect();
                 const relativeY = (input.clientY - rect.top) / rect.height;
+                const relativeX = (input.clientX - rect.left) / rect.width;
                 
-                // Only allow container drops if section already has children
-                // Don't show parent as drop target if it doesn't have children
+                // Check if hovering over the drop zone area (right side, small area)
+                // Drop zone is on the right side, about 40px wide or 15% of width (whichever is smaller)
+                const dropZoneWidth = Math.min(40, rect.width * 0.15);
+                const dropZoneLeft = rect.width - dropZoneWidth;
+                const isInDropZone = input.clientX - rect.left >= dropZoneLeft && canHaveChildren && !hasChildren;
+                
+                if (isInDropZone) {
+                    return {
+                        type: 'drop-zone-target',
+                        sectionId: section.id,
+                        sectionName: section.name,
+                        level,
+                        parentId,
+                        canHaveChildren: true
+                    };
+                }
+                
+                // Allow container drops if section already has children and in center area
                 if (hasChildren && canHaveChildren && relativeY >= 0.25 && relativeY <= 0.75) {
                     return {
                         type: 'container-drop-target',
@@ -251,14 +271,23 @@ function SectionItem({
                     setDropState({
                         closestEdge: null,
                         isDropTarget: false,
-                        isContainerTarget: true
+                        isContainerTarget: true,
+                        isDropZoneHover: false
+                    });
+                } else if (self.data.type === 'drop-zone-target') {
+                    setDropState({
+                        closestEdge: null,
+                        isDropTarget: false,
+                        isContainerTarget: false,
+                        isDropZoneHover: true
                     });
                 } else {
                     const edge = extractClosestEdge(self.data);
                     setDropState({
                         closestEdge: edge,
                         isDropTarget: true,
-                        isContainerTarget: false
+                        isContainerTarget: false,
+                        isDropZoneHover: false
                     });
                 }
             },
@@ -266,14 +295,16 @@ function SectionItem({
                 setDropState({
                     closestEdge: null,
                     isDropTarget: false,
-                    isContainerTarget: false
+                    isContainerTarget: false,
+                    isDropZoneHover: false
                 });
             },
             onDrop: () => {
                 setDropState({
                     closestEdge: null,
                     isDropTarget: false,
-                    isContainerTarget: false
+                    isContainerTarget: false,
+                    isDropZoneHover: false
                 });
             }
         });
@@ -297,9 +328,10 @@ function SectionItem({
     return (
         <Box 
             className={getWrapperClasses()}
+            style={{ position: 'relative' }}
         >
-            {/* Top drop indicator using react-drop-indicator */}
-            {dropState.closestEdge === 'top' && (
+            {/* Top drop indicator - hide when drop zone is active */}
+            {dropState.closestEdge === 'top' && !dropState.isDropZoneHover && (
                 <DropIndicator edge="top" gap="8px" />
             )}
             
@@ -316,7 +348,7 @@ function SectionItem({
                 onAddSiblingAbove={onAddSiblingAbove}
                 onAddSiblingBelow={onAddSiblingBelow}
                 isDragActive={dragContext.isDragActive}
-                overId={dropState.isDropTarget || dropState.isContainerTarget ? section.id : null}
+                overId={dropState.isDropTarget || dropState.isContainerTarget || dropState.isDropZoneHover ? section.id : null}
                 draggedSectionId={dragContext.draggedSectionId}
                 isDragging={isDragging}
                 dragHandleProps={{
@@ -326,14 +358,23 @@ function SectionItem({
                 }}
                 actionMenuRef={actionMenuRef}
                 customStyle={{}}
-                showInsideDropZone={dropState.isContainerTarget}
+                showInsideDropZone={dropState.isContainerTarget || dropState.isDropZoneHover}
                 onSectionSelect={onSectionSelect}
                 selectedSectionId={selectedSectionId}
                 focusedSectionId={focusedSectionId}
             />
 
-            {/* Bottom drop indicator using react-drop-indicator */}
-            {dropState.closestEdge === 'bottom' && (
+            {/* Drop zone area for sections that can have children but don't have any */}
+            {dragContext.isDragActive && canHaveChildren && !hasChildren && !isBeingDragged && (
+                <Box 
+                    className={`${styles.dropZoneArea} ${styles.visible} ${dropState.isDropZoneHover ? styles.active : ''}`}
+                >
+                    <IconPlus size={14} className={styles.dropZoneIcon} />
+                </Box>
+            )}
+
+            {/* Bottom drop indicator - hide when drop zone is active */}
+            {dropState.closestEdge === 'bottom' && !dropState.isDropZoneHover && (
                 <DropIndicator edge="bottom" gap="8px" />
             )}
 
@@ -549,22 +590,33 @@ export function SectionsList({
                 }
 
                 const isContainerDrop = target.data.type === 'container-drop-target';
-                const edge = isContainerDrop ? null : extractClosestEdge(target.data);
-                const targetParentId = isContainerDrop ? null : (target.data.parentId as number | null);
+                const isDropZoneDrop = target.data.type === 'drop-zone-target';
+                const isAnyContainerDrop = isContainerDrop || isDropZoneDrop;
+                const edge = isAnyContainerDrop ? null : extractClosestEdge(target.data);
+                const targetParentId = isAnyContainerDrop ? null : (target.data.parentId as number | null);
 
                 const { newParentId, newPosition } = calculateNewPosition(
                     targetSection,
                     edge,
                     targetParentId,
-                    isContainerDrop
+                    isAnyContainerDrop
                 );
                 
                 // Enhanced console log with better formatting (only in debug mode)
                 if (isDebugComponentEnabled('dragDropDebug')) {
+                    let dropTypeLabel = '📏 Edge Drop';
+                    if (isContainerDrop) {
+                        dropTypeLabel = '📦 Container Drop (inside existing parent)';
+                    } else if (isDropZoneDrop) {
+                        dropTypeLabel = '🎯 Drop Zone Drop (first child of empty parent)';
+                    } else {
+                        dropTypeLabel = `📏 Edge Drop (${edge})`;
+                    }
+                    
                     console.log('🎯 DROP COMPLETED:', {
                         '📄 Dragged Section': `${draggedSection.name} (ID: ${draggedSectionId})`,
                         '🎯 Target Section': `${targetSection.name} (ID: ${targetSectionId})`,
-                        '📍 Drop Type': isContainerDrop ? '📦 Container Drop (inside parent)' : `📏 Edge Drop (${edge})`,
+                        '📍 Drop Type': dropTypeLabel,
                         '🏠 New Parent': newParentId ? `ID: ${newParentId}` : 'Root Level',
                         '📊 New Position': newPosition,
                         '🔄 Would Move': `${1 + getAllDescendantIds(draggedSection).length} item(s)`

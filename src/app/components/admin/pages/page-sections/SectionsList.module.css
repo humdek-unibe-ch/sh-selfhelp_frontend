@@ -69,6 +69,40 @@
 
 /* Drop indicators are now handled by react-drop-indicator library */
 
+/* Drop zone area for empty containers */
+.dropZoneArea {
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    bottom: 2px;
+    width: 32px;
+    background: var(--mantine-color-green-1);
+    border: 2px dashed var(--mantine-color-green-4);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all 200ms ease;
+    z-index: 5;
+}
+
+.dropZoneArea.visible {
+    opacity: 1;
+}
+
+.dropZoneArea.active {
+    background: var(--mantine-color-green-2);
+    border-color: var(--mantine-color-green-6);
+    border-style: solid;
+    box-shadow: 0 0 8px var(--mantine-color-green-3);
+}
+
+.dropZoneIcon {
+    color: var(--mantine-color-green-6);
+    font-size: 12px;
+}
+
 /* Children container */
 .childrenContainer {
     margin-top: 2px;
