@@ -15,7 +15,69 @@ This document outlines the frontend architecture for the SH-Self-help project. T
 *   **Performance**: Optimize for Web Vitals (LCP, CLS, FID).
 *   **Accessibility (a11y)**: Build inclusive interfaces.
 
-## 2.1. Compact Professional Sections Interface (Latest Update)
+## 2.1. Modular Inspector Components (Latest Update)
+
+### Shared Component Architecture for Page and Section Inspectors
+Implemented a comprehensive modular component system to eliminate code duplication between PageInspector and SectionInspector, improving maintainability and consistency.
+
+#### Core Shared Components
+- **FieldRenderer**: Universal field rendering component supporting all field types (text, textarea, markdown-inline, checkbox, unknown types)
+- **InspectorHeader**: Reusable header component with title, badges, and action buttons
+- **FieldsSection**: Collapsible section for organizing fields with multi-language tab support
+- **InspectorLayout**: Main layout wrapper providing consistent structure, loading states, error handling, and empty states
+
+#### Technical Implementation
+```typescript
+// Shared field data interface
+interface IFieldData {
+    id: number;
+    name: string;
+    type: string | null;
+    default_value: string | null;
+    help: string | null;
+    disabled?: boolean;
+    hidden?: number;
+    display?: boolean;
+}
+
+// Modular field rendering
+<FieldRenderer
+    field={field}
+    value={value}
+    onChange={(newValue) => handleFieldChange(field.name, languageCode, newValue)}
+    locale={locale}
+    className={styles.fullWidthLabel}
+/>
+
+// Consistent header structure
+<InspectorHeader
+    title={title}
+    badges={[{ label: 'ID: 123', color: 'blue' }]}
+    actions={[
+        { label: 'Save', icon: <IconSave />, onClick: handleSave },
+        { label: 'Delete', icon: <IconTrash />, onClick: handleDelete, color: 'red' }
+    ]}
+/>
+```
+
+#### URL Structure Improvement
+Changed from query parameters to path parameters for better SEO and user experience:
+- **Before**: `/admin/pages/test?section=99`
+- **After**: `/admin/pages/test/99`
+
+#### Benefits
+- **Code Reusability**: Eliminated ~60% code duplication between inspectors
+- **Consistent UI**: Unified look and behavior across all inspector components
+- **Maintainability**: Single source of truth for field rendering and layout logic
+- **Type Safety**: Strongly typed interfaces for all shared components
+- **Future-Proof**: Easy to extend for additional inspector types (e.g., StyleInspector)
+
+#### Fixed Issues
+- **Infinite Re-render**: Removed `form` object from useEffect dependencies causing infinite loops
+- **URL Persistence**: Proper section selection with path-based routing
+- **Type Safety**: Fixed all TypeScript compilation errors
+
+## 2.2. Compact Professional Sections Interface (Previous Update)
 
 ### Complete Interface Redesign for Compactness and Professional Appeal
 Completely redesigned the sections interface with a focus on compactness, professional styling, and enhanced usability. Fixed drag-and-drop functionality and improved visual hierarchy.

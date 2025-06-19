@@ -14,8 +14,8 @@ import { debug } from '../../../utils/debug-logger';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IAddSectionToSectionMutationOptions {
-    onSuccess?: (data: any, variables: { parentSectionId: number; sectionId: number; sectionData: IAddSectionToSectionData }) => void;
-    onError?: (error: any, variables: { parentSectionId: number; sectionId: number; sectionData: IAddSectionToSectionData }) => void;
+    onSuccess?: (data: any, variables: { keyword: string; parentSectionId: number; sectionId: number; sectionData: IAddSectionToSectionData }) => void;
+    onError?: (error: any, variables: { keyword: string; parentSectionId: number; sectionId: number; sectionData: IAddSectionToSectionData }) => void;
     showNotifications?: boolean;
     pageKeyword?: string; // Optional page keyword for cache invalidation
 }
@@ -25,6 +25,7 @@ interface IAddSectionToSectionData {
 }
 
 interface IAddSectionToSectionVariables {
+    keyword: string;
     parentSectionId: number;
     sectionId: number;
     sectionData: IAddSectionToSectionData;
@@ -40,8 +41,8 @@ export function useAddSectionToSectionMutation(options: IAddSectionToSectionMuta
     const { onSuccess, onError, showNotifications = true, pageKeyword } = options;
 
     return useMutation({
-        mutationFn: ({ parentSectionId, sectionId, sectionData }: IAddSectionToSectionVariables) => 
-            AdminApi.addSectionToSection(parentSectionId, sectionId, sectionData),
+        mutationFn: ({ keyword, parentSectionId, sectionId, sectionData }: IAddSectionToSectionVariables) => 
+            AdminApi.addSectionToSection(keyword, parentSectionId, sectionId, sectionData),
         
         onSuccess: async (createdSection: any, variables: IAddSectionToSectionVariables) => {
             debug('Section added to section successfully', 'useAddSectionToSectionMutation', { 

@@ -35,7 +35,10 @@ export function useCreateSiblingAboveMutation() {
 
             if (parentId !== null) {
                 // Create sibling in parent section
-                return AdminApi.createSectionInSection(parentId, finalSectionData);
+                if (!pageKeyword) {
+                    throw new Error('Page keyword is required for section operations');
+                }
+                return AdminApi.createSectionInSection(pageKeyword, parentId, finalSectionData);
             } else if (pageKeyword) {
                 // Create sibling in page
                 return AdminApi.createSectionInPage(pageKeyword, finalSectionData);

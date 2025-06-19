@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
     Paper, 
     Title, 
@@ -43,6 +44,7 @@ import styles from './PageSections.module.css';
 interface IPageSectionsProps {
     keyword: string | null;
     pageName?: string;
+    initialSelectedSectionId?: number | null;
 }
 
 interface IMoveData {
@@ -59,8 +61,10 @@ interface IMoveData {
     oldParentSectionId: number | null; // Section ID if section was inside another section
 }
 
-export function PageSections({ keyword, pageName }: IPageSectionsProps) {
+export function PageSections({ keyword, pageName, initialSelectedSectionId }: IPageSectionsProps) {
     const { data, isLoading, error } = usePageSections(keyword);
+    const router = useRouter();
+    
     const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
     const [addSectionModalOpened, setAddSectionModalOpened] = useState(false);
     const [selectedParentSectionId, setSelectedParentSectionId] = useState<number | null>(null);
@@ -245,6 +249,20 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
 
     const handleSectionSelect = (sectionId: number) => {
         setSelectedSectionId(sectionId);
+        
+        // Update URL with section ID as path parameter
+        const currentPath = window.location.pathname;
+        const pathParts = currentPath.split('/');
+        
+        // Find the admin pages path and reconstruct with section ID
+        const adminIndex = pathParts.indexOf('admin');
+        const pagesIndex = pathParts.indexOf('pages', adminIndex);
+        
+        if (pagesIndex !== -1 && pathParts[pagesIndex + 1]) {
+            const pageKeyword = pathParts[pagesIndex + 1];
+            const newPath = `/admin/pages/${pageKeyword}/${sectionId}`;
+            router.push(newPath, { scroll: false });
+        }
     };
 
     // Collapse/Expand all functionality
@@ -340,7 +358,11 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
                 });
             } else {
                 // Moving to another section - use section mutation
+                if (!keyword) {
+                    throw new Error('Page keyword is required for section operations');
+                }
                 await addSectionToSectionMutation.mutateAsync({
+                    keyword,
                     parentSectionId: newParentId,
                     sectionId: draggedSectionId,
                     sectionData: sectionData
@@ -369,7 +391,11 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
                 });
             } else {
                 // Remove from parent section
+                if (!keyword) {
+                    throw new Error('Page keyword is required for section operations');
+                }
                 await removeSectionFromSectionMutation.mutateAsync({
+                    keyword,
                     parentSectionId: parentId,
                     childSectionId: sectionId
                 });
@@ -419,6 +445,18 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
         setSelectedParentSectionId(null);
         setSpecificPosition(undefined);
     };
+
+
+
+    // Handle initial selected section ID from URL
+    useEffect(() => {
+        if (initialSelectedSectionId) {
+            setSelectedSectionId(initialSelectedSectionId);
+            // Auto-expand parents and scroll to the selected section
+            expandParentsOfSection(initialSelectedSectionId);
+            scrollToSection(initialSelectedSectionId);
+        }
+    }, [initialSelectedSectionId, expandParentsOfSection, scrollToSection]);
 
     // Auto-expand sections with children on initial load
     useEffect(() => {

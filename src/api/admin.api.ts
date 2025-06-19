@@ -9,7 +9,7 @@ import { IPageFieldsResponse, IPageField } from '../types/common/pages.type';
 import { apiClient } from './base.api';
 import { API_CONFIG } from '../config/api.config';
 import { IBaseApiResponse } from '../types/responses/common/response-envelope.types';
-import { IAdminPage } from '../types/responses/admin/admin.types';
+import { IAdminPage, TSectionDetailsResponse, ISectionDetailsData } from '../types/responses/admin/admin.types';
 import { ICreatePageRequest } from '../types/requests/admin/create-page.types';
 import { IUpdatePageRequest } from '../types/requests/admin/update-page.types';
 import { TPageFieldsResponse, IPageFieldsData } from '../types/responses/admin/page-details.types';
@@ -174,13 +174,14 @@ export const AdminApi = {
 
     /**
      * Adds an existing section to another section
+     * @param {string} keyword - The page keyword
      * @param {number} parentSectionId - The parent section ID
      * @param {number} sectionId - The section ID to add
      * @param {IAddSectionToSectionData} sectionData - The section data to add (position)
      * @returns {Promise<any>} The created section data
      * @throws {Error} When API request fails
      */
-    async addSectionToSection(parentSectionId: number, sectionId: number, sectionData: IAddSectionToSectionData): Promise<any> {
+    async addSectionToSection(keyword: string, parentSectionId: number, sectionId: number, sectionData: IAddSectionToSectionData): Promise<any> {
         const requestBody = {
             childSectionId: sectionId,
             position: sectionData.position,
@@ -189,7 +190,7 @@ export const AdminApi = {
         };
         
         const response = await apiClient.put(
-            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_ADD_TO_SECTION(parentSectionId),
+            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_ADD_TO_SECTION(keyword, parentSectionId),
             requestBody
         );
         return response.data.data;
@@ -197,15 +198,16 @@ export const AdminApi = {
 
     /**
      * Updates a section within another section
+     * @param {string} keyword - The page keyword
      * @param {number} parentSectionId - The parent section ID
      * @param {number} childSectionId - The child section ID to update
      * @param {IUpdateSectionInSectionData} sectionData - The section data to update (position)
      * @returns {Promise<any>} The updated section data
      * @throws {Error} When API request fails
      */
-    async updateSectionInSection(parentSectionId: number, childSectionId: number, sectionData: IUpdateSectionInSectionData): Promise<any> {
+    async updateSectionInSection(keyword: string, parentSectionId: number, childSectionId: number, sectionData: IUpdateSectionInSectionData): Promise<any> {
         const response = await apiClient.put(
-            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_UPDATE_IN_SECTION(parentSectionId, childSectionId),
+            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_UPDATE_IN_SECTION(keyword, parentSectionId, childSectionId),
             sectionData
         );
         return response.data.data;
@@ -213,14 +215,15 @@ export const AdminApi = {
 
     /**
      * Removes a section from another section
+     * @param {string} keyword - The page keyword
      * @param {number} parentSectionId - The parent section ID
      * @param {number} childSectionId - The child section ID to remove
      * @returns {Promise<{ success: boolean }>} Success response
      * @throws {Error} When API request fails
      */
-    async removeSectionFromSection(parentSectionId: number, childSectionId: number): Promise<{ success: boolean }> {
+    async removeSectionFromSection(keyword: string, parentSectionId: number, childSectionId: number): Promise<{ success: boolean }> {
         const response = await apiClient.delete(
-            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_REMOVE_FROM_SECTION(parentSectionId, childSectionId)
+            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_REMOVE_FROM_SECTION(keyword, parentSectionId, childSectionId)
         );
         // For 204 No Content responses, return success indicator
         return { success: response.status === 204 || response.status === 200 };
@@ -255,15 +258,30 @@ export const AdminApi = {
 
     /**
      * Creates a new section in another section from a style
+     * @param {string} keyword - The page keyword
      * @param {number} parentSectionId - The parent section ID
      * @param {ICreateSectionInSectionData} sectionData - The section data to create (styleId, position)
      * @returns {Promise<any>} The created section data
      * @throws {Error} When API request fails
      */
-    async createSectionInSection(parentSectionId: number, sectionData: ICreateSectionInSectionData): Promise<any> {
+    async createSectionInSection(keyword: string, parentSectionId: number, sectionData: ICreateSectionInSectionData): Promise<any> {
         const response = await apiClient.post<IBaseApiResponse<any>>(
-            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_CREATE_IN_SECTION(parentSectionId),
+            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_CREATE_IN_SECTION(keyword, parentSectionId),
             sectionData
+        );
+        return response.data.data;
+    },
+
+    /**
+     * Fetches section details for a specific section by ID.
+     * @param {string} keyword - The page keyword
+     * @param {number} sectionId - The section ID to fetch details for
+     * @returns {Promise<ISectionDetailsData>} Section details response with section info and fields
+     * @throws {Error} When API request fails
+     */
+    async getSectionDetails(keyword: string, sectionId: number): Promise<ISectionDetailsData> {
+        const response = await apiClient.get<TSectionDetailsResponse>(
+            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_GET_ONE(keyword, sectionId)
         );
         return response.data.data;
     }

@@ -32,15 +32,16 @@ export const API_CONFIG = {
         ADMIN_PAGES_SECTIONS_ADD: (keyword: string) => `/admin/pages/${keyword}/sections`,
         ADMIN_PAGES_SECTIONS_UPDATE: (keyword: string, sectionId: number) => `/admin/pages/${keyword}/sections/${sectionId}`,
         ADMIN_PAGES_SECTIONS_REMOVE: (keyword: string, sectionId: number) => `/admin/pages/${keyword}/sections/${sectionId}`,
-        ADMIN_SECTIONS_ADD_TO_SECTION: (parentSectionId: number) => `/admin/sections/${parentSectionId}/sections`,
-        ADMIN_SECTIONS_UPDATE_IN_SECTION: (parentSectionId: number, childSectionId: number) => `/admin/sections/${parentSectionId}/sections/${childSectionId}`,
-        ADMIN_SECTIONS_REMOVE_FROM_SECTION: (parentSectionId: number, childSectionId: number) => `/admin/sections/${parentSectionId}/sections/${childSectionId}`,
-        ADMIN_SECTIONS_DELETE: (sectionId: number) => `/admin/sections/${sectionId}`,
+        ADMIN_SECTIONS_ADD_TO_SECTION: (keyword: string, parentSectionId: number) => `/admin/pages/${keyword}/sections/${parentSectionId}/sections`,
+        ADMIN_SECTIONS_UPDATE_IN_SECTION: (keyword: string, parentSectionId: number, childSectionId: number) => `/admin/pages/${keyword}/sections/${parentSectionId}/sections/${childSectionId}`,
+        ADMIN_SECTIONS_REMOVE_FROM_SECTION: (keyword: string, parentSectionId: number, childSectionId: number) => `/admin/pages/${keyword}/sections/${parentSectionId}/sections/${childSectionId}`,
+        ADMIN_SECTIONS_DELETE: (keyword: string, sectionId: number) => `/admin/pages/${keyword}/sections/${sectionId}`,
+        ADMIN_SECTIONS_GET_ONE: (keyword: string, sectionId: number) => `/admin/pages/${keyword}/sections/${sectionId}`,
         // Styles endpoints
         ADMIN_STYLES_GET_ALL: '/admin/styles',
         // Section creation endpoints
         ADMIN_PAGES_SECTIONS_CREATE: (keyword: string) => `/admin/pages/${keyword}/sections/create`,
-        ADMIN_SECTIONS_CREATE_IN_SECTION: (parentSectionId: number) => `/admin/sections/${parentSectionId}/sections/create`,
+        ADMIN_SECTIONS_CREATE_IN_SECTION: (keyword: string, parentSectionId: number) => `/admin/pages/${keyword}/sections/${parentSectionId}/sections/create`,
     },
     CORS_CONFIG: {
         credentials: true, // Required for cookies, authorization headers with HTTPS

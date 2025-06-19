@@ -26,6 +26,7 @@ interface ICreateSectionInSectionData {
 }
 
 interface ICreateSectionInSectionVariables {
+    keyword: string;
     parentSectionId: number;
     sectionData: ICreateSectionInSectionData;
 }
@@ -40,8 +41,8 @@ export function useCreateSectionInSectionMutation(options: ICreateSectionInSecti
     const { onSuccess, onError, showNotifications = true, pageKeyword } = options;
 
     return useMutation({
-        mutationFn: ({ parentSectionId, sectionData }: ICreateSectionInSectionVariables) => 
-            AdminApi.createSectionInSection(parentSectionId, sectionData),
+        mutationFn: ({ keyword, parentSectionId, sectionData }: ICreateSectionInSectionVariables) => 
+            AdminApi.createSectionInSection(keyword, parentSectionId, sectionData),
         
         onSuccess: async (createdSection: any, variables: ICreateSectionInSectionVariables) => {
             debug('Section created in section successfully', 'useCreateSectionInSectionMutation', { 

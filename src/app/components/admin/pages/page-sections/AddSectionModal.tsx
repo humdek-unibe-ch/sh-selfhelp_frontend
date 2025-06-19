@@ -101,7 +101,11 @@ export function AddSectionModal({
         try {
             if (parentSectionId !== null) {
                 // Create section in another section
+                if (!pageKeyword) {
+                    throw new Error('Page keyword is required for section operations');
+                }
                 await createSectionInSectionMutation.mutateAsync({
+                    keyword: pageKeyword,
                     parentSectionId,
                     sectionData
                 });

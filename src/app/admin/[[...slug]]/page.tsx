@@ -23,6 +23,7 @@ import {
 } from '@tabler/icons-react';
 import { PageSections } from '../../components/admin/pages/page-sections/PageSections';
 import { PageInspector } from '../../components/admin/pages/page-inspector/PageInspector';
+import { SectionInspector } from '../../components/admin/pages/section-inspector';
 import { useAdminPages } from '../../../hooks/useAdminPages';
 import { useMemo } from 'react';
 import { debug } from '../../../utils/debug-logger';
@@ -32,9 +33,27 @@ export default function AdminPage() {
   const path = params.slug ? (Array.isArray(params.slug) ? params.slug.join('/') : params.slug) : '';
   const { pages, isLoading, error } = useAdminPages();
 
-  // Check if this is a page edit route
-  const isPageRoute = path.startsWith('pages/');
-  const keyword = isPageRoute ? path.replace('pages/', '') : null;
+  // Parse the path to extract page keyword and section ID
+  const { isPageRoute, keyword, selectedSectionId } = useMemo(() => {
+    if (!path.startsWith('pages/')) {
+      return { isPageRoute: false, keyword: null, selectedSectionId: null };
+    }
+
+    const pathParts = path.split('/');
+    // Expected format: pages/keyword or pages/keyword/sectionId
+    if (pathParts.length >= 2) {
+      const pageKeyword = pathParts[1];
+      const sectionId = pathParts.length >= 3 ? parseInt(pathParts[2], 10) : null;
+      
+      return {
+        isPageRoute: true,
+        keyword: pageKeyword,
+        selectedSectionId: !isNaN(sectionId!) ? sectionId : null
+      };
+    }
+
+    return { isPageRoute: false, keyword: null, selectedSectionId: null };
+  }, [path]);
 
   // Find the specific page by keyword
   const selectedPage = useMemo(() => {
@@ -86,7 +105,11 @@ export default function AdminPage() {
       return (
         <Box style={{ height: '100%' }}>
           {/* Page Sections - Full height */}
-          <PageSections keyword={selectedPage.keyword} pageName={selectedPage.keyword} />
+          <PageSections 
+            keyword={selectedPage.keyword} 
+            pageName={selectedPage.keyword}
+            initialSelectedSectionId={selectedSectionId}
+          />
         </Box>
       );
     }
@@ -118,14 +141,18 @@ export default function AdminPage() {
         {renderMainContent()}
       </Box>
       
-      {/* Right Sidebar - Page Inspector */}
+      {/* Right Sidebar - Page Inspector or Section Inspector */}
       <Box style={{ 
         width: rem(400), 
         borderLeft: '1px solid var(--mantine-color-gray-3)', 
         height: '100%',
         overflowY: 'hidden'
       }}>
-        <PageInspector page={selectedPage} />
+        {selectedSectionId && !isNaN(selectedSectionId) ? (
+          <SectionInspector keyword={selectedPage?.keyword || null} sectionId={selectedSectionId} />
+        ) : (
+          <PageInspector page={selectedPage} />
+        )}
       </Box>
     </Flex>
   );
