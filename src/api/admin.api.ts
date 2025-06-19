@@ -129,7 +129,9 @@ export const AdminApi = {
     async addSectionToPage(keyword: string, sectionId: number, sectionData: IAddSectionToPageData): Promise<any> {
         const requestBody = {
             sectionId: sectionId,
-            position: sectionData.position
+            position: sectionData.position,
+            ...(sectionData.oldParentPageId && { oldParentPageId: sectionData.oldParentPageId }),
+            ...(sectionData.oldParentSectionId && { oldParentSectionId: sectionData.oldParentSectionId })
         };
         
         const response = await apiClient.put(
@@ -181,7 +183,9 @@ export const AdminApi = {
     async addSectionToSection(parentSectionId: number, sectionId: number, sectionData: IAddSectionToSectionData): Promise<any> {
         const requestBody = {
             childSectionId: sectionId,
-            position: sectionData.position
+            position: sectionData.position,
+            ...(sectionData.oldParentPageId && { oldParentPageId: sectionData.oldParentPageId }),
+            ...(sectionData.oldParentSectionId && { oldParentSectionId: sectionData.oldParentSectionId })
         };
         
         const response = await apiClient.put(

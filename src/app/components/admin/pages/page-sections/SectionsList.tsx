@@ -490,6 +490,15 @@ export function SectionsList({
         return null;
     }, []);
 
+    /**
+     * Calculates the new position for a dropped section using simple positioning logic:
+     * 
+     * Position Logic:
+     * - First element: -1
+     * - Any other position: previous sibling's position + 5
+     * 
+     * This ensures we always place the element after the intended sibling.
+     */
     const calculateNewPosition = useCallback((
         targetSection: IPageField,
         edge: Edge | null,
@@ -500,11 +509,11 @@ export function SectionsList({
             // Dropping into a container - becomes first child
             return {
                 newParentId: targetSection.id,
-                newPosition: 0
+                newPosition: -1
             };
         }
 
-        // Edge-based positioning
+        // Get siblings in the target container
         const siblings = targetParentId
             ? (findSectionById(targetParentId, sections)?.children || [])
             : sections;
@@ -514,32 +523,49 @@ export function SectionsList({
 
         if (edge === 'top') {
             if (targetIndex === 0) {
+                // Dropping above the first element - becomes new first element
                 return {
                     newParentId: targetParentId,
-                    newPosition: Math.max(0, targetSection.position - 10)
+                    newPosition: -1
                 };
             }
-            const prevPosition = sortedSiblings[targetIndex - 1]?.position || 0;
-            const currentPosition = targetSection.position;
+            // Dropping above target - take position of previous sibling + 5
+            const previousSibling = sortedSiblings[targetIndex - 1];
             return {
                 newParentId: targetParentId,
-                newPosition: Math.floor((prevPosition + currentPosition) / 2)
+                newPosition: previousSibling.position + 5
             };
         } else {
-            if (targetIndex === sortedSiblings.length - 1) {
-                return {
-                    newParentId: targetParentId,
-                    newPosition: targetSection.position + 10
-                };
-            }
-            const currentPosition = targetSection.position;
-            const nextPosition = sortedSiblings[targetIndex + 1]?.position || currentPosition + 20;
+            // Dropping below target - take target's position + 5
             return {
                 newParentId: targetParentId,
-                newPosition: Math.floor((currentPosition + nextPosition) / 2)
+                newPosition: targetSection.position + 5
             };
         }
     }, [sections, findSectionById]);
+
+    // Debug helper function for testing position calculations
+    const testPositionCalculation = useCallback(() => {
+        if (!isDebugComponentEnabled('dragDropDebug')) return;
+        
+        console.log('🧪 POSITION CALCULATION TEST:');
+        console.log('Simple positioning logic:');
+        console.log('- First element: -1');
+        console.log('- Any other position: previous sibling position + 5');
+        console.log('');
+        console.log('Example scenario with normalized positions [0, 10, 20]:');
+        console.log('- Drop as 1st: position = -1');
+        console.log('- Drop after 1st (pos 0): position = 0 + 5 = 5');
+        console.log('- Drop after 2nd (pos 10): position = 10 + 5 = 15');
+        console.log('- Drop after 3rd (pos 20): position = 20 + 5 = 25');
+        console.log('');
+        console.log('Backend will normalize these to maintain 10-unit spacing.');
+    }, []);
+
+    // Expose test function to global scope for debugging
+    if (typeof window !== 'undefined' && isDebugComponentEnabled('dragDropDebug')) {
+        (window as any).testSectionPositions = testPositionCalculation;
+    }
 
     // Set up auto-scroll with better error handling
     useEffect(() => {
@@ -618,40 +644,72 @@ export function SectionsList({
                     isAnyContainerDrop
                 );
 
+                // Debug position calculation
+                if (isDebugComponentEnabled('dragDropDebug')) {
+                    const siblings = newParentId
+                        ? (findSectionById(newParentId, sections)?.children || [])
+                        : sections;
+                    const sortedSiblings = [...siblings].sort((a, b) => a.position - b.position);
+                    
+                    console.log('📊 POSITION CALCULATION:', {
+                        '🎯 Target Section': `${targetSection.name} (pos: ${targetSection.position})`,
+                        '📍 Drop Edge': edge || 'container',
+                        '👥 Current Siblings': sortedSiblings.map(s => `${s.name}(${s.position})`).join(', '),
+                        '🆕 Calculated Position': newPosition,
+                        '📋 Position Logic': newPosition === -1 ? 'First position (-1)' : 
+                                           `After sibling (sibling position + 5 = ${newPosition})`
+                    });
+                }
+
                 // Enhanced console log with better formatting (only in debug mode)
                 if (isDebugComponentEnabled('dragDropDebug')) {
                     let dropTypeLabel = '📏 Edge Drop';
+                    let apiCallType = 'addSectionToPage';
+                    
                     if (isContainerDrop) {
                         dropTypeLabel = '📦 Container Drop (inside existing parent)';
+                        apiCallType = 'addSectionToSection';
                     } else if (isDropZoneDrop) {
                         dropTypeLabel = '🎯 Drop Zone Drop (first child of empty parent)';
+                        apiCallType = 'addSectionToSection';
                     } else {
                         dropTypeLabel = `📏 Edge Drop (${edge})`;
+                        apiCallType = newParentId ? 'addSectionToSection' : 'addSectionToPage';
                     }
 
+                    // Find old parent for debug logging
+                    const oldParentId = findParentId(draggedSectionId, sections);
+                    
                     console.log('🎯 DROP COMPLETED:', {
                         '📄 Dragged Section': `${draggedSection.name} (ID: ${draggedSectionId})`,
                         '🎯 Target Section': `${targetSection.name} (ID: ${targetSectionId})`,
                         '📍 Drop Type': dropTypeLabel,
-                        '🏠 New Parent': newParentId ? `ID: ${newParentId}` : 'Root Level',
+                        '🏠 Old Parent': oldParentId ? `Section ID: ${oldParentId}` : `Page: "${pageKeyword}"`,
+                        '🏠 New Parent': newParentId ? `Section ID: ${newParentId}` : 'Root Level',
                         '📊 New Position': newPosition,
-                        '🔄 Would Move': `${1 + getAllDescendantIds(draggedSection).length} item(s)`
+                        '🔄 Will Move': `${1 + getAllDescendantIds(draggedSection).length} item(s)`,
+                        '🌐 API Call': `${apiCallType}(${newParentId ? `parentId: ${newParentId}, ` : `pageKeyword: "${pageKeyword}", `}sectionId: ${draggedSectionId}, position: ${newPosition}, oldParent: ${oldParentId ? `sectionId: ${oldParentId}` : `pageId: "${pageKeyword}"`})`
                     });
                 }
 
-                // TODO: Uncomment when ready to enable API calls
-                // onSectionMove({
-                //     draggedSectionId,
-                //     newParentId,
-                //     newPosition,
-                //     pageKeyword,
-                //     draggedSection,
-                //     newParent: newParentId ? findSectionById(newParentId, sections) : null,
-                //     descendantIds: getAllDescendantIds(draggedSection),
-                //     totalMovingItems: 1 + getAllDescendantIds(draggedSection).length,
-                //     dropType: isContainerDrop ? 'container' : 'edge',
-                //     edge
-                // });
+                // Find the old parent information
+                const oldParentId = findParentId(draggedSectionId, sections);
+                const oldParentPageId = oldParentId === null ? pageKeyword : null;
+                const oldParentSectionId = oldParentId;
+
+                // Execute the section move with API call
+                onSectionMove({
+                    draggedSectionId,
+                    newParentId,
+                    newPosition,
+                    pageKeyword,
+                    draggedSection,
+                    newParent: newParentId ? findSectionById(newParentId, sections) : null,
+                    descendantIds: getAllDescendantIds(draggedSection),
+                    totalMovingItems: 1 + getAllDescendantIds(draggedSection).length,
+                    oldParentPageId,
+                    oldParentSectionId
+                });
             },
         });
     }, [sections, findSectionById, getAllDescendantIds, calculateNewPosition, pageKeyword, findParentId]);

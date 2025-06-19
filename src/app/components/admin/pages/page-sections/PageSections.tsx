@@ -55,6 +55,9 @@ interface IMoveData {
     newParent: IPageField | null;
     descendantIds: number[];
     totalMovingItems: number;
+    // Old parent tracking for backend
+    oldParentPageId: string | null; // Page keyword if section was at page level
+    oldParentSectionId: number | null; // Section ID if section was inside another section
 }
 
 export function PageSections({ keyword, pageName }: IPageSectionsProps) {
@@ -323,14 +326,22 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
     };
 
     const handleSectionMove = async (moveData: IMoveData) => {
-        debug('Processing section move', 'PageSections', moveData);
+        debug('Processing section move', 'PageSections', {
+            ...moveData,
+            oldParentInfo: {
+                oldParentPageId: moveData.oldParentPageId,
+                oldParentSectionId: moveData.oldParentSectionId
+            }
+        });
         
         try {
-            const { draggedSectionId, newParentId, newPosition, pageKeyword } = moveData;
+            const { draggedSectionId, newParentId, newPosition, pageKeyword, oldParentPageId, oldParentSectionId } = moveData;
             
-            // Prepare section data with new position
+            // Prepare section data with new position and old parent information
             const sectionData = {
-                position: newPosition
+                position: newPosition,
+                oldParentPageId,
+                oldParentSectionId
             };
 
             if (newParentId === null) {
@@ -355,8 +366,11 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
             
             debug('Section move completed successfully', 'PageSections', {
                 sectionId: draggedSectionId,
+                oldParentPageId,
+                oldParentSectionId,
                 newParentId,
-                newPosition
+                newPosition,
+                moveType: newParentId === null ? 'to-page' : 'to-section'
             });
             
         } catch (error) {

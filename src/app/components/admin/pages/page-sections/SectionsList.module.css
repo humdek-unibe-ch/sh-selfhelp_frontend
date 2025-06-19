@@ -43,10 +43,6 @@
     opacity: 0.5;
 }
 
-.sectionItemWrapper.isDropTarget {
-    /* No background change for edge drops - only show line */
-}
-
 .sectionItemWrapper.isContainerDropTarget {
     background: var(--mantine-color-green-0);
     border: 1px solid var(--mantine-color-green-4);
@@ -223,9 +219,6 @@
     background: var(--mantine-color-blue-1);
     color: var(--mantine-color-blue-7);
 }
-
-/* Level classes for dynamic level assignment */
-.level0 { }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
