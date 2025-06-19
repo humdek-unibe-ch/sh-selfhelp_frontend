@@ -18,6 +18,7 @@ export interface IDebugConfig {
         performanceMonitor: boolean;
         stateInspector: boolean;
         apiLogger: boolean;
+        dragDropDebug: boolean;
     };
     features: {
         showBoundingBoxes: boolean;
@@ -42,6 +43,7 @@ export const DEBUG_CONFIG: IDebugConfig = {
         performanceMonitor: process.env.NEXT_PUBLIC_DEBUG_PERF === 'true',
         stateInspector: process.env.NEXT_PUBLIC_DEBUG_STATE === 'true',
         apiLogger: process.env.NEXT_PUBLIC_DEBUG_API === 'true',
+        dragDropDebug: process.env.NEXT_PUBLIC_DEBUG_DRAGDROP === 'true' || process.env.NODE_ENV === 'development',
     },
     features: {
         showBoundingBoxes: process.env.NEXT_PUBLIC_DEBUG_BOXES === 'true',

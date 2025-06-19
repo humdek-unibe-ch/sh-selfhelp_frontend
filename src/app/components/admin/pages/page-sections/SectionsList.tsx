@@ -22,9 +22,11 @@ import {
 import { autoScrollForElements } from '@atlaskit/pragmatic-drag-and-drop-auto-scroll/element';
 import { pointerOutsideOfPreview } from '@atlaskit/pragmatic-drag-and-drop/element/pointer-outside-of-preview';
 import { setCustomNativeDragPreview } from '@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview';
+import { DropIndicator } from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box';
 
 import { IPageField } from '../../../../../types/common/pages.type';
 import { PageSection } from './PageSection';
+import { isDebugComponentEnabled } from '../../../../../config/debug.config';
 import styles from './SectionsList.module.css';
 
 // Types
@@ -192,12 +194,11 @@ function SectionItem({
         });
     }, [section, level, parentId, index]);
 
-    // Setup drop targets with improved edge detection for easier sibling drops
+    // Setup drop targets with improved logic based on requirements
     useEffect(() => {
         const element = elementRef.current;
         if (!element) return;
 
-        // Single drop target that handles both edge and container drops
         return dropTargetForElements({
             element,
             canDrop: ({ source }) => {
@@ -215,8 +216,9 @@ function SectionItem({
                 const rect = element.getBoundingClientRect();
                 const relativeY = (input.clientY - rect.top) / rect.height;
                 
-                // If this section can have children and we're in the center zone (30%-70%)
-                if (canHaveChildren && relativeY >= 0.3 && relativeY <= 0.7) {
+                // Only allow container drops if section already has children
+                // Don't show parent as drop target if it doesn't have children
+                if (hasChildren && canHaveChildren && relativeY >= 0.25 && relativeY <= 0.75) {
                     return {
                         type: 'container-drop-target',
                         sectionId: section.id,
@@ -227,7 +229,7 @@ function SectionItem({
                     };
                 }
                 
-                // Otherwise, use edge-based positioning
+                // Always allow edge-based positioning for siblings
                 const data = {
                     type: 'section-drop-target',
                     sectionId: section.id,
@@ -275,7 +277,7 @@ function SectionItem({
                 });
             }
         });
-    }, [section, level, parentId, index, isDescendantOfDragged, canHaveChildren]);
+    }, [section, level, parentId, index, isDescendantOfDragged, canHaveChildren, hasChildren]);
 
     // Get wrapper classes based on states
     const getWrapperClasses = () => {
@@ -296,12 +298,9 @@ function SectionItem({
         <Box 
             className={getWrapperClasses()}
         >
-            {/* Top drop indicator - Green line for sibling drops */}
+            {/* Top drop indicator using react-drop-indicator */}
             {dropState.closestEdge === 'top' && (
-                <Box className={`${styles.dropIndicatorWrapper} ${styles.top}`}>
-                    <Box className={styles.dropIndicatorLine} />
-                    <Box className={styles.dropIndicatorDot} />
-                </Box>
+                <DropIndicator edge="top" gap="8px" />
             )}
             
             {/* Section Component */}
@@ -333,12 +332,9 @@ function SectionItem({
                 focusedSectionId={focusedSectionId}
             />
 
-            {/* Bottom drop indicator - Green line for sibling drops */}
+            {/* Bottom drop indicator using react-drop-indicator */}
             {dropState.closestEdge === 'bottom' && (
-                <Box className={`${styles.dropIndicatorWrapper} ${styles.bottom}`}>
-                    <Box className={styles.dropIndicatorLine} />
-                    <Box className={styles.dropIndicatorDot} />
-                </Box>
+                <DropIndicator edge="bottom" gap="8px" />
             )}
 
             {/* Render children if expanded */}
@@ -517,6 +513,15 @@ export function SectionsList({
             canMonitor: ({ source }) => source.data.type === 'section-item',
             onDragStart: ({ source }) => {
                 const sectionId = source.data.sectionId as number;
+                const draggedSection = findSectionById(sectionId, sections);
+                
+                if (isDebugComponentEnabled('dragDropDebug')) {
+                    console.log('🚀 DRAG STARTED:', {
+                        '📄 Section': `${draggedSection?.name} (ID: ${sectionId})`,
+                        '📋 Drop Rules': 'Only edges for siblings, container only if target has children'
+                    });
+                }
+                
                 setDragState({
                     isDragActive: true,
                     draggedSectionId: sectionId
@@ -554,15 +559,17 @@ export function SectionsList({
                     isContainerDrop
                 );
                 
-                // ONLY console log the final position
-                console.log('📋 FINAL DROP POSITION:', {
-                    draggedSectionId,
-                    newParentId,
-                    newPosition,
-                    edge,
-                    targetSectionId,
-                    dropType: isContainerDrop ? 'container' : 'edge'
-                });
+                // Enhanced console log with better formatting (only in debug mode)
+                if (isDebugComponentEnabled('dragDropDebug')) {
+                    console.log('🎯 DROP COMPLETED:', {
+                        '📄 Dragged Section': `${draggedSection.name} (ID: ${draggedSectionId})`,
+                        '🎯 Target Section': `${targetSection.name} (ID: ${targetSectionId})`,
+                        '📍 Drop Type': isContainerDrop ? '📦 Container Drop (inside parent)' : `📏 Edge Drop (${edge})`,
+                        '🏠 New Parent': newParentId ? `ID: ${newParentId}` : 'Root Level',
+                        '📊 New Position': newPosition,
+                        '🔄 Would Move': `${1 + getAllDescendantIds(draggedSection).length} item(s)`
+                    });
+                }
 
                 // TODO: Uncomment when ready to enable API calls
                 // onSectionMove({

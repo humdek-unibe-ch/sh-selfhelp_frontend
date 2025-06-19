@@ -49,9 +49,10 @@
 
 .sectionItemWrapper.isContainerDropTarget {
     background: var(--mantine-color-green-0);
-    border: 2px solid var(--mantine-color-green-4);
+    border: 1px solid var(--mantine-color-green-4);
     border-radius: 6px;
     transition: all 200ms ease;
+    box-shadow: 0 0 0 1px var(--mantine-color-green-2);
 }
 
 .sectionItemWrapper.isBeingDragged {
@@ -66,47 +67,7 @@
     transition: opacity 200ms ease;
 }
 
-/* Drop indicators */
-.dropIndicatorWrapper {
-    position: relative;
-    height: 8px;
-    margin: 4px 0;
-    z-index: 10;
-}
-
-.dropIndicatorWrapper.top {
-    margin-top: 0;
-    margin-bottom: 8px;
-}
-
-.dropIndicatorWrapper.bottom {
-    margin-top: 8px;
-    margin-bottom: 0;
-}
-
-.dropIndicatorLine {
-    position: absolute;
-    top: 50%;
-    left: -4px;
-    right: 0;
-    height: 3px;
-    background: var(--mantine-color-green-6);
-    border-radius: 2px;
-    transform: translateY(-50%);
-    box-shadow: 0 0 4px var(--mantine-color-green-4);
-}
-
-.dropIndicatorDot {
-    position: absolute;
-    top: 50%;
-    left: -8px;
-    width: 10px;
-    height: 10px;
-    background: var(--mantine-color-green-6);
-    border-radius: 50%;
-    transform: translateY(-50%);
-    box-shadow: 0 0 4px var(--mantine-color-green-4);
-}
+/* Drop indicators are now handled by react-drop-indicator library */
 
 /* Children container */
 .childrenContainer {
