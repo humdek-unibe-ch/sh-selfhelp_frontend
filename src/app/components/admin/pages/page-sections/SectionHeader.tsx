@@ -70,23 +70,23 @@ export function SectionHeader({
 
     return (
         <Box
-            className={headerStyles.sectionContainer}
-            style={{
-                backgroundColor: isValidDropTarget && isDragActive ? 'var(--mantine-color-green-0)' : 
-                                isBeingDragged ? 'var(--mantine-color-blue-0)' : undefined,
-                opacity: isDragActive && !section.can_have_children ? 0.3 : 1,
-                cursor: isDragging ? 'grabbing' : 'default'
-            }}
+            className={`${headerStyles.sectionContainer} ${
+                isValidDropTarget && isDragActive ? headerStyles.validDropTarget : 
+                isBeingDragged ? headerStyles.beingDragged : ''
+            } ${
+                isDragActive && !section.can_have_children ? headerStyles.lowOpacity : ''
+            } ${
+                isDragging ? headerStyles.grabbingCursor : headerStyles.defaultCursor
+            }`}
         >
             <Group justify="space-between" wrap="nowrap" gap="xs" p="xs">
                 {/* Left Side - Drag Handle + Expand/Collapse + Section Info */}
-                <Group gap="xs" style={{ flex: 1, minWidth: 0 }}>
+                <Group gap="xs" className={headerStyles.flexOne}>
                     {/* Drag Handle */}
                     <ActionIcon 
                         variant="subtle" 
                         size="xs" 
-                        className={`${styles.dragHandle} ${headerStyles.dragHandle}`}
-                        style={{ flexShrink: 0 }}
+                        className={`${styles.dragHandle} ${headerStyles.dragHandle} ${headerStyles.flexShrink}`}
                         {...dragHandleProps}
                     >
                         <IconGripVertical size={12} />
@@ -97,33 +97,33 @@ export function SectionHeader({
                         <ActionIcon 
                             variant="subtle" 
                             size="xs"
-                            style={{ flexShrink: 0 }}
+                            className={headerStyles.flexShrink}
                             onClick={() => onToggleExpand(section.id)}
                         >
                             {isExpanded ? <IconChevronDown size={12} /> : <IconChevronRight size={12} />}
                         </ActionIcon>
                     ) : (
-                        <div style={{ width: 20 }} />
+                        <div className={headerStyles.spacer} />
                     )}
 
                     {/* Section Info */}
-                    <Group gap="xs" style={{ flex: 1, minWidth: 0 }}>
+                    <Group gap="xs" className={headerStyles.flexOne}>
                         <Tooltip label={`${section.name} | Path: ${section.path}`} position="top" withArrow>
-                            <Text fw={500} size="xs" className={`${styles.truncateText} ${headerStyles.truncateText}`} style={{ minWidth: 0, flex: 1 }}>
+                            <Text fw={500} size="xs" className={`${styles.truncateText} ${headerStyles.truncateText} ${headerStyles.flexOne}`}>
                                 {getSectionTitle(section)}
                             </Text>
                         </Tooltip>
                         
                         {/* Section ID Badge */}
-                        <Badge size="xs" variant="outline" color="gray" style={{ flexShrink: 0 }}>
+                        <Badge size="xs" variant="outline" color="gray" className={headerStyles.flexShrink}>
                             ID: {section.id}
                         </Badge>
                         
-                        <Badge size="xs" variant="light" color="blue" style={{ flexShrink: 0 }}>
+                        <Badge size="xs" variant="light" color="blue" className={headerStyles.flexShrink}>
                             {section.style_name}
                         </Badge>
                         
-                        <Badge size="xs" variant="outline" color="gray" style={{ flexShrink: 0 }}>
+                        <Badge size="xs" variant="outline" color="gray" className={headerStyles.flexShrink}>
                             {section.position}
                         </Badge>
                         
@@ -132,7 +132,7 @@ export function SectionHeader({
                                 size="xs" 
                                 variant="dot" 
                                 color={isBeingDragged ? "orange" : "green"}
-                                style={{ flexShrink: 0 }} 
+                                className={headerStyles.flexShrink}
                                 title={isBeingDragged ? 
                                     `Moving with ${section.children?.length || 0} children` : 
                                     `Has ${section.children?.length || 0} children (will move together)`
@@ -143,7 +143,7 @@ export function SectionHeader({
                         )}
                         
                         {section.can_have_children && (
-                            <Badge size="xs" variant="dot" color="blue" style={{ flexShrink: 0 }} title="Can accept children">
+                            <Badge size="xs" variant="dot" color="blue" className={headerStyles.flexShrink} title="Can accept children">
                                 📁
                             </Badge>
                         )}
@@ -151,7 +151,7 @@ export function SectionHeader({
                 </Group>
 
                 {/* Right Side - Action Buttons */}
-                <Group gap={4} style={{ flexShrink: 0 }}>
+                <Group gap={4} className={headerStyles.flexShrink}>
                     {/* Add Sibling Above */}
                     {onAddSiblingAbove && (
                         <Tooltip label="Add section above">

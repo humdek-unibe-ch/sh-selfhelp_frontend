@@ -29,6 +29,7 @@ import { useStyleGroups } from '../../../../../hooks/useStyleGroups';
 import { useCreateSectionInPageMutation, useCreateSectionInSectionMutation } from '../../../../../hooks/mutations';
 import { IStyle, IStyleGroup } from '../../../../../types/responses/admin/styles.types';
 import { debug } from '../../../../../utils/debug-logger';
+import styles from './AddSectionModal.module.css';
 
 interface IAddSectionModalProps {
     opened: boolean;
@@ -155,9 +156,9 @@ export function AddSectionModal({
                 header: { paddingBottom: 0 }
             }}
         >
-            <Box style={{ display: 'flex', flexDirection: 'column', height: '70vh' }}>
+            <Box className={styles.modalContainer}>
                 {/* Header Section */}
-                <Box p="md" pb="sm" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)', flexShrink: 0 }}>
+                <Box p="md" pb="sm" className={styles.headerSection}>
                     <Tabs value={activeTab} onChange={(value) => setActiveTab(value || 'new-section')}>
                         <Tabs.List>
                             <Tabs.Tab value="new-section">New Section</Tabs.Tab>
@@ -197,7 +198,7 @@ export function AddSectionModal({
                         {selectedStyle && (
                             <Card withBorder p="xs" bg="blue.0" mt="sm">
                                 <Group justify="space-between" gap="xs">
-                                    <Group gap="xs" style={{ flex: 1, minWidth: 0 }}>
+                                    <Group gap="xs" className={styles.selectedStyleGroup}>
                                         <Text fw={500} size="sm">Selected:</Text>
                                         <Text size="sm" truncate>{selectedStyle.name}</Text>
                                         <Badge size="xs" variant="light" color="blue">
@@ -223,7 +224,7 @@ export function AddSectionModal({
                 </Box>
 
                 {/* Scrollable Content */}
-                <ScrollArea style={{ flex: 1, minHeight: 0 }} p="md">
+                <ScrollArea className={styles.scrollableContent} p="md">
                     <Tabs value={activeTab} onChange={(value) => setActiveTab(value || 'new-section')}>
                         <Tabs.Panel value="new-section">
                             {isLoadingStyles ? (
@@ -262,17 +263,11 @@ export function AddSectionModal({
                                                         key={style.id}
                                                         withBorder
                                                         p="xs"
-                                                        style={{
-                                                            cursor: 'pointer',
-                                                            backgroundColor: selectedStyle?.id === style.id ? 'var(--mantine-color-blue-1)' : undefined,
-                                                            borderColor: selectedStyle?.id === style.id ? 'var(--mantine-color-blue-6)' : undefined,
-                                                            borderWidth: selectedStyle?.id === style.id ? '2px' : '1px',
-                                                            transition: 'all 0.2s ease'
-                                                        }}
+                                                        className={`${styles.styleCard} ${selectedStyle?.id === style.id ? styles.selected : ''}`}
                                                         onClick={() => handleStyleSelect(style)}
                                                     >
                                                         <Group justify="space-between" wrap="nowrap" gap="xs">
-                                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                            <div className={styles.styleInfo}>
                                                                 <Group gap="xs" mb={style.description ? "xs" : 0}>
                                                                     <Text fw={500} size="sm">
                                                                         {style.name}
@@ -332,11 +327,7 @@ export function AddSectionModal({
                 <Box 
                     p="md" 
                     pt="sm"
-                    style={{ 
-                        borderTop: '1px solid var(--mantine-color-gray-3)',
-                        backgroundColor: 'var(--mantine-color-gray-0)',
-                        flexShrink: 0
-                    }}
+                    className={styles.footerSection}
                 >
                     <Group justify="space-between" align="center">
                         <Text size="sm" c="dimmed">

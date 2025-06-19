@@ -6,6 +6,7 @@
     background: white;
     position: relative;
     margin-bottom: 1px;
+    cursor: pointer;
 }
 
 .sectionItem:hover {
@@ -169,4 +170,23 @@
     .actionButtons {
         opacity: 1;
     }
-} 
+}
+
+/* Indentation wrapper */
+.indentationWrapper {
+    position: relative;
+}
+
+/* Section icon styling */
+.sectionIcon {
+    display: flex;
+    align-items: center;
+}
+
+/* Section info container */
+.sectionInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+ 

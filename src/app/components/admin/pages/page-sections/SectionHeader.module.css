@@ -36,4 +36,39 @@
 
 .dragHandle:active {
     cursor: grabbing;
+}
+
+/* Flex utility classes */
+.flexOne {
+    flex: 1;
+    min-width: 0;
+}
+
+.flexShrink {
+    flex-shrink: 0;
+}
+
+.spacer {
+    width: 20px;
+}
+
+/* Dynamic state classes */
+.validDropTarget {
+    background-color: var(--mantine-color-green-0);
+}
+
+.beingDragged {
+    background-color: var(--mantine-color-blue-0);
+}
+
+.lowOpacity {
+    opacity: 0.3;
+}
+
+.grabbingCursor {
+    cursor: grabbing;
+}
+
+.defaultCursor {
+    cursor: default;
 } 

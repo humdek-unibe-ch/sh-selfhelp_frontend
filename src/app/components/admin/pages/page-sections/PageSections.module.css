@@ -21,3 +21,32 @@
     white-space: nowrap;
     max-width: 150px;
 }
+
+/* Paper container styling */
+.paperContainer {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Title styling */
+.titleNoWrap {
+    white-space: nowrap;
+}
+
+/* Search group styling */
+.searchGroup {
+    flex: 1;
+    max-width: 400px;
+    min-width: 200px;
+}
+
+/* Info text styling */
+.infoText {
+    white-space: nowrap;
+}
+
+/* Content container styling */
+.contentContainer {
+    flex: 1;
+}

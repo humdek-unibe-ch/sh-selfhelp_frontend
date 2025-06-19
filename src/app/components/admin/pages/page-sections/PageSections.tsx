@@ -39,6 +39,7 @@ import { IPageField } from '../../../../../types/common/pages.type';
 import { SectionsList } from './SectionsList';
 import { AddSectionModal } from './AddSectionModal';
 import { debug } from '../../../../../utils/debug-logger';
+import styles from './PageSections.module.css';
 
 interface IPageSectionsProps {
     keyword: string | null;
@@ -485,12 +486,12 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
     const isProcessingRemove = removeSectionFromPageMutation.isPending || removeSectionFromSectionMutation.isPending;
 
     return (
-        <Paper p="xs" withBorder style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Paper p="xs" withBorder className={styles.paperContainer}>
             {/* Header with Search */}
             <Group justify="space-between" mb="xs" px="xs" wrap="nowrap">
                 <Group gap="xs" wrap="nowrap">
                     <IconFile size={16} />
-                    <Title order={6} size="sm" style={{ whiteSpace: 'nowrap' }}>
+                    <Title order={6} size="sm" className={styles.titleNoWrap}>
                         {pageName ? `${pageName} - Sections` : 'Page Sections'}
                     </Title>
                     <Badge size="xs" variant="light" color="blue">
@@ -504,7 +505,7 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
                 </Group>
 
                 {/* Search Bar - Flexible width */}
-                <Group gap="xs" style={{ flex: 1, maxWidth: '400px', minWidth: '200px' }} wrap="nowrap">
+                <Group gap="xs" className={styles.searchGroup} wrap="nowrap">
                     <TextInput
                         placeholder="Search sections..."
                         value={searchQuery}
@@ -532,11 +533,11 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
                             )
                         }
                         size="xs"
-                        style={{ flex: 1 }}
+                        className={styles.contentContainer}
                     />
                     {searchResults.length > 0 && (
                         <>
-                            <Text size="xs" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
+                            <Text size="xs" c="dimmed" className={styles.infoText}>
                                 {currentSearchIndex + 1}/{searchResults.length}
                             </Text>
                             <Group gap={2}>

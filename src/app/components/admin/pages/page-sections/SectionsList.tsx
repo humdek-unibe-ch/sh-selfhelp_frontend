@@ -98,7 +98,6 @@ function SectionItem({
     const dragContext = useContext(DragContext);
     const elementRef = useRef<HTMLDivElement>(null);
     const dragHandleRef = useRef<HTMLDivElement>(null);
-    const actionMenuRef = useRef<HTMLButtonElement>(null);
     const dropZoneRef = useRef<HTMLDivElement>(null);
 
     const [isDragging, setIsDragging] = useState(false);
@@ -357,7 +356,6 @@ function SectionItem({
     return (
         <Box
             className={getWrapperClasses()}
-            style={{ position: 'relative' }}
         >
             {/* Top drop indicator - hide when drop zone is active */}
             {dropState.closestEdge === 'top' && !dropState.isDropZoneHover && (
@@ -385,8 +383,7 @@ function SectionItem({
                     'data-drag-handle': true,
                     className: `${styles.dragHandle} ${isDragging ? styles.isDragging : ''}`
                 }}
-                actionMenuRef={actionMenuRef}
-                customStyle={{}}
+
                 showInsideDropZone={dropState.isContainerTarget || dropState.isDropZoneHover}
                 onSectionSelect={onSectionSelect}
                 selectedSectionId={selectedSectionId}

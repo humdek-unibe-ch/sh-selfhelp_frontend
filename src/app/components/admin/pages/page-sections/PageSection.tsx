@@ -33,8 +33,7 @@ interface IPageSectionProps {
     draggedSectionId?: number | null;
     dragHandleProps?: any;
     isDragging?: boolean;
-    actionMenuRef?: RefObject<HTMLButtonElement>;
-    customStyle?: React.CSSProperties;
+
     showInsideDropZone?: boolean;
 }
 
@@ -56,8 +55,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     draggedSectionId,
     dragHandleProps,
     isDragging = false,
-    actionMenuRef,
-    customStyle,
+
     showInsideDropZone = false
 }, ref) => {
     const hasChildren = section.children && section.children.length > 0;
@@ -134,12 +132,11 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     };
 
     return (
-        <div style={getIndentationStyle()}>
+        <div style={getIndentationStyle()} className={styles.indentationWrapper}>
             <Paper
                 ref={ref}
                 className={`${styles.sectionItem} ${getLevelClass()} ${isSelected ? styles.selected : ''} ${isFocused ? styles.focused : ''}`}
                 onClick={handleSectionClick}
-                style={{ cursor: 'pointer' }}
                 data-section-id={section.id}
             >
                 <Group gap="xs" p="xs" wrap="nowrap" align="center" className={styles.compactGroup}>
@@ -149,11 +146,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                             variant="subtle"
                             size="xs"
                             color="gray"
-                            className={styles.dragHandle}
-                            style={{ 
-                                cursor: isDragging ? 'grabbing' : 'grab',
-                                opacity: isDragActive ? 1 : 0.6
-                            }}
+                            className={`${styles.dragHandle} ${isDragActive ? 'opacity-100' : 'opacity-60'} ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
                         >
                             <IconGripVertical />
                         </ActionIcon>
@@ -177,16 +170,15 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                     )}
 
                     {/* Section Icon */}
-                    <Box style={{ 
-                        color: `var(--mantine-color-${getSectionTypeColor()}-6)`,
-                        display: 'flex',
-                        alignItems: 'center'
-                    }}>
+                    <Box 
+                        className={styles.sectionIcon}
+                        style={{ color: `var(--mantine-color-${getSectionTypeColor()}-6)` }}
+                    >
                         {getSectionIcon()}
                     </Box>
 
                     {/* Section Info - Ultra Compact */}
-                    <Box style={{ flex: 1, minWidth: 0 }}>
+                    <Box className={styles.sectionInfo}>
                         <Group gap={3} wrap="nowrap" align="center">
                             <Text 
                                 size="xs" 
@@ -266,7 +258,6 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
 
                         <Tooltip label="Remove" position="top" withArrow>
                             <ActionIcon
-                                ref={actionMenuRef}
                                 size="xs"
                                 variant="subtle"
                                 color="red"
