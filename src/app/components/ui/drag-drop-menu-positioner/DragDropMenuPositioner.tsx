@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import { createPortal } from 'react-dom';
+import { useState, useMemo, useEffect, useRef, useCallback, createContext, useContext } from 'react';
 import { 
     Box, 
     Text, 
@@ -11,8 +10,22 @@ import {
     Alert,
     Checkbox
 } from '@mantine/core';
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { IconGripVertical, IconInfoCircle } from '@tabler/icons-react';
+import {
+    draggable,
+    dropTargetForElements,
+    monitorForElements,
+} from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
+import {
+    attachClosestEdge,
+    extractClosestEdge,
+    type Edge
+} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
+import { autoScrollForElements } from '@atlaskit/pragmatic-drag-and-drop-auto-scroll/element';
+import { pointerOutsideOfPreview } from '@atlaskit/pragmatic-drag-and-drop/element/pointer-outside-of-preview';
+import { setCustomNativeDragPreview } from '@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview';
+import { DropIndicator } from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box';
+
 import { useAdminPages } from '../../../../hooks/useAdminPages';
 import { IAdminPage } from '../../../../types/responses/admin/admin.types';
 import { debug } from '../../../../utils/debug-logger';
@@ -54,11 +67,194 @@ interface IDragDropMenuPositionerProps {
     alertMessage?: string;
 }
 
-// DragClonePortal: render children in a portal to <body>
-const DragClonePortal = ({ children }: { children: React.ReactNode }) => {
-    if (typeof window === "undefined") return null;
-    return createPortal(children, document.body);
-};
+interface IDragState {
+    isDragActive: boolean;
+    draggedPageId: string | null;
+}
+
+interface IDropState {
+    closestEdge: Edge | null;
+    isDropTarget: boolean;
+}
+
+// Context for drag state
+const DragContext = createContext<IDragState>({
+    isDragActive: false,
+    draggedPageId: null
+});
+
+function MenuPageItem({ 
+    item, 
+    index,
+    onPositionChange 
+}: { 
+    item: IMenuPageItem; 
+    index: number;
+    onPositionChange: (position: number | null) => void;
+}) {
+    const dragContext = useContext(DragContext);
+    const elementRef = useRef<HTMLDivElement>(null);
+    const dragHandleRef = useRef<HTMLButtonElement>(null);
+
+    const [isDragging, setIsDragging] = useState(false);
+    const [dropState, setDropState] = useState<IDropState>({
+        closestEdge: null,
+        isDropTarget: false
+    });
+
+    const isBeingDragged = dragContext.draggedPageId === item.id;
+    const canDrag = item.isNew; // Only new/current pages can be dragged
+
+    // Setup draggable
+    useEffect(() => {
+        const element = elementRef.current;
+        const dragHandle = dragHandleRef.current;
+
+        if (!element || !dragHandle || !canDrag) return;
+
+        return draggable({
+            element: dragHandle,
+            getInitialData: () => ({
+                type: 'menu-page-item',
+                pageId: item.id,
+                keyword: item.keyword,
+                position: item.position,
+                index,
+                isNew: item.isNew
+            }),
+            onGenerateDragPreview: ({ nativeSetDragImage }) => {
+                setCustomNativeDragPreview({
+                    nativeSetDragImage,
+                    getOffset: pointerOutsideOfPreview({
+                        x: '16px',
+                        y: '8px',
+                    }),
+                    render: ({ container }) => {
+                        const preview = document.createElement('div');
+                        preview.style.cssText = `
+                            background: white;
+                            border: 1px solid #e0e0e0;
+                            border-radius: 4px;
+                            padding: 8px 12px;
+                            font-size: 14px;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                        `;
+                        preview.innerHTML = `
+                            <span style="color: #666;">📄</span>
+                            <span>${item.label}</span>
+                            ${item.isNew ? '<span style="color: #1976d2; font-size: 12px; font-weight: 500;">New</span>' : ''}
+                        `;
+                        container.appendChild(preview);
+                    },
+                });
+            },
+            onDragStart: () => {
+                setIsDragging(true);
+            },
+            onDrop: () => {
+                setIsDragging(false);
+            }
+        });
+    }, [item, index, canDrag]);
+
+    // Setup drop target
+    useEffect(() => {
+        const element = elementRef.current;
+        if (!element) return;
+
+        return dropTargetForElements({
+            element,
+            canDrop: ({ source }) => {
+                const draggedId = source.data.pageId as string;
+                // Can't drop on itself
+                return draggedId !== item.id && source.data.type === 'menu-page-item';
+            },
+            getData: ({ input, element }) => {
+                const data = {
+                    type: 'menu-page-drop-target',
+                    pageId: item.id,
+                    keyword: item.keyword,
+                    position: item.position,
+                    index,
+                    isNew: item.isNew
+                };
+
+                return attachClosestEdge(data, {
+                    input,
+                    element,
+                    allowedEdges: ['top', 'bottom']
+                });
+            },
+            onDragEnter: ({ self }) => {
+                const edge = extractClosestEdge(self.data);
+                setDropState({
+                    closestEdge: edge,
+                    isDropTarget: true
+                });
+            },
+            onDragLeave: () => {
+                setDropState({
+                    closestEdge: null,
+                    isDropTarget: false
+                });
+            },
+            onDrop: () => {
+                setDropState({
+                    closestEdge: null,
+                    isDropTarget: false
+                });
+            }
+        });
+    }, [item, index]);
+
+    return (
+        <Paper
+            ref={elementRef}
+            p="xs"
+            mb="xs"
+            withBorder
+            className={`${styles.item} ${item.isNew ? styles.newPageItem : ''} ${isDragging ? styles.itemDragging : ''}`}
+            style={{
+                opacity: isDragging || isBeingDragged ? 0.5 : 1,
+                position: 'relative'
+            }}
+        >
+            {/* Drop indicators */}
+            {dropState.isDropTarget && dropState.closestEdge === 'top' && (
+                <DropIndicator edge="top" gap="8px" />
+            )}
+            {dropState.isDropTarget && dropState.closestEdge === 'bottom' && (
+                <DropIndicator edge="bottom" gap="8px" />
+            )}
+
+            <Group gap="xs" wrap="nowrap">
+                <ActionIcon
+                    ref={dragHandleRef}
+                    variant="subtle"
+                    size="sm"
+                    className={item.isNew ? styles.dragItem : styles.dragItemDisabled}
+                    style={{ 
+                        cursor: canDrag ? (isDragging ? 'grabbing' : 'grab') : 'not-allowed',
+                        pointerEvents: canDrag ? 'auto' : 'none'
+                    }}
+                >
+                    <IconGripVertical size="0.8rem" />
+                </ActionIcon>
+                <Text size="sm" fw={item.isNew ? 600 : 400} style={{ flex: 1 }}>
+                    {item.label}
+                </Text>
+                {item.isNew && (
+                    <Text size="xs" c="blue" fw={500}>
+                        New
+                    </Text>
+                )}
+            </Group>
+        </Paper>
+    );
+}
 
 export function DragDropMenuPositioner({
     menuType,
@@ -76,11 +272,51 @@ export function DragDropMenuPositioner({
     showAlert = true,
     alertMessage = "Drag the page to set its position"
 }: IDragDropMenuPositionerProps) {
+    const containerRef = useRef<HTMLDivElement>(null);
     const [menuPages, setMenuPages] = useState<IMenuPageItem[]>([]);
     const [droppedIndex, setDroppedIndex] = useState<number | null>(null);
+    const [dragState, setDragState] = useState<IDragState>({
+        isDragActive: false,
+        draggedPageId: null
+    });
     
     // Fetch admin pages
     const { pages, isLoading: pagesLoading } = useAdminPages();
+
+    // Helper functions
+    const findPageById = useCallback((id: string, items: IMenuPageItem[]): IMenuPageItem | null => {
+        return items.find(item => item.id === id) || null;
+    }, []);
+
+    const calculateNewPosition = useCallback((
+        targetPage: IMenuPageItem,
+        edge: Edge | null,
+        pages: IMenuPageItem[]
+    ): number => {
+        const sortedPages = [...pages].sort((a, b) => a.position - b.position);
+        const targetIndex = sortedPages.findIndex(p => p.id === targetPage.id);
+
+        if (edge === 'top') {
+            if (targetIndex === 0) {
+                // Dropping above the first element
+                return targetPage.position - 10;
+            }
+            // Dropping above target - take position between previous and target
+            const previousPage = sortedPages[targetIndex - 1];
+            const gap = targetPage.position - previousPage.position;
+            return gap > 2 ? Math.floor((previousPage.position + targetPage.position) / 2) : previousPage.position + 1;
+        } else {
+            // Dropping below target
+            if (targetIndex === sortedPages.length - 1) {
+                // Dropping below the last element
+                return targetPage.position + 10;
+            }
+            // Dropping below target - take position between target and next
+            const nextPage = sortedPages[targetIndex + 1];
+            const gap = nextPage.position - targetPage.position;
+            return gap > 2 ? Math.floor((targetPage.position + nextPage.position) / 2) : targetPage.position + 1;
+        }
+    }, []);
 
     // Process admin pages into menu items based on context
     const processMenuPages = useMemo(() => {
@@ -198,126 +434,137 @@ export function DragDropMenuPositioner({
                 position: menuPages.length > 0 ? menuPages[menuPages.length - 1].position + 10 : 10,
                 isNew: true
             };
-
-            // If we have a dropped index, insert at that position
-            if (droppedIndex !== null && droppedIndex >= 0) {
-                const result = [...menuPages];
-                result.splice(droppedIndex, 0, newPage);
+            
+            // If user dragged to specific position, insert there
+            if (droppedIndex !== null) {
+                const pagesWithNew = [...menuPages];
+                pagesWithNew.splice(droppedIndex, 0, newPage);
                 
-                debug('Adding new page at dropped index', 'DragDropMenuPositioner', {
+                debug('Adding new page at dropped position', 'DragDropMenuPositioner', {
                     menuType,
                     pageKeyword,
                     droppedIndex,
-                    menuPagesCount: menuPages.length
+                    menuPagesCount: menuPages.length,
+                    newPagePosition: newPage.position
                 });
                 
-                return result;
-            }
-
-            // Default: add at the end
-            debug('Adding new page at end', 'DragDropMenuPositioner', {
-                menuType,
-                pageKeyword,
-                menuPagesCount: menuPages.length
-            });
-            
-            return [...menuPages, newPage];
-        }
-    }, [menuPages, currentPage, newPageKeyword, enabled, droppedIndex]);
-
-    // Reset dropped index when menu is disabled and set position to null
-    useEffect(() => {
-        if (!enabled) {
-            if (droppedIndex !== null) {
-                setDroppedIndex(null);
-            }
-            // Only set position to null if it's not already null to prevent infinite loops
-            if (position !== null) {
-                debug('Setting position to null because menu is disabled', 'DragDropMenuPositioner', {
-                    menuType,
-                    previousPosition: position
-                });
-                onPositionChange(null);
-            }
-        }
-    }, [enabled, droppedIndex, position]); // Removed onPositionChange from dependencies to prevent infinite loops
-
-    // Handle drag end with improved positioning
-    const handleDragEnd = (result: DropResult) => {
-        const pageKeyword = newPageKeyword || currentPage?.keyword;
-        if (!result.destination || !pageKeyword) {
-            debug('Drag cancelled or invalid', 'DragDropMenuPositioner', { 
-                hasDestination: !!result.destination,
-                pageKeyword 
-            });
-            return;
-        }
-        
-        const sourceIndex = result.source.index;
-        const destinationIndex = result.destination.index;
-        
-        // Only update if the position actually changed
-        if (sourceIndex !== destinationIndex) {
-            debug('Drag completed with position change', 'DragDropMenuPositioner', {
-                menuType,
-                sourceIndex,
-                destinationIndex,
-                pageKeyword
-            });
-            
-            // Store the dropped index for position calculation (visual index only)
-            setDroppedIndex(destinationIndex);
-            // Store the visual index in the form, actual position will be calculated on submit
-            onPositionChange(destinationIndex);
-        } else {
-            debug('Drag completed but no position change', 'DragDropMenuPositioner', {
-                menuType,
-                sourceIndex,
-                destinationIndex,
-                pageKeyword
-            });
-        }
-    };
-
-    // Calculate final position based on index and existing pages using new system
-    const calculateFinalPosition = (pages: IMenuPageItem[], targetIndex: number): number => {
-        // If no existing pages, start at position -1 (first element)
-        if (pages.length === 0) {
-            return -1;
-        }
-        
-        if (targetIndex === 0) {
-            // First position - place before the first existing page
-            const firstPagePosition = pages[0].position;
-            if (firstPagePosition === -1) {
-                return -11; // New first item when current first is -1
-            }
-            return Math.min(-1, firstPagePosition - 10);
-        } else if (targetIndex >= pages.length) {
-            // Last position - place after the last existing page
-            const lastPagePosition = pages[pages.length - 1].position;
-            if (lastPagePosition === -1) {
-                return 5; // Second element gets 5
-            }
-            return lastPagePosition + 10; // Continue with 15, 25, 35...
-        } else {
-            // Between two pages - calculate middle position with proper spacing
-            const prevPage = pages[targetIndex - 1];
-            const nextPage = pages[targetIndex];
-            const gap = nextPage.position - prevPage.position;
-            
-            // If there's enough gap, place in the middle
-            if (gap > 2) {
-                return Math.floor((prevPage.position + nextPage.position) / 2);
+                return pagesWithNew;
             } else {
-                // Not enough gap - use next available position
-                return prevPage.position + 1;
+                // Add at the end
+                debug('Adding new page at end', 'DragDropMenuPositioner', {
+                    menuType,
+                    pageKeyword,
+                    menuPagesCount: menuPages.length,
+                    newPagePosition: newPage.position
+                });
+                
+                return [...menuPages, newPage];
             }
+        }
+    }, [menuPages, enabled, currentPage, newPageKeyword, droppedIndex, menuType]);
+
+    // Setup auto-scroll
+    useEffect(() => {
+        const container = containerRef.current;
+        if (!container) return;
+
+        return autoScrollForElements({
+            element: container,
+        });
+    }, [menuPagesWithNew]);
+
+    // Monitor for drag and drop
+    useEffect(() => {
+        return monitorForElements({
+            canMonitor: ({ source }) => source.data.type === 'menu-page-item',
+            onDragStart: ({ source }) => {
+                const pageId = source.data.pageId as string;
+                setDragState({
+                    isDragActive: true,
+                    draggedPageId: pageId
+                });
+            },
+            onDrop: ({ location, source }) => {
+                setDragState({
+                    isDragActive: false,
+                    draggedPageId: null
+                });
+
+                if (!location.current.dropTargets.length) {
+                    return;
+                }
+
+                const draggedPageId = source.data.pageId as string;
+                const target = location.current.dropTargets[0];
+                const targetPageId = target.data.pageId as string;
+
+                const draggedPage = findPageById(draggedPageId, menuPagesWithNew || []);
+                const targetPage = findPageById(targetPageId, menuPagesWithNew || []);
+
+                if (!draggedPage || !targetPage || draggedPageId === targetPageId) {
+                    return;
+                }
+
+                const edge = extractClosestEdge(target.data);
+                const newPosition = calculateNewPosition(targetPage, edge, menuPagesWithNew || []);
+
+                // Update the menu pages with new positions
+                const updatedPages = (menuPagesWithNew || []).map(page => {
+                    if (page.id === draggedPageId) {
+                        return { ...page, position: newPosition };
+                    }
+                    return page;
+                }).sort((a, b) => a.position - b.position);
+
+                // Find the new index after sorting
+                const newIndex = updatedPages.findIndex(page => page.id === draggedPageId);
+                setDroppedIndex(newIndex);
+
+                // If the dragged page is the new page, update the position
+                if (draggedPage.isNew) {
+                    onPositionChange(newPosition);
+                }
+
+                debug('Drag ended', 'DragDropMenuPositioner', {
+                    menuType,
+                    draggedPageId,
+                    targetPageId,
+                    edge,
+                    newPosition,
+                    newIndex
+                });
+            }
+        });
+    }, [menuPagesWithNew, findPageById, calculateNewPosition, onPositionChange, menuType]);
+
+    // Calculate final position helper
+    const calculateFinalPosition = (pages: IMenuPageItem[], targetIndex: number): number => {
+        if (targetIndex <= 0) {
+            // First position
+            return pages.length > 0 ? pages[0].position - 10 : -1;
+        }
+        
+        if (targetIndex >= pages.length) {
+            // Last position
+            return pages.length > 0 ? pages[pages.length - 1].position + 10 : -1;
+        }
+        
+        // Middle position - calculate between two existing positions
+        const prevPage = pages[targetIndex - 1];
+        const nextPage = pages[targetIndex];
+        const gap = nextPage.position - prevPage.position;
+        
+        // If there's enough gap, place in the middle
+        if (gap > 2) {
+            return Math.floor((prevPage.position + nextPage.position) / 2);
+        } else {
+            // Not enough gap - use next available position
+            return prevPage.position + 1;
         }
     };
 
     // Get final calculated position for external use
-    const getFinalPosition = (): number | null => {
+    const getFinalPosition = useCallback((): number | null => {
         if (!enabled) return null;
         
         const pageKeyword = newPageKeyword || currentPage?.keyword;
@@ -391,113 +638,59 @@ export function DragDropMenuPositioner({
                 return endPosition;
             }
         }
-    };
+    }, [enabled, newPageKeyword, currentPage, menuPages, droppedIndex, calculateFinalPosition, menuType]);
 
     // Expose getFinalPosition function to parent component
     useEffect(() => {
         if (onGetFinalPosition) {
             onGetFinalPosition(getFinalPosition);
         }
-    }, [onGetFinalPosition, enabled, position, menuPages]);
-
-    // Render menu item for drag and drop
-    const renderMenuItem = (item: IMenuPageItem, index: number) => {
-        return (
-            <Draggable 
-                key={item.id} 
-                draggableId={item.id} 
-                index={index}
-                isDragDisabled={!item.isNew} // Only new/current pages can be dragged
-            >
-                {(provided, snapshot) => {
-                    const draggableContent = (
-                        <Paper
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...(item.isNew ? provided.dragHandleProps : {})}
-                            p="xs"
-                            mb="xs"
-                            withBorder
-                            className={`${styles.item} ${item.isNew ? styles.newPageItem : ''} ${snapshot.isDragging ? styles.itemDragging : ''}`}
-                            style={{
-                                ...provided.draggableProps.style,
-                            }}
-                        >
-                            <Group gap="xs" wrap="nowrap">
-                                <ActionIcon
-                                    variant="subtle"
-                                    size="sm"
-                                    className={item.isNew ? styles.dragItem : styles.dragItemDisabled}
-                                    style={{ pointerEvents: 'none' }}
-                                >
-                                    <IconGripVertical size="0.8rem" />
-                                </ActionIcon>
-                                <Text size="sm" fw={item.isNew ? 600 : 400} style={{ flex: 1 }}>
-                                    {item.label}
-                                </Text>
-                                {item.isNew && (
-                                    <Text size="xs" c="blue" fw={500}>
-                                        {currentPage ? 'Current' : 'New'}
-                                    </Text>
-                                )}
-                            </Group>
-                        </Paper>
-                    );
-
-                    // If dragging, render in portal to escape modal/container transform
-                    if (snapshot.isDragging) {
-                        return <DragClonePortal>{draggableContent}</DragClonePortal>;
-                    }
-                    
-                    return draggableContent;
-                }}
-            </Draggable>
-        );
-    };
+    }, [onGetFinalPosition, getFinalPosition]);
 
     return (
-        <Box className={styles.dragContainer}>
-            {showCheckbox && (
-                <Checkbox
-                    label={checkboxLabel || `${title} Menu`}
-                    checked={enabled}
-                    onChange={(event) => onEnabledChange(event.currentTarget.checked)}
-                    mb="md"
-                />
-            )}
-            
-            {enabled && (
-                <>
-                    <Text size="sm" fw={500} mb="xs">{title}</Text>
-                    <DragDropContext onDragEnd={handleDragEnd}>
-                        <Droppable droppableId={`${menuType}-menu`}>
-                            {(provided, snapshot) => (
-                                <Box
-                                    {...provided.droppableProps}
-                                    ref={provided.innerRef}
-                                    p="sm"
-                                    className={styles.dragArea}
-                                >
-                                    {menuPagesWithNew?.map((item, index) => renderMenuItem(item, index))}
-                                    {provided.placeholder}
-                                    {(menuPagesWithNew?.length ?? 0) === 0 && (
-                                        <Text size="sm" c="dimmed" ta="center" mt="md">
-                                            No pages to display
-                                        </Text>
-                                    )}
-                                </Box>
+        <DragContext.Provider value={dragState}>
+            <Box className={styles.dragContainer}>
+                {showCheckbox && (
+                    <Checkbox
+                        label={checkboxLabel || `${title} Menu`}
+                        checked={enabled}
+                        onChange={(event) => onEnabledChange(event.currentTarget.checked)}
+                        mb="md"
+                    />
+                )}
+                
+                {enabled && (
+                    <>
+                        <Text size="sm" fw={500} mb="xs">{title}</Text>
+                        <Box
+                            ref={containerRef}
+                            p="sm"
+                            className={styles.dragArea}
+                        >
+                            {menuPagesWithNew?.map((item, index) => (
+                                <MenuPageItem
+                                    key={item.id}
+                                    item={item}
+                                    index={index}
+                                    onPositionChange={onPositionChange}
+                                />
+                            ))}
+                            {(menuPagesWithNew?.length ?? 0) === 0 && (
+                                <Text size="sm" c="dimmed" ta="center" mt="md">
+                                    No pages to display
+                                </Text>
                             )}
-                        </Droppable>
-                    </DragDropContext>
-                    
-                    {showAlert && (
-                        <Alert icon={<IconInfoCircle size="1rem" />} mt="xs" color="blue">
-                            {alertMessage}
-                        </Alert>
-                    )}
-                </>
-            )}
-        </Box>
+                        </Box>
+                        
+                        {showAlert && (
+                            <Alert icon={<IconInfoCircle size="1rem" />} mt="xs" color="blue">
+                                {alertMessage}
+                            </Alert>
+                        )}
+                    </>
+                )}
+            </Box>
+        </DragContext.Provider>
     );
 }
 
