@@ -28,7 +28,6 @@ import {
 import { useStyleGroups } from '../../../../../hooks/useStyleGroups';
 import { useCreateSectionInPageMutation, useCreateSectionInSectionMutation } from '../../../../../hooks/mutations';
 import { IStyle, IStyleGroup } from '../../../../../types/responses/admin/styles.types';
-import { debug } from '../../../../../utils/debug-logger';
 import styles from './AddSectionModal.module.css';
 
 interface IAddSectionModalProps {
@@ -57,7 +56,6 @@ export function AddSectionModal({
     const createSectionInPageMutation = useCreateSectionInPageMutation({
         showNotifications: true,
         onSuccess: () => {
-            debug('Section created in page successfully', 'AddSectionModal');
             handleClose();
         }
     });
@@ -66,7 +64,6 @@ export function AddSectionModal({
         showNotifications: true,
         pageKeyword,
         onSuccess: () => {
-            debug('Section created in section successfully', 'AddSectionModal');
             handleClose();
         }
     });
@@ -81,12 +78,10 @@ export function AddSectionModal({
 
     const handleStyleSelect = (style: IStyle) => {
         setSelectedStyle(style);
-        debug('Style selected', 'AddSectionModal', { style });
     };
 
     const handleAddSection = async () => {
         if (!selectedStyle) {
-            debug('No style selected', 'AddSectionModal');
             return;
         }
 
@@ -102,12 +97,7 @@ export function AddSectionModal({
             position: calculatedPosition,
         };
 
-        debug('Creating section as last child', 'AddSectionModal', {
-            sectionData,
-            pageKeyword,
-            parentSectionId,
-            calculatedPosition
-        });
+
 
         try {
             if (parentSectionId !== null) {
@@ -122,11 +112,9 @@ export function AddSectionModal({
                     keyword: pageKeyword,
                     sectionData
                 });
-            } else {
-                debug('Error: No page keyword or parent section ID provided', 'AddSectionModal');
             }
         } catch (error) {
-            debug('Error creating section', 'AddSectionModal', { error });
+            // Error handling is done by the mutation hooks
         }
     };
 

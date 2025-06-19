@@ -38,7 +38,6 @@ import {
 import { IPageField } from '../../../../../types/common/pages.type';
 import { SectionsList } from './SectionsList';
 import { AddSectionModal } from './AddSectionModal';
-import { debug } from '../../../../../utils/debug-logger';
 import styles from './PageSections.module.css';
 
 interface IPageSectionsProps {
@@ -75,33 +74,21 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
 
     // Section mutations
     const addSectionToPageMutation = useAddSectionToPageMutation({
-        showNotifications: true,
-        onSuccess: () => {
-            debug('Section added to page successfully', 'PageSections');
-        }
+        showNotifications: true
     });
 
     const addSectionToSectionMutation = useAddSectionToSectionMutation({
         showNotifications: true,
-        pageKeyword: keyword || undefined,
-        onSuccess: () => {
-            debug('Section added to section successfully', 'PageSections');
-        }
+        pageKeyword: keyword || undefined
     });
 
     const removeSectionFromPageMutation = useRemoveSectionFromPageMutation({
-        showNotifications: true,
-        onSuccess: () => {
-            debug('Section removed from page successfully', 'PageSections');
-        }
+        showNotifications: true
     });
 
     const removeSectionFromSectionMutation = useRemoveSectionFromSectionMutation({
         showNotifications: true,
-        pageKeyword: keyword || undefined,
-        onSuccess: () => {
-            debug('Section removed from section successfully', 'PageSections');
-        }
+        pageKeyword: keyword || undefined
     });
 
     // Search functionality
@@ -153,10 +140,6 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
         
         if (parentsToExpand.size > 0) {
             setExpandedSections(prev => new Set([...Array.from(prev), ...Array.from(parentsToExpand)]));
-            debug('Auto-expanded parent sections', 'PageSections', { 
-                sectionId, 
-                expandedParents: Array.from(parentsToExpand) 
-            });
         }
     }, [data?.sections]);
 
@@ -171,9 +154,6 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
                     block: 'center',
                     inline: 'nearest'
                 });
-                debug('Auto-scrolled to section', 'PageSections', { sectionId });
-            } else {
-                debug('Section element not found for auto-scroll', 'PageSections', { sectionId });
             }
         }, 100); // Small delay to allow for DOM updates
     }, []);
@@ -252,7 +232,6 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
 
     const handleSectionSelect = (sectionId: number) => {
         setSelectedSectionId(sectionId);
-        debug('Section selected for inspector', 'PageSections', { sectionId });
     };
 
     // Collapse/Expand all functionality
@@ -271,12 +250,10 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
         
         collectAllIds(data.sections);
         setExpandedSections(allSectionIds);
-        debug('Expanded all sections', 'PageSections', { count: allSectionIds.size });
     };
 
     const handleCollapseAll = () => {
         setExpandedSections(new Set());
-        debug('Collapsed all sections', 'PageSections');
     };
 
     // Search navigation
@@ -296,7 +273,7 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
         // Auto-scroll to the focused element
         scrollToSection(nextSectionId);
         
-        debug('Search next', 'PageSections', { index: nextIndex, sectionId: nextSectionId });
+
     };
 
     const handleSearchPrevious = () => {
@@ -315,7 +292,7 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
         // Auto-scroll to the focused element
         scrollToSection(prevSectionId);
         
-        debug('Search previous', 'PageSections', { index: prevIndex, sectionId: prevSectionId });
+
     };
 
     const handleSearchClear = () => {
@@ -326,13 +303,6 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
     };
 
     const handleSectionMove = async (moveData: IMoveData) => {
-        debug('Processing section move', 'PageSections', {
-            ...moveData,
-            oldParentInfo: {
-                oldParentPageId: moveData.oldParentPageId,
-                oldParentSectionId: moveData.oldParentSectionId
-            }
-        });
         
         try {
             const { draggedSectionId, newParentId, newPosition, pageKeyword, oldParentPageId, oldParentSectionId } = moveData;
@@ -364,23 +334,14 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
                 });
             }
             
-            debug('Section move completed successfully', 'PageSections', {
-                sectionId: draggedSectionId,
-                oldParentPageId,
-                oldParentSectionId,
-                newParentId,
-                newPosition,
-                moveType: newParentId === null ? 'to-page' : 'to-section'
-            });
+
             
         } catch (error) {
-            debug('Error moving section', 'PageSections', { error, moveData });
             // Error handling is done by the mutation hooks
         }
     };
 
     const handleRemoveSection = async (sectionId: number, parentId: number | null) => {
-        debug('Removing section', 'PageSections', { sectionId, parentId });
         
         try {
             if (parentId === null) {
@@ -401,22 +362,19 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
                 });
             }
             
-            debug('Section removed successfully', 'PageSections', { sectionId, parentId });
+
             
         } catch (error) {
-            debug('Error removing section', 'PageSections', { error, sectionId, parentId });
             // Error handling is done by the mutation hooks
         }
     };
 
     const handleAddChildSection = (parentSectionId: number) => {
-        debug('Opening add child section modal', 'PageSections', { parentSectionId });
         setSelectedParentSectionId(parentSectionId);
         setAddSectionModalOpened(true);
     };
 
     const handleAddSiblingAbove = (referenceSectionId: number, parentId: number | null) => {
-        debug('Adding sibling above section', 'PageSections', { referenceSectionId, parentId });
         // TODO: Implement sibling above creation with position calculation (reference position - 1)
         // For now, open the modal with the parent context
         setSelectedParentSectionId(parentId);
@@ -424,7 +382,6 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
     };
 
     const handleAddSiblingBelow = (referenceSectionId: number, parentId: number | null) => {
-        debug('Adding sibling below section', 'PageSections', { referenceSectionId, parentId });
         // TODO: Implement sibling below creation with position calculation (reference position + 1)
         // For now, open the modal with the parent context
         setSelectedParentSectionId(parentId);
