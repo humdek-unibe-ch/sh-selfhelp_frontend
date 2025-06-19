@@ -74,11 +74,26 @@ interface IDropState {
     isDropZoneHover: boolean;
 }
 
+interface IHoverPreviewState {
+    isHovering: boolean;
+    targetSectionId: number | null;
+    dropType: 'above' | 'below' | 'inside' | null;
+    newParentId: number | null;
+    newPosition: number | null;
+    targetSectionName: string | null;
+}
+
 // Context for drag state
 const DragContext = createContext<IDragState>({
     isDragActive: false,
     draggedSectionId: null
 });
+
+// Context for hover preview
+const HoverPreviewContext = createContext<{
+    hoverState: IHoverPreviewState;
+    setHoverState: (state: IHoverPreviewState) => void;
+} | null>(null);
 
 // Clean Section Item Component with improved drop detection
 function SectionItem({
@@ -96,6 +111,7 @@ function SectionItem({
     focusedSectionId
 }: ISectionItemProps) {
     const dragContext = useContext(DragContext);
+    const hoverPreviewContext = useContext(HoverPreviewContext);
     const elementRef = useRef<HTMLDivElement>(null);
     const dragHandleRef = useRef<HTMLDivElement>(null);
     const dropZoneRef = useRef<HTMLDivElement>(null);
@@ -113,6 +129,72 @@ function SectionItem({
     const hasChildren = section.children && section.children.length > 0;
     const canHaveChildren = !!section.can_have_children;
     const isBeingDragged = dragContext.draggedSectionId === section.id;
+
+    // Helper function to calculate drag preview data
+    const calculateDragPreview = useCallback((relativeY: number): IHoverPreviewState => {
+        const edgeThreshold = 0.50; // 25% from top/bottom edges
+        const isNearTopEdge = relativeY <= edgeThreshold;
+        const isNearBottomEdge = relativeY >= (1 - edgeThreshold);
+
+        // Get siblings for position calculation - fix the root level filtering
+        const siblings = parentId 
+            ? (allSections.find(s => s.id === parentId)?.children || [])
+            : allSections.filter(s => {
+                // Find root level sections (sections that are not children of any other section)
+                return !allSections.some(parent => 
+                    parent.children && parent.children.some(child => child.id === s.id)
+                );
+            });
+        
+        const sortedSiblings = [...siblings].sort((a, b) => a.position - b.position);
+        const currentIndex = sortedSiblings.findIndex(s => s.id === section.id);
+
+        if (isNearTopEdge) {
+            // Dropping above this section
+            const newPosition = currentIndex === 0 ? -1 : 
+                (sortedSiblings[currentIndex - 1]?.position ?? 0) + 5;
+            return {
+                isHovering: true,
+                targetSectionId: section.id,
+                dropType: 'above',
+                newParentId: parentId,
+                newPosition,
+                targetSectionName: section.name
+            };
+        } else if (isNearBottomEdge) {
+            // Dropping below this section
+            const newPosition = section.position + 5;
+            return {
+                isHovering: true,
+                targetSectionId: section.id,
+                dropType: 'below',
+                newParentId: parentId,
+                newPosition,
+                targetSectionName: section.name
+            };
+        } else if (hasChildren && canHaveChildren) {
+            // Dropping inside this section
+            return {
+                isHovering: true,
+                targetSectionId: section.id,
+                dropType: 'inside',
+                newParentId: section.id,
+                newPosition: -1, // First child
+                targetSectionName: section.name
+            };
+        } else {
+            // Default to below
+            const newPosition = section.position + 5;
+            return {
+                isHovering: true,
+                targetSectionId: section.id,
+                dropType: 'below',
+                newParentId: parentId,
+                newPosition,
+                targetSectionName: section.name
+            };
+        }
+    }, [section, parentId, allSections, hasChildren, canHaveChildren]);
 
     // Helper function to check if this section is a descendant of the dragged section
     const isDescendantOfDragged = useCallback((): boolean => {
@@ -140,6 +222,33 @@ function SectionItem({
 
         return findInTree(allSections, dragContext.draggedSectionId, section.id);
     }, [dragContext.draggedSectionId, section.id, allSections]);
+
+    // Mouse event handlers for drag preview (only during drag)
+    const handleMouseMove = useCallback((e: React.MouseEvent) => {
+        if (!hoverPreviewContext || !dragContext.isDragActive) return;
+
+        const element = elementRef.current;
+        if (!element) return;
+
+        const rect = element.getBoundingClientRect();
+        const relativeY = (e.clientY - rect.top) / rect.height;
+        const dragPreview = calculateDragPreview(relativeY);
+        
+        hoverPreviewContext.setHoverState(dragPreview);
+    }, [hoverPreviewContext, dragContext.isDragActive, calculateDragPreview]);
+
+    const handleMouseLeave = useCallback(() => {
+        if (!hoverPreviewContext || !dragContext.isDragActive) return;
+        
+        hoverPreviewContext.setHoverState({
+            isHovering: false,
+            targetSectionId: null,
+            dropType: null,
+            newParentId: null,
+            newPosition: null,
+            targetSectionName: null
+        });
+    }, [hoverPreviewContext, dragContext.isDragActive]);
 
     // Setup draggable
     useEffect(() => {
@@ -205,19 +314,47 @@ function SectionItem({
                 const rect = element.getBoundingClientRect();
                 const relativeY = (input.clientY - rect.top) / rect.height;
 
+                // Use same threshold as hover preview for consistency
+                const edgeThreshold = 0.50; // 25% from top/bottom edges
+                const isNearTopEdge = relativeY <= edgeThreshold;
+                const isNearBottomEdge = relativeY >= (1 - edgeThreshold);
+
+                // If near edges, always treat as edge drop for sibling positioning
+                if (isNearTopEdge || isNearBottomEdge) {
+                    const data = {
+                        type: 'section-drop-target',
+                        sectionId: section.id,
+                        sectionName: section.name,
+                        level,
+                        parentId,
+                        index,
+                        canHaveChildren,
+                        relativeY, // Add for debugging
+                        threshold: edgeThreshold
+                    };
+
+                    return attachClosestEdge(data, {
+                        input,
+                        element,
+                        allowedEdges: ['top', 'bottom']
+                    });
+                }
+
                 // Allow container drops if section already has children and in center area
-                if (hasChildren && canHaveChildren && relativeY >= 0.25 && relativeY <= 0.75) {
+                if (hasChildren && canHaveChildren) {
                     return {
                         type: 'container-drop-target',
                         sectionId: section.id,
                         sectionName: section.name,
                         level,
                         parentId,
-                        canHaveChildren: true
+                        canHaveChildren: true,
+                        relativeY, // Add for debugging
+                        threshold: edgeThreshold
                     };
                 }
 
-                // Always allow edge-based positioning for siblings
+                // Default to edge-based positioning for siblings (below)
                 const data = {
                     type: 'section-drop-target',
                     sectionId: section.id,
@@ -225,13 +362,15 @@ function SectionItem({
                     level,
                     parentId,
                     index,
-                    canHaveChildren
+                    canHaveChildren,
+                    relativeY, // Add for debugging
+                    threshold: edgeThreshold
                 };
 
                 return attachClosestEdge(data, {
                     input,
                     element,
-                    allowedEdges: ['top', 'bottom']
+                    allowedEdges: ['bottom'] // Default to bottom when not in edge zones
                 });
             },
             onDragEnter: ({ self }) => {
@@ -342,6 +481,8 @@ function SectionItem({
     return (
         <Box
             className={getWrapperClasses()}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
         >
             {/* Top drop indicator - hide when drop zone is active */}
             {dropState.closestEdge === 'top' && !dropState.isDropZoneHover && (
@@ -434,6 +575,14 @@ function useSectionsContext() {
     return context;
 }
 
+function useHoverPreviewContext() {
+    const context = useContext(HoverPreviewContext);
+    if (!context) {
+        throw new Error('useHoverPreviewContext must be used within HoverPreviewContext');
+    }
+    return context;
+}
+
 // Main sections list component
 export function SectionsList({
     sections,
@@ -454,6 +603,15 @@ export function SectionsList({
     const [dragState, setDragState] = useState<IDragState>({
         isDragActive: false,
         draggedSectionId: null
+    });
+
+    const [hoverPreviewState, setHoverPreviewState] = useState<IHoverPreviewState>({
+        isHovering: false,
+        targetSectionId: null,
+        dropType: null,
+        newParentId: null,
+        newPosition: null,
+        targetSectionName: null
     });
 
     // Helper functions
@@ -537,6 +695,7 @@ export function SectionsList({
             };
         } else {
             // Dropping below target - take target's position + 5
+            // This ensures we always add AFTER the target section
             return {
                 newParentId: targetParentId,
                 newPosition: targetSection.position + 5
@@ -616,6 +775,16 @@ export function SectionsList({
                     draggedSectionId: null
                 });
 
+                // Clear the preview state when drag ends
+                setHoverPreviewState({
+                    isHovering: false,
+                    targetSectionId: null,
+                    dropType: null,
+                    newParentId: null,
+                    newPosition: null,
+                    targetSectionName: null
+                });
+
                 if (!location.current.dropTargets.length) {
                     return;
                 }
@@ -651,13 +820,19 @@ export function SectionsList({
                         : sections;
                     const sortedSiblings = [...siblings].sort((a, b) => a.position - b.position);
                     
-                    console.log('📊 POSITION CALCULATION:', {
+                    console.log('📊 THRESHOLD & POSITION DEBUG:', {
                         '🎯 Target Section': `${targetSection.name} (pos: ${targetSection.position})`,
-                        '📍 Drop Edge': edge || 'container',
+                        '📏 Drop Data': {
+                            edge: edge || 'container',
+                            relativeY: target.data.relativeY,
+                            threshold: target.data.threshold,
+                            type: target.data.type
+                        },
                         '👥 Current Siblings': sortedSiblings.map(s => `${s.name}(${s.position})`).join(', '),
                         '🆕 Calculated Position': newPosition,
                         '📋 Position Logic': newPosition === -1 ? 'First position (-1)' : 
-                                           `After sibling (sibling position + 5 = ${newPosition})`
+                                           edge === 'top' ? `Above target (prev sibling + 5 = ${newPosition})` :
+                                           `Below target (target position + 5 = ${newPosition})`
                     });
                 }
 
@@ -694,8 +869,16 @@ export function SectionsList({
 
                 // Find the old parent information
                 const oldParentId = findParentId(draggedSectionId, sections);
-                const oldParentPageId = oldParentId === null ? pageKeyword : null;
                 const oldParentSectionId = oldParentId;
+
+                // Determine if we need to send oldParentPageId
+                // Only send it when moving FROM root TO section or FROM section TO root
+                // Don't send it when reordering within the same parent (root or section)
+                const isMovingFromRootToSection = oldParentId === null && newParentId !== null;
+                const isMovingFromSectionToRoot = oldParentId !== null && newParentId === null;
+                const isChangingParent = isMovingFromRootToSection || isMovingFromSectionToRoot;
+                
+                const oldParentPageId = isChangingParent && oldParentId === null ? pageKeyword : null;
 
                 // Execute the section move with API call
                 onSectionMove({
@@ -707,8 +890,8 @@ export function SectionsList({
                     newParent: newParentId ? findSectionById(newParentId, sections) : null,
                     descendantIds: getAllDescendantIds(draggedSection),
                     totalMovingItems: 1 + getAllDescendantIds(draggedSection).length,
-                    oldParentPageId,
-                    oldParentSectionId
+                    ...(oldParentPageId && { oldParentPageId }),
+                    oldParentSectionId      
                 });
             },
         });
@@ -724,12 +907,44 @@ export function SectionsList({
 
     return (
         <DragContext.Provider value={dragState}>
-            <SectionsContext.Provider value={{ expandedSections, onToggleExpand }}>
-                <Box
-                    ref={containerRef}
-                    data-scroll-container
-                    className={styles.sectionsContainer}
-                >
+            <HoverPreviewContext.Provider value={{ hoverState: hoverPreviewState, setHoverState: setHoverPreviewState }}>
+                <SectionsContext.Provider value={{ expandedSections, onToggleExpand }}>
+                    {/* Drag Preview Display */}
+                    {hoverPreviewState.isHovering && dragState.isDragActive && (
+                        <Box
+                            style={{
+                                position: 'fixed',
+                                top: '10px',
+                                right: '10px',
+                                background: 'var(--mantine-color-blue-light)',
+                                border: '1px solid var(--mantine-color-blue-6)',
+                                borderRadius: '8px',
+                                padding: '12px',
+                                fontSize: '12px',
+                                fontFamily: 'monospace',
+                                zIndex: 1000,
+                                maxWidth: '300px',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                            }}
+                        >
+                            <div style={{ fontWeight: 'bold', marginBottom: '8px', color: 'var(--mantine-color-blue-8)' }}>
+                                🎯 Drop Preview
+                            </div>
+                            <div><strong>Target:</strong> {hoverPreviewState.targetSectionName}</div>
+                            <div><strong>Action:</strong> Drop {hoverPreviewState.dropType}</div>
+                            <div><strong>New Parent:</strong> {hoverPreviewState.newParentId ? `Section ${hoverPreviewState.newParentId}` : 'Root Level'}</div>
+                            <div><strong>New Position:</strong> {hoverPreviewState.newPosition}</div>
+                            <div style={{ marginTop: '8px', fontSize: '11px', color: 'var(--mantine-color-gray-6)' }}>
+                                API: {hoverPreviewState.newParentId ? 'addSectionToSection' : 'addSectionToPage'}
+                            </div>
+                        </Box>
+                    )}
+
+                    <Box
+                        ref={containerRef}
+                        data-scroll-container
+                        className={styles.sectionsContainer}
+                    >
                     {sections.length === 0 ? (
                         <Paper className={styles.emptyState}>
                             <Text className={styles.emptyStateIcon}>📄</Text>
@@ -761,6 +976,7 @@ export function SectionsList({
                     )}
                 </Box>
             </SectionsContext.Provider>
-        </DragContext.Provider>
-    );
+        </HoverPreviewContext.Provider>
+    </DragContext.Provider>
+);
 } 
