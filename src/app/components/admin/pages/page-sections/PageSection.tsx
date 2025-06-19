@@ -67,15 +67,15 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     const isFocused = focusedSectionId === section.id;
 
     // Dynamic indentation aligned with chevron - 12px per level to align with chevron positioning
-    const getIndentationStyle = () => ({
-        marginLeft: `${level * 12}px`,
-        position: 'relative' as const
-    });
-
     const getSectionTypeColor = () => {
         if (canHaveChildren) return 'blue';
         return 'gray';
     };
+
+    const getIndentationStyle = () => ({
+        '--section-indent': `${level * 12}px`,
+        '--section-icon-color': `var(--mantine-color-${getSectionTypeColor()}-6)`
+    } as React.CSSProperties);
 
     const getSectionIcon = () => {
         if (canHaveChildren) {
@@ -170,10 +170,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                     )}
 
                     {/* Section Icon */}
-                    <Box 
-                        className={styles.sectionIcon}
-                        style={{ color: `var(--mantine-color-${getSectionTypeColor()}-6)` }}
-                    >
+                    <Box className={styles.sectionIcon}>
                         {getSectionIcon()}
                     </Box>
 

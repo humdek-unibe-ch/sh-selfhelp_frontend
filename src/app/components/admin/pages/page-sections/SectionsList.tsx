@@ -168,21 +168,7 @@ function SectionItem({
                     }),
                     render: ({ container }) => {
                         const preview = document.createElement('div');
-                        preview.style.cssText = `
-                            background: white;
-                            border: 2px solid var(--mantine-color-green-4);
-                            border-radius: 6px;
-                            padding: 8px 12px;
-                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                            font-size: 13px;
-                            font-weight: 500;
-                            color: var(--mantine-color-gray-9);
-                            max-width: 200px;
-                            white-space: nowrap;
-                            overflow: hidden;
-                            text-overflow: ellipsis;
-                        `;
+                        preview.className = styles.dragPreview;
                         preview.textContent = `📄 ${section.name}`;
                         container.appendChild(preview);
                     },

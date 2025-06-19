@@ -175,12 +175,14 @@
 /* Indentation wrapper */
 .indentationWrapper {
     position: relative;
+    margin-left: var(--section-indent, 0px);
 }
 
 /* Section icon styling */
 .sectionIcon {
     display: flex;
     align-items: center;
+    color: var(--section-icon-color, var(--mantine-color-gray-6));
 }
 
 /* Section info container */
