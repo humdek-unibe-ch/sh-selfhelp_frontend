@@ -65,6 +65,7 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
     const [addSectionModalOpened, setAddSectionModalOpened] = useState(false);
     const [selectedParentSectionId, setSelectedParentSectionId] = useState<number | null>(null);
     const [selectedSectionId, setSelectedSectionId] = useState<number | null>(null);
+    const [specificPosition, setSpecificPosition] = useState<number | undefined>(undefined);
     
     // Search functionality
     const [searchQuery, setSearchQuery] = useState('');
@@ -217,6 +218,18 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
             setExpandedSections(prev => new Set([...Array.from(prev), ...Array.from(sectionsToExpand)]));
         }
     }, [searchResults, data?.sections]);
+
+    // Helper function to find a section by ID
+    const findSectionById = useCallback((sectionId: number, sections: IPageField[]): IPageField | null => {
+        for (const section of sections) {
+            if (section.id === sectionId) return section;
+            if (section.children) {
+                const found = findSectionById(sectionId, section.children);
+                if (found) return found;
+            }
+        }
+        return null;
+    }, []);
 
     const handleToggleExpand = (sectionId: number) => {
         setExpandedSections(prev => {
@@ -371,26 +384,40 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
 
     const handleAddChildSection = (parentSectionId: number) => {
         setSelectedParentSectionId(parentSectionId);
+        setSpecificPosition(undefined); // Child sections use default positioning
         setAddSectionModalOpened(true);
     };
 
     const handleAddSiblingAbove = (referenceSectionId: number, parentId: number | null) => {
-        // TODO: Implement sibling above creation with position calculation (reference position - 1)
-        // For now, open the modal with the parent context
+        if (!data?.sections) return;
+        
+        const referenceSection = findSectionById(referenceSectionId, data.sections);
+        if (!referenceSection) return;
+        
+        const newPosition = referenceSection.position - 5;
+        
         setSelectedParentSectionId(parentId);
+        setSpecificPosition(newPosition);
         setAddSectionModalOpened(true);
     };
 
     const handleAddSiblingBelow = (referenceSectionId: number, parentId: number | null) => {
-        // TODO: Implement sibling below creation with position calculation (reference position + 1)
-        // For now, open the modal with the parent context
+        if (!data?.sections) return;
+        
+        const referenceSection = findSectionById(referenceSectionId, data.sections);
+        if (!referenceSection) return;
+        
+        const newPosition = referenceSection.position + 5;
+        
         setSelectedParentSectionId(parentId);
+        setSpecificPosition(newPosition);
         setAddSectionModalOpened(true);
     };
 
     const handleCloseAddSectionModal = () => {
         setAddSectionModalOpened(false);
         setSelectedParentSectionId(null);
+        setSpecificPosition(undefined);
     };
 
     // Auto-expand sections with children on initial load
@@ -593,6 +620,7 @@ export function PageSections({ keyword, pageName }: IPageSectionsProps) {
                 pageKeyword={keyword || undefined}
                 parentSectionId={selectedParentSectionId}
                 title={selectedParentSectionId ? "Add Child Section" : "Add Section to Page"}
+                specificPosition={specificPosition}
             />
         </Paper>
     );

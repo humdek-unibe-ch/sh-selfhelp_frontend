@@ -36,6 +36,7 @@ interface IAddSectionModalProps {
     pageKeyword?: string;
     parentSectionId?: number | null;
     title?: string;
+    specificPosition?: number;
 }
 
 export function AddSectionModal({
@@ -43,7 +44,8 @@ export function AddSectionModal({
     onClose,
     pageKeyword,
     parentSectionId = null,
-    title = 'Add Section'
+    title = 'Add Section',
+    specificPosition
 }: IAddSectionModalProps) {
     const [activeTab, setActiveTab] = useState<string>('new-section');
     const [selectedStyle, setSelectedStyle] = useState<IStyle | null>(null);
@@ -85,11 +87,8 @@ export function AddSectionModal({
             return;
         }
 
-        // Calculate position for adding as last child
-        let calculatedPosition = 5; // Default position
-        
-        // TODO: Get sections data to calculate proper position as last child
-        // This will be implemented when we integrate with sections data
+        // Use specific position if provided, otherwise default to -1 (first)
+        const calculatedPosition = specificPosition ?? -1;
 
         const sectionData = {
             styleId: selectedStyle.id,
