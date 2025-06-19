@@ -20,8 +20,11 @@ The drag and drop functionality for page sections has been enhanced with smooth 
 ### 3. Visual Feedback
 - Green drop indicators show exact drop position for sibling drops
 - Container drop targets have subtle background highlighting
-- **Drop Zone Areas**: Small green areas appear on the right side of empty containers during drag
+- **Enhanced Drop Zone Areas**: Large, interactive green areas (120px wide) on the right side of empty containers
+- **Clear Text Labels**: "Add as First Child" text with icon for better UX
+- **Direct Drop Support**: Drop zones are independent drop targets - no need to move to section
 - **Smart Indicator Hiding**: Sibling indicators automatically hide when hovering over drop zones
+- **Smooth Animations**: Drop zones scale and highlight when active
 - Dragged items become semi-transparent during drag
 - Descendants of dragged items are also visually muted
 
@@ -34,15 +37,23 @@ The drag and drop functionality for page sections has been enhanced with smooth 
 
 ### Drop Target Logic
 ```typescript
-// Check if hovering over the drop zone area (right side, small area)
-const dropZoneWidth = Math.min(40, rect.width * 0.15);
-const dropZoneLeft = rect.width - dropZoneWidth;
-const isInDropZone = input.clientX - rect.left >= dropZoneLeft && canHaveChildren && !hasChildren;
+// Separate drop target for drop zone areas
+useEffect(() => {
+    const dropZoneElement = dropZoneRef.current;
+    if (!dropZoneElement || !canHaveChildren || hasChildren) return;
 
-if (isInDropZone) {
-    return { type: 'drop-zone-target', ... };
-}
+    return dropTargetForElements({
+        element: dropZoneElement,
+        getData: () => ({
+            type: 'drop-zone-target',
+            sectionId: section.id,
+            // ... other data
+        }),
+        // Independent drag enter/leave handling
+    });
+}, [section, canHaveChildren, hasChildren]);
 
+// Main section drop target (simplified)
 // Allow container drops if section already has children
 if (hasChildren && canHaveChildren && relativeY >= 0.25 && relativeY <= 0.75) {
     return { type: 'container-drop-target', ... };
@@ -63,10 +74,16 @@ return attachClosestEdge(data, {
     <DropIndicator edge="top" gap="8px" />
 )}
 
-{/* Drop zone area for empty containers */}
+{/* Enhanced drop zone area with text and independent drop target */}
 {dragContext.isDragActive && canHaveChildren && !hasChildren && !isBeingDragged && (
-    <Box className={`${styles.dropZoneArea} ${styles.visible} ${dropState.isDropZoneHover ? styles.active : ''}`}>
-        <IconPlus size={14} className={styles.dropZoneIcon} />
+    <Box 
+        ref={dropZoneRef}
+        className={`${styles.dropZoneArea} ${styles.visible} ${dropState.isDropZoneHover ? styles.active : ''}`}
+    >
+        <IconPlus size={16} className={styles.dropZoneIcon} />
+        <Text className={styles.dropZoneText}>
+            Add as<br />First Child
+        </Text>
     </Box>
 )}
 ```
@@ -86,7 +103,10 @@ When `dragDropDebug` is enabled, you'll see:
 ## User Experience Rules
 1. **Sibling Positioning**: Drop on top/bottom edges to reorder at same level
 2. **Child Addition**: Drop in center of sections that already have children
-3. **Empty Parent Support**: Drop in the small green zone on the right to add first child to empty containers
-4. **Smart Visual Feedback**: Sibling indicators automatically hide when targeting drop zones
-5. **Visual Clarity**: Clear indicators show exactly where drop will occur
-6. **Smooth Transitions**: All visual changes are animated for better user experience 
+3. **Empty Parent Support**: Drop directly in the large green "Add as First Child" zone for empty containers
+4. **Independent Drop Targets**: Drop zones work independently - no need to move to section after hovering
+5. **Smart Visual Feedback**: Sibling indicators automatically hide when targeting drop zones
+6. **Clear Text Instructions**: "Add as First Child" text with icon removes guesswork
+7. **Large Target Areas**: 120px wide drop zones for easy interaction
+8. **Visual Clarity**: Clear indicators show exactly where drop will occur
+9. **Smooth Transitions**: All visual changes are animated with scaling and highlighting 

@@ -99,6 +99,7 @@ function SectionItem({
     const elementRef = useRef<HTMLDivElement>(null);
     const dragHandleRef = useRef<HTMLDivElement>(null);
     const actionMenuRef = useRef<HTMLButtonElement>(null);
+    const dropZoneRef = useRef<HTMLDivElement>(null);
     
     const [isDragging, setIsDragging] = useState(false);
     const [dropState, setDropState] = useState<IDropState>({
@@ -218,24 +219,6 @@ function SectionItem({
             getData: ({ input, element }) => {
                 const rect = element.getBoundingClientRect();
                 const relativeY = (input.clientY - rect.top) / rect.height;
-                const relativeX = (input.clientX - rect.left) / rect.width;
-                
-                // Check if hovering over the drop zone area (right side, small area)
-                // Drop zone is on the right side, about 40px wide or 15% of width (whichever is smaller)
-                const dropZoneWidth = Math.min(40, rect.width * 0.15);
-                const dropZoneLeft = rect.width - dropZoneWidth;
-                const isInDropZone = input.clientX - rect.left >= dropZoneLeft && canHaveChildren && !hasChildren;
-                
-                if (isInDropZone) {
-                    return {
-                        type: 'drop-zone-target',
-                        sectionId: section.id,
-                        sectionName: section.name,
-                        level,
-                        parentId,
-                        canHaveChildren: true
-                    };
-                }
                 
                 // Allow container drops if section already has children and in center area
                 if (hasChildren && canHaveChildren && relativeY >= 0.25 && relativeY <= 0.75) {
@@ -274,13 +257,6 @@ function SectionItem({
                         isContainerTarget: true,
                         isDropZoneHover: false
                     });
-                } else if (self.data.type === 'drop-zone-target') {
-                    setDropState({
-                        closestEdge: null,
-                        isDropTarget: false,
-                        isContainerTarget: false,
-                        isDropZoneHover: true
-                    });
                 } else {
                     const edge = extractClosestEdge(self.data);
                     setDropState({
@@ -309,6 +285,59 @@ function SectionItem({
             }
         });
     }, [section, level, parentId, index, isDescendantOfDragged, canHaveChildren, hasChildren]);
+
+    // Setup separate drop target for the drop zone area
+    useEffect(() => {
+        const dropZoneElement = dropZoneRef.current;
+        if (!dropZoneElement || !canHaveChildren || hasChildren) return;
+
+        return dropTargetForElements({
+            element: dropZoneElement,
+            canDrop: ({ source }) => {
+                const draggedId = source.data.sectionId as number;
+                
+                // Can't drop on itself
+                if (draggedId === section.id) return false;
+                
+                // Can't drop parent on its own child
+                if (isDescendantOfDragged()) return false;
+                
+                return source.data.type === 'section-item';
+            },
+            getData: () => ({
+                type: 'drop-zone-target',
+                sectionId: section.id,
+                sectionName: section.name,
+                level,
+                parentId,
+                canHaveChildren: true
+            }),
+            onDragEnter: () => {
+                setDropState({
+                    closestEdge: null,
+                    isDropTarget: false,
+                    isContainerTarget: false,
+                    isDropZoneHover: true
+                });
+            },
+            onDragLeave: () => {
+                setDropState({
+                    closestEdge: null,
+                    isDropTarget: false,
+                    isContainerTarget: false,
+                    isDropZoneHover: false
+                });
+            },
+            onDrop: () => {
+                setDropState({
+                    closestEdge: null,
+                    isDropTarget: false,
+                    isContainerTarget: false,
+                    isDropZoneHover: false
+                });
+            }
+        });
+    }, [section, level, parentId, isDescendantOfDragged, canHaveChildren, hasChildren]);
 
     // Get wrapper classes based on states
     const getWrapperClasses = () => {
@@ -367,9 +396,13 @@ function SectionItem({
             {/* Drop zone area for sections that can have children but don't have any */}
             {dragContext.isDragActive && canHaveChildren && !hasChildren && !isBeingDragged && (
                 <Box 
+                    ref={dropZoneRef}
                     className={`${styles.dropZoneArea} ${styles.visible} ${dropState.isDropZoneHover ? styles.active : ''}`}
                 >
-                    <IconPlus size={14} className={styles.dropZoneIcon} />
+                    <IconPlus size={16} className={styles.dropZoneIcon} />
+                    <Text className={styles.dropZoneText}>
+                        Add as first Child
+                    </Text>
                 </Box>
             )}
 
