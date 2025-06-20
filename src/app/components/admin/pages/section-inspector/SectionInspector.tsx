@@ -48,20 +48,23 @@ interface ISectionFormValues {
 }
 
 interface ISectionSubmitData {
-    // Section name
-    sectionName: string;
+    // Section name (only if changed)
+    sectionName?: string;
     
-    // Content fields with language and field IDs
+    // Content fields with language and field IDs (only changed fields)
     contentFields: Array<{
         fieldId: number;
         languageId: number;
         value: string;
+        fieldName: string; // For debugging
+        languageCode: string; // For debugging
     }>;
     
-    // Property fields
+    // Property fields (only changed fields)
     propertyFields: Array<{
         fieldId: number;
         value: string | boolean;
+        fieldName: string; // For debugging
     }>;
 }
 
@@ -69,6 +72,13 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [formValues, setFormValues] = useState<ISectionFormValues>({
+        sectionName: '',
+        properties: {},
+        fields: {}
+    });
+    
+    // Track original values to detect changes
+    const [originalValues, setOriginalValues] = useState<ISectionFormValues>({
         sectionName: '',
         properties: {},
         fields: {}
@@ -133,18 +143,24 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
                 }
             });
 
-            setFormValues({
+            const newFormValues = {
                 sectionName: section.name,
                 properties: propertiesObject,
                 fields: fieldsObject
-            });
+            };
+            
+            setFormValues(newFormValues);
+            setOriginalValues(newFormValues); // Store original values for change detection
         } else {
             // Reset form when no section is selected
-            setFormValues({
+            const resetValues = {
                 sectionName: '',
                 properties: {},
                 fields: {}
-            });
+            };
+            
+            setFormValues(resetValues);
+            setOriginalValues(resetValues);
         }
     }, [sectionDetailsData, languages]);
 
@@ -155,50 +171,83 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
         const contentFields = fields.filter(field => field.display);
         const propertyFields = fields.filter(field => !field.display);
         
-        // Prepare submit data structure
+        // Prepare submit data structure (only changed fields)
         const submitData: ISectionSubmitData = {
-            sectionName: formValues.sectionName,
             contentFields: [],
             propertyFields: []
         };
         
-        // Process content fields (translatable)
+        // Check if section name changed
+        if (formValues.sectionName !== originalValues.sectionName) {
+            submitData.sectionName = formValues.sectionName;
+        }
+        
+        // Process content fields (translatable) - only changed values
         contentFields.forEach(field => {
-            const fieldValues = formValues.fields[field.name] || {};
+            const currentFieldValues = formValues.fields[field.name] || {};
+            const originalFieldValues = originalValues.fields[field.name] || {};
             
             languages.forEach(language => {
-                const value = fieldValues[language.code] || '';
+                const currentValue = currentFieldValues[language.code] || '';
+                const originalValue = originalFieldValues[language.code] || '';
                 
-                submitData.contentFields.push({
-                    fieldId: field.id,
-                    languageId: language.id,
-                    value: value
-                });
+                // Only include if value has changed
+                if (currentValue !== originalValue) {
+                    submitData.contentFields.push({
+                        fieldId: field.id,
+                        languageId: language.id,
+                        value: currentValue,
+                        fieldName: field.name, // For debugging
+                        languageCode: language.code // For debugging
+                    });
+                }
             });
         });
         
-        // Process property fields (non-translatable)
+        // Process property fields (non-translatable) - only changed values
         propertyFields.forEach(field => {
-            const value = formValues.properties[field.name];
+            const currentValue = formValues.properties[field.name];
+            const originalValue = originalValues.properties[field.name];
             
-            submitData.propertyFields.push({
-                fieldId: field.id,
-                value: value !== undefined ? value : ''
-            });
+            // Only include if value has changed
+            if (currentValue !== originalValue) {
+                submitData.propertyFields.push({
+                    fieldId: field.id,
+                    value: currentValue !== undefined ? currentValue : '',
+                    fieldName: field.name // For debugging
+                });
+            }
         });
         
-        debug('Save section - prepared submit data', 'SectionInspector', { 
+        // Check if there are any changes to submit
+        const hasChanges = submitData.sectionName !== undefined || 
+                          submitData.contentFields.length > 0 || 
+                          submitData.propertyFields.length > 0;
+        
+        if (!hasChanges) {
+            console.log('ℹ️ No changes detected - nothing to save');
+            return;
+        }
+        
+        debug('Save section - only changed fields', 'SectionInspector', { 
             sectionId,
             submitData,
-            contentFieldsCount: submitData.contentFields.length,
-            propertyFieldsCount: submitData.propertyFields.length
+            sectionNameChanged: submitData.sectionName !== undefined,
+            contentFieldsChanged: submitData.contentFields.length,
+            propertyFieldsChanged: submitData.propertyFields.length,
+            totalChanges: (submitData.sectionName !== undefined ? 1 : 0) + 
+                         submitData.contentFields.length + 
+                         submitData.propertyFields.length
         });
         
         // Log the prepared data for backend implementation
-        console.log('🚀 Section Submit Data Ready for Backend:', {
+        console.log('🚀 Section Submit Data (Only Changes) Ready for Backend:', {
             sectionId,
             ...submitData
         });
+        
+        // Update original values after successful save (when backend is implemented)
+        // setOriginalValues({ ...formValues });
         
         // TODO: Implement section update mutation with submitData
     };
