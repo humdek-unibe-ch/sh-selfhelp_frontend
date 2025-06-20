@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
     TextInput, 
     ScrollArea, 
@@ -24,7 +25,13 @@ import {
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { debug } from '../../../../../utils/debug-logger';
-import { useSelectedPage, useSetSelectedPage } from '../../../../store/admin.store';
+import { 
+    useSelectedPage, 
+    useSetSelectedPage,
+    useExpandedPageIds,
+    useTogglePageExpanded,
+    useExpandPagePath
+} from '../../../../store/admin.store';
 import classes from './AdminPagesList.module.css';
 
 interface AdminPagesListProps {
@@ -37,11 +44,16 @@ interface PageTreeItem extends IAdminPage {
 }
 
 export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
+    const router = useRouter();
     const { pages, isLoading, error } = useAdminPages();
     const [searchQuery, setSearchQuery] = useState('');
-    const [openItems, setOpenItems] = useState<Set<number>>(new Set());
+    
+    // Use persistent tree state from store
     const selectedPage = useSelectedPage();
     const setSelectedPage = useSetSelectedPage();
+    const expandedPageIds = useExpandedPageIds();
+    const togglePageExpanded = useTogglePageExpanded();
+    const expandPagePath = useExpandPagePath();
 
     // Transform flat pages array into nested tree structure
     const pageTree = useMemo(() => {
@@ -82,6 +94,13 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
         return rootPages;
     }, [pages]);
 
+    // Auto-expand path to selected page when page changes
+    useEffect(() => {
+        if (selectedPage && pages.length > 0) {
+            expandPagePath(selectedPage, pages);
+        }
+    }, [selectedPage, pages, expandPagePath]);
+
     // Filter pages based on search query
     const filteredPages = useMemo(() => {
         if (!searchQuery.trim()) return pageTree;
@@ -108,27 +127,24 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
         return filterPages(pageTree);
     }, [pageTree, searchQuery]);
 
-    const toggleItem = (pageId: number) => {
-        setOpenItems(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(pageId)) {
-                newSet.delete(pageId);
-            } else {
-                newSet.add(pageId);
-            }
-            return newSet;
-        });
-    };
-
     const handlePageClick = (page: IAdminPage) => {
         debug('Page selected', 'AdminPagesList', { keyword: page.keyword });
+        
+        // Set selected page in store
         setSelectedPage(page);
+        
+        // Call optional callback
         onPageSelect?.(page);
+        
+        // Navigate to the page URL smoothly (client-side navigation)
+        const pageUrl = `/admin/pages/${page.keyword}`;
+        debug('Navigating to page', 'AdminPagesList', { url: pageUrl });
+        router.push(pageUrl);
     };
 
     const renderPageItem = (page: PageTreeItem) => {
         const hasChildren = page.children.length > 0;
-        const isOpen = openItems.has(page.id_pages);
+        const isOpen = expandedPageIds.has(page.id_pages);
         const isSelected = selectedPage?.keyword === page.keyword;
 
         return (
@@ -137,10 +153,13 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
                     className={classes.pageItem}
                     data-selected={isSelected || undefined}
                     onClick={() => {
-                        if (hasChildren) {
-                            toggleItem(page.id_pages);
-                        }
+                        // Always handle page click for navigation
                         handlePageClick(page);
+                        
+                        // Toggle expansion if has children
+                        if (hasChildren) {
+                            togglePageExpanded(page.id_pages);
+                        }
                     }}
                     style={{ 
                         paddingLeft: `${(page.level * 20) + 12}px`,

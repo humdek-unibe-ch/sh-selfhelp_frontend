@@ -48,6 +48,7 @@ import { IUpdatePageField, IUpdatePageData, IUpdatePageRequest } from '../../../
 import { PAGE_ACCESS_TYPES } from '../../../../../constants/lookups.constants';
 import { debug } from '../../../../../utils/debug-logger';
 import styles from './PageInspector.module.css';
+import { useAdminPages } from '../../../../../hooks/useAdminPages';
 
 interface PageInspectorProps {
     page: IAdminPage | null;
@@ -92,6 +93,15 @@ export function PageInspector({ page }: PageInspectorProps) {
 
     // Fetch available languages
     const { languages, isLoading: languagesLoading } = useLanguages();
+
+    // Fetch admin pages for parent context
+    const { pages: adminPages } = useAdminPages();
+    
+    // Find parent page for context-aware menu positioning
+    const parentPage = useMemo(() => {
+        if (!page?.parent || !adminPages.length) return null;
+        return adminPages.find(p => p.id_pages === page.parent) || null;
+    }, [page?.parent, adminPages]);
 
     // Set default active language tab when languages are loaded
     useEffect(() => {
@@ -658,6 +668,7 @@ export function PageInspector({ page }: PageInspectorProps) {
                                 onGetFinalPosition={(getFinalPositionFn) => {
                                     headerMenuGetFinalPosition.current = getFinalPositionFn;
                                 }}
+                                parentPage={parentPage}
                                 checkboxLabel="Header Menu"
                                 showAlert={false}
                             />
@@ -673,6 +684,7 @@ export function PageInspector({ page }: PageInspectorProps) {
                                 onGetFinalPosition={(getFinalPositionFn) => {
                                     footerMenuGetFinalPosition.current = getFinalPositionFn;
                                 }}
+                                parentPage={parentPage}
                                 checkboxLabel="Footer Menu"
                                 showAlert={false}
                             />

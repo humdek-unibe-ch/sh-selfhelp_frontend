@@ -30,6 +30,7 @@ import { DropIndicator } from '@atlaskit/pragmatic-drag-and-drop-react-drop-indi
 import { useAdminPages } from '../../../../hooks/useAdminPages';
 import { IAdminPage } from '../../../../types/responses/admin/admin.types';
 import { calculateMenuPosition } from '../../../../utils/position-calculator';
+import { debug } from '../../../../utils/debug-logger';
 
 interface IMenuPageItem {
     id: string;
@@ -52,6 +53,8 @@ interface MenuPositionEditorProps {
     onEnabledChange: (enabled: boolean) => void;
     /** Callback when position changes */
     onPositionChange: (position: number | null) => void;
+    /** Parent page context for filtering siblings (optional) */
+    parentPage?: IAdminPage | null;
 }
 
 interface IDragState {
@@ -253,7 +256,8 @@ export function MenuPositionEditor({
     enabled,
     position,
     onEnabledChange,
-    onPositionChange
+    onPositionChange,
+    parentPage = null
 }: MenuPositionEditorProps) {
     const { pages } = useAdminPages();
     const containerRef = useRef<HTMLDivElement>(null);
@@ -276,15 +280,27 @@ export function MenuPositionEditor({
         return calculateMenuPosition(targetPage, edge, pages);
     }, []);
 
-    // Filter and prepare menu pages
+    // Filter and prepare menu pages with parent context
     useEffect(() => {
         if (!pages) return;
 
         const positionField = menuType === 'header' ? 'nav_position' : 'footer_position';
         
-        // Get pages that have positions in this menu type
+        // Determine the parent context for filtering
+        const targetParentId = parentPage ? parentPage.id_pages : currentPage.parent;
+        
+        // Get pages that have positions in this menu type and belong to the same parent
         const existingMenuPages = pages
-            .filter(page => page[positionField] !== null && page.keyword !== currentPage.keyword)
+            .filter(page => {
+                // Must have position in this menu type
+                if (page[positionField] === null) return false;
+                
+                // Must not be the current page (we'll add it separately)
+                if (page.keyword === currentPage.keyword) return false;
+                
+                // Must belong to the same parent context
+                return page.parent === targetParentId;
+            })
             .sort((a, b) => (a[positionField] || 0) - (b[positionField] || 0))
             .map(page => ({
                 id: page.id_pages.toString(),
@@ -292,6 +308,17 @@ export function MenuPositionEditor({
                 label: page.keyword,
                 position: page[positionField] || 0
             }));
+
+        debug('Filtering menu pages by parent context', 'MenuPositionEditor', {
+            menuType,
+            currentPageKeyword: currentPage.keyword,
+            currentPageParent: currentPage.parent,
+            parentPageId: parentPage?.id_pages,
+            targetParentId,
+            totalPages: pages.length,
+            filteredPages: existingMenuPages.length,
+            existingMenuPages: existingMenuPages.map(p => ({ keyword: p.keyword, position: p.position }))
+        });
 
         // Add current page if it has a position
         if (position !== null) {
@@ -311,7 +338,7 @@ export function MenuPositionEditor({
         } else {
             setMenuPages(existingMenuPages);
         }
-    }, [pages, currentPage, menuType, position]);
+    }, [pages, currentPage, menuType, position, parentPage]);
 
     // Setup auto-scroll
     useEffect(() => {
