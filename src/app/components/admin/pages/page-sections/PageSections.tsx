@@ -522,22 +522,6 @@ export function PageSections({ keyword, pageName, initialSelectedSectionId }: IP
                     </Alert>
                 </Paper>
 
-                {/* Debug: Modal state */}
-                {process.env.NODE_ENV === 'development' && (
-                    <div style={{ 
-                        position: 'fixed', 
-                        top: 10, 
-                        right: 10, 
-                        background: 'yellow', 
-                        padding: '5px', 
-                        fontSize: '12px',
-                        zIndex: 10000,
-                        border: '1px solid black'
-                    }}>
-                        Modal State: {addSectionModalOpened ? 'OPENED' : 'CLOSED'}
-                    </div>
-                )}
-
                 {/* Add Section Modal - Now available even when no sections exist */}
                 <AddSectionModal
                     opened={addSectionModalOpened}
