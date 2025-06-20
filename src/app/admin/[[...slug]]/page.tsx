@@ -27,6 +27,27 @@ import { SectionInspector } from '../../components/admin/pages/section-inspector
 import { useAdminPages } from '../../../hooks/useAdminPages';
 import { useMemo } from 'react';
 import { debug } from '../../../utils/debug-logger';
+import { IAdminPage } from '../../../types/responses/admin/admin.types';
+
+/**
+ * Utility function to flatten a hierarchical pages array into a flat array
+ * This ensures we can find all pages including nested children
+ */
+function flattenPages(pages: IAdminPage[]): IAdminPage[] {
+  const flattened: IAdminPage[] = [];
+  
+  function flatten(pageList: IAdminPage[]) {
+    pageList.forEach(page => {
+      flattened.push(page);
+      if (page.children && page.children.length > 0) {
+        flatten(page.children);
+      }
+    });
+  }
+  
+  flatten(pages);
+  return flattened;
+}
 
 export default function AdminPage() {
   const params = useParams();
@@ -55,12 +76,21 @@ export default function AdminPage() {
     return { isPageRoute: false, keyword: null, selectedSectionId: null };
   }, [path]);
 
-  // Find the specific page by keyword
+  // Find the specific page by keyword - search in ALL pages including children
   const selectedPage = useMemo(() => {
     if (!pages || !keyword) return null;
     
-    const page = pages.find(p => p.keyword === keyword);
-    debug('Found page for editing', 'AdminPage', { keyword, page: page?.keyword });
+    // Flatten the pages array to include all pages (root and children)
+    const allPages = flattenPages(pages);
+    const page = allPages.find(p => p.keyword === keyword);
+    
+    debug('Found page for editing', 'AdminPage', { 
+      keyword, 
+      page: page?.keyword,
+      totalPagesSearched: allPages.length,
+      rootPagesCount: pages.length
+    });
+    
     return page || null;
   }, [pages, keyword]);
 
