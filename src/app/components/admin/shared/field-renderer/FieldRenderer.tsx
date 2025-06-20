@@ -54,7 +54,7 @@ export function FieldRenderer({
         );
     }
     
-    if (field.type === 'textarea') {
+    if (field.type === 'textarea' || field.type === 'markdown') {
         return (
             <Textarea
                 key={field.id}
@@ -65,7 +65,8 @@ export function FieldRenderer({
                 onChange={(event) => onChange(event.currentTarget.value)}
                 disabled={disabled}
                 autosize
-                minRows={3}
+                minRows={field.type === 'markdown' ? 6 : 3}
+                maxRows={field.type === 'markdown' ? 15 : 8}
             />
         );
     }

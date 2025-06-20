@@ -37,6 +37,9 @@ interface ISectionInspectorProps {
 }
 
 interface ISectionFormValues {
+    // Section name (editable)
+    sectionName: string;
+    
     // Section properties (non-translatable fields)
     properties: Record<string, string | boolean>;
     
@@ -44,10 +47,29 @@ interface ISectionFormValues {
     fields: Record<string, Record<string, string>>; // fields[fieldName][languageCode] = content
 }
 
+interface ISectionSubmitData {
+    // Section name
+    sectionName: string;
+    
+    // Content fields with language and field IDs
+    contentFields: Array<{
+        fieldId: number;
+        languageId: number;
+        value: string;
+    }>;
+    
+    // Property fields
+    propertyFields: Array<{
+        fieldId: number;
+        value: string | boolean;
+    }>;
+}
+
 export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps) {
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [formValues, setFormValues] = useState<ISectionFormValues>({
+        sectionName: '',
         properties: {},
         fields: {}
     });
@@ -112,12 +134,14 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
             });
 
             setFormValues({
+                sectionName: section.name,
                 properties: propertiesObject,
                 fields: fieldsObject
             });
         } else {
             // Reset form when no section is selected
             setFormValues({
+                sectionName: '',
                 properties: {},
                 fields: {}
             });
@@ -125,16 +149,58 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
     }, [sectionDetailsData, languages]);
 
     const handleSave = () => {
-        if (!sectionId || !sectionDetailsData) return;
+        if (!sectionId || !sectionDetailsData || !languages.length) return;
         
-        // TODO: Implement section update mutation
-        debug('Save section', 'SectionInspector', { 
-            sectionId, 
-            formValues 
+        const { fields } = sectionDetailsData;
+        const contentFields = fields.filter(field => field.display);
+        const propertyFields = fields.filter(field => !field.display);
+        
+        // Prepare submit data structure
+        const submitData: ISectionSubmitData = {
+            sectionName: formValues.sectionName,
+            contentFields: [],
+            propertyFields: []
+        };
+        
+        // Process content fields (translatable)
+        contentFields.forEach(field => {
+            const fieldValues = formValues.fields[field.name] || {};
+            
+            languages.forEach(language => {
+                const value = fieldValues[language.code] || '';
+                
+                submitData.contentFields.push({
+                    fieldId: field.id,
+                    languageId: language.id,
+                    value: value
+                });
+            });
         });
         
-        // Placeholder for save functionality
-        console.log('Section save functionality to be implemented');
+        // Process property fields (non-translatable)
+        propertyFields.forEach(field => {
+            const value = formValues.properties[field.name];
+            
+            submitData.propertyFields.push({
+                fieldId: field.id,
+                value: value !== undefined ? value : ''
+            });
+        });
+        
+        debug('Save section - prepared submit data', 'SectionInspector', { 
+            sectionId,
+            submitData,
+            contentFieldsCount: submitData.contentFields.length,
+            propertyFieldsCount: submitData.propertyFields.length
+        });
+        
+        // Log the prepared data for backend implementation
+        console.log('🚀 Section Submit Data Ready for Backend:', {
+            sectionId,
+            ...submitData
+        });
+        
+        // TODO: Implement section update mutation with submitData
     };
 
     const handleDeleteSection = () => {
@@ -177,6 +243,13 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
                 ...prev.properties,
                 [fieldName]: value
             }
+        }));
+    };
+
+    const handleSectionNameChange = (value: string) => {
+        setFormValues(prev => ({
+            ...prev,
+            sectionName: value
         }));
     };
 
@@ -304,11 +377,18 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
                         </Group>
                         
                         <Stack gap="xs">
+                            {/* Editable Section Name */}
+                            <Box>
+                                <Text size="xs" fw={500} c="dimmed" mb="xs">Section Name</Text>
+                                <TextInput
+                                    value={formValues.sectionName}
+                                    onChange={(e) => handleSectionNameChange(e.currentTarget.value)}
+                                    placeholder="Enter section name"
+                                    size="sm"
+                                />
+                            </Box>
+                            
                             <Group gap="md" wrap="wrap">
-                                <Box>
-                                    <Text size="xs" fw={500} c="dimmed">Name</Text>
-                                    <Text size="sm" style={{ fontFamily: 'monospace' }}>{section.name}</Text>
-                                </Box>
                                 <Box>
                                     <Text size="xs" fw={500} c="dimmed">Style</Text>
                                     <Text size="sm">{section.style.name}</Text>
