@@ -297,6 +297,9 @@ export function DragDropMenuPositioner({
         return calculateMenuPosition(targetPage, edge, pages);
     }, []);
 
+    // Memoize parent page ID to avoid object reference issues
+    const parentPageId = useMemo(() => parentPage?.id_pages || null, [parentPage?.id_pages]);
+
     // Process admin pages into menu items based on context
     const processMenuPages = useMemo(() => {
         if (!pages.length) return [];
@@ -306,11 +309,11 @@ export function DragDropMenuPositioner({
         // Determine which pages to show based on context
         let pagesToProcess: IAdminPage[] = [];
 
-        if (parentPage) {
+        if (parentPageId) {
             // Creating a child page - show only children of the parent
-            pagesToProcess = parentPage.children || [];
+            pagesToProcess = pages.filter(page => page.parent === parentPageId);
             debug('Processing child pages for parent', 'DragDropMenuPositioner', {
-                parentKeyword: parentPage.keyword,
+                parentPageId,
                 childrenCount: pagesToProcess.length,
                 menuType
             });
@@ -345,18 +348,31 @@ export function DragDropMenuPositioner({
         menuPages.sort((a, b) => a.position - b.position);
 
         debug('Processed menu pages', 'DragDropMenuPositioner', {
-            context: parentPage ? 'child' : 'root',
-            parentKeyword: parentPage?.keyword,
+            context: parentPageId ? 'child' : 'root',
+            parentPageId,
             menuType,
             pagesCount: menuPages.length
         });
 
         return menuPages;
-    }, [pages, parentPage, menuType]);
+    }, [pages, parentPageId, menuType]);
 
-    // Initialize menu pages when data is available
+    // Initialize menu pages when data is available - with stability check
     useEffect(() => {
-        setMenuPages(processMenuPages);
+        setMenuPages(prevMenuPages => {
+            // Only update if the processed pages are actually different
+            // This prevents unnecessary re-renders when the same data is recalculated
+            if (prevMenuPages.length === processMenuPages.length &&
+                prevMenuPages.every((page, index) => 
+                    page.id === processMenuPages[index]?.id &&
+                    page.keyword === processMenuPages[index]?.keyword &&
+                    page.position === processMenuPages[index]?.position
+                )
+            ) {
+                return prevMenuPages; // Return the same reference to prevent re-renders
+            }
+            return processMenuPages;
+        });
     }, [processMenuPages]);
 
     // Add new page to menu list when enabled
