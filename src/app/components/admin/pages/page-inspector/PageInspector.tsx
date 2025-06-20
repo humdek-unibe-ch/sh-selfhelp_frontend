@@ -49,6 +49,7 @@ import { PAGE_ACCESS_TYPES } from '../../../../../constants/lookups.constants';
 import { debug } from '../../../../../utils/debug-logger';
 import styles from './PageInspector.module.css';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
+import { CreatePageModal } from '../create-page/CreatePage';
 
 interface PageInspectorProps {
     page: IAdminPage | null;
@@ -73,6 +74,7 @@ interface IPageFormValues {
 export function PageInspector({ page }: PageInspectorProps) {
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
+    const [createChildModalOpened, setCreateChildModalOpened] = useState(false);
     const [contentExpanded, setContentExpanded] = useState(true);
     const [propertiesExpanded, setPropertiesExpanded] = useState(true);
     const [activeLanguageTab, setActiveLanguageTab] = useState<string>('');
@@ -305,9 +307,13 @@ export function PageInspector({ page }: PageInspectorProps) {
     };
 
     const handleCreateChildPage = () => {
-        debug('Creating child page', 'PageInspector', { parentPage: page });
-        // TODO: Open create page modal with parent set
-        console.log('Create child page for:', page?.keyword);
+        debug('Opening create child page modal', 'PageInspector', { parentPage: page });
+        setCreateChildModalOpened(true);
+    };
+
+    const handleCloseChildModal = () => {
+        debug('Closing create child page modal', 'PageInspector');
+        setCreateChildModalOpened(false);
     };
 
     const handleDeletePage = () => {
@@ -803,6 +809,13 @@ export function PageInspector({ page }: PageInspectorProps) {
                     </Paper>
                 </Stack>
             </ScrollArea>
+
+            {/* Create Child Page Modal */}
+            <CreatePageModal
+                opened={createChildModalOpened}
+                onClose={handleCloseChildModal}
+                parentPage={page}
+            />
 
             {/* Delete Confirmation Modal */}
             <Modal

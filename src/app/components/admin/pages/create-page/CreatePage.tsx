@@ -30,6 +30,7 @@ import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { PAGE_ACCESS_TYPES, PAGE_ACCESS_TYPES_MOBILE_AND_WEB } from '../../../../../constants/lookups.constants';
 import { ICreatePageFormValues, ICreatePageModalProps, IMenuPageItem } from '../../../../../types/forms/create-page.types';
+import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { DragDropMenuPositioner } from '../../../ui/drag-drop-menu-positioner/DragDropMenuPositioner';
 import { ICreatePageRequest } from '../../../../../types/requests/admin/create-page.types';
 import { debug } from '../../../../../utils/debug-logger';
@@ -103,20 +104,32 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
         },
     });
 
-    // Generate URL pattern based on keyword and navigation page setting
-    const generateUrlPattern = (keyword: string, isNavigation: boolean) => {
+    // Generate URL pattern based on keyword, navigation page setting, and parent context
+    const generateUrlPattern = (keyword: string, isNavigation: boolean, parentPage: IAdminPage | null) => {
         if (!keyword.trim()) return '';
+        
         // Remove spaces and convert to lowercase for URL safety
         const cleanKeyword = keyword.trim().toLowerCase().replace(/\s+/g, '-');
-        const baseUrl = `/${cleanKeyword}`;
+        
+        let baseUrl = `/${cleanKeyword}`;
+        
+        // If this is a child page, prepend the parent's URL path
+        if (parentPage && parentPage.url) {
+            // Remove leading slash from parent URL and append child keyword
+            const parentPath = parentPage.url.startsWith('/') ? parentPage.url.slice(1) : parentPage.url;
+            // Remove any existing parameters from parent URL for clean hierarchy
+            const cleanParentPath = parentPath.split('/[')[0]; // Remove [i:nav] or other parameters
+            baseUrl = `/${cleanParentPath}/${cleanKeyword}`;
+        }
+        
         return isNavigation ? `${baseUrl}/[i:nav]` : baseUrl;
     };
 
-    // Update URL pattern when keyword or navigation page changes
+    // Update URL pattern when keyword, navigation page, or parent changes
     useEffect(() => {
-        const urlPattern = generateUrlPattern(form.values.keyword, form.values.navigationPage);
+        const urlPattern = generateUrlPattern(form.values.keyword, form.values.navigationPage, parentPage);
         form.setFieldValue('urlPattern', urlPattern);
-    }, [form.values.keyword, form.values.navigationPage]);
+    }, [form.values.keyword, form.values.navigationPage, parentPage]);
 
 
 
@@ -139,8 +152,12 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
             parent: values.parentPage,
         };
 
-        debug('Creating new page with final positions', 'CreatePageModal', {
+        debug('Creating new page with parent context', 'CreatePageModal', {
             ...submitData,
+            isChildPage: !!parentPage,
+            parentPageKeyword: parentPage?.keyword,
+            parentPageUrl: parentPage?.url,
+            hierarchicalUrl: values.urlPattern,
             headerMenuEnabled: values.headerMenu,
             footerMenuEnabled: values.footerMenu,
             originalHeaderPosition: values.headerMenuPosition,
