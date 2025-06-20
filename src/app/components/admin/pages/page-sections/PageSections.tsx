@@ -40,6 +40,7 @@ import { IPageField } from '../../../../../types/common/pages.type';
 import { SectionsList } from './SectionsList';
 import { AddSectionModal } from './AddSectionModal';
 import { calculateSiblingBelowPosition } from '../../../../../utils/position-calculator';
+import { debug } from '../../../../../utils/debug-logger';
 import styles from './PageSections.module.css';
 
 interface IPageSectionsProps {
@@ -501,21 +502,52 @@ export function PageSections({ keyword, pageName, initialSelectedSectionId }: IP
 
     if (!data?.sections || data.sections.length === 0) {
         return (
-            <Paper p="md" withBorder>
-                <Alert icon={<IconInfoCircle size={16} />} color="blue" title="No sections found">
-                    <Text size="sm" mb="md">
-                        This page doesn&apos;t have any sections yet.
-                    </Text>
-                    <Button 
-                        leftSection={<IconPlus size={16} />} 
-                        size="sm" 
-                        variant="light"
-                        onClick={() => setAddSectionModalOpened(true)}
-                    >
-                        Add First Section
-                    </Button>
-                </Alert>
-            </Paper>
+            <>
+                <Paper p="md" withBorder>
+                    <Alert icon={<IconInfoCircle size={16} />} color="blue" title="No sections found">
+                        <Text size="sm" mb="md">
+                            This page doesn&apos;t have any sections yet.
+                        </Text>
+                        <Button 
+                            leftSection={<IconPlus size={16} />} 
+                            size="sm" 
+                            variant="light"
+                            onClick={() => {
+                                debug('Add First Section button clicked', 'PageSections', { keyword });
+                                setAddSectionModalOpened(true);
+                            }}
+                        >
+                            Add First Section
+                        </Button>
+                    </Alert>
+                </Paper>
+
+                {/* Debug: Modal state */}
+                {process.env.NODE_ENV === 'development' && (
+                    <div style={{ 
+                        position: 'fixed', 
+                        top: 10, 
+                        right: 10, 
+                        background: 'yellow', 
+                        padding: '5px', 
+                        fontSize: '12px',
+                        zIndex: 10000,
+                        border: '1px solid black'
+                    }}>
+                        Modal State: {addSectionModalOpened ? 'OPENED' : 'CLOSED'}
+                    </div>
+                )}
+
+                {/* Add Section Modal - Now available even when no sections exist */}
+                <AddSectionModal
+                    opened={addSectionModalOpened}
+                    onClose={handleCloseAddSectionModal}
+                    pageKeyword={keyword || undefined}
+                    parentSectionId={selectedParentSectionId}
+                    title={selectedParentSectionId ? "Add Child Section" : "Add Section to Page"}
+                    specificPosition={specificPosition}
+                />
+            </>
         );
     }
 
@@ -628,7 +660,10 @@ export function PageSections({ keyword, pageName, initialSelectedSectionId }: IP
                         leftSection={<IconPlus size={14} />} 
                         size="xs" 
                         variant="light"
-                        onClick={() => setAddSectionModalOpened(true)}
+                        onClick={() => {
+                            debug('Add Section button clicked', 'PageSections', { keyword });
+                            setAddSectionModalOpened(true);
+                        }}
                     >
                         Add Section
                     </Button>

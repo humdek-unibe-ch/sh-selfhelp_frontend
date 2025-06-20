@@ -134,19 +134,24 @@ export function AddSectionModal({
 
     return (
         <Modal
-            opened={opened}
-            onClose={handleClose}
-            title={title}
-            size="lg"
-            centered
-            closeButtonProps={{
-                icon: <IconX size={16} />
-            }}
-            styles={{
-                body: { padding: 0 },
-                header: { paddingBottom: 0 }
-            }}
-        >
+                opened={opened}
+                onClose={handleClose}
+                title={title}
+                size="lg"
+                centered
+                closeButtonProps={{
+                    icon: <IconX size={16} />
+                }}
+                styles={{
+                    body: { padding: 0 },
+                    header: { paddingBottom: 0 }
+                }}
+                overlayProps={{
+                    backgroundOpacity: 0.5,
+                    blur: 3,
+                }}
+                zIndex={1000}
+            >
             <Box className={styles.modalContainer}>
                 {/* Header Section */}
                 <Box p="md" pb="sm" className={styles.headerSection}>
