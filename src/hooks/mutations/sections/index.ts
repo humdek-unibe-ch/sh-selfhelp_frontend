@@ -19,4 +19,7 @@ export { useCreateSectionInSectionMutation } from './useCreateSectionInSectionMu
 
 // Sibling creation mutations
 export { useCreateSiblingAboveMutation } from './useCreateSiblingAboveMutation';
-export { useCreateSiblingBelowMutation } from './useCreateSiblingBelowMutation'; 
+export { useCreateSiblingBelowMutation } from './useCreateSiblingBelowMutation';
+
+// Section update mutations
+export { useUpdateSectionMutation } from './useUpdateSectionMutation'; 

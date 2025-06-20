@@ -21,6 +21,7 @@ import {
 import { useState, useEffect, useMemo } from 'react';
 import { useSectionDetails } from '../../../../../hooks/useSectionDetails';
 import { useLanguages } from '../../../../../hooks/useLanguages';
+import { useUpdateSectionMutation } from '../../../../../hooks/mutations';
 import { ISectionField } from '../../../../../types/responses/admin/admin.types';
 import { debug } from '../../../../../utils/debug-logger';
 import { 
@@ -93,6 +94,20 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
 
     // Fetch available languages
     const { languages, isLoading: languagesLoading } = useLanguages();
+    
+    // Section update mutation
+    const updateSectionMutation = useUpdateSectionMutation({
+        showNotifications: true,
+        pageKeyword: keyword || undefined,
+        onSuccess: () => {
+            // Update original values after successful save
+            setOriginalValues({ ...formValues });
+            debug('Section updated successfully, original values updated', 'SectionInspector', { sectionId });
+        },
+        onError: (error) => {
+            debug('Section update failed', 'SectionInspector', { sectionId, error: error.message });
+        }
+    });
 
     // Update form when section data changes
     useEffect(() => {
@@ -164,18 +179,25 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
         }
     }, [sectionDetailsData, languages]);
 
-    const handleSave = () => {
-        if (!sectionId || !sectionDetailsData || !languages.length) return;
+    const handleSave = async () => {
+        if (!sectionId || !sectionDetailsData || !languages.length || !keyword) return;
         
         const { fields } = sectionDetailsData;
         const contentFields = fields.filter(field => field.display);
         const propertyFields = fields.filter(field => !field.display);
         
         // Prepare submit data structure (only changed fields)
-        const submitData: ISectionSubmitData = {
-            contentFields: [],
-            propertyFields: []
-        };
+        const submitData = {
+            contentFields: [] as Array<{
+                fieldId: number;
+                languageId: number;
+                value: string;
+            }>,
+            propertyFields: [] as Array<{
+                fieldId: number;
+                value: string | boolean;
+            }>
+        } as any;
         
         // Check if section name changed
         if (formValues.sectionName !== originalValues.sectionName) {
@@ -196,9 +218,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
                     submitData.contentFields.push({
                         fieldId: field.id,
                         languageId: language.id,
-                        value: currentValue,
-                        fieldName: field.name, // For debugging
-                        languageCode: language.code // For debugging
+                        value: currentValue
                     });
                 }
             });
@@ -213,8 +233,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
             if (currentValue !== originalValue) {
                 submitData.propertyFields.push({
                     fieldId: field.id,
-                    value: currentValue !== undefined ? currentValue : '',
-                    fieldName: field.name // For debugging
+                    value: currentValue !== undefined ? currentValue : ''
                 });
             }
         });
@@ -240,16 +259,20 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
                          submitData.propertyFields.length
         });
         
-        // Log the prepared data for backend implementation
-        console.log('🚀 Section Submit Data (Only Changes) Ready for Backend:', {
-            sectionId,
-            ...submitData
-        });
-        
-        // Update original values after successful save (when backend is implemented)
-        // setOriginalValues({ ...formValues });
-        
-        // TODO: Implement section update mutation with submitData
+        // Execute the mutation
+        try {
+            await updateSectionMutation.mutateAsync({
+                keyword,
+                sectionId,
+                sectionData: submitData
+            });
+        } catch (error) {
+            // Error handling is done by the mutation hook
+            debug('Section save failed', 'SectionInspector', { 
+                sectionId, 
+                error: error instanceof Error ? error.message : 'Unknown error' 
+            });
+        }
     };
 
     const handleDeleteSection = () => {
@@ -387,7 +410,8 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
             icon: <IconDeviceFloppy size="1rem" />,
             onClick: handleSave,
             variant: 'filled' as const,
-            disabled: !sectionId
+            disabled: !sectionId || updateSectionMutation.isPending,
+            loading: updateSectionMutation.isPending
         },
         {
             label: 'Export',
