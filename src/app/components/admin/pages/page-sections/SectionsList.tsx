@@ -53,6 +53,7 @@ interface ISectionItemProps {
     index: number;
     parentId: number | null;
     allSections: IPageField[];
+    keyword: string; // Added keyword prop for delete functionality
     onRemoveSection: (sectionId: number, parentId: number | null) => void;
     onAddChildSection?: (parentSectionId: number) => void;
     onAddSiblingAbove?: (referenceSectionId: number, parentId: number | null) => void;
@@ -102,6 +103,7 @@ function SectionItem({
     index,
     parentId,
     allSections,
+    keyword,
     onRemoveSection,
     onAddChildSection,
     onAddSiblingAbove,
@@ -489,6 +491,7 @@ function SectionItem({
                 section={section}
                 level={level}
                 parentId={parentId}
+                keyword={keyword}
                 expandedSections={expandedSections}
                 onToggleExpand={onToggleExpand}
                 onRemoveSection={onRemoveSection}
@@ -540,6 +543,7 @@ function SectionItem({
                             index={childIndex}
                             parentId={section.id}
                             allSections={allSections}
+                            keyword={keyword}
                             onRemoveSection={onRemoveSection}
                             onAddChildSection={onAddChildSection}
                             onAddSiblingAbove={onAddSiblingAbove}
@@ -805,6 +809,7 @@ export function SectionsList({
                                     index={index}
                                     parentId={null}
                                     allSections={sections}
+                                    keyword={pageKeyword || ''}
                                     onRemoveSection={onRemoveSection}
                                     onAddChildSection={onAddChildSection}
                                     onAddSiblingAbove={onAddSiblingAbove}

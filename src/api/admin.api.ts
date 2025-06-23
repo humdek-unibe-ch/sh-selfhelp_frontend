@@ -197,23 +197,6 @@ export const AdminApi = {
     },
 
     /**
-     * Updates a section within another section
-     * @param {string} keyword - The page keyword
-     * @param {number} parentSectionId - The parent section ID
-     * @param {number} childSectionId - The child section ID to update
-     * @param {IUpdateSectionInSectionData} sectionData - The section data to update (position)
-     * @returns {Promise<any>} The updated section data
-     * @throws {Error} When API request fails
-     */
-    async updateSectionInSection(keyword: string, parentSectionId: number, childSectionId: number, sectionData: IUpdateSectionInSectionData): Promise<any> {
-        const response = await apiClient.put(
-            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_UPDATE_IN_SECTION(keyword, parentSectionId, childSectionId),
-            sectionData
-        );
-        return response.data.data;
-    },
-
-    /**
      * Removes a section from another section
      * @param {string} keyword - The page keyword
      * @param {number} parentSectionId - The parent section ID
@@ -224,6 +207,21 @@ export const AdminApi = {
     async removeSectionFromSection(keyword: string, parentSectionId: number, childSectionId: number): Promise<{ success: boolean }> {
         const response = await apiClient.delete(
             API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_REMOVE_FROM_SECTION(keyword, parentSectionId, childSectionId)
+        );
+        // For 204 No Content responses, return success indicator
+        return { success: response.status === 204 || response.status === 200 };
+    },
+
+    /**
+     * Deletes a section by ID
+     * @param {string} keyword - The page keyword
+     * @param {number} sectionId - The section ID to delete
+     * @returns {Promise<{ success: boolean }>} Success response
+     * @throws {Error} When API request fails
+     */
+    async deleteSection(keyword: string, sectionId: number): Promise<{ success: boolean }> {
+        const response = await apiClient.delete(
+            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_DELETE(keyword, sectionId)
         );
         // For 204 No Content responses, return success indicator
         return { success: response.status === 204 || response.status === 200 };

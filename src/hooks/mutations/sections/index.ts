@@ -22,4 +22,7 @@ export { useCreateSiblingAboveMutation } from './useCreateSiblingAboveMutation';
 export { useCreateSiblingBelowMutation } from './useCreateSiblingBelowMutation';
 
 // Section update mutations
-export { useUpdateSectionMutation } from './useUpdateSectionMutation'; 
+export { useUpdateSectionMutation } from './useUpdateSectionMutation';
+
+// Section delete mutations
+export { useDeleteSectionMutation } from './useDeleteSectionMutation'; 
