@@ -26,11 +26,21 @@ Implemented a complete page content rendering system with dynamic style componen
 - **Fallback System**: UnknownStyle component for unrecognized or unimplemented style types
 - **Recursive Content Loading**: Handles nested sections and children properly
 - **URL Parameter Management**: Language preference stored in URL query parameters
+- **Auto-Language URL**: Non-authenticated users automatically redirected to include default language parameter
 
 #### Technical Implementation
 ```typescript
 // Public language fetching for non-authenticated users
 const { languages, defaultLanguage } = usePublicLanguages();
+
+// Auto-redirect non-authenticated users to include default language
+useEffect(() => {
+    if (!user && !languageParam && defaultLanguage && !languagesLoading) {
+        const params = new URLSearchParams(searchParams);
+        params.set('language', defaultLanguage.locale);
+        router.replace(`${pathname}?${params.toString()}`);
+    }
+}, [user, languageParam, defaultLanguage, languagesLoading]);
 
 // Page content rendering with locale support
 const languageParam = searchParams.get('language');
@@ -67,7 +77,8 @@ if (supportedStyles.includes(section.style_name)) {
 - **Language Parameter Support**: Page content API accepts optional locale parameter (e.g., 'de-CH', 'en-GB')
 - **Query Key Optimization**: React Query keys include language for proper caching with fallback to 'default'
 - **URL Parameter Encoding**: Proper encoding of locale codes in API requests
-- **Default Language**: First language from API response used as default when no language parameter provided
+- **Default Language**: First language from API response used as default
+- **Automatic URL Enhancement**: Non-authenticated users visiting pages without language parameter are automatically redirected to include default language
 
 #### Benefits
 - **Extensible Architecture**: Easy to add new style components without modifying core logic

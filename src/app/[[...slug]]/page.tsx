@@ -1,11 +1,13 @@
 'use client';
 
-import { notFound, useParams, useSearchParams } from 'next/navigation';
+import { notFound, useParams, useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useEffect, Suspense } from 'react';
 import { Container, Loader, Center, Text } from '@mantine/core';
 import { PageContentProvider, usePageContentContext } from '../contexts/PageContentContext';
 import { usePageContent } from '../../hooks/usePageContent';
 import { useAppNavigation } from '../../hooks/useAppNavigation';
+import { usePublicLanguages } from '../../hooks/usePublicLanguages';
+import { useAuth } from '../../hooks/useAuth';
 import { PageContentRenderer } from '../components/website/PageContentRenderer';
 import { debug, info, warn } from '../../utils/debug-logger';
 
@@ -28,7 +30,35 @@ export default function DynamicPage() {
 
 function DynamicPageContent({ keyword }: { keyword: string }) {
     const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
+    const { user } = useAuth();
+    const { defaultLanguage, isLoading: languagesLoading } = usePublicLanguages();
+    
     const languageParam = searchParams.get('language');
+    
+    // Auto-redirect to add default language for non-authenticated users
+    useEffect(() => {
+        // Only redirect if:
+        // 1. User is not logged in
+        // 2. No language parameter is present
+        // 3. Default language is available
+        // 4. Languages have finished loading
+        if (!user && !languageParam && defaultLanguage && !languagesLoading) {
+            const params = new URLSearchParams(searchParams);
+            params.set('language', defaultLanguage.locale);
+            const newUrl = `${pathname}?${params.toString()}`;
+            
+            debug('Auto-redirecting to add default language', 'DynamicPageContent', {
+                keyword,
+                defaultLanguage: defaultLanguage.locale,
+                newUrl
+            });
+            
+            router.replace(newUrl);
+            return;
+        }
+    }, [user, languageParam, defaultLanguage, languagesLoading, searchParams, pathname, router, keyword]);
     
     // Use the language parameter if provided, otherwise undefined to let backend use default
     const language = languageParam || undefined;
@@ -44,6 +74,9 @@ function DynamicPageContent({ keyword }: { keyword: string }) {
         keyword,
         languageParam,
         language,
+        isAuthenticated: !!user,
+        defaultLanguage: defaultLanguage?.locale,
+        languagesLoading,
         routesCount: routes.length,
         routes: routes.map(r => ({ keyword: r.keyword, url: r.url, id: r.id_pages })),
         navLoading,
@@ -70,7 +103,7 @@ function DynamicPageContent({ keyword }: { keyword: string }) {
         }
     }, [routes, exists, navLoading, keyword]);
 
-    if (pageLoading || navLoading) {
+    if (pageLoading || navLoading || languagesLoading) {
         return (
             <Center h="50vh">
                 <Loader size="lg" />
