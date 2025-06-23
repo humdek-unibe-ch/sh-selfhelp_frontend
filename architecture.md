@@ -15,7 +15,68 @@ This document outlines the frontend architecture for the SH-Self-help project. T
 *   **Performance**: Optimize for Web Vitals (LCP, CLS, FID).
 *   **Accessibility (a11y)**: Build inclusive interfaces.
 
-## 2.1. Modular Inspector Components (Latest Update)
+## 2.1. Dynamic Page Content Rendering with Multi-Language Support (Latest Update)
+
+### Comprehensive Page Content System
+Implemented a complete page content rendering system with dynamic style component loading, multi-language support, and fallback handling for unknown styles.
+
+#### Core Features
+- **Dynamic Style Rendering**: Automatically renders page sections using appropriate style components based on `style_name`
+- **Multi-Language Support**: Language selector in header for non-authenticated users with URL parameter persistence
+- **Fallback System**: UnknownStyle component for unrecognized or unimplemented style types
+- **Recursive Content Loading**: Handles nested sections and children properly
+- **URL Parameter Management**: Language preference stored in URL query parameters
+
+#### Technical Implementation
+```typescript
+// Public language fetching for non-authenticated users
+const { languages, defaultLanguage } = usePublicLanguages();
+
+// Page content rendering with locale support
+const languageParam = searchParams.get('language');
+const language = languageParam || undefined; // Use URL param or let backend use default
+const { content: queryContent, isLoading: pageLoading } = usePageContent(keyword, language);
+
+// Language selector with locale values
+const languageOptions = languages.map(lang => ({
+    value: lang.locale, // e.g., 'de-CH', 'en-GB'
+    label: lang.language // e.g., 'Deutsch (Schweiz)', 'English (GB)'
+}));
+
+// Dynamic style component selection
+const supportedStyles = [
+    'container', 'image', 'markdown', 'heading', 'card', 
+    'div', 'button', 'carousel', 'link', 'formUserInputLog', 'textarea'
+];
+
+if (supportedStyles.includes(section.style_name)) {
+    return <BasicStyle key={key} style={section} />;
+} else {
+    return <UnknownStyle key={`unknown-${key}`} style={section} />;
+}
+```
+
+#### Component Architecture
+- **PageContentRenderer**: Main content rendering component with recursive section handling
+- **LanguageSelector**: Multi-language dropdown with URL parameter management
+- **UnknownStyle**: Developer-friendly fallback component with debugging information
+- **Enhanced BasicStyle**: Centralized style component factory with type safety
+
+#### API Integration
+- **Public Language API**: Separate `/languages` endpoint for non-authenticated users
+- **Language Parameter Support**: Page content API accepts optional locale parameter (e.g., 'de-CH', 'en-GB')
+- **Query Key Optimization**: React Query keys include language for proper caching with fallback to 'default'
+- **URL Parameter Encoding**: Proper encoding of locale codes in API requests
+- **Default Language**: First language from API response used as default when no language parameter provided
+
+#### Benefits
+- **Extensible Architecture**: Easy to add new style components without modifying core logic
+- **Developer Experience**: Clear debugging information for missing style implementations
+- **User Experience**: Seamless language switching with persistent URL state
+- **Performance**: Proper caching and Suspense boundaries for smooth loading
+- **Type Safety**: Full TypeScript support with proper interface definitions
+
+## 2.2. Modular Inspector Components (Previous Update)
 
 ### Shared Component Architecture for Page and Section Inspectors
 Implemented a comprehensive modular component system to eliminate code duplication between PageInspector and SectionInspector, improving maintainability and consistency.

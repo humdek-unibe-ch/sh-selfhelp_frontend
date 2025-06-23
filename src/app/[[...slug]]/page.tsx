@@ -1,11 +1,12 @@
 'use client';
 
-import { notFound, useParams } from 'next/navigation';
-import { useEffect } from 'react';
+import { notFound, useParams, useSearchParams } from 'next/navigation';
+import { useEffect, Suspense } from 'react';
 import { Container, Loader, Center, Text } from '@mantine/core';
 import { PageContentProvider, usePageContentContext } from '../contexts/PageContentContext';
 import { usePageContent } from '../../hooks/usePageContent';
 import { useAppNavigation } from '../../hooks/useAppNavigation';
+import { PageContentRenderer } from '../components/website/PageContentRenderer';
 import { debug, info, warn } from '../../utils/debug-logger';
 
 export default function DynamicPage() {
@@ -14,13 +15,25 @@ export default function DynamicPage() {
 
     return (
         <PageContentProvider>
-            <DynamicPageContent keyword={keyword} />
+            <Suspense fallback={
+                <Center h="50vh">
+                    <Loader size="lg" />
+                </Center>
+            }>
+                <DynamicPageContent keyword={keyword} />
+            </Suspense>
         </PageContentProvider>
     );
 }
 
 function DynamicPageContent({ keyword }: { keyword: string }) {
-    const { content: queryContent, isLoading: pageLoading } = usePageContent(keyword);
+    const searchParams = useSearchParams();
+    const languageParam = searchParams.get('language');
+    
+    // Use the language parameter if provided, otherwise undefined to let backend use default
+    const language = languageParam || undefined;
+    
+    const { content: queryContent, isLoading: pageLoading } = usePageContent(keyword, language);
     const { pageContent: contextContent } = usePageContentContext();
     const pageContent = contextContent || queryContent;
 
@@ -29,10 +42,14 @@ function DynamicPageContent({ keyword }: { keyword: string }) {
     // Debug logging
     const debugInfo = {
         keyword,
+        languageParam,
+        language,
         routesCount: routes.length,
         routes: routes.map(r => ({ keyword: r.keyword, url: r.url, id: r.id_pages })),
         navLoading,
-        pageLoading
+        pageLoading,
+        hasContent: !!pageContent,
+        contentSections: pageContent?.content?.length || 0
     };
     
     debug('Page render debug info', 'DynamicPageContent', debugInfo);
@@ -82,9 +99,14 @@ function DynamicPageContent({ keyword }: { keyword: string }) {
     }
 
     return (
-        <Container size="md">
-            <Text size="lg" fw={500} mb="md">Page: {keyword}</Text>
-            <Text size="sm" c="dimmed">TODO: Load page content</Text>
+        <Container size="xl">
+            {pageContent.title && (
+                <Text size="xl" fw={700} mb="lg">{pageContent.title}</Text>
+            )}
+            {pageContent.description && (
+                <Text size="md" c="dimmed" mb="xl">{pageContent.description}</Text>
+            )}
+            <PageContentRenderer content={pageContent.content} />
         </Container>
     );
 }

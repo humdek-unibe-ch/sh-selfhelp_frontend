@@ -8,22 +8,19 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { PageApi } from '../api/page.api';
-import { useContext, useEffect } from 'react';
-import { PageContentContext } from '../app/contexts/PageContentContext';
+import { useEffect } from 'react';
+import { usePageContentContext } from '../app/contexts/PageContentContext';
 
 /**
  * Hook for fetching and managing page content.
  * @param {string} keyword - The unique identifier for the page content
+ * @param {string} [language] - The language code for localized content
  * @param {boolean} [enabled=true] - Whether to enable the query
  * @throws {Error} When used outside of PageContentProvider
  * @returns {Object} Object containing page content data and query state
  */
-export function usePageContent(keyword: string, enabled: boolean = true) {
-    const context = useContext(PageContentContext);
-    if (!context) {
-        throw new Error('usePageContent must be used within a PageContentProvider');
-    }
-    const { setPageContent } = context;
+export function usePageContent(keyword: string, language?: string, enabled: boolean = true) {
+    const { setPageContent } = usePageContentContext();
 
     // Query configuration using React Query
     const { 
@@ -33,8 +30,8 @@ export function usePageContent(keyword: string, enabled: boolean = true) {
         isSuccess,
         error 
     } = useQuery({
-        queryKey: ['page-content', keyword],
-        queryFn: () => PageApi.getPageContent(keyword),
+        queryKey: ['page-content', keyword, language || 'default'],
+        queryFn: () => PageApi.getPageContent(keyword, language),
         staleTime: 1000, // Cache for 1 second
         enabled: !!keyword && enabled, // Only run query if keyword is provided and enabled is true
     });

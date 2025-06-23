@@ -42,6 +42,7 @@ export const API_CONFIG = {
         // Section creation endpoints
         ADMIN_PAGES_SECTIONS_CREATE: (keyword: string) => `/admin/pages/${keyword}/sections/create`,
         ADMIN_SECTIONS_CREATE_IN_SECTION: (keyword: string, parentSectionId: number) => `/admin/pages/${keyword}/sections/${parentSectionId}/sections/create`,
+        LANGUAGES: '/languages',
     },
     CORS_CONFIG: {
         credentials: true, // Required for cookies, authorization headers with HTTPS

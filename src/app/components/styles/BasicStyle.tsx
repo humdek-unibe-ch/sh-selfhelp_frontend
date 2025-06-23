@@ -6,10 +6,9 @@ import {
 } from '../../../types/common/styles.types';
 import {
     ButtonStyle, CardStyle, CarouselStyle, ContainerStyle,
-    DivStyle, HeadingStyle, ImageStyle, LinkStyle, MarkdownStyle
+    DivStyle, FormUserInputStyle, HeadingStyle, ImageStyle, 
+    LinkStyle, MarkdownStyle, TextareaStyle, UnknownStyle
 } from './SelfHelpStyles';
-import TextareaStyle from './TextareaStyle';
-import FormUserInputStyle from './FormUserInputStyle';
 import { TStyle } from '../../../types/common/styles.types';
 
 /**

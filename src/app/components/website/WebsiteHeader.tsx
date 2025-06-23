@@ -2,9 +2,11 @@
 
 import { Container, Group, Burger, Text, Flex } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
+import { Suspense } from 'react';
 import { WebsiteHeaderMenu } from './WebsiteHeaderMenu';
 import { ThemeToggle } from '../common/ThemeToggle';
 import { AuthButton } from '../auth/AuthButton';
+import { LanguageSelector } from '../common/LanguageSelector';
 
 export function WebsiteHeader() {
     const [opened, { toggle }] = useDisclosure(false);
@@ -24,6 +26,9 @@ export function WebsiteHeader() {
                 <WebsiteHeaderMenu />
                 
                 <Group gap="sm">
+                    <Suspense fallback={null}>
+                        <LanguageSelector />
+                    </Suspense>
                     <ThemeToggle />
                     <AuthButton />
                     <Burger
