@@ -21,7 +21,7 @@ import {
 import { useState, useEffect, useMemo } from 'react';
 import { useSectionDetails } from '../../../../../hooks/useSectionDetails';
 import { useLanguages } from '../../../../../hooks/useLanguages';
-import { useUpdateSectionMutation } from '../../../../../hooks/mutations';
+import { useUpdateSectionMutation, useDeleteSectionMutation } from '../../../../../hooks/mutations';
 import { ISectionField } from '../../../../../types/responses/admin/admin.types';
 import { debug } from '../../../../../utils/debug-logger';
 import { 
@@ -106,6 +106,20 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
         },
         onError: (error) => {
             debug('Section update failed', 'SectionInspector', { sectionId, error: error.message });
+        }
+    });
+
+    // Section delete mutation
+    const deleteSectionMutation = useDeleteSectionMutation({
+        showNotifications: true,
+        pageKeyword: keyword || undefined,
+        onSuccess: () => {
+            setDeleteModalOpened(false);
+            setDeleteConfirmText('');
+            debug('Section deleted successfully', 'SectionInspector', { sectionId });
+        },
+        onError: (error) => {
+            debug('Section delete failed', 'SectionInspector', { sectionId, error: error.message });
         }
     });
 
@@ -276,12 +290,14 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
     };
 
     const handleDeleteSection = () => {
-        if (!sectionId || !sectionDetailsData) return;
+        if (!sectionId || !sectionDetailsData || !keyword) return;
         
         if (deleteConfirmText === sectionDetailsData.section.name) {
             debug('Deleting section', 'SectionInspector', { sectionId });
-            // TODO: Implement section delete mutation
-            console.log('Section delete functionality to be implemented');
+            deleteSectionMutation.mutate({
+                keyword,
+                sectionId
+            });
         }
     };
 
@@ -410,7 +426,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
             icon: <IconDeviceFloppy size="1rem" />,
             onClick: handleSave,
             variant: 'filled' as const,
-            disabled: !sectionId || updateSectionMutation.isPending,
+            disabled: !sectionId || updateSectionMutation.isPending || deleteSectionMutation.isPending,
             loading: updateSectionMutation.isPending
         },
         {
@@ -418,7 +434,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
             icon: <IconFileExport size="1rem" />,
             onClick: handleExportSection,
             variant: 'light' as const,
-            disabled: !sectionId
+            disabled: !sectionId || deleteSectionMutation.isPending
         },
         {
             label: 'Delete',
@@ -426,7 +442,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
             onClick: () => setDeleteModalOpened(true),
             variant: 'light' as const,
             color: 'red',
-            disabled: !sectionId
+            disabled: !sectionId || deleteSectionMutation.isPending
         }
     ];
 
@@ -548,6 +564,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
                             color="red"
                             onClick={handleDeleteSection}
                             disabled={deleteConfirmText !== section.name}
+                            loading={deleteSectionMutation.isPending}
                         >
                             Delete Section
                         </Button>

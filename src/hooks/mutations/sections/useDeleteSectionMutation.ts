@@ -9,7 +9,7 @@ import React from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
-import { AdminApi } from '../../../api/admin.api';
+import { AdminSectionApi } from '../../../api/admin/section.api';
 import { debug } from '../../../utils/debug-logger';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
@@ -36,7 +36,7 @@ export function useDeleteSectionMutation(options: IDeleteSectionMutationOptions 
 
     return useMutation({
         mutationFn: ({ keyword, sectionId }: IDeleteSectionVariables) => 
-            AdminApi.deleteSection(keyword, sectionId),
+            AdminSectionApi.deleteSection(keyword, sectionId),
         
         onSuccess: async (result: any, variables: IDeleteSectionVariables) => {
             debug('Section deleted successfully', 'useDeleteSectionMutation', { 

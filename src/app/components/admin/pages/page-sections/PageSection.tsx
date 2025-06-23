@@ -13,7 +13,7 @@ import {
     IconFile
 } from '@tabler/icons-react';
 import { IPageField } from '../../../../../types/common/pages.type';
-import { DeleteSectionModal } from './DeleteSectionModal';
+import { RemoveSectionModal } from './RemoveSectionModal';
 import styles from './PageSection.module.css';
 
 interface IPageSectionProps {
@@ -61,7 +61,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
 
     showInsideDropZone = false
 }, ref) => {
-    const [deleteModalOpened, setDeleteModalOpened] = useState(false);
+    const [removeModalOpened, setRemoveModalOpened] = useState(false);
     
     const hasChildren = section.children && section.children.length > 0;
     const isExpanded = expandedSections.has(section.id);
@@ -107,11 +107,16 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     };
 
     const handleRemoveSection = () => {
-        setDeleteModalOpened(true);
+        setRemoveModalOpened(true);
     };
 
-    const handleDeleteModalClose = () => {
-        setDeleteModalOpened(false);
+    const handleRemoveModalClose = () => {
+        setRemoveModalOpened(false);
+    };
+
+    const handleRemoveConfirm = () => {
+        onRemoveSection(section.id, parentId);
+        setRemoveModalOpened(false);
     };
 
     const handleAddChild = () => {
@@ -261,11 +266,11 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                                 </ActionIcon>
                             </Tooltip>
 
-                            <Tooltip label="Delete" position="top" withArrow>
+                            <Tooltip label="Remove" position="top" withArrow>
                                 <ActionIcon
                                     size="xs"
                                     variant="subtle"
-                                    color="red"
+                                    color="orange"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         handleRemoveSection();
@@ -280,12 +285,12 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                 </Paper>
             </div>
 
-            {/* Delete Section Modal */}
-            <DeleteSectionModal
-                opened={deleteModalOpened}
-                onClose={handleDeleteModalClose}
+            {/* Remove Section Modal */}
+            <RemoveSectionModal
+                opened={removeModalOpened}
+                onClose={handleRemoveModalClose}
+                onConfirm={handleRemoveConfirm}
                 section={section}
-                keyword={keyword}
             />
         </>
     );

@@ -4,8 +4,7 @@ import React from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
-import { API_CONFIG } from '../../../config/api.config';
-import { apiClient } from '../../../api/base.api';
+import { AdminSectionApi } from '../../../api/admin/section.api';
 import { debug } from '../../../utils/debug-logger';
 
 interface IUpdateSectionRequest {
@@ -60,17 +59,15 @@ export function useUpdateSectionMutation({
                              sectionData.propertyFields.length
             });
 
-            const url = API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_UPDATE_SECTION(keyword, sectionId);
-            
-            const response = await apiClient.put(url, sectionData);
+            const result = await AdminSectionApi.updateSection(keyword, sectionId, sectionData);
             
             debug('Section updated successfully', 'useUpdateSectionMutation', { 
                 keyword, 
                 sectionId, 
-                result: response.data 
+                result 
             });
             
-            return response.data;
+            return result;
         },
         onSuccess: (data, variables) => {
             debug('Section update mutation success', 'useUpdateSectionMutation', { 
