@@ -2,7 +2,7 @@
 
 import { IconChevronDown } from '@tabler/icons-react';
 import { Group, Menu, Skeleton, UnstyledButton, Text } from '@mantine/core';
-import Link from 'next/link';
+import { InternalLink } from '../shared/InternalLink';
 import { useAppNavigation } from '../../../hooks/useAppNavigation';
 import { IPageItem } from '../../../types/responses/frontend/frontend.types';
 
@@ -26,12 +26,10 @@ function MenuItem({ item }: IMenuItemProps) {
                 </Menu.Target>
                 <Menu.Dropdown>
                     {item.children?.map(child => (
-                        <Menu.Item 
-                            key={child.id_pages} 
-                            component={Link} 
-                            href={child.url}
-                        >
-                            <Text size="sm">{child.keyword}</Text>
+                        <Menu.Item key={child.id_pages}>
+                            <InternalLink href={child.url}>
+                                <Text size="sm">{child.keyword}</Text>
+                            </InternalLink>
                         </Menu.Item>
                     ))}
                 </Menu.Dropdown>
@@ -40,9 +38,11 @@ function MenuItem({ item }: IMenuItemProps) {
     }
 
     return (
-        <UnstyledButton key={item.id_pages} component={Link} href={item.url}>
-            <Text size="sm" fw={500}>{item.keyword}</Text>
-        </UnstyledButton>
+        <InternalLink key={item.id_pages} href={item.url}>
+            <UnstyledButton>
+                <Text size="sm" fw={500}>{item.keyword}</Text>
+            </UnstyledButton>
+        </InternalLink>
     );
 }
 

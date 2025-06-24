@@ -1,7 +1,7 @@
 'use client';
 
-import { Group, Skeleton, Text, Anchor, Container, Divider, Stack } from '@mantine/core';
-import Link from 'next/link';
+import { Group, Skeleton, Text, Container, Divider, Stack } from '@mantine/core';
+import { InternalLink } from '../shared/InternalLink';
 import { useAppNavigation } from '../../../hooks/useAppNavigation';
 
 function FooterSkeleton() {
@@ -33,15 +33,13 @@ export function WebsiteFooter() {
                 <Stack gap="lg">
                     <Group justify="center" gap="xl">
                         {footerPages.map(page => (
-                            <Anchor
+                            <InternalLink
                                 key={page.id_pages}
-                                component={Link}
                                 href={page.url}
-                                size="sm"
-                                fw={500}
+                                className="text-sm font-medium hover:text-blue-600 transition-colors"
                             >
                                 {page.keyword}
-                            </Anchor>
+                            </InternalLink>
                         ))}
                     </Group>
                     

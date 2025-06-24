@@ -20,9 +20,12 @@ interface IContainerStyleProps {
  * @returns {JSX.Element} Rendered container with styled children
  */
 const ContainerStyle: React.FC<IContainerStyleProps> = ({ style }) => {
+    // Ensure children is an array before mapping
+    const children = Array.isArray(style.children) ? style.children : [];
+
     return (
         <div className={style.css}>
-            {style.children?.map((child, index) => (
+            {children.map((child: any, index: number) => (
                 child ? <BasicStyle key={index} style={child} /> : null
             ))}
         </div>

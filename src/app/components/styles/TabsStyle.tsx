@@ -47,9 +47,12 @@ const TabsStyle: React.FC<ITabsStyleProps> = ({ style }) => {
 
                 return (
                     <Tabs.Panel key={tabId} value={tabId}>
-                        {tabStyle.children?.map((childStyle, index) => (
-                            childStyle ? <BasicStyle key={`${childStyle.id.content}-${index}`} style={childStyle} /> : null
-                        ))}
+                        {Array.isArray(tabStyle.children) 
+                            ? tabStyle.children.map((childStyle, index) => (
+                                childStyle ? <BasicStyle key={`${childStyle.id.content}-${index}`} style={childStyle} /> : null
+                            ))
+                            : null
+                        }
                     </Tabs.Panel>
                 );
             })}

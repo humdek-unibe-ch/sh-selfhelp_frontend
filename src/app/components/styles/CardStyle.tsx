@@ -113,9 +113,14 @@ const CardStyle: React.FC<ICardStyleProps> = ({ style }) => {
 
             <Collapse in={!isCollapsible || isExpanded}>
                 <div className={styles.cardBody}>
-                    {style.children?.map((childStyle, index) => (
-                        childStyle ? <BasicStyle key={`${childStyle.id.content}-${index}`} style={childStyle} /> : null
-                    ))}
+                    <Card.Section>
+                        {Array.isArray(style.children) 
+                            ? style.children.map((childStyle, index) => (
+                                childStyle ? <BasicStyle key={`${childStyle.id.content}-${index}`} style={childStyle} /> : null
+                            ))
+                            : null
+                        }
+                    </Card.Section>
                 </div>
             </Collapse>
         </Card>

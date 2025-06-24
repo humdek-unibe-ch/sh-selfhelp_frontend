@@ -17,6 +17,9 @@ const AlertStyle: React.FC<IAlertStyleProps> = ({ style }) => {
     const alertType = style.type?.content || 'primary';
     const isDismissable = style.is_dismissable?.content === '1';
 
+    // Ensure children is an array before mapping
+    const children = Array.isArray(style.children) ? style.children : [];
+
     return (
         <div 
             className={`alert alert-${alertType} ${isDismissable ? 'alert-dismissible' : ''} ${style.css || ''}`}
@@ -27,7 +30,7 @@ const AlertStyle: React.FC<IAlertStyleProps> = ({ style }) => {
                     <span aria-hidden="true">&times;</span>
                 </button>
             )}
-            {style.children?.map((childStyle, index) => (
+            {children.map((childStyle, index) => (
                 childStyle ? <BasicStyle key={`${childStyle.id.content}-${index}`} style={childStyle} /> : null
             ))}
         </div>

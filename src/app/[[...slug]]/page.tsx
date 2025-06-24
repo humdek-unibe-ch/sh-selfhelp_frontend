@@ -58,6 +58,22 @@ function DynamicPageContent({ keyword }: { keyword: string }) {
             router.replace(newUrl);
             return;
         }
+        
+        // Remove language parameter when user is logged in (combined with above effect)
+        if (user && languageParam) {
+            const params = new URLSearchParams(searchParams);
+            params.delete('language');
+            
+            const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+            
+            debug('Removing language parameter for authenticated user', 'DynamicPageContent', {
+                keyword,
+                newUrl,
+                previousUrl: `${pathname}?${searchParams.toString()}`
+            });
+            
+            router.replace(newUrl);
+        }
     }, [user, languageParam, defaultLanguage, languagesLoading, searchParams, pathname, router, keyword]);
     
     // Use the language parameter if provided, otherwise undefined to let backend use default

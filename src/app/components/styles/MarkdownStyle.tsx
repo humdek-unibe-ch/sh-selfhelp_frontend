@@ -106,10 +106,12 @@ const MarkdownStyle: React.FC<IMarkdownStyleProps> = ({ style }) => {
                     ol: ({ children }) => <ol className={styles.orderedList}>{children}</ol>,
                     li: ({ children }) => <li className={styles.listItem}>{children}</li>,
                     blockquote: ({ children }) => <blockquote className={styles.blockquote}>{children}</blockquote>,
-                    code: ({ inline, children }) => 
-                        inline 
+                    code: ({ children, ...props }: any) => {
+                        const inline = props.inline;
+                        return inline 
                             ? <code className={styles.inlineCode}>{children}</code>
-                            : <pre className={styles.codeBlock}><code>{children}</code></pre>,
+                            : <pre className={styles.codeBlock}><code>{children}</code></pre>;
+                    },
                     table: ({ children }) => <table className={styles.table}>{children}</table>,
                     thead: ({ children }) => <thead className={styles.tableHead}>{children}</thead>,
                     tbody: ({ children }) => <tbody className={styles.tableBody}>{children}</tbody>,

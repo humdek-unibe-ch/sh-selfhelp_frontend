@@ -57,12 +57,15 @@ const DivStyle: React.FC<IDivStyleProps> = ({ style }) => {
         inlineStyles.color = textColor;
     }
 
+    // Ensure children is an array before mapping
+    const children = Array.isArray(style.children) ? style.children : [];
+
     return (
         <Box 
             className={`${cssClass} ${cssMobile}`}
             style={inlineStyles}
         >
-            {style.children?.map((childStyle, index) => (
+            {children.map((childStyle, index) => (
                 childStyle ? <BasicStyle key={`${childStyle.id.content}-${index}`} style={childStyle} /> : null
             ))}
         </Box>
