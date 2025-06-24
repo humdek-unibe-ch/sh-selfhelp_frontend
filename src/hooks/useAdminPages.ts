@@ -27,13 +27,14 @@ export interface IPageHierarchy {
     children: IPageHierarchy[];
     level: number;
     nav_position: number | null;
+    footer_position: number | null;
     is_system: number;
     is_headless: number;
 }
 
 export interface ICategorizedPages {
-    navigation: IPageHierarchy[];
-    headless: IPageHierarchy[];
+    menu: IPageHierarchy[];
+    footer: IPageHierarchy[];
     other: IPageHierarchy[];
 }
 
@@ -105,6 +106,7 @@ export function useAdminPages() {
                     level,
                     // Include additional properties for sorting and display
                     nav_position: page.nav_position,
+                    footer_position: page.footer_position || null,
                     is_system: page.is_system,
                     is_headless: page.is_headless
                 }));
@@ -113,21 +115,22 @@ export function useAdminPages() {
             const hierarchicalPages = buildHierarchy(regularPages);
 
             // Categorize regular pages like system pages
-            const navigationPages = hierarchicalPages.filter(page => 
+            const menuPages = hierarchicalPages.filter(page => 
                 page.nav_position !== null && page.nav_position !== undefined
             );
             
-            const headlessPages = hierarchicalPages.filter(page => 
-                page.is_headless === 1 && (page.nav_position === null || page.nav_position === undefined)
+            const footerPages = hierarchicalPages.filter(page => 
+                page.footer_position !== null && page.footer_position !== undefined
             );
             
             const otherRegularPages = hierarchicalPages.filter(page => 
-                page.nav_position === null && page.is_headless === 0
+                (page.nav_position === null || page.nav_position === undefined) &&
+                (page.footer_position === null || page.footer_position === undefined)
             );
 
             const categorizedRegularPages: ICategorizedPages = {
-                navigation: navigationPages.sort((a, b) => (a.nav_position || 0) - (b.nav_position || 0)),
-                headless: headlessPages.sort((a, b) => a.label.localeCompare(b.label)),
+                menu: menuPages.sort((a, b) => (a.nav_position || 0) - (b.nav_position || 0)),
+                footer: footerPages.sort((a, b) => (a.footer_position || 0) - (b.footer_position || 0)),
                 other: otherRegularPages.sort((a, b) => a.label.localeCompare(b.label))
             };
 
@@ -137,8 +140,8 @@ export function useAdminPages() {
                 regularPages: regularPages.length,
                 systemPageKeywords: systemPages.map(p => p.keyword),
                 hierarchicalPagesCount: hierarchicalPages.length,
-                navigationPagesCount: navigationPages.length,
-                headlessPagesCount: headlessPages.length,
+                menuPagesCount: menuPages.length,
+                footerPagesCount: footerPages.length,
                 otherRegularPagesCount: otherRegularPages.length
             });
             
@@ -172,8 +175,8 @@ export function useAdminPages() {
         },
         hierarchicalPages: data?.hierarchicalPages || [],
         categorizedRegularPages: data?.categorizedRegularPages || {
-            navigation: [],
-            headless: [],
+            menu: [],
+            footer: [],
             other: []
         },
         isLoading,

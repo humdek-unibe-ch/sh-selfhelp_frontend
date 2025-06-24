@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Collapse, Group, Text, ThemeIcon, UnstyledButton, Badge } from '@mantine/core';
-import { IconChevronRight, IconMenu2, IconFiles } from '@tabler/icons-react';
+import { IconChevronRight } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useNavigationStore, useNavigationOpenItems, useNavigationActiveItem } from '../../../store/navigation.store';
 import classes from './NavbarLinksGroup.module.css';
@@ -14,7 +14,7 @@ interface LinkItem {
     icon?: React.ReactNode;
     hasNavPosition?: boolean;
     nav_position?: number | null;
-    is_headless?: number;
+    footer_position?: number | null;
     onClick?: () => void;
     keyword?: string;
 }
@@ -47,41 +47,19 @@ export function LinksGroup({ icon, label, initiallyOpened, children, link, right
             const hasNestedLinks = Array.isArray(item.children) && item.children.length > 0;
             const isItemOpen = openItems.includes(itemPath);
             const isItemActive = activeItem === item.link;
-            const isNavPage = item.nav_position !== null && item.nav_position !== undefined;
-            const isHeadless = item.is_headless === 1;
+            const isMenuPage = item.nav_position !== null && item.nav_position !== undefined;
+            const isFooterPage = item.footer_position !== null && item.footer_position !== undefined;
 
             return (
                 <div className={classes.children} key={item.keyword || item.label}>
-                    <Text<'a'>
-                        component="a"
+                    <div
                         className={classes.link}
                         data-active={isItemActive || undefined}
-                        href={item.link}
-                        onClick={(event) => {
-                            event.preventDefault();
-                            if (hasNestedLinks) {
-                                toggleItem(itemPath);
-                            }
-                            if (item.onClick) {
-                                item.onClick();
-                            } else if (item.link) {
-                                setActiveItem(item.link);
-                                router.push(item.link);
-                            }
-                        }}
+                        style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
                     >
-                        <Group justify="space-between" gap={0}>
-                            <Group gap="xs">
-                                {/* Page type icon */}
-                                <Box style={{ flexShrink: 0 }}>
-                                    {isNavPage ? (
-                                        <IconMenu2 size={14} color="var(--mantine-color-blue-6)" />
-                                    ) : (
-                                        <IconFiles size={14} color={isHeadless ? "var(--mantine-color-dimmed)" : "var(--mantine-color-gray-6)"} />
-                                    )}
-                                </Box>
-                                
-                                {/* Page label */}
+                        <Group justify="space-between" gap={0} style={{ width: '100%' }}>
+                            <Group gap="xs" style={{ flex: 1 }}>                                
+                                {/* Page label - clickable for navigation */}
                                 <Text 
                                     size="xs" 
                                     style={{
@@ -91,35 +69,54 @@ export function LinksGroup({ icon, label, initiallyOpened, children, link, right
                                         flex: 1
                                     }}
                                     title={item.label}
+                                    onClick={(event) => {
+                                        event.preventDefault();
+                                        event.stopPropagation();
+                                        if (item.onClick) {
+                                            item.onClick();
+                                        } else if (item.link) {
+                                            setActiveItem(item.link);
+                                            router.push(item.link);
+                                        }
+                                    }}
                                 >
                                     {item.label}
                                 </Text>
                                 
                                 {/* Badges */}
                                 <Group gap="xs">
-                                    {isNavPage && (
+                                    {isMenuPage && (
                                         <Badge size="xs" variant="light" color="blue">
-                                            Nav
+                                            Menu
                                         </Badge>
                                     )}
-                                    {isHeadless && (
-                                        <Badge size="xs" variant="light" color="gray">
-                                            Headless
+                                    {isFooterPage && (
+                                        <Badge size="xs" variant="light" color="green">
+                                            Footer
                                         </Badge>
                                     )}
                                 </Group>
                             </Group>
                             
+                            {/* Chevron - only for collapsing/expanding */}
                             {hasNestedLinks && (
                                 <IconChevronRight
                                     className={classes.chevron}
                                     stroke={1.5}
                                     size={16}
-                                    style={{ transform: isItemOpen ? 'rotate(90deg)' : 'none' }}
+                                    style={{ 
+                                        transform: isItemOpen ? 'rotate(90deg)' : 'none',
+                                        cursor: 'pointer' 
+                                    }}
+                                    onClick={(event) => {
+                                        event.preventDefault();
+                                        event.stopPropagation();
+                                        toggleItem(itemPath);
+                                    }}
                                 />
                             )}
                         </Group>
-                    </Text>
+                    </div>
                     {hasNestedLinks && (
                         <Collapse in={isItemOpen}>
                             <div>

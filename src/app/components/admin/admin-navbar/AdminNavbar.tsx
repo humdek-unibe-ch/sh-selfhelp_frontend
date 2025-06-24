@@ -77,22 +77,22 @@ export function AdminNavbar() {
 
         const regularPages = [];
         
-        if (categorizedRegularPages.navigation.length > 0) {
+        if (categorizedRegularPages.menu.length > 0) {
             regularPages.push({
-                label: 'Navigation Pages',
+                label: 'Menu Pages',
                 link: '#',
-                children: categorizedRegularPages.navigation.map(page => ({
+                children: categorizedRegularPages.menu.map(page => ({
                     ...page,
                     onClick: () => handlePageSelect(page.keyword)
                 }))
             });
         }
         
-        if (categorizedRegularPages.headless.length > 0) {
+        if (categorizedRegularPages.footer.length > 0) {
             regularPages.push({
-                label: 'Headless Pages',
+                label: 'Footer Pages',
                 link: '#',
-                children: categorizedRegularPages.headless.map(page => ({
+                children: categorizedRegularPages.footer.map(page => ({
                     ...page,
                     onClick: () => handlePageSelect(page.keyword)
                 }))
