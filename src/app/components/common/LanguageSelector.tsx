@@ -1,19 +1,21 @@
 'use client';
 
 import { Select, Group, Text } from '@mantine/core';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { usePublicLanguages } from '../../../hooks/usePublicLanguages';
+import { useLanguageContext } from '../../contexts/LanguageContext';
 import { useAuth } from '../../../hooks/useAuth';
 
 export function LanguageSelector() {
-    const { languages, isLoading, defaultLanguage } = usePublicLanguages();
     const { user, isLoading: isAuthLoading } = useAuth();
-    const searchParams = useSearchParams();
-    const router = useRouter();
-    const pathname = usePathname();
+    const { 
+        currentLanguage, 
+        setCurrentLanguage, 
+        languages, 
+        defaultLanguage, 
+        isLoading 
+    } = useLanguageContext();
     
     // Wait for authentication check to complete
-    if (isAuthLoading) {
+    if (isAuthLoading || isLoading) {
         return null;
     }
     
@@ -22,22 +24,17 @@ export function LanguageSelector() {
         return null;
     }
     
-    // Don't show if languages are loading or empty
-    if (isLoading || languages.length === 0) {
+    // Don't show if languages are empty
+    if (languages.length === 0) {
         return null;
     }
     
-    // Use locale instead of language code, default to first language's locale
-    const currentLanguage = searchParams.get('language') || defaultLanguage?.locale || '';
+    // Use current language from context, fallback to default language's locale
+    const selectedLanguage = currentLanguage || defaultLanguage?.locale || '';
     
     const handleLanguageChange = (value: string | null) => {
         if (!value) return;
-        
-        const params = new URLSearchParams(searchParams);
-        params.set('language', value);
-        
-        const newUrl = `${pathname}?${params.toString()}`;
-        router.push(newUrl);
+        setCurrentLanguage(value);
     };
     
     // Use locale as value and language as label
@@ -51,7 +48,7 @@ export function LanguageSelector() {
             <Text size="sm" c="dimmed">Language:</Text>
             <Select
                 data={languageOptions}
-                value={currentLanguage}
+                value={selectedLanguage}
                 onChange={handleLanguageChange}
                 size="sm"
                 w={150}

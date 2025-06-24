@@ -1,13 +1,12 @@
 'use client';
 
-import { notFound, useParams, useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import { useEffect, Suspense } from 'react';
 import { Container, Loader, Center, Text } from '@mantine/core';
 import { PageContentProvider, usePageContentContext } from '../contexts/PageContentContext';
 import { usePageContent } from '../../hooks/usePageContent';
 import { useAppNavigation } from '../../hooks/useAppNavigation';
-import { usePublicLanguages } from '../../hooks/usePublicLanguages';
-import { useAuth } from '../../hooks/useAuth';
+import { useLanguageContext } from '../contexts/LanguageContext';
 import { PageContentRenderer } from '../components/website/PageContentRenderer';
 import { debug, info, warn } from '../../utils/debug-logger';
 
@@ -29,80 +28,30 @@ export default function DynamicPage() {
 }
 
 function DynamicPageContent({ keyword }: { keyword: string }) {
-    const searchParams = useSearchParams();
-    const router = useRouter();
-    const pathname = usePathname();
-    const { user, isLoading: isAuthLoading } = useAuth();
-    const { defaultLanguage, isLoading: languagesLoading } = usePublicLanguages();
+    const { currentLanguage, isLoading: languageLoading } = useLanguageContext();
     
-    const languageParam = searchParams.get('language');
-    
-    // Handle language parameter logic only after authentication is determined
-    useEffect(() => {
-        // Wait for authentication check to complete
-        if (isAuthLoading || languagesLoading) {
-            return;
-        }
-
-        // Now we know the user's authentication status
-        if (!user && !languageParam && defaultLanguage) {
-            // User is not logged in: add default language parameter
-            const params = new URLSearchParams(searchParams);
-            params.set('language', defaultLanguage.locale);
-            const newUrl = `${pathname}?${params.toString()}`;
-            
-            debug('Auto-redirecting to add default language for guest user', 'DynamicPageContent', {
-                keyword,
-                defaultLanguage: defaultLanguage.locale,
-                newUrl
-            });
-            
-            router.replace(newUrl);
-            return;
-        }
-        
-        if (user && languageParam) {
-            // User is logged in: remove language parameter
-            const params = new URLSearchParams(searchParams);
-            params.delete('language');
-            
-            const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
-            
-            debug('Removing language parameter for authenticated user', 'DynamicPageContent', {
-                keyword,
-                newUrl,
-                previousUrl: `${pathname}?${searchParams.toString()}`
-            });
-            
-            router.replace(newUrl);
-        }
-    }, [user, isAuthLoading, languageParam, defaultLanguage, languagesLoading, searchParams, pathname, router, keyword]);
-    
-    // Use the language parameter if provided, otherwise undefined to let backend use default
-    const language = languageParam || undefined;
-    
-    const { content: queryContent, isLoading: pageLoading } = usePageContent(keyword, language);
+    const { content: queryContent, isLoading: pageLoading } = usePageContent(keyword, currentLanguage || undefined);
     const { pageContent: contextContent } = usePageContentContext();
     const pageContent = contextContent || queryContent;
 
     const { routes, isLoading: navLoading } = useAppNavigation();
     
+    // Extract headless flag for rendering decisions
+    const isHeadless = Boolean(pageContent?.page?.is_headless);
+    
     // Debug logging
     const debugInfo = {
         keyword,
-        languageParam,
-        language,
-        isAuthenticated: !!user,
-        isAuthLoading,
-        defaultLanguage: defaultLanguage?.locale,
-        languagesLoading,
+        currentLanguage,
+        languageLoading,
         routesCount: routes.length,
         routes: routes.map(r => ({ keyword: r.keyword, url: r.url, id: r.id_pages })),
         navLoading,
         pageLoading,
         hasContent: !!pageContent,
         pageData: pageContent?.page,
-        sectionsCount: pageContent?.page?.sections?.length || 0
+        sectionsCount: pageContent?.page?.sections?.length || 0,
+        isHeadless
     };
     
     debug('Page render debug info', 'DynamicPageContent', debugInfo);
@@ -123,8 +72,8 @@ function DynamicPageContent({ keyword }: { keyword: string }) {
         }
     }, [routes, exists, navLoading, keyword]);
 
-    // Show loading while authentication or languages are loading
-    if (pageLoading || navLoading || languagesLoading || isAuthLoading) {
+    // Show loading while data is loading
+    if (pageLoading || navLoading || languageLoading) {
         return (
             <Center h="50vh">
                 <Loader size="lg" />
@@ -155,6 +104,16 @@ function DynamicPageContent({ keyword }: { keyword: string }) {
     // Extract sections from the page data
     const sections = pageContent.page.sections || [];
 
+    // For headless pages, render without standard container and let content fill the viewport
+    if (isHeadless) {
+        return (
+            <div style={{ minHeight: '100vh', width: '100%' }}>
+                <PageContentRenderer sections={sections} />
+            </div>
+        );
+    }
+
+    // For regular pages, use standard container layout
     return (
         <Container size="xl" py="md">
             <PageContentRenderer sections={sections} />

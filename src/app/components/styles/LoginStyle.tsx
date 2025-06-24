@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { TextInput, PasswordInput, Button, Paper, Title, Alert, Anchor, Stack } from '@mantine/core';
 import { IconExclamationCircle } from '@tabler/icons-react';
 import { useLogin } from '@refinedev/core';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ILoginStyle } from '../../../types/common/styles.types';
 import { ROUTES } from '../../../config/routes.config';
 
@@ -25,6 +25,7 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style }) => {
     const [error, setError] = useState('');
     const { mutate: login, isLoading } = useLogin();
     const router = useRouter();
+    const searchParams = useSearchParams();
 
     // Extract field values
     const labelUser = style.label_user?.content || 'Email/Username';
@@ -48,6 +49,24 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style }) => {
         login(
             { email, password },
             {
+                onSuccess: (data) => {
+                    // Force redirect if Refine doesn't handle it automatically
+                    // This ensures the redirect happens on the first try
+                    if (data.success && data.redirectTo) {
+                        let redirectUrl = data.redirectTo as string;
+                        
+                        // Preserve language parameter if present in current URL
+                        const currentLanguage = searchParams.get('language');
+                        if (currentLanguage && !redirectUrl.includes('language=')) {
+                            const separator = redirectUrl.includes('?') ? '&' : '?';
+                            redirectUrl = `${redirectUrl}${separator}language=${currentLanguage}`;
+                        }
+                        
+                        setTimeout(() => {
+                            router.push(redirectUrl);
+                        }, 100);
+                    }
+                },
                 onError: (error: any) => {
                     // Display the error message from the server or use fallback
                     const errorMessage = error?.message || alertFail;
