@@ -18,6 +18,25 @@ export interface ISystemPageLink {
     id: number;
 }
 
+export interface IPageHierarchy {
+    id: number;
+    keyword: string;
+    label: string;
+    link: string;
+    hasChildren: boolean;
+    children: IPageHierarchy[];
+    level: number;
+    nav_position: number | null;
+    is_system: number;
+    is_headless: number;
+}
+
+export interface ICategorizedPages {
+    navigation: IPageHierarchy[];
+    headless: IPageHierarchy[];
+    other: IPageHierarchy[];
+}
+
 /**
  * Hook for fetching and managing admin pages data
  * @returns Object containing admin pages data and query state
@@ -30,8 +49,9 @@ export function useAdminPages() {
             return await AdminApi.getAdminPages();
         },
         select: (data: IAdminPage[]) => {
-            // Filter system pages
+            // Separate system pages from regular pages
             const systemPages = data.filter(page => page.is_system === 1);
+            const regularPages = data.filter(page => page.is_system === 0);
             
             // Transform system pages into navigation links format
             const systemPageLinks = systemPages.map((page): ISystemPageLink => ({
@@ -73,17 +93,63 @@ export function useAdminPages() {
                 other: otherPages
             };
 
+            // Create hierarchical structure for regular pages
+            const buildHierarchy = (pages: IAdminPage[], level = 0): IPageHierarchy[] => {
+                return pages.map(page => ({
+                    id: page.id_pages,
+                    keyword: page.keyword,
+                    label: page.keyword.charAt(0).toUpperCase() + page.keyword.slice(1),
+                    link: `/admin/pages/${page.keyword}`,
+                    hasChildren: Boolean(page.children && page.children.length > 0),
+                    children: page.children ? buildHierarchy(page.children, level + 1) : [],
+                    level,
+                    // Include additional properties for sorting and display
+                    nav_position: page.nav_position,
+                    is_system: page.is_system,
+                    is_headless: page.is_headless
+                }));
+            };
+
+            const hierarchicalPages = buildHierarchy(regularPages);
+
+            // Categorize regular pages like system pages
+            const navigationPages = hierarchicalPages.filter(page => 
+                page.nav_position !== null && page.nav_position !== undefined
+            );
+            
+            const headlessPages = hierarchicalPages.filter(page => 
+                page.is_headless === 1 && (page.nav_position === null || page.nav_position === undefined)
+            );
+            
+            const otherRegularPages = hierarchicalPages.filter(page => 
+                page.nav_position === null && page.is_headless === 0
+            );
+
+            const categorizedRegularPages: ICategorizedPages = {
+                navigation: navigationPages.sort((a, b) => (a.nav_position || 0) - (b.nav_position || 0)),
+                headless: headlessPages.sort((a, b) => a.label.localeCompare(b.label)),
+                other: otherRegularPages.sort((a, b) => a.label.localeCompare(b.label))
+            };
+
             debug('Processed admin pages', 'useAdminPages', { 
                 totalPages: data.length, 
                 systemPages: systemPages.length,
-                systemPageKeywords: systemPages.map(p => p.keyword)
+                regularPages: regularPages.length,
+                systemPageKeywords: systemPages.map(p => p.keyword),
+                hierarchicalPagesCount: hierarchicalPages.length,
+                navigationPagesCount: navigationPages.length,
+                headlessPagesCount: headlessPages.length,
+                otherRegularPagesCount: otherRegularPages.length
             });
             
             return {
-                pages: data,
+                allPages: data,
                 systemPages,
+                regularPages,
                 systemPageLinks,
-                categorizedSystemPages
+                categorizedSystemPages,
+                hierarchicalPages,
+                categorizedRegularPages
             };
         },
         staleTime: 1000, // 1 second
@@ -93,14 +159,21 @@ export function useAdminPages() {
     });
 
     return {
-        pages: data?.pages || [],
+        pages: data?.allPages || [],
         systemPages: data?.systemPages || [],
+        regularPages: data?.regularPages || [],
         systemPageLinks: data?.systemPageLinks || [],
         categorizedSystemPages: data?.categorizedSystemPages || {
             authentication: [],
             profile: [],
             errors: [],
             legal: [],
+            other: []
+        },
+        hierarchicalPages: data?.hierarchicalPages || [],
+        categorizedRegularPages: data?.categorizedRegularPages || {
+            navigation: [],
+            headless: [],
             other: []
         },
         isLoading,

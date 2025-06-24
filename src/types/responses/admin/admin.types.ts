@@ -61,3 +61,16 @@ export interface ISectionDetailsData {
 }
 
 export type TSectionDetailsResponse = IBaseApiResponse<ISectionDetailsData>;
+
+export interface IPageHierarchy {
+    id: number;
+    keyword: string;
+    label: string;
+    link: string;
+    hasChildren: boolean;
+    children: IPageHierarchy[];
+    level: number;
+    nav_position: number | null;
+    is_system: number;
+    is_headless: number;
+}

@@ -1,7 +1,7 @@
 'use client';
 
-import { Box, Collapse, Group, Text, ThemeIcon, UnstyledButton } from '@mantine/core';
-import { IconChevronRight, IconMenu2 } from '@tabler/icons-react';
+import { Box, Collapse, Group, Text, ThemeIcon, UnstyledButton, Badge } from '@mantine/core';
+import { IconChevronRight, IconMenu2, IconFiles } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useNavigationStore, useNavigationOpenItems, useNavigationActiveItem } from '../../../store/navigation.store';
 import classes from './NavbarLinksGroup.module.css';
@@ -13,6 +13,10 @@ interface LinkItem {
     children?: LinkItem[];
     icon?: React.ReactNode;
     hasNavPosition?: boolean;
+    nav_position?: number | null;
+    is_headless?: number;
+    onClick?: () => void;
+    keyword?: string;
 }
 
 interface LinksGroupProps {
@@ -43,9 +47,11 @@ export function LinksGroup({ icon, label, initiallyOpened, children, link, right
             const hasNestedLinks = Array.isArray(item.children) && item.children.length > 0;
             const isItemOpen = openItems.includes(itemPath);
             const isItemActive = activeItem === item.link;
+            const isNavPage = item.nav_position !== null && item.nav_position !== undefined;
+            const isHeadless = item.is_headless === 1;
 
             return (
-                <div className={classes.children} key={item.label}>
+                <div className={classes.children} key={item.keyword || item.label}>
                     <Text<'a'>
                         component="a"
                         className={classes.link}
@@ -56,21 +62,54 @@ export function LinksGroup({ icon, label, initiallyOpened, children, link, right
                             if (hasNestedLinks) {
                                 toggleItem(itemPath);
                             }
-                            if (item.link) {
+                            if (item.onClick) {
+                                item.onClick();
+                            } else if (item.link) {
                                 setActiveItem(item.link);
                                 router.push(item.link);
                             }
                         }}
                     >
                         <Group justify="space-between" gap={0}>
-                            <Group gap="sm">
-                                {item.hasNavPosition && (
-                                    <ThemeIcon variant="light" size="xs" color="blue">
-                                        <IconMenu2 size="0.6rem" />
-                                    </ThemeIcon>
-                                )}
-                                <span>{item.label}</span>
+                            <Group gap="xs">
+                                {/* Page type icon */}
+                                <Box style={{ flexShrink: 0 }}>
+                                    {isNavPage ? (
+                                        <IconMenu2 size={14} color="var(--mantine-color-blue-6)" />
+                                    ) : (
+                                        <IconFiles size={14} color={isHeadless ? "var(--mantine-color-dimmed)" : "var(--mantine-color-gray-6)"} />
+                                    )}
+                                </Box>
+                                
+                                {/* Page label */}
+                                <Text 
+                                    size="xs" 
+                                    style={{
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap',
+                                        flex: 1
+                                    }}
+                                    title={item.label}
+                                >
+                                    {item.label}
+                                </Text>
+                                
+                                {/* Badges */}
+                                <Group gap="xs">
+                                    {isNavPage && (
+                                        <Badge size="xs" variant="light" color="blue">
+                                            Nav
+                                        </Badge>
+                                    )}
+                                    {isHeadless && (
+                                        <Badge size="xs" variant="light" color="gray">
+                                            Headless
+                                        </Badge>
+                                    )}
+                                </Group>
                             </Group>
+                            
                             {hasNestedLinks && (
                                 <IconChevronRight
                                     className={classes.chevron}

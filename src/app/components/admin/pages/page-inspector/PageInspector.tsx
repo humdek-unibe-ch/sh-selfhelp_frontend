@@ -477,7 +477,7 @@ export function PageInspector({ page }: PageInspectorProps) {
             <ScrollArea flex={1}>
                 <Stack gap="lg" p="md">
                     {/* Page Information Section */}
-                    <Paper withBorder style={{ backgroundColor: 'var(--mantine-color-blue-0)' }}>
+                    <Paper withBorder style={{ backgroundColor: 'light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-9))' }}>
                         <Box p="md">
                             <Group gap="xs" mb="sm">
                                 <IconInfoCircle size={16} style={{ color: 'var(--mantine-color-blue-6)' }} />
@@ -488,15 +488,15 @@ export function PageInspector({ page }: PageInspectorProps) {
                                 <Group gap="md" wrap="wrap">
                                     <Box>
                                         <Text size="xs" fw={500} c="dimmed">Keyword</Text>
-                                        <Text size="sm" style={{ fontFamily: 'monospace' }}>{page.keyword}</Text>
+                                        <Text size="sm" style={{ fontFamily: 'monospace', color: 'var(--mantine-color-text)' }}>{page.keyword}</Text>
                                     </Box>
                                     <Box>
                                         <Text size="xs" fw={500} c="dimmed">URL</Text>
-                                        <Text size="sm" style={{ fontFamily: 'monospace' }}>{page.url}</Text>
+                                        <Text size="sm" style={{ fontFamily: 'monospace', color: 'var(--mantine-color-text)' }}>{page.url}</Text>
                                     </Box>
                                     <Box>
                                         <Text size="xs" fw={500} c="dimmed">Page ID</Text>
-                                        <Text size="sm">{pageDetails?.id || page.id_pages}</Text>
+                                        <Text size="sm" style={{ color: 'var(--mantine-color-text)' }}>{pageDetails?.id || page.id_pages}</Text>
                                     </Box>
                                 </Group>
                                 
@@ -803,13 +803,16 @@ export function PageInspector({ page }: PageInspectorProps) {
                             )}
                             
                             <Group>
-                                <Button
-                                    leftSection={<IconPlus size="1rem" />}
-                                    variant="outline"
-                                    onClick={handleCreateChildPage}
-                                >
-                                    Create Child Page
-                                </Button>
+                                {/* Only show Create Child Page for non-system pages */}
+                                {page?.is_system !== 1 && (
+                                    <Button
+                                        leftSection={<IconPlus size="1rem" />}
+                                        variant="outline"
+                                        onClick={handleCreateChildPage}
+                                    >
+                                        Create Child Page
+                                    </Button>
+                                )}
                                 
                                 <Tooltip 
                                     label={page?.is_system === 1 ? "System pages cannot be deleted" : "Delete this page"}

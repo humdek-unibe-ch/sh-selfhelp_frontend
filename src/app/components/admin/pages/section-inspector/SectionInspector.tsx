@@ -458,7 +458,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
                 }
             >
                 {/* Section Information */}
-                <Paper withBorder style={{ backgroundColor: 'var(--mantine-color-blue-0)' }}>
+                <Paper withBorder style={{ backgroundColor: 'light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-9))' }}>
                     <Box p="md">
                         <Group gap="xs" mb="sm">
                             <IconInfoCircle size={16} style={{ color: 'var(--mantine-color-blue-6)' }} />

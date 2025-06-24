@@ -6,7 +6,7 @@
 }
 
 .pageItem:hover {
-    background-color: var(--mantine-color-gray-0);
+    background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
 }
 
 [data-mantine-color-scheme="dark"] .pageItem:hover {
@@ -14,8 +14,8 @@
 }
 
 .pageItem[data-selected] {
-    background-color: var(--mantine-color-blue-0);
-    border: 1px solid var(--mantine-color-blue-3);
+    background-color: light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-9));
+    border: 1px solid light-dark(var(--mantine-color-blue-3), var(--mantine-color-blue-7));
 }
 
 [data-mantine-color-scheme="dark"] .pageItem[data-selected] {
