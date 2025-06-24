@@ -20,12 +20,15 @@ interface ILinkStyleProps {
  * @returns {JSX.Element} Rendered link component with specified styling
  */
 const LinkStyle: React.FC<ILinkStyleProps> = ({ style }) => {
+    const href = style.url?.content || '#';
+    const label = style.label?.content || 'Link';
+
     return (
         <InternalLink 
-            href={style.url.content}
-            className={style.css}
+            href={href}
+            className={style.css || ''}
         >
-            {style.label.content}
+            {label}
         </InternalLink>
     );
 };

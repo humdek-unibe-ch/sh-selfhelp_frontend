@@ -48,13 +48,15 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
 
     return (
         <form key={formKey} onSubmit={handleSubmit}>
-            <input type="hidden" name="__id_sections" value={style.id.content} />
-            <div className={style.css}>
+            {style.id?.content && (
+                <input type="hidden" name="__id_sections" value={style.id.content} />
+            )}
+            <div className={style.css || ''}>
                 {style.children?.map((child, index) => (
                     child ? <BasicStyle key={index} style={child} /> : null
                 ))}
                 <Button type="submit" variant="contained" style={{ mt: 2 }}>
-                    {style.label.content}
+                    {style.label?.content || 'Submit'}
                 </Button>
             </div>
         </form>

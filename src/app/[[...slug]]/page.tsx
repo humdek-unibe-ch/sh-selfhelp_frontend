@@ -56,22 +56,19 @@ function DynamicPageContent({ keyword }: { keyword: string }) {
     
     debug('Page render debug info', 'DynamicPageContent', debugInfo);
     
-    // Find existence of page
-    const exists = routes.some(p => p.keyword === keyword);
+    // Check if page exists in navigation routes
+    const existsInNavigation = routes.some(p => p.keyword === keyword);
     
-    info(`Page exists check: ${keyword}`, 'DynamicPageContent', { 
+    // Check if page content is available (more reliable than navigation check)
+    const hasValidContent = pageContent && pageContent.page;
+    
+    info(`Page existence check: ${keyword}`, 'DynamicPageContent', { 
         keyword, 
-        exists, 
+        existsInNavigation, 
+        hasValidContent,
         routesLength: routes.length 
     });
     
-    useEffect(() => {
-        if (!navLoading && routes.length > 0 && !exists) {
-            warn('Page not found, redirecting to 404', 'DynamicPageContent', { keyword });
-            notFound();
-        }
-    }, [routes, exists, navLoading, keyword]);
-
     // Show loading while data is loading
     if (pageLoading || navLoading || languageLoading) {
         return (
@@ -81,17 +78,19 @@ function DynamicPageContent({ keyword }: { keyword: string }) {
         );
     }
 
-    if (!exists) {
-        return (
-            <Container size="md">
-                <Center h="50vh">
-                    <Text size="lg" c="red">Error: Page not found in routes</Text>
-                </Center>
-            </Container>
-        );
+    // Only show 404 if both navigation check fails AND no content is available
+    // This prevents valid pages (like /styles) from showing 404 when they exist but aren't in navigation
+    if (!navLoading && routes.length > 0 && !existsInNavigation && !hasValidContent) {
+        warn('Page not found in navigation and no content available, redirecting to 404', 'DynamicPageContent', { keyword });
+        notFound();
     }
 
-    if (!pageContent || !pageContent.page) {
+    // If page doesn't exist in navigation but has content, show it anyway (like /styles)
+    if (!existsInNavigation && hasValidContent) {
+        info(`Page not in navigation but has content, rendering anyway: ${keyword}`, 'DynamicPageContent', { keyword });
+    }
+
+    if (!hasValidContent) {
         return (
             <Container size="md">
                 <Center h="50vh">

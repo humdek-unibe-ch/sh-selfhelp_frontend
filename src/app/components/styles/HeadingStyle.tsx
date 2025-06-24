@@ -19,11 +19,14 @@ interface IHeadingStyleProps {
  * @returns {JSX.Element} Rendered heading with specified styling and level
  */
 const HeadingStyle: React.FC<IHeadingStyleProps> = ({ style }) => {
-    const HeadingTag = `h${style.level.content}` as keyof JSX.IntrinsicElements;
+    // Get heading level with fallback to h2 if undefined or invalid
+    const level = style.level?.content || '2';
+    const validLevel = ['1', '2', '3', '4', '5', '6'].includes(level) ? level : '2';
+    const HeadingTag = `h${validLevel}` as keyof JSX.IntrinsicElements;
     
     return (
-        <HeadingTag className={style.css}>
-            {style.title?.content}
+        <HeadingTag className={style.css || ''}>
+            {style.title?.content || ''}
         </HeadingTag>
     );
 };
