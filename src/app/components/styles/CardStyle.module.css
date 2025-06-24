@@ -1,0 +1,16 @@
+.card {
+    transition: all 0.2s ease;
+}
+
+.cardHeader {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+.cardTitle {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.cardBody {
+    padding-top: var(--mantine-spacing-md);
+} 

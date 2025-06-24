@@ -1,6 +1,7 @@
 import React from 'react';
-import { IDivStyle } from '../../../types/common/styles.types';
+import { Box } from '@mantine/core';
 import BasicStyle from './BasicStyle';
+import { IDivStyle } from '../../../types/common/styles.types';
 
 /**
  * Props interface for DivStyle component
@@ -12,21 +13,59 @@ interface IDivStyleProps {
 }
 
 /**
- * DivStyle component renders a div element with optional child elements.
- * Similar to ContainerStyle but specifically for div elements.
- * Uses BasicStyle for rendering nested style elements.
+ * Helper function to extract field content from either direct property or fields object
+ */
+const getFieldContent = (style: any, fieldName: string): any => {
+    // Check if it's a direct property
+    if (style[fieldName] && typeof style[fieldName] === 'object' && 'content' in style[fieldName]) {
+        return style[fieldName].content;
+    }
+    // Check in fields object
+    if (style.fields && style.fields[fieldName]) {
+        return style.fields[fieldName].content;
+    }
+    return null;
+};
+
+/**
+ * DivStyle component renders a div container with optional styling and child elements.
+ * Supports custom background, border, and text colors.
+ * Uses Mantine Box component for flexibility.
  *
  * @component
  * @param {IDivStyleProps} props - Component props
  * @returns {JSX.Element} Rendered div with styled children
  */
 const DivStyle: React.FC<IDivStyleProps> = ({ style }) => {
+    const backgroundColor = getFieldContent(style, 'color_background');
+    const borderColor = getFieldContent(style, 'color_border');
+    const textColor = getFieldContent(style, 'color_text');
+    const cssClass = style.css || getFieldContent(style, 'css') || '';
+    const cssMobile = getFieldContent(style, 'css_mobile') || '';
+
+    // Build inline styles for colors
+    const inlineStyles: React.CSSProperties = {};
+    if (backgroundColor) {
+        inlineStyles.backgroundColor = backgroundColor;
+    }
+    if (borderColor) {
+        inlineStyles.borderColor = borderColor;
+        inlineStyles.borderWidth = '1px';
+        inlineStyles.borderStyle = 'solid';
+    }
+    if (textColor) {
+        inlineStyles.color = textColor;
+    }
+
     return (
-        <div className={style.css}>
-            {style.children?.map((child, index) => (
-                child ? <BasicStyle key={index} style={child} /> : null
+        <Box 
+            className={`${cssClass} ${cssMobile}`}
+            style={inlineStyles}
+        >
+            {style.children?.map((childStyle, index) => (
+                childStyle ? <BasicStyle key={`${childStyle.id.content}-${index}`} style={childStyle} /> : null
             ))}
-        </div>
+        </Box>
     );
 };
 

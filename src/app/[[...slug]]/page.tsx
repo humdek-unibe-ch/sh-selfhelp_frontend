@@ -82,7 +82,8 @@ function DynamicPageContent({ keyword }: { keyword: string }) {
         navLoading,
         pageLoading,
         hasContent: !!pageContent,
-        contentSections: pageContent?.content?.length || 0
+        pageData: pageContent?.page,
+        sectionsCount: pageContent?.page?.sections?.length || 0
     };
     
     debug('Page render debug info', 'DynamicPageContent', debugInfo);
@@ -121,7 +122,7 @@ function DynamicPageContent({ keyword }: { keyword: string }) {
         );
     }
 
-    if (!pageContent) {
+    if (!pageContent || !pageContent.page) {
         return (
             <Container size="md">
                 <Center h="50vh">
@@ -131,15 +132,12 @@ function DynamicPageContent({ keyword }: { keyword: string }) {
         );
     }
 
+    // Extract sections from the page data
+    const sections = pageContent.page.sections || [];
+
     return (
-        <Container size="xl">
-            {pageContent.title && (
-                <Text size="xl" fw={700} mb="lg">{pageContent.title}</Text>
-            )}
-            {pageContent.description && (
-                <Text size="md" c="dimmed" mb="xl">{pageContent.description}</Text>
-            )}
-            <PageContentRenderer content={pageContent.content} />
+        <Container size="xl" py="md">
+            <PageContentRenderer sections={sections} />
         </Container>
     );
 }

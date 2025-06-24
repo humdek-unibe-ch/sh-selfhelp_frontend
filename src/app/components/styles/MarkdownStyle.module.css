@@ -1,0 +1,127 @@
+.markdown {
+    line-height: 1.6;
+}
+
+.markdownInline {
+    display: inline;
+}
+
+/* Headings */
+.h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-top: 1.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.h5 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.h6 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+/* Text elements */
+.paragraph {
+    margin-bottom: 1rem;
+}
+
+.link {
+    color: var(--mantine-color-blue-6);
+    text-decoration: none;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+/* Lists */
+.list, .orderedList {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+}
+
+.listItem {
+    margin-bottom: 0.25rem;
+}
+
+/* Blockquote */
+.blockquote {
+    border-left: 4px solid var(--mantine-color-gray-4);
+    padding-left: 1rem;
+    margin: 1rem 0;
+    font-style: italic;
+    color: var(--mantine-color-gray-7);
+}
+
+/* Code */
+.inlineCode {
+    background-color: var(--mantine-color-gray-1);
+    padding: 0.125rem 0.25rem;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
+.codeBlock {
+    background-color: var(--mantine-color-gray-1);
+    padding: 1rem;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+}
+
+.codeBlock code {
+    font-family: monospace;
+    font-size: 0.9rem;
+}
+
+/* Tables */
+.table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.tableHeader, .tableCell {
+    border: 1px solid var(--mantine-color-gray-3);
+    padding: 0.5rem;
+    text-align: left;
+}
+
+.tableHeader {
+    background-color: var(--mantine-color-gray-1);
+    font-weight: 600;
+}
+
+.tableRow:hover {
+    background-color: var(--mantine-color-gray-0);
+} 

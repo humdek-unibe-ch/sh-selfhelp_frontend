@@ -1,5 +1,5 @@
 import { TStyle } from '../../common/styles.types';
-import { IBaseApiResponse } from '../common/response-envelope.types';
+import type { IBaseApiResponse } from '../common/response-envelope.types';
 
 export interface IPageItem {
     id_users: number;
@@ -22,7 +22,22 @@ export interface IPageItem {
     children: IPageItem[];
 }
 
+// Updated to match the actual API response structure
 export interface IPageContent {
+    page: {
+        id: number;
+        keyword: string;
+        url: string;
+        parent_page_id: number | null;
+        is_headless: boolean;
+        nav_position: number | null;
+        footer_position: number | null;
+        sections: TStyle[];
+    };
+}
+
+// Legacy interface for backward compatibility
+export interface IPageContentLegacy {
     content: (TStyle | null)[];
     title: string;
     description: string;

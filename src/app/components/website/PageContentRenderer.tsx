@@ -1,44 +1,37 @@
 import React from 'react';
-import { TStyle } from '../../../types/common/styles.types';
 import BasicStyle from '../styles/BasicStyle';
 import UnknownStyle from '../styles/UnknownStyle';
+import { TStyle } from '../../../types/common/styles.types';
 
 interface IPageContentRendererProps {
-    content: (TStyle | null)[];
+    sections: TStyle[];
 }
 
 /**
  * PageContentRenderer recursively renders page content sections
  * using the appropriate style components. It handles null sections
  * and falls back to UnknownStyle for unrecognized style types.
+ * 
+ * Now supports all style types through the enhanced BasicStyle component.
  */
-export function PageContentRenderer({ content }: IPageContentRendererProps) {
-    if (!content || content.length === 0) {
+export function PageContentRenderer({ sections }: IPageContentRendererProps) {
+    if (!sections || sections.length === 0) {
         return null;
     }
 
     return (
         <>
-            {content.map((section, index) => {
-                // Skip null sections
+            {sections.map((section, index) => {
+                // Skip null or undefined sections
                 if (!section) {
                     return null;
                 }
 
                 const key = `section-${section.id?.content || index}`;
 
-                // Check if the style is supported by BasicStyle
-                const supportedStyles = [
-                    'container', 'image', 'markdown', 'heading', 'card', 
-                    'div', 'button', 'carousel', 'link', 'formUserInputLog', 'textarea'
-                ];
-
-                if (supportedStyles.includes(section.style_name)) {
-                    return <BasicStyle key={key} style={section} />;
-                } else {
-                    // Use UnknownStyle for unsupported styles
-                    return <UnknownStyle key={`unknown-${key}`} style={section} />;
-                }
+                // BasicStyle now handles all style routing
+                // It will internally render UnknownStyle for unsupported styles
+                return <BasicStyle key={key} style={section} />;
             })}
         </>
     );

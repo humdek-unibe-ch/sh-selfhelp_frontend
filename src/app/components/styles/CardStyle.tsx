@@ -1,6 +1,10 @@
 import React from 'react';
-import { ICardStyle } from '../../../types/common/styles.types';
+import { Card, Title, Collapse, ActionIcon, Group } from '@mantine/core';
+import { IconChevronDown, IconChevronUp, IconEdit } from '@tabler/icons-react';
+import { useState } from 'react';
 import BasicStyle from './BasicStyle';
+import styles from './CardStyle.module.css';
+import { ICardStyle } from '../../../types/common/styles.types';
 
 /**
  * Props interface for CardStyle component
@@ -12,26 +16,109 @@ interface ICardStyleProps {
 }
 
 /**
- * CardStyle component renders a card container with optional child elements.
- * Provides a styled container that can hold other style components.
- * Uses BasicStyle for rendering nested style elements.
+ * Helper function to extract field content from either direct property or fields object
+ */
+const getFieldContent = (style: any, fieldName: string): any => {
+    // Check if it's a direct property
+    if (style[fieldName] && typeof style[fieldName] === 'object' && 'content' in style[fieldName]) {
+        return style[fieldName].content;
+    }
+    // Check in fields object
+    if (style.fields && style.fields[fieldName]) {
+        return style.fields[fieldName].content;
+    }
+    return null;
+};
+
+/**
+ * CardStyle component renders a Mantine Card container with optional child elements.
+ * Supports collapsible cards, different card types, and edit functionality.
+ * Uses Mantine UI Card component for consistent theming.
  *
  * @component
  * @param {ICardStyleProps} props - Component props
  * @returns {JSX.Element} Rendered card with styled children
  */
 const CardStyle: React.FC<ICardStyleProps> = ({ style }) => {
+    const title = getFieldContent(style, 'title');
+    const type = getFieldContent(style, 'type') || 'light';
+    const isExpandedDefault = getFieldContent(style, 'is_expanded') === '1';
+    const isCollapsible = getFieldContent(style, 'is_collapsible') === '1';
+    const editUrl = getFieldContent(style, 'url_edit');
+    const cssClass = style.css || getFieldContent(style, 'css') || '';
+    const cssMobile = getFieldContent(style, 'css_mobile') || '';
+
+    const [isExpanded, setIsExpanded] = useState(isExpandedDefault);
+
+    // Map legacy Bootstrap-style types to Mantine theme colors
+    const typeColorMap: Record<string, string> = {
+        'primary': 'blue',
+        'secondary': 'gray',
+        'success': 'green',
+        'danger': 'red',
+        'warning': 'yellow',
+        'info': 'cyan',
+        'light': 'gray.1',
+        'dark': 'dark'
+    };
+
+    const cardColor = typeColorMap[type] || 'gray.1';
+
     return (
-        <div className={style.css}>
-            <h3>{style.title.content}</h3>
-            {
-                style.children?.map(
-                    (childStyle, index) => (
+        <Card 
+            shadow="sm" 
+            padding="lg" 
+            radius="md" 
+            withBorder
+            className={`${cssClass} ${cssMobile} ${styles.card}`}
+            bg={cardColor}
+        >
+            {title && (
+                <Card.Section 
+                    withBorder 
+                    inheritPadding 
+                    py="xs"
+                    className={styles.cardHeader}
+                >
+                    <Group justify="space-between" align="center">
+                        <Title order={4} className={styles.cardTitle}>
+                            {title}
+                        </Title>
+                        <Group gap="xs">
+                            {editUrl && (
+                                <ActionIcon
+                                    variant="subtle"
+                                    size="sm"
+                                    component="a"
+                                    href={editUrl}
+                                    title="Edit"
+                                >
+                                    <IconEdit size={16} />
+                                </ActionIcon>
+                            )}
+                            {isCollapsible && (
+                                <ActionIcon
+                                    variant="subtle"
+                                    size="sm"
+                                    onClick={() => setIsExpanded(!isExpanded)}
+                                    title={isExpanded ? "Collapse" : "Expand"}
+                                >
+                                    {isExpanded ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
+                                </ActionIcon>
+                            )}
+                        </Group>
+                    </Group>
+                </Card.Section>
+            )}
+
+            <Collapse in={!isCollapsible || isExpanded}>
+                <div className={styles.cardBody}>
+                    {style.children?.map((childStyle, index) => (
                         childStyle ? <BasicStyle key={`${childStyle.id.content}-${index}`} style={childStyle} /> : null
-                    )
-                )
-            }
-        </div>
+                    ))}
+                </div>
+            </Collapse>
+        </Card>
     );
 };
 

@@ -793,6 +793,101 @@ const handleSubmit = (values) => {
 - **Consistent UX**: Standardized loading states and error handling
 - **Developer Experience**: Excellent debugging with React Query DevTools
 
+## 2.4. Page Rendering Implementation with Best Practices
+
+### Overview
+The page rendering system now properly handles the CMS API response structure where pages contain sections with nested fields. The implementation follows React best practices and leverages the comprehensive styles system.
+
+### API Response Structure
+```typescript
+{
+  page: {
+    id: number;
+    keyword: string;
+    url: string;
+    sections: TStyle[]; // Array of style objects with fields
+  }
+}
+```
+
+### Key Components
+
+#### 1. **Dynamic Page Component** (`src/app/[[...slug]]/page.tsx`)
+- Handles dynamic routing for all CMS pages
+- Manages language parameter for internationalization
+- Implements proper loading states and error handling
+- Auto-redirects non-authenticated users to include language parameter
+
+#### 2. **PageContentRenderer** (`src/app/components/website/PageContentRenderer.tsx`)
+- Simple component that maps sections to BasicStyle components
+- Handles null/undefined sections gracefully
+- Uses proper React keys for reconciliation
+
+#### 3. **PageRenderer** (`src/app/components/website/PageRenderer.tsx`)
+- Best practice implementation with comprehensive features:
+  - Memoized rendering for performance
+  - Error boundaries and loading states
+  - Debug logging for development
+  - Empty content handling
+  - Accessibility considerations
+
+#### 4. **Style Components**
+All style components follow a consistent pattern:
+- Helper function `getFieldContent()` to extract field values from dual structure
+- Support for both direct properties and nested fields object
+- Mantine UI components for consistent theming
+- CSS modules for component-specific styles
+
+### Field Extraction Pattern
+The API returns fields in two possible structures:
+```typescript
+// Direct property
+style.title?.content
+
+// Nested in fields object
+style.fields?.title?.content
+```
+
+The `getFieldContent` helper handles both cases:
+```typescript
+const getFieldContent = (style: any, fieldName: string): any => {
+    if (style[fieldName]?.content !== undefined) {
+        return style[fieldName].content;
+    }
+    if (style.fields?.[fieldName]?.content !== undefined) {
+        return style.fields[fieldName].content;
+    }
+    return null;
+};
+```
+
+### Best Practices Implemented
+
+1. **Type Safety**: Full TypeScript support with 82 style interfaces
+2. **Performance**: Memoization and React Query caching
+3. **Error Handling**: Graceful degradation at every level
+4. **Debugging**: Comprehensive logging with debug utility
+5. **Modularity**: Component-based architecture with clear separation
+6. **Accessibility**: Semantic HTML and ARIA labels
+7. **Responsive Design**: Mobile-first approach with css_mobile support
+8. **Theming**: Mantine UI integration for consistent design
+9. **Code Splitting**: Modular imports for better bundle size
+10. **Developer Experience**: Clear documentation and consistent patterns
+
+### Usage Example
+```typescript
+// In your page component
+const sections = pageContent.page.sections || [];
+return <PageRenderer sections={sections} isLoading={isLoading} error={error} />;
+```
+
+### Future Enhancements
+- Server-side rendering optimization
+- Progressive enhancement for critical content
+- Advanced caching strategies
+- Real-time content updates
+- A/B testing support for sections
+
 ## 2.6. UI Component Rules - Mantine First Approach
 
 **CRITICAL RULE**: Minimize custom Tailwind CSS and maximize Mantine UI v7 components for better theming and customization.
