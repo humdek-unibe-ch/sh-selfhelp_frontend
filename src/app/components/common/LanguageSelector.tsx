@@ -7,10 +7,15 @@ import { useAuth } from '../../../hooks/useAuth';
 
 export function LanguageSelector() {
     const { languages, isLoading, defaultLanguage } = usePublicLanguages();
-    const { user } = useAuth();
+    const { user, isLoading: isAuthLoading } = useAuth();
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
+    
+    // Wait for authentication check to complete
+    if (isAuthLoading) {
+        return null;
+    }
     
     // Don't show language selector if user is logged in
     if (user) {

@@ -32,24 +32,26 @@ function DynamicPageContent({ keyword }: { keyword: string }) {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
-    const { user } = useAuth();
+    const { user, isLoading: isAuthLoading } = useAuth();
     const { defaultLanguage, isLoading: languagesLoading } = usePublicLanguages();
     
     const languageParam = searchParams.get('language');
     
-    // Auto-redirect to add default language for non-authenticated users
+    // Handle language parameter logic only after authentication is determined
     useEffect(() => {
-        // Only redirect if:
-        // 1. User is not logged in
-        // 2. No language parameter is present
-        // 3. Default language is available
-        // 4. Languages have finished loading
-        if (!user && !languageParam && defaultLanguage && !languagesLoading) {
+        // Wait for authentication check to complete
+        if (isAuthLoading || languagesLoading) {
+            return;
+        }
+
+        // Now we know the user's authentication status
+        if (!user && !languageParam && defaultLanguage) {
+            // User is not logged in: add default language parameter
             const params = new URLSearchParams(searchParams);
             params.set('language', defaultLanguage.locale);
             const newUrl = `${pathname}?${params.toString()}`;
             
-            debug('Auto-redirecting to add default language', 'DynamicPageContent', {
+            debug('Auto-redirecting to add default language for guest user', 'DynamicPageContent', {
                 keyword,
                 defaultLanguage: defaultLanguage.locale,
                 newUrl
@@ -59,8 +61,8 @@ function DynamicPageContent({ keyword }: { keyword: string }) {
             return;
         }
         
-        // Remove language parameter when user is logged in (combined with above effect)
         if (user && languageParam) {
+            // User is logged in: remove language parameter
             const params = new URLSearchParams(searchParams);
             params.delete('language');
             
@@ -74,7 +76,7 @@ function DynamicPageContent({ keyword }: { keyword: string }) {
             
             router.replace(newUrl);
         }
-    }, [user, languageParam, defaultLanguage, languagesLoading, searchParams, pathname, router, keyword]);
+    }, [user, isAuthLoading, languageParam, defaultLanguage, languagesLoading, searchParams, pathname, router, keyword]);
     
     // Use the language parameter if provided, otherwise undefined to let backend use default
     const language = languageParam || undefined;
@@ -91,6 +93,7 @@ function DynamicPageContent({ keyword }: { keyword: string }) {
         languageParam,
         language,
         isAuthenticated: !!user,
+        isAuthLoading,
         defaultLanguage: defaultLanguage?.locale,
         languagesLoading,
         routesCount: routes.length,
@@ -120,7 +123,8 @@ function DynamicPageContent({ keyword }: { keyword: string }) {
         }
     }, [routes, exists, navLoading, keyword]);
 
-    if (pageLoading || navLoading || languagesLoading) {
+    // Show loading while authentication or languages are loading
+    if (pageLoading || navLoading || languagesLoading || isAuthLoading) {
         return (
             <Center h="50vh">
                 <Loader size="lg" />

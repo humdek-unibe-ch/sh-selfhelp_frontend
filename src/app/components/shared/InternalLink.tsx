@@ -34,7 +34,7 @@ interface IInternalLinkProps {
  * @returns {JSX.Element} Rendered link component
  */
 export const InternalLink: React.FC<IInternalLinkProps> = ({ href, children, className, ...props }) => {
-    const { user } = useAuth();
+    const { user, isLoading: isAuthLoading } = useAuth();
     const searchParams = useSearchParams();
     const [isClient, setIsClient] = useState(false);
 
@@ -44,6 +44,11 @@ export const InternalLink: React.FC<IInternalLinkProps> = ({ href, children, cla
 
     // Don't process URLs on server side to avoid hydration issues
     if (!isClient) {
+        return <Link href={href} className={className}>{children}</Link>;
+    }
+    
+    // Wait for authentication check to complete before processing URLs
+    if (isAuthLoading) {
         return <Link href={href} className={className}>{children}</Link>;
     }
     
