@@ -56,7 +56,8 @@ const languageOptions = languages.map(lang => ({
 // Dynamic style component selection
 const supportedStyles = [
     'container', 'image', 'markdown', 'heading', 'card', 
-    'div', 'button', 'carousel', 'link', 'formUserInputLog', 'textarea'
+    'div', 'button', 'carousel', 'link', 'formUserInputLog', 'textarea',
+    'login', 'register'
 ];
 
 if (supportedStyles.includes(section.style_name)) {

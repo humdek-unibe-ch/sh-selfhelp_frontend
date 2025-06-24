@@ -3,6 +3,10 @@
  * This module re-exports all individual style components for easy importing
  */
 
+// Authentication Styles
+export { default as LoginStyle } from './LoginStyle';
+export { default as RegisterStyle } from './RegisterStyle';
+
 // Layout & Container Styles
 export { default as ContainerStyle } from './ContainerStyle';
 export { default as CardStyle } from './CardStyle';

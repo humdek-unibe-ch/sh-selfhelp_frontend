@@ -78,11 +78,13 @@ export interface IValidateStyle extends IBaseStyle {
 
 export interface IRegisterStyle extends IBaseStyle {
     style_name: 'register';
-    label_code?: IContentField<string>;
-    label_email?: IContentField<string>;
-    label_register?: IContentField<string>;
+    label_user?: IContentField<string>;
+    label_pw?: IContentField<string>;
+    label_submit?: IContentField<string>;
     alert_fail?: IContentField<string>;
     alert_success?: IContentField<string>;
+    title?: IContentField<string>;
+    success?: IContentField<string>;
 }
 
 export interface IResetPasswordStyle extends IBaseStyle {

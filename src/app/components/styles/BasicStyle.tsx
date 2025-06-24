@@ -3,8 +3,8 @@ import type { TStyle } from '../../../types/common/styles.types';
 import {
     AlertStyle, ButtonStyle, CardStyle, CarouselStyle, ContainerStyle,
     DivStyle, FormUserInputStyle, HeadingStyle, ImageStyle, InputStyle,
-    JumbotronStyle, LinkStyle, MarkdownStyle, SelectStyle, TabsStyle, 
-    TextareaStyle, UnknownStyle
+    JumbotronStyle, LinkStyle, LoginStyle, MarkdownStyle, RegisterStyle, 
+    SelectStyle, TabsStyle, TextareaStyle, UnknownStyle
 } from './SelfHelpStyles';
 
 /**
@@ -39,6 +39,12 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
      * Renders the appropriate style component based on style_name
      */
     switch (style.style_name) {
+        // Authentication Styles
+        case 'login':
+            return <LoginStyle style={style} />;
+        case 'register':
+            return <RegisterStyle style={style} />;
+
         // Container & Layout Styles
         case 'container':
             return <ContainerStyle style={style} />;
