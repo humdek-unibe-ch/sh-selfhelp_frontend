@@ -788,6 +788,20 @@ export function PageInspector({ page }: PageInspectorProps) {
                     <Paper p="md" withBorder>
                         <Stack gap="md">
                             <Title order={4}>Actions</Title>
+                            
+                            {/* System page indicator */}
+                            {page?.is_system === 1 && (
+                                <Alert 
+                                    icon={<IconInfoCircle size="1rem" />}
+                                    title="System Page"
+                                    color="blue"
+                                    variant="light"
+                                >
+                                    This is a system page that provides core functionality. 
+                                    It can be styled and edited but cannot be deleted.
+                                </Alert>
+                            )}
+                            
                             <Group>
                                 <Button
                                     leftSection={<IconPlus size="1rem" />}
@@ -796,14 +810,21 @@ export function PageInspector({ page }: PageInspectorProps) {
                                 >
                                     Create Child Page
                                 </Button>
-                                <Button
-                                    leftSection={<IconTrash size="1rem" />}
-                                    color="red"
-                                    variant="outline"
-                                    onClick={() => setDeleteModalOpened(true)}
+                                
+                                <Tooltip 
+                                    label={page?.is_system === 1 ? "System pages cannot be deleted" : "Delete this page"}
+                                    position="top"
                                 >
-                                    Delete Page
-                                </Button>
+                                    <Button
+                                        leftSection={<IconTrash size="1rem" />}
+                                        color="red"
+                                        variant="outline"
+                                        onClick={() => setDeleteModalOpened(true)}
+                                        disabled={page?.is_system === 1}
+                                    >
+                                        Delete Page
+                                    </Button>
+                                </Tooltip>
                             </Group>
                         </Stack>
                     </Paper>

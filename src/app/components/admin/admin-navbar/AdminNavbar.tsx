@@ -13,12 +13,13 @@ import { useAdminPages } from '../../../../hooks/useAdminPages';
 import { useSelectedPage } from '../../../store/admin.store';
 
 export function AdminNavbar() {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
-    const { pages, isLoading } = useAdminPages();
-    const selectedPage = useSelectedPage();
     const router = useRouter();
+    const { pages, categorizedSystemPages, isLoading } = useAdminPages();
+    const selectedPage = useSelectedPage();
+    const [searchTerm, setSearchTerm] = useState('');
+    const [expandedItems, setExpandedItems] = useState(new Set<string>());
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const selectedPageKeyword = selectedPage?.keyword;
     const searchInputRef = useRef<HTMLInputElement>(null);
 
     // Toggle expand/collapse for items
@@ -216,6 +217,71 @@ export function AdminNavbar() {
         </Stack>
     ), [searchTerm, handleSearchChange, handleKeyDown, handleClearSearch, pageLinks, renderPageItem]);
 
+    // Build dynamic system pages section
+    const systemPagesChildren = useMemo(() => {
+        if (isLoading) {
+            return [{ label: 'Loading...', link: '#' }];
+        }
+
+        const systemPages = [];
+        
+        // Authentication pages
+        if (categorizedSystemPages.authentication.length > 0) {
+            systemPages.push({
+                label: 'Authentication',
+                children: categorizedSystemPages.authentication.map(page => ({
+                    label: page.label,
+                    link: page.link
+                }))
+            });
+        }
+
+        // Profile pages
+        if (categorizedSystemPages.profile.length > 0) {
+            systemPages.push({
+                label: 'User Profile',
+                children: categorizedSystemPages.profile.map(page => ({
+                    label: page.label,
+                    link: page.link
+                }))
+            });
+        }
+
+        // Error pages
+        if (categorizedSystemPages.errors.length > 0) {
+            systemPages.push({
+                label: 'Error Pages',
+                children: categorizedSystemPages.errors.map(page => ({
+                    label: page.label,
+                    link: page.link
+                }))
+            });
+        }
+
+        // Legal pages
+        if (categorizedSystemPages.legal.length > 0) {
+            systemPages.push({
+                label: 'Legal Pages',
+                children: categorizedSystemPages.legal.map(page => ({
+                    label: page.label,
+                    link: page.link
+                }))
+            });
+        }
+
+        // Other system pages
+        if (categorizedSystemPages.other.length > 0) {
+            systemPages.push(
+                ...categorizedSystemPages.other.map(page => ({
+                    label: page.label,
+                    link: page.link
+                }))
+            );
+        }
+
+        return systemPages.length > 0 ? systemPages : [{ label: 'No system pages found', link: '#' }];
+    }, [categorizedSystemPages, isLoading]);
+
     const staticNavItems = [
         {
             label: 'Configuration',
@@ -228,11 +294,7 @@ export function AdminNavbar() {
         {
             label: 'System Pages',
             icon: <IconAdjustmentsCog size="1rem" stroke={1.5} />,
-            children: [
-                { label: 'Login', link: '/admin/pages/login' },
-                { label: 'Register', link: '/admin/pages/register' },
-                { label: 'Not found', link: '/admin/pages/notfound' }
-            ]
+            children: systemPagesChildren
         },
         {
             label: 'Pages',

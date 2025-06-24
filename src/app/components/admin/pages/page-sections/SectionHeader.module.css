@@ -2,13 +2,14 @@
     position: relative;
     border-radius: 4px;
     transition: all 0.2s ease;
-    border: 1.5px solid var(--mantine-color-gray-4);
+    border: 1.5px solid var(--mantine-color-default-border);
     margin: 5px 18px;
+    background: var(--mantine-color-body);
 }
 
 .sectionContainer:hover {
     border-color: var(--mantine-color-blue-6);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 3px light-dark(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.3));
 }
 
 /* Action button styling */
@@ -21,7 +22,7 @@
 
 .actionBtn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px light-dark(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.3));
 }
 
 .truncateText {
@@ -32,10 +33,17 @@
 
 .dragHandle {
     cursor: grab;
+    color: var(--mantine-color-dimmed);
+    transition: color 0.2s ease;
+}
+
+.dragHandle:hover {
+    color: var(--mantine-color-text);
 }
 
 .dragHandle:active {
     cursor: grabbing;
+    color: var(--mantine-color-text);
 }
 
 /* Flex utility classes */
@@ -54,11 +62,13 @@
 
 /* Dynamic state classes */
 .validDropTarget {
-    background-color: var(--mantine-color-green-0);
+    background-color: light-dark(var(--mantine-color-green-0), var(--mantine-color-green-9));
+    border-color: var(--mantine-color-green-4);
 }
 
 .beingDragged {
-    background-color: var(--mantine-color-blue-0);
+    background-color: light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-9));
+    border-color: var(--mantine-color-blue-4);
 }
 
 .lowOpacity {

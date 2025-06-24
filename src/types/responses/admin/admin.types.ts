@@ -14,6 +14,7 @@ export interface IAdminPage {
     nav_position: number | null;
     footer_position?: number | null;
     is_headless: number;
+    is_system: number;
     children?: IAdminPage[];
 }
 

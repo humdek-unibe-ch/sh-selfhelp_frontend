@@ -2,15 +2,15 @@
 .sectionItem {
     transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 3px;
-    border: 1px solid var(--mantine-color-gray-3);
-    background: white;
+    border: 1px solid var(--mantine-color-default-border);
+    background: var(--mantine-color-body);
     position: relative;
     margin-bottom: 1px;
     cursor: pointer;
 }
 
 .sectionItem:hover {
-    border-color: black;
+    border-color: var(--mantine-color-text);
 }
 
 .sectionItem:hover .actionButtons {
@@ -20,24 +20,24 @@
 /* Selected state - Blue color */
 .sectionItem.selected {
     border-color: var(--mantine-color-blue-5);
-    background-color: var(--mantine-color-blue-0);
-    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.15);
+    background-color: light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-9));
+    box-shadow: 0 2px 6px light-dark(rgba(37, 99, 235, 0.15), rgba(37, 99, 235, 0.3));
 }
 
 /* Focused state - Yellow highlight for search results */
 .sectionItem.focused {
     border-color: var(--mantine-color-yellow-5);
-    background-color: var(--mantine-color-yellow-0);
-    box-shadow: 0 2px 6px rgba(234, 179, 8, 0.25);
+    background-color: light-dark(var(--mantine-color-yellow-0), var(--mantine-color-yellow-9));
+    box-shadow: 0 2px 6px light-dark(rgba(234, 179, 8, 0.25), rgba(234, 179, 8, 0.4));
     animation: focusPulse 1s ease-in-out 2;
 }
 
 @keyframes focusPulse {
     0%, 100% {
-        box-shadow: 0 2px 6px rgba(234, 179, 8, 0.25);
+        box-shadow: 0 2px 6px light-dark(rgba(234, 179, 8, 0.25), rgba(234, 179, 8, 0.4));
     }
     50% {
-        box-shadow: 0 4px 12px rgba(234, 179, 8, 0.4);
+        box-shadow: 0 4px 12px light-dark(rgba(234, 179, 8, 0.4), rgba(234, 179, 8, 0.6));
     }
 }
 
@@ -53,23 +53,28 @@
     opacity: 0.3;
     transition: opacity 0.15s ease;
     cursor: grab !important;
+    color: var(--mantine-color-dimmed);
 }
 
 .dragHandle:hover {
     opacity: 0.7;
+    color: var(--mantine-color-text);
 }
 
 .dragHandle:active {
     cursor: grabbing !important;
+    color: var(--mantine-color-text);
 }
 
 /* Expand button */
 .expandButton {
     transition: opacity 0.15s ease;
+    color: var(--mantine-color-dimmed);
 }
 
 .expandButton:hover {
     opacity: 0.8;
+    color: var(--mantine-color-text);
 }
 
 /* Section name truncation */
@@ -79,6 +84,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     font-size: 11px !important;
+    color: var(--mantine-color-text);
 }
 
 /* Badge styling */
@@ -101,6 +107,7 @@
     font-size: 8px !important;
     line-height: 1.2;
     margin-top: 1px;
+    color: var(--mantine-color-dimmed);
 }
 
 /* Action buttons - hidden by default, shown on hover */
@@ -182,7 +189,7 @@
 .sectionIcon {
     display: flex;
     align-items: center;
-    color: var(--section-icon-color, var(--mantine-color-gray-6));
+    color: var(--section-icon-color, var(--mantine-color-dimmed));
 }
 
 /* Section info container */

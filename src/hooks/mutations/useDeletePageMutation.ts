@@ -12,6 +12,7 @@ import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../api/admin.api';
 import { debug } from '../../utils/debug-logger';
 import { parseApiError } from '../../utils/mutation-error-handler';
+import { useAdminPages } from '../useAdminPages';
 
 interface IDeletePageMutationOptions {
     onSuccess?: (keyword: string) => void;
@@ -27,9 +28,17 @@ interface IDeletePageMutationOptions {
 export function useDeletePageMutation(options: IDeletePageMutationOptions = {}) {
     const queryClient = useQueryClient();
     const { onSuccess, onError, showNotifications = true } = options;
+    const { pages } = useAdminPages();
 
     return useMutation({
-        mutationFn: (keyword: string) => AdminApi.deletePage(keyword),
+        mutationFn: (keyword: string) => {
+            // Check if the page is a system page before attempting deletion
+            const page = pages.find(p => p.keyword === keyword);
+            if (page?.is_system === 1) {
+                throw new Error('System pages cannot be deleted');
+            }
+            return AdminApi.deletePage(keyword);
+        },
         
         onSuccess: async (result, keyword: string) => {
             debug('Page deleted successfully', 'useDeletePageMutation', { keyword, result });
