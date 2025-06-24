@@ -4,7 +4,13 @@ import {
     AlertStyle, ButtonStyle, CardStyle, CarouselStyle, ContainerStyle,
     DivStyle, FormUserInputStyle, HeadingStyle, ImageStyle, InputStyle,
     JumbotronStyle, LinkStyle, LoginStyle, MarkdownStyle, RegisterStyle, 
-    SelectStyle, TabsStyle, TextareaStyle, UnknownStyle
+    SelectStyle, TabsStyle, TextareaStyle, UnknownStyle, VideoStyle,
+    AudioStyle, FigureStyle, PlaintextStyle, RawTextStyle, RadioStyle,
+    CheckboxStyle, SliderStyle, FormStyle, ProgressBarStyle, ModalStyle,
+    HtmlTagStyle, JsonStyle, QuizStyle, NavigationContainerStyle,
+    AccordionListStyle, NestedListStyle, SortableListStyle, ValidateStyle,
+    ResetPasswordStyle, TwoFactorAuthStyle, TableStyle, TableRowStyle,
+    TableCellStyle, ShowUserInputStyle
 } from './SelfHelpStyles';
 
 /**
@@ -44,6 +50,12 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <LoginStyle style={style} />;
         case 'register':
             return <RegisterStyle style={style} />;
+        case 'validate':
+            return <ValidateStyle style={style} />;
+        case 'resetPassword':
+            return <ResetPasswordStyle style={style} />;
+        case 'twoFactorAuth':
+            return <TwoFactorAuthStyle style={style} />;
 
         // Container & Layout Styles
         case 'container':
@@ -64,9 +76,11 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
         case 'markdownInline':
             return <MarkdownStyle style={style} />;
         case 'plaintext':
-            return <p className={style.css}>{getFieldContent('text')}</p>;
+            return <PlaintextStyle style={style} />;
         case 'rawText':
-            return <pre className={style.css}>{getFieldContent('text')}</pre>;
+            return <RawTextStyle style={style} />;
+        case 'htmlTag':
+            return <HtmlTagStyle style={style} />;
 
         // Media Styles
         case 'image':
@@ -74,23 +88,11 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
         case 'carousel':
             return <CarouselStyle style={style} />;
         case 'video':
-            return <video 
-                className={style.css} 
-                controls
-                width={getFieldContent('width')}
-                height={getFieldContent('height')}
-            >
-                {getFieldContent('sources')?.map((source: any, index: number) => (
-                    <source key={index} src={source.source} type={source.type} />
-                ))}
-                {getFieldContent('alt')}
-            </video>;
+            return <VideoStyle style={style} />;
         case 'audio':
-            return <audio className={style.css} controls>
-                {getFieldContent('sources')?.map((source: any, index: number) => (
-                    <source key={index} src={source.source} type={source.type} />
-                ))}
-            </audio>;
+            return <AudioStyle style={style} />;
+        case 'figure':
+            return <FigureStyle style={style} />;
 
         // Navigation & Links Styles
         case 'button':
@@ -99,6 +101,8 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <LinkStyle style={style} />;
 
         // Form & Input Styles
+        case 'form':
+            return <FormStyle style={style} />;
         case 'formUserInput':
         case 'formUserInputLog':
         case 'formUserInputRecord':
@@ -109,6 +113,12 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <InputStyle style={style} />;
         case 'select':
             return <SelectStyle style={style} />;
+        case 'radio':
+            return <RadioStyle style={style} />;
+        case 'checkbox':
+            return <CheckboxStyle style={style} />;
+        case 'slider':
+            return <SliderStyle style={style} />;
 
         // Tab Styles
         case 'tabs':
@@ -119,38 +129,33 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
 
         // Table Styles
         case 'table':
-            return <table className={`table ${style.css || ''}`}>
-                <tbody>
-                    {style.children?.map((child, index) => 
-                        child ? <BasicStyle key={`${child.id.content}-${index}`} style={child} /> : null
-                    )}
-                </tbody>
-            </table>;
+            return <TableStyle style={style} />;
         case 'tableRow':
-            return <tr className={style.css}>
-                {style.children?.map((child, index) => 
-                    child ? <BasicStyle key={`${child.id.content}-${index}`} style={child} /> : null
-                )}
-            </tr>;
+            return <TableRowStyle style={style} />;
         case 'tableCell':
-            return <td className={style.css}>
-                {style.children?.map((child, index) => 
-                    child ? <BasicStyle key={`${child.id.content}-${index}`} style={child} /> : null
-                )}
-            </td>;
+            return <TableCellStyle style={style} />;
+
+        // Navigation & Container Styles
+        case 'navigationContainer':
+            return <NavigationContainerStyle style={style} />;
+
+        // List & Navigation Styles
+        case 'accordionList':
+            return <AccordionListStyle style={style} />;
+        case 'nestedList':
+            return <NestedListStyle style={style} />;
+        case 'sortableList':
+            return <SortableListStyle style={style} />;
 
         // Progress & UI Elements
         case 'progressBar':
-            const progress = (parseInt(getFieldContent('count') || '0') / parseInt(getFieldContent('count_max') || '100')) * 100;
-            return <div className="progress">
-                <div 
-                    className={`progress-bar progress-bar-${getFieldContent('type') || 'primary'} ${getFieldContent('is_striped') === '1' ? 'progress-bar-striped' : ''}`}
-                    style={{ width: `${progress}%` }}
-                    role="progressbar"
-                >
-                    {getFieldContent('has_label') === '1' && `${getFieldContent('count')}/${getFieldContent('count_max')}`}
-                </div>
-            </div>;
+            return <ProgressBarStyle style={style} />;
+        case 'quiz':
+            return <QuizStyle style={style} />;
+        case 'json':
+            return <JsonStyle style={style} />;
+        case 'showUserInput':
+            return <ShowUserInputStyle style={style} />;
 
         // Unknown/Unsupported styles
         default:
