@@ -1,15 +1,11 @@
 import React from 'react';
+import type { TStyle } from '../../../types/common/styles.types';
 import {
-    IContainerStyle, IButtonStyle, ICardStyle, ICarouselStyle,
-    IDivStyle, IHeadingStyle, IImageStyle, ILinkStyle, IMarkdownStyle,
-    ITextareaStyle, IFormUserInputLogStyle
-} from '../../../types/common/styles.types';
-import {
-    ButtonStyle, CardStyle, CarouselStyle, ContainerStyle,
-    DivStyle, FormUserInputStyle, HeadingStyle, ImageStyle, 
-    LinkStyle, MarkdownStyle, TextareaStyle, UnknownStyle
+    AlertStyle, ButtonStyle, CardStyle, CarouselStyle, ContainerStyle,
+    DivStyle, FormUserInputStyle, HeadingStyle, ImageStyle, InputStyle,
+    JumbotronStyle, LinkStyle, MarkdownStyle, SelectStyle, TabsStyle, 
+    TextareaStyle, UnknownStyle
 } from './SelfHelpStyles';
-import { TStyle } from '../../../types/common/styles.types';
 
 /**
  * Props interface for BasicStyle component
@@ -21,78 +17,139 @@ interface IBasicStyleProps {
 
 /**
  * BasicStyle is a component factory that renders different style components
- * based on the style_name property. It uses type guards to ensure type safety
- * when passing props to child components.
+ * based on the style_name property. It acts as a router for all style types.
  *
  * @param {IBasicStyleProps} props - Component props
- * @returns {JSX.Element} The appropriate styled component
+ * @returns {JSX.Element | null} The appropriate styled component or null
  */
 const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
-    // Type guard functions for each style type
-    const isContainer = (style: TStyle): style is IContainerStyle => style.style_name === 'container';
-    const isImage = (style: TStyle): style is IImageStyle => style.style_name === 'image';
-    const isMarkdown = (style: TStyle): style is IMarkdownStyle => style.style_name === 'markdown';
-    const isHeading = (style: TStyle): style is IHeadingStyle => style.style_name === 'heading';
-    const isCard = (style: TStyle): style is ICardStyle => style.style_name === 'card';
-    const isDiv = (style: TStyle): style is IDivStyle => style.style_name === 'div';
-    const isButton = (style: TStyle): style is IButtonStyle => style.style_name === 'button';
-    const isCarousel = (style: TStyle): style is ICarouselStyle => style.style_name === 'carousel';
-    const isLink = (style: TStyle): style is ILinkStyle => style.style_name === 'link';
-    const isFormUserInput = (style: TStyle): style is IFormUserInputLogStyle => {
-        return style.style_name === 'formUserInputLog' && 
-               'label' in style && 
-               'type' in style && 
-               'alert_success' in style && 
-               'label_cancel' in style;
+    if (!style || !style.style_name) {
+        return null;
+    }
+
+    // Extract common field values from the generic fields object
+    const getFieldContent = (fieldName: string): any => {
+        if (fieldName in style) {
+            return (style as any)[fieldName]?.content;
+        }
+        return style.fields?.[fieldName]?.content;
     };
-    const isTextarea = (style: TStyle): style is ITextareaStyle => style.style_name === 'textarea';
 
     /**
      * Renders the appropriate style component based on style_name
-     * Uses type guards to ensure type safety
      */
-    const renderStyle = () => {
-        switch (style?.style_name) {
-            case 'container':
-                if (isContainer(style)) return <ContainerStyle style={style} />;
-                break;
-            case 'image':
-                if (isImage(style)) return <ImageStyle style={style} />;
-                break;
-            case 'markdown':
-                if (isMarkdown(style)) return <MarkdownStyle style={style} />;
-                break;
-            case 'heading':
-                if (isHeading(style)) return <HeadingStyle style={style} />;
-                break;
-            case 'card':
-                if (isCard(style)) return <CardStyle style={style} />;
-                break;
-            case 'div':
-                if (isDiv(style)) return <DivStyle style={style} />;
-                break;
-            case 'button':
-                if (isButton(style)) return <ButtonStyle style={style} />;
-                break;
-            case 'carousel':
-                if (isCarousel(style)) return <CarouselStyle style={style} />;
-                break;
-            case 'link':
-                if (isLink(style)) return <LinkStyle style={style} />;
-                break;
-            case 'formUserInputLog':
-                if (isFormUserInput(style)) return <FormUserInputStyle style={style} />;
-                break;
-            case 'textarea':
-                if (isTextarea(style)) return <TextareaStyle style={style} />;
-                break;
-            default:
-                return null;
-        }
-        return null;
-    };
+    switch (style.style_name) {
+        // Container & Layout Styles
+        case 'container':
+            return <ContainerStyle style={style} />;
+        case 'jumbotron':
+            return <JumbotronStyle style={style} />;
+        case 'card':
+            return <CardStyle style={style} />;
+        case 'div':
+            return <DivStyle style={style} />;
+        case 'alert':
+            return <AlertStyle style={style} />;
 
-    return renderStyle();
+        // Text & Content Styles
+        case 'heading':
+            return <HeadingStyle style={style} />;
+        case 'markdown':
+        case 'markdownInline':
+            return <MarkdownStyle style={style} />;
+        case 'plaintext':
+            return <p className={style.css}>{getFieldContent('text')}</p>;
+        case 'rawText':
+            return <pre className={style.css}>{getFieldContent('text')}</pre>;
+
+        // Media Styles
+        case 'image':
+            return <ImageStyle style={style} />;
+        case 'carousel':
+            return <CarouselStyle style={style} />;
+        case 'video':
+            return <video 
+                className={style.css} 
+                controls
+                width={getFieldContent('width')}
+                height={getFieldContent('height')}
+            >
+                {getFieldContent('sources')?.map((source: any, index: number) => (
+                    <source key={index} src={source.source} type={source.type} />
+                ))}
+                {getFieldContent('alt')}
+            </video>;
+        case 'audio':
+            return <audio className={style.css} controls>
+                {getFieldContent('sources')?.map((source: any, index: number) => (
+                    <source key={index} src={source.source} type={source.type} />
+                ))}
+            </audio>;
+
+        // Navigation & Links Styles
+        case 'button':
+            return <ButtonStyle style={style} />;
+        case 'link':
+            return <LinkStyle style={style} />;
+
+        // Form & Input Styles
+        case 'formUserInput':
+        case 'formUserInputLog':
+        case 'formUserInputRecord':
+            return <FormUserInputStyle style={style} />;
+        case 'textarea':
+            return <TextareaStyle style={style} />;
+        case 'input':
+            return <InputStyle style={style} />;
+        case 'select':
+            return <SelectStyle style={style} />;
+
+        // Tab Styles
+        case 'tabs':
+            return <TabsStyle style={style} />;
+        case 'tab':
+            // Tab components are handled within TabsStyle
+            return null;
+
+        // Table Styles
+        case 'table':
+            return <table className={`table ${style.css || ''}`}>
+                <tbody>
+                    {style.children?.map((child, index) => 
+                        child ? <BasicStyle key={`${child.id.content}-${index}`} style={child} /> : null
+                    )}
+                </tbody>
+            </table>;
+        case 'tableRow':
+            return <tr className={style.css}>
+                {style.children?.map((child, index) => 
+                    child ? <BasicStyle key={`${child.id.content}-${index}`} style={child} /> : null
+                )}
+            </tr>;
+        case 'tableCell':
+            return <td className={style.css}>
+                {style.children?.map((child, index) => 
+                    child ? <BasicStyle key={`${child.id.content}-${index}`} style={child} /> : null
+                )}
+            </td>;
+
+        // Progress & UI Elements
+        case 'progressBar':
+            const progress = (parseInt(getFieldContent('count') || '0') / parseInt(getFieldContent('count_max') || '100')) * 100;
+            return <div className="progress">
+                <div 
+                    className={`progress-bar progress-bar-${getFieldContent('type') || 'primary'} ${getFieldContent('is_striped') === '1' ? 'progress-bar-striped' : ''}`}
+                    style={{ width: `${progress}%` }}
+                    role="progressbar"
+                >
+                    {getFieldContent('has_label') === '1' && `${getFieldContent('count')}/${getFieldContent('count_max')}`}
+                </div>
+            </div>;
+
+        // Unknown/Unsupported styles
+        default:
+            return <UnknownStyle style={style} />;
+    }
 };
 
 export default BasicStyle;

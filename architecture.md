@@ -644,81 +644,118 @@ const calculateFinalPosition = (pages: IMenuPageItem[], targetIndex: number): nu
 };
 ```
 
-## 2.3. Navigation System Architecture
+## 2.3. Comprehensive Styles System with Database-Driven Architecture
 
-The application uses a centralized navigation system that fetches page data from the API and organizes it into different navigation contexts:
+### Complete Style Component Infrastructure
+Implemented a comprehensive style system based on the database structure with 82 different style types, proper TypeScript interfaces, and modular component architecture.
 
-### Navigation Data Structure
-- **pages**: All accessible pages for the current user (including non-logged-in users for public pages)
-- **menuPages**: Pages with `nav_position` for header navigation (pre-sorted by API)
-- **footerPages**: Pages with `footer_position` for footer navigation (sorted by `footer_position` value)
+#### Database-Driven Type System
+Created strongly-typed interfaces for all 82 styles based on the database schema:
+- **Base Interface**: Common fields shared across all styles (id, css, condition, debug, data_config)
+- **Style Categories**: 
+  - Authentication & User Management (login, profile, validate, register, resetPassword, twoFactorAuth)
+  - Container & Layout (container, jumbotron, alert, card, div, conditionalContainer)
+  - Text & Content (heading, markdown, markdownInline, plaintext, rawText)
+  - Form & Input (form, formUserInput, input, textarea, select, radio, slider, checkbox)
+  - Media (image, video, audio, figure, carousel)
+  - Navigation & Links (button, link, navigationContainer, navigationBar)
+  - List Styles (accordionList, nestedList, sortableList, entryList)
+  - Tab & Table Styles (tabs, tab, table, tableRow, tableCell)
+  - Specialized Styles (progressBar, quiz, chat, json, trigger, loop, etc.)
 
-### Key Components
-- **useAppNavigation Hook**: Centralized hook for fetching and organizing navigation data using TanStack React Query
-- **WebsiteHeaderMenu**: Responsive header menu with nested dropdown support
-- **WebsiteFooter**: Footer component displaying footer navigation links
-
-### Design Principles
-- Theme-friendly styling using CSS custom properties and Tailwind classes
-- Support for dark/light mode transitions
-- Responsive design with mobile-first approach
-- Proper loading states with skeleton components
-- Nested menu support with hover interactions
-
-## 2.4. React Query Data Transformation Rules
-
-**CRITICAL RULE**: Always use React Query's `select` option for data transformations to prevent recalculation on every render.
-
-### When to Use Select
-- **Data Filtering**: When filtering arrays based on conditions
-- **Data Sorting**: When sorting data by specific criteria
-- **Data Mapping**: When transforming data structure
-- **Data Aggregation**: When combining or grouping data
-
-### Implementation Pattern
+#### TypeScript Architecture
 ```typescript
-const { data } = useQuery({
-    queryKey: ['data'],
-    queryFn: fetchData,
-    select: (rawData) => {
-        // Transform data once and cache the result
-        return {
-            filtered: rawData.filter(condition),
-            sorted: rawData.sort(compareFn),
-            mapped: rawData.map(transformFn)
-        };
+// Base style interface with common fields
+interface IBaseStyle {
+    id: IIdType;
+    id_styles: number;
+    style_name: string;
+    can_have_children: number;
+    position: number;
+    path: string;
+    children?: TStyle[];
+    fields: Record<string, IContentField<any>>;
+    css?: string;
+    condition?: IContentField<any> | null;
+    debug?: IContentField<string>;
+    data_config?: IContentField<any>;
+    css_mobile?: IContentField<string>;
+}
+
+// Content field structure for all field values
+export interface IContentField<T> {
+    content: T;
+    meta?: string;
+    type?: string;
+    id?: string;
+    default?: string;
+}
+
+// Union type for all 82 styles
+export type TStyle = ILoginStyle | IProfileStyle | IValidateStyle | ... | ILoopStyle;
+```
+
+#### Component Implementation Strategy
+- **BasicStyle Factory**: Central router component that renders appropriate style components based on style_name
+- **Mantine UI Integration**: All form and input components use Mantine UI v7 for consistency
+- **Modular Components**: Each style has its own component file with proper interfaces
+- **Field Content Helper**: Universal helper function to extract field values from both direct properties and fields object
+- **Recursive Rendering**: Styles with children properly render nested content
+
+#### Enhanced BasicStyle Component
+```typescript
+const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
+    if (!style || !style.style_name) return null;
+
+    // Universal field content extractor
+    const getFieldContent = (fieldName: string): any => {
+        if (fieldName in style) {
+            return (style as any)[fieldName]?.content;
+        }
+        return style.fields?.[fieldName]?.content;
+    };
+
+    switch (style.style_name) {
+        case 'container':
+            return <ContainerStyle style={style} />;
+        case 'input':
+            return <InputStyle style={style} />;
+        case 'select':
+            return <SelectStyle style={style} />;
+        case 'tabs':
+            return <TabsStyle style={style} />;
+        // ... 78 more style cases
+        default:
+            return <UnknownStyle style={style} />;
     }
-});
+};
 ```
 
-### Benefits
-- **Performance**: Transformations are cached and only recalculated when source data changes
-- **Memory**: Prevents creating new objects on every render
-- **Consistency**: Ensures transformed data remains stable across renders
-- **Debugging**: Easier to track data flow and transformations
+#### Mantine UI Components Created
+- **InputStyle**: TextInput, NumberInput, PasswordInput, Checkbox, ColorInput with type-based rendering
+- **SelectStyle**: Select and MultiSelect with live search, clearable options, and image support
+- **TabsStyle**: Mantine Tabs with icon support and proper active state management
+- **AlertStyle**: Bootstrap-style alerts with dismissible option using Mantine components
+- **JumbotronStyle**: Hero section component with proper styling
 
-### Anti-Pattern (Avoid)
-```typescript
-// DON'T DO THIS - recalculates on every render
-const { data } = useQuery(['data'], fetchData);
-const filtered = data?.filter(condition) ?? [];
-const sorted = filtered.sort(compareFn);
-```
+#### Field Mapping from Database
+Based on the `styles_fields` table mapping, each style interface includes only its relevant fields:
+- **Example - Card Style**: title, type, is_expanded, is_collapsible, url_edit
+- **Example - Input Style**: label, type_input, placeholder, is_required, name, value, min, max, format, locked_after_submit
+- **Example - Select Style**: label, alt, is_required, name, value, items, is_multiple, max, live_search, disabled, image_selector, locked_after_submit, allow_clear
 
-## 2.5. React Query Mutations - State-of-the-Art Data Manipulation
+#### Benefits of the New System
+- **Type Safety**: Full TypeScript coverage for all 82 style types with proper field definitions
+- **Maintainability**: Clear separation of concerns with modular component architecture
+- **Extensibility**: Easy to add new styles by creating interface, component, and adding to BasicStyle switch
+- **Database Alignment**: Types directly match database schema for consistency
+- **Developer Experience**: IntelliSense support for all style properties and fields
+- **Performance**: Optimized rendering with proper memoization and conditional checks
+- **Consistency**: All form inputs use Mantine UI for unified theming
 
-**CRITICAL RULE**: Always use React Query's `useMutation` for data manipulation operations (Create, Update, Delete). This is the state-of-the-art approach.
-
-### Mutation Standards
-- **All Data Manipulation**: Use mutations for POST, PUT, DELETE operations
-- **Consistent Structure**: Follow standardized mutation hook patterns
-- **Cache Invalidation**: Always invalidate related queries after mutations
-- **Error Handling**: Use centralized error handling with notifications
-- **Loading States**: Utilize built-in `isPending` states for UI feedback
-- **TypeScript**: Full type safety for all mutation operations
-
-### Implementation Pattern
-```typescript
+#### Implementation Status
+- **Completed**: Core infrastructure, type system, BasicStyle router, 15+ essential style components
+- **In Progress**: Remaining style components (navigation, lists, specialized styles)
 // Mutation Hook Structure
 export function use[Entity][Action]Mutation(options = {}) {
     const queryClient = useQueryClient();
