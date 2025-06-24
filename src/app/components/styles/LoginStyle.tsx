@@ -1,7 +1,12 @@
+'use client';
+
 import React, { useState } from 'react';
 import { TextInput, PasswordInput, Button, Paper, Title, Alert, Anchor, Stack } from '@mantine/core';
 import { IconExclamationCircle } from '@tabler/icons-react';
+import { useLogin } from '@refinedev/core';
+import { useRouter } from 'next/navigation';
 import { ILoginStyle } from '../../../types/common/styles.types';
+import { ROUTES } from '../../../config/routes.config';
 
 /**
  * Props interface for LoginStyle component
@@ -17,8 +22,9 @@ interface ILoginStyleProps {
 const LoginStyle: React.FC<ILoginStyleProps> = ({ style }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const { mutate: login, isLoading } = useLogin();
+    const router = useRouter();
 
     // Extract field values
     const labelUser = style.label_user?.content || 'Email/Username';
@@ -32,26 +38,23 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style }) => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsLoading(true);
         setError('');
         
-        try {
-            // TODO: Implement actual login logic here
-            // For now, simulate login attempt
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // Simulate failure for demo - in real implementation, this would handle the API call
-            if (email && password) {
-                // Success case would redirect or update app state
-                console.log('Login attempt:', { email, password });
-            } else {
-                setError(alertFail);
-            }
-        } catch (err) {
-            setError(alertFail);
-        } finally {
-            setIsLoading(false);
+        if (!email || !password) {
+            setError('Please fill in all fields');
+            return;
         }
+
+        login(
+            { email, password },
+            {
+                onError: (error: any) => {
+                    // Display the error message from the server or use fallback
+                    const errorMessage = error?.message || alertFail;
+                    setError(errorMessage);
+                }
+            }
+        );
     };
 
     return (
@@ -81,10 +84,12 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style }) => {
                     <TextInput
                         label={labelUser}
                         placeholder={labelUser}
+                        type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
                         size="md"
+                        disabled={isLoading}
                     />
                     
                     <PasswordInput
@@ -94,6 +99,7 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style }) => {
                         onChange={(e) => setPassword(e.target.value)}
                         required
                         size="md"
+                        disabled={isLoading}
                     />
                     
                     <Button 

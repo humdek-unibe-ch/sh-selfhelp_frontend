@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { TextInput, Button, Paper, Title, Alert, Stack, Text } from '@mantine/core';
 import { IconCheck, IconExclamationCircle } from '@tabler/icons-react';
