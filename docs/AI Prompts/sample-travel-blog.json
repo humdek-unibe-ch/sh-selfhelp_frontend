@@ -1,0 +1,286 @@
+[
+  {
+    "name": "Travel Blog Container",
+    "style_name": "container",
+    "children": [
+      {
+        "name": "Blog Grid",
+        "style_name": "div",
+        "children": [
+          {
+            "name": "Norway Article Card",
+            "style_name": "card",
+            "children": [
+              {
+                "name": "Norway Image",
+                "style_name": "image",
+                "children": [],
+                "fields": {
+                  "img_src": {
+                    "all": {
+                      "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
+                      "meta": null
+                    }
+                  },
+                  "alt": {
+                    "en-GB": {
+                      "content": "Beautiful Norwegian landscape with red houses by the sea",
+                      "meta": null
+                    }
+                  },
+                  "css": {
+                    "all": {
+                      "content": "w-full h-48 object-cover rounded-t-lg",
+                      "meta": null
+                    }
+                  }
+                }
+              },
+              {
+                "name": "Norway Article Title",
+                "style_name": "heading",
+                "children": [],
+                "fields": {
+                  "level": {
+                    "all": {
+                      "content": "3",
+                      "meta": null
+                    }
+                  },
+                  "title": {
+                    "en-GB": {
+                      "content": "Top 10 places to visit in Norway this summer",
+                      "meta": null
+                    }
+                  },
+                  "css": {
+                    "all": {
+                      "content": "text-xl font-semibold p-4 pb-2",
+                      "meta": null
+                    }
+                  }
+                }
+              }
+            ],
+            "fields": {
+              "css": {
+                "all": {
+                  "content": "bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300",
+                  "meta": null
+                }
+              }
+            }
+          },
+          {
+            "name": "Forest Article Card",
+            "style_name": "card",
+            "children": [
+              {
+                "name": "Forest Image",
+                "style_name": "image",
+                "children": [],
+                "fields": {
+                  "img_src": {
+                    "all": {
+                      "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
+                      "meta": null
+                    }
+                  },
+                  "alt": {
+                    "en-GB": {
+                      "content": "Misty forest with sunlight streaming through trees",
+                      "meta": null
+                    }
+                  },
+                  "css": {
+                    "all": {
+                      "content": "w-full h-48 object-cover rounded-t-lg",
+                      "meta": null
+                    }
+                  }
+                }
+              },
+              {
+                "name": "Forest Article Title",
+                "style_name": "heading",
+                "children": [],
+                "fields": {
+                  "level": {
+                    "all": {
+                      "content": "3",
+                      "meta": null
+                    }
+                  },
+                  "title": {
+                    "en-GB": {
+                      "content": "Best forests to visit in North America",
+                      "meta": null
+                    }
+                  },
+                  "css": {
+                    "all": {
+                      "content": "text-xl font-semibold p-4 pb-2",
+                      "meta": null
+                    }
+                  }
+                }
+              }
+            ],
+            "fields": {
+              "css": {
+                "all": {
+                  "content": "bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300",
+                  "meta": null
+                }
+              }
+            }
+          },
+          {
+            "name": "Hawaii Article Card",
+            "style_name": "card",
+            "children": [
+              {
+                "name": "Hawaii Beach Image",
+                "style_name": "image",
+                "children": [],
+                "fields": {
+                  "img_src": {
+                    "all": {
+                      "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
+                      "meta": null
+                    }
+                  },
+                  "alt": {
+                    "en-GB": {
+                      "content": "Pristine Hawaiian beach with turquoise water",
+                      "meta": null
+                    }
+                  },
+                  "css": {
+                    "all": {
+                      "content": "w-full h-48 object-cover rounded-t-lg",
+                      "meta": null
+                    }
+                  }
+                }
+              },
+              {
+                "name": "Hawaii Article Title",
+                "style_name": "heading",
+                "children": [],
+                "fields": {
+                  "level": {
+                    "all": {
+                      "content": "3",
+                      "meta": null
+                    }
+                  },
+                  "title": {
+                    "en-GB": {
+                      "content": "Hawaii beaches review: better than you think",
+                      "meta": null
+                    }
+                  },
+                  "css": {
+                    "all": {
+                      "content": "text-xl font-semibold p-4 pb-2",
+                      "meta": null
+                    }
+                  }
+                }
+              }
+            ],
+            "fields": {
+              "css": {
+                "all": {
+                  "content": "bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300",
+                  "meta": null
+                }
+              }
+            }
+          },
+          {
+            "name": "Mountains Article Card",
+            "style_name": "card",
+            "children": [
+              {
+                "name": "Mountains Night Image",
+                "style_name": "image",
+                "children": [],
+                "fields": {
+                  "img_src": {
+                    "all": {
+                      "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
+                      "meta": null
+                    }
+                  },
+                  "alt": {
+                    "en-GB": {
+                      "content": "Mountain landscape at night with starry sky",
+                      "meta": null
+                    }
+                  },
+                  "css": {
+                    "all": {
+                      "content": "w-full h-48 object-cover rounded-t-lg",
+                      "meta": null
+                    }
+                  }
+                }
+              },
+              {
+                "name": "Mountains Article Title",
+                "style_name": "heading",
+                "children": [],
+                "fields": {
+                  "level": {
+                    "all": {
+                      "content": "3",
+                      "meta": null
+                    }
+                  },
+                  "title": {
+                    "en-GB": {
+                      "content": "Mountains at night: 12 best locations to enjoy the view",
+                      "meta": null
+                    }
+                  },
+                  "css": {
+                    "all": {
+                      "content": "text-xl font-semibold p-4 pb-2",
+                      "meta": null
+                    }
+                  }
+                }
+              }
+            ],
+            "fields": {
+              "css": {
+                "all": {
+                  "content": "bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300",
+                  "meta": null
+                }
+              }
+            }
+          }
+        ],
+        "fields": {
+          "css": {
+            "all": {
+              "content": "grid grid-cols-1 md:grid-cols-2 gap-6",
+              "meta": null
+            }
+          }
+        }
+      }
+    ],
+    "fields": {
+      "css": {
+        "all": {
+          "content": "container mx-auto px-4 py-8 max-w-6xl",
+          "meta": null
+        }
+      }
+    }
+  }
+] 
