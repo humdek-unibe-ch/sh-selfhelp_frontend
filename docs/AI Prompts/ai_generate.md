@@ -278,6 +278,7 @@ All content fields must be wrapped in language objects. The structure is field n
 - **Non-translatable fields**: Use "all" for CSS, configuration, and technical fields
   - Examples: `css`, `css_mobile`, `level`, `img_src`, `type`, `is_required`, `width`, `height`
 - **Multiple languages**: Add multiple language objects under the same field name
+- **Required languages**: Always include both "en-GB" (English) and "de-CH" (German) for all translatable content
 - **Default language**: Always include "en-GB" as the primary language
 
 ### Field Language Usage Examples:
@@ -285,7 +286,15 @@ All content fields must be wrapped in language objects. The structure is field n
 "fields": {
   "title": {
     "en-GB": { "content": "English Title", "meta": null },
-    "de-CH": { "content": "German Title", "meta": null }
+    "de-CH": { "content": "Deutscher Titel", "meta": null }
+  },
+  "text": {
+    "en-GB": { "content": "Welcome to our service", "meta": null },
+    "de-CH": { "content": "Willkommen zu unserem Service", "meta": null }
+  },
+  "label": {
+    "en-GB": { "content": "Follow", "meta": null },
+    "de-CH": { "content": "Folgen", "meta": null }
   },
   "css": {
     "all": { "content": "text-center font-bold", "meta": null }
@@ -310,9 +319,10 @@ When generating JSON structures based on an image:
 5. **Apply Styling**: Use Tailwind CSS classes to match the visual appearance
 6. **Use Placeholder Images**: Always use `http://127.0.0.1/selfhelp/assets/image-holder.png` for image sources
 7. **Multi-Language Structure**: Use field name first, then language code (field_name -> language_code -> content)
-8. **Language Codes**: Use "en-GB" for translatable content, "all" for CSS and technical fields
-9. **Semantic Naming**: Give meaningful names to sections for admin interface
-10. **Naming Rules**: Section names can ONLY contain letters, numbers, hyphens (-), and underscores (_). No spaces, special characters, or other symbols are allowed.
+8. **Required Languages**: Always include both "en-GB" (English) and "de-CH" (German) for all translatable text content
+9. **Language Codes**: Use "en-GB" and "de-CH" for translatable content, "all" for CSS and technical fields
+10. **Semantic Naming**: Give meaningful names to sections for admin interface
+11. **Naming Rules**: Section names can ONLY contain letters, numbers, hyphens (-), and underscores (_). No spaces, special characters, or other symbols are allowed.
 
 ### Naming Convention Examples:
 - ✅ **Correct**: "travel-blog-container", "norway_article_card", "hero-section", "main-heading"

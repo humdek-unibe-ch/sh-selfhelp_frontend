@@ -1,0 +1,443 @@
+[
+  {
+    "name": "developer-profile-container",
+    "style_name": "container",
+    "children": [
+      {
+        "name": "profile-card",
+        "style_name": "card",
+        "children": [
+          {
+            "name": "background-header",
+            "style_name": "div",
+            "children": [
+              {
+                "name": "code-background-image",
+                "style_name": "image",
+                "children": [],
+                "fields": {
+                  "img_src": {
+                    "all": {
+                      "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
+                      "meta": null
+                    }
+                  },
+                  "alt": {
+                    "en-GB": {
+                      "content": "Code editor background with programming syntax",
+                      "meta": null
+                    },
+                    "de-CH": {
+                      "content": "Code-Editor-Hintergrund mit Programmiersyntax",
+                      "meta": null
+                    }
+                  },
+                  "css": {
+                    "all": {
+                      "content": "w-full h-32 object-cover rounded-t-lg opacity-80",
+                      "meta": null
+                    }
+                  }
+                }
+              }
+            ],
+            "fields": {
+              "css": {
+                "all": {
+                  "content": "relative bg-gradient-to-r from-indigo-900 via-purple-900 to-pink-900 rounded-t-lg",
+                  "meta": null
+                }
+              }
+            }
+          },
+          {
+            "name": "profile-avatar-section",
+            "style_name": "div",
+            "children": [
+              {
+                "name": "profile-avatar",
+                "style_name": "image",
+                "children": [],
+                "fields": {
+                  "img_src": {
+                    "all": {
+                      "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
+                      "meta": null
+                    }
+                  },
+                  "alt": {
+                    "en-GB": {
+                      "content": "Bill Headbanger profile photo",
+                      "meta": null
+                    },
+                    "de-CH": {
+                      "content": "Bill Headbanger Profilbild",
+                      "meta": null
+                    }
+                  },
+                  "css": {
+                    "all": {
+                      "content": "w-20 h-20 rounded-full border-4 border-white shadow-lg mx-auto -mt-10 relative z-10",
+                      "meta": null
+                    }
+                  }
+                }
+              }
+            ],
+            "fields": {
+              "css": {
+                "all": {
+                  "content": "flex justify-center",
+                  "meta": null
+                }
+              }
+            }
+          },
+          {
+            "name": "profile-info-section",
+            "style_name": "div",
+            "children": [
+              {
+                "name": "developer-name",
+                "style_name": "heading",
+                "children": [],
+                "fields": {
+                  "level": {
+                    "all": {
+                      "content": "2",
+                      "meta": null
+                    }
+                  },
+                  "title": {
+                    "en-GB": {
+                      "content": "Bill Headbanger",
+                      "meta": null
+                    },
+                    "de-CH": {
+                      "content": "Bill Headbanger",
+                      "meta": null
+                    }
+                  },
+                  "css": {
+                    "all": {
+                      "content": "text-2xl font-bold text-gray-900 text-center mt-4 mb-2",
+                      "meta": null
+                    }
+                  }
+                }
+              },
+              {
+                "name": "job-title",
+                "style_name": "plaintext",
+                "children": [],
+                "fields": {
+                  "text": {
+                    "en-GB": {
+                      "content": "Fullstack engineer",
+                      "meta": null
+                    },
+                    "de-CH": {
+                      "content": "Fullstack-Entwickler",
+                      "meta": null
+                    }
+                  },
+                  "css": {
+                    "all": {
+                      "content": "text-gray-600 text-center mb-6",
+                      "meta": null
+                    }
+                  }
+                }
+              }
+            ],
+            "fields": {
+              "css": {
+                "all": {
+                  "content": "px-6",
+                  "meta": null
+                }
+              }
+            }
+          },
+          {
+            "name": "stats-section",
+            "style_name": "div",
+            "children": [
+              {
+                "name": "followers-stat",
+                "style_name": "div",
+                "children": [
+                  {
+                    "name": "followers-count",
+                    "style_name": "heading",
+                    "children": [],
+                    "fields": {
+                      "level": {
+                        "all": {
+                          "content": "3",
+                          "meta": null
+                        }
+                      },
+                      "title": {
+                        "en-GB": {
+                          "content": "34K",
+                          "meta": null
+                        },
+                        "de-CH": {
+                          "content": "34K",
+                          "meta": null
+                        }
+                      },
+                      "css": {
+                        "all": {
+                          "content": "text-xl font-bold text-gray-900 text-center",
+                          "meta": null
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "name": "followers-label",
+                    "style_name": "plaintext",
+                    "children": [],
+                    "fields": {
+                      "text": {
+                        "en-GB": {
+                          "content": "Followers",
+                          "meta": null
+                        },
+                        "de-CH": {
+                          "content": "Follower",
+                          "meta": null
+                        }
+                      },
+                      "css": {
+                        "all": {
+                          "content": "text-gray-600 text-center text-sm",
+                          "meta": null
+                        }
+                      }
+                    }
+                  }
+                ],
+                "fields": {
+                  "css": {
+                    "all": {
+                      "content": "flex flex-col",
+                      "meta": null
+                    }
+                  }
+                }
+              },
+              {
+                "name": "follows-stat",
+                "style_name": "div",
+                "children": [
+                  {
+                    "name": "follows-count",
+                    "style_name": "heading",
+                    "children": [],
+                    "fields": {
+                      "level": {
+                        "all": {
+                          "content": "3",
+                          "meta": null
+                        }
+                      },
+                      "title": {
+                        "en-GB": {
+                          "content": "187",
+                          "meta": null
+                        },
+                        "de-CH": {
+                          "content": "187",
+                          "meta": null
+                        }
+                      },
+                      "css": {
+                        "all": {
+                          "content": "text-xl font-bold text-gray-900 text-center",
+                          "meta": null
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "name": "follows-label",
+                    "style_name": "plaintext",
+                    "children": [],
+                    "fields": {
+                      "text": {
+                        "en-GB": {
+                          "content": "Follows",
+                          "meta": null
+                        },
+                        "de-CH": {
+                          "content": "Folgt",
+                          "meta": null
+                        }
+                      },
+                      "css": {
+                        "all": {
+                          "content": "text-gray-600 text-center text-sm",
+                          "meta": null
+                        }
+                      }
+                    }
+                  }
+                ],
+                "fields": {
+                  "css": {
+                    "all": {
+                      "content": "flex flex-col",
+                      "meta": null
+                    }
+                  }
+                }
+              },
+              {
+                "name": "posts-stat",
+                "style_name": "div",
+                "children": [
+                  {
+                    "name": "posts-count",
+                    "style_name": "heading",
+                    "children": [],
+                    "fields": {
+                      "level": {
+                        "all": {
+                          "content": "3",
+                          "meta": null
+                        }
+                      },
+                      "title": {
+                        "en-GB": {
+                          "content": "1.6K",
+                          "meta": null
+                        },
+                        "de-CH": {
+                          "content": "1.6K",
+                          "meta": null
+                        }
+                      },
+                      "css": {
+                        "all": {
+                          "content": "text-xl font-bold text-gray-900 text-center",
+                          "meta": null
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "name": "posts-label",
+                    "style_name": "plaintext",
+                    "children": [],
+                    "fields": {
+                      "text": {
+                        "en-GB": {
+                          "content": "Posts",
+                          "meta": null
+                        },
+                        "de-CH": {
+                          "content": "Beiträge",
+                          "meta": null
+                        }
+                      },
+                      "css": {
+                        "all": {
+                          "content": "text-gray-600 text-center text-sm",
+                          "meta": null
+                        }
+                      }
+                    }
+                  }
+                ],
+                "fields": {
+                  "css": {
+                    "all": {
+                      "content": "flex flex-col",
+                      "meta": null
+                    }
+                  }
+                }
+              }
+            ],
+            "fields": {
+              "css": {
+                "all": {
+                  "content": "flex justify-around py-4 border-t border-gray-200 mx-6",
+                  "meta": null
+                }
+              }
+            }
+          },
+          {
+            "name": "follow-button-section",
+            "style_name": "div",
+            "children": [
+              {
+                "name": "follow-button",
+                "style_name": "button",
+                "children": [],
+                "fields": {
+                  "label": {
+                    "en-GB": {
+                      "content": "Follow",
+                      "meta": null
+                    },
+                    "de-CH": {
+                      "content": "Folgen",
+                      "meta": null
+                    }
+                  },
+                  "type": {
+                    "all": {
+                      "content": "primary",
+                      "meta": null
+                    }
+                  },
+                  "url": {
+                    "all": {
+                      "content": "#",
+                      "meta": null
+                    }
+                  },
+                  "css": {
+                    "all": {
+                      "content": "w-full mx-6 mb-6 py-2 px-4 bg-white border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors duration-200",
+                      "meta": null
+                    }
+                  }
+                }
+              }
+            ],
+            "fields": {
+              "css": {
+                "all": {
+                  "content": "flex justify-center",
+                  "meta": null
+                }
+              }
+            }
+          }
+        ],
+        "fields": {
+          "css": {
+            "all": {
+              "content": "bg-white rounded-lg shadow-xl max-w-sm mx-auto overflow-hidden",
+              "meta": null
+            }
+          }
+        }
+      }
+    ],
+    "fields": {
+      "css": {
+        "all": {
+          "content": "container mx-auto px-4 py-8 flex justify-center items-center min-h-screen bg-gray-100",
+          "meta": null
+        }
+      }
+    }
+  }
+] 
