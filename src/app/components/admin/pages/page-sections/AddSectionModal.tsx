@@ -28,12 +28,12 @@ import {
     IconUpload
 } from '@tabler/icons-react';
 import { useStyleGroups } from '../../../../../hooks/useStyleGroups';
-import { useCreateSectionInPageMutation, useCreateSectionInSectionMutation } from '../../../../../hooks/mutations';
+import { useSectionOperations } from '../../../../../hooks/useSectionOperations';
 import { IStyle, IStyleGroup } from '../../../../../types/responses/admin/styles.types';
 import styles from './AddSectionModal.module.css';
-import { importSectionsToPage, importSectionsToSection, ISectionExportData } from '../../../../../api/admin/section.api';
+import { ISectionExportData } from '../../../../../api/admin/section.api';
 import { readJsonFile, isValidJsonFile } from '../../../../../utils/export-import.utils';
-import { notifications } from '@mantine/notifications';
+import { ISectionOperationOptions } from '../../../../../utils/section-operations.utils';
 
 interface IAddSectionModalProps {
     opened: boolean;
@@ -61,17 +61,10 @@ export function AddSectionModal({
 
     const { data: styleGroups, isLoading: isLoadingStyles, error: stylesError } = useStyleGroups(opened);
 
-    // Mutations
-    const createSectionInPageMutation = useCreateSectionInPageMutation({
-        showNotifications: true,
-        onSuccess: () => {
-            handleClose();
-        }
-    });
-
-    const createSectionInSectionMutation = useCreateSectionInSectionMutation({
-        showNotifications: true,
+    // Section operations hook
+    const sectionOperations = useSectionOperations({
         pageKeyword,
+        showNotifications: true,
         onSuccess: () => {
             handleClose();
         }
@@ -96,37 +89,21 @@ export function AddSectionModal({
             return;
         }
 
-        // Use specific position if provided, otherwise default to -1 (first)
-        const calculatedPosition = specificPosition ?? -1;
-
-        const sectionData = {
-            styleId: selectedStyle.id,
-            name: sectionName || undefined,
-            position: calculatedPosition,
+        const operationOptions: ISectionOperationOptions & { name?: string } = {
+            specificPosition,
+            name: sectionName || undefined
         };
-
-
 
         try {
             if (parentSectionId !== null) {
                 // Create section in another section
-                if (!pageKeyword) {
-                    throw new Error('Page keyword is required for section operations');
-                }
-                await createSectionInSectionMutation.mutateAsync({
-                    keyword: pageKeyword,
-                    parentSectionId,
-                    sectionData
-                });
-            } else if (pageKeyword) {
+                await sectionOperations.createSectionInSection(parentSectionId, selectedStyle.id, operationOptions);
+            } else {
                 // Create section in page
-                await createSectionInPageMutation.mutateAsync({
-                    keyword: pageKeyword,
-                    sectionData
-                });
+                await sectionOperations.createSectionInPage(selectedStyle.id, operationOptions);
             }
         } catch (error) {
-            // Error handling is done by the mutation hooks
+            // Error handling is done by the section operations hook
         }
     };
 
@@ -139,29 +116,22 @@ export function AddSectionModal({
             // Read and parse the JSON file
             const sectionsData = await readJsonFile(selectedFile);
 
-            // Import sections
+            const operationOptions: ISectionOperationOptions = {
+                specificPosition
+            };
+
+            // Import sections with position using the section operations hook
             if (parentSectionId !== null) {
                 // Import to parent section
-                await importSectionsToSection(pageKeyword, parentSectionId, sectionsData);
+                await sectionOperations.importSectionsToSection(parentSectionId, sectionsData, operationOptions);
             } else {
                 // Import to page
-                await importSectionsToPage(pageKeyword, sectionsData);
+                await sectionOperations.importSectionsToPage(sectionsData, operationOptions);
             }
-
-            notifications.show({
-                title: 'Import Successful',
-                message: `Successfully imported ${sectionsData.length} section(s)`,
-                color: 'green'
-            });
 
             handleClose();
         } catch (error) {
             console.error('Error importing sections:', error);
-            notifications.show({
-                title: 'Import Failed',
-                message: error instanceof Error ? error.message : 'Failed to import sections',
-                color: 'red'
-            });
         } finally {
             setIsImporting(false);
         }
@@ -176,7 +146,7 @@ export function AddSectionModal({
         )
     })).filter(group => group.styles.length > 0) || [];
 
-    const isProcessing = createSectionInPageMutation.isPending || createSectionInSectionMutation.isPending || isImporting;
+    const isProcessing = sectionOperations.isLoading || isImporting;
 
     return (
         <Modal
@@ -434,7 +404,7 @@ export function AddSectionModal({
                                     leftSection={<IconPlus size={16} />}
                                     onClick={handleAddSection}
                                     disabled={!selectedStyle || isProcessing}
-                                    loading={createSectionInPageMutation.isPending || createSectionInSectionMutation.isPending}
+                                    loading={sectionOperations.isLoading}
                                     size="sm"
                                 >
                                     Add Section

@@ -211,6 +211,7 @@ export interface ISectionExportResponse {
 
 export interface IImportSectionsRequest {
     sections: ISectionExportData[];
+    position?: number;
 }
 
 /**
@@ -234,30 +235,42 @@ export async function exportSection(keyword: string, sectionId: number): Promise
 }
 
 /**
- * Import sections to a page
+ * Import sections to a page with optional position
  */
 export async function importSectionsToPage(
     keyword: string, 
-    sections: ISectionExportData[]
+    sections: ISectionExportData[],
+    position?: number
 ): Promise<IBaseApiResponse<any>> {
+    const requestBody: IImportSectionsRequest = {
+        sections,
+        ...(position !== undefined && { position })
+    };
+    
     const response = await apiClient.post(
         API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_IMPORT_TO_PAGE(keyword),
-        { sections }
+        requestBody
     );
     return response.data;
 }
 
 /**
- * Import sections to a parent section
+ * Import sections to a parent section with optional position
  */
 export async function importSectionsToSection(
     keyword: string, 
     parentSectionId: number, 
-    sections: ISectionExportData[]
+    sections: ISectionExportData[],
+    position?: number
 ): Promise<IBaseApiResponse<any>> {
+    const requestBody: IImportSectionsRequest = {
+        sections,
+        ...(position !== undefined && { position })
+    };
+    
     const response = await apiClient.post(
         API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_IMPORT_TO_SECTION(keyword, parentSectionId),
-        { sections }
+        requestBody
     );
     return response.data;
 } 

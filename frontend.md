@@ -698,6 +698,69 @@ The hover button system now works smoothly without flickering, buttons are alway
 ### Overview
 Implemented comprehensive section management system with full CRUD operations, real backend integration, advanced positioning capabilities, and a complete section creation UI with style selection. This system allows users to create, reorder, move, and remove sections with proper API calls and an intuitive modal-based creation interface.
 
+### ✅ NEW: Unified Section Operations with Position Support (Current Update)
+
+#### Enhanced Import/Export System
+Added comprehensive position support to the section import/export functionality:
+
+**Key Features**:
+- **Position-Aware Imports**: All section imports now support position specification
+- **Unified Operation Interface**: Single hook for all section operations
+- **Consistent Position Handling**: Standardized position rules across all operations
+- **Enhanced API Functions**: Import functions now accept optional position parameter
+- **Debug Support**: Comprehensive logging for operation tracking
+
+#### New Core Components
+
+1. **Section Operations Utility** (`src/utils/section-operations.utils.ts`)
+   ```typescript
+   // Position calculation with priority rules
+   export function calculateSectionOperationPosition(options: ISectionOperationOptions): ISectionOperationPosition
+   
+   // Data preparation for imports
+   export function prepareSectionImportData(sections: ISectionExportData[], options: ISectionOperationOptions): IImportSectionsWithPositionRequest
+   
+   // Data preparation for creates
+   export function prepareSectionCreateData(styleId: number, options: ISectionOperationOptions & { name?: string }): CreateSectionData
+   ```
+
+2. **Unified Section Operations Hook** (`src/hooks/useSectionOperations.ts`)
+   ```typescript
+   const sectionOperations = useSectionOperations({
+       pageKeyword: 'my-page',
+       showNotifications: true,
+       onSuccess: () => handleClose()
+   });
+   
+   // Create operations
+   await sectionOperations.createSectionInPage(styleId, { specificPosition: 5 });
+   await sectionOperations.createSectionInSection(parentId, styleId, { appendAtEnd: true });
+   
+   // Import operations
+   await sectionOperations.importSectionsToPage(sectionsData, { specificPosition: 10 });
+   await sectionOperations.importSectionsToSection(parentId, sectionsData, { appendAtEnd: true });
+   ```
+
+3. **Enhanced API Functions** (`src/api/admin/section.api.ts`)
+   ```typescript
+   // Updated import functions with position support
+   export async function importSectionsToPage(keyword: string, sections: ISectionExportData[], position?: number)
+   export async function importSectionsToSection(keyword: string, parentSectionId: number, sections: ISectionExportData[], position?: number)
+   ```
+
+#### Position Handling Rules
+- **First position**: -1 (places at the beginning)
+- **Specific position**: User-provided value (e.g., 5, 10, 15)
+- **Append at end**: 999999 (places at the end)
+- **Default behavior**: -1 if no position specified
+
+#### Updated AddSectionModal
+The section creation modal now uses the unified operations system:
+- **Consistent Position Handling**: Both create and import operations use the same position logic
+- **Simplified Code**: Reduced complexity by using the unified hook
+- **Enhanced Notifications**: Better user feedback with position information
+- **Debug Integration**: All operations are logged for development tracking
+
 ### New API Endpoints and Mutations
 Added 8 new API endpoints and corresponding React Query mutations for complete section management:
 
