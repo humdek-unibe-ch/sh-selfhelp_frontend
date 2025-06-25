@@ -7,6 +7,7 @@
  */
 
 import { useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { ISectionExportData } from '../api/admin/section.api';
 import { 
     prepareSectionImportData, 
@@ -46,6 +47,7 @@ export interface ISectionOperationsResult {
  */
 export function useSectionOperations(hookOptions: IUseSectionOperationsOptions = {}): ISectionOperationsResult {
     const { pageKeyword, showNotifications = true, onSuccess, onError } = hookOptions;
+    const queryClient = useQueryClient();
 
     // Mutation hooks
     const createSectionInPageMutation = useCreateSectionInPageMutation({
@@ -60,6 +62,17 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
         onSuccess: () => onSuccess?.(),
         onError: (error) => onError?.(error)
     });
+
+    // Helper function to invalidate relevant queries after import operations
+    const invalidateQueriesAfterImport = useCallback(async () => {
+        if (!pageKeyword) return;
+
+        await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ['pageSections', pageKeyword] }),
+            queryClient.invalidateQueries({ queryKey: ['pageFields', pageKeyword] }),
+            queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+        ]);
+    }, [queryClient, pageKeyword]);
 
     // Create section in page
     const createSectionInPage = useCallback(async (
@@ -132,6 +145,9 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
         try {
             await importSectionsToPage(pageKeyword, sections, importData.position);
             
+            // Invalidate queries to refresh the section list
+            await invalidateQueriesAfterImport();
+            
             if (showNotifications) {
                 notifications.show({
                     title: 'Import Successful',
@@ -176,6 +192,9 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
 
         try {
             await importSectionsToSection(pageKeyword, parentSectionId, sections, importData.position);
+            
+            // Invalidate queries to refresh the section list
+            await invalidateQueriesAfterImport();
             
             if (showNotifications) {
                 notifications.show({
