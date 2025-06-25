@@ -1,6 +1,7 @@
 import React from 'react';
+import { Anchor } from '@mantine/core';
 import { ILinkStyle } from '../../../types/common/styles.types';
-import InternalLink from '../shared/InternalLink';
+import { getFieldContent, hasFieldValue } from '../../../utils/style-field-extractor';
 
 /**
  * Props interface for LinkStyle component
@@ -12,24 +13,28 @@ interface ILinkStyleProps {
 }
 
 /**
- * LinkStyle component renders a link with the specified URL and styling.
- * Uses InternalLink component to handle both internal and external links appropriately.
+ * LinkStyle component renders an anchor/link element with specified styling.
+ * Supports external links and target options.
  *
  * @component
  * @param {ILinkStyleProps} props - Component props
- * @returns {JSX.Element} Rendered link component with specified styling
+ * @returns {JSX.Element} Rendered link with specified styling and target
  */
 const LinkStyle: React.FC<ILinkStyleProps> = ({ style }) => {
-    const href = style.url?.content || '#';
-    const label = style.label?.content || 'Link';
+    const label = getFieldContent(style, 'label');
+    const url = getFieldContent(style, 'url');
+    const openInNewTab = hasFieldValue(style, 'open_in_new_tab');
+    const cssClass = getFieldContent(style, 'css');
 
     return (
-        <InternalLink 
-            href={href}
-            className={style.css || ''}
+        <Anchor 
+            href={url}
+            target={openInNewTab ? '_blank' : '_self'}
+            rel={openInNewTab ? 'noopener noreferrer' : undefined}
+            className={cssClass}
         >
             {label}
-        </InternalLink>
+        </Anchor>
     );
 };
 

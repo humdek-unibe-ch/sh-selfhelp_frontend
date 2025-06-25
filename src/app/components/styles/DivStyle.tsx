@@ -2,6 +2,7 @@ import React from 'react';
 import { Box } from '@mantine/core';
 import BasicStyle from './BasicStyle';
 import { IDivStyle } from '../../../types/common/styles.types';
+import { getFieldContent } from '../../../utils/style-field-extractor';
 
 /**
  * Props interface for DivStyle component
@@ -11,21 +12,6 @@ import { IDivStyle } from '../../../types/common/styles.types';
 interface IDivStyleProps {
     style: IDivStyle;
 }
-
-/**
- * Helper function to extract field content from either direct property or fields object
- */
-const getFieldContent = (style: any, fieldName: string): any => {
-    // Check if it's a direct property
-    if (style[fieldName] && typeof style[fieldName] === 'object' && 'content' in style[fieldName]) {
-        return style[fieldName].content;
-    }
-    // Check in fields object
-    if (style.fields && style.fields[fieldName]) {
-        return style.fields[fieldName].content;
-    }
-    return null;
-};
 
 /**
  * DivStyle component renders a div container with optional styling and child elements.
@@ -40,8 +26,7 @@ const DivStyle: React.FC<IDivStyleProps> = ({ style }) => {
     const backgroundColor = getFieldContent(style, 'color_background');
     const borderColor = getFieldContent(style, 'color_border');
     const textColor = getFieldContent(style, 'color_text');
-    const cssClass = style.css || getFieldContent(style, 'css') || '';
-    const cssMobile = getFieldContent(style, 'css_mobile') || '';
+    const cssClass = getFieldContent(style, 'css');
 
     // Build inline styles for colors
     const inlineStyles: React.CSSProperties = {};
@@ -62,7 +47,7 @@ const DivStyle: React.FC<IDivStyleProps> = ({ style }) => {
 
     return (
         <Box 
-            className={`${cssClass} ${cssMobile}`}
+            className={cssClass}
             style={inlineStyles}
         >
             {children.map((childStyle, index) => (

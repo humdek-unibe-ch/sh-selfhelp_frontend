@@ -1,6 +1,7 @@
 import React from 'react';
 import { IContainerStyle } from '../../../types/common/styles.types';
 import BasicStyle from './BasicStyle';
+import { getFieldContent } from '../../../utils/style-field-extractor';
 
 /**
  * Props interface for ContainerStyle component
@@ -22,9 +23,10 @@ interface IContainerStyleProps {
 const ContainerStyle: React.FC<IContainerStyleProps> = ({ style }) => {
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
+    const cssClass = getFieldContent(style, 'css');
 
     return (
-        <div className={style.css}>
+        <div className={cssClass}>
             {children.map((child: any, index: number) => (
                 child ? <BasicStyle key={index} style={child} /> : null
             ))}

@@ -5,6 +5,7 @@ import { useState } from 'react';
 import BasicStyle from './BasicStyle';
 import styles from './CardStyle.module.css';
 import { ICardStyle } from '../../../types/common/styles.types';
+import { getFieldContent, hasFieldValue } from '../../../utils/style-field-extractor';
 
 /**
  * Props interface for CardStyle component
@@ -14,21 +15,6 @@ import { ICardStyle } from '../../../types/common/styles.types';
 interface ICardStyleProps {
     style: ICardStyle;
 }
-
-/**
- * Helper function to extract field content from either direct property or fields object
- */
-const getFieldContent = (style: any, fieldName: string): any => {
-    // Check if it's a direct property
-    if (style[fieldName] && typeof style[fieldName] === 'object' && 'content' in style[fieldName]) {
-        return style[fieldName].content;
-    }
-    // Check in fields object
-    if (style.fields && style.fields[fieldName]) {
-        return style.fields[fieldName].content;
-    }
-    return null;
-};
 
 /**
  * CardStyle component renders a Mantine Card container with optional child elements.
@@ -42,11 +28,10 @@ const getFieldContent = (style: any, fieldName: string): any => {
 const CardStyle: React.FC<ICardStyleProps> = ({ style }) => {
     const title = getFieldContent(style, 'title');
     const type = getFieldContent(style, 'type') || 'light';
-    const isExpandedDefault = getFieldContent(style, 'is_expanded') === '1';
-    const isCollapsible = getFieldContent(style, 'is_collapsible') === '1';
+    const isExpandedDefault = hasFieldValue(style, 'is_expanded');
+    const isCollapsible = hasFieldValue(style, 'is_collapsible');
     const editUrl = getFieldContent(style, 'url_edit');
-    const cssClass = style.css || getFieldContent(style, 'css') || '';
-    const cssMobile = getFieldContent(style, 'css_mobile') || '';
+    const cssClass = getFieldContent(style, 'css');
 
     const [isExpanded, setIsExpanded] = useState(isExpandedDefault);
 
@@ -70,7 +55,7 @@ const CardStyle: React.FC<ICardStyleProps> = ({ style }) => {
             padding="lg" 
             radius="md" 
             withBorder
-            className={`${cssClass} ${cssMobile} ${styles.card}`}
+            className={`${cssClass} ${styles.card}`}
             bg={cardColor}
         >
             {title && (

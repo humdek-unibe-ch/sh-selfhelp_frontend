@@ -1,5 +1,6 @@
 import React from 'react';
 import { IHeadingStyle } from '../../../types/common/styles.types';
+import { getFieldContent } from '../../../utils/style-field-extractor';
 
 /**
  * Props interface for HeadingStyle component
@@ -20,13 +21,15 @@ interface IHeadingStyleProps {
  */
 const HeadingStyle: React.FC<IHeadingStyleProps> = ({ style }) => {
     // Get heading level with fallback to h2 if undefined or invalid
-    const level = style.level?.content || '2';
+    const level = getFieldContent(style, 'level') || '2';
     const validLevel = ['1', '2', '3', '4', '5', '6'].includes(level) ? level : '2';
     const HeadingTag = `h${validLevel}` as keyof JSX.IntrinsicElements;
+    const title = getFieldContent(style, 'title');
+    const cssClass = getFieldContent(style, 'css');
     
     return (
-        <HeadingTag className={style.css || ''}>
-            {style.title?.content || ''}
+        <HeadingTag className={cssClass}>
+            {title}
         </HeadingTag>
     );
 };

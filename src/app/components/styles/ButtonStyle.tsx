@@ -1,5 +1,7 @@
 import React from 'react';
+import { Button } from '@mantine/core';
 import { IButtonStyle } from '../../../types/common/styles.types';
+import { getFieldContent } from '../../../utils/style-field-extractor';
 
 /**
  * Props interface for ButtonStyle component
@@ -11,28 +13,34 @@ interface IButtonStyleProps {
 }
 
 /**
- * ButtonStyle component renders a button element with specified styling.
- * Handles button text and click events with proper null checks.
+ * ButtonStyle component renders a button element with optional styling and actions.
+ * Supports different button types and URL navigation.
  *
  * @component
  * @param {IButtonStyleProps} props - Component props
- * @returns {JSX.Element} Rendered button with specified styling
+ * @returns {JSX.Element} Rendered button with specified styling and action
  */
 const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
+    const label = getFieldContent(style, 'label');
+    const url = getFieldContent(style, 'url');
+    const type = getFieldContent(style, 'type') || 'primary';
+    const cssClass = getFieldContent(style, 'css');
+
     const handleClick = () => {
-        if (style.url?.content) {
-            window.location.href = style.url.content;
+        if (url) {
+            window.location.href = url;
         }
     };
 
     return (
-        <button 
-            className={style.css || ''} 
+        <Button 
+            variant="filled"
+            color={type}
             onClick={handleClick}
-            type={(style.type?.content as "button" | "reset" | "submit") || 'button'}
+            className={cssClass}
         >
-            {style.label?.content || 'Button'}
-        </button>
+            {label}
+        </Button>
     );
 };
 

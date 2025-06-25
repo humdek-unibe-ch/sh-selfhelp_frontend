@@ -1,6 +1,7 @@
 import React from 'react';
 import { IAlertStyle } from '../../../types/common/styles.types';
 import BasicStyle from './BasicStyle';
+import { getFieldContent, hasFieldValue } from '../../../utils/style-field-extractor';
 
 /**
  * Props interface for AlertStyle component
@@ -14,15 +15,16 @@ interface IAlertStyleProps {
  * Supports different alert types and dismissible alerts
  */
 const AlertStyle: React.FC<IAlertStyleProps> = ({ style }) => {
-    const alertType = style.type?.content || 'primary';
-    const isDismissable = style.is_dismissable?.content === '1';
+    const alertType = getFieldContent(style, 'type') || 'primary';
+    const isDismissable = hasFieldValue(style, 'is_dismissable');
+    const cssClass = getFieldContent(style, 'css');
 
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
 
     return (
         <div 
-            className={`alert alert-${alertType} ${isDismissable ? 'alert-dismissible' : ''} ${style.css || ''}`}
+            className={`alert alert-${alertType} ${isDismissable ? 'alert-dismissible' : ''} ${cssClass}`}
             role="alert"
         >
             {isDismissable && (

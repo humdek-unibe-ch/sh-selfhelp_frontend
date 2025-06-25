@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import { Text } from '@mantine/core';
 import styles from './MarkdownStyle.module.css';
 import { IMarkdownInlineStyle, IMarkdownStyle } from '../../../types/common/styles.types';
+import { getFieldContent } from '../../../utils/style-field-extractor';
 
 /**
  * Props interface for MarkdownStyle component
@@ -13,21 +14,6 @@ import { IMarkdownInlineStyle, IMarkdownStyle } from '../../../types/common/styl
 interface IMarkdownStyleProps {
     style: IMarkdownStyle | IMarkdownInlineStyle;
 }
-
-/**
- * Helper function to extract field content from either direct property or fields object
- */
-const getFieldContent = (style: any, fieldName: string): any => {
-    // Check if it's a direct property
-    if (style[fieldName] && typeof style[fieldName] === 'object' && 'content' in style[fieldName]) {
-        return style[fieldName].content;
-    }
-    // Check in fields object
-    if (style.fields && style.fields[fieldName]) {
-        return style.fields[fieldName].content;
-    }
-    return null;
-};
 
 /**
  * MarkdownStyle component renders markdown content using react-markdown.
@@ -44,8 +30,7 @@ const MarkdownStyle: React.FC<IMarkdownStyleProps> = ({ style }) => {
         ? getFieldContent(style, 'text_md_inline') 
         : getFieldContent(style, 'text_md');
     
-    const cssClass = style.css || getFieldContent(style, 'css') || '';
-    const cssMobile = getFieldContent(style, 'css_mobile') || '';
+    const cssClass = getFieldContent(style, 'css');
 
     // Return null if no content
     if (!content) {
@@ -57,7 +42,7 @@ const MarkdownStyle: React.FC<IMarkdownStyleProps> = ({ style }) => {
         return (
             <Text 
                 component="span" 
-                className={`${cssClass} ${cssMobile} ${styles.markdownInline}`}
+                className={`${cssClass} ${styles.markdownInline}`}
             >
                 <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
@@ -85,7 +70,7 @@ const MarkdownStyle: React.FC<IMarkdownStyleProps> = ({ style }) => {
 
     // For block-level markdown, use full markdown rendering
     return (
-        <div className={`${cssClass} ${cssMobile} ${styles.markdown}`}>
+        <div className={`${cssClass} ${styles.markdown}`}>
             <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
