@@ -28,9 +28,15 @@ import {
     InspectorLayout, 
     InspectorHeader, 
     FieldsSection, 
-    IFieldData 
+    IFieldData,
+    useFieldFormHandler,
+    createFieldChangeHandlers,
+    type ILanguage
 } from '../../shared';
 import styles from './SectionInspector.module.css';
+import { exportSection } from '../../../../../api/admin/section.api';
+import { downloadJsonFile, generateExportFilename } from '../../../../../utils/export-import.utils';
+import { AdminApi } from '../../../../../api/admin';
 
 interface ISectionInspectorProps {
     keyword: string | null;
@@ -84,13 +90,38 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
         properties: {},
         fields: {}
     });
+
+    // Debug logging for props
+    useEffect(() => {
+        debug('SectionInspector props changed', 'SectionInspector', { 
+            keyword, 
+            sectionId, 
+            enabled: !!keyword && !!sectionId 
+        });
+    }, [keyword, sectionId]);
     
     // Fetch section details when section is selected
     const { 
         data: sectionDetailsData, 
         isLoading: sectionLoading, 
-        error: sectionError 
+        error: sectionError,
+        isFetching,
+        isStale
     } = useSectionDetails(keyword, sectionId, !!keyword && !!sectionId);
+
+    // Debug logging for query state
+    useEffect(() => {
+        debug('SectionInspector query state', 'SectionInspector', {
+            keyword,
+            sectionId,
+            hasData: !!sectionDetailsData,
+            isLoading: sectionLoading,
+            isFetching,
+            isStale,
+            error: sectionError?.message,
+            enabled: !!keyword && !!sectionId
+        });
+    }, [sectionDetailsData, sectionLoading, isFetching, isStale, sectionError, keyword, sectionId]);
 
     // Fetch available languages
     const { languages, isLoading: languagesLoading } = useLanguages();
@@ -123,64 +154,161 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
         }
     });
 
+    // Note: Field processing is done directly in useEffect to avoid circular dependencies
+
     // Update form when section data changes
     useEffect(() => {
         if (sectionDetailsData && languages.length > 0) {
             const { section, fields } = sectionDetailsData;
             
-            // Separate content fields (display: true) from property fields (display: false)
+            debug('Processing section data for form update', 'SectionInspector', {
+                sectionId: section.id,
+                sectionName: section.name,
+                fieldsCount: fields.length,
+                languagesCount: languages.length,
+                fields: fields.map(f => ({ name: f.name, type: f.type, display: f.display, translationsCount: f.translations.length }))
+            });
+            
+            // Process fields directly here instead of relying on the shared handler to avoid circular dependency
             const contentFields = fields.filter(field => field.display);
             const propertyFields = fields.filter(field => !field.display);
             
-            // Create fields object organized by field name and language
-            const fieldsObject: Record<string, Record<string, string>> = {};
+            // Process content fields (translatable)
+            const contentFieldsObject: Record<string, Record<string, string>> = {};
             contentFields.forEach(field => {
-                fieldsObject[field.name] = {};
+                contentFieldsObject[field.name] = {};
+
                 // Initialize all languages with empty strings first
                 languages.forEach(lang => {
-                    fieldsObject[field.name][lang.code] = '';
+                    contentFieldsObject[field.name][lang.code] = '';
                 });
-                // Then populate with actual data
+
+                // Then populate with actual data from translations
                 field.translations.forEach(translation => {
-                    // For content fields, match by locale
-                    const matchingLang = languages.find(lang => lang.locale === translation.language_code);
+                    debug('Processing content field translation', 'SectionInspector', {
+                        fieldName: field.name,
+                        translationLanguageCode: translation.language_code,
+                        translationLanguageId: translation.language_id,
+                        translationContent: translation.content,
+                        availableLanguages: languages.map(l => ({ id: l.id, code: l.code, locale: l.locale }))
+                    });
+
+                    // Try multiple matching strategies
+                    let matchingLang = null;
+
+                    // Strategy 1: Match by language ID
+                    if (translation.language_id) {
+                        matchingLang = languages.find(lang => lang.id === translation.language_id);
+                    }
+
+                    // Strategy 2: Match by exact locale
+                    if (!matchingLang && translation.language_code) {
+                        matchingLang = languages.find(lang => lang.locale === translation.language_code);
+                    }
+
+                    // Strategy 3: Match by language code (first part of locale)
+                    if (!matchingLang && translation.language_code) {
+                        const langCode = translation.language_code.split('-')[0];
+                        matchingLang = languages.find(lang => lang.code === langCode);
+                    }
+
+                    // Strategy 4: Match by language code directly
+                    if (!matchingLang && translation.language_code) {
+                        matchingLang = languages.find(lang => lang.code === translation.language_code);
+                    }
+
                     if (matchingLang) {
-                        fieldsObject[field.name][matchingLang.code] = translation.content || field.default_value || '';
+                        const value = translation.content || field.default_value || '';
+                        contentFieldsObject[field.name][matchingLang.code] = value;
+
+                        debug('Content field translation matched and applied', 'SectionInspector', {
+                            fieldName: field.name,
+                            translationLanguageCode: translation.language_code,
+                            translationLanguageId: translation.language_id,
+                            matchedLanguageCode: matchingLang.code,
+                            matchedLanguageId: matchingLang.id,
+                            value: value
+                        });
                     } else {
-                        // Fallback: try to match by language code
-                        const langCode = translation.language_code?.split('-')[0];
-                        const fallbackLang = languages.find(lang => lang.code === langCode);
-                        if (fallbackLang) {
-                            fieldsObject[field.name][fallbackLang.code] = translation.content || field.default_value || '';
-                        }
+                        debug('Content field translation not matched to any language', 'SectionInspector', {
+                            fieldName: field.name,
+                            translationLanguageCode: translation.language_code,
+                            translationLanguageId: translation.language_id,
+                            availableLanguageCodes: languages.map(l => l.code),
+                            availableLanguageIds: languages.map(l => l.id),
+                            availableLanguageLocales: languages.map(l => l.locale)
+                        });
                     }
                 });
+
+                debug('Content field processing complete', 'SectionInspector', {
+                    fieldName: field.name,
+                    finalValues: contentFieldsObject[field.name]
+                });
             });
 
-            // Create properties object for non-translatable fields
-            const propertiesObject: Record<string, string | boolean> = {};
+            // Process property fields (non-translatable)
+            const propertyFieldsObject: Record<string, string | boolean> = {};
             propertyFields.forEach(field => {
-                // For property fields, use the first translation with language_code 'property'
-                const propertyTranslation = field.translations.find(t => t.language_code === 'property');
+                debug('Processing property field', 'SectionInspector', {
+                    fieldName: field.name,
+                    fieldType: field.type,
+                    translationsCount: field.translations.length,
+                    translations: field.translations.map(t => ({ 
+                        language_code: t.language_code, 
+                        language_id: t.language_id,
+                        content: t.content 
+                    }))
+                });
+
+                // For property fields, look for translation with language_code 'property' or use first translation
+                let propertyTranslation = field.translations.find(t => t.language_code === 'property');
+
+                // If no 'property' translation found, use the first translation or empty
+                if (!propertyTranslation && field.translations.length > 0) {
+                    propertyTranslation = field.translations[0];
+                }
+
                 const value = propertyTranslation?.content || field.default_value || '';
-                
+
                 // Convert to appropriate type based on field type
                 if (field.type === 'checkbox') {
-                    propertiesObject[field.name] = value === '1' || value === 'true';
+                    propertyFieldsObject[field.name] = value === '1' || value === 'true' || value === 'on';
                 } else {
-                    propertiesObject[field.name] = value;
+                    propertyFieldsObject[field.name] = value;
                 }
-            });
 
+                debug('Property field processed', 'SectionInspector', {
+                    fieldName: field.name,
+                    rawValue: value,
+                    finalValue: propertyFieldsObject[field.name],
+                    fieldType: field.type
+                });
+            });
+            
             const newFormValues = {
                 sectionName: section.name,
-                properties: propertiesObject,
-                fields: fieldsObject
+                properties: propertyFieldsObject,
+                fields: contentFieldsObject
             };
+            
+            debug('Form values updated from direct processing', 'SectionInspector', {
+                sectionName: newFormValues.sectionName,
+                propertiesCount: Object.keys(newFormValues.properties).length,
+                fieldsCount: Object.keys(newFormValues.fields).length,
+                properties: newFormValues.properties,
+                fields: newFormValues.fields
+            });
             
             setFormValues(newFormValues);
             setOriginalValues(newFormValues); // Store original values for change detection
         } else {
+            debug('Resetting form values', 'SectionInspector', {
+                hasSectionData: !!sectionDetailsData,
+                languagesCount: languages.length,
+                reason: !sectionDetailsData ? 'No section data' : 'No languages'
+            });
+            
             // Reset form when no section is selected
             const resetValues = {
                 sectionName: '',
@@ -301,38 +429,24 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
         }
     };
 
-    const handleExportSection = () => {
-        if (!sectionId || !sectionDetailsData) return;
+    const handleExportSection = async () => {
+        if (!sectionId || !sectionDetailsData || !keyword) return;
         
-        debug('Exporting section', 'SectionInspector', { sectionId });
-        // TODO: Implement section export functionality
-        console.log('Section export functionality to be implemented');
+        try {
+            const response = await exportSection(keyword, sectionId);
+            const filename = generateExportFilename(`section_${sectionDetailsData.section.name}_${sectionId}`);
+            downloadJsonFile([response.data.sectionData], filename);
+        } catch (error) {
+            console.error('Error exporting section:', error);
+            // Error notification is handled by the download function
+        }
     };
 
-    const handleContentFieldChange = (fieldName: string, languageCode: string | null, value: string | boolean) => {
-        if (!languageCode) return;
-        
-        setFormValues(prev => ({
-            ...prev,
-            fields: {
-                ...prev.fields,
-                [fieldName]: {
-                    ...prev.fields[fieldName],
-                    [languageCode]: String(value)
-                }
-            }
-        }));
-    };
-
-    const handlePropertyFieldChange = (fieldName: string, languageCode: string | null, value: string | boolean) => {
-        setFormValues(prev => ({
-            ...prev,
-            properties: {
-                ...prev.properties,
-                [fieldName]: value
-            }
-        }));
-    };
+    // Use shared field change handlers
+    const { handleContentFieldChange, handlePropertyFieldChange } = createFieldChangeHandlers(
+        setFormValues,
+        'SectionInspector'
+    );
 
     const handleSectionNameChange = (value: string) => {
         setFormValues(prev => ({
@@ -372,7 +486,11 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
                     description: "Select a section from the sections list to view and edit its content."
                 }}
             >
-                <></>
+                <Box p="md">
+                    <Text size="sm" c="dimmed">Debug Info:</Text>
+                    <Text size="xs" c="dimmed">Keyword: {keyword || 'null'}</Text>
+                    <Text size="xs" c="dimmed">Section ID: {sectionId || 'null'}</Text>
+                </Box>
             </InspectorLayout>
         );
     }
@@ -395,7 +513,27 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
                 header={<></>}
                 error={sectionError.message}
             >
-                <></>
+                <Box p="md">
+                    <Text size="sm" c="dimmed">Debug Info:</Text>
+                    <Text size="xs" c="dimmed">Keyword: {keyword || 'null'}</Text>
+                    <Text size="xs" c="dimmed">Section ID: {sectionId || 'null'}</Text>
+                    <Text size="xs" c="dimmed">Error: {sectionError.message}</Text>
+                    <Button 
+                        size="xs" 
+                        mt="sm" 
+                        onClick={async () => {
+                            try {
+                                console.log('Manual API test:', { keyword, sectionId });
+                                const result = await AdminApi.getSectionDetails(keyword!, sectionId!);
+                                console.log('Manual API result:', result);
+                            } catch (error) {
+                                console.error('Manual API error:', error);
+                            }
+                        }}
+                    >
+                        Test API Call
+                    </Button>
+                </Box>
             </InspectorLayout>
         );
     }
@@ -406,7 +544,29 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
                 header={<></>}
                 error="The selected section could not be found."
             >
-                <></>
+                <Box p="md">
+                    <Text size="sm" c="dimmed">Debug Info:</Text>
+                    <Text size="xs" c="dimmed">Keyword: {keyword || 'null'}</Text>
+                    <Text size="xs" c="dimmed">Section ID: {sectionId || 'null'}</Text>
+                    <Text size="xs" c="dimmed">Loading: {sectionLoading.toString()}</Text>
+                    <Text size="xs" c="dimmed">Fetching: {isFetching.toString()}</Text>
+                    <Text size="xs" c="dimmed">Stale: {isStale.toString()}</Text>
+                    <Button 
+                        size="xs" 
+                        mt="sm" 
+                        onClick={async () => {
+                            try {
+                                console.log('Manual API test:', { keyword, sectionId });
+                                const result = await AdminApi.getSectionDetails(keyword!, sectionId!);
+                                console.log('Manual API result:', result);
+                            } catch (error) {
+                                console.error('Manual API error:', error);
+                            }
+                        }}
+                    >
+                        Test API Call
+                    </Button>
+                </Box>
             </InspectorLayout>
         );
     }

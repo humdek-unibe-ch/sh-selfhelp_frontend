@@ -16,19 +16,24 @@ import {
     Alert,
     ActionIcon,
     Tooltip,
-    Box
+    Box,
+    FileInput
 } from '@mantine/core';
 import {
     IconX,
     IconPlus,
     IconSearch,
     IconInfoCircle,
-    IconAlertCircle
+    IconAlertCircle,
+    IconUpload
 } from '@tabler/icons-react';
 import { useStyleGroups } from '../../../../../hooks/useStyleGroups';
 import { useCreateSectionInPageMutation, useCreateSectionInSectionMutation } from '../../../../../hooks/mutations';
 import { IStyle, IStyleGroup } from '../../../../../types/responses/admin/styles.types';
 import styles from './AddSectionModal.module.css';
+import { importSectionsToPage, importSectionsToSection, ISectionExportData } from '../../../../../api/admin/section.api';
+import { readJsonFile, isValidJsonFile } from '../../../../../utils/export-import.utils';
+import { notifications } from '@mantine/notifications';
 
 interface IAddSectionModalProps {
     opened: boolean;
@@ -51,6 +56,8 @@ export function AddSectionModal({
     const [selectedStyle, setSelectedStyle] = useState<IStyle | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [sectionName, setSectionName] = useState('');
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [isImporting, setIsImporting] = useState(false);
 
     const { data: styleGroups, isLoading: isLoadingStyles, error: stylesError } = useStyleGroups(opened);
 
@@ -75,6 +82,8 @@ export function AddSectionModal({
         setSectionName('');
         setSearchQuery('');
         setActiveTab('new-section');
+        setSelectedFile(null);
+        setIsImporting(false);
         onClose();
     };
 
@@ -121,6 +130,43 @@ export function AddSectionModal({
         }
     };
 
+    const handleImportSections = async () => {
+        if (!selectedFile || !pageKeyword) return;
+
+        setIsImporting(true);
+
+        try {
+            // Read and parse the JSON file
+            const sectionsData = await readJsonFile(selectedFile);
+
+            // Import sections
+            if (parentSectionId !== null) {
+                // Import to parent section
+                await importSectionsToSection(pageKeyword, parentSectionId, sectionsData);
+            } else {
+                // Import to page
+                await importSectionsToPage(pageKeyword, sectionsData);
+            }
+
+            notifications.show({
+                title: 'Import Successful',
+                message: `Successfully imported ${sectionsData.length} section(s)`,
+                color: 'green'
+            });
+
+            handleClose();
+        } catch (error) {
+            console.error('Error importing sections:', error);
+            notifications.show({
+                title: 'Import Failed',
+                message: error instanceof Error ? error.message : 'Failed to import sections',
+                color: 'red'
+            });
+        } finally {
+            setIsImporting(false);
+        }
+    };
+
     // Filter styles based on search query
     const filteredStyleGroups = styleGroups?.map(group => ({
         ...group,
@@ -130,7 +176,7 @@ export function AddSectionModal({
         )
     })).filter(group => group.styles.length > 0) || [];
 
-    const isProcessing = createSectionInPageMutation.isPending || createSectionInSectionMutation.isPending;
+    const isProcessing = createSectionInPageMutation.isPending || createSectionInSectionMutation.isPending || isImporting;
 
     return (
         <Modal
@@ -164,34 +210,38 @@ export function AddSectionModal({
                             <Tabs.Tab value="reference-section" disabled>
                                 Reference Section
                             </Tabs.Tab>
-                            <Tabs.Tab value="import-section" disabled>
+                            <Tabs.Tab value="import-section">
                                 Import Section
                             </Tabs.Tab>
                         </Tabs.List>
 
-                        {/* Search Input */}
-                        <TextInput
-                            placeholder="Search styles..."
-                            leftSection={<IconSearch size={16} />}
-                            value={searchQuery}
-                            onChange={(event) => setSearchQuery(event.currentTarget.value)}
-                            mt="sm"
-                            size="sm"
-                        />
+                        {/* Search Input - only for new-section tab */}
+                        {activeTab === 'new-section' && (
+                            <TextInput
+                                placeholder="Search styles..."
+                                leftSection={<IconSearch size={16} />}
+                                value={searchQuery}
+                                onChange={(event) => setSearchQuery(event.currentTarget.value)}
+                                mt="sm"
+                                size="sm"
+                            />
+                        )}
 
-                        {/* Section Name Input */}
-                        <TextInput
-                            label="Section Name (Optional)"
-                            placeholder="Enter custom section name..."
-                            value={sectionName}
-                            onChange={(event) => setSectionName(event.currentTarget.value)}
-                            description="Leave empty to use the style name"
-                            mt="sm"
-                            size="sm"
-                        />
+                        {/* Section Name Input - only for new-section tab */}
+                        {activeTab === 'new-section' && (
+                            <TextInput
+                                label="Section Name (Optional)"
+                                placeholder="Enter custom section name..."
+                                value={sectionName}
+                                onChange={(event) => setSectionName(event.currentTarget.value)}
+                                description="Leave empty to use the style name"
+                                mt="sm"
+                                size="sm"
+                            />
+                        )}
 
-                        {/* Selected Style Display */}
-                        {selectedStyle && (
+                        {/* Selected Style Display - only for new-section tab */}
+                        {activeTab === 'new-section' && selectedStyle && (
                             <Card withBorder p="xs" bg="blue.0" mt="sm">
                                 <Group justify="space-between" gap="xs">
                                     <Group gap="xs" className={styles.selectedStyleGroup}>
@@ -212,10 +262,12 @@ export function AddSectionModal({
                             </Card>
                         )}
 
-                        {/* Instructions */}
-                        <Text size="xs" c="dimmed" mt="sm">
-                            Click on a style below to select it for your new section
-                        </Text>
+                        {/* Instructions - only for new-section tab */}
+                        {activeTab === 'new-section' && (
+                            <Text size="xs" c="dimmed" mt="sm">
+                                Click on a style below to select it for your new section
+                            </Text>
+                        )}
                     </Tabs>
                 </Box>
 
@@ -312,9 +364,39 @@ export function AddSectionModal({
                         </Tabs.Panel>
 
                         <Tabs.Panel value="import-section">
-                            <Alert icon={<IconInfoCircle size={16} />} color="blue">
-                                Import Section functionality coming soon.
-                            </Alert>
+                            <Stack gap="md">
+                                <Alert icon={<IconInfoCircle size={16} />} color="blue">
+                                    Import sections from a previously exported JSON file. The file should contain section data in the correct format.
+                                </Alert>
+
+                                <FileInput
+                                    label="Select JSON file to import"
+                                    placeholder="Choose a JSON file..."
+                                    leftSection={<IconUpload size={16} />}
+                                    value={selectedFile}
+                                    onChange={setSelectedFile}
+                                    accept=".json,application/json"
+                                    clearable
+                                />
+
+                                {selectedFile && (
+                                    <Card withBorder p="sm" bg="green.0">
+                                        <Group gap="xs">
+                                            <Text size="sm" fw={500}>Selected file:</Text>
+                                            <Text size="sm">{selectedFile.name}</Text>
+                                            <Badge size="xs" color="green">
+                                                {(selectedFile.size / 1024).toFixed(1)} KB
+                                            </Badge>
+                                        </Group>
+                                    </Card>
+                                )}
+
+                                {selectedFile && !isValidJsonFile(selectedFile) && (
+                                    <Alert color="red" icon={<IconAlertCircle size={16} />}>
+                                        Please select a valid JSON file.
+                                    </Alert>
+                                )}
+                            </Stack>
                         </Tabs.Panel>
                     </Tabs>
                 </ScrollArea>
@@ -327,21 +409,37 @@ export function AddSectionModal({
                 >
                     <Group justify="space-between" align="center">
                         <Text size="sm" c="dimmed">
-                            {selectedStyle ? `Ready to add "${selectedStyle.name}" section` : 'Select a style to continue'}
+                            {activeTab === 'import-section' 
+                                ? (selectedFile ? `Ready to import from "${selectedFile.name}"` : 'Select a JSON file to import')
+                                : (selectedStyle ? `Ready to add "${selectedStyle.name}" section` : 'Select a style to continue')
+                            }
                         </Text>
                         <Group gap="sm">
                             <Button variant="subtle" onClick={handleClose} disabled={isProcessing} size="sm">
                                 Cancel
                             </Button>
-                            <Button
-                                leftSection={<IconPlus size={16} />}
-                                onClick={handleAddSection}
-                                disabled={!selectedStyle || isProcessing}
-                                loading={isProcessing}
-                                size="sm"
-                            >
-                                Add Section
-                            </Button>
+                            {activeTab === 'import-section' ? (
+                                <Button
+                                    leftSection={<IconUpload size={16} />}
+                                    onClick={handleImportSections}
+                                    disabled={!selectedFile || !isValidJsonFile(selectedFile!) || isProcessing}
+                                    loading={isImporting}
+                                    size="sm"
+                                    color="green"
+                                >
+                                    Import Sections
+                                </Button>
+                            ) : (
+                                <Button
+                                    leftSection={<IconPlus size={16} />}
+                                    onClick={handleAddSection}
+                                    disabled={!selectedStyle || isProcessing}
+                                    loading={createSectionInPageMutation.isPending || createSectionInSectionMutation.isPending}
+                                    size="sm"
+                                >
+                                    Add Section
+                                </Button>
+                            )}
                         </Group>
                     </Group>
                 </Box>

@@ -56,6 +56,8 @@ export default function AdminPage() {
 
   // Parse the path to extract page keyword and section ID
   const { isPageRoute, keyword, selectedSectionId } = useMemo(() => {
+    debug('Parsing admin route path', 'AdminPage', { path });
+    
     if (!path.startsWith('pages/')) {
       return { isPageRoute: false, keyword: null, selectedSectionId: null };
     }
@@ -66,11 +68,23 @@ export default function AdminPage() {
       const pageKeyword = pathParts[1];
       const sectionId = pathParts.length >= 3 ? parseInt(pathParts[2], 10) : null;
       
-      return {
+      const result = {
         isPageRoute: true,
         keyword: pageKeyword,
         selectedSectionId: !isNaN(sectionId!) ? sectionId : null
       };
+      
+      debug('Parsed admin route', 'AdminPage', {
+        path,
+        pathParts,
+        pageKeyword,
+        rawSectionId: pathParts[2],
+        parsedSectionId: sectionId,
+        finalSectionId: result.selectedSectionId,
+        isPageRoute: result.isPageRoute
+      });
+      
+      return result;
     }
 
     return { isPageRoute: false, keyword: null, selectedSectionId: null };
@@ -178,11 +192,27 @@ export default function AdminPage() {
         height: '100%',
         overflowY: 'hidden'
       }}>
-        {selectedSectionId && !isNaN(selectedSectionId) ? (
-          <SectionInspector keyword={selectedPage?.keyword || null} sectionId={selectedSectionId} />
-        ) : (
-          <PageInspector page={selectedPage} />
-        )}
+        {(() => {
+          const shouldShowSectionInspector = selectedSectionId && !isNaN(selectedSectionId);
+          debug('Right sidebar component selection', 'AdminPage', {
+            selectedSectionId,
+            isNaN: isNaN(selectedSectionId!),
+            shouldShowSectionInspector,
+            selectedPageKeyword: selectedPage?.keyword,
+            selectedPageExists: !!selectedPage
+          });
+          
+          if (shouldShowSectionInspector) {
+            return (
+              <SectionInspector 
+                keyword={selectedPage?.keyword || null} 
+                sectionId={selectedSectionId} 
+              />
+            );
+          } else {
+            return <PageInspector page={selectedPage} />;
+          }
+        })()}
       </Box>
     </Flex>
   );

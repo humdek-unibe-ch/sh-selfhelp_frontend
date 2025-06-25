@@ -29,7 +29,7 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
         <button 
             className={style.css || ''} 
             onClick={handleClick}
-            type={style.type?.content || 'button'}
+            type={(style.type?.content as "button" | "reset" | "submit") || 'button'}
         >
             {style.label?.content || 'Button'}
         </button>

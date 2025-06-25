@@ -29,7 +29,8 @@ import {
     IconPlus, 
     IconTrash,
     IconChevronDown,
-    IconChevronUp
+    IconChevronUp,
+    IconFileExport
 } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
 import { useHotkeys } from '@mantine/hooks';
@@ -50,6 +51,8 @@ import { debug } from '../../../../../utils/debug-logger';
 import styles from './PageInspector.module.css';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { CreatePageModal } from '../create-page/CreatePage';
+import { exportPageSections } from '../../../../../api/admin/section.api';
+import { downloadJsonFile, generateExportFilename } from '../../../../../utils/export-import.utils';
 
 interface PageInspectorProps {
     page: IAdminPage | null;
@@ -162,6 +165,18 @@ export function PageInspector({ page }: PageInspectorProps) {
             const pageDetails = pageFieldsData.page;
             const fields = pageFieldsData.fields;
             
+            debug('Processing PageInspector field data', 'PageInspector', {
+                pageKeyword: pageDetails.keyword,
+                fieldsCount: fields.length,
+                languagesCount: languages.length,
+                fields: fields.map(f => ({ 
+                    name: f.name, 
+                    type: f.type, 
+                    display: f.display, 
+                    translationsCount: f.translations.length 
+                }))
+            });
+            
             // Create fields object organized by field name and language
             const fieldsObject: Record<string, Record<string, string>> = {};
             fields.forEach(field => {
@@ -170,21 +185,73 @@ export function PageInspector({ page }: PageInspectorProps) {
                 languages.forEach(lang => {
                     fieldsObject[field.name][lang.code] = '';
                 });
-                // Then populate with actual data
+                // Then populate with actual data using enhanced matching logic
                 field.translations.forEach(translation => {
-                    // Find matching language by locale
-                    const matchingLang = languages.find(lang => lang.locale === translation.language_code);
-                    if (matchingLang) {
-                        fieldsObject[field.name][matchingLang.code] = translation.content || field.default_value || '';
-                    } else {
-                        // Fallback: try to match by language code
+                    debug('Processing PageInspector field translation', 'PageInspector', {
+                        fieldName: field.name,
+                        translationLanguageCode: translation.language_code,
+                        translationLanguageId: translation.language_id,
+                        translationContent: translation.content,
+                        availableLanguages: languages.map(l => ({ id: l.id, code: l.code, locale: l.locale }))
+                    });
+
+                    // Enhanced matching logic similar to SectionInspector
+                    let matchingLang = null;
+
+                    // Strategy 1: Match by language ID
+                    if (translation.language_id) {
+                        matchingLang = languages.find(lang => lang.id === translation.language_id);
+                    }
+
+                    // Strategy 2: Match by exact locale
+                    if (!matchingLang && translation.language_code) {
+                        matchingLang = languages.find(lang => lang.locale === translation.language_code);
+                    }
+
+                    // Strategy 3: Match by language code (first part of locale)
+                    if (!matchingLang && translation.language_code) {
                         const langCode = translation.language_code.split('-')[0];
-                        const fallbackLang = languages.find(lang => lang.code === langCode);
-                        if (fallbackLang) {
-                            fieldsObject[field.name][fallbackLang.code] = translation.content || field.default_value || '';
-                        }
+                        matchingLang = languages.find(lang => lang.code === langCode);
+                    }
+
+                    // Strategy 4: Match by language code directly
+                    if (!matchingLang && translation.language_code) {
+                        matchingLang = languages.find(lang => lang.code === translation.language_code);
+                    }
+
+                    if (matchingLang) {
+                        const value = translation.content || field.default_value || '';
+                        fieldsObject[field.name][matchingLang.code] = value;
+                        
+                        debug('PageInspector field translation matched and applied', 'PageInspector', {
+                            fieldName: field.name,
+                            translationLanguageCode: translation.language_code,
+                            translationLanguageId: translation.language_id,
+                            matchedLanguageCode: matchingLang.code,
+                            matchedLanguageId: matchingLang.id,
+                            value: value
+                        });
+                    } else {
+                        debug('PageInspector field translation not matched to any language', 'PageInspector', {
+                            fieldName: field.name,
+                            translationLanguageCode: translation.language_code,
+                            translationLanguageId: translation.language_id,
+                            availableLanguageCodes: languages.map(l => l.code),
+                            availableLanguageIds: languages.map(l => l.id),
+                            availableLanguageLocales: languages.map(l => l.locale)
+                        });
                     }
                 });
+
+                debug('PageInspector field processing complete', 'PageInspector', {
+                    fieldName: field.name,
+                    finalValues: fieldsObject[field.name]
+                });
+            });
+
+            debug('PageInspector form data processed', 'PageInspector', {
+                fieldsCount: Object.keys(fieldsObject).length,
+                fieldsObject: fieldsObject
             });
 
             form.setValues({
@@ -200,6 +267,12 @@ export function PageInspector({ page }: PageInspectorProps) {
                 fields: fieldsObject
             });
         } else {
+            debug('Resetting PageInspector form', 'PageInspector', {
+                hasPage: !!page,
+                hasPageFieldsData: !!pageFieldsData,
+                languagesCount: languages.length
+            });
+            
             // Reset form when no page is selected
             form.setValues({
                 keyword: '',
@@ -320,6 +393,19 @@ export function PageInspector({ page }: PageInspectorProps) {
         if (deleteConfirmText === page?.keyword && page?.keyword) {
             debug('Deleting page', 'PageInspector', { page: page.keyword });
             deletePageMutation.mutate(page.keyword);
+        }
+    };
+
+    const handleExportPageSections = async () => {
+        if (!page) return;
+        
+        try {
+            const response = await exportPageSections(page.keyword);
+            const filename = generateExportFilename(`page_${page.keyword}`);
+            downloadJsonFile(response.data.sectionsData, filename);
+        } catch (error) {
+            console.error('Error exporting page sections:', error);
+            // Error notification is handled by the download function
         }
     };
 
@@ -803,6 +889,16 @@ export function PageInspector({ page }: PageInspectorProps) {
                             )}
                             
                             <Group>
+                                {/* Export Page Sections */}
+                                <Button
+                                    leftSection={<IconFileExport size="1rem" />}
+                                    variant="outline"
+                                    color="blue"
+                                    onClick={handleExportPageSections}
+                                >
+                                    Export Sections
+                                </Button>
+
                                 {/* Only show Create Child Page for non-system pages */}
                                 {page?.is_system !== 1 && (
                                     <Button

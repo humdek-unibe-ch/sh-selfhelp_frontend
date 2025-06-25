@@ -42,6 +42,11 @@ export const API_CONFIG = {
         // Section creation endpoints
         ADMIN_PAGES_SECTIONS_CREATE: (keyword: string) => `/admin/pages/${keyword}/sections/create`,
         ADMIN_SECTIONS_CREATE_IN_SECTION: (keyword: string, parentSectionId: number) => `/admin/pages/${keyword}/sections/${parentSectionId}/sections/create`,
+        // Section Export/Import routes
+        ADMIN_SECTIONS_EXPORT_PAGE: (keyword: string) => `/admin/pages/${keyword}/sections/export`,
+        ADMIN_SECTIONS_EXPORT_SECTION: (keyword: string, sectionId: number) => `/admin/pages/${keyword}/sections/${sectionId}/export`,
+        ADMIN_SECTIONS_IMPORT_TO_PAGE: (keyword: string) => `/admin/pages/${keyword}/sections/import`,
+        ADMIN_SECTIONS_IMPORT_TO_SECTION: (keyword: string, parentSectionId: number) => `/admin/pages/${keyword}/sections/${parentSectionId}/import`,
         LANGUAGES: '/languages',
     },
     CORS_CONFIG: {

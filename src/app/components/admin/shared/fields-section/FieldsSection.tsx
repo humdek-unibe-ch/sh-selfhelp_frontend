@@ -16,12 +16,7 @@ import {
 } from '@tabler/icons-react';
 import { useState } from 'react';
 import { FieldRenderer, IFieldData } from '../field-renderer/FieldRenderer';
-
-interface ILanguage {
-    code: string;
-    language: string;
-    locale: string;
-}
+import { ILanguage } from '../field-form-handler/FieldFormHandler';
 
 interface IFieldsSectionProps {
     title: string;

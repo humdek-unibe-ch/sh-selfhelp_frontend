@@ -12,7 +12,7 @@ import {
     IconChevronDown as IconChevronDownMove
 } from '@tabler/icons-react';
 import { IPageField } from '../../../../../types/common/pages.type';
-import { DeleteSectionModal } from './DeleteSectionModal';
+import { RemoveSectionModal } from './RemoveSectionModal';
 import styles from './PageSections.module.css';
 import headerStyles from './SectionHeader.module.css';
 
@@ -73,6 +73,11 @@ export function SectionHeader({
     };
 
     const handleDeleteModalClose = () => {
+        setDeleteModalOpened(false);
+    };
+
+    const handleConfirmRemove = () => {
+        onRemoveSection(section.id, parentId);
         setDeleteModalOpened(false);
     };
 
@@ -223,11 +228,11 @@ export function SectionHeader({
             </Box>
 
             {/* Delete Section Modal */}
-            <DeleteSectionModal
+            <RemoveSectionModal
                 opened={deleteModalOpened}
                 onClose={handleDeleteModalClose}
+                onConfirm={handleConfirmRemove}
                 section={section}
-                keyword={keyword}
             />
         </>
     );

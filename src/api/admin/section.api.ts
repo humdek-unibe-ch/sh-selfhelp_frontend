@@ -188,4 +188,76 @@ export const AdminSectionApi = {
         // For 204 No Content responses, return success indicator
         return { success: response.status === 204 || response.status === 200 };
     }
-}; 
+};
+
+// Types for export/import operations
+export interface ISectionExportData {
+    name: string;
+    style_name: string;
+    children: ISectionExportData[];
+    fields: Record<string, Record<string, {
+        content: string;
+        meta: any;
+    }>>;
+}
+
+export interface IPageSectionsExportResponse {
+    sectionsData: ISectionExportData[];
+}
+
+export interface ISectionExportResponse {
+    sectionData: ISectionExportData;
+}
+
+export interface IImportSectionsRequest {
+    sections: ISectionExportData[];
+}
+
+/**
+ * Export all sections from a page
+ */
+export async function exportPageSections(keyword: string): Promise<IBaseApiResponse<IPageSectionsExportResponse>> {
+    const response = await apiClient.get(
+        API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_EXPORT_PAGE(keyword)
+    );
+    return response.data;
+}
+
+/**
+ * Export a specific section
+ */
+export async function exportSection(keyword: string, sectionId: number): Promise<IBaseApiResponse<ISectionExportResponse>> {
+    const response = await apiClient.get(
+        API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_EXPORT_SECTION(keyword, sectionId)
+    );
+    return response.data;
+}
+
+/**
+ * Import sections to a page
+ */
+export async function importSectionsToPage(
+    keyword: string, 
+    sections: ISectionExportData[]
+): Promise<IBaseApiResponse<any>> {
+    const response = await apiClient.post(
+        API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_IMPORT_TO_PAGE(keyword),
+        { sections }
+    );
+    return response.data;
+}
+
+/**
+ * Import sections to a parent section
+ */
+export async function importSectionsToSection(
+    keyword: string, 
+    parentSectionId: number, 
+    sections: ISectionExportData[]
+): Promise<IBaseApiResponse<any>> {
+    const response = await apiClient.post(
+        API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_IMPORT_TO_SECTION(keyword, parentSectionId),
+        { sections }
+    );
+    return response.data;
+} 

@@ -106,7 +106,7 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
         case 'formUserInput':
         case 'formUserInputLog':
         case 'formUserInputRecord':
-            return <FormUserInputStyle style={style} />;
+            return <FormUserInputStyle style={style as any} />;
         case 'textarea':
             return <TextareaStyle style={style} />;
         case 'input':

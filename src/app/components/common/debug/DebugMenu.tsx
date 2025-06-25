@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
     Button, 
     Modal, 
@@ -12,7 +12,11 @@ import {
     ActionIcon,
     Tooltip,
     Code,
-    ScrollArea
+    ScrollArea,
+    Alert,
+    Switch,
+    Paper,
+    Box
 } from '@mantine/core';
 import { 
     IconBug, 
@@ -21,15 +25,61 @@ import {
     IconTrash,
     IconEye,
     IconActivity,
-    IconRoute
+    IconRoute,
+    IconClearAll,
+    IconFilter,
+    IconInfoCircle
 } from '@tabler/icons-react';
 import { isDebugEnabled, DEBUG_CONFIG } from '../../../../config/debug.config';
 import { debugLogger } from '../../../../utils/debug-logger';
 import { useAppNavigation } from '../../../../hooks/useAppNavigation';
 
+interface IDebugLogEntry {
+    timestamp: string;
+    component: string;
+    message: string;
+    data?: any;
+    level: 'info' | 'warn' | 'error';
+}
+
+// Global debug logs store
+let debugLogs: IDebugLogEntry[] = [];
+let debugListeners: Array<(logs: IDebugLogEntry[]) => void> = [];
+
+// Enhanced debug function that captures logs
+const captureDebugLog = (message: string, component: string, data?: any, level: 'info' | 'warn' | 'error' = 'info') => {
+    const logEntry: IDebugLogEntry = {
+        timestamp: new Date().toISOString(),
+        component,
+        message,
+        data,
+        level
+    };
+    
+    debugLogs.unshift(logEntry); // Add to beginning
+    
+    // Keep only last 1000 logs to prevent memory issues
+    if (debugLogs.length > 1000) {
+        debugLogs = debugLogs.slice(0, 1000);
+    }
+    
+    // Notify listeners
+    debugListeners.forEach(listener => listener([...debugLogs]));
+    
+    // Call original debug function
+    debugLogger.debug(message, component, data);
+};
+
+// Override the global debug function
+(window as any).captureDebug = captureDebugLog;
+
 export function DebugMenu() {
     const [opened, setOpened] = useState(false);
-    const [activeTab, setActiveTab] = useState<string | null>('overview');
+    const [activeTab, setActiveTab] = useState<string>('all');
+    const [logs, setLogs] = useState<IDebugLogEntry[]>([]);
+    const [filterSectionInspector, setFilterSectionInspector] = useState(false);
+    const [filterPageInspector, setFilterPageInspector] = useState(false);
+    const [filterFieldHandler, setFilterFieldHandler] = useState(false);
     
     // Navigation data for the navigation debug tab
     const { pages, menuPages, footerPages, routes, isLoading } = useAppNavigation();
@@ -37,6 +87,19 @@ export function DebugMenu() {
     if (!isDebugEnabled()) {
         return null;
     }
+
+    useEffect(() => {
+        const listener = (newLogs: IDebugLogEntry[]) => {
+            setLogs(newLogs);
+        };
+        
+        debugListeners.push(listener);
+        setLogs([...debugLogs]);
+        
+        return () => {
+            debugListeners = debugListeners.filter(l => l !== listener);
+        };
+    }, []);
 
     const handleExportLogs = () => {
         const logs = debugLogger.exportLogs();
@@ -55,7 +118,73 @@ export function DebugMenu() {
         debugLogger.clearLogs();
     };
 
-    const logs = debugLogger.getLogs();
+    const getFilteredLogs = () => {
+        let filtered = logs;
+        
+        if (filterSectionInspector) {
+            filtered = filtered.filter(log => log.component.includes('SectionInspector'));
+        }
+        
+        if (filterPageInspector) {
+            filtered = filtered.filter(log => log.component.includes('PageInspector'));
+        }
+        
+        if (filterFieldHandler) {
+            filtered = filtered.filter(log => log.component.includes('FieldFormHandler') || log.component.includes('FieldsSection'));
+        }
+        
+        if (activeTab !== 'all') {
+            filtered = filtered.filter(log => log.level === activeTab);
+        }
+        
+        return filtered;
+    };
+
+    const getLogsByComponent = () => {
+        const componentGroups: Record<string, IDebugLogEntry[]> = {};
+        logs.forEach(log => {
+            if (!componentGroups[log.component]) {
+                componentGroups[log.component] = [];
+            }
+            componentGroups[log.component].push(log);
+        });
+        return componentGroups;
+    };
+
+    const renderLogEntry = (log: IDebugLogEntry, index: number) => (
+        <Paper key={index} p="sm" withBorder mb="xs">
+            <Group justify="space-between" mb="xs">
+                <Group gap="xs">
+                    <Badge 
+                        color={log.level === 'error' ? 'red' : log.level === 'warn' ? 'yellow' : 'blue'} 
+                        size="sm"
+                    >
+                        {log.level.toUpperCase()}
+                    </Badge>
+                    <Badge variant="light" size="sm">{log.component}</Badge>
+                    <Text size="xs" c="dimmed">
+                        {new Date(log.timestamp).toLocaleTimeString()}
+                    </Text>
+                </Group>
+            </Group>
+            
+            <Text size="sm" mb={log.data ? "xs" : 0}>
+                {log.message}
+            </Text>
+            
+            {log.data && (
+                <Code block style={{ maxHeight: '200px', overflow: 'auto', fontSize: '12px' }}>
+                    {JSON.stringify(log.data, null, 2)}
+                </Code>
+            )}
+        </Paper>
+    );
+
+    const filteredLogs = getFilteredLogs();
+    const componentGroups = getLogsByComponent();
+    const sectionInspectorLogs = logs.filter(log => log.component.includes('SectionInspector'));
+    const pageInspectorLogs = logs.filter(log => log.component.includes('PageInspector'));
+    const fieldHandlerLogs = logs.filter(log => log.component.includes('FieldFormHandler') || log.component.includes('FieldsSection'));
 
     return (
         <>
@@ -90,23 +219,21 @@ export function DebugMenu() {
                 }
                 size="xl"
             >
-                <Tabs value={activeTab} onChange={setActiveTab}>
+                <Tabs value={activeTab} onChange={(value) => setActiveTab(value || 'all')} style={{ flex: 1 }}>
                     <Tabs.List>
-                        <Tabs.Tab value="overview" leftSection={<IconEye size={16} />}>
-                            Overview
+                        <Tabs.Tab value="all">All ({logs.length})</Tabs.Tab>
+                        <Tabs.Tab value="error">
+                            Errors ({logs.filter(l => l.level === 'error').length})
                         </Tabs.Tab>
-                        <Tabs.Tab value="navigation" leftSection={<IconRoute size={16} />}>
-                            Navigation
+                        <Tabs.Tab value="warn">
+                            Warnings ({logs.filter(l => l.level === 'warn').length})
                         </Tabs.Tab>
-                        <Tabs.Tab value="logs" leftSection={<IconActivity size={16} />}>
-                            Logs ({logs.length})
-                        </Tabs.Tab>
-                        <Tabs.Tab value="config" leftSection={<IconSettings size={16} />}>
-                            Config
+                        <Tabs.Tab value="info">
+                            Info ({logs.filter(l => l.level === 'info').length})
                         </Tabs.Tab>
                     </Tabs.List>
 
-                    <Tabs.Panel value="overview" pt="md">
+                    <Tabs.Panel value="all" pt="md" style={{ flex: 1 }}>
                         <Stack gap="md">
                             <Text size="sm" c="dimmed">
                                 Debug tools and utilities for development and testing.
@@ -216,7 +343,7 @@ export function DebugMenu() {
                         </Stack>
                     </Tabs.Panel>
 
-                    <Tabs.Panel value="logs" pt="md">
+                    <Tabs.Panel value="logs" pt="md" style={{ flex: 1 }}>
                         <Stack gap="md">
                             <Group justify="space-between">
                                 <Text fw={500}>Debug Logs</Text>
@@ -241,45 +368,55 @@ export function DebugMenu() {
                                 </Group>
                             </Group>
 
+                            <Paper p="sm" withBorder>
+                                <Text size="sm" fw={500} mb="xs">
+                                    <IconFilter size="1rem" style={{ marginRight: '4px' }} />
+                                    Filters
+                                </Text>
+                                <Group gap="md">
+                                    <Switch
+                                        label="Section Inspector"
+                                        checked={filterSectionInspector}
+                                        onChange={(e) => setFilterSectionInspector(e.currentTarget.checked)}
+                                        size="sm"
+                                    />
+                                    <Switch
+                                        label="Page Inspector"
+                                        checked={filterPageInspector}
+                                        onChange={(e) => setFilterPageInspector(e.currentTarget.checked)}
+                                        size="sm"
+                                    />
+                                    <Switch
+                                        label="Field Handler"
+                                        checked={filterFieldHandler}
+                                        onChange={(e) => setFilterFieldHandler(e.currentTarget.checked)}
+                                        size="sm"
+                                    />
+                                </Group>
+                            </Paper>
+
+                            <Alert icon={<IconInfoCircle size="1rem" />} color="blue">
+                                <Group gap="md">
+                                    <Text size="sm">
+                                        <strong>Section Inspector:</strong> {sectionInspectorLogs.length} logs
+                                    </Text>
+                                    <Text size="sm">
+                                        <strong>Page Inspector:</strong> {pageInspectorLogs.length} logs
+                                    </Text>
+                                    <Text size="sm">
+                                        <strong>Field Handler:</strong> {fieldHandlerLogs.length} logs
+                                    </Text>
+                                </Group>
+                            </Alert>
+
                             <ScrollArea h={400}>
                                 <Stack gap="xs">
-                                    {logs.length === 0 ? (
+                                    {filteredLogs.length === 0 ? (
                                         <Text size="sm" c="dimmed" ta="center" py="xl">
                                             No logs available
                                         </Text>
                                     ) : (
-                                        logs.slice(-50).reverse().map((log, index) => (
-                                            <div key={index}>
-                                                <Group gap="xs" mb={4}>
-                                                    <Badge 
-                                                        size="xs" 
-                                                        color={
-                                                            log.level === 'error' ? 'red' :
-                                                            log.level === 'warn' ? 'orange' :
-                                                            log.level === 'info' ? 'blue' : 'gray'
-                                                        }
-                                                    >
-                                                        {log.level}
-                                                    </Badge>
-                                                    <Text size="xs" c="dimmed">
-                                                        {new Date(log.timestamp).toLocaleTimeString()}
-                                                    </Text>
-                                                    {log.component && (
-                                                        <Badge size="xs" variant="light">
-                                                            {log.component}
-                                                        </Badge>
-                                                    )}
-                                                </Group>
-                                                <Text size="sm" mb="xs">
-                                                    {log.message}
-                                                </Text>
-                                                {log.data && (
-                                                    <Code block style={{ fontSize: '10px' }}>
-                                                        {JSON.stringify(log.data, null, 2)}
-                                                    </Code>
-                                                )}
-                                            </div>
-                                        ))
+                                        filteredLogs.slice(-50).reverse().map((log, index) => renderLogEntry(log, index))
                                     )}
                                 </Stack>
                             </ScrollArea>

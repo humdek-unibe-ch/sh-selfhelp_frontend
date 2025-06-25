@@ -95,7 +95,7 @@ export const PageRenderer: React.FC<IPageRendererProps> = ({
                     title="No content available" 
                     color="gray"
                 >
-                    This page doesn't have any content yet.
+                    This page doesn&apos;t have any content yet.
                 </Alert>
             </Container>
         );
