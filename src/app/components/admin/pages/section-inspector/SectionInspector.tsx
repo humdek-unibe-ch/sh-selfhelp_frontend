@@ -435,7 +435,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
         try {
             const response = await exportSection(keyword, sectionId);
             const filename = generateExportFilename(`section_${sectionDetailsData.section.name}_${sectionId}`);
-            downloadJsonFile([response.data.sectionData], filename);
+            downloadJsonFile(response.data.sectionsData, filename);
         } catch (error) {
             console.error('Error exporting section:', error);
             // Error notification is handled by the download function

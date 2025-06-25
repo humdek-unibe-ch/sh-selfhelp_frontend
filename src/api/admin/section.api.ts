@@ -206,7 +206,7 @@ export interface IPageSectionsExportResponse {
 }
 
 export interface ISectionExportResponse {
-    sectionData: ISectionExportData;
+    sectionsData: ISectionExportData[];
 }
 
 export interface IImportSectionsRequest {
