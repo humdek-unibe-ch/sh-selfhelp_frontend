@@ -225,8 +225,13 @@ Every section in the system follows this base structure:
 
 ## CSS Styling Guidelines
 
-### Tailwind CSS Classes
-The system uses Tailwind CSS for styling. Common patterns:
+### Tailwind CSS Classes with Dark Mode Support
+The system uses Tailwind CSS with Mantine UI theming for styling. **CRITICAL**: Always include dark mode variants for proper theme support.
+
+**Dark Mode Implementation**:
+- Use `dark:` prefix for dark mode variants of colors, backgrounds, and borders
+- **ALWAYS** provide both light and dark variants for visual elements
+- Example: `bg-white dark:bg-gray-900 text-gray-900 dark:text-white`
 
 **Layout & Spacing**:
 - `container mx-auto`: Centered container
@@ -234,19 +239,45 @@ The system uses Tailwind CSS for styling. Common patterns:
 - `flex flex-col gap-4`: Flexbox layouts
 - `grid grid-cols-2 gap-4`: Grid layouts
 
-**Colors**:
-- `bg-blue-500 text-white`: Background and text colors
-- `border-gray-300`: Border colors
-- `hover:bg-blue-600`: Hover states
+**Colors with Dark Mode**:
+- `bg-white dark:bg-gray-900`: Background colors
+- `text-gray-900 dark:text-white`: Text colors
+- `border-gray-200 dark:border-gray-700`: Border colors
+- `hover:bg-gray-50 dark:hover:bg-gray-800`: Hover states
 
 **Typography**:
 - `text-lg font-bold`: Text size and weight
 - `text-center`: Text alignment
 - `leading-relaxed`: Line height
 
+**Shadows with Dark Mode**:
+- `shadow-lg dark:shadow-2xl`: Shadows that work in both themes
+- `shadow-gray-200 dark:shadow-gray-800`: Colored shadows
+
 **Responsive Design**:
 - `sm:text-lg md:text-xl lg:text-2xl`: Responsive text
 - `sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3`: Responsive grids
+
+**Essential Dark Mode Patterns**:
+```css
+/* Backgrounds */
+bg-white dark:bg-gray-900
+bg-gray-50 dark:bg-gray-800
+bg-gray-100 dark:bg-gray-700
+
+/* Text Colors */
+text-gray-900 dark:text-white
+text-gray-700 dark:text-gray-300
+text-gray-600 dark:text-gray-400
+
+/* Borders */
+border-gray-200 dark:border-gray-700
+border-gray-300 dark:border-gray-600
+
+/* Cards & Components */
+bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700
+shadow-lg dark:shadow-2xl
+```
 
 ## Language Configuration
 All content fields must be wrapped in language objects. The structure is field name first, then language code. Use "en-GB" as the default language, and "all" for non-translatable fields:
@@ -317,12 +348,13 @@ When generating JSON structures based on an image:
 3. **Structure Hierarchically**: Create parent-child relationships using the `children` array
 4. **Configure Fields**: Set appropriate field values based on the visual content
 5. **Apply Styling**: Use Tailwind CSS classes to match the visual appearance
-6. **Use Placeholder Images**: Always use `http://127.0.0.1/selfhelp/assets/image-holder.png` for image sources
-7. **Multi-Language Structure**: Use field name first, then language code (field_name -> language_code -> content)
-8. **Required Languages**: Always include both "en-GB" (English) and "de-CH" (German) for all translatable text content
-9. **Language Codes**: Use "en-GB" and "de-CH" for translatable content, "all" for CSS and technical fields
-10. **Semantic Naming**: Give meaningful names to sections for admin interface
-11. **Naming Rules**: Section names can ONLY contain letters, numbers, hyphens (-), and underscores (_). No spaces, special characters, or other symbols are allowed.
+6. **Dark Mode Support**: **CRITICAL** - Always include dark mode variants (dark:) for all colors, backgrounds, borders, and shadows
+7. **Use Placeholder Images**: Always use `http://127.0.0.1/selfhelp/assets/image-holder.png` for image sources
+8. **Multi-Language Structure**: Use field name first, then language code (field_name -> language_code -> content)
+9. **Required Languages**: Always include both "en-GB" (English) and "de-CH" (German) for all translatable text content
+10. **Language Codes**: Use "en-GB" and "de-CH" for translatable content, "all" for CSS and technical fields
+11. **Semantic Naming**: Give meaningful names to sections for admin interface
+12. **Naming Rules**: Section names can ONLY contain letters, numbers, hyphens (-), and underscores (_). No spaces, special characters, or other symbols are allowed.
 
 ### Naming Convention Examples:
 - ✅ **Correct**: "travel-blog-container", "norway_article_card", "hero-section", "main-heading"

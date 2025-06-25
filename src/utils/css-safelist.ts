@@ -79,6 +79,21 @@ export const CSS_SAFELIST = {
     'text-blue-50', 'text-blue-100', 'text-blue-200', 'text-blue-300', 'text-blue-400', 'text-blue-500', 'text-blue-600', 'text-blue-700', 'text-blue-800', 'text-blue-900',
     'text-red-50', 'text-red-100', 'text-red-200', 'text-red-300', 'text-red-400', 'text-red-500', 'text-red-600', 'text-red-700', 'text-red-800', 'text-red-900',
     'text-green-50', 'text-green-100', 'text-green-200', 'text-green-300', 'text-green-400', 'text-green-500', 'text-green-600', 'text-green-700', 'text-green-800', 'text-green-900',
+    'text-purple-50', 'text-purple-100', 'text-purple-200', 'text-purple-300', 'text-purple-400', 'text-purple-500', 'text-purple-600', 'text-purple-700', 'text-purple-800', 'text-purple-900',
+    'text-pink-50', 'text-pink-100', 'text-pink-200', 'text-pink-300', 'text-pink-400', 'text-pink-500', 'text-pink-600', 'text-pink-700', 'text-pink-800', 'text-pink-900',
+    'text-orange-50', 'text-orange-100', 'text-orange-200', 'text-orange-300', 'text-orange-400', 'text-orange-500', 'text-orange-600', 'text-orange-700', 'text-orange-800', 'text-orange-900',
+    'text-indigo-50', 'text-indigo-100', 'text-indigo-200', 'text-indigo-300', 'text-indigo-400', 'text-indigo-500', 'text-indigo-600', 'text-indigo-700', 'text-indigo-800', 'text-indigo-900',
+    
+    // Dark mode text colors
+    'dark:text-white', 'dark:text-black',
+    'dark:text-gray-50', 'dark:text-gray-100', 'dark:text-gray-200', 'dark:text-gray-300', 'dark:text-gray-400', 'dark:text-gray-500', 'dark:text-gray-600', 'dark:text-gray-700', 'dark:text-gray-800', 'dark:text-gray-900',
+    'dark:text-blue-50', 'dark:text-blue-100', 'dark:text-blue-200', 'dark:text-blue-300', 'dark:text-blue-400', 'dark:text-blue-500', 'dark:text-blue-600', 'dark:text-blue-700', 'dark:text-blue-800', 'dark:text-blue-900',
+    'dark:text-red-50', 'dark:text-red-100', 'dark:text-red-200', 'dark:text-red-300', 'dark:text-red-400', 'dark:text-red-500', 'dark:text-red-600', 'dark:text-red-700', 'dark:text-red-800', 'dark:text-red-900',
+    'dark:text-green-50', 'dark:text-green-100', 'dark:text-green-200', 'dark:text-green-300', 'dark:text-green-400', 'dark:text-green-500', 'dark:text-green-600', 'dark:text-green-700', 'dark:text-green-800', 'dark:text-green-900',
+    'dark:text-purple-50', 'dark:text-purple-100', 'dark:text-purple-200', 'dark:text-purple-300', 'dark:text-purple-400', 'dark:text-purple-500', 'dark:text-purple-600', 'dark:text-purple-700', 'dark:text-purple-800', 'dark:text-purple-900',
+    'dark:text-pink-50', 'dark:text-pink-100', 'dark:text-pink-200', 'dark:text-pink-300', 'dark:text-pink-400', 'dark:text-pink-500', 'dark:text-pink-600', 'dark:text-pink-700', 'dark:text-pink-800', 'dark:text-pink-900',
+    'dark:text-orange-50', 'dark:text-orange-100', 'dark:text-orange-200', 'dark:text-orange-300', 'dark:text-orange-400', 'dark:text-orange-500', 'dark:text-orange-600', 'dark:text-orange-700', 'dark:text-orange-800', 'dark:text-orange-900',
+    'dark:text-indigo-50', 'dark:text-indigo-100', 'dark:text-indigo-200', 'dark:text-indigo-300', 'dark:text-indigo-400', 'dark:text-indigo-500', 'dark:text-indigo-600', 'dark:text-indigo-700', 'dark:text-indigo-800', 'dark:text-indigo-900',
   ],
 
   // Sizing Classes
@@ -97,8 +112,14 @@ export const CSS_SAFELIST = {
   borders: [
     'border', 'border-0', 'border-2', 'border-4', 'border-8',
     'border-t', 'border-r', 'border-b', 'border-l',
-    'border-gray-100', 'border-gray-200', 'border-gray-300', 'border-gray-400', 'border-gray-500',
-    'border-blue-100', 'border-blue-200', 'border-blue-300', 'border-blue-400', 'border-blue-500',
+    'border-gray-100', 'border-gray-200', 'border-gray-300', 'border-gray-400', 'border-gray-500', 'border-gray-600', 'border-gray-700', 'border-gray-800',
+    'border-blue-100', 'border-blue-200', 'border-blue-300', 'border-blue-400', 'border-blue-500', 'border-blue-600', 'border-blue-700', 'border-blue-800',
+    'border-white', 'border-black',
+    
+    // Dark mode borders
+    'dark:border-gray-100', 'dark:border-gray-200', 'dark:border-gray-300', 'dark:border-gray-400', 'dark:border-gray-500', 'dark:border-gray-600', 'dark:border-gray-700', 'dark:border-gray-800',
+    'dark:border-blue-100', 'dark:border-blue-200', 'dark:border-blue-300', 'dark:border-blue-400', 'dark:border-blue-500', 'dark:border-blue-600', 'dark:border-blue-700', 'dark:border-blue-800',
+    'dark:border-white', 'dark:border-black',
     
     // Border radius
     'rounded-none', 'rounded-sm', 'rounded', 'rounded-md', 'rounded-lg', 'rounded-xl', 'rounded-2xl', 'rounded-3xl', 'rounded-full',
@@ -116,12 +137,31 @@ export const CSS_SAFELIST = {
     'bg-red-50', 'bg-red-100', 'bg-red-200', 'bg-red-300', 'bg-red-400', 'bg-red-500', 'bg-red-600', 'bg-red-700', 'bg-red-800', 'bg-red-900',
     'bg-green-50', 'bg-green-100', 'bg-green-200', 'bg-green-300', 'bg-green-400', 'bg-green-500', 'bg-green-600', 'bg-green-700', 'bg-green-800', 'bg-green-900',
     'bg-yellow-50', 'bg-yellow-100', 'bg-yellow-200', 'bg-yellow-300', 'bg-yellow-400', 'bg-yellow-500', 'bg-yellow-600', 'bg-yellow-700', 'bg-yellow-800', 'bg-yellow-900',
+    'bg-purple-50', 'bg-purple-100', 'bg-purple-200', 'bg-purple-300', 'bg-purple-400', 'bg-purple-500', 'bg-purple-600', 'bg-purple-700', 'bg-purple-800', 'bg-purple-900',
+    'bg-pink-50', 'bg-pink-100', 'bg-pink-200', 'bg-pink-300', 'bg-pink-400', 'bg-pink-500', 'bg-pink-600', 'bg-pink-700', 'bg-pink-800', 'bg-pink-900',
+    'bg-orange-50', 'bg-orange-100', 'bg-orange-200', 'bg-orange-300', 'bg-orange-400', 'bg-orange-500', 'bg-orange-600', 'bg-orange-700', 'bg-orange-800', 'bg-orange-900',
+    'bg-indigo-50', 'bg-indigo-100', 'bg-indigo-200', 'bg-indigo-300', 'bg-indigo-400', 'bg-indigo-500', 'bg-indigo-600', 'bg-indigo-700', 'bg-indigo-800', 'bg-indigo-900',
+    
+    // Dark mode backgrounds
+    'dark:bg-transparent', 'dark:bg-white', 'dark:bg-black',
+    'dark:bg-gray-50', 'dark:bg-gray-100', 'dark:bg-gray-200', 'dark:bg-gray-300', 'dark:bg-gray-400', 'dark:bg-gray-500', 'dark:bg-gray-600', 'dark:bg-gray-700', 'dark:bg-gray-800', 'dark:bg-gray-900',
+    'dark:bg-blue-50', 'dark:bg-blue-100', 'dark:bg-blue-200', 'dark:bg-blue-300', 'dark:bg-blue-400', 'dark:bg-blue-500', 'dark:bg-blue-600', 'dark:bg-blue-700', 'dark:bg-blue-800', 'dark:bg-blue-900',
+    'dark:bg-red-50', 'dark:bg-red-100', 'dark:bg-red-200', 'dark:bg-red-300', 'dark:bg-red-400', 'dark:bg-red-500', 'dark:bg-red-600', 'dark:bg-red-700', 'dark:bg-red-800', 'dark:bg-red-900',
+    'dark:bg-green-50', 'dark:bg-green-100', 'dark:bg-green-200', 'dark:bg-green-300', 'dark:bg-green-400', 'dark:bg-green-500', 'dark:bg-green-600', 'dark:bg-green-700', 'dark:bg-green-800', 'dark:bg-green-900',
+    'dark:bg-purple-50', 'dark:bg-purple-100', 'dark:bg-purple-200', 'dark:bg-purple-300', 'dark:bg-purple-400', 'dark:bg-purple-500', 'dark:bg-purple-600', 'dark:bg-purple-700', 'dark:bg-purple-800', 'dark:bg-purple-900',
+    'dark:bg-pink-50', 'dark:bg-pink-100', 'dark:bg-pink-200', 'dark:bg-pink-300', 'dark:bg-pink-400', 'dark:bg-pink-500', 'dark:bg-pink-600', 'dark:bg-pink-700', 'dark:bg-pink-800', 'dark:bg-pink-900',
+    'dark:bg-orange-50', 'dark:bg-orange-100', 'dark:bg-orange-200', 'dark:bg-orange-300', 'dark:bg-orange-400', 'dark:bg-orange-500', 'dark:bg-orange-600', 'dark:bg-orange-700', 'dark:bg-orange-800', 'dark:bg-orange-900',
+    'dark:bg-indigo-50', 'dark:bg-indigo-100', 'dark:bg-indigo-200', 'dark:bg-indigo-300', 'dark:bg-indigo-400', 'dark:bg-indigo-500', 'dark:bg-indigo-600', 'dark:bg-indigo-700', 'dark:bg-indigo-800', 'dark:bg-indigo-900',
   ],
 
   // Shadow Classes
   shadows: [
     'shadow-none', 'shadow-sm', 'shadow', 'shadow-md', 'shadow-lg', 'shadow-xl', 'shadow-2xl',
     'shadow-inner',
+    
+    // Dark mode shadows
+    'dark:shadow-none', 'dark:shadow-sm', 'dark:shadow', 'dark:shadow-md', 'dark:shadow-lg', 'dark:shadow-xl', 'dark:shadow-2xl',
+    'dark:shadow-inner',
   ],
 
   // Display & Position Classes
@@ -142,12 +182,17 @@ export const CSS_SAFELIST = {
 
   // Hover & Focus States
   states: [
-    'hover:bg-white', 'hover:bg-gray-50', 'hover:bg-gray-100', 'hover:bg-gray-200', 'hover:bg-gray-300',
+    'hover:bg-white', 'hover:bg-gray-50', 'hover:bg-gray-100', 'hover:bg-gray-200', 'hover:bg-gray-300', 'hover:bg-gray-800',
     'hover:bg-blue-50', 'hover:bg-blue-100', 'hover:bg-blue-200', 'hover:bg-blue-300', 'hover:bg-blue-400', 'hover:bg-blue-500', 'hover:bg-blue-600',
     'hover:text-white', 'hover:text-gray-600', 'hover:text-gray-700', 'hover:text-gray-800', 'hover:text-gray-900',
-    'hover:text-blue-600', 'hover:text-blue-700', 'hover:text-blue-800',
-    'hover:shadow-sm', 'hover:shadow', 'hover:shadow-md', 'hover:shadow-lg', 'hover:shadow-xl',
+    'hover:text-blue-600', 'hover:text-blue-700', 'hover:text-blue-800', 'hover:text-purple-800', 'hover:text-green-800', 'hover:text-orange-800', 'hover:text-pink-800',
+    'hover:shadow-sm', 'hover:shadow', 'hover:shadow-md', 'hover:shadow-lg', 'hover:shadow-xl', 'hover:shadow-2xl',
     'focus:outline-none', 'focus:ring-1', 'focus:ring-2', 'focus:ring-4', 'focus:ring-blue-500',
+    
+    // Dark mode hover states
+    'dark:hover:bg-white', 'dark:hover:bg-gray-50', 'dark:hover:bg-gray-100', 'dark:hover:bg-gray-200', 'dark:hover:bg-gray-700', 'dark:hover:bg-gray-800',
+    'dark:hover:text-white', 'dark:hover:text-gray-100', 'dark:hover:text-gray-200', 'dark:hover:text-gray-300',
+    'dark:hover:text-blue-400', 'dark:hover:text-blue-300', 'dark:hover:text-purple-400', 'dark:hover:text-green-400', 'dark:hover:text-orange-400', 'dark:hover:text-pink-400',
   ],
 
   // Transition Classes

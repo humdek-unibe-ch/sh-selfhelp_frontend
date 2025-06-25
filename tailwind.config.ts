@@ -4,6 +4,7 @@ import { breakpoints, colors } from "./src/theme";
 import { ALL_CSS_CLASSES } from "./src/utils/css-safelist";
 
 const config: Config = {
+    darkMode: 'class',
     content: [
         "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
         "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -17,8 +18,8 @@ const config: Config = {
         
         // Add any additional dynamic classes that might be generated
         {
-            pattern: /^(bg|text|border)-(red|green|blue|yellow|gray|indigo|purple|pink)-(50|100|200|300|400|500|600|700|800|900)$/,
-            variants: ['hover', 'focus'],
+            pattern: /^(bg|text|border)-(red|green|blue|yellow|gray|indigo|purple|pink|orange)-(50|100|200|300|400|500|600|700|800|900)$/,
+            variants: ['hover', 'focus', 'dark'],
         },
         {
             pattern: /^(p|m|px|py|mx|my|pt|pb|pl|pr|mt|mb|ml|mr)-(0|1|2|3|4|5|6|8|10|12|16|20|24)$/,
