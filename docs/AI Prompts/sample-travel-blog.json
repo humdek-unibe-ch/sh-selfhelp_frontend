@@ -1,18 +1,18 @@
 [
   {
-    "name": "Travel Blog Container",
+    "name": "travel-blog-container",
     "style_name": "container",
     "children": [
       {
-        "name": "Blog Grid",
+        "name": "blog-grid",
         "style_name": "div",
         "children": [
           {
-            "name": "Norway Article Card",
+            "name": "norway-article-card",
             "style_name": "card",
             "children": [
               {
-                "name": "Norway Image",
+                "name": "norway-image",
                 "style_name": "image",
                 "children": [],
                 "fields": {
@@ -37,7 +37,7 @@
                 }
               },
               {
-                "name": "Norway Article Title",
+                "name": "norway-article-title",
                 "style_name": "heading",
                 "children": [],
                 "fields": {
@@ -72,11 +72,11 @@
             }
           },
           {
-            "name": "Forest Article Card",
+            "name": "forest-article-card",
             "style_name": "card",
             "children": [
               {
-                "name": "Forest Image",
+                "name": "forest-image",
                 "style_name": "image",
                 "children": [],
                 "fields": {
@@ -101,7 +101,7 @@
                 }
               },
               {
-                "name": "Forest Article Title",
+                "name": "forest-article-title",
                 "style_name": "heading",
                 "children": [],
                 "fields": {
@@ -136,11 +136,11 @@
             }
           },
           {
-            "name": "Hawaii Article Card",
+            "name": "hawaii-article-card",
             "style_name": "card",
             "children": [
               {
-                "name": "Hawaii Beach Image",
+                "name": "hawaii-beach-image",
                 "style_name": "image",
                 "children": [],
                 "fields": {
@@ -165,7 +165,7 @@
                 }
               },
               {
-                "name": "Hawaii Article Title",
+                "name": "hawaii-article-title",
                 "style_name": "heading",
                 "children": [],
                 "fields": {
@@ -200,11 +200,11 @@
             }
           },
           {
-            "name": "Mountains Article Card",
+            "name": "mountains-article-card",
             "style_name": "card",
             "children": [
               {
-                "name": "Mountains Night Image",
+                "name": "mountains-night-image",
                 "style_name": "image",
                 "children": [],
                 "fields": {
@@ -229,7 +229,7 @@
                 }
               },
               {
-                "name": "Mountains Article Title",
+                "name": "mountains-article-title",
                 "style_name": "heading",
                 "children": [],
                 "fields": {

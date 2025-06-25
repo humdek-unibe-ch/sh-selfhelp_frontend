@@ -312,15 +312,21 @@ When generating JSON structures based on an image:
 7. **Multi-Language Structure**: Use field name first, then language code (field_name -> language_code -> content)
 8. **Language Codes**: Use "en-GB" for translatable content, "all" for CSS and technical fields
 9. **Semantic Naming**: Give meaningful names to sections for admin interface
+10. **Naming Rules**: Section names can ONLY contain letters, numbers, hyphens (-), and underscores (_). No spaces, special characters, or other symbols are allowed.
+
+### Naming Convention Examples:
+- ✅ **Correct**: "travel-blog-container", "norway_article_card", "hero-section", "main-heading"
+- ❌ **Incorrect**: "Travel Blog Container", "Norway Article (Card)", "Hero Section!", "Main Heading & Content"
 
 ### Example Generation Process:
 For a page with a header, image, and text content:
 
-1. **Root Container**: Use `container` style for the main wrapper
-2. **Header Section**: Use `heading` style with appropriate level
-3. **Image Section**: Use `image` style with placeholder URL
-4. **Content Section**: Use `markdown` or `plaintext` for text content
+1. **Root Container**: Use `container` style for the main wrapper (name: "page-container")
+2. **Header Section**: Use `heading` style with appropriate level (name: "page-header" or "main-heading")
+3. **Image Section**: Use `image` style with placeholder URL (name: "hero-image" or "feature-image")
+4. **Content Section**: Use `markdown` or `plaintext` for text content (name: "main-content" or "description-text")
 5. **Styling**: Apply appropriate Tailwind classes for layout and appearance
+6. **Naming**: Ensure all section names use only letters, numbers, hyphens, and underscores
 
 ## Sample JSON Structure
 
@@ -328,11 +334,11 @@ Here's a complete example of a simple page section:
 
 ```json
 {
-  "name": "Hero Section",
+  "name": "hero-section",
   "style_name": "container",
   "children": [
     {
-      "name": "Main Heading",
+      "name": "main-heading",
       "style_name": "heading",
       "children": [],
       "fields": {
@@ -357,7 +363,7 @@ Here's a complete example of a simple page section:
       }
     },
     {
-      "name": "Hero Image",
+      "name": "hero-image",
       "style_name": "image",
       "children": [],
       "fields": {
@@ -382,7 +388,7 @@ Here's a complete example of a simple page section:
       }
     },
     {
-      "name": "Description Text",
+      "name": "description-text",
       "style_name": "markdown",
       "children": [],
       "fields": {

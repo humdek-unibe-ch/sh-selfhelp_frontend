@@ -22,7 +22,6 @@ export default function SlugLayout({ children }: { children: any }) {
     return (
         <AppShell
             header={!isHeadless ? { height: 60 } : undefined}
-            footer={!isHeadless ? { height: 'auto' } : undefined}
         >
             {!isHeadless && (
                 <AppShell.Header>
@@ -30,15 +29,12 @@ export default function SlugLayout({ children }: { children: any }) {
                 </AppShell.Header>
             )}
             
-            <AppShell.Main>
-                {children}
+            <AppShell.Main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ flex: 1 }}>
+                    {children}
+                </div>
+                {!isHeadless && <WebsiteFooter />}
             </AppShell.Main>
-            
-            {!isHeadless && (
-                <AppShell.Footer>
-                    <WebsiteFooter />
-                </AppShell.Footer>
-            )}
             
             <DebugMenu />
         </AppShell>

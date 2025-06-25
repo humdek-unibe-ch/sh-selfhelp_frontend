@@ -1,18 +1,20 @@
 'use client';
 
-import { Group, Skeleton, Text, Container, Divider, Stack } from '@mantine/core';
+import { Group, Skeleton, Text, Container, Divider, Stack, Box } from '@mantine/core';
 import { InternalLink } from '../shared/InternalLink';
 import { useAppNavigation } from '../../../hooks/useAppNavigation';
 
 function FooterSkeleton() {
     return (
-        <Container size="xl" py="xl">
-            <Group justify="center" gap="xl">
-                {Array.from({ length: 5 }).map((_, index) => (
-                    <Skeleton key={index} height={20} width={80} radius="sm" />
-                ))}
-            </Group>
-        </Container>
+        <Box w="100%" py="xl" style={{ backgroundColor: 'var(--mantine-color-gray-0)' }}>
+            <Container size="xl">
+                <Group justify="center" gap="xl">
+                    {Array.from({ length: 5 }).map((_, index) => (
+                        <Skeleton key={index} height={20} width={80} radius="sm" />
+                    ))}
+                </Group>
+            </Container>
+        </Box>
     );
 }
 
@@ -28,8 +30,16 @@ export function WebsiteFooter() {
     }
 
     return (
-        <footer>
-            <Container size="xl" py="xl">
+        <Box 
+            component="footer" 
+            w="100%" 
+            py="xl" 
+            style={{ 
+                backgroundColor: 'var(--mantine-color-gray-0)',
+                borderTop: '1px solid var(--mantine-color-gray-3)'
+            }}
+        >
+            <Container size="xl">
                 <Stack gap="lg">
                     <Group justify="center" gap="xl">
                         {footerPages.map(page => (
@@ -54,6 +64,6 @@ export function WebsiteFooter() {
                     </Text>
                 </Stack>
             </Container>
-        </footer>
+        </Box>
     );
 } 
