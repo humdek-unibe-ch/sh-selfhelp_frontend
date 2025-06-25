@@ -5,4 +5,5 @@
  * @module components/common/debug
  */
 
-export { DebugMenu } from './DebugMenu'; 
+export { DebugMenu } from './DebugMenu';
+export { CssClassValidator } from './CssClassValidator'; 

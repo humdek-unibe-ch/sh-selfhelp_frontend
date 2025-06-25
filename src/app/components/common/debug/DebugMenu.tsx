@@ -28,11 +28,13 @@ import {
     IconRoute,
     IconClearAll,
     IconFilter,
-    IconInfoCircle
+    IconInfoCircle,
+    IconPalette
 } from '@tabler/icons-react';
 import { isDebugEnabled, DEBUG_CONFIG } from '../../../../config/debug.config';
 import { debugLogger } from '../../../../utils/debug-logger';
 import { useAppNavigation } from '../../../../hooks/useAppNavigation';
+import { CssClassValidator } from './CssClassValidator';
 
 interface IDebugLogEntry {
     timestamp: string;
@@ -230,6 +232,9 @@ export function DebugMenu() {
                         </Tabs.Tab>
                         <Tabs.Tab value="info">
                             Info ({logs.filter(l => l.level === 'info').length})
+                        </Tabs.Tab>
+                        <Tabs.Tab value="css" leftSection={<IconPalette size="0.8rem" />}>
+                            CSS Validator
                         </Tabs.Tab>
                     </Tabs.List>
 
@@ -430,6 +435,10 @@ export function DebugMenu() {
                                 {JSON.stringify(DEBUG_CONFIG, null, 2)}
                             </Code>
                         </Stack>
+                    </Tabs.Panel>
+
+                    <Tabs.Panel value="css" pt="md">
+                        <CssClassValidator />
                     </Tabs.Panel>
                 </Tabs>
             </Modal>
