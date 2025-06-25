@@ -19,6 +19,7 @@ import {
     IconFileExport
 } from '@tabler/icons-react';
 import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { useSectionDetails } from '../../../../../hooks/useSectionDetails';
 import { useLanguages } from '../../../../../hooks/useLanguages';
 import { useUpdateSectionMutation, useDeleteSectionMutation } from '../../../../../hooks/mutations';
@@ -76,6 +77,7 @@ interface ISectionSubmitData {
 }
 
 export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps) {
+    const router = useRouter();
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [formValues, setFormValues] = useState<ISectionFormValues>({
@@ -148,6 +150,18 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
             setDeleteModalOpened(false);
             setDeleteConfirmText('');
             debug('Section deleted successfully', 'SectionInspector', { sectionId });
+            
+            // Navigate to page view after successful deletion
+            const currentPath = window.location.pathname;
+            const pathParts = currentPath.split('/');
+            const adminIndex = pathParts.indexOf('admin');
+            const pagesIndex = pathParts.indexOf('pages', adminIndex);
+            
+            if (pagesIndex !== -1 && pathParts[pagesIndex + 1]) {
+                const pageKeyword = pathParts[pagesIndex + 1];
+                const newPath = `/admin/pages/${pageKeyword}`;
+                router.push(newPath, { scroll: false });
+            }
         },
         onError: (error) => {
             debug('Section delete failed', 'SectionInspector', { sectionId, error: error.message });

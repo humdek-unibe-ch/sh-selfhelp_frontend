@@ -379,6 +379,8 @@ export function PageSections({ keyword, pageName, initialSelectedSectionId }: IP
     };
 
     const handleRemoveSection = async (sectionId: number, parentId: number | null) => {
+        // Check if we're removing the currently selected section
+        const isRemovingSelectedSection = selectedSectionId === sectionId;
         
         try {
             if (parentId === null) {
@@ -403,7 +405,21 @@ export function PageSections({ keyword, pageName, initialSelectedSectionId }: IP
                 });
             }
             
-
+            // If we removed the currently selected section, navigate to page
+            if (isRemovingSelectedSection) {
+                setSelectedSectionId(null);
+                // Navigate to page view (remove section ID from URL)
+                const currentPath = window.location.pathname;
+                const pathParts = currentPath.split('/');
+                const adminIndex = pathParts.indexOf('admin');
+                const pagesIndex = pathParts.indexOf('pages', adminIndex);
+                
+                if (pagesIndex !== -1 && pathParts[pagesIndex + 1]) {
+                    const pageKeyword = pathParts[pagesIndex + 1];
+                    const newPath = `/admin/pages/${pageKeyword}`;
+                    router.push(newPath, { scroll: false });
+                }
+            }
             
         } catch (error) {
             // Error handling is done by the mutation hooks
@@ -446,6 +462,38 @@ export function PageSections({ keyword, pageName, initialSelectedSectionId }: IP
         setAddSectionModalOpened(false);
         setSelectedParentSectionId(null);
         setSpecificPosition(undefined);
+    };
+
+    // Handle auto-selection of newly created sections
+    const handleSectionCreated = (sectionId: number) => {
+        setSelectedSectionId(sectionId);
+        // Auto-expand parents and scroll to the new section
+        setTimeout(() => {
+            expandParentsOfSection(sectionId);
+            scrollToSection(sectionId);
+        }, 100);
+    };
+
+    // Handle auto-selection of imported sections (select the first one)
+    const handleSectionsImported = (sectionIds: number[]) => {
+        debug('Handling sections imported callback', 'PageSections', { 
+            sectionIds, 
+            sectionCount: sectionIds.length 
+        });
+        
+        if (sectionIds.length > 0) {
+            const firstSectionId = sectionIds[0];
+            setSelectedSectionId(firstSectionId);
+            // Auto-expand parents and scroll to the first imported section
+            setTimeout(() => {
+                expandParentsOfSection(firstSectionId);
+                scrollToSection(firstSectionId);
+            }, 100);
+        } else {
+            // Even if we don't have section IDs, the import was successful
+            // The query invalidation will refresh the section list
+            debug('Import completed but no section IDs provided for auto-selection', 'PageSections');
+        }
     };
 
 
@@ -679,6 +727,8 @@ export function PageSections({ keyword, pageName, initialSelectedSectionId }: IP
                 parentSectionId={selectedParentSectionId}
                 title={selectedParentSectionId ? "Add Child Section" : "Add Section to Page"}
                 specificPosition={specificPosition}
+                onSectionCreated={handleSectionCreated}
+                onSectionsImported={handleSectionsImported}
             />
         </Paper>
     );

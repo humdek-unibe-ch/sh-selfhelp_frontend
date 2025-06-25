@@ -42,6 +42,8 @@ interface IAddSectionModalProps {
     parentSectionId?: number | null;
     title?: string;
     specificPosition?: number;
+    onSectionCreated?: (sectionId: number) => void;
+    onSectionsImported?: (sectionIds: number[]) => void;
 }
 
 export function AddSectionModal({
@@ -50,7 +52,9 @@ export function AddSectionModal({
     pageKeyword,
     parentSectionId = null,
     title = 'Add Section',
-    specificPosition
+    specificPosition,
+    onSectionCreated,
+    onSectionsImported
 }: IAddSectionModalProps) {
     const [activeTab, setActiveTab] = useState<string>('new-section');
     const [selectedStyle, setSelectedStyle] = useState<IStyle | null>(null);
@@ -67,6 +71,12 @@ export function AddSectionModal({
         showNotifications: true,
         onSuccess: () => {
             handleClose();
+        },
+        onSectionCreated: (sectionId) => {
+            onSectionCreated?.(sectionId);
+        },
+        onSectionsImported: (sectionIds) => {
+            onSectionsImported?.(sectionIds);
         }
     });
 

@@ -21,12 +21,15 @@ import {
 } from './mutations';
 import { importSectionsToPage, importSectionsToSection } from '../api/admin/section.api';
 import { notifications } from '@mantine/notifications';
+import { debug } from '../utils/debug-logger';
 
 export interface IUseSectionOperationsOptions {
     pageKeyword?: string;
     showNotifications?: boolean;
-    onSuccess?: () => void;
+    onSuccess?: (result?: any) => void;
     onError?: (error: any) => void;
+    onSectionCreated?: (sectionId: number) => void;
+    onSectionsImported?: (sectionIds: number[]) => void;
 }
 
 export interface ISectionOperationsResult {
@@ -46,20 +49,32 @@ export interface ISectionOperationsResult {
  * Hook that provides unified section operations with position handling
  */
 export function useSectionOperations(hookOptions: IUseSectionOperationsOptions = {}): ISectionOperationsResult {
-    const { pageKeyword, showNotifications = true, onSuccess, onError } = hookOptions;
+    const { pageKeyword, showNotifications = true, onSuccess, onError, onSectionCreated, onSectionsImported } = hookOptions;
     const queryClient = useQueryClient();
 
     // Mutation hooks
     const createSectionInPageMutation = useCreateSectionInPageMutation({
         showNotifications,
-        onSuccess: () => onSuccess?.(),
+        onSuccess: (result) => {
+            const sectionId = result?.id || result?.section?.id;
+            if (sectionId && onSectionCreated) {
+                onSectionCreated(sectionId);
+            }
+            onSuccess?.(result);
+        },
         onError: (error) => onError?.(error)
     });
 
     const createSectionInSectionMutation = useCreateSectionInSectionMutation({
         showNotifications,
         pageKeyword,
-        onSuccess: () => onSuccess?.(),
+        onSuccess: (result) => {
+            const sectionId = result?.id || result?.section?.id;
+            if (sectionId && onSectionCreated) {
+                onSectionCreated(sectionId);
+            }
+            onSuccess?.(result);
+        },
         onError: (error) => onError?.(error)
     });
 
@@ -143,10 +158,62 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
         });
 
         try {
-            await importSectionsToPage(pageKeyword, sections, importData.position);
+            const result = await importSectionsToPage(pageKeyword, sections, importData.position);
+            
+            // Debug log the actual response structure
+            debug('Import sections to page response', 'useSectionOperations', { 
+                result, 
+                fullResponse: result,
+                dataField: result?.data,
+                sectionsField: result?.data?.sections,
+                importedSectionsField: result?.data?.importedSections
+            });
             
             // Invalidate queries to refresh the section list
             await invalidateQueriesAfterImport();
+            
+            // Extract section IDs from import result for auto-selection
+            // Try multiple possible response structures
+            let importedSectionIds: number[] = [];
+            
+            // Cast to any to handle unknown response structure
+            const responseData = result as any;
+            
+            if (responseData?.data?.sections && Array.isArray(responseData.data.sections)) {
+                importedSectionIds = responseData.data.sections.map((s: any) => s.id).filter(Boolean);
+            } else if (responseData?.data?.importedSections && Array.isArray(responseData.data.importedSections)) {
+                importedSectionIds = responseData.data.importedSections.map((s: any) => s.id).filter(Boolean);
+            } else if (responseData?.data?.sectionIds && Array.isArray(responseData.data.sectionIds)) {
+                importedSectionIds = responseData.data.sectionIds;
+            } else if (responseData?.sections && Array.isArray(responseData.sections)) {
+                importedSectionIds = responseData.sections.map((s: any) => s.id).filter(Boolean);
+            } else if (responseData?.importedSections && Array.isArray(responseData.importedSections)) {
+                importedSectionIds = responseData.importedSections.map((s: any) => s.id).filter(Boolean);
+            } else if (responseData?.sectionIds && Array.isArray(responseData.sectionIds)) {
+                importedSectionIds = responseData.sectionIds;
+            }
+            
+            debug('Extracted section IDs for auto-selection', 'useSectionOperations', { 
+                importedSectionIds,
+                hasCallback: !!onSectionsImported,
+                sectionsCount: sections.length
+            });
+            
+            if (importedSectionIds.length > 0 && onSectionsImported) {
+                onSectionsImported(importedSectionIds);
+            } else if (onSectionsImported && sections.length > 0) {
+                // If we couldn't extract section IDs but have sections, log a warning
+                // This ensures the callback is called but with empty array
+                debug('Could not extract section IDs from import response, calling callback with empty array', 'useSectionOperations', { 
+                    responseStructure: Object.keys(responseData || {}),
+                    dataStructure: Object.keys(responseData?.data || {}),
+                    fullResponse: responseData
+                });
+                
+                // Still call the callback so the UI can handle the import completion
+                // The callback implementation can decide how to handle empty section IDs
+                onSectionsImported([]);
+            }
             
             if (showNotifications) {
                 notifications.show({
@@ -156,8 +223,10 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
                 });
             }
             
-            onSuccess?.();
+            onSuccess?.(result);
         } catch (error) {
+            debug('Error importing sections to page', 'useSectionOperations', { error });
+            
             if (showNotifications) {
                 notifications.show({
                     title: 'Import Failed',
@@ -169,7 +238,7 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
             onError?.(error);
             throw error;
         }
-    }, [pageKeyword, showNotifications, onSuccess, onError]);
+    }, [pageKeyword, showNotifications, onSuccess, onError, onSectionsImported, invalidateQueriesAfterImport]);
 
     // Import sections to section
     const importSectionsToSectionHandler = useCallback(async (
@@ -191,10 +260,62 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
         });
 
         try {
-            await importSectionsToSection(pageKeyword, parentSectionId, sections, importData.position);
+            const result = await importSectionsToSection(pageKeyword, parentSectionId, sections, importData.position);
+            
+            // Debug log the actual response structure
+            debug('Import sections to section response', 'useSectionOperations', { 
+                result, 
+                fullResponse: result,
+                dataField: result?.data,
+                sectionsField: result?.data?.sections,
+                importedSectionsField: result?.data?.importedSections
+            });
             
             // Invalidate queries to refresh the section list
             await invalidateQueriesAfterImport();
+            
+            // Extract section IDs from import result for auto-selection
+            // Try multiple possible response structures
+            let importedSectionIds: number[] = [];
+            
+            // Cast to any to handle unknown response structure
+            const responseData = result as any;
+            
+            if (responseData?.data?.sections && Array.isArray(responseData.data.sections)) {
+                importedSectionIds = responseData.data.sections.map((s: any) => s.id).filter(Boolean);
+            } else if (responseData?.data?.importedSections && Array.isArray(responseData.data.importedSections)) {
+                importedSectionIds = responseData.data.importedSections.map((s: any) => s.id).filter(Boolean);
+            } else if (responseData?.data?.sectionIds && Array.isArray(responseData.data.sectionIds)) {
+                importedSectionIds = responseData.data.sectionIds;
+            } else if (responseData?.sections && Array.isArray(responseData.sections)) {
+                importedSectionIds = responseData.sections.map((s: any) => s.id).filter(Boolean);
+            } else if (responseData?.importedSections && Array.isArray(responseData.importedSections)) {
+                importedSectionIds = responseData.importedSections.map((s: any) => s.id).filter(Boolean);
+            } else if (responseData?.sectionIds && Array.isArray(responseData.sectionIds)) {
+                importedSectionIds = responseData.sectionIds;
+            }
+            
+            debug('Extracted section IDs for auto-selection', 'useSectionOperations', { 
+                importedSectionIds,
+                hasCallback: !!onSectionsImported,
+                sectionsCount: sections.length
+            });
+            
+            if (importedSectionIds.length > 0 && onSectionsImported) {
+                onSectionsImported(importedSectionIds);
+            } else if (onSectionsImported && sections.length > 0) {
+                // If we couldn't extract section IDs but have sections, log a warning
+                // This ensures the callback is called but with empty array
+                debug('Could not extract section IDs from import response, calling callback with empty array', 'useSectionOperations', { 
+                    responseStructure: Object.keys(responseData || {}),
+                    dataStructure: Object.keys(responseData?.data || {}),
+                    fullResponse: responseData
+                });
+                
+                // Still call the callback so the UI can handle the import completion
+                // The callback implementation can decide how to handle empty section IDs
+                onSectionsImported([]);
+            }
             
             if (showNotifications) {
                 notifications.show({
@@ -204,8 +325,10 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
                 });
             }
             
-            onSuccess?.();
+            onSuccess?.(result);
         } catch (error) {
+            debug('Error importing sections to section', 'useSectionOperations', { error });
+            
             if (showNotifications) {
                 notifications.show({
                     title: 'Import Failed',
@@ -217,7 +340,7 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
             onError?.(error);
             throw error;
         }
-    }, [pageKeyword, showNotifications, onSuccess, onError]);
+    }, [pageKeyword, showNotifications, onSuccess, onError, onSectionsImported, invalidateQueriesAfterImport]);
 
     return {
         createSectionInPage,
