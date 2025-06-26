@@ -7,3 +7,18 @@
 
 /* import mantine */
 @import "@mantine/core/styles.layer.css";
+
+/* Smooth transitions for language changes */
+.page-content-transition {
+    transition: opacity 0.2s ease-in-out;
+}
+
+.page-content-loading {
+    opacity: 0.6;
+}
+
+/* Prevent layout shift during language changes */
+[data-language-changing="true"] {
+    min-height: calc(100vh - 200px);
+    transition: min-height 0.3s ease-in-out;
+}

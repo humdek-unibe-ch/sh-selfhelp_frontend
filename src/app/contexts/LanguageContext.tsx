@@ -1,17 +1,14 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 import { ILanguage } from '../../types/responses/admin/languages.types';
-import { debug } from '../../utils/debug-logger';
+import { LANGUAGE_STORAGE_KEY } from '../../constants/language.constants';
 
 interface ILanguageContextValue {
-    currentLanguage: ILanguage | null;
-    currentLanguageId: number | null;
-    setCurrentLanguage: (languageId: number) => void;
+    currentLanguageId: number;
+    setCurrentLanguageId: (languageId: number) => void;
     languages: ILanguage[];
     setLanguages: (languages: ILanguage[]) => void;
-    defaultLanguage: ILanguage | null;
-    isLoading: boolean;
     isUpdatingLanguage: boolean;
 }
 
@@ -27,47 +24,42 @@ interface ILanguageProviderProps {
  * Auth-dependent language features are handled in a separate enhanced provider
  */
 export function LanguageProvider({ children }: ILanguageProviderProps) {
-    const [currentLanguageId, setCurrentLanguageIdState] = useState<number | null>(1); // Default to language ID 1
-    const [languages, setLanguagesState] = useState<ILanguage[]>([]); // Empty initially, will be populated by enhanced provider
+    const [isUpdatingLanguage, setIsUpdatingLanguage] = useState(false);
+    const [languages, setLanguages] = useState<ILanguage[]>([]);
     
-    // Basic default language fallback
-    const defaultLanguage: ILanguage | null = {
-        id: 1,
-        language: 'Default',
-        locale: 'en-US',
-        csvSeparator: ','
-    };
-
-    const currentLanguage = currentLanguageId ? 
-        languages.find(lang => lang.id === currentLanguageId) || defaultLanguage : 
-        defaultLanguage;
-
-    const setCurrentLanguage = (languageId: number) => {
-        setCurrentLanguageIdState(languageId);
-        debug('Basic language context: Language changed', 'LanguageProvider', { languageId });
-    };
-
-    const setLanguages = (newLanguages: ILanguage[]) => {
-        setLanguagesState(newLanguages);
-        debug('Basic language context: Languages updated', 'LanguageProvider', { count: newLanguages.length });
-    };
-
-    // Initialize with default language
-    useEffect(() => {
-        if (currentLanguageId === null) {
-            setCurrentLanguageIdState(1);
+    // Initialize language ID from localStorage or default to 1
+    const [currentLanguageId, setCurrentLanguageIdState] = useState<number>(() => {
+        if (typeof window !== 'undefined') {
+            const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+            if (stored) {
+                const parsed = parseInt(stored, 10);
+                if (!isNaN(parsed)) {
+                    return parsed;
+                }
+            }
         }
-    }, [currentLanguageId]);
+        return 1; // Default language ID
+    });
+
+    const setCurrentLanguageId = (languageId: number) => {
+        setIsUpdatingLanguage(true);
+        setCurrentLanguageIdState(languageId);
+        
+        // Save to localStorage
+        if (typeof window !== 'undefined') {
+            localStorage.setItem(LANGUAGE_STORAGE_KEY, languageId.toString());
+        }
+        
+        // Reset updating state after a short delay
+        setTimeout(() => setIsUpdatingLanguage(false), 100);
+    };
 
     const contextValue: ILanguageContextValue = {
-        currentLanguage,
         currentLanguageId,
-        setCurrentLanguage,
+        setCurrentLanguageId,
         languages,
         setLanguages,
-        defaultLanguage,
-        isLoading: false, // Basic provider is never loading
-        isUpdatingLanguage: false
+        isUpdatingLanguage
     };
 
     return (

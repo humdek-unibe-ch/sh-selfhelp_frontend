@@ -13,11 +13,10 @@ import { useLanguageContext } from "../contexts/LanguageContext";
 export default function SlugLayout({ children }: { children: any }) {
     const { slug } = useParams();
     const keyword = Array.isArray(slug) ? slug.join('/') : slug || '';
-    const { currentLanguageId } = useLanguageContext();
     
     // Fetch page content to check if it's headless
-    const { content: pageContent } = usePageContentForLayout(keyword, currentLanguageId || undefined);
-    const isHeadless = Boolean(pageContent?.page?.is_headless);
+    const { content: pageContent } = usePageContentForLayout(keyword);
+    const isHeadless = Boolean(pageContent?.is_headless);
 
     return (
         <AppShell

@@ -6,7 +6,7 @@
  * @module hooks/useAppNavigation
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { NavigationApi } from '../api/navigation.api';
 import { IPageItem } from '../types/responses/frontend/frontend.types';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
@@ -50,21 +50,21 @@ function flattenPages(pages: IPageItem[]): IPageItem[] {
  */
 export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
     const { isAdmin = false } = options;
-    const { currentLanguageId, isLoading: isLanguageLoading } = useLanguageContext();
+    const { currentLanguageId } = useLanguageContext();
     
-    const { data, isLoading, error } = useQuery({
-        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES(currentLanguageId || 1),
+    const { data, isLoading, error, isFetching } = useQuery({
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES(currentLanguageId),
         queryFn: () => {
-            const languageId = currentLanguageId || 1; // Default to language ID 1 if not set
-            debug('Fetching pages with language', 'useAppNavigation', { languageId });
-            return NavigationApi.getPagesWithLanguage(languageId);
+            debug('Fetching pages with language', 'useAppNavigation', { languageId: currentLanguageId });
+            return NavigationApi.getPagesWithLanguage(currentLanguageId);
         },
-        enabled: !isLanguageLoading && currentLanguageId !== null, // Only fetch when language is loaded
+        enabled: true, // Always enabled since currentLanguageId will default to 1
         staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
         refetchOnWindowFocus: false,
         refetchOnMount: false, // Don't refetch on mount if data exists
         retry: 3, // Use global retry setting
+        placeholderData: keepPreviousData, // Keep previous data during refetch for smooth transitions
         select: (pages: IPageItem[]): INavigationData => {
             debug('Transform: Raw pages from API with language', 'useAppNavigation', { 
                 count: pages.length,
@@ -150,7 +150,8 @@ export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
         footerPages: data?.footerPages ?? [], 
         routes: data?.routes ?? [],
         resources: data?.resources ?? [],
-        isLoading: isLoading || isLanguageLoading, 
-        error 
+        isLoading: isLoading, 
+        error,
+        isFetching
     };
 }

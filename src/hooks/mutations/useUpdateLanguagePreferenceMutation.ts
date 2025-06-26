@@ -6,7 +6,6 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useInvalidate } from '@refinedev/core';
 import { AuthApi } from '../../api/auth.api';
 import { ILanguagePreferenceUpdateResponse } from '../../types/responses/auth.types';
 import { notifications } from '@mantine/notifications';
@@ -18,7 +17,6 @@ import { debug, info, error } from '../../utils/debug-logger';
  */
 export function useUpdateLanguagePreferenceMutation() {
     const queryClient = useQueryClient();
-    const invalidate = useInvalidate();
 
     return useMutation({
         mutationFn: (languageId: number): Promise<ILanguagePreferenceUpdateResponse> => {
@@ -27,7 +25,7 @@ export function useUpdateLanguagePreferenceMutation() {
             });
             return AuthApi.updateLanguagePreference(languageId);
         },
-        onSuccess: (data, languageId) => {
+        onSuccess: async (data, languageId) => {
             info('Language preference updated successfully', 'useUpdateLanguagePreferenceMutation', { 
                 newLanguageId: data.data.language_id,
                 newLanguageLocale: data.data.language_locale,
@@ -35,22 +33,15 @@ export function useUpdateLanguagePreferenceMutation() {
                 requestedLanguageId: languageId
             });
             
-            // Invalidate all queries to ensure fresh data with new language
-            queryClient.invalidateQueries();
+            // Wait a bit for localStorage to be updated
+            await new Promise(resolve => setTimeout(resolve, 100));
             
-            // Force refetch of user identity in Refine
-            queryClient.refetchQueries({
-                predicate: (query) => {
-                    // Target Refine's internal auth queries
-                    const queryKey = query.queryKey;
-                    return Array.isArray(queryKey) && (
-                        queryKey.includes('useIsAuthenticated') ||
-                        queryKey.includes('useGetIdentity') ||
-                        queryKey.includes('auth') ||
-                        queryKey.includes('identity')
-                    );
-                }
-            });
+            // Invalidate identity query to ensure useAuth gets updated user data
+            await queryClient.invalidateQueries({ queryKey: ['get_identity'] });
+            
+            // Invalidate all queries to refresh with new language
+            await queryClient.invalidateQueries({ queryKey: ['page-content'] });
+            await queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
             
             // Show success notification
             notifications.show({

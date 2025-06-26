@@ -8,15 +8,17 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { PageApi } from '../api/page.api';
+import { useLanguageContext } from '../app/contexts/LanguageContext';
 
 /**
  * Hook for fetching page content in layout components.
  * @param {string} keyword - The unique identifier for the page content
- * @param {number} [languageId] - The language ID for localized content
  * @param {boolean} [enabled=true] - Whether to enable the query
  * @returns {Object} Object containing page content data and query state
  */
-export function usePageContentForLayout(keyword: string, languageId?: number, enabled: boolean = true) {
+export function usePageContentForLayout(keyword: string, enabled: boolean = true) {
+    const { currentLanguageId } = useLanguageContext();
+    
     // Query configuration using React Query
     // Using the same cache key as usePageContent for data sharing
     const { 
@@ -26,8 +28,8 @@ export function usePageContentForLayout(keyword: string, languageId?: number, en
         isSuccess,
         error 
     } = useQuery({
-        queryKey: ['page-content', keyword, languageId || 'default'],
-        queryFn: () => PageApi.getPageContent(keyword, languageId),
+        queryKey: ['page-content', keyword, currentLanguageId],
+        queryFn: () => PageApi.getPageContent(keyword, currentLanguageId),
         staleTime: 5 * 60 * 1000, // Cache for 5 minutes to match usePageContent
         gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
         enabled: !!keyword && enabled, // Only run query if keyword is provided and enabled is true

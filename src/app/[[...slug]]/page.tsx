@@ -29,12 +29,9 @@ export default function DynamicPage() {
 }
 
 const DynamicPageContent = React.memo(function DynamicPageContent({ keyword }: { keyword: string }) {
-    const { currentLanguageId, isLoading: languageLoading } = useLanguageContext();
+    const { currentLanguageId, isUpdatingLanguage } = useLanguageContext();
     
-    // Ensure currentLanguageId is a proper number, not an object
-    const languageId = typeof currentLanguageId === 'number' ? currentLanguageId : undefined;
-    
-    const { content: queryContent, isLoading: pageLoading } = usePageContent(keyword, languageId);
+    const { content: queryContent, isLoading: pageLoading, isFetching: pageFetching } = usePageContent(keyword);
     const { pageContent: contextContent } = usePageContentContext();
     const pageContent = contextContent || queryContent;
 
@@ -43,11 +40,14 @@ const DynamicPageContent = React.memo(function DynamicPageContent({ keyword }: {
     // Extract headless flag for rendering decisions
     const isHeadless = Boolean(pageContent?.is_headless);
     
+    // Check if content is being updated (either loading or fetching)
+    const isContentUpdating = pageLoading || pageFetching || isUpdatingLanguage;
+    
     // Memoize debug info to prevent unnecessary recalculations
     const debugInfo = useMemo(() => ({
         keyword,
         currentLanguageId,
-        languageLoading,
+        languageLoading: false,
         routesCount: routes.length,
         routes: routes.map(r => ({ keyword: r.keyword, url: r.url, id: r.id_pages })),
         navLoading,
@@ -56,7 +56,7 @@ const DynamicPageContent = React.memo(function DynamicPageContent({ keyword }: {
         pageData: pageContent,
         sectionsCount: pageContent?.sections?.length || 0,
         isHeadless
-    }), [keyword, currentLanguageId, languageLoading, routes, navLoading, pageLoading, pageContent, isHeadless]);
+    }), [keyword, currentLanguageId, routes, navLoading, pageLoading, pageContent, isHeadless]);
     
     // Only log debug info when it actually changes
     useEffect(() => {
@@ -73,7 +73,7 @@ const DynamicPageContent = React.memo(function DynamicPageContent({ keyword }: {
     const hasValidContent = pageContent && pageContent.id;
     
     // Show loading while data is loading
-    if (pageLoading || navLoading || languageLoading) {
+    if (pageLoading || navLoading) {
         return (
             <Center h="50vh">
                 <Loader size="lg" />
@@ -109,7 +109,11 @@ const DynamicPageContent = React.memo(function DynamicPageContent({ keyword }: {
     // For headless pages, render without standard container and let content fill the viewport
     if (isHeadless) {
         return (
-            <div style={{ minHeight: '100vh', width: '100%' }}>
+            <div 
+                style={{ minHeight: '100vh', width: '100%' }}
+                className={`page-content-transition ${isContentUpdating ? 'page-content-loading' : ''}`}
+                data-language-changing={isUpdatingLanguage}
+            >
                 <PageContentRenderer sections={sections} />
             </div>
         );
@@ -117,7 +121,12 @@ const DynamicPageContent = React.memo(function DynamicPageContent({ keyword }: {
 
     // For regular pages, use standard container layout
     return (
-        <Container size="xl" py="md">
+        <Container 
+            size="xl" 
+            py="md"
+            className={`page-content-transition ${isContentUpdating ? 'page-content-loading' : ''}`}
+            data-language-changing={isUpdatingLanguage}
+        >
             <PageContentRenderer sections={sections} />
         </Container>
     );
