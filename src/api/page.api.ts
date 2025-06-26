@@ -15,16 +15,16 @@ export const PageApi = {
     /**
      * Fetches page content for a specific keyword.
      * @param {string} keyword - The page identifier
-     * @param {string} [language] - The language code for localized content
+     * @param {number} [languageId] - The language ID for localized content
      * @returns {Promise<IPageContent>} Page content data
      * @throws {Error} When API request fails
      */
-    async getPageContent(keyword: string, language?: string): Promise<IPageContent> {
+    async getPageContent(keyword: string, languageId?: number): Promise<IPageContent> {
         let url = API_CONFIG.ENDPOINTS.PAGES_GET_ONE(keyword);
         
         // Add language parameter if provided
-        if (language) {
-            url += `?language=${encodeURIComponent(language)}`;
+        if (languageId) {
+            url += `?language_id=${languageId}`;
         }
         
         const response = await apiClient.get<IBaseApiResponse<IPageContent>>(url);
