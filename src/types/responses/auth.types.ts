@@ -46,3 +46,13 @@ export interface IRefreshTokenSuccessData {
     refresh_token: string;
 }
 export type TRefreshTokenSuccessResponse = IBaseApiResponse<IRefreshTokenSuccessData>;
+
+// Language Preference Update Success
+export interface ILanguagePreferenceUpdateData {
+    message: string;
+    language_id: number;
+    language_locale: string;
+    language_name: string;
+    access_token: string;
+}
+export type ILanguagePreferenceUpdateResponse = IBaseApiResponse<ILanguagePreferenceUpdateData>;

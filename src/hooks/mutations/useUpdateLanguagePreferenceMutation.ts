@@ -6,8 +6,9 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInvalidate } from '@refinedev/core';
 import { AuthApi } from '../../api/auth.api';
-import { ILoginSuccessResponse } from '../../types/responses/auth.types';
+import { ILanguagePreferenceUpdateResponse } from '../../types/responses/auth.types';
 import { notifications } from '@mantine/notifications';
 import { debug, info, error } from '../../utils/debug-logger';
 
@@ -17,9 +18,10 @@ import { debug, info, error } from '../../utils/debug-logger';
  */
 export function useUpdateLanguagePreferenceMutation() {
     const queryClient = useQueryClient();
+    const invalidate = useInvalidate();
 
     return useMutation({
-        mutationFn: (languageId: number): Promise<ILoginSuccessResponse> => {
+        mutationFn: (languageId: number): Promise<ILanguagePreferenceUpdateResponse> => {
             debug('Updating user language preference', 'useUpdateLanguagePreferenceMutation', { 
                 languageId 
             });
@@ -27,19 +29,33 @@ export function useUpdateLanguagePreferenceMutation() {
         },
         onSuccess: (data, languageId) => {
             info('Language preference updated successfully', 'useUpdateLanguagePreferenceMutation', { 
-                newLanguageId: data.data.user?.language_id,
-                newLanguageLocale: data.data.user?.language_locale,
+                newLanguageId: data.data.language_id,
+                newLanguageLocale: data.data.language_locale,
+                newLanguageName: data.data.language_name,
                 requestedLanguageId: languageId
             });
             
-            // Invalidate relevant queries to refresh user data
-            queryClient.invalidateQueries({ queryKey: ['user'] });
-            queryClient.invalidateQueries({ queryKey: ['auth'] });
+            // Invalidate all queries to ensure fresh data with new language
+            queryClient.invalidateQueries();
+            
+            // Force refetch of user identity in Refine
+            queryClient.refetchQueries({
+                predicate: (query) => {
+                    // Target Refine's internal auth queries
+                    const queryKey = query.queryKey;
+                    return Array.isArray(queryKey) && (
+                        queryKey.includes('useIsAuthenticated') ||
+                        queryKey.includes('useGetIdentity') ||
+                        queryKey.includes('auth') ||
+                        queryKey.includes('identity')
+                    );
+                }
+            });
             
             // Show success notification
             notifications.show({
                 title: 'Language Updated',
-                message: 'Your language preference has been saved.',
+                message: `Language changed to ${data.data.language_name}`,
                 color: 'green'
             });
         },

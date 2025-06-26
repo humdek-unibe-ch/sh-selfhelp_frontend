@@ -8,8 +8,8 @@
 import { apiClient } from './base.api';
 import { NavigationApi } from './navigation.api';
 import { ILoginRequest, ILogoutRequest, IRefreshTokenRequest, ITwoFactorVerifyRequest } from '../types/requests/auth/auth.types';
-import { ILoginSuccessResponse, ITwoFactorRequiredResponse, ITwoFactorVerifySuccessResponse, ILogoutSuccessResponse, TRefreshTokenSuccessResponse } from '../types/responses/auth.types';
-import { storeTokens, removeTokens, getRefreshToken } from '../utils/auth.utils';
+import { ILoginSuccessResponse, ITwoFactorRequiredResponse, ITwoFactorVerifySuccessResponse, ILogoutSuccessResponse, TRefreshTokenSuccessResponse, ILanguagePreferenceUpdateResponse } from '../types/responses/auth.types';
+import { storeTokens, removeTokens, getRefreshToken, getCurrentUser } from '../utils/auth.utils';
 import { API_CONFIG } from '../config/api.config';
 
 export const AuthApi = {
@@ -167,11 +167,11 @@ export const AuthApi = {
     /**
      * Updates user's language preference and returns new JWT token
      * @param {number} languageId - The language ID to set
-     * @returns {Promise<ILoginSuccessResponse>} Response containing new JWT tokens with updated language preference
+     * @returns {Promise<ILanguagePreferenceUpdateResponse>} Response containing new JWT token with updated language preference
      * @throws {Error} When language update fails
      */
-    async updateLanguagePreference(languageId: number): Promise<ILoginSuccessResponse> {
-        const response = await apiClient.post<ILoginSuccessResponse>(
+    async updateLanguagePreference(languageId: number): Promise<ILanguagePreferenceUpdateResponse> {
+        const response = await apiClient.post<ILanguagePreferenceUpdateResponse>(
             API_CONFIG.ENDPOINTS.USER_LANGUAGE_PREFERENCE,
             { language_id: languageId }
         );
@@ -180,12 +180,24 @@ export const AuthApi = {
             throw new Error(response.data.error);
         }
 
-        // Store new tokens if provided
+        // Store new token if provided
         if (response.data.data.access_token) {
-            storeTokens(response.data.data.access_token, response.data.data.refresh_token);
+            // Get current user data to preserve other fields
+            const currentUser = getCurrentUser();
+            const refreshToken = getRefreshToken();
             
-            // Update stored user data
-            localStorage.setItem('user', JSON.stringify(response.data.data.user));
+            // Store the new access token with existing refresh token
+            storeTokens(response.data.data.access_token, refreshToken || '');
+            
+            // Update stored user data with new language information
+            if (currentUser) {
+                const updatedUser = {
+                    ...currentUser,
+                    languageId: response.data.data.language_id,
+                    languageLocale: response.data.data.language_locale
+                };
+                localStorage.setItem('user', JSON.stringify(updatedUser));
+            }
         }
 
         return response.data;

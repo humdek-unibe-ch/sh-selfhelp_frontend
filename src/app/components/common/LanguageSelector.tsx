@@ -3,6 +3,7 @@
 import { Select, Group, Text, Loader } from '@mantine/core';
 import { useLanguageContext } from '../../contexts/LanguageContext';
 import { useAuth } from '../../../hooks/useAuth';
+import { useUpdateLanguagePreferenceMutation } from '../../../hooks/mutations/useUpdateLanguagePreferenceMutation';
 import { useCallback } from 'react';
 
 export function LanguageSelector() {
@@ -17,8 +18,14 @@ export function LanguageSelector() {
         isUpdatingLanguage
     } = useLanguageContext();
     
+    // Mutation for updating authenticated user's language preference
+    const updateLanguageMutation = useUpdateLanguagePreferenceMutation();
+    
     // Use current language ID, fallback to default language's ID
     const selectedLanguageId = currentLanguageId || defaultLanguage?.id || null;
+    
+    // Check if currently updating language (either context or mutation)
+    const isUpdating = isUpdatingLanguage || updateLanguageMutation.isPending;
     
     // Define the callback before any conditional returns
     const handleLanguageChange = useCallback((value: string | null) => {
@@ -26,9 +33,21 @@ export function LanguageSelector() {
         
         const languageId = parseInt(value, 10);
         
-        // Update the language context (this will affect API calls)
-        setCurrentLanguage(languageId);
-    }, [setCurrentLanguage]);
+        if (user) {
+            // For authenticated users, update preference via API
+            // This will automatically update the JWT token and refresh the user data
+            updateLanguageMutation.mutate(languageId, {
+                onSuccess: () => {
+                    // The mutation's onSuccess handler will invalidate queries
+                    // which will cause the user data to be refetched with the new language
+                    // The EnhancedLanguageProvider will then update the context
+                }
+            });
+        } else {
+            // For non-authenticated users, just update the local context
+            setCurrentLanguage(languageId);
+        }
+    }, [user, updateLanguageMutation, setCurrentLanguage]);
     
     // Wait for authentication check to complete
     if (isAuthLoading || isLoading) {
@@ -42,11 +61,6 @@ export function LanguageSelector() {
     
     // Don't show if languages are empty
     if (languages.length === 0) {
-        return null;
-    }
-    
-    // Only show for non-authenticated users (frontend pages)
-    if (user) {
         return null;
     }
     
@@ -70,8 +84,8 @@ export function LanguageSelector() {
                 placeholder="Select language"
                 searchable={false}
                 clearable={false}
-                disabled={isUpdatingLanguage}
-                rightSection={isUpdatingLanguage ? <Loader size="xs" /> : undefined}
+                disabled={isUpdating}
+                rightSection={isUpdating ? <Loader size="xs" /> : undefined}
             />
         </Group>
     );

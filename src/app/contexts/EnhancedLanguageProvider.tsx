@@ -19,7 +19,7 @@ interface IEnhancedLanguageProviderProps {
  */
 export function EnhancedLanguageProvider({ children }: IEnhancedLanguageProviderProps) {
     const { user, isLoading: isAuthLoading } = useAuth();
-    const { setCurrentLanguage, languages: contextLanguages, setLanguages } = useLanguageContext();
+    const { setCurrentLanguage, languages: contextLanguages, setLanguages, currentLanguageId } = useLanguageContext();
     
     // Use different language hooks based on authentication status
     const { languages: publicLanguages, defaultLanguage: publicDefaultLanguage, isLoading: publicLanguagesLoading } = usePublicLanguages();
@@ -86,6 +86,23 @@ export function EnhancedLanguageProvider({ children }: IEnhancedLanguageProvider
             }
         }
     }, [user, isAuthLoading, defaultLanguage, languagesLoading, setCurrentLanguage]);
+
+    // Update language when user's language preference changes (e.g., after API update)
+    useEffect(() => {
+        if (!user || isAuthLoading || languagesLoading || !initializedRef.current) return;
+
+        const userLanguageId = user.languageId ? (typeof user.languageId === 'number' ? user.languageId : parseInt(String(user.languageId), 10)) : null;
+        
+        // Only update if the user's language preference is different from the current context language
+        if (userLanguageId && userLanguageId !== currentLanguageId) {
+            setCurrentLanguage(userLanguageId);
+            debug('Enhanced language context: Updated language from user preference change', 'EnhancedLanguageProvider', { 
+                userEmail: user.email,
+                newLanguageId: userLanguageId,
+                previousLanguageId: currentLanguageId
+            });
+        }
+    }, [user?.languageId, currentLanguageId, isAuthLoading, languagesLoading, setCurrentLanguage, user?.email]);
 
     // Reset initialization when user changes (login/logout)
     useEffect(() => {

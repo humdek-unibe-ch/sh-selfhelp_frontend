@@ -17,9 +17,6 @@ export const storeTokens = (accessToken: string, refreshToken: string): void => 
 
     localStorage.setItem(TOKEN_KEYS.ACCESS_TOKEN, accessToken);
     localStorage.setItem(TOKEN_KEYS.REFRESH_TOKEN, refreshToken);
-
-    // Also set in cookie for middleware access
-    document.cookie = `${TOKEN_KEYS.ACCESS_TOKEN}=${accessToken}; path=/; max-age=${60 * 60}; SameSite=Strict`;
 };
 
 /**
@@ -30,9 +27,6 @@ export const removeTokens = (): void => {
 
     localStorage.removeItem(TOKEN_KEYS.ACCESS_TOKEN);
     localStorage.removeItem(TOKEN_KEYS.REFRESH_TOKEN);
-
-    // Also remove from cookies
-    document.cookie = `${TOKEN_KEYS.ACCESS_TOKEN}=; path=/; max-age=0; SameSite=Strict`;
 };
 
 /**
@@ -43,8 +37,6 @@ export const removeAccessToken = (): void => {
 
     localStorage.removeItem(TOKEN_KEYS.ACCESS_TOKEN);
 
-    // Also remove from cookies
-    document.cookie = `${TOKEN_KEYS.ACCESS_TOKEN}=; path=/; max-age=0; SameSite=Strict`;
 };
 
 /**
