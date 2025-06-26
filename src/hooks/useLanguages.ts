@@ -9,40 +9,42 @@
 import { useQuery } from '@tanstack/react-query';
 import { AdminApi } from '../api/admin.api';
 import { ILanguage } from '../types/responses/admin/languages.types';
+import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useAuth } from './useAuth';
 import { getAccessToken } from '../utils/auth.utils';
 import { debug } from '../utils/debug-logger';
 
 /**
- * Hook for fetching and managing languages data
+ * Hook for fetching admin languages (requires authentication)
  * @returns Object containing languages data and query state
  */
 export function useLanguages() {
     const { isAuthenticated, user } = useAuth();
     
-    // More robust authentication check: must have Refine auth state, user data, AND access token
+    // More robust authentication check
     const isActuallyAuthenticated = !!isAuthenticated && !!user && !!getAccessToken();
-    
+
+    debug('useLanguages called', 'useLanguages', { 
+        isAuthenticated, 
+        hasUser: !!user, 
+        hasToken: !!getAccessToken(),
+        isActuallyAuthenticated
+    });
+
     const { data, isLoading, error } = useQuery({
-        queryKey: ['languages'],
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.LANGUAGES,
         queryFn: async () => {
-            debug('Fetching languages', 'useLanguages');
+            debug('Fetching admin languages', 'useLanguages');
             return await AdminApi.getLanguages();
         },
         enabled: isActuallyAuthenticated, // Only fetch when user is truly authenticated
+        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
         select: (data: ILanguage[]) => {
-            // Transform locale codes for easier use in the UI
-            return data.map(lang => ({
-                ...lang,
-                // Extract language code from locale (e.g., 'de-CH' -> 'de', 'en-GB' -> 'en')
-                code: lang.locale.split('-')[0]
-            }));
-        },
-        staleTime: 24 * 60 * 60 * 1000, // 1 day in milliseconds
-        gcTime: 24 * 60 * 60 * 1000, // Keep in cache for 1 day
-        refetchOnWindowFocus: false,
-        refetchOnMount: false, // Don't refetch on mount since we cache for 1 day
-        retry: 2
+            debug('Admin languages loaded', 'useLanguages', { count: data.length });
+            return data;
+        }
     });
 
     return {

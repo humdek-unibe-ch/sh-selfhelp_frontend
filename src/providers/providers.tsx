@@ -6,6 +6,7 @@ import { Refine } from '@refinedev/core';
 import appRouter from '@refinedev/nextjs-router';
 import dataProvider from '@refinedev/simple-rest';
 import { API_CONFIG } from '../config/api.config';
+import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
@@ -18,19 +19,12 @@ import { LoadingScreen } from '../app/components/common/LoadingScreen';
 import { LanguageProvider } from '../app/contexts/LanguageContext';
 import { theme } from '../../theme';
 
-// Create a client with optimized settings
+// Create a client with global configuration settings
 const queryClient = new QueryClient({
-    defaultOptions: {
-        queries: {
-            refetchOnWindowFocus: false,
-            retry: 1,
-            staleTime: 1000, // 1 second
-            gcTime: 24 * 60 * 60 * 1000, // 24 hours
-        },
-    },
+    defaultOptions: REACT_QUERY_CONFIG.DEFAULT_OPTIONS,
 });
 
-// Initialize persistence
+// Initialize persistence with shorter cache time
 if (typeof window !== 'undefined') {
     const persister = createSyncStoragePersister({
         storage: window.localStorage,
@@ -39,7 +33,8 @@ if (typeof window !== 'undefined') {
 
     persistQueryClient({
         queryClient,
-        persister
+        persister,
+        maxAge: REACT_QUERY_CONFIG.CACHE.gcTime, // Use global cache time for persistence
     });
 }
 

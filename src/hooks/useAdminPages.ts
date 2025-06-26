@@ -9,6 +9,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { AdminApi } from '../api/admin.api';
 import { IAdminPage } from '../types/responses/admin/admin.types';
+import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useAuth } from './useAuth';
 import { getAccessToken } from '../utils/auth.utils';
 import { debug } from '../utils/debug-logger';
@@ -60,12 +61,15 @@ export function useAdminPages() {
     });
     
     const { data, isLoading, error } = useQuery({
-        queryKey: ['adminPages'],
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES,
         queryFn: async () => {
             debug('Fetching admin pages', 'useAdminPages');
             return await AdminApi.getAdminPages();
         },
         enabled: isActuallyAuthenticated, // Only fetch when user is truly authenticated
+        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
         select: (data: IAdminPage[]) => {
             // Ensure data is an array to prevent undefined errors
             if (!data || !Array.isArray(data)) {
@@ -256,10 +260,8 @@ export function useAdminPages() {
                 categorizedRegularPages
             };
         },
-        staleTime: 1000, // 1 second
         refetchOnWindowFocus: false,
         refetchOnMount: true,
-        retry: 1
     });
 
     return {

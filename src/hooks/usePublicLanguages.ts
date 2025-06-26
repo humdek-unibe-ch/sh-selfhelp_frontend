@@ -7,8 +7,12 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { PageApi } from '../api/page.api';
+import { NavigationApi } from '../api/navigation.api';
 import { ILanguage } from '../types/responses/admin/languages.types';
+import { IBaseApiResponse } from '../types/responses/common/response-envelope.types';
+import { apiClient } from '../api/base.api';
+import { API_CONFIG } from '../config/api.config';
+import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { debug } from '../utils/debug-logger';
 
 /**
@@ -17,20 +21,18 @@ import { debug } from '../utils/debug-logger';
  */
 export function usePublicLanguages() {
     const { data, isLoading, error } = useQuery({
-        queryKey: ['public-languages'],
-        queryFn: async () => {
-            debug('Fetching public languages', 'usePublicLanguages');
-            return await PageApi.getPublicLanguages();
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PUBLIC_LANGUAGES,
+        queryFn: async (): Promise<ILanguage[]> => {
+            const response = await apiClient.get<IBaseApiResponse<ILanguage[]>>(API_CONFIG.ENDPOINTS.LANGUAGES);
+            return response.data.data;
         },
-        select: (data: ILanguage[]) => {
-            // Transform data for easier use in the UI
-            return data;
-        },
-        staleTime: 24 * 60 * 60 * 1000, // 1 day in milliseconds
-        gcTime: 24 * 60 * 60 * 1000, // Keep in cache for 1 day
-        refetchOnWindowFocus: false,
-        refetchOnMount: false, // Don't refetch on mount since we cache for 1 day
-        retry: 2
+        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
+        select: (languages: ILanguage[]) => {
+            debug('Public languages loaded', 'usePublicLanguages', { count: languages.length });
+            return languages;
+        }
     });
 
     return {

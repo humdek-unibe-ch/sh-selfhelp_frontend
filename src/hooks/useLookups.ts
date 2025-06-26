@@ -8,20 +8,25 @@
 import { useQuery } from '@tanstack/react-query';
 import { LookupsApi } from '../api/lookups.api';
 import { ILookup, IProcessedLookups, ILookupMap, ILookupsByType } from '../types/responses/admin/lookups.types';
+import { REACT_QUERY_CONFIG } from '../config/react-query.config';
+import { useAuth } from './useAuth';
+import { getAccessToken } from '../utils/auth.utils';
 import { debug } from '../utils/debug-logger';
 
 /**
  * React Query hook for fetching lookups data.
- * Caches data for 24 hours and processes it into efficient access patterns.
+ * Uses global cache configuration but with longer cache time since lookups are static data.
+ * Processes data into efficient access patterns.
  * 
  * @returns {Object} Query result with processed lookups data
  */
 export function useLookups() {
     return useQuery({
-        queryKey: ['lookups'],
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.LOOKUPS,
         queryFn: LookupsApi.getLookups,
-        staleTime: 24 * 60 * 60 * 1000, // 24 hours
-        gcTime: 24 * 60 * 60 * 1000, // 24 hours (formerly cacheTime)
+        staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.staleTime, // Use longer cache for static data
+        gcTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.gcTime,
+        retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
         select: (lookups: ILookup[]): IProcessedLookups => {
             // Create lookup map with typeCode_lookupCode as key
             const lookupMap: ILookupMap = {};

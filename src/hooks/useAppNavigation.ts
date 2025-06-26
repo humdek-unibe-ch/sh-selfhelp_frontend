@@ -9,6 +9,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { NavigationApi } from '../api/navigation.api';
 import { IPageItem } from '../types/responses/frontend/frontend.types';
+import { REACT_QUERY_CONFIG } from '../config/react-query.config';
+import { useLanguageContext } from '../app/contexts/LanguageContext';
 import { debug } from '../utils/debug-logger';
 
 interface INavigationData {
@@ -41,22 +43,34 @@ function flattenPages(pages: IPageItem[]): IPageItem[] {
 /**
  * Unified hook for fetching and managing navigation data for both admin and user interfaces.
  * Uses React Query for data fetching and caching with select to transform data once.
+ * Now uses language-specific endpoint to ensure titles are always available.
  * @param {Object} options - Configuration options
  * @param {boolean} options.isAdmin - Whether to generate admin resources for Refine
  * @returns {Object} Object containing organized navigation data and query state
  */
 export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
     const { isAdmin = false } = options;
+    const { currentLanguageId, isLoading: isLanguageLoading } = useLanguageContext();
+    
     const { data, isLoading, error } = useQuery({
-        queryKey: ['pages'],
-        queryFn: NavigationApi.getPages,
-        staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-        gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES(currentLanguageId || 1),
+        queryFn: () => {
+            const languageId = currentLanguageId || 1; // Default to language ID 1 if not set
+            debug('Fetching pages with language', 'useAppNavigation', { languageId });
+            return NavigationApi.getPagesWithLanguage(languageId);
+        },
+        enabled: !isLanguageLoading && currentLanguageId !== null, // Only fetch when language is loaded
+        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
         refetchOnWindowFocus: false,
         refetchOnMount: false, // Don't refetch on mount if data exists
-        retry: 1, // Reduce retries to prevent loops
+        retry: 3, // Use global retry setting
         select: (pages: IPageItem[]): INavigationData => {
-            debug('Transform: Raw pages from API', 'useAppNavigation', { count: pages.length });
+            debug('Transform: Raw pages from API with language', 'useAppNavigation', { 
+                count: pages.length,
+                languageId: currentLanguageId,
+                pagesWithTitles: pages.filter(p => p.title).length
+            });
             
             // Transform data once and cache the result
             const menuPages = pages
@@ -75,10 +89,13 @@ export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
                 menuPages: menuPages.length,
                 footerPages: footerPages.length,
                 flattenedRoutes: routes.length,
-                routeKeywords: routes.map(r => r.keyword)
+                routeKeywords: routes.map(r => r.keyword),
+                languageId: currentLanguageId,
+                pagesWithTitles: pages.filter(p => p.title && p.title.trim()).length,
+                pagesWithoutTitles: pages.filter(p => !p.title || !p.title.trim()).length
             };
 
-            debug('Transform: Results', 'useAppNavigation', transformResults);
+            debug('Transform: Results with language support', 'useAppNavigation', transformResults);
 
             // Generate Refine resources for admin mode
             let resources: any[] = [];
@@ -90,7 +107,7 @@ export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
                     edit: `/admin/pages/${page.keyword}/edit`,
                     create: `/admin/pages/create`,
                     meta: {
-                        label: page.keyword,
+                        label: page.title || page.keyword, // Use title if available, fallback to keyword
                         parent: page.parent ? pages.find(p => p.id_pages === page.parent)?.keyword : undefined,
                         canDelete: true,
                         nav: page.nav_position !== null,
@@ -102,9 +119,10 @@ export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
                     }
                 }));
                 
-                debug('Generated Refine resources for admin', 'useAppNavigation', { 
+                debug('Generated Refine resources for admin with titles', 'useAppNavigation', { 
                     resourcesCount: resources.length,
-                    isAdmin 
+                    isAdmin,
+                    resourcesWithTitles: resources.filter(r => r.meta.label !== r.name).length
                 });
             }
 
@@ -119,7 +137,7 @@ export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
             // Store transformed data in window for DevTools inspection
             if (typeof window !== 'undefined') {
                 (window as any).__NAVIGATION_DATA__ = result;
-                debug('Transformed data stored in window.__NAVIGATION_DATA__', 'useAppNavigation');
+                debug('Transformed data with language support stored in window.__NAVIGATION_DATA__', 'useAppNavigation');
             }
 
             return result;
@@ -132,7 +150,7 @@ export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
         footerPages: data?.footerPages ?? [], 
         routes: data?.routes ?? [],
         resources: data?.resources ?? [],
-        isLoading, 
+        isLoading: isLoading || isLanguageLoading, 
         error 
     };
 }

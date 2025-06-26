@@ -8,27 +8,35 @@
 import { useQuery } from '@tanstack/react-query';
 import { AdminApi } from '../api/admin.api';
 import { IStyleGroup } from '../types/responses/admin/styles.types';
+import { REACT_QUERY_CONFIG } from '../config/react-query.config';
+import { useAuth } from './useAuth';
+import { getAccessToken } from '../utils/auth.utils';
 import { debug } from '../utils/debug-logger';
 
 /**
- * Hook to fetch style groups
- * @param enabled - Whether the query should be enabled
- * @returns React Query result with style groups data
+ * Hook for fetching style groups data (requires authentication)
+ * Uses longer cache time since style groups are relatively static data
+ * @returns Object containing style groups data and query state
  */
-export function useStyleGroups(enabled: boolean = true) {
+export function useStyleGroups() {
+    const { isAuthenticated, user } = useAuth();
+    
+    // More robust authentication check
+    const isActuallyAuthenticated = !!isAuthenticated && !!user && !!getAccessToken();
+
     return useQuery({
-        queryKey: ['styleGroups'],
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.STYLE_GROUPS,
         queryFn: async () => {
             debug('Fetching style groups', 'useStyleGroups');
-            const styleGroups = await AdminApi.getStyleGroups();
-            return styleGroups;
+            return await AdminApi.getStyleGroups();
         },
-        enabled,
+        enabled: isActuallyAuthenticated, // Only fetch when user is truly authenticated
+        staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.staleTime, // Use longer cache for static data
+        gcTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.gcTime,
+        retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
         select: (data: IStyleGroup[]) => {
-            // Sort style groups by position
-            return data.sort((a, b) => a.position - b.position);
-        },
-        staleTime: 5 * 60 * 1000, // 5 minutes
-        refetchOnWindowFocus: false,
+            debug('Style groups loaded', 'useStyleGroups', { count: data.length });
+            return data;
+        }
     });
 } 
