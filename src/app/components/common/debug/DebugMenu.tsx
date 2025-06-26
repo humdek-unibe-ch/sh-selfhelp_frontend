@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
     Button, 
     Modal, 
@@ -16,8 +16,11 @@ import {
     Alert,
     Switch,
     Paper,
-    Box
+    Box,
+    Menu,
+    Loader
 } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
 import { 
     IconBug, 
     IconSettings, 
@@ -29,12 +32,16 @@ import {
     IconClearAll,
     IconFilter,
     IconInfoCircle,
-    IconPalette
+    IconPalette,
+    IconLanguage
 } from '@tabler/icons-react';
 import { isDebugEnabled, DEBUG_CONFIG } from '../../../../config/debug.config';
 import { debugLogger } from '../../../../utils/debug-logger';
 import { useAppNavigation } from '../../../../hooks/useAppNavigation';
 import { CssClassValidator } from './CssClassValidator';
+import { useAdminPages, useProfilePages } from '../../../../hooks/useAdminPages';
+import { useLanguageContext } from '../../../contexts/LanguageContext';
+import { notifications } from '@mantine/notifications';
 
 interface IDebugLogEntry {
     timestamp: string;
@@ -76,7 +83,7 @@ const captureDebugLog = (message: string, component: string, data?: any, level: 
 (window as any).captureDebug = captureDebugLog;
 
 export function DebugMenu() {
-    const [opened, setOpened] = useState(false);
+    const [opened, { toggle }] = useDisclosure(false);
     const [activeTab, setActiveTab] = useState<string>('all');
     const [logs, setLogs] = useState<IDebugLogEntry[]>([]);
     const [filterSectionInspector, setFilterSectionInspector] = useState(false);
@@ -85,6 +92,9 @@ export function DebugMenu() {
     
     // Navigation data for the navigation debug tab
     const { pages, menuPages, footerPages, routes, isLoading } = useAppNavigation();
+    const { systemPageLinks, categorizedSystemPages } = useAdminPages();
+    const { profileLinkPage, profileChildren } = useProfilePages();
+    const { currentLanguage, currentLanguageId, languages, isUpdatingLanguage, setCurrentLanguage } = useLanguageContext();
 
     if (!isDebugEnabled()) {
         return null;
@@ -188,115 +198,58 @@ export function DebugMenu() {
     const pageInspectorLogs = logs.filter(log => log.component.includes('PageInspector'));
     const fieldHandlerLogs = logs.filter(log => log.component.includes('FieldFormHandler') || log.component.includes('FieldsSection'));
 
+    const handleLanguageTest = () => {
+        if (languages.length > 0) {
+            const randomLanguage = languages[Math.floor(Math.random() * languages.length)];
+            setCurrentLanguage(randomLanguage.id);
+            notifications.show({
+                title: 'Debug: Language Changed',
+                message: `Switched to ${randomLanguage.language}`,
+                color: 'blue'
+            });
+        }
+    };
+
     return (
         <>
             <Tooltip label="Debug Menu" position="left">
                 <ActionIcon
-                    onClick={() => setOpened(true)}
-                    variant="filled"
-                    color="red"
-                    size="xl"
-                    style={{ 
-                        position: 'fixed', 
-                        bottom: '50%', 
-                        right: '20px', 
+                    onClick={toggle}
+                    variant="subtle"
+                    size="lg"
+                    style={{
+                        position: 'fixed',
+                        top: 16,
+                        right: 16,
                         zIndex: 1000,
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                        transform: 'translateY(50%)'
+                        backgroundColor: 'var(--mantine-color-blue-6)',
+                        color: 'white'
                     }}
                 >
-                    <IconBug size={24} />
+                    <IconBug size={20} />
                 </ActionIcon>
             </Tooltip>
 
             <Modal
                 opened={opened}
-                onClose={() => setOpened(false)}
-                title={
-                    <Group>
-                        <IconBug size={20} />
-                        <Text fw={600}>Debug Control Panel</Text>
-                        <Badge color="red" size="sm">DEV</Badge>
-                    </Group>
-                }
+                onClose={toggle}
+                title="Debug Information"
                 size="xl"
+                scrollAreaComponent={ScrollArea.Autosize}
             >
-                <Tabs value={activeTab} onChange={(value) => setActiveTab(value || 'all')} style={{ flex: 1 }}>
+                <Tabs defaultValue="navigation">
                     <Tabs.List>
-                        <Tabs.Tab value="all">All ({logs.length})</Tabs.Tab>
-                        <Tabs.Tab value="error">
-                            Errors ({logs.filter(l => l.level === 'error').length})
-                        </Tabs.Tab>
-                        <Tabs.Tab value="warn">
-                            Warnings ({logs.filter(l => l.level === 'warn').length})
-                        </Tabs.Tab>
-                        <Tabs.Tab value="info">
-                            Info ({logs.filter(l => l.level === 'info').length})
-                        </Tabs.Tab>
-                        <Tabs.Tab value="css" leftSection={<IconPalette size="0.8rem" />}>
-                            CSS Validator
+                        <Tabs.Tab value="navigation">Navigation</Tabs.Tab>
+                        <Tabs.Tab value="system-pages">System Pages</Tabs.Tab>
+                        <Tabs.Tab value="profile">Profile Pages</Tabs.Tab>
+                        <Tabs.Tab value="config">Config</Tabs.Tab>
+                        <Tabs.Tab value="auth">Auth</Tabs.Tab>
+                        <Tabs.Tab value="api">API</Tabs.Tab>
+                        <Tabs.Tab value="performance">Performance</Tabs.Tab>
+                        <Tabs.Tab value="language" leftSection={<IconLanguage size={16} />}>
+                            Language System
                         </Tabs.Tab>
                     </Tabs.List>
-
-                    <Tabs.Panel value="all" pt="md" style={{ flex: 1 }}>
-                        <Stack gap="md">
-                            <Text size="sm" c="dimmed">
-                                Debug tools and utilities for development and testing.
-                            </Text>
-
-                            <Group>
-                                <Badge color="green" variant="light">
-                                    Environment: {process.env.NODE_ENV}
-                                </Badge>
-                                <Badge color="blue" variant="light">
-                                    Debug: {DEBUG_CONFIG.enabled ? 'Enabled' : 'Disabled'}
-                                </Badge>
-                                <Badge color="orange" variant="light">
-                                    Logging: {DEBUG_CONFIG.logging.enabled ? 'On' : 'Off'}
-                                </Badge>
-                            </Group>
-
-                            <div>
-                                <Text fw={500} mb="xs">Available Debug Components:</Text>
-                                <Stack gap="xs">
-                                    {Object.entries(DEBUG_CONFIG.components).map(([key, enabled]) => (
-                                        <Group key={key} justify="space-between">
-                                            <Text size="sm" tt="capitalize">
-                                                {key.replace(/([A-Z])/g, ' $1').trim()}
-                                            </Text>
-                                            <Badge 
-                                                color={enabled ? 'green' : 'gray'} 
-                                                size="sm"
-                                                variant="light"
-                                            >
-                                                {enabled ? 'Enabled' : 'Disabled'}
-                                            </Badge>
-                                        </Group>
-                                    ))}
-                                </Stack>
-                            </div>
-
-                            <div>
-                                <Text fw={500} mb="xs">Debug Features:</Text>
-                                <Stack gap="xs">
-                                    {Object.entries(DEBUG_CONFIG.features).map(([key, enabled]) => (
-                                        <Group key={key} justify="space-between">
-                                            <Text size="sm" tt="capitalize">
-                                                {key.replace(/([A-Z])/g, ' $1').trim()}
-                                            </Text>
-                                            <Badge 
-                                                color={enabled ? 'green' : 'gray'} 
-                                                size="sm"
-                                                variant="light"
-                                            >
-                                                {enabled ? 'Enabled' : 'Disabled'}
-                                            </Badge>
-                                        </Group>
-                                    ))}
-                                </Stack>
-                            </div>
-                        </Stack>
-                    </Tabs.Panel>
 
                     <Tabs.Panel value="navigation" pt="md">
                         <Stack gap="md">
@@ -325,10 +278,11 @@ export function DebugMenu() {
                             </div>
 
                             <div>
-                                <Text fw={500} mb="xs">Menu Pages (filtered & sorted):</Text>
+                                <Text fw={500} mb="xs">Menu Pages (hierarchical):</Text>
                                 <Code block style={{ maxHeight: 200, overflow: 'auto' }}>
                                     {JSON.stringify(menuPages.map(p => ({ 
                                         keyword: p.keyword, 
+                                        url: p.url, 
                                         nav_position: p.nav_position,
                                         children: p.children?.length || 0
                                     })), null, 2)}
@@ -336,95 +290,106 @@ export function DebugMenu() {
                             </div>
 
                             <div>
-                                <Text fw={500} mb="xs">Flattened Routes (for route checking):</Text>
+                                <Text fw={500} mb="xs">Flattened Routes:</Text>
                                 <Code block style={{ maxHeight: 200, overflow: 'auto' }}>
-                                    {JSON.stringify(routes.map(p => ({ 
-                                        keyword: p.keyword, 
-                                        url: p.url,
-                                        parent: p.parent
+                                    {JSON.stringify(routes.map(r => ({ 
+                                        keyword: r.keyword, 
+                                        url: r.url 
                                     })), null, 2)}
                                 </Code>
                             </div>
                         </Stack>
                     </Tabs.Panel>
 
-                    <Tabs.Panel value="logs" pt="md" style={{ flex: 1 }}>
+                    <Tabs.Panel value="system-pages" pt="md">
                         <Stack gap="md">
-                            <Group justify="space-between">
-                                <Text fw={500}>Debug Logs</Text>
-                                <Group gap="xs">
-                                    <Button
-                                        size="xs"
-                                        variant="light"
-                                        leftSection={<IconDownload size={14} />}
-                                        onClick={handleExportLogs}
-                                    >
-                                        Export
-                                    </Button>
-                                    <Button
-                                        size="xs"
-                                        variant="light"
-                                        color="red"
-                                        leftSection={<IconTrash size={14} />}
-                                        onClick={handleClearLogs}
-                                    >
-                                        Clear
-                                    </Button>
-                                </Group>
+                            <Text size="sm" c="dimmed">
+                                System pages structure and categorization.
+                            </Text>
+
+                            <Group>
+                                <Badge color="blue">Total System Pages: {systemPageLinks.length}</Badge>
+                                <Badge color="green">Authentication: {categorizedSystemPages.authentication.length}</Badge>
+                                <Badge color="orange">Profile: {categorizedSystemPages.profile.length}</Badge>
+                                <Badge color="purple">Error: {categorizedSystemPages.errors.length}</Badge>
+                                <Badge color="red">Legal: {categorizedSystemPages.legal.length}</Badge>
+                                <Badge color="gray">Other: {categorizedSystemPages.other.length}</Badge>
                             </Group>
 
-                            <Paper p="sm" withBorder>
-                                <Text size="sm" fw={500} mb="xs">
-                                    <IconFilter size="1rem" style={{ marginRight: '4px' }} />
-                                    Filters
-                                </Text>
-                                <Group gap="md">
-                                    <Switch
-                                        label="Section Inspector"
-                                        checked={filterSectionInspector}
-                                        onChange={(e) => setFilterSectionInspector(e.currentTarget.checked)}
-                                        size="sm"
-                                    />
-                                    <Switch
-                                        label="Page Inspector"
-                                        checked={filterPageInspector}
-                                        onChange={(e) => setFilterPageInspector(e.currentTarget.checked)}
-                                        size="sm"
-                                    />
-                                    <Switch
-                                        label="Field Handler"
-                                        checked={filterFieldHandler}
-                                        onChange={(e) => setFilterFieldHandler(e.currentTarget.checked)}
-                                        size="sm"
-                                    />
-                                </Group>
-                            </Paper>
+                            <div>
+                                <Text fw={500} mb="xs">Hierarchical System Pages:</Text>
+                                <Code block style={{ maxHeight: 300, overflow: 'auto' }}>
+                                    {JSON.stringify(systemPageLinks.map(p => ({ 
+                                        keyword: p.keyword, 
+                                        label: p.label,
+                                        link: p.link,
+                                        children: p.children?.map(c => ({ 
+                                            keyword: c.keyword, 
+                                            label: c.label,
+                                            link: c.link
+                                        })) || []
+                                    })), null, 2)}
+                                </Code>
+                            </div>
 
-                            <Alert icon={<IconInfoCircle size="1rem" />} color="blue">
-                                <Group gap="md">
-                                    <Text size="sm">
-                                        <strong>Section Inspector:</strong> {sectionInspectorLogs.length} logs
-                                    </Text>
-                                    <Text size="sm">
-                                        <strong>Page Inspector:</strong> {pageInspectorLogs.length} logs
-                                    </Text>
-                                    <Text size="sm">
-                                        <strong>Field Handler:</strong> {fieldHandlerLogs.length} logs
-                                    </Text>
-                                </Group>
-                            </Alert>
+                            <div>
+                                <Text fw={500} mb="xs">Profile Pages Category:</Text>
+                                <Code block style={{ maxHeight: 200, overflow: 'auto' }}>
+                                    {JSON.stringify(categorizedSystemPages.profile.map(p => ({ 
+                                        keyword: p.keyword, 
+                                        label: p.label,
+                                        link: p.link,
+                                        children: p.children?.map(c => ({ 
+                                            keyword: c.keyword, 
+                                            label: c.label,
+                                            link: c.link
+                                        })) || []
+                                    })), null, 2)}
+                                </Code>
+                            </div>
+                        </Stack>
+                    </Tabs.Panel>
 
-                            <ScrollArea h={400}>
-                                <Stack gap="xs">
-                                    {filteredLogs.length === 0 ? (
-                                        <Text size="sm" c="dimmed" ta="center" py="xl">
-                                            No logs available
-                                        </Text>
-                                    ) : (
-                                        filteredLogs.slice(-50).reverse().map((log, index) => renderLogEntry(log, index))
-                                    )}
-                                </Stack>
-                            </ScrollArea>
+                    <Tabs.Panel value="profile" pt="md">
+                        <Stack gap="md">
+                            <Text size="sm" c="dimmed">
+                                Profile dropdown data and structure.
+                            </Text>
+
+                            <Group>
+                                <Badge color={profileLinkPage ? "green" : "red"}>
+                                    Profile Link: {profileLinkPage ? "Found" : "Not Found"}
+                                </Badge>
+                                <Badge color="blue">Children: {profileChildren.length}</Badge>
+                            </Group>
+
+                            {profileLinkPage && (
+                                <div>
+                                    <Text fw={500} mb="xs">Profile Link Page:</Text>
+                                    <Code block>
+                                        {JSON.stringify({
+                                            keyword: profileLinkPage.keyword,
+                                            label: profileLinkPage.label,
+                                            link: profileLinkPage.link,
+                                            id: profileLinkPage.id
+                                        }, null, 2)}
+                                    </Code>
+                                </div>
+                            )}
+
+                            {profileChildren.length > 0 && (
+                                <div>
+                                    <Text fw={500} mb="xs">Profile Children:</Text>
+                                    <Code block>
+                                        {JSON.stringify(profileChildren.map(c => ({
+                                            keyword: c.keyword,
+                                            label: c.label,
+                                            link: c.link,
+                                            id: c.id
+                                        })), null, 2)}
+                                    </Code>
+                                </div>
+                            )}
                         </Stack>
                     </Tabs.Panel>
 
@@ -440,8 +405,141 @@ export function DebugMenu() {
                     <Tabs.Panel value="css" pt="md">
                         <CssClassValidator />
                     </Tabs.Panel>
+
+                    <Tabs.Panel value="language">
+                        <Stack gap="md">
+                            <Group justify="space-between">
+                                <Text fw={500}>Language Debug Tools</Text>
+                                <Badge color={isUpdatingLanguage ? 'orange' : 'green'}>
+                                    {isUpdatingLanguage ? 'Updating...' : 'Ready'}
+                                </Badge>
+                            </Group>
+                            
+                            <Paper p="md" withBorder>
+                                <Stack gap="sm">
+                                    <Text size="sm" fw={500}>Current State</Text>
+                                    <Group>
+                                        <Text size="sm">Current Language ID:</Text>
+                                        <Code>{currentLanguageId || 'None'}</Code>
+                                    </Group>
+                                    <Group>
+                                        <Text size="sm">Current Language:</Text>
+                                        <Code>{currentLanguage?.language || 'None'}</Code>
+                                    </Group>
+                                    <Group>
+                                        <Text size="sm">Current Locale:</Text>
+                                        <Code>{currentLanguage?.locale || 'None'}</Code>
+                                    </Group>
+                                    <Group>
+                                        <Text size="sm">Available Languages:</Text>
+                                        <Badge>{languages.length}</Badge>
+                                    </Group>
+                                </Stack>
+                            </Paper>
+
+                            <Paper p="md" withBorder>
+                                <Stack gap="sm">
+                                    <Text size="sm" fw={500}>Test Actions</Text>
+                                    <Button
+                                        leftSection={<IconLanguage size={16} />}
+                                        onClick={handleLanguageTest}
+                                        disabled={isUpdatingLanguage || languages.length === 0}
+                                        loading={isUpdatingLanguage}
+                                        variant="light"
+                                    >
+                                        Test Random Language
+                                    </Button>
+                                    
+                                    <Button
+                                        leftSection={<IconInfoCircle size={16} />}
+                                        onClick={() => {
+                                            const languageInfo = {
+                                                currentId: currentLanguageId,
+                                                currentLanguage: currentLanguage,
+                                                available: languages.map(l => ({ 
+                                                    id: l.id, 
+                                                    locale: l.locale, 
+                                                    name: l.language 
+                                                })),
+                                                count: languages.length
+                                            };
+                                            console.log('Language Debug Info:', languageInfo);
+                                            notifications.show({
+                                                title: 'Language Debug Info',
+                                                message: `Check console for detailed info. Current: ${currentLanguage?.language || 'None'}`,
+                                                color: 'blue'
+                                            });
+                                        }}
+                                        variant="light"
+                                    >
+                                        Log Language Info
+                                    </Button>
+                                </Stack>
+                            </Paper>
+
+                            {languages.length > 0 && (
+                                <Paper p="md" withBorder>
+                                    <Text size="sm" fw={500} mb="sm">Available Languages</Text>
+                                    <ScrollArea h={200}>
+                                        <Stack gap="xs">
+                                            {languages.map(lang => (
+                                                <Group key={lang.id} justify="space-between">
+                                                    <Group gap="xs">
+                                                        <Badge 
+                                                            color={currentLanguageId === lang.id ? 'blue' : 'gray'}
+                                                            variant={currentLanguageId === lang.id ? 'filled' : 'light'}
+                                                        >
+                                                            ID: {lang.id}
+                                                        </Badge>
+                                                        <Badge variant="light" color="gray">
+                                                            {lang.locale}
+                                                        </Badge>
+                                                        <Text size="sm">{lang.language}</Text>
+                                                    </Group>
+                                                    <Button
+                                                        size="xs"
+                                                        variant="subtle"
+                                                        onClick={() => setCurrentLanguage(lang.id)}
+                                                        disabled={isUpdatingLanguage || currentLanguageId === lang.id}
+                                                    >
+                                                        Select
+                                                    </Button>
+                                                </Group>
+                                            ))}
+                                        </Stack>
+                                    </ScrollArea>
+                                </Paper>
+                            )}
+                        </Stack>
+                    </Tabs.Panel>
                 </Tabs>
             </Modal>
+
+            <Menu shadow="md" width={300} position="bottom-end">
+                <Menu.Dropdown>
+                    <Menu.Item
+                        leftSection={<IconLanguage size={16} />}
+                        onClick={handleLanguageTest}
+                        disabled={isUpdatingLanguage || languages.length === 0}
+                    >
+                        Test Random Language
+                        {isUpdatingLanguage && <Loader size="xs" ml="auto" />}
+                    </Menu.Item>
+                    
+                    <Menu.Item
+                        leftSection={<IconInfoCircle size={16} />}
+                        onClick={() => {
+                            notifications.show({
+                                title: 'Language Debug Info',
+                                message: `Current: ${currentLanguage?.language || 'None'}, Available: ${languages.length}`,
+                                color: 'blue'
+                            });
+                        }}
+                    >
+                        Show Language Info
+                    </Menu.Item>
+                </Menu.Dropdown>
+            </Menu>
         </>
     );
 } 

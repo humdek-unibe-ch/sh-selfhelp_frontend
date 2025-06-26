@@ -645,154 +645,125 @@ const calculateFinalPosition = (pages: IMenuPageItem[], targetIndex: number): nu
 };
 ```
 
-## 2.3. Comprehensive Styles System with Database-Driven Architecture
+## 2.3. Enhanced Language Management System (Latest Update)
 
-### Complete Style Component Infrastructure
-Implemented a comprehensive style system based on the database structure with 82 different style types, proper TypeScript interfaces, and modular component architecture.
+### Universal Language Support with ID-Based Backend Integration
+Implemented a comprehensive language management system that provides language selection for both authenticated and non-authenticated users, with persistent preferences and JWT token integration. Updated to work with the new backend system that uses `language_id` instead of locale strings.
 
-#### Database-Driven Type System
-Created strongly-typed interfaces for all 82 styles based on the database schema:
-- **Base Interface**: Common fields shared across all styles (id, css, condition, debug, data_config)
-- **Style Categories**: 
-  - Authentication & User Management (login, profile, validate, register, resetPassword, twoFactorAuth)
-  - Container & Layout (container, jumbotron, alert, card, div, conditionalContainer)
-  - Text & Content (heading, markdown, markdownInline, plaintext, rawText)
-  - Form & Input (form, formUserInput, input, textarea, select, radio, slider, checkbox)
-  - Media (image, video, audio, figure, carousel)
-  - Navigation & Links (button, link, navigationContainer, navigationBar)
-  - List Styles (accordionList, nestedList, sortableList, entryList)
-  - Tab & Table Styles (tabs, tab, table, tableRow, tableCell)
-  - Specialized Styles (progressBar, quiz, chat, json, trigger, loop, etc.)
+#### Core Features
+- **Universal Language Selector**: Available for all users regardless of authentication status
+- **JWT Token Integration**: User language preferences stored in JWT tokens with both `language_id` and `language_locale`
+- **ID-Based API Communication**: Uses language IDs for API calls instead of locale strings for better performance
+- **API-Based Preference Updates**: Dedicated `/auth/set-language` endpoint for updating user language preferences
+- **Optimistic UI Updates**: Immediate visual feedback with proper loading states
+- **Fallback System**: Language IDs for non-authenticated users, JWT preferences for authenticated users
+- **Debug Tools**: Comprehensive debugging interface for language system testing
 
-#### TypeScript Architecture
+#### Technical Implementation
 ```typescript
-// Base style interface with common fields
-interface IBaseStyle {
-    id: IIdType;
-    id_styles: number;
-    style_name: string;
-    can_have_children: number;
-    position: number;
-    path: string;
-    children?: TStyle[];
-    fields: Record<string, IContentField<any>>;
-    css?: string;
-    condition?: IContentField<any> | null;
-    debug?: IContentField<string>;
-    data_config?: IContentField<any>;
-    css_mobile?: IContentField<string>;
+// Enhanced JWT payload with both language ID and locale
+interface IJwtPayload {
+    // ... existing fields ...
+    language_id?: number;        // e.g., 2, 3, 4
+    language_locale?: string;    // e.g., 'de-CH', 'en-GB'
 }
 
-// Content field structure for all field values
-export interface IContentField<T> {
-    content: T;
-    meta?: string;
-    type?: string;
-    id?: string;
-    default?: string;
-}
-
-// Union type for all 82 styles
-export type TStyle = ILoginStyle | IProfileStyle | IValidateStyle | ... | ILoopStyle;
-```
-
-#### Component Implementation Strategy
-- **BasicStyle Factory**: Central router component that renders appropriate style components based on style_name
-- **Mantine UI Integration**: All form and input components use Mantine UI v7 for consistency
-- **Modular Components**: Each style has its own component file with proper interfaces
-- **Field Content Helper**: Universal helper function to extract field values from both direct properties and fields object
-- **Recursive Rendering**: Styles with children properly render nested content
-
-#### Enhanced BasicStyle Component
-```typescript
-const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
-    if (!style || !style.style_name) return null;
-
-    // Universal field content extractor
-    const getFieldContent = (fieldName: string): any => {
-        if (fieldName in style) {
-            return (style as any)[fieldName]?.content;
-        }
-        return style.fields?.[fieldName]?.content;
-    };
-
-    switch (style.style_name) {
-        case 'container':
-            return <ContainerStyle style={style} />;
-        case 'input':
-            return <InputStyle style={style} />;
-        case 'select':
-            return <SelectStyle style={style} />;
-        case 'tabs':
-            return <TabsStyle style={style} />;
-        // ... 78 more style cases
-        default:
-            return <UnknownStyle style={style} />;
-    }
-};
-```
-
-#### Mantine UI Components Created
-- **InputStyle**: TextInput, NumberInput, PasswordInput, Checkbox, ColorInput with type-based rendering
-- **SelectStyle**: Select and MultiSelect with live search, clearable options, and image support
-- **TabsStyle**: Mantine Tabs with icon support and proper active state management
-- **AlertStyle**: Bootstrap-style alerts with dismissible option using Mantine components
-- **JumbotronStyle**: Hero section component with proper styling
-
-#### Field Mapping from Database
-Based on the `styles_fields` table mapping, each style interface includes only its relevant fields:
-- **Example - Card Style**: title, type, is_expanded, is_collapsible, url_edit
-- **Example - Input Style**: label, type_input, placeholder, is_required, name, value, min, max, format, locked_after_submit
-- **Example - Select Style**: label, alt, is_required, name, value, items, is_multiple, max, live_search, disabled, image_selector, locked_after_submit, allow_clear
-
-#### Benefits of the New System
-- **Type Safety**: Full TypeScript coverage for all 82 style types with proper field definitions
-- **Maintainability**: Clear separation of concerns with modular component architecture
-- **Extensibility**: Easy to add new styles by creating interface, component, and adding to BasicStyle switch
-- **Database Alignment**: Types directly match database schema for consistency
-- **Developer Experience**: IntelliSense support for all style properties and fields
-- **Performance**: Optimized rendering with proper memoization and conditional checks
-- **Consistency**: All form inputs use Mantine UI for unified theming
-
-#### Implementation Status
-- **Completed**: Core infrastructure, type system, BasicStyle router, 15+ essential style components
-- **In Progress**: Remaining style components (navigation, lists, specialized styles)
-// Mutation Hook Structure
-export function use[Entity][Action]Mutation(options = {}) {
-    const queryClient = useQueryClient();
-    
-    return useMutation({
-        mutationFn: (data) => [Entity]Api.[action](data),
-        onSuccess: async (result) => {
-            // Invalidate cache
-            await queryClient.invalidateQueries({ queryKey: ['[entity]'] });
-            // Show success notification
-            // Call custom success handler
-        },
-        onError: (error) => {
-            // Centralized error handling
-            // Show error notification
-            // Call custom error handler
-        },
+// Language preference update API (uses language_id)
+async updateLanguagePreference(languageId: number): Promise<ILoginSuccessResponse> {
+    const response = await apiClient.post('/auth/set-language', {
+        language_id: languageId
     });
+    // Returns new JWT token with updated preference
 }
 
-// Component Usage
-const createMutation = useCreateEntityMutation({
-    onSuccess: () => { form.reset(); onClose(); }
-});
+// Enhanced Language Context with ID-based management
+const { 
+    currentLanguage,           // Current language object (ILanguage)
+    currentLanguageId,         // Current language ID (number)
+    setCurrentLanguage,        // Function to change language (accepts ID)
+    languages,                 // Available languages array
+    isUpdatingLanguage        // Loading state for API calls
+} = useLanguageContext();
 
-const handleSubmit = (values) => {
-    createMutation.mutate(values);
-};
+// Page content API with language_id parameter
+const { content } = usePageContent(keyword, currentLanguageId);
+// Calls: GET /pages/home?language_id=2
 ```
 
-### Benefits
-- **Declarative State Management**: Automatic loading, error, success states
-- **Cache Synchronization**: Automatic cache invalidation and updates
-- **Optimistic Updates**: Update UI immediately, rollback on failure
-- **Consistent UX**: Standardized loading states and error handling
-- **Developer Experience**: Excellent debugging with React Query DevTools
+#### Backend API Integration
+```typescript
+// New API endpoints matching backend structure
+ENDPOINTS: {
+    USER_LANGUAGE_PREFERENCE: '/auth/set-language',
+    PAGES_GET_ONE_WITH_LANGUAGE: (keyword, languageId) => `/pages/${keyword}?language_id=${languageId}`,
+    ADMIN_PAGES_GET_ONE_WITH_LANGUAGE: (keyword, languageId) => `/admin/pages/${keyword}?language_id=${languageId}`,
+}
+
+// Request/Response structure
+POST /cms-api/v1/auth/set-language
+{
+    "language_id": 3
+}
+
+// Response includes updated JWT with language info
+{
+    "data": {
+        "access_token": "new_jwt_token",
+        "refresh_token": "refresh_token",
+        "user": {
+            "id": 1,
+            "email": "user@example.com", 
+            "name": "User Name",
+            "language_id": 3,
+            "language_locale": "de-CH"
+        }
+    }
+}
+```
+
+#### User Experience Flow
+1. **Non-Authenticated Users**: Language ID stored locally, uses default language from API
+2. **Authenticated Users**: Language preference stored in database, included in JWT token
+3. **Language Changes**: 
+   - Non-authenticated: Immediate local update with language ID
+   - Authenticated: API call with language ID → new JWT token → UI update
+4. **Visual Feedback**: Loading indicators, success/error notifications
+5. **Page Content**: API calls use `language_id` parameter for better performance
+
+#### Performance Benefits
+- **Eliminated SQL Queries**: Backend no longer needs to convert locale to language_id
+- **Direct Parameter Usage**: Language IDs used directly without conversion
+- **Reduced Complexity**: Integer parameters instead of string locale codes
+- **Better Type Safety**: Numeric IDs instead of string validation
+
+#### API Changes Summary
+**Before (Locale-Based):**
+```typescript
+GET /pages/home?locale=en
+usePageContent(keyword, 'en-GB')
+setCurrentLanguage('de-CH')
+```
+
+**After (ID-Based):**
+```typescript
+GET /pages/home?language_id=2
+usePageContent(keyword, 2)
+setCurrentLanguage(3)
+```
+
+#### Benefits
+- **Seamless Experience**: Language selector always visible and functional
+- **Data Persistence**: User preferences saved permanently for authenticated users
+- **Performance**: Optimistic updates with proper error handling, no SQL conversions
+- **Developer Experience**: Comprehensive debug tools and logging
+- **Scalability**: ID-based system more efficient than string-based lookups
+- **Type Safety**: Numeric IDs provide better TypeScript support
+
+#### Debug Features
+- **Language Test Tools**: Random language switching for testing
+- **State Inspection**: Real-time view of current language ID and object
+- **API Monitoring**: Track language preference update calls with IDs
+- **Console Logging**: Detailed language system information with both ID and locale data
 
 ## 2.4. Page Rendering Implementation with Best Practices
 

@@ -18,6 +18,15 @@ export function AdminNavbar() {
         router.push(`/admin/pages/${keyword}`);
     }, [router]);
 
+    // Helper function to add onClick handlers to system page links
+    const addOnClickHandlers = (pages: any[]): any[] => {
+        return pages.map(page => ({
+            ...page,
+            onClick: () => handlePageSelect(page.keyword),
+            children: page.children ? addOnClickHandlers(page.children) : undefined
+        }));
+    };
+
     // Build dynamic system pages section
     const systemPagesChildren = useMemo(() => {
         if (isLoading) {
@@ -30,7 +39,7 @@ export function AdminNavbar() {
             systemPages.push({
                 label: 'Authentication',
                 link: '#',
-                children: categorizedSystemPages.authentication
+                children: addOnClickHandlers(categorizedSystemPages.authentication)
             });
         }
         
@@ -38,7 +47,7 @@ export function AdminNavbar() {
             systemPages.push({
                 label: 'User Profile',
                 link: '#',
-                children: categorizedSystemPages.profile
+                children: addOnClickHandlers(categorizedSystemPages.profile)
             });
         }
         
@@ -46,7 +55,7 @@ export function AdminNavbar() {
             systemPages.push({
                 label: 'Error Pages',
                 link: '#',
-                children: categorizedSystemPages.errors
+                children: addOnClickHandlers(categorizedSystemPages.errors)
             });
         }
         
@@ -54,7 +63,7 @@ export function AdminNavbar() {
             systemPages.push({
                 label: 'Legal Pages',
                 link: '#',
-                children: categorizedSystemPages.legal
+                children: addOnClickHandlers(categorizedSystemPages.legal)
             });
         }
         
@@ -62,12 +71,12 @@ export function AdminNavbar() {
             systemPages.push({
                 label: 'Other System Pages',
                 link: '#',
-                children: categorizedSystemPages.other
+                children: addOnClickHandlers(categorizedSystemPages.other)
             });
         }
 
         return systemPages.length > 0 ? systemPages : [{ label: 'No system pages found', link: '#' }];
-    }, [categorizedSystemPages, isLoading]);
+    }, [categorizedSystemPages, isLoading, handlePageSelect]);
 
     // Build dynamic regular pages section
     const regularPagesChildren = useMemo(() => {

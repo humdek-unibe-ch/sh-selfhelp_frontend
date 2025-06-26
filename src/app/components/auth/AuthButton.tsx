@@ -2,16 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { Button, Menu } from '@mantine/core';
-import { IconLogin, IconLogout, IconUser } from '@tabler/icons-react';
+import { IconLogin, IconLogout, IconUser, IconSettings } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useIsAuthenticated, useLogout } from '@refinedev/core';
 import { ROUTES } from '../../../config/routes.config';
 import { getAccessToken, getRefreshToken } from '../../../utils/auth.utils';
 import { debug } from '../../../utils/debug-logger';
+import { useProfilePages } from '../../../hooks/useAdminPages';
 
 export function AuthButton() {
     const { data: { authenticated } = {}, isLoading: isAuthLoading } = useIsAuthenticated();
     const { mutate: logout, isLoading: isLoggingOut } = useLogout();
+    const { profileLinkPage, profileChildren } = useProfilePages();
     const [stableAuthState, setStableAuthState] = useState<boolean | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const router = useRouter();
@@ -96,6 +98,26 @@ export function AuthButton() {
         });
     };
 
+    const handleMenuItemClick = (keyword: string) => {
+        if (keyword === 'logout') {
+            handleLogout();
+        } else {
+            // Navigate to the page
+            router.push(`/${keyword}`);
+        }
+    };
+
+    const getMenuItemIcon = (keyword: string) => {
+        switch (keyword) {
+            case 'profile':
+                return <IconSettings size={14} />;
+            case 'logout':
+                return <IconLogout size={14} />;
+            default:
+                return <IconSettings size={14} />;
+        }
+    };
+
     // Show loading state during initial load, when Refine is loading, or during logout
     if (isAuthLoading || stableAuthState === null || isLoggingOut) {
         return null;
@@ -126,7 +148,9 @@ export function AuthButton() {
     debug('Showing profile menu', 'AuthButton', {
         stableAuthState,
         isRefreshing,
-        authenticated
+        authenticated,
+        profileLinkPage,
+        profileChildren: profileChildren.length
     });
 
     return (
@@ -140,19 +164,34 @@ export function AuthButton() {
                         transition: 'opacity 0.2s ease'
                     }}
                 >
-                    Profile
+                    {profileLinkPage?.label || 'Profile'}
                 </Button>
             </Menu.Target>
 
             <Menu.Dropdown>
-                <Menu.Item
-                    color="red"
-                    leftSection={<IconLogout size={14} />}
-                    onClick={handleLogout}
-                    disabled={isLoggingOut}
-                >
-                    {isLoggingOut ? 'Logging out...' : 'Logout'}
-                </Menu.Item>
+                {profileChildren.length > 0 ? (
+                    profileChildren.map((child) => (
+                        <Menu.Item
+                            key={child.keyword}
+                            leftSection={getMenuItemIcon(child.keyword)}
+                            onClick={() => handleMenuItemClick(child.keyword)}
+                            disabled={isLoggingOut && child.keyword === 'logout'}
+                            color={child.keyword === 'logout' ? 'red' : undefined}
+                        >
+                            {child.keyword === 'logout' && isLoggingOut ? 'Logging out...' : child.label}
+                        </Menu.Item>
+                    ))
+                ) : (
+                    // Fallback if no children found
+                    <Menu.Item
+                        color="red"
+                        leftSection={<IconLogout size={14} />}
+                        onClick={handleLogout}
+                        disabled={isLoggingOut}
+                    >
+                        {isLoggingOut ? 'Logging out...' : 'Logout'}
+                    </Menu.Item>
+                )}
             </Menu.Dropdown>
         </Menu>
     );

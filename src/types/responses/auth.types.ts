@@ -5,6 +5,10 @@ export interface IUser {
     id: number;
     email: string;
     name: string;
+    /** User's preferred language ID */
+    language_id?: number;
+    /** User's preferred language locale */
+    language_locale?: string;
 }
 
 // Login Success

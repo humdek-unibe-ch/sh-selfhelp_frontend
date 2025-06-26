@@ -20,4 +20,6 @@ export * from './sections';
 
 // Re-export utility types and functions
 export type { IParsedError } from '../../utils/mutation-error-handler';
-export { parseApiError, getOperationErrorMessage, ERROR_MESSAGES } from '../../utils/mutation-error-handler'; 
+export { parseApiError, getOperationErrorMessage, ERROR_MESSAGES } from '../../utils/mutation-error-handler';
+
+export { useUpdateLanguagePreferenceMutation } from './useUpdateLanguagePreferenceMutation'; 

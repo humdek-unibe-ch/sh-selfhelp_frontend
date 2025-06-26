@@ -1,27 +1,29 @@
 'use client';
 
-import { Select, Group, Text } from '@mantine/core';
+import { Select, Group, Text, Loader } from '@mantine/core';
 import { useLanguageContext } from '../../contexts/LanguageContext';
 import { useAuth } from '../../../hooks/useAuth';
 
 export function LanguageSelector() {
     const { user, isLoading: isAuthLoading } = useAuth();
     const { 
-        currentLanguage, 
+        currentLanguage,
+        currentLanguageId,
         setCurrentLanguage, 
         languages, 
         defaultLanguage, 
-        isLoading 
+        isLoading,
+        isUpdatingLanguage
     } = useLanguageContext();
     
     // Wait for authentication check to complete
     if (isAuthLoading || isLoading) {
-        return null;
-    }
-    
-    // Don't show language selector if user is logged in
-    if (user) {
-        return null;
+        return (
+            <Group gap="xs">
+                <Text size="sm" c="dimmed">Language:</Text>
+                <Loader size="sm" />
+            </Group>
+        );
     }
     
     // Don't show if languages are empty
@@ -29,32 +31,37 @@ export function LanguageSelector() {
         return null;
     }
     
-    // Use current language from context, fallback to default language's locale
-    const selectedLanguage = currentLanguage || defaultLanguage?.locale || '';
+    // Use current language ID, fallback to default language's ID
+    const selectedLanguageId = currentLanguageId || defaultLanguage?.id || null;
     
     const handleLanguageChange = (value: string | null) => {
         if (!value) return;
-        setCurrentLanguage(value);
+        const languageId = parseInt(value, 10);
+        setCurrentLanguage(languageId);
     };
     
-    // Use locale as value and language as label
+    // Use language ID as value and language name as label
     const languageOptions = languages.map(lang => ({
-        value: lang.locale,
+        value: lang.id.toString(),
         label: lang.language
     }));
     
     return (
         <Group gap="xs">
-            <Text size="sm" c="dimmed">Language:</Text>
+            <Text size="sm" c="dimmed">
+                Language{user ? ' (Saved)' : ''}:
+            </Text>
             <Select
                 data={languageOptions}
-                value={selectedLanguage}
+                value={selectedLanguageId?.toString() || ''}
                 onChange={handleLanguageChange}
                 size="sm"
                 w={150}
                 placeholder="Select language"
                 searchable={false}
                 clearable={false}
+                disabled={isUpdatingLanguage}
+                rightSection={isUpdatingLanguage ? <Loader size="xs" /> : undefined}
             />
         </Group>
     );

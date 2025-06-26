@@ -16,6 +16,7 @@ export interface ISystemPageLink {
     link: string;
     keyword: string;
     id: number;
+    children?: ISystemPageLink[];
 }
 
 export interface IPageHierarchy {
@@ -54,21 +55,32 @@ export function useAdminPages() {
             const systemPages = data.filter(page => page.is_system === 1);
             const regularPages = data.filter(page => page.is_system === 0);
             
-            // Transform system pages into navigation links format
-            const systemPageLinks = systemPages.map((page): ISystemPageLink => ({
-                label: page.keyword.charAt(0).toUpperCase() + page.keyword.slice(1).replace(/_/g, ' '),
-                link: `/admin/pages/${page.keyword}`,
-                keyword: page.keyword,
-                id: page.id_pages
-            }));
+            // Build hierarchical structure for system pages (same as regular pages)
+            const buildSystemHierarchy = (pages: IAdminPage[], parentId: number | null = null): ISystemPageLink[] => {
+                return pages
+                    .filter(page => page.parent === parentId)
+                    .map((page): ISystemPageLink => {
+                        const children = buildSystemHierarchy(pages, page.id_pages);
+                        return {
+                            label: page.keyword.charAt(0).toUpperCase() + page.keyword.slice(1).replace(/_/g, ' '),
+                            link: `/admin/pages/${page.keyword}`,
+                            keyword: page.keyword,
+                            id: page.id_pages,
+                            children: children.length > 0 ? children : undefined
+                        };
+                    });
+            };
+
+            // Build hierarchical system page links
+            const systemPageLinks = buildSystemHierarchy(systemPages);
             
             // Group system pages by category for better organization
             const authPages = systemPageLinks.filter(page => 
-                ['login', 'two-factor-authentication', 'validate', 'reset_password'].includes(page.keyword)
+                ['login', 'logout', 'two-factor-authentication', 'validate', 'reset_password'].includes(page.keyword)
             );
             
             const profilePages = systemPageLinks.filter(page => 
-                ['profile', 'home'].includes(page.keyword)
+                ['profile', 'home', 'profile-link'].includes(page.keyword)
             );
             
             const errorPages = systemPageLinks.filter(page => 
@@ -139,6 +151,7 @@ export function useAdminPages() {
                 systemPages: systemPages.length,
                 regularPages: regularPages.length,
                 systemPageKeywords: systemPages.map(p => p.keyword),
+                hierarchicalSystemPageLinks: systemPageLinks.length,
                 hierarchicalPagesCount: hierarchicalPages.length,
                 menuPagesCount: menuPages.length,
                 footerPagesCount: footerPages.length,
@@ -179,6 +192,35 @@ export function useAdminPages() {
             footer: [],
             other: []
         },
+        isLoading,
+        error
+    };
+}
+
+/**
+ * Hook for getting profile page data with its children for the profile dropdown
+ * @returns Object containing profile link data and its children
+ */
+export function useProfilePages() {
+    const { systemPageLinks, isLoading, error } = useAdminPages();
+    
+    // Find the profile-link page and its children
+    const profileLinkPage = systemPageLinks.find(page => page.keyword === 'profile-link');
+    
+    debug('Profile pages data', 'useProfilePages', {
+        totalSystemPages: systemPageLinks.length,
+        profileLinkFound: !!profileLinkPage,
+        profileLinkPage: profileLinkPage ? {
+            keyword: profileLinkPage.keyword,
+            label: profileLinkPage.label,
+            childrenCount: profileLinkPage.children?.length || 0,
+            children: profileLinkPage.children?.map(c => ({ keyword: c.keyword, label: c.label }))
+        } : null
+    });
+    
+    return {
+        profileLinkPage,
+        profileChildren: profileLinkPage?.children || [],
         isLoading,
         error
     };

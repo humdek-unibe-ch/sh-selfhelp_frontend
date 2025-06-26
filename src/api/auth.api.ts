@@ -162,5 +162,32 @@ export const AuthApi = {
         }
 
         return response?.data || { status: 200, message: 'Logged out', error: null, logged_in: false, meta: { version: 'v1', timestamp: new Date().toISOString() }, data: { message: 'Successfully logged out' } };
+    },
+
+    /**
+     * Updates user's language preference and returns new JWT token
+     * @param {number} languageId - The language ID to set
+     * @returns {Promise<ILoginSuccessResponse>} Response containing new JWT tokens with updated language preference
+     * @throws {Error} When language update fails
+     */
+    async updateLanguagePreference(languageId: number): Promise<ILoginSuccessResponse> {
+        const response = await apiClient.post<ILoginSuccessResponse>(
+            API_CONFIG.ENDPOINTS.USER_LANGUAGE_PREFERENCE,
+            { language_id: languageId }
+        );
+
+        if (response.data.error) {
+            throw new Error(response.data.error);
+        }
+
+        // Store new tokens if provided
+        if (response.data.data.access_token) {
+            storeTokens(response.data.data.access_token, response.data.data.refresh_token);
+            
+            // Update stored user data
+            localStorage.setItem('user', JSON.stringify(response.data.data.user));
+        }
+
+        return response.data;
     }
 };

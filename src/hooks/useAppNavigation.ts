@@ -50,8 +50,11 @@ export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
     const { data, isLoading, error } = useQuery({
         queryKey: ['pages'],
         queryFn: NavigationApi.getPages,
-        staleTime: 1000,
+        staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+        gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
         refetchOnWindowFocus: false,
+        refetchOnMount: false, // Don't refetch on mount if data exists
+        retry: 1, // Reduce retries to prevent loops
         select: (pages: IPageItem[]): INavigationData => {
             debug('Transform: Raw pages from API', 'useAppNavigation', { count: pages.length });
             

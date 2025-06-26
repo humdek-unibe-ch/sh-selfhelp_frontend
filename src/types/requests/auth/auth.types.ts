@@ -15,3 +15,10 @@ export interface ITwoFactorVerifyRequest {
     id_users: number; // The ID of the user attempting to verify 2FA.
     code: string; // The 6-digit 2FA code (pattern: "^[0-9]{6}$").
 }
+
+/**
+ * Request interface for updating user language preference
+ */
+export interface IUpdateLanguagePreferenceRequest {
+    language_id: number;
+}

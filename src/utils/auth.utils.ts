@@ -84,6 +84,8 @@ export const getUserPayload = (token: string | null): IAuthUser | null => {
             name: decoded.user_name || decoded.email,
             roles: decoded.roles || [],
             permissions: decoded.permissions || [],
+            languageId: decoded.language_id,
+            languageLocale: decoded.language_locale,
         };
     } catch (error) {
         console.error('Failed to decode JWT token:', error);

@@ -18,6 +18,10 @@ export interface IJwtPayload {
     user_name: string;
     /** Username (same as email in this case) */
     username: string;
+    /** User's preferred language ID */
+    language_id?: number;
+    /** User's preferred language locale (e.g., 'de-CH', 'en-GB') */
+    language_locale?: string;
 }
 
 /**
@@ -29,6 +33,10 @@ export interface IAuthUser {
     name: string;
     roles: string[];
     permissions: string[];
+    /** User's preferred language ID */
+    languageId?: number;
+    /** User's preferred language locale */
+    languageLocale?: string;
 }
 
 /**
