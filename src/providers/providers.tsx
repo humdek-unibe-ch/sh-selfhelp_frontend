@@ -82,11 +82,11 @@ function Providers({ children }: { children: React.ReactNode }) {
                 theme={theme}
             >
                 <Notifications />
-                <RefineWrapper>
-                    <LanguageProvider>
+                <LanguageProvider>
+                    <RefineWrapper>
                         {children}
-                    </LanguageProvider>
-                </RefineWrapper>
+                    </RefineWrapper>
+                </LanguageProvider>
             </MantineProvider>
             <ReactQueryDevtools initialIsOpen={false} />
         </QueryClientProvider>
