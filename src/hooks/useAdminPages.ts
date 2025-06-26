@@ -99,77 +99,37 @@ export function useAdminPages() {
             const systemPages = data.filter(page => page.is_system === 1);
             const regularPages = data.filter(page => page.is_system === 0);
             
-            // Helper function to get page title - use actual title from API or fallback to formatted keyword
-            const getPageTitle = (page: IAdminPage): string => {
-                // Use the actual title if available, otherwise format the keyword as fallback
-                if (page.title && page.title.trim()) {
-                    return page.title;
-                }
-                // Fallback to formatted keyword
-                return page.keyword.charAt(0).toUpperCase() + page.keyword.slice(1).replace(/_/g, ' ').replace(/-/g, ' ');
+            // Helper function to get page label for admin interface (always use keyword)
+            const getAdminLabel = (page: IAdminPage): string => {
+                return page.keyword;
             };
             
-            // Build hierarchical structure for system pages (same as regular pages)
-            const buildSystemHierarchy = (pages: IAdminPage[], parentId: number | null = null): ISystemPageLink[] => {
-                return pages
-                    .filter(page => page.parent === parentId)
-                    .map((page): ISystemPageLink => {
-                        const children = buildSystemHierarchy(pages, page.id_pages);
-                        return {
-                            label: getPageTitle(page), // Use title instead of formatted keyword
-                            link: `/admin/pages/${page.keyword}`,
-                            keyword: page.keyword,
-                            id: page.id_pages,
-                            children: children.length > 0 ? children : undefined
-                        };
-                    });
+            // Build hierarchical structure for system pages
+            const buildSystemHierarchy = (pages: IAdminPage[]): ISystemPageLink[] => {
+                return pages.map((page): ISystemPageLink => {
+                    return {
+                        label: getAdminLabel(page), // Use keyword for admin interface
+                        link: `/admin/pages/${page.keyword}`,
+                        keyword: page.keyword,
+                        id: page.id_pages,
+                        children: page.children && page.children.length > 0 
+                            ? buildSystemHierarchy(page.children) 
+                            : undefined
+                    };
+                });
             };
 
             // Build hierarchical system page links
             const systemPageLinks = buildSystemHierarchy(systemPages);
             
-            // Group system pages by category for better organization
+            // Group system pages by category for better organization (based on actual data)
             const authPages = systemPageLinks.filter(page => 
                 ['login', 'logout', 'two-factor-authentication', 'validate', 'reset_password'].includes(page.keyword)
             );
             
-            // Look for individual profile-related pages instead of expecting a profile-link parent
-            // Since profile-link doesn't exist in the database, we'll create a virtual structure
-            const profileRelatedPages = systemPageLinks.filter(page => 
-                ['profile', 'settings', 'logout'].includes(page.keyword)
-            );
-            
-            // Create virtual profile pages if they don't exist in the database
-            const virtualProfilePages = [];
-            if (!profileRelatedPages.find(p => p.keyword === 'profile')) {
-                virtualProfilePages.push({
-                    label: 'Profile Settings',
-                    link: '/admin/profile',
-                    keyword: 'profile',
-                    id: -1 // Virtual ID
-                });
-            }
-            if (!profileRelatedPages.find(p => p.keyword === 'logout')) {
-                virtualProfilePages.push({
-                    label: 'Logout',
-                    link: '#',
-                    keyword: 'logout',
-                    id: -2 // Virtual ID
-                });
-            }
-            
-            // Combine real and virtual profile pages
-            const allProfilePages = [...profileRelatedPages, ...virtualProfilePages];
-            
-            // Create a virtual profile-link structure with children
-            const profilePages = allProfilePages.length > 0 ? [{
-                label: 'Profile',
-                link: '#',
-                keyword: 'profile-link',
-                id: 0, // Virtual ID
-                children: allProfilePages
-            }] : systemPageLinks.filter(page => 
-                ['profile', 'home', 'profile-link'].includes(page.keyword)
+            // Profile pages - find the actual profile-link page from API data
+            const profilePages = systemPageLinks.filter(page => 
+                page.keyword === 'profile-link' || ['profile', 'home'].includes(page.keyword)
             );
             
             const errorPages = systemPageLinks.filter(page => 
@@ -181,10 +141,10 @@ export function useAdminPages() {
             );
             
             const otherPages = systemPageLinks.filter(page => 
-                !authPages.includes(page) && 
-                !profilePages.includes(page) && 
-                !errorPages.includes(page) && 
-                !legalPages.includes(page)
+                !authPages.some(ap => ap.keyword === page.keyword) && 
+                !profilePages.some(pp => pp.keyword === page.keyword) && 
+                !errorPages.some(ep => ep.keyword === page.keyword) && 
+                !legalPages.some(lp => lp.keyword === page.keyword)
             );
             
             const categorizedSystemPages = {
@@ -200,7 +160,7 @@ export function useAdminPages() {
                 return pages.map(page => ({
                     id: page.id_pages,
                     keyword: page.keyword,
-                    label: getPageTitle(page), // Use title instead of formatted keyword
+                    label: getAdminLabel(page), // Use keyword for admin interface
                     link: `/admin/pages/${page.keyword}`,
                     hasChildren: Boolean(page.children && page.children.length > 0),
                     children: page.children ? buildHierarchy(page.children, level + 1) : [],
@@ -215,7 +175,7 @@ export function useAdminPages() {
 
             const hierarchicalPages = buildHierarchy(regularPages);
 
-            // Categorize regular pages like system pages
+            // Categorize regular pages based on their positions
             const menuPages = hierarchicalPages.filter(page => 
                 page.nav_position !== null && page.nav_position !== undefined
             );
@@ -298,7 +258,7 @@ export function useProfilePages() {
     // More robust authentication check: must have Refine auth state, user data, AND access token
     const isActuallyAuthenticated = !!isAuthenticated && !!user && !!getAccessToken();
     
-    // Find the profile-link page from categorized pages (which includes virtual profile-link)
+    // Find the profile-link page from categorized pages
     const profileLinkPage = isActuallyAuthenticated ? 
         categorizedSystemPages.profile.find(page => page.keyword === 'profile-link') : null;
     

@@ -23,7 +23,7 @@ export function AdminNavbar() {
         return pages.map(page => ({
             ...page,
             onClick: () => handlePageSelect(page.keyword),
-            children: page.children ? addOnClickHandlers(page.children) : undefined
+            children: page.children && page.children.length > 0 ? addOnClickHandlers(page.children) : undefined
         }));
     };
 
@@ -44,27 +44,10 @@ export function AdminNavbar() {
         }
         
         if (categorizedSystemPages.profile.length > 0) {
-            // Process profile pages to ensure profile-link children are properly displayed
-            const profilePagesWithChildren = categorizedSystemPages.profile.map(page => {
-                if (page.keyword === 'profile-link' && page.children && page.children.length > 0) {
-                    // Profile-link should show its children
-                    return {
-                        ...page,
-                        onClick: () => handlePageSelect(page.keyword),
-                        children: addOnClickHandlers(page.children)
-                    };
-                }
-                return {
-                    ...page,
-                    onClick: () => handlePageSelect(page.keyword),
-                    children: page.children ? addOnClickHandlers(page.children) : undefined
-                };
-            });
-
             systemPages.push({
                 label: 'User Profile',
                 link: '#',
-                children: profilePagesWithChildren
+                children: addOnClickHandlers(categorizedSystemPages.profile)
             });
         }
         
@@ -107,10 +90,7 @@ export function AdminNavbar() {
             regularPages.push({
                 label: 'Menu Pages',
                 link: '#',
-                children: categorizedRegularPages.menu.map(page => ({
-                    ...page,
-                    onClick: () => handlePageSelect(page.keyword)
-                }))
+                children: addOnClickHandlers(categorizedRegularPages.menu)
             });
         }
         
@@ -118,10 +98,7 @@ export function AdminNavbar() {
             regularPages.push({
                 label: 'Footer Pages',
                 link: '#',
-                children: categorizedRegularPages.footer.map(page => ({
-                    ...page,
-                    onClick: () => handlePageSelect(page.keyword)
-                }))
+                children: addOnClickHandlers(categorizedRegularPages.footer)
             });
         }
         
@@ -129,10 +106,7 @@ export function AdminNavbar() {
             regularPages.push({
                 label: 'Other Pages',
                 link: '#',
-                children: categorizedRegularPages.other.map(page => ({
-                    ...page,
-                    onClick: () => handlePageSelect(page.keyword)
-                }))
+                children: addOnClickHandlers(categorizedRegularPages.other)
             });
         }
 
