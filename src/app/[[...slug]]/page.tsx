@@ -1,7 +1,7 @@
 'use client';
 
 import { notFound, useParams } from 'next/navigation';
-import { useEffect, Suspense } from 'react';
+import { useEffect, Suspense, useMemo } from 'react';
 import { Container, Loader, Center, Text } from '@mantine/core';
 import { PageContentProvider, usePageContentContext } from '../contexts/PageContentContext';
 import { usePageContent } from '../../hooks/usePageContent';
@@ -9,6 +9,7 @@ import { useAppNavigation } from '../../hooks/useAppNavigation';
 import { useLanguageContext } from '../contexts/LanguageContext';
 import { PageContentRenderer } from '../components/website/PageContentRenderer';
 import { debug, info, warn } from '../../utils/debug-logger';
+import React from 'react';
 
 export default function DynamicPage() {
     const { slug } = useParams();
@@ -27,47 +28,49 @@ export default function DynamicPage() {
     );
 }
 
-function DynamicPageContent({ keyword }: { keyword: string }) {
-    const { currentLanguage, isLoading: languageLoading } = useLanguageContext();
+const DynamicPageContent = React.memo(function DynamicPageContent({ keyword }: { keyword: string }) {
+    const { currentLanguageId, isLoading: languageLoading } = useLanguageContext();
     
-    const { content: queryContent, isLoading: pageLoading } = usePageContent(keyword, currentLanguage || undefined);
+    // Ensure currentLanguageId is a proper number, not an object
+    const languageId = typeof currentLanguageId === 'number' ? currentLanguageId : undefined;
+    
+    const { content: queryContent, isLoading: pageLoading } = usePageContent(keyword, languageId);
     const { pageContent: contextContent } = usePageContentContext();
     const pageContent = contextContent || queryContent;
 
     const { routes, isLoading: navLoading } = useAppNavigation();
     
     // Extract headless flag for rendering decisions
-    const isHeadless = Boolean(pageContent?.page?.is_headless);
+    const isHeadless = Boolean(pageContent?.is_headless);
     
-    // Debug logging
-    const debugInfo = {
+    // Memoize debug info to prevent unnecessary recalculations
+    const debugInfo = useMemo(() => ({
         keyword,
-        currentLanguage,
+        currentLanguageId,
         languageLoading,
         routesCount: routes.length,
         routes: routes.map(r => ({ keyword: r.keyword, url: r.url, id: r.id_pages })),
         navLoading,
         pageLoading,
         hasContent: !!pageContent,
-        pageData: pageContent?.page,
-        sectionsCount: pageContent?.page?.sections?.length || 0,
+        pageData: pageContent,
+        sectionsCount: pageContent?.sections?.length || 0,
         isHeadless
-    };
+    }), [keyword, currentLanguageId, languageLoading, routes, navLoading, pageLoading, pageContent, isHeadless]);
     
-    debug('Page render debug info', 'DynamicPageContent', debugInfo);
+    // Only log debug info when it actually changes
+    useEffect(() => {
+        debug('Page render debug info', 'DynamicPageContent', debugInfo);
+    }, [debugInfo]);
     
-    // Check if page exists in navigation routes
-    const existsInNavigation = routes.some(p => p.keyword === keyword);
+    // Memoize navigation check
+    const existsInNavigation = useMemo(() => 
+        routes.some(p => p.keyword === keyword), 
+        [routes, keyword]
+    );
     
     // Check if page content is available (more reliable than navigation check)
-    const hasValidContent = pageContent && pageContent.page;
-    
-    info(`Page existence check: ${keyword}`, 'DynamicPageContent', { 
-        keyword, 
-        existsInNavigation, 
-        hasValidContent,
-        routesLength: routes.length 
-    });
+    const hasValidContent = pageContent && pageContent.id;
     
     // Show loading while data is loading
     if (pageLoading || navLoading || languageLoading) {
@@ -101,7 +104,7 @@ function DynamicPageContent({ keyword }: { keyword: string }) {
     }
 
     // Extract sections from the page data
-    const sections = pageContent.page.sections || [];
+    const sections = pageContent.sections || [];
 
     // For headless pages, render without standard container and let content fill the viewport
     if (isHeadless) {
@@ -118,4 +121,4 @@ function DynamicPageContent({ keyword }: { keyword: string }) {
             <PageContentRenderer sections={sections} />
         </Container>
     );
-}
+});

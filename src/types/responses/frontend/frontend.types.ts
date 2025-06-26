@@ -24,16 +24,14 @@ export interface IPageItem {
 
 // Updated to match the actual API response structure
 export interface IPageContent {
-    page: {
-        id: number;
-        keyword: string;
-        url: string;
-        parent_page_id: number | null;
-        is_headless: boolean;
-        nav_position: number | null;
-        footer_position: number | null;
-        sections: TStyle[];
-    };
+    id: number;
+    keyword: string;
+    url: string;
+    parent_page_id: number | null;
+    is_headless: boolean;
+    nav_position: number | null;
+    footer_position: number | null;
+    sections: TStyle[];
 }
 
 // Legacy interface for backward compatibility
