@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { AdminApi } from '../api/admin.api';
 import { ILanguage } from '../types/responses/admin/languages.types';
 import { useAuth } from './useAuth';
+import { getAccessToken } from '../utils/auth.utils';
 import { debug } from '../utils/debug-logger';
 
 /**
@@ -17,7 +18,10 @@ import { debug } from '../utils/debug-logger';
  * @returns Object containing languages data and query state
  */
 export function useLanguages() {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, user } = useAuth();
+    
+    // More robust authentication check: must have Refine auth state, user data, AND access token
+    const isActuallyAuthenticated = !!isAuthenticated && !!user && !!getAccessToken();
     
     const { data, isLoading, error } = useQuery({
         queryKey: ['languages'],
@@ -25,7 +29,7 @@ export function useLanguages() {
             debug('Fetching languages', 'useLanguages');
             return await AdminApi.getLanguages();
         },
-        enabled: !!isAuthenticated, // Only fetch when user is authenticated
+        enabled: isActuallyAuthenticated, // Only fetch when user is truly authenticated
         select: (data: ILanguage[]) => {
             // Transform locale codes for easier use in the UI
             return data.map(lang => ({
