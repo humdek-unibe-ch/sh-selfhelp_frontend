@@ -55,12 +55,7 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style }) => {
                     if (data.success && data.redirectTo) {
                         let redirectUrl = data.redirectTo as string;
                         
-                        // Preserve language parameter if present in current URL
-                        const currentLanguage = searchParams.get('language');
-                        if (currentLanguage && !redirectUrl.includes('language=')) {
-                            const separator = redirectUrl.includes('?') ? '&' : '?';
-                            redirectUrl = `${redirectUrl}${separator}language=${currentLanguage}`;
-                        }
+                        // No need to preserve language parameters in URL
                         
                         setTimeout(() => {
                             router.push(redirectUrl);

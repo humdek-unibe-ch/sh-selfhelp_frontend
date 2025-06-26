@@ -9,6 +9,7 @@ interface ILanguageContextValue {
     currentLanguageId: number | null;
     setCurrentLanguage: (languageId: number) => void;
     languages: ILanguage[];
+    setLanguages: (languages: ILanguage[]) => void;
     defaultLanguage: ILanguage | null;
     isLoading: boolean;
     isUpdatingLanguage: boolean;
@@ -27,7 +28,7 @@ interface ILanguageProviderProps {
  */
 export function LanguageProvider({ children }: ILanguageProviderProps) {
     const [currentLanguageId, setCurrentLanguageIdState] = useState<number | null>(1); // Default to language ID 1
-    const [languages] = useState<ILanguage[]>([]); // Empty initially, will be populated by enhanced provider
+    const [languages, setLanguagesState] = useState<ILanguage[]>([]); // Empty initially, will be populated by enhanced provider
     
     // Basic default language fallback
     const defaultLanguage: ILanguage | null = {
@@ -46,6 +47,11 @@ export function LanguageProvider({ children }: ILanguageProviderProps) {
         debug('Basic language context: Language changed', 'LanguageProvider', { languageId });
     };
 
+    const setLanguages = (newLanguages: ILanguage[]) => {
+        setLanguagesState(newLanguages);
+        debug('Basic language context: Languages updated', 'LanguageProvider', { count: newLanguages.length });
+    };
+
     // Initialize with default language
     useEffect(() => {
         if (currentLanguageId === null) {
@@ -58,6 +64,7 @@ export function LanguageProvider({ children }: ILanguageProviderProps) {
         currentLanguageId,
         setCurrentLanguage,
         languages,
+        setLanguages,
         defaultLanguage,
         isLoading: false, // Basic provider is never loading
         isUpdatingLanguage: false

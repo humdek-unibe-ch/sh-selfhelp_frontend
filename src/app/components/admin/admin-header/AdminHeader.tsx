@@ -5,6 +5,7 @@ import { SelfHelpLogo } from '../../common/SelfHelpLogo';
 import { ThemeToggle } from '../../common/ThemeToggle';
 import { AuthButton } from '../../auth/AuthButton';
 
+
 interface AdminHeaderProps {
     opened: boolean;
     onToggle: () => void;

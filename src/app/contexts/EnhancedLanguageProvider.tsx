@@ -19,7 +19,7 @@ interface IEnhancedLanguageProviderProps {
  */
 export function EnhancedLanguageProvider({ children }: IEnhancedLanguageProviderProps) {
     const { user, isLoading: isAuthLoading } = useAuth();
-    const { setCurrentLanguage } = useLanguageContext();
+    const { setCurrentLanguage, languages: contextLanguages, setLanguages } = useLanguageContext();
     
     // Use different language hooks based on authentication status
     const { languages: publicLanguages, defaultLanguage: publicDefaultLanguage, isLoading: publicLanguagesLoading } = usePublicLanguages();
@@ -34,6 +34,17 @@ export function EnhancedLanguageProvider({ children }: IEnhancedLanguageProvider
 
     // Mutation for updating authenticated user's language preference
     const updateLanguageMutation = useUpdateLanguagePreferenceMutation();
+
+    // Populate languages in the context when they are loaded
+    useEffect(() => {
+        if (languages.length > 0 && contextLanguages.length === 0) {
+            setLanguages(languages);
+            debug('Languages loaded and populated in context', 'EnhancedLanguageProvider', { 
+                languagesCount: languages.length,
+                contextLanguagesCount: contextLanguages.length
+            });
+        }
+    }, [languages, contextLanguages, setLanguages]);
 
     // Initialize language state based on user authentication status
     useEffect(() => {
@@ -53,8 +64,7 @@ export function EnhancedLanguageProvider({ children }: IEnhancedLanguageProvider
                     userEmail: user.email,
                     languageId: languageId,
                     originalLanguageId: user.languageId,
-                    languageIdType: typeof user.languageId,
-                    languageLocale: user.languageLocale
+                    languageIdType: typeof user.languageId
                 });
             } else if (defaultLanguage) {
                 // Fallback to default language if user has no preference set
@@ -62,18 +72,16 @@ export function EnhancedLanguageProvider({ children }: IEnhancedLanguageProvider
                 initializedRef.current = true;
                 debug('Enhanced language context: Using default language for authenticated user', 'EnhancedLanguageProvider', { 
                     userEmail: user.email,
-                    defaultLanguageId: defaultLanguage.id,
-                    defaultLanguageLocale: defaultLanguage.locale
+                    defaultLanguageId: defaultLanguage.id
                 });
             }
         } else {
-            // For non-authenticated users, use default language if not already set
+            // For non-authenticated users, use default language
             if (defaultLanguage) {
                 setCurrentLanguage(defaultLanguage.id);
                 initializedRef.current = true;
                 debug('Enhanced language context: Using default language for non-authenticated user', 'EnhancedLanguageProvider', { 
-                    defaultLanguageId: defaultLanguage.id,
-                    defaultLanguageLocale: defaultLanguage.locale
+                    defaultLanguageId: defaultLanguage.id
                 });
             }
         }

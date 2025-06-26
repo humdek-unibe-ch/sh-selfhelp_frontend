@@ -70,22 +70,8 @@ export const authProvider: AuthProvider = {
                 // so we don't need to set tokens here
                 info('Login successful', 'AuthProvider');
                 
-                // Get current URL to preserve language parameter if present
-                let redirectTo = ROUTES.HOME;
-                if (typeof window !== 'undefined') {
-                    const currentUrl = new URL(window.location.href);
-                    const languageParam = currentUrl.searchParams.get('language');
-                    
-                    // If user was on a page with language parameter, preserve it for the home redirect
-                    if (languageParam) {
-                        redirectTo = `${ROUTES.HOME}?language=${languageParam}`;
-                        debug('Preserving language parameter in login redirect', 'AuthProvider', {
-                            originalUrl: window.location.href,
-                            redirectTo,
-                            language: languageParam
-                        });
-                    }
-                }
+                // Redirect to home after login
+                const redirectTo = ROUTES.HOME;
                 
                 return {
                     success: true,

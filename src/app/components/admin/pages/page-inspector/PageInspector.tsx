@@ -111,7 +111,8 @@ export function PageInspector({ page }: PageInspectorProps) {
     // Set default active language tab when languages are loaded
     useEffect(() => {
         if (languages.length > 0 && !activeLanguageTab) {
-            setActiveLanguageTab(languages[0].code);
+            const firstLangCode = languages[0].locale.split('-')[0];
+            setActiveLanguageTab(firstLangCode);
         }
     }, [languages, activeLanguageTab]);
 
@@ -159,103 +160,47 @@ export function PageInspector({ page }: PageInspectorProps) {
         }
     });
 
-    // Update form when page data changes
+    // Update form when page or pageFieldsData changes
     useEffect(() => {
         if (page && pageFieldsData && languages.length > 0) {
-            const pageDetails = pageFieldsData.page;
-            const fields = pageFieldsData.fields;
-            
-            debug('Processing PageInspector field data', 'PageInspector', {
-                pageKeyword: pageDetails.keyword,
-                fieldsCount: fields.length,
-                languagesCount: languages.length,
-                fields: fields.map(f => ({ 
-                    name: f.name, 
-                    type: f.type, 
-                    display: f.display, 
-                    translationsCount: f.translations.length 
-                }))
+            debug('Updating PageInspector form with page data', 'PageInspector', {
+                page: page.keyword,
+                hasPageFieldsData: !!pageFieldsData,
+                languagesCount: languages.length
             });
-            
-            // Create fields object organized by field name and language
+
+            // Prepare fields object for form
             const fieldsObject: Record<string, Record<string, string>> = {};
-            fields.forEach(field => {
+            
+            // Initialize all fields with empty strings for all languages
+            pageFieldsData.fields.forEach(field => {
                 fieldsObject[field.name] = {};
-                // Initialize all languages with empty strings first
-                languages.forEach(lang => {
-                    fieldsObject[field.name][lang.code] = '';
+                languages.forEach(language => {
+                    // Create a simple language code from locale (e.g., 'de-CH' -> 'de')
+                    const langCode = language.locale.split('-')[0];
+                    fieldsObject[field.name][langCode] = '';
                 });
-                // Then populate with actual data using enhanced matching logic
+            });
+            
+            // Populate with actual field content from translations
+            pageFieldsData.fields.forEach(field => {
                 field.translations.forEach(translation => {
-                    debug('Processing PageInspector field translation', 'PageInspector', {
-                        fieldName: field.name,
-                        translationLanguageCode: translation.language_code,
-                        translationLanguageId: translation.language_id,
-                        translationContent: translation.content,
-                        availableLanguages: languages.map(l => ({ id: l.id, code: l.code, locale: l.locale }))
-                    });
-
-                    // Enhanced matching logic similar to SectionInspector
-                    let matchingLang = null;
-
-                    // Strategy 1: Match by language ID
-                    if (translation.language_id) {
-                        matchingLang = languages.find(lang => lang.id === translation.language_id);
+                    // Find matching language by ID
+                    const language = languages.find(l => l.id === translation.language_id);
+                    if (language) {
+                        const langCode = language.locale.split('-')[0];
+                        if (!fieldsObject[field.name]) {
+                            fieldsObject[field.name] = {};
+                        }
+                        fieldsObject[field.name][langCode] = translation.content || '';
                     }
-
-                    // Strategy 2: Match by exact locale
-                    if (!matchingLang && translation.language_code) {
-                        matchingLang = languages.find(lang => lang.locale === translation.language_code);
-                    }
-
-                    // Strategy 3: Match by language code (first part of locale)
-                    if (!matchingLang && translation.language_code) {
-                        const langCode = translation.language_code.split('-')[0];
-                        matchingLang = languages.find(lang => lang.code === langCode);
-                    }
-
-                    // Strategy 4: Match by language code directly
-                    if (!matchingLang && translation.language_code) {
-                        matchingLang = languages.find(lang => lang.code === translation.language_code);
-                    }
-
-                    if (matchingLang) {
-                        const value = translation.content || field.default_value || '';
-                        fieldsObject[field.name][matchingLang.code] = value;
-                        
-                        debug('PageInspector field translation matched and applied', 'PageInspector', {
-                            fieldName: field.name,
-                            translationLanguageCode: translation.language_code,
-                            translationLanguageId: translation.language_id,
-                            matchedLanguageCode: matchingLang.code,
-                            matchedLanguageId: matchingLang.id,
-                            value: value
-                        });
-                    } else {
-                        debug('PageInspector field translation not matched to any language', 'PageInspector', {
-                            fieldName: field.name,
-                            translationLanguageCode: translation.language_code,
-                            translationLanguageId: translation.language_id,
-                            availableLanguageCodes: languages.map(l => l.code),
-                            availableLanguageIds: languages.map(l => l.id),
-                            availableLanguageLocales: languages.map(l => l.locale)
-                        });
-                    }
-                });
-
-                debug('PageInspector field processing complete', 'PageInspector', {
-                    fieldName: field.name,
-                    finalValues: fieldsObject[field.name]
                 });
             });
 
-            debug('PageInspector form data processed', 'PageInspector', {
-                fieldsCount: Object.keys(fieldsObject).length,
-                fieldsObject: fieldsObject
-            });
-
+            const pageDetails = pageFieldsData.page;
+            
             form.setValues({
-                keyword: pageDetails.keyword || '',
+                keyword: page.keyword,
                 url: pageDetails.url || '',
                 headless: pageDetails.headless || false,
                 navPosition: pageDetails.navPosition,
@@ -266,7 +211,7 @@ export function PageInspector({ page }: PageInspectorProps) {
                 footerMenuEnabled: pageDetails.footerPosition !== null,
                 fields: fieldsObject
             });
-        } else {
+        } else if (!page) {
             debug('Resetting PageInspector form', 'PageInspector', {
                 hasPage: !!page,
                 hasPageFieldsData: !!pageFieldsData,
@@ -318,7 +263,8 @@ export function PageInspector({ page }: PageInspectorProps) {
         // Process content fields (display: true) - these are translated
         contentFields.forEach(field => {
             languages.forEach(language => {
-                const content = form.values.fields?.[field.name]?.[language.code] || '';
+                const langCode = language.locale.split('-')[0];
+                const content = form.values.fields?.[field.name]?.[langCode] || '';
                 // Always send all fields, including empty ones (for deletion)
                 fields.push({
                     fieldId: field.id,
@@ -330,7 +276,7 @@ export function PageInspector({ page }: PageInspectorProps) {
 
         // Process property fields (display: false) - these use hardcoded language ID 1
         propertyFields.forEach(field => {
-            const firstLanguageCode = languages[0]?.code || 'de';
+            const firstLanguageCode = languages[0]?.locale.split('-')[0] || 'de';
             const content = form.values.fields?.[field.name]?.[firstLanguageCode] || '';
             // Always send all fields, including empty ones (for deletion)
             fields.push({
@@ -362,7 +308,7 @@ export function PageInspector({ page }: PageInspectorProps) {
                 contentFieldTranslations: fields.filter(ft => ft.languageId !== 1).length,
                 propertyFieldTranslations: fields.filter(ft => ft.languageId === 1).length,
                 emptyFieldTranslations: fields.filter(ft => !(ft.content || '').trim()).length,
-                availableLanguages: languages.map(l => ({ id: l.id, code: l.code, locale: l.locale })),
+                availableLanguages: languages.map(l => ({ id: l.id, locale: l.locale })),
                 contentFields: contentFields.map(f => ({ id: f.id, name: f.name, display: f.display })),
                 propertyFields: propertyFields.map(f => ({ id: f.id, name: f.name, display: f.display }))
             }
@@ -455,7 +401,7 @@ export function PageInspector({ page }: PageInspectorProps) {
         const fieldKey = `fields.${field.name}.${languageCode}`;
         
         // Find the language object to get the locale
-        const currentLanguage = languages.find(lang => lang.code === languageCode);
+        const currentLanguage = languages.find(lang => lang.locale.split('-')[0] === languageCode);
         const locale = hasMultipleLanguages && currentLanguage ? currentLanguage.locale : undefined;
         
         // Ensure the field path exists in form state to prevent controlled/uncontrolled warnings
@@ -626,29 +572,35 @@ export function PageInspector({ page }: PageInspectorProps) {
                             <Box p="md">
                                 {contentFields.length > 0 ? (
                                     hasMultipleLanguages ? (
-                                        <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || (languages[0]?.code || ''))}>
+                                        <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || (languages[0]?.locale.split('-')[0] || ''))}>
                                             <Tabs.List>
-                                                {languages.map(lang => (
-                                                    <Tabs.Tab key={lang.code} value={lang.code}>
-                                                        {lang.language}
-                                                    </Tabs.Tab>
-                                                ))}
+                                                {languages.map(lang => {
+                                                    const langCode = lang.locale.split('-')[0];
+                                                    return (
+                                                        <Tabs.Tab key={langCode} value={langCode}>
+                                                            {lang.language}
+                                                        </Tabs.Tab>
+                                                    );
+                                                })}
                                             </Tabs.List>
 
-                                            {languages.map(lang => (
-                                                <Tabs.Panel key={lang.code} value={lang.code} pt="md">
-                                                    <Stack gap="md">
-                                                        {contentFields.map(field => 
-                                                            renderContentField(field, lang.code)
-                                                        )}
-                                                    </Stack>
-                                                </Tabs.Panel>
-                                            ))}
+                                            {languages.map(lang => {
+                                                const langCode = lang.locale.split('-')[0];
+                                                return (
+                                                    <Tabs.Panel key={langCode} value={langCode} pt="md">
+                                                        <Stack gap="md">
+                                                            {contentFields.map(field => 
+                                                                renderContentField(field, langCode)
+                                                            )}
+                                                        </Stack>
+                                                    </Tabs.Panel>
+                                                );
+                                            })}
                                         </Tabs>
                                     ) : (
                                         <Stack gap="md">
                                             {contentFields.map(field => 
-                                                renderContentField(field, languages[0]?.code || 'de') // Default to first language
+                                                renderContentField(field, languages[0]?.locale.split('-')[0] || 'de') // Default to first language
                                             )}
                                         </Stack>
                                     )
@@ -834,7 +786,7 @@ export function PageInspector({ page }: PageInspectorProps) {
                                                 </Group>
                                                 
                                                 {propertyFields.map(field => {
-                                                    const langCode = languages[0]?.code || 'de';
+                                                    const langCode = languages[0]?.locale.split('-')[0] || 'de';
                                                     const fieldKey = `fields.${field.name}.${langCode}`;
                                                     const fieldValue = form.values.fields?.[field.name]?.[langCode] ?? '';
                                                     const inputProps = {
