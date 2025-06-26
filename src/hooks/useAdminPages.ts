@@ -9,6 +9,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { AdminApi } from '../api/admin.api';
 import { IAdminPage } from '../types/responses/admin/admin.types';
+import { useAuth } from './useAuth';
 import { debug } from '../utils/debug-logger';
 
 export interface ISystemPageLink {
@@ -44,12 +45,15 @@ export interface ICategorizedPages {
  * @returns Object containing admin pages data and query state
  */
 export function useAdminPages() {
+    const { isAuthenticated } = useAuth();
+    
     const { data, isLoading, error } = useQuery({
         queryKey: ['adminPages'],
         queryFn: async () => {
             debug('Fetching admin pages', 'useAdminPages');
             return await AdminApi.getAdminPages();
         },
+        enabled: !!isAuthenticated, // Only fetch when user is authenticated
         select: (data: IAdminPage[]) => {
             // Separate system pages from regular pages
             const systemPages = data.filter(page => page.is_system === 1);
@@ -202,7 +206,18 @@ export function useAdminPages() {
  * @returns Object containing profile link data and its children
  */
 export function useProfilePages() {
+    const { isAuthenticated } = useAuth();
     const { systemPageLinks, isLoading, error } = useAdminPages();
+    
+    // If user is not authenticated, return empty data without making API calls
+    if (!isAuthenticated) {
+        return {
+            profileLinkPage: null,
+            profileChildren: [],
+            isLoading: false,
+            error: null
+        };
+    }
     
     // Find the profile-link page and its children
     const profileLinkPage = systemPageLinks.find(page => page.keyword === 'profile-link');

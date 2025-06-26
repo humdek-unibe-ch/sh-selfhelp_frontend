@@ -9,6 +9,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { AdminApi } from '../api/admin.api';
 import { ILanguage } from '../types/responses/admin/languages.types';
+import { useAuth } from './useAuth';
 import { debug } from '../utils/debug-logger';
 
 /**
@@ -16,12 +17,15 @@ import { debug } from '../utils/debug-logger';
  * @returns Object containing languages data and query state
  */
 export function useLanguages() {
+    const { isAuthenticated } = useAuth();
+    
     const { data, isLoading, error } = useQuery({
         queryKey: ['languages'],
         queryFn: async () => {
             debug('Fetching languages', 'useLanguages');
             return await AdminApi.getLanguages();
         },
+        enabled: !!isAuthenticated, // Only fetch when user is authenticated
         select: (data: ILanguage[]) => {
             // Transform locale codes for easier use in the UI
             return data.map(lang => ({

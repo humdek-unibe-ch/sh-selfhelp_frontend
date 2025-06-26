@@ -205,7 +205,8 @@ apiClient.interceptors.response.use(
         // Check for logged_in flag in successful responses (only if response.data exists)
         if (response.data && 'logged_in' in response.data) {
             // If server says not logged in but we have tokens, attempt to refresh
-            if (!response.data.logged_in && getRefreshToken()) {
+            // Only attempt refresh if we have both access and refresh tokens (user was previously authenticated)
+            if (!response.data.logged_in && getRefreshToken() && getAccessToken()) {
                 const originalRequest = response.config;
 
                 // Prevent infinite loops
