@@ -1,0 +1,965 @@
+[
+  {
+    "name": "all-styles-showcase",
+    "style_name": "container",
+    "children": [
+      {
+        "name": "showcase-title",
+        "style_name": "heading",
+        "children": [],
+        "fields": {
+          "level": {
+            "all": { "content": "1", "meta": null }
+          },
+          "title": {
+            "en-GB": { "content": "SH-SelfHelp CMS - Complete Styles Showcase", "meta": null },
+            "de-CH": { "content": "SH-SelfHelp CMS - Vollständige Stile Showcase", "meta": null }
+          }
+        }
+      },
+      {
+        "name": "auth-styles-card",
+        "style_name": "card", 
+        "children": [
+          {
+            "name": "auth-title",
+            "style_name": "heading",
+            "children": [],
+            "fields": {
+              "level": { "all": { "content": "2", "meta": null } },
+              "title": {
+                "en-GB": { "content": "Authentication Styles", "meta": null },
+                "de-CH": { "content": "Authentifizierungsstile", "meta": null }
+              }
+            }
+          },
+          {
+            "name": "login-demo",
+            "style_name": "login",
+            "children": [],
+            "fields": {
+              "login_title": {
+                "en-GB": { "content": "Login Example", "meta": null },
+                "de-CH": { "content": "Login Beispiel", "meta": null }
+              },
+              "label_user": {
+                "en-GB": { "content": "Username", "meta": null },
+                "de-CH": { "content": "Benutzername", "meta": null }
+              },
+              "label_pw": {
+                "en-GB": { "content": "Password", "meta": null },
+                "de-CH": { "content": "Passwort", "meta": null }
+              },
+              "label_login": {
+                "en-GB": { "content": "Sign In", "meta": null },
+                "de-CH": { "content": "Anmelden", "meta": null }
+              }
+            }
+          },
+          {
+            "name": "register-demo",
+            "style_name": "register",
+            "children": [],
+            "fields": {
+              "title": {
+                "en-GB": { "content": "Register Example", "meta": null },
+                "de-CH": { "content": "Registrierungsbeispiel", "meta": null }
+              },
+              "label_user": {
+                "en-GB": { "content": "Email", "meta": null },
+                "de-CH": { "content": "E-Mail", "meta": null }
+              },
+              "label_pw": {
+                "en-GB": { "content": "Password", "meta": null },
+                "de-CH": { "content": "Passwort", "meta": null }
+              },
+              "label_submit": {
+                "en-GB": { "content": "Create Account", "meta": null },
+                "de-CH": { "content": "Konto erstellen", "meta": null }
+              }
+            }
+          },
+          {
+            "name": "validate-demo",
+            "style_name": "validate",
+            "children": [],
+            "fields": {
+              "title": {
+                "en-GB": { "content": "Profile Validation", "meta": null },
+                "de-CH": { "content": "Profil-Validierung", "meta": null }
+              },
+              "label_name": {
+                "en-GB": { "content": "Full Name", "meta": null },
+                "de-CH": { "content": "Vollständiger Name", "meta": null }
+              }
+            }
+          },
+          {
+            "name": "two-factor-demo",
+            "style_name": "twoFactorAuth",
+            "children": [],
+            "fields": {
+              "title": {
+                "en-GB": { "content": "Two-Factor Authentication", "meta": null },
+                "de-CH": { "content": "Zwei-Faktor-Authentifizierung", "meta": null }
+              },
+              "label_code": {
+                "en-GB": { "content": "Verification Code", "meta": null },
+                "de-CH": { "content": "Bestätigungscode", "meta": null }
+              }
+            }
+          }
+        ],
+        "fields": {
+          "title": {
+            "en-GB": { "content": "Authentication Components", "meta": null },
+            "de-CH": { "content": "Authentifizierungskomponenten", "meta": null }
+          },
+          "type": { "all": { "content": "primary", "meta": null } },
+          "is_expanded": { "all": { "content": "1", "meta": null } }
+        }
+      },
+      {
+        "name": "layout-styles-card",
+        "style_name": "card",
+        "children": [
+          {
+            "name": "layout-title",
+            "style_name": "heading",
+            "children": [],
+            "fields": {
+              "level": { "all": { "content": "2", "meta": null } },
+              "title": {
+                "en-GB": { "content": "Layout & Container Styles", "meta": null },
+                "de-CH": { "content": "Layout & Container Stile", "meta": null }
+              }
+            }
+          },
+          {
+            "name": "container-demo",
+            "style_name": "container",
+            "children": [
+              {
+                "name": "container-text",
+                "style_name": "plaintext",
+                "children": [],
+                "fields": {
+                  "text": {
+                    "en-GB": { "content": "Standard Container Component", "meta": null },
+                    "de-CH": { "content": "Standard-Container-Komponente", "meta": null }
+                  }
+                }
+              }
+            ],
+            "fields": {
+              "is_fluid": { "all": { "content": "0", "meta": null } }
+            }
+          },
+          {
+            "name": "jumbotron-demo",
+            "style_name": "jumbotron",
+            "children": [
+              {
+                "name": "jumbotron-heading",
+                "style_name": "heading",
+                "children": [],
+                "fields": {
+                  "level": { "all": { "content": "1", "meta": null } },
+                  "title": {
+                    "en-GB": { "content": "Jumbotron Hero Section", "meta": null },
+                    "de-CH": { "content": "Jumbotron Hero-Bereich", "meta": null }
+                  }
+                }
+              }
+            ],
+            "fields": {}
+          },
+          {
+            "name": "alerts-demo",
+            "style_name": "div",
+            "children": [
+              {
+                "name": "alert-primary",
+                "style_name": "alert",
+                "children": [
+                  {
+                    "name": "alert-primary-text",
+                    "style_name": "plaintext",
+                    "children": [],
+                    "fields": {
+                      "text": {
+                        "en-GB": { "content": "Primary Alert Message", "meta": null },
+                        "de-CH": { "content": "Primäre Warnmeldung", "meta": null }
+                      }
+                    }
+                  }
+                ],
+                "fields": {
+                  "type": { "all": { "content": "primary", "meta": null } }
+                }
+              },
+              {
+                "name": "alert-success",
+                "style_name": "alert",
+                "children": [
+                  {
+                    "name": "alert-success-text",
+                    "style_name": "plaintext",
+                    "children": [],
+                    "fields": {
+                      "text": {
+                        "en-GB": { "content": "Success! Operation completed.", "meta": null },
+                        "de-CH": { "content": "Erfolg! Vorgang abgeschlossen.", "meta": null }
+                      }
+                    }
+                  }
+                ],
+                "fields": {
+                  "type": { "all": { "content": "success", "meta": null } }
+                }
+              },
+              {
+                "name": "alert-danger",
+                "style_name": "alert",
+                "children": [
+                  {
+                    "name": "alert-danger-text",
+                    "style_name": "plaintext",
+                    "children": [],
+                    "fields": {
+                      "text": {
+                        "en-GB": { "content": "Error! Something went wrong.", "meta": null },
+                        "de-CH": { "content": "Fehler! Etwas ist schief gelaufen.", "meta": null }
+                      }
+                    }
+                  }
+                ],
+                "fields": {
+                  "type": { "all": { "content": "danger", "meta": null } }
+                }
+              }
+            ],
+            "fields": {}
+          },
+          {
+            "name": "card-demo",
+            "style_name": "card",
+            "children": [
+              {
+                "name": "card-content",
+                "style_name": "plaintext",
+                "children": [],
+                "fields": {
+                  "text": {
+                    "en-GB": { "content": "This is a collapsible card component.", "meta": null },
+                    "de-CH": { "content": "Dies ist eine zusammenklappbare Kartenkomponente.", "meta": null }
+                  }
+                }
+              }
+            ],
+            "fields": {
+              "title": {
+                "en-GB": { "content": "Card Example", "meta": null },
+                "de-CH": { "content": "Kartenbeispiel", "meta": null }
+              },
+              "type": { "all": { "content": "info", "meta": null } },
+              "is_collapsible": { "all": { "content": "1", "meta": null } }
+            }
+          },
+          {
+            "name": "div-demo",
+            "style_name": "div",
+            "children": [
+              {
+                "name": "div-text",
+                "style_name": "plaintext",
+                "children": [],
+                "fields": {
+                  "text": {
+                    "en-GB": { "content": "Div container with custom colors", "meta": null },
+                    "de-CH": { "content": "Div-Container mit benutzerdefinierten Farben", "meta": null }
+                  }
+                }
+              }
+            ],
+            "fields": {
+              "color_background": { "all": { "content": "#f8f9fa", "meta": null } },
+              "color_border": { "all": { "content": "#dee2e6", "meta": null } },
+              "color_text": { "all": { "content": "#495057", "meta": null } }
+            }
+          }
+        ],
+        "fields": {
+          "title": {
+            "en-GB": { "content": "Layout Components", "meta": null },
+            "de-CH": { "content": "Layout-Komponenten", "meta": null }
+          },
+          "type": { "all": { "content": "secondary", "meta": null } },
+          "is_expanded": { "all": { "content": "1", "meta": null } }
+        }
+      },
+      {
+        "name": "text-styles-card",
+        "style_name": "card",
+        "children": [
+          {
+            "name": "text-title",
+            "style_name": "heading",
+            "children": [],
+            "fields": {
+              "level": { "all": { "content": "2", "meta": null } },
+              "title": {
+                "en-GB": { "content": "Text & Content Styles", "meta": null },
+                "de-CH": { "content": "Text & Inhalt Stile", "meta": null }
+              }
+            }
+          },
+          {
+            "name": "heading-demo-h1",
+            "style_name": "heading",
+            "children": [],
+            "fields": {
+              "level": { "all": { "content": "1", "meta": null } },
+              "title": {
+                "en-GB": { "content": "Heading Level 1", "meta": null },
+                "de-CH": { "content": "Überschrift Ebene 1", "meta": null }
+              }
+            }
+          },
+          {
+            "name": "heading-demo-h3",
+            "style_name": "heading",
+            "children": [],
+            "fields": {
+              "level": { "all": { "content": "3", "meta": null } },
+              "title": {
+                "en-GB": { "content": "Heading Level 3", "meta": null },
+                "de-CH": { "content": "Überschrift Ebene 3", "meta": null }
+              }
+            }
+          },
+          {
+            "name": "markdown-demo",
+            "style_name": "markdown",
+            "children": [],
+            "fields": {
+              "text_md": {
+                "en-GB": { "content": "# Markdown Example\n\nThis is **bold text** and *italic text*.\n\n- List item 1\n- List item 2\n- List item 3\n\n[Link example](https://example.com)", "meta": null },
+                "de-CH": { "content": "# Markdown Beispiel\n\nDies ist **fetter Text** und *kursiver Text*.\n\n- Listenelement 1\n- Listenelement 2\n- Listenelement 3\n\n[Link Beispiel](https://example.com)", "meta": null }
+              }
+            }
+          },
+          {
+            "name": "plaintext-demo",
+            "style_name": "plaintext",
+            "children": [],
+            "fields": {
+              "text": {
+                "en-GB": { "content": "This is plain text without any formatting. It can be wrapped in paragraph tags.", "meta": null },
+                "de-CH": { "content": "Dies ist einfacher Text ohne Formatierung. Er kann in Absatz-Tags eingeschlossen werden.", "meta": null }
+              },
+              "is_paragraph": { "all": { "content": "1", "meta": null } }
+            }
+          },
+          {
+            "name": "rawtext-demo",
+            "style_name": "rawText",
+            "children": [],
+            "fields": {
+              "text": {
+                "en-GB": { "content": "Raw text without any processing or HTML wrapping", "meta": null },
+                "de-CH": { "content": "Roher Text ohne Verarbeitung oder HTML-Umhüllung", "meta": null }
+              }
+            }
+          }
+        ],
+        "fields": {
+          "title": {
+            "en-GB": { "content": "Text Components", "meta": null },
+            "de-CH": { "content": "Text-Komponenten", "meta": null }
+          },
+          "type": { "all": { "content": "success", "meta": null } },
+          "is_expanded": { "all": { "content": "1", "meta": null } }
+        }
+      },
+      {
+        "name": "media-styles-card",
+        "style_name": "card",
+        "children": [
+          {
+            "name": "media-title",
+            "style_name": "heading",
+            "children": [],
+            "fields": {
+              "level": { "all": { "content": "2", "meta": null } },
+              "title": {
+                "en-GB": { "content": "Media Styles", "meta": null },
+                "de-CH": { "content": "Medien-Stile", "meta": null }
+              }
+            }
+          },
+          {
+            "name": "image-demo",
+            "style_name": "image",
+            "children": [],
+            "fields": {
+              "img_src": { "all": { "content": "http://127.0.0.1/selfhelp/assets/image-holder.png", "meta": null } },
+              "alt": {
+                "en-GB": { "content": "Sample image placeholder", "meta": null },
+                "de-CH": { "content": "Beispiel-Bild-Platzhalter", "meta": null }
+              },
+              "title": {
+                "en-GB": { "content": "Image Example", "meta": null },
+                "de-CH": { "content": "Bild-Beispiel", "meta": null }
+              },
+              "width": { "all": { "content": "300", "meta": null } },
+              "height": { "all": { "content": "200", "meta": null } }
+            }
+          },
+          {
+            "name": "video-demo",
+            "style_name": "video",
+            "children": [],
+            "fields": {
+              "sources": { "all": { "content": "[{\"src\": \"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4\", \"type\": \"video/mp4\"}]", "meta": null } },
+              "alt": {
+                "en-GB": { "content": "Sample video", "meta": null },
+                "de-CH": { "content": "Beispiel-Video", "meta": null }
+              },
+              "is_fluid": { "all": { "content": "1", "meta": null } }
+            }
+          },
+          {
+            "name": "audio-demo",
+            "style_name": "audio",
+            "children": [],
+            "fields": {
+              "sources": { "all": { "content": "[{\"src\": \"https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3\", \"type\": \"audio/mp3\"}]", "meta": null } }
+            }
+          },
+          {
+            "name": "figure-demo",
+            "style_name": "figure",
+            "children": [
+              {
+                "name": "figure-image",
+                "style_name": "image",
+                "children": [],
+                "fields": {
+                  "img_src": { "all": { "content": "http://127.0.0.1/selfhelp/assets/image-holder.png", "meta": null } },
+                  "alt": {
+                    "en-GB": { "content": "Figure image", "meta": null },
+                    "de-CH": { "content": "Abbildung", "meta": null }
+                  }
+                }
+              }
+            ],
+            "fields": {
+              "caption_title": {
+                "en-GB": { "content": "Figure Caption", "meta": null },
+                "de-CH": { "content": "Abbildungsunterschrift", "meta": null }
+              },
+              "caption": {
+                "en-GB": { "content": "This is a figure with a caption", "meta": null },
+                "de-CH": { "content": "Dies ist eine Abbildung mit Untertitel", "meta": null }
+              }
+            }
+          },
+          {
+            "name": "carousel-demo",
+            "style_name": "carousel",
+            "children": [],
+            "fields": {
+              "sources": { "all": { "content": "[{\"src\": \"http://127.0.0.1/selfhelp/assets/image-holder.png\", \"alt\": \"Image 1\"}, {\"src\": \"http://127.0.0.1/selfhelp/assets/image-holder.png\", \"alt\": \"Image 2\"}, {\"src\": \"http://127.0.0.1/selfhelp/assets/image-holder.png\", \"alt\": \"Image 3\"}]", "meta": null } },
+              "has_controls": { "all": { "content": "1", "meta": null } },
+              "has_indicators": { "all": { "content": "1", "meta": null } },
+              "id_prefix": { "all": { "content": "demo-carousel", "meta": null } }
+            }
+          }
+        ],
+        "fields": {
+          "title": {
+            "en-GB": { "content": "Media Components", "meta": null },
+            "de-CH": { "content": "Medien-Komponenten", "meta": null }
+          },
+          "type": { "all": { "content": "warning", "meta": null } },
+          "is_expanded": { "all": { "content": "1", "meta": null } }
+        }
+      },
+      {
+        "name": "form-styles-card",
+        "style_name": "card",
+        "children": [
+          {
+            "name": "form-title",
+            "style_name": "heading",
+            "children": [],
+            "fields": {
+              "level": { "all": { "content": "2", "meta": null } },
+              "title": {
+                "en-GB": { "content": "Form & Input Styles", "meta": null },
+                "de-CH": { "content": "Formular & Eingabe Stile", "meta": null }
+              }
+            }
+          },
+          {
+            "name": "form-demo",
+            "style_name": "form",
+            "children": [
+              {
+                "name": "form-input",
+                "style_name": "input",
+                "children": [],
+                "fields": {
+                  "label": {
+                    "en-GB": { "content": "Name", "meta": null },
+                    "de-CH": { "content": "Name", "meta": null }
+                  },
+                  "type_input": { "all": { "content": "text", "meta": null } },
+                  "placeholder": {
+                    "en-GB": { "content": "Enter your name", "meta": null },
+                    "de-CH": { "content": "Geben Sie Ihren Namen ein", "meta": null }
+                  },
+                  "is_required": { "all": { "content": "1", "meta": null } },
+                  "name": { "all": { "content": "user_name", "meta": null } }
+                }
+              },
+              {
+                "name": "form-textarea",
+                "style_name": "textarea",
+                "children": [],
+                "fields": {
+                  "label": {
+                    "en-GB": { "content": "Message", "meta": null },
+                    "de-CH": { "content": "Nachricht", "meta": null }
+                  },
+                  "placeholder": {
+                    "en-GB": { "content": "Enter your message", "meta": null },
+                    "de-CH": { "content": "Geben Sie Ihre Nachricht ein", "meta": null }
+                  },
+                  "name": { "all": { "content": "message", "meta": null } }
+                }
+              },
+              {
+                "name": "form-select",
+                "style_name": "select",
+                "children": [],
+                "fields": {
+                  "label": {
+                    "en-GB": { "content": "Country", "meta": null },
+                    "de-CH": { "content": "Land", "meta": null }
+                  },
+                  "name": { "all": { "content": "country", "meta": null } },
+                  "items": { "all": { "content": "[{\"value\": \"us\", \"text\": \"United States\"}, {\"value\": \"uk\", \"text\": \"United Kingdom\"}, {\"value\": \"de\", \"text\": \"Germany\"}, {\"value\": \"ch\", \"text\": \"Switzerland\"}]", "meta": null } },
+                  "live_search": { "all": { "content": "1", "meta": null } }
+                }
+              },
+              {
+                "name": "form-radio",
+                "style_name": "radio",
+                "children": [],
+                "fields": {
+                  "label": {
+                    "en-GB": { "content": "Gender", "meta": null },
+                    "de-CH": { "content": "Geschlecht", "meta": null }
+                  },
+                  "name": { "all": { "content": "gender", "meta": null } },
+                  "items": { "all": { "content": "[{\"value\": \"male\", \"text\": \"Male\"}, {\"value\": \"female\", \"text\": \"Female\"}, {\"value\": \"other\", \"text\": \"Other\"}]", "meta": null } },
+                  "is_inline": { "all": { "content": "1", "meta": null } }
+                }
+              },
+              {
+                "name": "form-checkbox",
+                "style_name": "checkbox",
+                "children": [],
+                "fields": {
+                  "label": {
+                    "en-GB": { "content": "Subscribe to newsletter", "meta": null },
+                    "de-CH": { "content": "Newsletter abonnieren", "meta": null }
+                  },
+                  "name": { "all": { "content": "newsletter", "meta": null } },
+                  "checkbox_value": { "all": { "content": "yes", "meta": null } }
+                }
+              },
+              {
+                "name": "form-slider",
+                "style_name": "slider",
+                "children": [],
+                "fields": {
+                  "label": {
+                    "en-GB": { "content": "Rating", "meta": null },
+                    "de-CH": { "content": "Bewertung", "meta": null }
+                  },
+                  "name": { "all": { "content": "rating", "meta": null } },
+                  "min": { "all": { "content": "1", "meta": null } },
+                  "max": { "all": { "content": "10", "meta": null } },
+                  "value": { "all": { "content": "5", "meta": null } }
+                }
+              }
+            ],
+            "fields": {
+              "label": {
+                "en-GB": { "content": "Demo Form", "meta": null },
+                "de-CH": { "content": "Demo-Formular", "meta": null }
+              },
+              "url": { "all": { "content": "#", "meta": null } }
+            }
+          }
+        ],
+        "fields": {
+          "title": {
+            "en-GB": { "content": "Form Components", "meta": null },
+            "de-CH": { "content": "Formular-Komponenten", "meta": null }
+          },
+          "type": { "all": { "content": "info", "meta": null } },
+          "is_expanded": { "all": { "content": "1", "meta": null } }
+        }
+      },
+      {
+        "name": "interactive-styles-card",
+        "style_name": "card",
+        "children": [
+          {
+            "name": "interactive-title",
+            "style_name": "heading",
+            "children": [],
+            "fields": {
+              "level": { "all": { "content": "2", "meta": null } },
+              "title": {
+                "en-GB": { "content": "Interactive Elements", "meta": null },
+                "de-CH": { "content": "Interaktive Elemente", "meta": null }
+              }
+            }
+          },
+          {
+            "name": "button-demo",
+            "style_name": "button",
+            "children": [],
+            "fields": {
+              "label": {
+                "en-GB": { "content": "Click Me", "meta": null },
+                "de-CH": { "content": "Klicken Sie mich", "meta": null }
+              },
+              "url": { "all": { "content": "#", "meta": null } },
+              "type": { "all": { "content": "primary", "meta": null } }
+            }
+          },
+          {
+            "name": "link-demo",
+            "style_name": "link",
+            "children": [],
+            "fields": {
+              "label": {
+                "en-GB": { "content": "External Link", "meta": null },
+                "de-CH": { "content": "Externer Link", "meta": null }
+              },
+              "url": { "all": { "content": "https://example.com", "meta": null } },
+              "open_in_new_tab": { "all": { "content": "1", "meta": null } }
+            }
+          },
+          {
+            "name": "progress-demo",
+            "style_name": "progressBar",
+            "children": [],
+            "fields": {
+              "count": { "all": { "content": "75", "meta": null } },
+              "count_max": { "all": { "content": "100", "meta": null } },
+              "type": { "all": { "content": "success", "meta": null } },
+              "has_label": { "all": { "content": "1", "meta": null } }
+            }
+          }
+        ],
+        "fields": {
+          "title": {
+            "en-GB": { "content": "Interactive Components", "meta": null },
+            "de-CH": { "content": "Interaktive Komponenten", "meta": null }
+          },
+          "type": { "all": { "content": "danger", "meta": null } },
+          "is_expanded": { "all": { "content": "1", "meta": null } }
+        }
+      },
+      {
+        "name": "navigation-styles-card",
+        "style_name": "card",
+        "children": [
+          {
+            "name": "nav-title",
+            "style_name": "heading",
+            "children": [],
+            "fields": {
+              "level": { "all": { "content": "2", "meta": null } },
+              "title": {
+                "en-GB": { "content": "Navigation & Lists", "meta": null },
+                "de-CH": { "content": "Navigation & Listen", "meta": null }
+              }
+            }
+          },
+          {
+            "name": "tabs-demo",
+            "style_name": "tabs",
+            "children": [
+              {
+                "name": "tab-1",
+                "style_name": "tab",
+                "children": [
+                  {
+                    "name": "tab-1-content",
+                    "style_name": "plaintext",
+                    "children": [],
+                    "fields": {
+                      "text": {
+                        "en-GB": { "content": "Content of first tab", "meta": null },
+                        "de-CH": { "content": "Inhalt des ersten Tabs", "meta": null }
+                      }
+                    }
+                  }
+                ],
+                "fields": {
+                  "label": {
+                    "en-GB": { "content": "Tab 1", "meta": null },
+                    "de-CH": { "content": "Tab 1", "meta": null }
+                  },
+                  "is_active": { "all": { "content": "1", "meta": null } }
+                }
+              },
+              {
+                "name": "tab-2",
+                "style_name": "tab",
+                "children": [
+                  {
+                    "name": "tab-2-content",
+                    "style_name": "plaintext",
+                    "children": [],
+                    "fields": {
+                      "text": {
+                        "en-GB": { "content": "Content of second tab", "meta": null },
+                        "de-CH": { "content": "Inhalt des zweiten Tabs", "meta": null }
+                      }
+                    }
+                  }
+                ],
+                "fields": {
+                  "label": {
+                    "en-GB": { "content": "Tab 2", "meta": null },
+                    "de-CH": { "content": "Tab 2", "meta": null }
+                  }
+                }
+              }
+            ],
+            "fields": {}
+          },
+          {
+            "name": "accordion-demo",
+            "style_name": "accordionList",
+            "children": [],
+            "fields": {
+              "items": { "all": { "content": "[{\"title\": \"Accordion Item 1\", \"content\": \"Content of first accordion item\"}, {\"title\": \"Accordion Item 2\", \"content\": \"Content of second accordion item\"}, {\"title\": \"Accordion Item 3\", \"content\": \"Content of third accordion item\"}]", "meta": null } },
+              "id_prefix": { "all": { "content": "demo-accordion", "meta": null } }
+            }
+          },
+          {
+            "name": "nested-list-demo",
+            "style_name": "nestedList",
+            "children": [],
+            "fields": {
+              "items": { "all": { "content": "[{\"title\": \"Parent Item 1\", \"children\": [{\"title\": \"Child Item 1.1\"}, {\"title\": \"Child Item 1.2\"}]}, {\"title\": \"Parent Item 2\", \"children\": [{\"title\": \"Child Item 2.1\"}]}]", "meta": null } },
+              "is_collapsible": { "all": { "content": "1", "meta": null } }
+            }
+          }
+        ],
+        "fields": {
+          "title": {
+            "en-GB": { "content": "Navigation Components", "meta": null },
+            "de-CH": { "content": "Navigationskomponenten", "meta": null }
+          },
+          "type": { "all": { "content": "light", "meta": null } },
+          "is_expanded": { "all": { "content": "1", "meta": null } }
+        }
+      },
+      {
+        "name": "table-styles-card",
+        "style_name": "card",
+        "children": [
+          {
+            "name": "table-title",
+            "style_name": "heading",
+            "children": [],
+            "fields": {
+              "level": { "all": { "content": "2", "meta": null } },
+              "title": {
+                "en-GB": { "content": "Table Styles", "meta": null },
+                "de-CH": { "content": "Tabellen-Stile", "meta": null }
+              }
+            }
+          },
+          {
+            "name": "table-demo",
+            "style_name": "table",
+            "children": [
+              {
+                "name": "table-header-row",
+                "style_name": "tableRow",
+                "children": [
+                  {
+                    "name": "header-cell-1",
+                    "style_name": "tableCell",
+                    "children": [
+                      {
+                        "name": "header-text-1",
+                        "style_name": "plaintext",
+                        "children": [],
+                        "fields": {
+                          "text": {
+                            "en-GB": { "content": "Name", "meta": null },
+                            "de-CH": { "content": "Name", "meta": null }
+                          }
+                        }
+                      }
+                    ],
+                    "fields": {}
+                  },
+                  {
+                    "name": "header-cell-2",
+                    "style_name": "tableCell",
+                    "children": [
+                      {
+                        "name": "header-text-2",
+                        "style_name": "plaintext",
+                        "children": [],
+                        "fields": {
+                          "text": {
+                            "en-GB": { "content": "Age", "meta": null },
+                            "de-CH": { "content": "Alter", "meta": null }
+                          }
+                        }
+                      }
+                    ],
+                    "fields": {}
+                  }
+                ],
+                "fields": {}
+              },
+              {
+                "name": "table-data-row",
+                "style_name": "tableRow",
+                "children": [
+                  {
+                    "name": "data-cell-1",
+                    "style_name": "tableCell",
+                    "children": [
+                      {
+                        "name": "data-text-1",
+                        "style_name": "plaintext",
+                        "children": [],
+                        "fields": {
+                          "text": {
+                            "en-GB": { "content": "John Doe", "meta": null },
+                            "de-CH": { "content": "John Doe", "meta": null }
+                          }
+                        }
+                      }
+                    ],
+                    "fields": {}
+                  },
+                  {
+                    "name": "data-cell-2",
+                    "style_name": "tableCell",
+                    "children": [
+                      {
+                        "name": "data-text-2",
+                        "style_name": "plaintext",
+                        "children": [],
+                        "fields": {
+                          "text": {
+                            "en-GB": { "content": "30", "meta": null },
+                            "de-CH": { "content": "30", "meta": null }
+                          }
+                        }
+                      }
+                    ],
+                    "fields": {}
+                  }
+                ],
+                "fields": {}
+              }
+            ],
+            "fields": {}
+          }
+        ],
+        "fields": {
+          "title": {
+            "en-GB": { "content": "Table Components", "meta": null },
+            "de-CH": { "content": "Tabellen-Komponenten", "meta": null }
+          },
+          "type": { "all": { "content": "dark", "meta": null } },
+          "is_expanded": { "all": { "content": "1", "meta": null } }
+        }
+      },
+      {
+        "name": "misc-styles-card",
+        "style_name": "card",
+        "children": [
+          {
+            "name": "misc-title",
+            "style_name": "heading",
+            "children": [],
+            "fields": {
+              "level": { "all": { "content": "2", "meta": null } },
+              "title": {
+                "en-GB": { "content": "Miscellaneous Styles", "meta": null },
+                "de-CH": { "content": "Verschiedene Stile", "meta": null }
+              }
+            }
+          },
+          {
+            "name": "json-demo",
+            "style_name": "json",
+            "children": [],
+            "fields": {
+              "json": { "all": { "content": "{\"example\": \"data\", \"number\": 42, \"array\": [1, 2, 3]}", "meta": null } }
+            }
+          },
+          {
+            "name": "quiz-demo",
+            "style_name": "quiz",
+            "children": [],
+            "fields": {
+              "caption": {
+                "en-GB": { "content": "Sample Quiz Question", "meta": null },
+                "de-CH": { "content": "Beispiel-Quiz-Frage", "meta": null }
+              },
+              "label_right": {
+                "en-GB": { "content": "Correct!", "meta": null },
+                "de-CH": { "content": "Richtig!", "meta": null }
+              },
+              "label_wrong": {
+                "en-GB": { "content": "Incorrect", "meta": null },
+                "de-CH": { "content": "Falsch", "meta": null }
+              }
+            }
+          },
+          {
+            "name": "show-user-input-demo",
+            "style_name": "showUserInput",
+            "children": [],
+            "fields": {
+              "form_name": { "all": { "content": "demo_form", "meta": null } },
+              "load_as_table": { "all": { "content": "1", "meta": null } }
+            }
+          }
+        ],
+        "fields": {
+          "title": {
+            "en-GB": { "content": "Miscellaneous Components", "meta": null },
+            "de-CH": { "content": "Verschiedene Komponenten", "meta": null }
+          },
+          "type": { "all": { "content": "secondary", "meta": null } },
+          "is_expanded": { "all": { "content": "1", "meta": null } }
+        }
+      }
+    ],
+    "fields": {
+      "is_fluid": { "all": { "content": "0", "meta": null } }
+    }
+  }
+] 

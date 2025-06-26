@@ -27,12 +27,29 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style }) => {
     const locked = style.locked_after_submit?.content === '1';
     const maxValues = style.max?.content ? parseInt(style.max.content) : undefined;
 
+    // Parse items - handle both array and JSON string formats
+    let itemsArray: any[] = [];
+    try {
+        const itemsContent = style.items?.content;
+        if (Array.isArray(itemsContent)) {
+            itemsArray = itemsContent;
+        } else if (itemsContent && typeof itemsContent === 'string') {
+            const stringContent = itemsContent as string;
+            if (stringContent.trim()) {
+                itemsArray = JSON.parse(stringContent);
+            }
+        }
+    } catch (error) {
+        console.warn('Failed to parse select items:', error);
+        itemsArray = [];
+    }
+
     // Transform items from the database format to Mantine format
-    const items = style.items?.content?.map((item: any) => ({
+    const items = itemsArray.map((item: any) => ({
         value: item.value,
         label: item.text,
         image: style.image_selector?.content === '1' ? item.text : undefined,
-    })) || [];
+    }));
 
     const commonProps = {
         label,

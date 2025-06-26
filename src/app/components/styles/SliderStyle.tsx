@@ -10,10 +10,26 @@ const SliderStyle: React.FC<ISliderStyleProps> = ({ style }) => {
     const label = style.label?.content;
     const name = style.name?.content;
     const value = parseInt(style.value?.content || '0');
-    const labels = style.labels?.content || [];
     const min = parseInt(style.min?.content || '0');
     const max = parseInt(style.max?.content || '100');
     const isLocked = style.locked_after_submit?.content === '1';
+
+    // Parse labels - handle both array and JSON string formats
+    let labels: any[] = [];
+    try {
+        const labelsContent = style.labels?.content;
+        if (Array.isArray(labelsContent)) {
+            labels = labelsContent;
+        } else if (labelsContent && typeof labelsContent === 'string') {
+            const stringContent = labelsContent as string;
+            if (stringContent.trim()) {
+                labels = JSON.parse(stringContent);
+            }
+        }
+    } catch (error) {
+        console.warn('Failed to parse slider labels:', error);
+        labels = [];
+    }
 
     // Create marks from labels if available
     const marks = labels.length > 0 ? labels.map((labelItem: any, index: number) => ({

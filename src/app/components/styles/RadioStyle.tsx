@@ -10,10 +10,26 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style }) => {
     const label = style.label?.content;
     const name = style.name?.content;
     const value = style.value?.content;
-    const items = style.items?.content || [];
     const isRequired = style.is_required?.content === '1';
     const isInline = style.is_inline?.content === '1';
     const isLocked = style.locked_after_submit?.content === '1';
+
+    // Parse items - handle both array and JSON string formats
+    let items: any[] = [];
+    try {
+        const itemsContent = style.items?.content;
+        if (Array.isArray(itemsContent)) {
+            items = itemsContent;
+        } else if (itemsContent && typeof itemsContent === 'string') {
+            const stringContent = itemsContent as string;
+            if (stringContent.trim()) {
+                items = JSON.parse(stringContent);
+            }
+        }
+    } catch (error) {
+        console.warn('Failed to parse radio items:', error);
+        items = [];
+    }
 
     return (
         <Box className={style.css}>

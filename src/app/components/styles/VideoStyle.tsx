@@ -7,8 +7,22 @@ interface IVideoStyleProps {
 }
 
 const VideoStyle: React.FC<IVideoStyleProps> = ({ style }) => {
-    // Get video sources
-    const sources = style.sources?.content || [];
+    // Get video sources - handle both array and JSON string formats
+    let sources: any[] = [];
+    try {
+        const sourcesContent = style.sources?.content;
+        if (Array.isArray(sourcesContent)) {
+            sources = sourcesContent;
+        } else if (sourcesContent && typeof sourcesContent === 'string') {
+            const stringContent = sourcesContent as string;
+            if (stringContent.trim()) {
+                sources = JSON.parse(stringContent);
+            }
+        }
+    } catch (error) {
+        console.warn('Failed to parse video sources:', error);
+        sources = [];
+    }
     
     // Determine if video should be fluid (responsive)
     const isFluid = style.is_fluid?.content === '1';

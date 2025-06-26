@@ -67,7 +67,8 @@ Every section in the system follows this base structure:
 - **slider**: Range sliders with labels and min/max values
 
 ### Navigation & Lists
-- **tabs**: Tab containers for organizing content
+- **tabs**: Tab containers for organizing content (requires tab children)
+- **tab**: Individual tab component (used within tabs)
 - **accordionList**: Collapsible list items
 - **nestedList**: Hierarchical navigation lists
 - **sortableList**: Drag-and-drop sortable lists
@@ -81,8 +82,15 @@ Every section in the system follows this base structure:
 ### Advanced Elements
 - **progressBar**: Progress indicators with counts and styling
 - **quiz**: Interactive quiz components
-- **json**: JSON data display
+- **json**: JSON data display (content must be JSON string)
 - **showUserInput**: Display user input data
+- **htmlTag**: Custom HTML tag wrapper
+
+### Special Styles (Available but not commonly used)
+- **profile**: User profile management (authentication style)
+- **formUserInput**: User input form handler
+- **formUserInputLog**: User input logging form
+- **formUserInputRecord**: User input record form
 
 ## Field Reference by Style Type
 
@@ -140,15 +148,15 @@ Every section in the system follows this base structure:
 - `is_fluid`: "1" for responsive image
 
 **video**:
-- `sources`: Array of video sources
+- `sources`: JSON string array of video sources (e.g., "[{\"src\": \"video.mp4\", \"type\": \"video/mp4\"}]")
 - `is_fluid`: "1" for responsive video
 - `alt`: Alternative text
 
 **audio**:
-- `sources`: Array of audio sources
+- `sources`: JSON string array of audio sources (e.g., "[{\"src\": \"audio.mp3\", \"type\": \"audio/mpeg\"}]")
 
 **carousel**:
-- `sources`: Array of image sources
+- `sources`: JSON string array of image sources (e.g., "[{\"src\": \"image.jpg\", \"alt\": \"Image\"}]")
 - `has_controls`: "1" to show controls
 - `has_indicators`: "1" to show indicators
 - `has_crossfade`: "1" for crossfade effect
@@ -173,6 +181,13 @@ Every section in the system follows this base structure:
 - `open_in_new_tab`: "1" to open in new tab
 
 ### Form Elements Fields
+**form**:
+- `label`: Form label/title
+- `url`: Form action URL
+- `type`: Form type
+- `label_cancel`: Cancel button label
+- `url_cancel`: Cancel button URL
+
 **input**:
 - `label`: Input label
 - `type_input`: Input type (text/email/password/number/date/etc.)
@@ -182,6 +197,8 @@ Every section in the system follows this base structure:
 - `value`: Default value
 - `min`: Minimum value (for numbers/dates)
 - `max`: Maximum value (for numbers/dates)
+- `format`: Input format validation
+- `locked_after_submit`: "1" if locked after form submission
 
 **textarea**:
 - `label`: Textarea label
@@ -189,24 +206,34 @@ Every section in the system follows this base structure:
 - `is_required`: "1" if required
 - `name`: Form field name
 - `value`: Default value
+- `min`: Minimum character count
+- `max`: Maximum character count
+- `locked_after_submit`: "1" if locked after form submission
 - `markdown_editor`: "1" to enable markdown editor
 
 **select**:
 - `label`: Select label
+- `alt`: Placeholder text for select
 - `is_required`: "1" if required
 - `name`: Form field name
 - `value`: Default selected value
-- `items`: Array of options [{value: "val", label: "Label"}]
+- `items`: JSON string array of options (e.g., "[{\"value\": \"val\", \"text\": \"Label\"}]")
 - `is_multiple`: "1" for multiple selection
+- `max`: Maximum number of selections (for multiple)
 - `live_search`: "1" to enable search
+- `disabled`: "1" if disabled
+- `image_selector`: "1" for image selection mode
+- `locked_after_submit`: "1" if locked after form submission
+- `allow_clear`: "1" to allow clearing selection
 
 **radio**:
 - `label`: Radio group label
 - `is_required`: "1" if required
 - `name`: Form field name
 - `value`: Default selected value
-- `items`: Array of options [{value: "val", label: "Label"}]
+- `items`: JSON string array of options (e.g., "[{\"value\": \"val\", \"text\": \"Label\"}]")
 - `is_inline`: "1" for inline layout
+- `locked_after_submit`: "1" if locked after form submission
 
 **checkbox**:
 - `label`: Checkbox label
@@ -222,6 +249,71 @@ Every section in the system follows this base structure:
 - `min`: Minimum value
 - `max`: Maximum value
 - `labels`: Array of label objects
+- `locked_after_submit`: "1" if locked after form submission
+
+### Advanced Elements Fields
+**progressBar**:
+- `count`: Progress current value
+- `count_max`: Progress maximum value
+- `type`: Progress bar type (primary/secondary/success/danger/warning/info/light/dark)
+- `is_striped`: "1" for striped appearance
+- `has_label`: "1" to show label
+
+**quiz**:
+- `type`: Quiz type
+- `caption`: Quiz question text
+- `label_right`: Text for correct answer
+- `label_wrong`: Text for wrong answer
+- `right_content`: Content shown for correct answer
+- `wrong_content`: Content shown for wrong answer
+
+**json**:
+- `json`: JSON data as string (e.g., "{\"key\": \"value\", \"number\": 42}")
+
+**showUserInput**:
+- `form_name`: Name of form to display data from
+- `delete_title`: Delete confirmation title
+- `label_delete`: Delete button label
+- `delete_content`: Delete confirmation message
+- `is_log`: "1" if showing log data
+- `anchor`: Anchor for navigation
+- `is_expanded`: "1" if expanded by default
+- `column_names`: Column names to display
+- `load_as_table`: "1" to display as table
+
+### Navigation & List Fields
+**tabs**:
+- No specific fields (uses child tab components)
+
+**tab**:
+- `label`: Tab label text
+- `type`: Tab type
+- `is_active`: "1" if this tab is active by default
+- `icon`: Icon class for tab
+
+**accordionList**:
+- `items`: JSON string array of accordion items (e.g., "[{\"title\": \"Item 1\", \"content\": \"Content 1\"}]")
+- `title_prefix`: Prefix for accordion titles
+- `label_root`: Root label text
+- `id_prefix`: ID prefix for accordion items
+- `id_active`: ID of active accordion item
+
+**nestedList**:
+- `items`: JSON string array of nested list items (e.g., "[{\"title\": \"Parent\", \"children\": [{\"title\": \"Child\"}]}]")
+- `title_prefix`: Prefix for list titles
+- `is_expanded`: "1" if expanded by default
+- `is_collapsible`: "1" if collapsible
+- `search_text`: Search functionality text
+- `id_prefix`: ID prefix for list items
+- `id_active`: ID of active list item
+
+**sortableList**:
+- `items`: JSON string array of sortable items
+- `is_sortable`: "1" if items can be sorted
+- `is_editable`: "1" if items can be edited
+- `url_delete`: URL for delete action
+- `label_add`: Add button label
+- `url_add`: URL for add action
 
 ## CSS Styling Guidelines
 
@@ -281,6 +373,8 @@ shadow-lg dark:shadow-2xl
 
 ## Language Configuration
 All content fields must be wrapped in language objects. The structure is field name first, then language code. Use "en-GB" as the default language, and "all" for non-translatable fields:
+
+**CRITICAL**: All field content values must be strings. Arrays and objects should be JSON-encoded strings.
 
 ```json
 "fields": {

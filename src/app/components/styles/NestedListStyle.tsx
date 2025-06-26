@@ -14,10 +14,26 @@ const NestedListStyle: React.FC<INestedListStyleProps> = ({ style }) => {
     const titlePrefix = style.title_prefix?.content || '';
     const isExpanded = style.is_expanded?.content === '1';
     const isCollapsible = style.is_collapsible?.content === '1';
-    const items = style.items?.content || [];
     const searchText = style.search_text?.content;
     const idPrefix = style.id_prefix?.content || 'nested';
     const idActive = style.id_active?.content;
+
+    // Parse items - handle both array and JSON string formats
+    let items: any[] = [];
+    try {
+        const itemsContent = style.items?.content;
+        if (Array.isArray(itemsContent)) {
+            items = itemsContent;
+        } else if (itemsContent && typeof itemsContent === 'string') {
+            const stringContent = itemsContent as string;
+            if (stringContent.trim()) {
+                items = JSON.parse(stringContent);
+            }
+        }
+    } catch (error) {
+        console.warn('Failed to parse nested list items:', error);
+        items = [];
+    }
 
     const toggleItem = (itemId: string) => {
         const newExpanded = new Set(expandedItems);

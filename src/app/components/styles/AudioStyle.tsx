@@ -7,8 +7,22 @@ interface IAudioStyleProps {
 }
 
 const AudioStyle: React.FC<IAudioStyleProps> = ({ style }) => {
-    // Get audio sources
-    const sources = style.sources?.content || [];
+    // Get audio sources - handle both array and JSON string formats
+    let sources: any[] = [];
+    try {
+        const sourcesContent = style.sources?.content;
+        if (Array.isArray(sourcesContent)) {
+            sources = sourcesContent;
+        } else if (sourcesContent && typeof sourcesContent === 'string') {
+            const stringContent = sourcesContent as string;
+            if (stringContent.trim()) {
+                sources = JSON.parse(stringContent);
+            }
+        }
+    } catch (error) {
+        console.warn('Failed to parse audio sources:', error);
+        sources = [];
+    }
 
     return (
         <Box className={style.css}>

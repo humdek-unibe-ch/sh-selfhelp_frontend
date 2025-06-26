@@ -8,10 +8,26 @@ interface IAccordionListStyleProps {
 
 const AccordionListStyle: React.FC<IAccordionListStyleProps> = ({ style }) => {
     const titlePrefix = style.title_prefix?.content || '';
-    const items = style.items?.content || [];
     const labelRoot = style.label_root?.content || 'Root';
     const idPrefix = style.id_prefix?.content || 'accordion';
     const idActive = style.id_active?.content;
+
+    // Parse items - handle both array and JSON string formats
+    let items: any[] = [];
+    try {
+        const itemsContent = style.items?.content;
+        if (Array.isArray(itemsContent)) {
+            items = itemsContent;
+        } else if (itemsContent && typeof itemsContent === 'string') {
+            const stringContent = itemsContent as string;
+            if (stringContent.trim()) {
+                items = JSON.parse(stringContent);
+            }
+        }
+    } catch (error) {
+        console.warn('Failed to parse accordion items:', error);
+        items = [];
+    }
 
     // Convert items to accordion format
     const accordionItems = items.map((item: any, index: number) => ({

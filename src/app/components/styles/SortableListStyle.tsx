@@ -8,7 +8,24 @@ interface ISortableListStyleProps {
 }
 
 const SortableListStyle: React.FC<ISortableListStyleProps> = ({ style }) => {
-    const [items, setItems] = useState(style.items?.content || []);
+    // Parse items - handle both array and JSON string formats
+    let initialItems: any[] = [];
+    try {
+        const itemsContent = style.items?.content;
+        if (Array.isArray(itemsContent)) {
+            initialItems = itemsContent;
+        } else if (itemsContent && typeof itemsContent === 'string') {
+            const stringContent = itemsContent as string;
+            if (stringContent.trim()) {
+                initialItems = JSON.parse(stringContent);
+            }
+        }
+    } catch (error) {
+        console.warn('Failed to parse sortable list items:', error);
+        initialItems = [];
+    }
+
+    const [items, setItems] = useState(initialItems);
     
     const isSortable = style.is_sortable?.content === '1';
     const isEditable = style.is_editable?.content === '1';
