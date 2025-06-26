@@ -17,6 +17,7 @@ import { authProvider } from './auth.provider';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { LoadingScreen } from '../app/components/common/LoadingScreen';
 import { LanguageProvider } from '../app/contexts/LanguageContext';
+import { EnhancedLanguageProvider } from '../app/contexts/EnhancedLanguageProvider';
 import { theme } from '../../theme';
 
 // Create a client with global configuration settings
@@ -59,7 +60,9 @@ function RefineWrapper({ children }: { children: React.ReactNode }) {
                 disableTelemetry: true,
             }}
         >
-            {children}
+            <EnhancedLanguageProvider>
+                {children}
+            </EnhancedLanguageProvider>
         </Refine>
     );
 }
