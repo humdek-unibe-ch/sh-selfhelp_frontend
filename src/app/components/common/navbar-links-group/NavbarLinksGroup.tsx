@@ -84,18 +84,20 @@ export function LinksGroup({ icon, label, initiallyOpened, children, link, right
                                 </Text>
                                 
                                 {/* Badges */}
-                                <Group gap="xs">
-                                    {isMenuPage && (
-                                        <Badge size="xs" variant="light" color="blue">
-                                            Menu
-                                        </Badge>
-                                    )}
-                                    {isFooterPage && (
-                                        <Badge size="xs" variant="light" color="green">
-                                            Footer
-                                        </Badge>
-                                    )}
-                                </Group>
+                                {(isMenuPage || isFooterPage) && (
+                                    <Group gap="xs">
+                                        {isMenuPage && (
+                                            <Badge size="xs" variant="light" color="blue">
+                                                Menu
+                                            </Badge>
+                                        )}
+                                        {isFooterPage && (
+                                            <Badge size="xs" variant="light" color="green">
+                                                Footer
+                                            </Badge>
+                                        )}
+                                    </Group>
+                                )}
                             </Group>
                             
                             {/* Chevron - only for collapsing/expanding */}
@@ -168,6 +170,7 @@ export function LinksGroup({ icon, label, initiallyOpened, children, link, right
                     </Group>
                 </Group>
             </UnstyledButton>
+            
             {hasAnyContent && (
                 <Collapse in={isOpen}>
                     {hasLinks ? (

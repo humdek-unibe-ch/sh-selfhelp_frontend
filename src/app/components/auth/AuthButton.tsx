@@ -9,6 +9,17 @@ import { ROUTES } from '../../../config/routes.config';
 import { getAccessToken, getRefreshToken } from '../../../utils/auth.utils';
 import { debug } from '../../../utils/debug-logger';
 import { useProfilePages } from '../../../hooks/useAdminPages';
+import { IAdminPage } from '../../../types/responses/admin/admin.types';
+
+// Helper function to get page title - use actual title from API or fallback to formatted keyword
+const getPageTitle = (page: IAdminPage | { keyword: string; title?: string | null }): string => {
+    // Use the actual title if available, otherwise format the keyword as fallback
+    if ('title' in page && page.title && page.title.trim()) {
+        return page.title;
+    }
+    // Fallback to formatted keyword
+    return page.keyword.charAt(0).toUpperCase() + page.keyword.slice(1).replace(/_/g, ' ').replace(/-/g, ' ');
+};
 
 export function AuthButton() {
     const { data: { authenticated } = {}, isLoading: isAuthLoading } = useIsAuthenticated();
@@ -153,6 +164,9 @@ export function AuthButton() {
         profileChildren: profileChildren.length
     });
 
+    // Get the profile link title
+    const profileTitle = profileLinkPage ? getPageTitle(profileLinkPage) : 'Profile';
+
     return (
         <Menu position="bottom-end" withArrow>
             <Menu.Target>
@@ -164,7 +178,7 @@ export function AuthButton() {
                         transition: 'opacity 0.2s ease'
                     }}
                 >
-                    {profileLinkPage?.label || 'Profile'}
+                    {profileTitle}
                 </Button>
             </Menu.Target>
 
@@ -178,7 +192,7 @@ export function AuthButton() {
                             disabled={isLoggingOut && child.keyword === 'logout'}
                             color={child.keyword === 'logout' ? 'red' : undefined}
                         >
-                            {child.keyword === 'logout' && isLoggingOut ? 'Logging out...' : child.label}
+                            {child.keyword === 'logout' && isLoggingOut ? 'Logging out...' : getPageTitle(child)}
                         </Menu.Item>
                     ))
                 ) : (

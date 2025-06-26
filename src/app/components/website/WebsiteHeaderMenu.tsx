@@ -10,8 +10,19 @@ interface IMenuItemProps {
     item: IPageItem;
 }
 
+// Helper function to get page title - use actual title from API or fallback to formatted keyword
+const getPageTitle = (item: IPageItem): string => {
+    // Use the actual title if available, otherwise format the keyword as fallback
+    if (item.title && item.title.trim()) {
+        return item.title;
+    }
+    // Fallback to formatted keyword
+    return item.keyword.charAt(0).toUpperCase() + item.keyword.slice(1).replace(/_/g, ' ').replace(/-/g, ' ');
+};
+
 function MenuItem({ item }: IMenuItemProps) {
     const hasChildren = item.children && item.children.length > 0;
+    const pageTitle = getPageTitle(item);
 
     if (hasChildren) {
         return (
@@ -19,7 +30,7 @@ function MenuItem({ item }: IMenuItemProps) {
                 <Menu.Target>
                     <UnstyledButton>
                         <Group gap="xs">
-                            <Text size="sm" fw={500}>{item.keyword}</Text>
+                            <Text size="sm" fw={500}>{pageTitle}</Text>
                             <IconChevronDown size={16} stroke={1.5} />
                         </Group>
                     </UnstyledButton>
@@ -28,7 +39,7 @@ function MenuItem({ item }: IMenuItemProps) {
                     {item.children?.map(child => (
                         <Menu.Item key={child.id_pages}>
                             <InternalLink href={child.url}>
-                                <Text size="sm">{child.keyword}</Text>
+                                <Text size="sm">{getPageTitle(child)}</Text>
                             </InternalLink>
                         </Menu.Item>
                     ))}
@@ -40,7 +51,7 @@ function MenuItem({ item }: IMenuItemProps) {
     return (
         <InternalLink key={item.id_pages} href={item.url}>
             <UnstyledButton>
-                <Text size="sm" fw={500}>{item.keyword}</Text>
+                <Text size="sm" fw={500}>{pageTitle}</Text>
             </UnstyledButton>
         </InternalLink>
     );
@@ -50,7 +61,7 @@ function MenuSkeleton() {
     return (
         <Group gap="md" visibleFrom="sm">
             {Array.from({ length: 4 }).map((_, index) => (
-                <Skeleton key={index} height={32} width={80} radius="sm" />
+                <Skeleton key={index} height={24} width={80} />
             ))}
         </Group>
     );

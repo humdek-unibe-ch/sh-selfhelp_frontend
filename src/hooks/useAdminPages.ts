@@ -42,20 +42,19 @@ export interface ICategorizedPages {
 }
 
 /**
- * Hook for fetching and managing admin pages data
- * @returns Object containing admin pages data and query state
+ * Hook for fetching admin pages with hierarchical structure
+ * @returns Object containing various categorized page data
  */
 export function useAdminPages() {
     const { isAuthenticated, user } = useAuth();
     
     // More robust authentication check: must have Refine auth state, user data, AND access token
     const isActuallyAuthenticated = !!isAuthenticated && !!user && !!getAccessToken();
-    
-    // Debug authentication state
-    debug('useAdminPages authentication check', 'useAdminPages', {
-        isAuthenticated,
-        hasUser: !!user,
-        hasAccessToken: !!getAccessToken(),
+
+    debug('useAdminPages called', 'useAdminPages', { 
+        isAuthenticated, 
+        hasUser: !!user, 
+        hasToken: !!getAccessToken(),
         isActuallyAuthenticated,
         queryEnabled: isActuallyAuthenticated
     });
@@ -68,9 +67,43 @@ export function useAdminPages() {
         },
         enabled: isActuallyAuthenticated, // Only fetch when user is truly authenticated
         select: (data: IAdminPage[]) => {
+            // Ensure data is an array to prevent undefined errors
+            if (!data || !Array.isArray(data)) {
+                debug('Invalid data received', 'useAdminPages', { data });
+                return {
+                    allPages: [],
+                    systemPages: [],
+                    regularPages: [],
+                    systemPageLinks: [],
+                    categorizedSystemPages: {
+                        authentication: [],
+                        profile: [],
+                        errors: [],
+                        legal: [],
+                        other: []
+                    },
+                    hierarchicalPages: [],
+                    categorizedRegularPages: {
+                        menu: [],
+                        footer: [],
+                        other: []
+                    }
+                };
+            }
+
             // Separate system pages from regular pages
             const systemPages = data.filter(page => page.is_system === 1);
             const regularPages = data.filter(page => page.is_system === 0);
+            
+            // Helper function to get page title - use actual title from API or fallback to formatted keyword
+            const getPageTitle = (page: IAdminPage): string => {
+                // Use the actual title if available, otherwise format the keyword as fallback
+                if (page.title && page.title.trim()) {
+                    return page.title;
+                }
+                // Fallback to formatted keyword
+                return page.keyword.charAt(0).toUpperCase() + page.keyword.slice(1).replace(/_/g, ' ').replace(/-/g, ' ');
+            };
             
             // Build hierarchical structure for system pages (same as regular pages)
             const buildSystemHierarchy = (pages: IAdminPage[], parentId: number | null = null): ISystemPageLink[] => {
@@ -79,7 +112,7 @@ export function useAdminPages() {
                     .map((page): ISystemPageLink => {
                         const children = buildSystemHierarchy(pages, page.id_pages);
                         return {
-                            label: page.keyword.charAt(0).toUpperCase() + page.keyword.slice(1).replace(/_/g, ' '),
+                            label: getPageTitle(page), // Use title instead of formatted keyword
                             link: `/admin/pages/${page.keyword}`,
                             keyword: page.keyword,
                             id: page.id_pages,
@@ -96,7 +129,42 @@ export function useAdminPages() {
                 ['login', 'logout', 'two-factor-authentication', 'validate', 'reset_password'].includes(page.keyword)
             );
             
-            const profilePages = systemPageLinks.filter(page => 
+            // Look for individual profile-related pages instead of expecting a profile-link parent
+            // Since profile-link doesn't exist in the database, we'll create a virtual structure
+            const profileRelatedPages = systemPageLinks.filter(page => 
+                ['profile', 'settings', 'logout'].includes(page.keyword)
+            );
+            
+            // Create virtual profile pages if they don't exist in the database
+            const virtualProfilePages = [];
+            if (!profileRelatedPages.find(p => p.keyword === 'profile')) {
+                virtualProfilePages.push({
+                    label: 'Profile Settings',
+                    link: '/admin/profile',
+                    keyword: 'profile',
+                    id: -1 // Virtual ID
+                });
+            }
+            if (!profileRelatedPages.find(p => p.keyword === 'logout')) {
+                virtualProfilePages.push({
+                    label: 'Logout',
+                    link: '#',
+                    keyword: 'logout',
+                    id: -2 // Virtual ID
+                });
+            }
+            
+            // Combine real and virtual profile pages
+            const allProfilePages = [...profileRelatedPages, ...virtualProfilePages];
+            
+            // Create a virtual profile-link structure with children
+            const profilePages = allProfilePages.length > 0 ? [{
+                label: 'Profile',
+                link: '#',
+                keyword: 'profile-link',
+                id: 0, // Virtual ID
+                children: allProfilePages
+            }] : systemPageLinks.filter(page => 
                 ['profile', 'home', 'profile-link'].includes(page.keyword)
             );
             
@@ -128,7 +196,7 @@ export function useAdminPages() {
                 return pages.map(page => ({
                     id: page.id_pages,
                     keyword: page.keyword,
-                    label: page.keyword.charAt(0).toUpperCase() + page.keyword.slice(1),
+                    label: getPageTitle(page), // Use title instead of formatted keyword
                     link: `/admin/pages/${page.keyword}`,
                     hasChildren: Boolean(page.children && page.children.length > 0),
                     children: page.children ? buildHierarchy(page.children, level + 1) : [],
@@ -172,7 +240,10 @@ export function useAdminPages() {
                 hierarchicalPagesCount: hierarchicalPages.length,
                 menuPagesCount: menuPages.length,
                 footerPagesCount: footerPages.length,
-                otherRegularPagesCount: otherRegularPages.length
+                otherRegularPagesCount: otherRegularPages.length,
+                profilePagesInCategory: categorizedSystemPages.profile.length,
+                profileLinkPage: systemPageLinks.find(p => p.keyword === 'profile-link'),
+                profileLinkChildren: systemPageLinks.find(p => p.keyword === 'profile-link')?.children?.length || 0
             });
             
             return {
@@ -220,26 +291,19 @@ export function useAdminPages() {
  */
 export function useProfilePages() {
     const { isAuthenticated, user } = useAuth();
-    const { systemPageLinks, isLoading, error } = useAdminPages();
+    const { categorizedSystemPages, systemPageLinks, isLoading, error } = useAdminPages();
     
     // More robust authentication check: must have Refine auth state, user data, AND access token
     const isActuallyAuthenticated = !!isAuthenticated && !!user && !!getAccessToken();
     
-    // If user is not authenticated, return empty data without making API calls
-    if (!isActuallyAuthenticated) {
-        return {
-            profileLinkPage: null,
-            profileChildren: [],
-            isLoading: false,
-            error: null
-        };
-    }
-    
-    // Find the profile-link page and its children
-    const profileLinkPage = systemPageLinks.find(page => page.keyword === 'profile-link');
+    // Find the profile-link page from categorized pages (which includes virtual profile-link)
+    const profileLinkPage = isActuallyAuthenticated ? 
+        categorizedSystemPages.profile.find(page => page.keyword === 'profile-link') : null;
     
     debug('Profile pages data', 'useProfilePages', {
+        isActuallyAuthenticated,
         totalSystemPages: systemPageLinks.length,
+        profilePagesInCategory: categorizedSystemPages.profile.length,
         profileLinkFound: !!profileLinkPage,
         profileLinkPage: profileLinkPage ? {
             keyword: profileLinkPage.keyword,

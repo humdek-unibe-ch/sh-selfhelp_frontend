@@ -1,16 +1,27 @@
 'use client';
 
-import { Group, Skeleton, Text, Container, Divider, Stack, Box } from '@mantine/core';
+import { Box, Container, Divider, Group, Skeleton, Stack, Text } from '@mantine/core';
 import { InternalLink } from '../shared/InternalLink';
 import { useAppNavigation } from '../../../hooks/useAppNavigation';
+import { IPageItem } from '../../../types/responses/frontend/frontend.types';
+
+// Helper function to get page title - use actual title from API or fallback to formatted keyword
+const getPageTitle = (item: IPageItem): string => {
+    // Use the actual title if available, otherwise format the keyword as fallback
+    if (item.title && item.title.trim()) {
+        return item.title;
+    }
+    // Fallback to formatted keyword
+    return item.keyword.charAt(0).toUpperCase() + item.keyword.slice(1).replace(/_/g, ' ').replace(/-/g, ' ');
+};
 
 function FooterSkeleton() {
     return (
-        <Box w="100%" py="xl" style={{ backgroundColor: 'var(--mantine-color-gray-0)' }}>
+        <Box component="footer" w="100%" py="xl">
             <Container size="xl">
                 <Group justify="center" gap="xl">
-                    {Array.from({ length: 5 }).map((_, index) => (
-                        <Skeleton key={index} height={20} width={80} radius="sm" />
+                    {Array.from({ length: 4 }).map((_, index) => (
+                        <Skeleton key={index} height={16} width={80} />
                     ))}
                 </Group>
             </Container>
@@ -48,7 +59,7 @@ export function WebsiteFooter() {
                                 href={page.url}
                                 className="text-sm font-medium hover:text-blue-600 transition-colors"
                             >
-                                {page.keyword}
+                                {getPageTitle(page)}
                             </InternalLink>
                         ))}
                     </Group>

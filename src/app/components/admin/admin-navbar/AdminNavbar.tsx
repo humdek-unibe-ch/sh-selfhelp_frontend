@@ -44,10 +44,27 @@ export function AdminNavbar() {
         }
         
         if (categorizedSystemPages.profile.length > 0) {
+            // Process profile pages to ensure profile-link children are properly displayed
+            const profilePagesWithChildren = categorizedSystemPages.profile.map(page => {
+                if (page.keyword === 'profile-link' && page.children && page.children.length > 0) {
+                    // Profile-link should show its children
+                    return {
+                        ...page,
+                        onClick: () => handlePageSelect(page.keyword),
+                        children: addOnClickHandlers(page.children)
+                    };
+                }
+                return {
+                    ...page,
+                    onClick: () => handlePageSelect(page.keyword),
+                    children: page.children ? addOnClickHandlers(page.children) : undefined
+                };
+            });
+
             systemPages.push({
                 label: 'User Profile',
                 link: '#',
-                children: addOnClickHandlers(categorizedSystemPages.profile)
+                children: profilePagesWithChildren
             });
         }
         

@@ -19,6 +19,8 @@ export interface IPageItem {
     footer_position: number | null;
     id_type: number;
     id_pageAccessTypes: number;
+    is_system: 0 | 1;
+    title: string | null;
     children: IPageItem[];
 }
 
