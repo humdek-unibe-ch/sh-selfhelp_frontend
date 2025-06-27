@@ -8,8 +8,8 @@ import { useIsAuthenticated, useLogout } from '@refinedev/core';
 import { ROUTES } from '../../../config/routes.config';
 import { getAccessToken, getRefreshToken } from '../../../utils/auth.utils';
 import { debug } from '../../../utils/debug-logger';
-import { useProfilePages } from '../../../hooks/useAdminPages';
 import { IAdminPage } from '../../../types/responses/admin/admin.types';
+import { useAppNavigation } from '../../../hooks/useAppNavigation';
 
 // Helper function to get page title - use actual title from API or fallback to formatted keyword
 const getPageTitle = (page: IAdminPage | { keyword: string; title?: string | null }): string => {
@@ -24,7 +24,7 @@ const getPageTitle = (page: IAdminPage | { keyword: string; title?: string | nul
 export function AuthButton() {
     const { data: { authenticated } = {}, isLoading: isAuthLoading } = useIsAuthenticated();
     const { mutate: logout, isLoading: isLoggingOut } = useLogout();
-    const { profileLinkPage, profileChildren } = useProfilePages();
+    const { profilePages } = useAppNavigation();
     const [stableAuthState, setStableAuthState] = useState<boolean | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const router = useRouter();
@@ -160,12 +160,12 @@ export function AuthButton() {
         stableAuthState,
         isRefreshing,
         authenticated,
-        profileLinkPage,
-        profileChildren: profileChildren.length
+        profilePages: profilePages.length
     });
 
     // Get the profile link title
-    const profileTitle = profileLinkPage ? getPageTitle(profileLinkPage) : 'Profile';
+    const profileTitle = profilePages.length > 0 ? getPageTitle(profilePages[0]) : 'Profile';
+    const profileChildren = profilePages[0]?.children || [];
 
     return (
         <Menu position="bottom-end" withArrow>

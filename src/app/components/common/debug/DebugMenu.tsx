@@ -39,7 +39,7 @@ import { isDebugEnabled, DEBUG_CONFIG } from '../../../../config/debug.config';
 import { debugLogger } from '../../../../utils/debug-logger';
 import { useAppNavigation } from '../../../../hooks/useAppNavigation';
 import { CssClassValidator } from './CssClassValidator';
-import { useAdminPages, useProfilePages } from '../../../../hooks/useAdminPages';
+import { useAdminPages } from '../../../../hooks/useAdminPages';
 import { useLanguageContext } from '../../../contexts/LanguageContext';
 import { notifications } from '@mantine/notifications';
 
@@ -91,10 +91,14 @@ export function DebugMenu() {
     const [filterFieldHandler, setFilterFieldHandler] = useState(false);
     
     // Navigation data for the navigation debug tab
-    const { pages, menuPages, footerPages, routes, isLoading } = useAppNavigation();
+    const { pages, menuPages, footerPages, routes, isLoading, profilePages } = useAppNavigation();
     const { systemPageLinks, categorizedSystemPages } = useAdminPages();
-    const { profileLinkPage, profileChildren } = useProfilePages();
-    const { currentLanguage, currentLanguageId, languages, isUpdatingLanguage, setCurrentLanguage } = useLanguageContext();
+    const { currentLanguageId, languages, isUpdatingLanguage, setCurrentLanguageId } = useLanguageContext();
+
+    // Derived values for profile pages
+    const profileLinkPage = profilePages.length > 0 ? profilePages[0] : null;
+    const profileChildren = profileLinkPage?.children || [];
+    const currentLanguage = languages.find(lang => lang.id === currentLanguageId);
 
     if (!isDebugEnabled()) {
         return null;
@@ -201,7 +205,7 @@ export function DebugMenu() {
     const handleLanguageTest = () => {
         if (languages.length > 0) {
             const randomLanguage = languages[Math.floor(Math.random() * languages.length)];
-            setCurrentLanguage(randomLanguage.id);
+            setCurrentLanguageId(randomLanguage.id);
             notifications.show({
                 title: 'Debug: Language Changed',
                 message: `Switched to ${randomLanguage.language}`,
@@ -369,9 +373,9 @@ export function DebugMenu() {
                                     <Code block>
                                         {JSON.stringify({
                                             keyword: profileLinkPage.keyword,
-                                            label: profileLinkPage.label,
-                                            link: profileLinkPage.link,
-                                            id: profileLinkPage.id
+                                            title: profileLinkPage.title,
+                                            url: profileLinkPage.url,
+                                            id: profileLinkPage.id_pages
                                         }, null, 2)}
                                     </Code>
                                 </div>
@@ -383,9 +387,9 @@ export function DebugMenu() {
                                     <Code block>
                                         {JSON.stringify(profileChildren.map(c => ({
                                             keyword: c.keyword,
-                                            label: c.label,
-                                            link: c.link,
-                                            id: c.id
+                                            title: c.title,
+                                            url: c.url,
+                                            id: c.id_pages
                                         })), null, 2)}
                                     </Code>
                                 </div>
@@ -499,7 +503,7 @@ export function DebugMenu() {
                                                     <Button
                                                         size="xs"
                                                         variant="subtle"
-                                                        onClick={() => setCurrentLanguage(lang.id)}
+                                                        onClick={() => setCurrentLanguageId(lang.id)}
                                                         disabled={isUpdatingLanguage || currentLanguageId === lang.id}
                                                     >
                                                         Select

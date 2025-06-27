@@ -19,6 +19,7 @@ export interface ISystemPageLink {
     link: string;
     keyword: string;
     id: number;
+    title: string;
     children?: ISystemPageLink[];
 }
 
@@ -112,6 +113,7 @@ export function useAdminPages() {
                         link: `/admin/pages/${page.keyword}`,
                         keyword: page.keyword,
                         id: page.id_pages,
+                        title: page.title || page.keyword,
                         children: page.children && page.children.length > 0 
                             ? buildSystemHierarchy(page.children) 
                             : undefined
@@ -247,38 +249,3 @@ export function useAdminPages() {
     };
 }
 
-/**
- * Hook for getting profile page data with its children for the profile dropdown
- * @returns Object containing profile link data and its children
- */
-export function useProfilePages() {
-    const { isAuthenticated, user } = useAuth();
-    const { categorizedSystemPages, systemPageLinks, isLoading, error } = useAdminPages();
-    
-    // More robust authentication check: must have Refine auth state, user data, AND access token
-    const isActuallyAuthenticated = !!isAuthenticated && !!user && !!getAccessToken();
-    
-    // Find the profile-link page from categorized pages
-    const profileLinkPage = isActuallyAuthenticated ? 
-        categorizedSystemPages.profile.find(page => page.keyword === 'profile-link') : null;
-    
-    debug('Profile pages data', 'useProfilePages', {
-        isActuallyAuthenticated,
-        totalSystemPages: systemPageLinks.length,
-        profilePagesInCategory: categorizedSystemPages.profile.length,
-        profileLinkFound: !!profileLinkPage,
-        profileLinkPage: profileLinkPage ? {
-            keyword: profileLinkPage.keyword,
-            label: profileLinkPage.label,
-            childrenCount: profileLinkPage.children?.length || 0,
-            children: profileLinkPage.children?.map(c => ({ keyword: c.keyword, label: c.label }))
-        } : null
-    });
-    
-    return {
-        profileLinkPage,
-        profileChildren: profileLinkPage?.children || [],
-        isLoading,
-        error
-    };
-}

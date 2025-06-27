@@ -17,6 +17,7 @@ interface INavigationData {
     pages: IPageItem[];
     menuPages: IPageItem[];
     footerPages: IPageItem[];
+    profilePages: IPageItem[];
     routes: IPageItem[];
     resources?: any[]; // Refine resources for admin mode
 }
@@ -81,6 +82,10 @@ export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
                 .filter(page => page.footer_position !== null && !page.is_headless)
                 .sort((a, b) => (a.footer_position ?? 0) - (b.footer_position ?? 0));
 
+            const profilePages = pages
+                .filter(page => page.is_system === 1 && page.keyword === 'profile-link')
+                .sort((a, b) => (a.nav_position ?? 0) - (b.nav_position ?? 0));
+
             // Flatten ALL pages (including children) for route checking
             const routes = flattenPages(pages);
 
@@ -88,6 +93,7 @@ export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
                 totalPages: pages.length,
                 menuPages: menuPages.length,
                 footerPages: footerPages.length,
+                profilePages: profilePages.length,
                 flattenedRoutes: routes.length,
                 routeKeywords: routes.map(r => r.keyword),
                 languageId: currentLanguageId,
@@ -130,6 +136,7 @@ export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
                 pages,
                 menuPages,
                 footerPages,
+                profilePages,
                 routes,
                 resources
             };
@@ -148,6 +155,7 @@ export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
         pages: data?.pages ?? [], 
         menuPages: data?.menuPages ?? [], 
         footerPages: data?.footerPages ?? [], 
+        profilePages: data?.profilePages ?? [],
         routes: data?.routes ?? [],
         resources: data?.resources ?? [],
         isLoading: isLoading, 
