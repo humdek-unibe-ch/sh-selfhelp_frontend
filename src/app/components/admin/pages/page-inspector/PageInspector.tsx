@@ -72,7 +72,7 @@ interface IPageFormValues {
     footerMenuEnabled: boolean;
     
     // Field values by language (dynamic based on API response)
-    fields: Record<string, Record<string, string>>; // fields[fieldName][languageCode] = content
+    fields: Record<string, Record<number, string>>; // fields[fieldName][languageId] = content
 }
 
 export function PageInspector({ page, isConfigurationPage = false }: PageInspectorProps) {
@@ -112,8 +112,8 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
     // Set default active language tab when languages are loaded
     useEffect(() => {
         if (languages.length > 0 && !activeLanguageTab) {
-            const firstLangCode = languages[0].locale.split('-')[0];
-            setActiveLanguageTab(firstLangCode);
+            const firstLangId = languages[0].id.toString();
+            setActiveLanguageTab(firstLangId);
         }
     }, [languages, activeLanguageTab]);
 
@@ -171,15 +171,13 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
             });
 
             // Prepare fields object for form
-            const fieldsObject: Record<string, Record<string, string>> = {};
+            const fieldsObject: Record<string, Record<number, string>> = {};
             
             // Initialize all fields with empty strings for all languages
             pageFieldsData.fields.forEach(field => {
                 fieldsObject[field.name] = {};
                 languages.forEach(language => {
-                    // Create a simple language code from locale (e.g., 'de-CH' -> 'de')
-                    const langCode = language.locale.split('-')[0];
-                    fieldsObject[field.name][langCode] = '';
+                    fieldsObject[field.name][language.id] = '';
                 });
             });
             
@@ -189,11 +187,10 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                     // Find matching language by ID
                     const language = languages.find(l => l.id === translation.language_id);
                     if (language) {
-                        const langCode = language.locale.split('-')[0];
                         if (!fieldsObject[field.name]) {
                             fieldsObject[field.name] = {};
                         }
-                        fieldsObject[field.name][langCode] = translation.content || '';
+                        fieldsObject[field.name][language.id] = translation.content || '';
                     }
                 });
             });
@@ -264,8 +261,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
         // Process content fields (display: true) - these are translated
         contentFields.forEach(field => {
             languages.forEach(language => {
-                const langCode = language.locale.split('-')[0];
-                const content = form.values.fields?.[field.name]?.[langCode] || '';
+                const content = form.values.fields?.[field.name]?.[language.id] || '';
                 // Always send all fields, including empty ones (for deletion)
                 fields.push({
                     fieldId: field.id,
@@ -278,7 +274,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
         // Process property fields (display: false) - these use hardcoded language ID 1
         propertyFields.forEach(field => {
             const firstLanguageCode = languages[0]?.locale.split('-')[0] || 'de';
-            const content = form.values.fields?.[field.name]?.[firstLanguageCode] || '';
+            const content = form.values.fields?.[field.name]?.[1] || '';
             // Always send all fields, including empty ones (for deletion)
             fields.push({
                 fieldId: field.id,
@@ -398,18 +394,16 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
     }, [languages]);
 
     // Render content field based on type and language
-    const renderContentField = (field: IPageField, languageCode: string) => {
-        const fieldKey = `fields.${field.name}.${languageCode}`;
+    const renderContentField = (field: IPageField, languageId: number) => {
+        const fieldKey = `fields.${field.name}.${languageId}`;
         
-        // Find the language object to get the locale
-        const currentLanguage = languages.find(lang => lang.locale.split('-')[0] === languageCode);
-        const locale = hasMultipleLanguages && currentLanguage ? currentLanguage.locale : undefined;
-        
-        // Ensure the field path exists in form state to prevent controlled/uncontrolled warnings
-        const fieldValue = form.values.fields?.[field.name]?.[languageCode] ?? '';
+        const currentLanguage = languages.find(lang => lang.id === languageId);
+        const locale = currentLanguage?.locale;
+
+        const fieldValue = form.values.fields?.[field.name]?.[languageId] ?? '';
         const inputProps = {
             ...form.getInputProps(fieldKey),
-            value: fieldValue // Explicitly set value to ensure it's always defined
+            value: fieldValue
         };
         
         // Check if this is the title field and we're in a configuration page
@@ -418,7 +412,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
         if (field.type === 'textarea') {
             return (
                 <Textarea
-                    key={`${field.id}-${languageCode}`}
+                    key={`${field.id}-${languageId}`}
                     className={styles.fullWidthLabel}
                     label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} locale={locale} />}
                     placeholder={field.default_value || ''}
@@ -432,7 +426,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
         } else if (field.type === 'markdown-inline') {
             return (
                 <TextInput
-                    key={`${field.id}-${languageCode}`}
+                    key={`${field.id}-${languageId}`}
                     className={styles.fullWidthLabel}
                     label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} locale={locale} />}
                     placeholder={field.default_value || ''}
@@ -444,7 +438,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
         } else {
             return (
                 <TextInput
-                    key={`${field.id}-${languageCode}`}
+                    key={`${field.id}-${languageId}`}
                     className={styles.fullWidthLabel}
                     label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} locale={locale} />}
                     placeholder={field.default_value || ''}
@@ -587,12 +581,12 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                             <Box p="md">
                                 {contentFields.length > 0 ? (
                                     hasMultipleLanguages ? (
-                                        <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || (languages[0]?.locale.split('-')[0] || ''))}>
+                                        <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || (languages[0]?.id.toString() || ''))}>
                                             <Tabs.List>
                                                 {languages.map(lang => {
-                                                    const langCode = lang.locale.split('-')[0];
+                                                    const langId = lang.id.toString();
                                                     return (
-                                                        <Tabs.Tab key={langCode} value={langCode}>
+                                                        <Tabs.Tab key={langId} value={langId}>
                                                             {lang.language}
                                                         </Tabs.Tab>
                                                     );
@@ -600,12 +594,12 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                             </Tabs.List>
 
                                             {languages.map(lang => {
-                                                const langCode = lang.locale.split('-')[0];
+                                                const langId = lang.id.toString();
                                                 return (
-                                                    <Tabs.Panel key={langCode} value={langCode} pt="md">
+                                                    <Tabs.Panel key={langId} value={langId} pt="md">
                                                         <Stack gap="md">
                                                             {contentFields.map(field => 
-                                                                renderContentField(field, langCode)
+                                                                renderContentField(field, lang.id)
                                                             )}
                                                         </Stack>
                                                     </Tabs.Panel>
@@ -615,7 +609,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                     ) : (
                                         <Stack gap="md">
                                             {contentFields.map(field => 
-                                                renderContentField(field, languages[0]?.locale.split('-')[0] || 'de') // Default to first language
+                                                renderContentField(field, languages[0]?.id || 1) // Default to first language
                                             )}
                                         </Stack>
                                     )
@@ -802,9 +796,9 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                                 </Group>
                                                 
                                                 {propertyFields.map(field => {
-                                                    const langCode = languages[0]?.locale.split('-')[0] || 'de';
-                                                    const fieldKey = `fields.${field.name}.${langCode}`;
-                                                    const fieldValue = form.values.fields?.[field.name]?.[langCode] ?? '';
+                                                    const langId = languages[0]?.id || 1;
+                                                    const fieldKey = `fields.${field.name}.${langId}`;
+                                                    const fieldValue = form.values.fields?.[field.name]?.[langId] ?? '';
                                                     const inputProps = {
                                                         ...form.getInputProps(fieldKey),
                                                         value: fieldValue
@@ -858,9 +852,9 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                     </Group>
                                     
                                     {propertyFields.map(field => {
-                                        const langCode = languages[0]?.locale.split('-')[0] || 'de';
-                                        const fieldKey = `fields.${field.name}.${langCode}`;
-                                        const fieldValue = form.values.fields?.[field.name]?.[langCode] ?? '';
+                                        const langId = languages[0]?.id || 1;
+                                        const fieldKey = `fields.${field.name}.${langId}`;
+                                        const fieldValue = form.values.fields?.[field.name]?.[langId] ?? '';
                                         const inputProps = {
                                             ...form.getInputProps(fieldKey),
                                             value: fieldValue

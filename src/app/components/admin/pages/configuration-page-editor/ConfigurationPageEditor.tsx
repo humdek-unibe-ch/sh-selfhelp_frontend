@@ -47,7 +47,7 @@ interface ConfigurationPageEditorProps {
 }
 
 interface IConfigFormValues {
-    fields: Record<string, Record<string, string>>; // fields[fieldName][languageCode] = content
+    fields: Record<string, Record<number, string>>; // fields[fieldName][languageId] = content
 }
 
 export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) {
@@ -69,8 +69,8 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
     // Set default active language tab when languages are loaded
     useEffect(() => {
         if (languages.length > 0 && !activeLanguageTab) {
-            const firstLangCode = languages[0].locale.split('-')[0];
-            setActiveLanguageTab(firstLangCode);
+            const firstLangId = languages[0].id.toString();
+            setActiveLanguageTab(firstLangId);
         }
     }, [languages, activeLanguageTab]);
 
@@ -129,14 +129,13 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
     // Update form when page data changes
     useEffect(() => {
         if (pageFieldsData && languages.length > 0) {
-            const fieldsObject: Record<string, Record<string, string>> = {};
+            const fieldsObject: Record<string, Record<number, string>> = {};
 
             // Initialize all fields with empty strings for all languages
             pageFieldsData.fields.forEach(field => {
                 fieldsObject[field.name] = {};
                 languages.forEach(language => {
-                    const langCode = language.locale.split('-')[0];
-                    fieldsObject[field.name][langCode] = '';
+                    fieldsObject[field.name][language.id] = '';
                 });
             });
 
@@ -145,8 +144,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                 field.translations.forEach(translation => {
                     const language = languages.find(l => l.id === translation.language_id);
                     if (language) {
-                        const langCode = language.locale.split('-')[0];
-                        fieldsObject[field.name][langCode] = translation.content || '';
+                        fieldsObject[field.name][language.id] = translation.content || '';
                     }
                 });
             });
@@ -183,8 +181,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
             if (field.display) {
                 // Content fields - translated
                 languages.forEach(language => {
-                    const langCode = language.locale.split('-')[0];
-                    const content = form.values.fields?.[field.name]?.[langCode] || '';
+                    const content = form.values.fields?.[field.name]?.[language.id] || '';
                     fields.push({
                         fieldId: field.id,
                         languageId: language.id,
@@ -193,8 +190,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                 });
             } else {
                 // Property fields - language ID 1
-                const firstLanguageCode = languages[0]?.locale.split('-')[0] || 'de';
-                const content = form.values.fields?.[field.name]?.[firstLanguageCode] || '';
+                const content = form.values.fields?.[field.name]?.[1] || '';
                 fields.push({
                     fieldId: field.id,
                     languageId: 1,
@@ -220,12 +216,12 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
     };
 
     // Render content field
-    const renderContentField = (field: IPageField, languageCode: string) => {
-        const fieldKey = `fields.${field.name}.${languageCode}`;
-        const currentLanguage = languages.find(lang => lang.locale.split('-')[0] === languageCode);
+    const renderContentField = (field: IPageField, languageId: number) => {
+        const fieldKey = `fields.${field.name}.${languageId}`;
+        const currentLanguage = languages.find(lang => lang.id === languageId);
         const locale = hasMultipleLanguages && currentLanguage ? currentLanguage.locale : undefined;
 
-        const fieldValue = form.values.fields?.[field.name]?.[languageCode] ?? '';
+        const fieldValue = form.values.fields?.[field.name]?.[languageId] ?? '';
         const inputProps = {
             ...form.getInputProps(fieldKey),
             value: fieldValue
@@ -234,7 +230,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
         if (field.type === 'textarea') {
             return (
                 <Textarea
-                    key={`${field.id}-${languageCode}`}
+                    key={`${field.id}-${languageId}`}
                     label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} locale={locale} />}
                     placeholder={field.default_value || ''}
                     {...inputProps}
@@ -245,7 +241,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
         } else {
             return (
                 <TextInput
-                    key={`${field.id}-${languageCode}`}
+                    key={`${field.id}-${languageId}`}
                     label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} locale={locale} />}
                     placeholder={field.default_value || ''}
                     {...inputProps}
@@ -256,9 +252,9 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
 
     // Render property field
     const renderPropertyField = (field: IPageField) => {
-        const langCode = languages[0]?.locale.split('-')[0] || 'de';
-        const fieldKey = `fields.${field.name}.${langCode}`;
-        const fieldValue = form.values.fields?.[field.name]?.[langCode] ?? '';
+        const langId = languages[0]?.id || 1;
+        const fieldKey = `fields.${field.name}.${langId}`;
+        const fieldValue = form.values.fields?.[field.name]?.[langId] ?? '';
         const inputProps = {
             ...form.getInputProps(fieldKey),
             value: fieldValue
@@ -373,12 +369,12 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                             <Collapse in={contentExpanded}>
                                 <Card.Section p="lg">
                                     {hasMultipleLanguages ? (
-                                        <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || languages[0]?.locale.split('-')[0] || '')}>
+                                        <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || languages[0]?.id.toString() || '')}>
                                             <Tabs.List mb="md">
                                                 {languages.map(lang => {
-                                                    const langCode = lang.locale.split('-')[0];
+                                                    const langId = lang.id.toString();
                                                     return (
-                                                        <Tabs.Tab key={langCode} value={langCode} fw={500}>
+                                                        <Tabs.Tab key={langId} value={langId} fw={500}>
                                                             {lang.language}
                                                         </Tabs.Tab>
                                                     );
@@ -386,13 +382,13 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                                             </Tabs.List>
 
                                             {languages.map(lang => {
-                                                const langCode = lang.locale.split('-')[0];
+                                                const langId = lang.id.toString();
                                                 return (
-                                                    <Tabs.Panel key={langCode} value={langCode}>
+                                                    <Tabs.Panel key={langId} value={langId}>
                                                         <div className={styles.fieldGrid}>
                                                             {contentFields.map(field => (
                                                                 <div key={field.id}>
-                                                                    {renderContentField(field, langCode)}
+                                                                    {renderContentField(field, lang.id)}
                                                                 </div>
                                                             ))}
                                                         </div>
@@ -404,7 +400,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                                         <div className={styles.fieldGrid}>
                                             {contentFields.map(field => (
                                                 <div key={field.id}>
-                                                    {renderContentField(field, languages[0]?.locale.split('-')[0] || 'de')}
+                                                    {renderContentField(field, languages[0]?.id || 1)}
                                                 </div>
                                             ))}
                                         </div>

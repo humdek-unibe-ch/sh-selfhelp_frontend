@@ -22,8 +22,8 @@ interface IFieldsSectionProps {
     title: string;
     fields: IFieldData[];
     languages: ILanguage[];
-    fieldValues: Record<string, Record<string, string>> | Record<string, string | boolean>;
-    onFieldChange: (fieldName: string, languageCode: string | null, value: string | boolean) => void;
+    fieldValues: Record<string, Record<number, string>> | Record<string, string | boolean>;
+    onFieldChange: (fieldName: string, languageId: number | null, value: string | boolean) => void;
     isMultiLanguage?: boolean;
     defaultExpanded?: boolean;
     className?: string;
@@ -40,33 +40,33 @@ export function FieldsSection({
     className
 }: IFieldsSectionProps) {
     const [expanded, setExpanded] = useState(defaultExpanded);
-    const [activeLanguageTab, setActiveLanguageTab] = useState(languages[0]?.code || '');
+    const [activeLanguageTab, setActiveLanguageTab] = useState(languages[0]?.id?.toString() || '');
 
     if (fields.length === 0) {
         return null;
     }
 
-    const renderField = (field: IFieldData, languageCode?: string) => {
-        const fieldKey = languageCode ? `${field.name}.${languageCode}` : field.name;
+    const renderField = (field: IFieldData, languageId?: number) => {
+        const fieldKey = languageId ? `${field.name}.${languageId}` : field.name;
         
         let value: string | boolean;
-        if (isMultiLanguage && languageCode) {
+        if (isMultiLanguage && languageId) {
             // Multi-language content fields
-            value = (fieldValues as Record<string, Record<string, string>>)[field.name]?.[languageCode] ?? '';
+            value = (fieldValues as Record<string, Record<number, string>>)[field.name]?.[languageId] ?? '';
         } else {
             // Single language or property fields
             value = (fieldValues as Record<string, string | boolean>)[field.name] ?? '';
         }
 
-        const currentLanguage = languageCode ? languages.find(lang => lang.code === languageCode) : undefined;
+        const currentLanguage = languageId ? languages.find(lang => lang.id === languageId) : undefined;
         const locale = currentLanguage?.locale;
 
         return (
             <FieldRenderer
-                key={languageCode ? `${field.id}-${languageCode}` : field.id}
+                key={languageId ? `${field.id}-${languageId}` : field.id}
                 field={field}
                 value={value}
-                onChange={(newValue) => onFieldChange(field.name, languageCode || null, newValue)}
+                onChange={(newValue) => onFieldChange(field.name, languageId || null, newValue)}
                 locale={locale}
                 className={className}
             />
@@ -91,23 +91,23 @@ export function FieldsSection({
                         <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || '')}>
                             <Tabs.List>
                                 {languages.map(language => (
-                                    <Tabs.Tab key={language.code} value={language.code}>
+                                    <Tabs.Tab key={language.id} value={language.id.toString()}>
                                         {language.language}
                                     </Tabs.Tab>
                                 ))}
                             </Tabs.List>
                             
                             {languages.map(language => (
-                                <Tabs.Panel key={language.code} value={language.code} pt="md">
+                                <Tabs.Panel key={language.id} value={language.id.toString()} pt="md">
                                     <Stack gap="md">
-                                        {fields.map(field => renderField(field, language.code))}
+                                        {fields.map(field => renderField(field, language.id))}
                                     </Stack>
                                 </Tabs.Panel>
                             ))}
                         </Tabs>
                     ) : (
                         <Stack gap="md">
-                            {fields.map(field => renderField(field, isMultiLanguage ? languages[0]?.code : undefined))}
+                            {fields.map(field => renderField(field, isMultiLanguage ? languages[0]?.id : undefined))}
                         </Stack>
                     )}
                 </Collapse>

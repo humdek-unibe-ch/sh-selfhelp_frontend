@@ -5,14 +5,12 @@ import { debug } from '../../../../../utils/debug-logger';
 
 export interface ILanguage {
     id: number;
-    code: string;
     language: string;
     locale: string;
 }
 
 export interface IFieldTranslation {
     language_id: number;
-    language_code: string | null;
     gender_id: number;
     content: string | null;
     meta: string | null | object;
@@ -31,7 +29,7 @@ export interface IFormField {
 }
 
 export interface IProcessedFormData {
-    contentFields: Record<string, Record<string, string>>;
+    contentFields: Record<string, Record<number, string>>;
     propertyFields: Record<string, string | boolean>;
 }
 
@@ -78,59 +76,42 @@ export function useFieldFormHandler({ fields, languages, componentName = 'FieldF
         });
 
         // Process content fields (translatable)
-        const contentFieldsObject: Record<string, Record<string, string>> = {};
+        const contentFieldsObject: Record<string, Record<number, string>> = {};
         contentFields.forEach(field => {
             contentFieldsObject[field.name] = {};
 
             // Initialize all languages with empty strings first
             languages.forEach(lang => {
-                contentFieldsObject[field.name][lang.code] = '';
+                contentFieldsObject[field.name][lang.id] = '';
             });
 
             // Then populate with actual data from translations
             field.translations.forEach(translation => {
                 debug('Processing translation', componentName, {
                     fieldName: field.name,
-                    translationLanguageCode: translation.language_code,
+                    translationLanguageId: translation.language_id,
                     translationContent: translation.content,
-                    availableLanguages: languages.map(l => ({ code: l.code, locale: l.locale }))
+                    availableLanguages: languages.map(l => ({ id: l.id, locale: l.locale }))
                 });
 
-                // Try multiple matching strategies
-                let matchingLang = null;
-
-                // Strategy 1: Match by exact locale
-                if (translation.language_code) {
-                    matchingLang = languages.find(lang => lang.locale === translation.language_code);
-                }
-
-                // Strategy 2: Match by language code (first part of locale)
-                if (!matchingLang && translation.language_code) {
-                    const langCode = translation.language_code.split('-')[0];
-                    matchingLang = languages.find(lang => lang.code === langCode);
-                }
-
-                // Strategy 3: Match by language code directly
-                if (!matchingLang && translation.language_code) {
-                    matchingLang = languages.find(lang => lang.code === translation.language_code);
-                }
+                // Find matching language by ID
+                const matchingLang = languages.find(lang => lang.id === translation.language_id);
 
                 if (matchingLang) {
                     const value = translation.content || field.default_value || '';
-                    contentFieldsObject[field.name][matchingLang.code] = value;
+                    contentFieldsObject[field.name][matchingLang.id] = value;
 
                     debug('Translation matched and applied', componentName, {
                         fieldName: field.name,
-                        translationLanguageCode: translation.language_code,
-                        matchedLanguageCode: matchingLang.code,
+                        translationLanguageId: translation.language_id,
+                        matchedLanguageId: matchingLang.id,
                         value: value
                     });
                 } else {
                     debug('Translation not matched to any language', componentName, {
                         fieldName: field.name,
-                        translationLanguageCode: translation.language_code,
-                        availableLanguageCodes: languages.map(l => l.code),
-                        availableLanguageLocales: languages.map(l => l.locale)
+                        translationLanguageId: translation.language_id,
+                        availableLanguageIds: languages.map(l => l.id)
                     });
                 }
             });
@@ -149,18 +130,13 @@ export function useFieldFormHandler({ fields, languages, componentName = 'FieldF
                 fieldType: field.type,
                 translationsCount: field.translations.length,
                 translations: field.translations.map(t => ({ 
-                    language_code: t.language_code, 
+                    language_id: t.language_id, 
                     content: t.content 
                 }))
             });
 
-            // For property fields, look for translation with language_code 'property' or use first translation
-            let propertyTranslation = field.translations.find(t => t.language_code === 'property');
-
-            // If no 'property' translation found, use the first translation or empty
-            if (!propertyTranslation && field.translations.length > 0) {
-                propertyTranslation = field.translations[0];
-            }
+            // For property fields, use the first translation or empty
+            const propertyTranslation = field.translations.length > 0 ? field.translations[0] : null;
 
             const value = propertyTranslation?.content || field.default_value || '';
 
@@ -204,12 +180,12 @@ export function createFieldChangeHandlers<T extends Record<string, any>>(
     setFormValues: React.Dispatch<React.SetStateAction<T>>,
     componentName?: string
 ) {
-    const handleContentFieldChange = (fieldName: string, languageCode: string | null, value: string | boolean) => {
-        if (!languageCode) return;
+    const handleContentFieldChange = (fieldName: string, languageId: number | null, value: string | boolean) => {
+        if (!languageId) return;
 
         debug('Content field changed', componentName, {
             fieldName,
-            languageCode,
+            languageId,
             value
         });
 
@@ -219,13 +195,13 @@ export function createFieldChangeHandlers<T extends Record<string, any>>(
                 ...prev.fields,
                 [fieldName]: {
                     ...prev.fields[fieldName],
-                    [languageCode]: String(value)
+                    [languageId]: String(value)
                 }
             }
         }));
     };
 
-    const handlePropertyFieldChange = (fieldName: string, languageCode: string | null, value: string | boolean) => {
+    const handlePropertyFieldChange = (fieldName: string, languageId: number | null, value: string | boolean) => {
         debug('Property field changed', componentName, {
             fieldName,
             value

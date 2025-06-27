@@ -52,7 +52,7 @@ interface ISectionFormValues {
     properties: Record<string, string | boolean>;
     
     // Field values by language (translatable fields)
-    fields: Record<string, Record<string, string>>; // fields[fieldName][languageCode] = content
+    fields: Record<string, Record<number, string>>; // fields[fieldName][languageId] = content
 }
 
 interface ISectionSubmitData {
@@ -65,7 +65,6 @@ interface ISectionSubmitData {
         languageId: number;
         value: string;
         fieldName: string; // For debugging
-        languageCode: string; // For debugging
     }>;
     
     // Property fields (only changed fields)
@@ -188,69 +187,42 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
             const propertyFields = fields.filter(field => !field.display);
             
             // Process content fields (translatable)
-            const contentFieldsObject: Record<string, Record<string, string>> = {};
+            const contentFieldsObject: Record<string, Record<number, string>> = {};
             contentFields.forEach(field => {
                 contentFieldsObject[field.name] = {};
 
                 // Initialize all languages with empty strings first
                 languages.forEach(lang => {
-                    contentFieldsObject[field.name][lang.code] = '';
+                    contentFieldsObject[field.name][lang.id] = '';
                 });
 
                 // Then populate with actual data from translations
                 field.translations.forEach(translation => {
                     debug('Processing content field translation', 'SectionInspector', {
                         fieldName: field.name,
-                        translationLanguageCode: translation.language_code,
                         translationLanguageId: translation.language_id,
                         translationContent: translation.content,
-                        availableLanguages: languages.map(l => ({ id: l.id, code: l.code, locale: l.locale }))
+                        availableLanguages: languages.map(l => ({ id: l.id, locale: l.locale }))
                     });
 
-                    // Try multiple matching strategies
-                    let matchingLang = null;
-
-                    // Strategy 1: Match by language ID
-                    if (translation.language_id) {
-                        matchingLang = languages.find(lang => lang.id === translation.language_id);
-                    }
-
-                    // Strategy 2: Match by exact locale
-                    if (!matchingLang && translation.language_code) {
-                        matchingLang = languages.find(lang => lang.locale === translation.language_code);
-                    }
-
-                    // Strategy 3: Match by language code (first part of locale)
-                    if (!matchingLang && translation.language_code) {
-                        const langCode = translation.language_code.split('-')[0];
-                        matchingLang = languages.find(lang => lang.code === langCode);
-                    }
-
-                    // Strategy 4: Match by language code directly
-                    if (!matchingLang && translation.language_code) {
-                        matchingLang = languages.find(lang => lang.code === translation.language_code);
-                    }
+                    // Find matching language by ID
+                    const matchingLang = languages.find(lang => lang.id === translation.language_id);
 
                     if (matchingLang) {
                         const value = translation.content || field.default_value || '';
-                        contentFieldsObject[field.name][matchingLang.code] = value;
+                        contentFieldsObject[field.name][matchingLang.id] = value;
 
                         debug('Content field translation matched and applied', 'SectionInspector', {
                             fieldName: field.name,
-                            translationLanguageCode: translation.language_code,
                             translationLanguageId: translation.language_id,
-                            matchedLanguageCode: matchingLang.code,
                             matchedLanguageId: matchingLang.id,
                             value: value
                         });
                     } else {
                         debug('Content field translation not matched to any language', 'SectionInspector', {
                             fieldName: field.name,
-                            translationLanguageCode: translation.language_code,
                             translationLanguageId: translation.language_id,
-                            availableLanguageCodes: languages.map(l => l.code),
-                            availableLanguageIds: languages.map(l => l.id),
-                            availableLanguageLocales: languages.map(l => l.locale)
+                            availableLanguageIds: languages.map(l => l.id)
                         });
                     }
                 });
@@ -269,19 +241,13 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
                     fieldType: field.type,
                     translationsCount: field.translations.length,
                     translations: field.translations.map(t => ({ 
-                        language_code: t.language_code, 
                         language_id: t.language_id,
                         content: t.content 
                     }))
                 });
 
-                // For property fields, look for translation with language_code 'property' or use first translation
-                let propertyTranslation = field.translations.find(t => t.language_code === 'property');
-
-                // If no 'property' translation found, use the first translation or empty
-                if (!propertyTranslation && field.translations.length > 0) {
-                    propertyTranslation = field.translations[0];
-                }
+                // For property fields, use the first translation or empty
+                const propertyTranslation = field.translations.length > 0 ? field.translations[0] : null;
 
                 const value = propertyTranslation?.content || field.default_value || '';
 
@@ -366,8 +332,8 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
             const originalFieldValues = originalValues.fields[field.name] || {};
             
             languages.forEach(language => {
-                const currentValue = currentFieldValues[language.code] || '';
-                const originalValue = originalFieldValues[language.code] || '';
+                const currentValue = currentFieldValues[language.id] || '';
+                const originalValue = originalFieldValues[language.id] || '';
                 
                 // Only include if value has changed
                 if (currentValue !== originalValue) {
