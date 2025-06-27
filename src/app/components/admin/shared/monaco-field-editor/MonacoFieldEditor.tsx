@@ -102,7 +102,12 @@ export function MonacoFieldEditor({
         setIsEditorReady(true);
 
         debug('Monaco Editor mounted', 'MonacoFieldEditor', {
-            language: config.language
+            language: config.language,
+            initialValue: value,
+            valueLength: (value || '').length,
+            isEmptyString: value === '',
+            isUndefined: value === undefined,
+            isNull: value === null
         });
 
         // Format document on mount for better initial display
@@ -118,7 +123,9 @@ export function MonacoFieldEditor({
         debug('Monaco Editor value changed', 'MonacoFieldEditor', {
             language,
             newValueLength: value.length,
-            previousValueLength: (currentValueRef.current || '').length
+            previousValueLength: (currentValueRef.current || '').length,
+            isCssField: language === 'css',
+            newValue: language === 'css' ? value : '[content hidden for non-CSS]'
         });
         
         // Ensure the onChange is called immediately with the new value
@@ -155,7 +162,7 @@ export function MonacoFieldEditor({
                 height={height}
                 language={config.language}
                 theme={theme}
-                value={value || config.defaultValue}
+                value={value !== undefined && value !== null ? value : config.defaultValue}
                 options={editorOptions}
                 onChange={handleChange}
                 beforeMount={handleBeforeMount}

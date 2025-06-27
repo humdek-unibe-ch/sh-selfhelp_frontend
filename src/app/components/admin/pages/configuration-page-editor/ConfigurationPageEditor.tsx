@@ -43,6 +43,13 @@ import { notifications } from '@mantine/notifications';
 import styles from './ConfigurationPageEditor.module.css';
 import { FieldRenderer, IFieldData } from '../../shared/field-renderer/FieldRenderer';
 import { useQueryClient } from '@tanstack/react-query';
+import { 
+    processAllFields, 
+    isContentField, 
+    isPropertyField, 
+    getFieldTypeDisplayName,
+    validateFieldProcessing 
+} from '../../../../../utils/field-processing.utils';
 
 interface ConfigurationPageEditorProps {
     page: IAdminPage;
@@ -127,14 +134,14 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
     const contentFields = useMemo(() => {
         if (!pageFieldsData?.fields) return [];
         return pageFieldsData.fields.filter(field =>
-            field.display &&
+            isContentField(field) &&
             !['title', 'description'].includes(field.name.toLowerCase())
         );
     }, [pageFieldsData]);
 
     const propertyFields = useMemo(() => {
         if (!pageFieldsData?.fields) return [];
-        return pageFieldsData.fields.filter(field => !field.display);
+        return pageFieldsData.fields.filter(field => isPropertyField(field));
     }, [pageFieldsData]);
 
     // Check if we have multiple languages for content fields
@@ -169,6 +176,29 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
         }
     }, [pageFieldsData, languages]);
 
+    // Debug: Monitor form value changes for CSS fields
+    useEffect(() => {
+        if (pageFieldsData?.fields && form.values.fields) {
+            const cssFields = pageFieldsData.fields.filter(f => f.type === 'css');
+            if (cssFields.length > 0) {
+                debug('CSS fields form values changed', 'ConfigurationPageEditor', {
+                    cssFields: cssFields.map(field => ({
+                        name: field.name,
+                        type: field.type,
+                        display: field.display,
+                        formValues: form.values.fields[field.name],
+                        hasValues: !!form.values.fields[field.name],
+                        valuesByLanguage: languages.map(lang => ({
+                            languageId: lang.id,
+                            value: form.values.fields[field.name]?.[lang.id] || '',
+                            valueLength: (form.values.fields[field.name]?.[lang.id] || '').length
+                        }))
+                    }))
+                });
+            }
+        }
+    }, [form.values.fields, pageFieldsData?.fields, languages]);
+
     // Save hotkey (Ctrl+S)
     useHotkeys([
         ['ctrl+S', (e) => {
@@ -178,6 +208,32 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
     ]);
 
     const handleSave = () => {
+        // Debug: Log current form values before processing
+        debug('Configuration page save initiated', 'ConfigurationPageEditor', {
+            keyword: page.keyword,
+            formFields: form.values.fields,
+            allFields: pageFieldsData?.fields.map((f: IPageField) => ({ 
+                name: f.name, 
+                type: f.type, 
+                display: f.display,
+                displayType: getFieldTypeDisplayName(f),
+                currentValue: form.values.fields?.[f.name] 
+            }))
+        });
+
+        // Validate field processing rules
+        const validationWarnings: string[] = [];
+        pageFieldsData?.fields.forEach(field => {
+            const validation = validateFieldProcessing(field);
+            validationWarnings.push(...validation.warnings);
+        });
+        
+        if (validationWarnings.length > 0) {
+            debug('Field processing validation warnings', 'ConfigurationPageEditor', {
+                warnings: validationWarnings
+            });
+        }
+
         // Prepare data - configuration pages don't need page properties
         const pageData: IUpdatePageData = {
             // Keep existing values
@@ -189,40 +245,44 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
             pageAccessTypeCode: pageFieldsData?.page.pageAccessType?.lookupCode || '',
         };
 
-        // Prepare field translations
-        const fields: IUpdatePageField[] = [];
-
-        // Process all fields (including system fields like title and description)
-        pageFieldsData?.fields.forEach(field => {
-            if (field.display) {
-                // Content fields - translated
-                languages.forEach(language => {
-                    const content = form.values.fields?.[field.name]?.[language.id] || '';
-                    fields.push({
-                        fieldId: field.id,
-                        languageId: language.id,
-                        content: content,
-                    });
-                });
-            } else {
-                // Property fields - language ID 1
-                const content = form.values.fields?.[field.name]?.[1] || '';
-                fields.push({
-                    fieldId: field.id,
-                    languageId: 1,
-                    content: content,
-                });
-            }
+        // Use the modular field processing utility
+        const processedFields = processAllFields({
+            fields: pageFieldsData?.fields || [],
+            formValues: form.values.fields || {},
+            languages: languages
         });
 
         const backendPayload: IUpdatePageRequest = {
             pageData,
-            fields
+            fields: processedFields.fieldEntries
         };
 
-        debug('Saving configuration page', 'ConfigurationPageEditor', {
+        // Debug: Log the final payload with field analysis
+        const cssFields = processedFields.fieldEntries.filter(f => {
+            const field = pageFieldsData?.fields.find(pf => pf.id === f.fieldId);
+            return field?.type === 'css';
+        });
+
+        debug('Saving configuration page with modular field processing', 'ConfigurationPageEditor', {
             keyword: page.keyword,
-            payload: backendPayload
+            payload: backendPayload,
+            fieldAnalysis: {
+                totalFields: pageFieldsData?.fields.length || 0,
+                contentFields: processedFields.contentFields.length,
+                propertyFields: processedFields.propertyFields.length,
+                totalFieldEntries: processedFields.fieldEntries.length,
+                cssFieldsCount: cssFields.length,
+                cssFields: cssFields.map((cf: IUpdatePageField) => ({
+                    fieldId: cf.fieldId,
+                    languageId: cf.languageId,
+                    content: cf.content || '',
+                    contentLength: (cf.content || '').length,
+                    fieldName: pageFieldsData?.fields.find((pf: IPageField) => pf.id === cf.fieldId)?.name,
+                    fieldType: pageFieldsData?.fields.find((pf: IPageField) => pf.id === cf.fieldId)?.type,
+                    isPropertyField: pageFieldsData?.fields.find((pf: IPageField) => pf.id === cf.fieldId) ? 
+                        isPropertyField(pageFieldsData.fields.find((pf: IPageField) => pf.id === cf.fieldId)!) : false
+                }))
+            }
         });
 
         updatePageMutation.mutate({
@@ -236,6 +296,17 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
         const currentLanguage = languages.find(lang => lang.id === languageId);
         const locale = hasMultipleLanguages && currentLanguage ? currentLanguage.locale : undefined;
         const fieldValue = form.values.fields?.[field.name]?.[languageId] ?? '';
+        
+        // Debug: Log CSS field rendering
+        if (field.type === 'css') {
+            debug('Rendering CSS field', 'ConfigurationPageEditor', {
+                fieldName: field.name,
+                fieldType: field.type,
+                languageId: languageId,
+                currentValue: fieldValue,
+                valueLength: fieldValue.length
+            });
+        }
         
         // Convert IPageField to IFieldData
         const fieldData: IFieldData = {
@@ -254,6 +325,19 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                 value={fieldValue}
                 onChange={(value) => {
                     const fieldKey = `fields.${field.name}.${languageId}`;
+                    
+                    // Debug: Log CSS field changes specifically
+                    if (field.type === 'css') {
+                        debug('CSS field onChange triggered', 'ConfigurationPageEditor', {
+                            fieldName: field.name,
+                            fieldKey: fieldKey,
+                            newValue: value,
+                            newValueLength: String(value).length,
+                            previousValue: fieldValue,
+                            previousValueLength: fieldValue.length
+                        });
+                    }
+                    
                     form.setFieldValue(fieldKey, value);
                 }}
                 locale={locale}
@@ -262,9 +346,21 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
     };
 
     // Render property field
-    const renderPropertyField = (field: IPageField) => {
-        const langId = languages[0]?.id || 1;
+    const renderPropertyField = (field: IPageField, languageId?: number) => {
+        // If languageId is provided, use it; otherwise use the first language
+        const langId = languageId || languages[0]?.id || 1;
         const fieldValue = form.values.fields?.[field.name]?.[langId] ?? '';
+        
+        // Debug: Log property field rendering for CSS fields
+        if (field.type === 'css') {
+            debug('Rendering CSS property field', 'ConfigurationPageEditor', {
+                fieldName: field.name,
+                fieldType: field.type,
+                languageId: langId,
+                currentValue: fieldValue,
+                valueLength: fieldValue.length
+            });
+        }
         
         // Convert IPageField to IFieldData
         const fieldData: IFieldData = {
@@ -282,6 +378,19 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                 value={fieldValue}
                 onChange={(value) => {
                     const fieldKey = `fields.${field.name}.${langId}`;
+                    
+                    // Debug: Log CSS property field changes
+                    if (field.type === 'css') {
+                        debug('CSS property field onChange triggered', 'ConfigurationPageEditor', {
+                            fieldName: field.name,
+                            fieldKey: fieldKey,
+                            newValue: value,
+                            newValueLength: String(value).length,
+                            previousValue: fieldValue,
+                            previousValueLength: fieldValue.length
+                        });
+                    }
+                    
                     form.setFieldValue(fieldKey, value);
                 }}
             />
@@ -439,13 +548,43 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
 
                             <Collapse in={propertiesExpanded}>
                                 <Card.Section p="lg">
-                                    <div className={styles.fieldGrid}>
-                                        {propertyFields.map(field => (
-                                            <div key={field.id}>
-                                                {renderPropertyField(field)}
-                                            </div>
-                                        ))}
-                                    </div>
+                                    {hasMultipleLanguages ? (
+                                        <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || languages[0]?.id.toString() || '')}>
+                                            <Tabs.List mb="md">
+                                                {languages.map(lang => {
+                                                    const langId = lang.id.toString();
+                                                    return (
+                                                        <Tabs.Tab key={langId} value={langId} fw={500}>
+                                                            {lang.language}
+                                                        </Tabs.Tab>
+                                                    );
+                                                })}
+                                            </Tabs.List>
+
+                                            {languages.map(lang => {
+                                                const langId = lang.id.toString();
+                                                return (
+                                                    <Tabs.Panel key={langId} value={langId}>
+                                                        <div className={styles.fieldGrid}>
+                                                            {propertyFields.map(field => (
+                                                                <div key={field.id}>
+                                                                    {renderPropertyField(field, lang.id)}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </Tabs.Panel>
+                                                );
+                                            })}
+                                        </Tabs>
+                                    ) : (
+                                        <div className={styles.fieldGrid}>
+                                            {propertyFields.map(field => (
+                                                <div key={field.id}>
+                                                    {renderPropertyField(field)}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </Card.Section>
                             </Collapse>
                         </Card>

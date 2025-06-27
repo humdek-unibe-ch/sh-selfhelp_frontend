@@ -57,6 +57,13 @@ import { downloadJsonFile, generateExportFilename } from '../../../../../utils/e
 import { validateName, getNameValidationError } from '../../../../../utils/name-validation.utils';
 import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
+import { 
+    processAllFields, 
+    isContentField, 
+    isPropertyField, 
+    getFieldTypeDisplayName,
+    validateFieldProcessing 
+} from '../../../../../utils/field-processing.utils';
 
 interface PageInspectorProps {
     page: IAdminPage | null;
@@ -260,98 +267,53 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
     ]);
 
     const handleSave = () => {
-        // Validate keyword if it has changed
-        if (form.values.keyword !== page?.keyword) {
-            const validation = validateName(form.values.keyword);
-            if (!validation.isValid) {
-                notifications.show({
-                    title: 'Invalid Keyword',
-                    message: validation.error || getNameValidationError(),
-                    color: 'red'
-                });
-                return;
-            }
+        // Validate field processing rules
+        const validationWarnings: string[] = [];
+        fields.forEach(field => {
+            const validation = validateFieldProcessing(field);
+            validationWarnings.push(...validation.warnings);
+        });
+        
+        if (validationWarnings.length > 0) {
+            debug('Field processing validation warnings', 'PageInspector', {
+                warnings: validationWarnings
+            });
         }
-        
-        // Get final calculated positions from DragDropMenuPositioner components
-        const finalHeaderPosition = headerMenuGetFinalPosition.current ? headerMenuGetFinalPosition.current() : null;
-        const finalFooterPosition = footerMenuGetFinalPosition.current ? footerMenuGetFinalPosition.current() : null;
-        
-        // Prepare data structure for backend with field IDs and language IDs
-        const pageData: IUpdatePageData = {
-            url: form.values.url,
-            headless: form.values.headless,
-            navPosition: form.values.headerMenuEnabled ? finalHeaderPosition : null,
-            footerPosition: form.values.footerMenuEnabled ? finalFooterPosition : null,
-            openAccess: form.values.openAccess,
-            pageAccessTypeCode: form.values.pageAccessType,
-        };
 
-        // Prepare field translations with field IDs and language IDs
-        const fields: IUpdatePageField[] = [];
-
-        // Process content fields (display: true) - these are translated
-        contentFields.forEach(field => {
-            languages.forEach(language => {
-                const content = form.values.fields?.[field.name]?.[language.id] || '';
-                // Always send all fields, including empty ones (for deletion)
-                fields.push({
-                    fieldId: field.id,
-                    languageId: language.id,
-                    content: content, // Send empty string if content is empty
-                });
-            });
+        // Use the modular field processing utility
+        const processedFields = processAllFields({
+            fields: fields,
+            formValues: form.values.fields || {},
+            languages: languages
         });
 
-        // Process property fields (display: false) - these use hardcoded language ID 1
-        propertyFields.forEach(field => {
-            const firstLanguageCode = languages[0]?.locale.split('-')[0] || 'de';
-            const content = form.values.fields?.[field.name]?.[1] || '';
-            // Always send all fields, including empty ones (for deletion)
-            fields.push({
-                fieldId: field.id,
-                languageId: 1, // Hardcoded for property fields
-                content: content, // Send empty string if content is empty
-            });
-        });
-
-        const backendPayload: IUpdatePageRequest = {
-            pageData,
-            fields: fields
-        };
-
-        debug('Saving page data - Backend payload structure', 'PageInspector', {
-            originalFormValues: form.values,
-            backendPayload,
-            finalPositions: {
-                originalHeaderPosition: form.values.navPosition,
-                originalFooterPosition: form.values.footerPosition,
-                finalHeaderPosition,
-                finalFooterPosition,
-                headerMenuEnabled: form.values.headerMenuEnabled,
-                footerMenuEnabled: form.values.footerMenuEnabled,
+        const updateData: IUpdatePageRequest = {
+            pageData: {
+                url: form.values.url,
+                headless: form.values.headless,
+                navPosition: form.values.navPosition,
+                footerPosition: form.values.footerPosition,
+                openAccess: form.values.openAccess,
+                pageAccessTypeCode: form.values.pageAccessType,
             },
-            summary: {
-                pageProperties: Object.keys(pageData).length,
-                totalFieldTranslations: fields.length,
-                contentFieldTranslations: fields.filter(ft => ft.languageId !== 1).length,
-                propertyFieldTranslations: fields.filter(ft => ft.languageId === 1).length,
-                emptyFieldTranslations: fields.filter(ft => !(ft.content || '').trim()).length,
-                availableLanguages: languages.map(l => ({ id: l.id, locale: l.locale })),
-                contentFields: contentFields.map(f => ({ id: f.id, name: f.name, display: f.display })),
-                propertyFields: propertyFields.map(f => ({ id: f.id, name: f.name, display: f.display }))
+            fields: processedFields.fieldEntries
+        };
+
+        debug('Saving page with modular field processing', 'PageInspector', {
+            keyword: page?.keyword,
+            updateData,
+            fieldAnalysis: {
+                totalFields: fields.length,
+                contentFields: processedFields.contentFields.length,
+                propertyFields: processedFields.propertyFields.length,
+                totalFieldEntries: processedFields.fieldEntries.length
             }
         });
 
-        // Submit the update to the backend
-        if (page?.keyword) {
-            updatePageMutation.mutate({
-                keyword: page.keyword,
-                updateData: backendPayload
-            });
-        } else {
-            debug('Cannot save page - no page keyword available', 'PageInspector');
-        }
+        updatePageMutation.mutate({
+            keyword: page?.keyword || '',
+            updateData
+        });
     };
 
     const handleCreateChildPage = () => {
@@ -417,8 +379,8 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
 
     // Get fields data for processing (before early returns)
     const fields = pageFieldsData?.fields || [];
-    const contentFields = fields.filter(field => field.display);
-    const propertyFields = fields.filter(field => !field.display);
+    const contentFields = fields.filter(field => isContentField(field));
+    const propertyFields = fields.filter(field => isPropertyField(field));
 
     // Check if we have multiple languages for content fields
     const hasMultipleLanguages = useMemo(() => {
