@@ -56,6 +56,7 @@ import { downloadJsonFile, generateExportFilename } from '../../../../../utils/e
 
 interface PageInspectorProps {
     page: IAdminPage | null;
+    isConfigurationPage?: boolean;
 }
 
 interface IPageFormValues {
@@ -74,7 +75,7 @@ interface IPageFormValues {
     fields: Record<string, Record<string, string>>; // fields[fieldName][languageCode] = content
 }
 
-export function PageInspector({ page }: PageInspectorProps) {
+export function PageInspector({ page, isConfigurationPage = false }: PageInspectorProps) {
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [createChildModalOpened, setCreateChildModalOpened] = useState(false);
@@ -411,6 +412,9 @@ export function PageInspector({ page }: PageInspectorProps) {
             value: fieldValue // Explicitly set value to ensure it's always defined
         };
         
+        // Check if this is the title field and we're in a configuration page
+        const isReadOnly = isConfigurationPage && field.name.toLowerCase() === 'title';
+        
         if (field.type === 'textarea') {
             return (
                 <Textarea
@@ -421,6 +425,8 @@ export function PageInspector({ page }: PageInspectorProps) {
                     {...inputProps}
                     autosize
                     minRows={3}
+                    readOnly={isReadOnly}
+                    styles={isReadOnly ? { input: { backgroundColor: 'var(--mantine-color-gray-1)' } } : undefined}
                 />
             );
         } else if (field.type === 'markdown-inline') {
@@ -431,6 +437,8 @@ export function PageInspector({ page }: PageInspectorProps) {
                     label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} locale={locale} />}
                     placeholder={field.default_value || ''}
                     {...inputProps}
+                    readOnly={isReadOnly}
+                    styles={isReadOnly ? { input: { backgroundColor: 'var(--mantine-color-gray-1)' } } : undefined}
                 />
             );
         } else {
@@ -441,6 +449,8 @@ export function PageInspector({ page }: PageInspectorProps) {
                     label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} locale={locale} />}
                     placeholder={field.default_value || ''}
                     {...inputProps}
+                    readOnly={isReadOnly}
+                    styles={isReadOnly ? { input: { backgroundColor: 'var(--mantine-color-gray-1)' } } : undefined}
                 />
             );
         }
@@ -533,6 +543,11 @@ export function PageInspector({ page }: PageInspectorProps) {
                                 </Group>
                                 
                                 <Group gap="xs" mt="xs">
+                                    {isConfigurationPage && (
+                                        <Badge color="purple" variant="light" size="sm">
+                                            Configuration Page
+                                        </Badge>
+                                    )}
                                     {page.is_headless === 1 && (
                                         <Badge color="orange" variant="light" size="sm">
                                             Headless
@@ -614,6 +629,7 @@ export function PageInspector({ page }: PageInspectorProps) {
                     </Paper>
 
                     {/* Properties Section */}
+                    {!isConfigurationPage && (
                     <Paper withBorder>
                         <Group 
                             p="md" 
@@ -821,8 +837,62 @@ export function PageInspector({ page }: PageInspectorProps) {
                             </Box>
                         </Collapse>
                     </Paper>
+                    )}
 
-                    {/* Action Buttons */}
+                    {/* Property Fields for Configuration Pages */}
+                    {isConfigurationPage && propertyFields.length > 0 && (
+                        <Paper withBorder>
+                            <Box p="md">
+                                <Stack gap="md">
+                                    <Group gap="xs">
+                                        <Text size="sm" fw={500} c="blue">Configuration Properties</Text>
+                                        <Tooltip 
+                                            label="Configuration fields specific to this page type."
+                                            multiline
+                                            w={300}
+                                        >
+                                            <ActionIcon variant="subtle" size="xs" color="gray">
+                                                <IconInfoCircle size="0.75rem" />
+                                            </ActionIcon>
+                                        </Tooltip>
+                                    </Group>
+                                    
+                                    {propertyFields.map(field => {
+                                        const langCode = languages[0]?.locale.split('-')[0] || 'de';
+                                        const fieldKey = `fields.${field.name}.${langCode}`;
+                                        const fieldValue = form.values.fields?.[field.name]?.[langCode] ?? '';
+                                        const inputProps = {
+                                            ...form.getInputProps(fieldKey),
+                                            value: fieldValue
+                                        };
+                                        
+                                        return (
+                                            <Box key={field.id}>
+                                                {field.type === 'textarea' ? (
+                                                    <Textarea
+                                                        label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
+                                                        placeholder={field.default_value || ''}
+                                                        {...inputProps}
+                                                        autosize
+                                                        minRows={2}
+                                                    />
+                                                ) : (
+                                                    <TextInput
+                                                        label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
+                                                        placeholder={field.default_value || ''}
+                                                        {...inputProps}
+                                                    />
+                                                )}
+                                            </Box>
+                                        );
+                                    })}
+                                </Stack>
+                            </Box>
+                        </Paper>
+                    )}
+
+                    {/* Action Buttons - Hide for configuration pages */}
+                    {!isConfigurationPage && (
                     <Paper p="md" withBorder>
                         <Stack gap="md">
                             <Title order={4}>Actions</Title>
@@ -879,6 +949,7 @@ export function PageInspector({ page }: PageInspectorProps) {
                             </Group>
                         </Stack>
                     </Paper>
+                    )}
                 </Stack>
             </ScrollArea>
 

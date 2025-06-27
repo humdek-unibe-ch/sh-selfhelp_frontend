@@ -11,7 +11,7 @@ import { useAdminPages } from '../../../../hooks/useAdminPages';
 
 export function AdminNavbar() {
     const router = useRouter();
-    const { categorizedSystemPages, categorizedRegularPages, isLoading } = useAdminPages();
+    const { configurationPageLinks, categorizedSystemPages, categorizedRegularPages, isLoading } = useAdminPages();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const handlePageSelect = useCallback((keyword: string) => {
@@ -113,7 +113,23 @@ export function AdminNavbar() {
         return regularPages.length > 0 ? regularPages : [{ label: 'No pages found', link: '#' }];
     }, [categorizedRegularPages, isLoading, handlePageSelect]);
 
+    // Build configuration pages section
+    const configurationPagesChildren = useMemo(() => {
+        if (isLoading) {
+            return [{ label: 'Loading...', link: '#' }];
+        }
+
+        return configurationPageLinks.length > 0 
+            ? addOnClickHandlers(configurationPageLinks)
+            : [{ label: 'No configuration pages found', link: '#' }];
+    }, [configurationPageLinks, isLoading, handlePageSelect]);
+
     const staticNavItems = [
+        {
+            label: 'Configuration Pages',
+            icon: <IconAdjustmentsCog size="1rem" stroke={1.5} />,
+            children: configurationPagesChildren
+        },
         {
             label: 'System Pages',
             icon: <IconSettingsAutomation size="1rem" stroke={1.5} />,

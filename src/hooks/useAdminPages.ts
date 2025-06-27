@@ -43,6 +43,15 @@ export interface ICategorizedPages {
     other: IPageHierarchy[];
 }
 
+export interface IConfigurationPageLink {
+    label: string;
+    link: string;
+    keyword: string;
+    id: number;
+    title: string;
+    nav_position: number | null;
+}
+
 /**
  * Hook for fetching admin pages with hierarchical structure
  * @returns Object containing various categorized page data
@@ -79,7 +88,9 @@ export function useAdminPages() {
                     allPages: [],
                     systemPages: [],
                     regularPages: [],
+                    configurationPages: [],
                     systemPageLinks: [],
+                    configurationPageLinks: [],
                     categorizedSystemPages: {
                         authentication: [],
                         profile: [],
@@ -96,9 +107,10 @@ export function useAdminPages() {
                 };
             }
 
-            // Separate system pages from regular pages
-            const systemPages = data.filter(page => page.is_system === 1);
-            const regularPages = data.filter(page => page.is_system === 0);
+            // Separate configuration pages (id_type > 3), system pages, and regular pages
+            const configurationPages = data.filter(page => page.id_type && page.id_type > 3);
+            const systemPages = data.filter(page => page.is_system === 1 && (!page.id_type || page.id_type <= 3));
+            const regularPages = data.filter(page => page.is_system === 0 && (!page.id_type || page.id_type <= 3));
             
             // Helper function to get page label for admin interface (always use keyword)
             const getAdminLabel = (page: IAdminPage): string => {
@@ -123,6 +135,18 @@ export function useAdminPages() {
 
             // Build hierarchical system page links
             const systemPageLinks = buildSystemHierarchy(systemPages);
+            
+            // Build configuration page links (sorted by nav_position)
+            const configurationPageLinks: IConfigurationPageLink[] = configurationPages
+                .sort((a, b) => (a.nav_position || 0) - (b.nav_position || 0))
+                .map(page => ({
+                    label: page.title || page.keyword, // Use title for configuration pages
+                    link: `/admin/pages/${page.keyword}`,
+                    keyword: page.keyword,
+                    id: page.id_pages,
+                    title: page.title || page.keyword,
+                    nav_position: page.nav_position
+                }));
             
             // Group system pages by category for better organization (based on actual data)
             const authPages = systemPageLinks.filter(page => 
@@ -216,7 +240,9 @@ export function useAdminPages() {
                 allPages: data,
                 systemPages,
                 regularPages,
+                configurationPages,
                 systemPageLinks,
+                configurationPageLinks,
                 categorizedSystemPages,
                 hierarchicalPages,
                 categorizedRegularPages
@@ -230,7 +256,9 @@ export function useAdminPages() {
         pages: data?.allPages || [],
         systemPages: data?.systemPages || [],
         regularPages: data?.regularPages || [],
+        configurationPages: data?.configurationPages || [],
         systemPageLinks: data?.systemPageLinks || [],
+        configurationPageLinks: data?.configurationPageLinks || [],
         categorizedSystemPages: data?.categorizedSystemPages || {
             authentication: [],
             profile: [],

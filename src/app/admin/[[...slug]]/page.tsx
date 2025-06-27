@@ -19,7 +19,8 @@ import {
   IconEye,
   IconDeviceFloppy,
   IconInfoCircle,
-  IconAlertCircle
+  IconAlertCircle,
+  IconAdjustmentsCog
 } from '@tabler/icons-react';
 import { PageSections } from '../../components/admin/pages/page-sections/PageSections';
 import { PageInspector } from '../../components/admin/pages/page-inspector/PageInspector';
@@ -52,7 +53,7 @@ function flattenPages(pages: IAdminPage[]): IAdminPage[] {
 export default function AdminPage() {
   const params = useParams();
   const path = params.slug ? (Array.isArray(params.slug) ? params.slug.join('/') : params.slug) : '';
-  const { pages, isLoading, error } = useAdminPages();
+  const { pages, configurationPages, isLoading, error } = useAdminPages();
 
   // Parse the path to extract page keyword and section ID
   const { isPageRoute, keyword, selectedSectionId } = useMemo(() => {
@@ -108,6 +109,12 @@ export default function AdminPage() {
     return page || null;
   }, [pages, keyword]);
 
+  // Check if the selected page is a configuration page
+  const isConfigurationPage = useMemo(() => {
+    if (!selectedPage || !configurationPages) return false;
+    return configurationPages.some(cp => cp.id_pages === selectedPage.id_pages);
+  }, [selectedPage, configurationPages]);
+
   // Render page content based on route
   const renderMainContent = () => {
     if (isPageRoute) {
@@ -143,6 +150,29 @@ export default function AdminPage() {
           >
             No page found with keyword: {keyword}
           </Alert>
+        );
+      }
+
+      // Configuration pages only show fields in the inspector, no sections
+      if (isConfigurationPage) {
+        return (
+          <Stack align="center" py="xl">
+            <IconAdjustmentsCog size="3rem" color="var(--mantine-color-purple-5)" />
+            <Title order={3} c="dimmed">Configuration Page</Title>
+            <Text c="dimmed" ta="center" maw={400}>
+              This is a configuration page. You can edit the configuration fields using the inspector panel on the right.
+            </Text>
+            <Alert 
+              icon={<IconInfoCircle size="1rem" />} 
+              color="purple"
+              variant="light"
+              maw={500}
+              mt="md"
+            >
+              Configuration pages are special pages that control system settings and behaviors. 
+              They don't have sections like regular pages.
+            </Alert>
+          </Stack>
         );
       }
 
@@ -193,13 +223,14 @@ export default function AdminPage() {
         overflowY: 'hidden'
       }}>
         {(() => {
-          const shouldShowSectionInspector = selectedSectionId && !isNaN(selectedSectionId);
+          const shouldShowSectionInspector = selectedSectionId && !isNaN(selectedSectionId) && !isConfigurationPage;
           debug('Right sidebar component selection', 'AdminPage', {
             selectedSectionId,
             isNaN: isNaN(selectedSectionId!),
             shouldShowSectionInspector,
             selectedPageKeyword: selectedPage?.keyword,
-            selectedPageExists: !!selectedPage
+            selectedPageExists: !!selectedPage,
+            isConfigurationPage
           });
           
           if (shouldShowSectionInspector) {
@@ -210,7 +241,7 @@ export default function AdminPage() {
               />
             );
           } else {
-            return <PageInspector page={selectedPage} />;
+            return <PageInspector page={selectedPage} isConfigurationPage={isConfigurationPage} />;
           }
         })()}
       </Box>
