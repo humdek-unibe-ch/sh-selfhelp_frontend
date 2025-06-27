@@ -41,6 +41,8 @@ import { IUpdatePageField, IUpdatePageData, IUpdatePageRequest } from '../../../
 import { debug } from '../../../../../utils/debug-logger';
 import { notifications } from '@mantine/notifications';
 import styles from './ConfigurationPageEditor.module.css';
+import { FieldRenderer, IFieldData } from '../../shared/field-renderer/FieldRenderer';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface ConfigurationPageEditorProps {
     page: IAdminPage;
@@ -54,6 +56,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
     const [contentExpanded, setContentExpanded] = useState(true);
     const [propertiesExpanded, setPropertiesExpanded] = useState(true);
     const [activeLanguageTab, setActiveLanguageTab] = useState<string>('');
+    const queryClient = useQueryClient();
 
     // Fetch page fields
     const {
@@ -84,6 +87,13 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
             });
             // Refetch page fields to reload the data
             refetchPageFields();
+            
+            // Invalidate relevant queries to refresh data
+            queryClient.invalidateQueries({ queryKey: ['admin', 'pages'] });
+            queryClient.invalidateQueries({ queryKey: ['admin', 'page', page.keyword] });
+            queryClient.invalidateQueries({ queryKey: ['admin', 'page-fields', page.keyword] });
+            queryClient.invalidateQueries({ queryKey: ['pages'] }); // Frontend pages
+            queryClient.invalidateQueries({ queryKey: ['page-content'] }); // Frontend page content
         }
     });
 
@@ -217,68 +227,59 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
 
     // Render content field
     const renderContentField = (field: IPageField, languageId: number) => {
-        const fieldKey = `fields.${field.name}.${languageId}`;
         const currentLanguage = languages.find(lang => lang.id === languageId);
         const locale = hasMultipleLanguages && currentLanguage ? currentLanguage.locale : undefined;
-
         const fieldValue = form.values.fields?.[field.name]?.[languageId] ?? '';
-        const inputProps = {
-            ...form.getInputProps(fieldKey),
-            value: fieldValue
+        
+        // Convert IPageField to IFieldData
+        const fieldData: IFieldData = {
+            id: field.id,
+            name: field.name,
+            type: field.type,
+            default_value: field.default_value,
+            help: field.help,
+            display: field.display
         };
-
-        if (field.type === 'textarea') {
-            return (
-                <Textarea
-                    key={`${field.id}-${languageId}`}
-                    label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} locale={locale} />}
-                    placeholder={field.default_value || ''}
-                    {...inputProps}
-                    autosize
-                    minRows={3}
-                />
-            );
-        } else {
-            return (
-                <TextInput
-                    key={`${field.id}-${languageId}`}
-                    label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} locale={locale} />}
-                    placeholder={field.default_value || ''}
-                    {...inputProps}
-                />
-            );
-        }
+        
+        return (
+            <FieldRenderer
+                key={`${field.id}-${languageId}`}
+                field={fieldData}
+                value={fieldValue}
+                onChange={(value) => {
+                    const fieldKey = `fields.${field.name}.${languageId}`;
+                    form.setFieldValue(fieldKey, value);
+                }}
+                locale={locale}
+            />
+        );
     };
 
     // Render property field
     const renderPropertyField = (field: IPageField) => {
         const langId = languages[0]?.id || 1;
-        const fieldKey = `fields.${field.name}.${langId}`;
         const fieldValue = form.values.fields?.[field.name]?.[langId] ?? '';
-        const inputProps = {
-            ...form.getInputProps(fieldKey),
-            value: fieldValue
+        
+        // Convert IPageField to IFieldData
+        const fieldData: IFieldData = {
+            id: field.id,
+            name: field.name,
+            type: field.type,
+            default_value: field.default_value,
+            help: field.help,
+            display: field.display
         };
-
-        if (field.type === 'textarea') {
-            return (
-                <Textarea
-                    label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
-                    placeholder={field.default_value || ''}
-                    {...inputProps}
-                    autosize
-                    minRows={2}
-                />
-            );
-        } else {
-            return (
-                <TextInput
-                    label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
-                    placeholder={field.default_value || ''}
-                    {...inputProps}
-                />
-            );
-        }
+        
+        return (
+            <FieldRenderer
+                field={fieldData}
+                value={fieldValue}
+                onChange={(value) => {
+                    const fieldKey = `fields.${field.name}.${langId}`;
+                    form.setFieldValue(fieldKey, value);
+                }}
+            />
+        );
     };
 
     if (fieldsLoading || languagesLoading) {

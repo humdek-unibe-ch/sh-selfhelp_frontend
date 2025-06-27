@@ -38,6 +38,9 @@ import styles from './SectionInspector.module.css';
 import { exportSection } from '../../../../../api/admin/section.api';
 import { downloadJsonFile, generateExportFilename } from '../../../../../utils/export-import.utils';
 import { AdminApi } from '../../../../../api/admin';
+import { validateName, getNameValidationError } from '../../../../../utils/name-validation.utils';
+import { notifications } from '@mantine/notifications';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface ISectionInspectorProps {
     keyword: string | null;
@@ -77,6 +80,7 @@ interface ISectionSubmitData {
 
 export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps) {
     const router = useRouter();
+    const queryClient = useQueryClient();
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [formValues, setFormValues] = useState<ISectionFormValues>({
@@ -135,6 +139,15 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
             // Update original values after successful save
             setOriginalValues({ ...formValues });
             debug('Section updated successfully, original values updated', 'SectionInspector', { sectionId });
+            
+            // Invalidate relevant queries to refresh data
+            if (keyword) {
+                queryClient.invalidateQueries({ queryKey: ['admin', 'pages'] });
+                queryClient.invalidateQueries({ queryKey: ['admin', 'page', keyword] });
+                queryClient.invalidateQueries({ queryKey: ['admin', 'section', keyword, sectionId] });
+                queryClient.invalidateQueries({ queryKey: ['pages'] }); // Frontend pages
+                queryClient.invalidateQueries({ queryKey: ['page-content'] }); // Frontend page content
+            }
         },
         onError: (error) => {
             debug('Section update failed', 'SectionInspector', { sectionId, error: error.message });
@@ -303,6 +316,19 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
 
     const handleSave = async () => {
         if (!sectionId || !sectionDetailsData || !languages.length || !keyword) return;
+        
+        // Validate section name if it has changed
+        if (formValues.sectionName !== originalValues.sectionName) {
+            const validation = validateName(formValues.sectionName);
+            if (!validation.isValid) {
+                notifications.show({
+                    title: 'Invalid Section Name',
+                    message: validation.error || getNameValidationError(),
+                    color: 'red'
+                });
+                return;
+            }
+        }
         
         const { fields } = sectionDetailsData;
         const contentFields = fields.filter(field => field.display);

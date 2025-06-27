@@ -46,6 +46,7 @@ import { DragDropMenuPositioner } from '../../../ui/drag-drop-menu-positioner/Dr
 import { FieldLabelWithTooltip } from '../../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
 import { IPageField } from '../../../../../types/responses/admin/page-details.types';
 import { IUpdatePageField, IUpdatePageData, IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
+import { FieldRenderer, IFieldData } from '../../shared/field-renderer/FieldRenderer';
 import { PAGE_ACCESS_TYPES } from '../../../../../constants/lookups.constants';
 import { debug } from '../../../../../utils/debug-logger';
 import styles from './PageInspector.module.css';
@@ -53,6 +54,9 @@ import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { CreatePageModal } from '../create-page/CreatePage';
 import { exportPageSections } from '../../../../../api/admin/section.api';
 import { downloadJsonFile, generateExportFilename } from '../../../../../utils/export-import.utils';
+import { validateName, getNameValidationError } from '../../../../../utils/name-validation.utils';
+import { notifications } from '@mantine/notifications';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface PageInspectorProps {
     page: IAdminPage | null;
@@ -86,6 +90,9 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
     // References to get final positions from DragDropMenuPositioner components
     const headerMenuGetFinalPosition = useRef<(() => number | null) | null>(null);
     const footerMenuGetFinalPosition = useRef<(() => number | null) | null>(null);
+    
+    // Get query client for cache invalidation
+    const queryClient = useQueryClient();
     
     // Fetch page fields when page is selected
     const { 
@@ -124,7 +131,13 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                 keyword, 
                 updatedPage: updatedPage.keyword 
             });
-            // Additional success handling can be added here if needed
+            
+            // Invalidate relevant queries to refresh data
+            queryClient.invalidateQueries({ queryKey: ['admin', 'pages'] });
+            queryClient.invalidateQueries({ queryKey: ['admin', 'page', keyword] });
+            queryClient.invalidateQueries({ queryKey: ['admin', 'page-fields', keyword] });
+            queryClient.invalidateQueries({ queryKey: ['pages'] }); // Frontend pages
+            queryClient.invalidateQueries({ queryKey: ['page-content'] }); // Frontend page content
         },
         onError: (error, keyword) => {
             debug('Update page error in PageInspector', 'PageInspector', { error, keyword });
@@ -241,6 +254,19 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
     ]);
 
     const handleSave = () => {
+        // Validate keyword if it has changed
+        if (form.values.keyword !== page?.keyword) {
+            const validation = validateName(form.values.keyword);
+            if (!validation.isValid) {
+                notifications.show({
+                    title: 'Invalid Keyword',
+                    message: validation.error || getNameValidationError(),
+                    color: 'red'
+                });
+                return;
+            }
+        }
+        
         // Get final calculated positions from DragDropMenuPositioner components
         const finalHeaderPosition = headerMenuGetFinalPosition.current ? headerMenuGetFinalPosition.current() : null;
         const finalFooterPosition = footerMenuGetFinalPosition.current ? footerMenuGetFinalPosition.current() : null;
@@ -395,59 +421,38 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
 
     // Render content field based on type and language
     const renderContentField = (field: IPageField, languageId: number) => {
-        const fieldKey = `fields.${field.name}.${languageId}`;
-        
         const currentLanguage = languages.find(lang => lang.id === languageId);
         const locale = currentLanguage?.locale;
-
         const fieldValue = form.values.fields?.[field.name]?.[languageId] ?? '';
-        const inputProps = {
-            ...form.getInputProps(fieldKey),
-            value: fieldValue
-        };
         
         // Check if this is the title field and we're in a configuration page
         const isReadOnly = isConfigurationPage && field.name.toLowerCase() === 'title';
         
-        if (field.type === 'textarea') {
-            return (
-                <Textarea
-                    key={`${field.id}-${languageId}`}
-                    className={styles.fullWidthLabel}
-                    label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} locale={locale} />}
-                    placeholder={field.default_value || ''}
-                    {...inputProps}
-                    autosize
-                    minRows={3}
-                    readOnly={isReadOnly}
-                    styles={isReadOnly ? { input: { backgroundColor: 'var(--mantine-color-gray-1)' } } : undefined}
-                />
-            );
-        } else if (field.type === 'markdown-inline') {
-            return (
-                <TextInput
-                    key={`${field.id}-${languageId}`}
-                    className={styles.fullWidthLabel}
-                    label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} locale={locale} />}
-                    placeholder={field.default_value || ''}
-                    {...inputProps}
-                    readOnly={isReadOnly}
-                    styles={isReadOnly ? { input: { backgroundColor: 'var(--mantine-color-gray-1)' } } : undefined}
-                />
-            );
-        } else {
-            return (
-                <TextInput
-                    key={`${field.id}-${languageId}`}
-                    className={styles.fullWidthLabel}
-                    label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} locale={locale} />}
-                    placeholder={field.default_value || ''}
-                    {...inputProps}
-                    readOnly={isReadOnly}
-                    styles={isReadOnly ? { input: { backgroundColor: 'var(--mantine-color-gray-1)' } } : undefined}
-                />
-            );
-        }
+        // Convert IPageField to IFieldData
+        const fieldData: IFieldData = {
+            id: field.id,
+            name: field.name,
+            type: field.type,
+            default_value: field.default_value,
+            help: field.help,
+            disabled: isReadOnly,
+            display: field.display
+        };
+        
+        return (
+            <FieldRenderer
+                key={`${field.id}-${languageId}`}
+                field={fieldData}
+                value={fieldValue}
+                onChange={(value) => {
+                    const fieldKey = `fields.${field.name}.${languageId}`;
+                    form.setFieldValue(fieldKey, value);
+                }}
+                locale={locale}
+                className={styles.fullWidthLabel}
+                disabled={isReadOnly}
+            />
+        );
     };
 
     if (!page) {
