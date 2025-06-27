@@ -203,4 +203,65 @@ export function validateFieldProcessing(field: IPageField): {
         warnings,
         errors
     };
+}
+
+/**
+ * Initializes form values for fields, handling content vs property field loading correctly
+ * 
+ * @param fields - Page fields from API
+ * @param languages - Available languages
+ * @returns Form values structure: Record<fieldName, Record<languageId, content>>
+ */
+export function initializeFieldFormValues(
+    fields: IPageField[], 
+    languages: ILanguage[]
+): Record<string, Record<number, string>> {
+    const fieldsObject: Record<string, Record<number, string>> = {};
+
+    // Initialize all fields with empty strings for all languages
+    fields.forEach(field => {
+        fieldsObject[field.name] = {};
+        languages.forEach(language => {
+            fieldsObject[field.name][language.id] = '';
+        });
+    });
+
+    // Populate with actual field content from translations
+    fields.forEach(field => {
+        if (isContentField(field)) {
+            // Content fields: populate based on actual language_id from translations
+            field.translations.forEach(translation => {
+                const language = languages.find(l => l.id === translation.language_id);
+                if (language) {
+                    fieldsObject[field.name][language.id] = translation.content || '';
+                }
+            });
+        } else {
+            // Property fields: find content from language_id = 1 and replicate across all languages
+            const propertyTranslation = field.translations.find(t => t.language_id === 1);
+            const propertyContent = propertyTranslation?.content || '';
+            
+            // Debug logging for CSS property fields
+            if (field.type === 'css') {
+                console.log(`[FieldProcessing] Loading CSS property field "${field.name}"`, {
+                    fieldId: field.id,
+                    propertyContent: propertyContent,
+                    contentLength: propertyContent.length,
+                    translations: field.translations.map(t => ({
+                        language_id: t.language_id,
+                        content: t.content || '',
+                        contentLength: (t.content || '').length
+                    })),
+                    willReplicateToLanguages: languages.map(l => l.id)
+                });
+            }
+            
+            // Replicate property field content to all language tabs for editing convenience
+            languages.forEach(language => {
+                fieldsObject[field.name][language.id] = propertyContent;
+            });
+        }
+    });
+
+    return fieldsObject;
 } 

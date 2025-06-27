@@ -62,7 +62,8 @@ import {
     isContentField, 
     isPropertyField, 
     getFieldTypeDisplayName,
-    validateFieldProcessing 
+    validateFieldProcessing,
+    initializeFieldFormValues
 } from '../../../../../utils/field-processing.utils';
 
 interface PageInspectorProps {
@@ -196,30 +197,8 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                 languagesCount: languages.length
             });
 
-            // Prepare fields object for form
-            const fieldsObject: Record<string, Record<number, string>> = {};
-            
-            // Initialize all fields with empty strings for all languages
-            pageFieldsData.fields.forEach(field => {
-                fieldsObject[field.name] = {};
-                languages.forEach(language => {
-                    fieldsObject[field.name][language.id] = '';
-                });
-            });
-            
-            // Populate with actual field content from translations
-            pageFieldsData.fields.forEach(field => {
-                field.translations.forEach(translation => {
-                    // Find matching language by ID
-                    const language = languages.find(l => l.id === translation.language_id);
-                    if (language) {
-                        if (!fieldsObject[field.name]) {
-                            fieldsObject[field.name] = {};
-                        }
-                        fieldsObject[field.name][language.id] = translation.content || '';
-                    }
-                });
-            });
+            // Use the modular field initialization utility that handles content vs property fields correctly
+            const fieldsObject = initializeFieldFormValues(pageFieldsData.fields, languages);
 
             const pageDetails = pageFieldsData.page;
             

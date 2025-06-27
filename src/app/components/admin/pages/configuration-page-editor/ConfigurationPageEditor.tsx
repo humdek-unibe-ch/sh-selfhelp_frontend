@@ -48,7 +48,8 @@ import {
     isContentField, 
     isPropertyField, 
     getFieldTypeDisplayName,
-    validateFieldProcessing 
+    validateFieldProcessing,
+    initializeFieldFormValues
 } from '../../../../../utils/field-processing.utils';
 
 interface ConfigurationPageEditorProps {
@@ -152,24 +153,19 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
     // Update form when page data changes
     useEffect(() => {
         if (pageFieldsData && languages.length > 0) {
-            const fieldsObject: Record<string, Record<number, string>> = {};
-
-            // Initialize all fields with empty strings for all languages
-            pageFieldsData.fields.forEach(field => {
-                fieldsObject[field.name] = {};
-                languages.forEach(language => {
-                    fieldsObject[field.name][language.id] = '';
-                });
-            });
-
-            // Populate with actual field content from translations
-            pageFieldsData.fields.forEach(field => {
-                field.translations.forEach(translation => {
-                    const language = languages.find(l => l.id === translation.language_id);
-                    if (language) {
-                        fieldsObject[field.name][language.id] = translation.content || '';
-                    }
-                });
+            // Use the modular field initialization utility that handles content vs property fields correctly
+            const fieldsObject = initializeFieldFormValues(pageFieldsData.fields, languages);
+            
+            debug('Form values initialized', 'ConfigurationPageEditor', {
+                totalFields: pageFieldsData.fields.length,
+                cssFields: pageFieldsData.fields.filter(f => f.type === 'css').map(f => ({
+                    name: f.name,
+                    type: f.type,
+                    display: f.display,
+                    isPropertyField: isPropertyField(f),
+                    formValues: fieldsObject[f.name],
+                    translations: f.translations
+                }))
             });
 
             form.setValues({ fields: fieldsObject });

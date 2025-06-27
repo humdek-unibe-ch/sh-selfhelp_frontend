@@ -41,6 +41,11 @@ import { AdminApi } from '../../../../../api/admin';
 import { validateName, getNameValidationError } from '../../../../../utils/name-validation.utils';
 import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
+import { 
+    initializeFieldFormValues,
+    isContentField,
+    isPropertyField
+} from '../../../../../utils/field-processing.utils';
 
 interface ISectionInspectorProps {
     keyword: string | null;
@@ -203,11 +208,11 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
                 fields: fields.map(f => ({ name: f.name, type: f.type, display: f.display, translationsCount: f.translations.length }))
             });
             
-            // Process fields directly here instead of relying on the shared handler to avoid circular dependency
+            // Process fields for SectionInspector (which has different structure than PageInspector)
             const contentFields = fields.filter(field => field.display);
             const propertyFields = fields.filter(field => !field.display);
             
-            // Process content fields (translatable)
+            // Process content fields (translatable) - use similar logic to the utility but adapted for ISectionField
             const contentFieldsObject: Record<string, Record<number, string>> = {};
             contentFields.forEach(field => {
                 contentFieldsObject[field.name] = {};
@@ -217,59 +222,32 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
                     contentFieldsObject[field.name][lang.id] = '';
                 });
 
-                // Then populate with actual data from translations
-                field.translations.forEach(translation => {
-                    debug('Processing content field translation', 'SectionInspector', {
-                        fieldName: field.name,
-                        translationLanguageId: translation.language_id,
-                        translationContent: translation.content,
-                        availableLanguages: languages.map(l => ({ id: l.id, locale: l.locale }))
+                if (field.display) {
+                    // Content fields: populate based on actual language_id from translations
+                    field.translations.forEach(translation => {
+                        const language = languages.find(l => l.id === translation.language_id);
+                        if (language) {
+                            contentFieldsObject[field.name][language.id] = translation.content || field.default_value || '';
+                        }
                     });
-
-                    // Find matching language by ID
-                    const matchingLang = languages.find(lang => lang.id === translation.language_id);
-
-                    if (matchingLang) {
-                        const value = translation.content || field.default_value || '';
-                        contentFieldsObject[field.name][matchingLang.id] = value;
-
-                        debug('Content field translation matched and applied', 'SectionInspector', {
-                            fieldName: field.name,
-                            translationLanguageId: translation.language_id,
-                            matchedLanguageId: matchingLang.id,
-                            value: value
-                        });
-                    } else {
-                        debug('Content field translation not matched to any language', 'SectionInspector', {
-                            fieldName: field.name,
-                            translationLanguageId: translation.language_id,
-                            availableLanguageIds: languages.map(l => l.id)
-                        });
-                    }
-                });
-
-                debug('Content field processing complete', 'SectionInspector', {
-                    fieldName: field.name,
-                    finalValues: contentFieldsObject[field.name]
-                });
+                } else {
+                    // Property fields: find content from language_id = 1 and replicate across all languages
+                    const propertyTranslation = field.translations.find(t => t.language_id === 1);
+                    const propertyContent = propertyTranslation?.content || field.default_value || '';
+                    
+                    // Replicate property field content to all language tabs for editing convenience
+                    languages.forEach(language => {
+                        contentFieldsObject[field.name][language.id] = propertyContent;
+                    });
+                }
             });
 
-            // Process property fields (non-translatable)
+            // Process property fields for the properties object (SectionInspector uses a different structure)
             const propertyFieldsObject: Record<string, string | boolean> = {};
+            
             propertyFields.forEach(field => {
-                debug('Processing property field', 'SectionInspector', {
-                    fieldName: field.name,
-                    fieldType: field.type,
-                    translationsCount: field.translations.length,
-                    translations: field.translations.map(t => ({ 
-                        language_id: t.language_id,
-                        content: t.content 
-                    }))
-                });
-
-                // For property fields, use the first translation or empty
-                const propertyTranslation = field.translations.length > 0 ? field.translations[0] : null;
-
+                // Get the property field content from language ID 1 (where it's stored)
+                const propertyTranslation = field.translations.find(t => t.language_id === 1);
                 const value = propertyTranslation?.content || field.default_value || '';
 
                 // Convert to appropriate type based on field type
@@ -279,7 +257,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
                     propertyFieldsObject[field.name] = value;
                 }
 
-                debug('Property field processed', 'SectionInspector', {
+                debug('Property field processed for SectionInspector', 'SectionInspector', {
                     fieldName: field.name,
                     rawValue: value,
                     finalValue: propertyFieldsObject[field.name],
