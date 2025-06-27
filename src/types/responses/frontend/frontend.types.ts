@@ -10,9 +10,6 @@ export interface IPageItem {
     acl_delete: 0 | 1;
     keyword: string;
     url: string;
-    protocol: string;
-    id_actions: number;
-    id_navigation_section: number | null;
     parent: number | null;
     is_headless: 0 | 1;
     nav_position: number | null;
