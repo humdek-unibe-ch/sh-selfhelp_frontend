@@ -19,12 +19,12 @@ import {
   IconEye,
   IconDeviceFloppy,
   IconInfoCircle,
-  IconAlertCircle,
-  IconAdjustmentsCog
+  IconAlertCircle
 } from '@tabler/icons-react';
 import { PageSections } from '../../components/admin/pages/page-sections/PageSections';
 import { PageInspector } from '../../components/admin/pages/page-inspector/PageInspector';
 import { SectionInspector } from '../../components/admin/pages/section-inspector';
+import { ConfigurationPageEditor } from '../../components/admin/pages/configuration-page-editor/ConfigurationPageEditor';
 import { useAdminPages } from '../../../hooks/useAdminPages';
 import { useMemo } from 'react';
 import { debug } from '../../../utils/debug-logger';
@@ -153,29 +153,6 @@ export default function AdminPage() {
         );
       }
 
-      // Configuration pages only show fields in the inspector, no sections
-      if (isConfigurationPage) {
-        return (
-          <Stack align="center" py="xl">
-            <IconAdjustmentsCog size="3rem" color="var(--mantine-color-purple-5)" />
-            <Title order={3} c="dimmed">Configuration Page</Title>
-            <Text c="dimmed" ta="center" maw={400}>
-              This is a configuration page. You can edit the configuration fields using the inspector panel on the right.
-            </Text>
-            <Alert 
-              icon={<IconInfoCircle size="1rem" />} 
-              color="purple"
-              variant="light"
-              maw={500}
-              mt="md"
-            >
-              Configuration pages are special pages that control system settings and behaviors. 
-              They don't have sections like regular pages.
-            </Alert>
-          </Stack>
-        );
-      }
-
       return (
         <Box style={{ height: '100%' }}>
           {/* Page Sections - Full height */}
@@ -208,43 +185,51 @@ export default function AdminPage() {
   };
 
   return (
-    <Flex style={{ height: 'calc(100vh - var(--mantine-header-height, 60px))' }}>
-      {/* Main Content Area */}
-      <Box style={{ flex: '1', overflowY: 'auto' }}>
-        {/* Dynamic Content */}
-        {renderMainContent()}
-      </Box>
-      
-      {/* Right Sidebar - Page Inspector or Section Inspector */}
-      <Box style={{ 
-        width: rem(400), 
-        borderLeft: '1px solid var(--mantine-color-gray-3)', 
-        height: '100%',
-        overflowY: 'hidden'
-      }}>
-        {(() => {
-          const shouldShowSectionInspector = selectedSectionId && !isNaN(selectedSectionId) && !isConfigurationPage;
-          debug('Right sidebar component selection', 'AdminPage', {
-            selectedSectionId,
-            isNaN: isNaN(selectedSectionId!),
-            shouldShowSectionInspector,
-            selectedPageKeyword: selectedPage?.keyword,
-            selectedPageExists: !!selectedPage,
-            isConfigurationPage
-          });
+    <>
+      {isConfigurationPage && selectedPage ? (
+        // Configuration pages use full-width editor
+        <ConfigurationPageEditor page={selectedPage} />
+      ) : (
+        // Regular pages use the split layout
+        <Flex style={{ height: 'calc(100vh - var(--mantine-header-height, 60px))' }}>
+          {/* Main Content Area */}
+          <Box style={{ flex: '1', overflowY: 'auto' }}>
+            {/* Dynamic Content */}
+            {renderMainContent()}
+          </Box>
           
-          if (shouldShowSectionInspector) {
-            return (
-              <SectionInspector 
-                keyword={selectedPage?.keyword || null} 
-                sectionId={selectedSectionId} 
-              />
-            );
-          } else {
-            return <PageInspector page={selectedPage} isConfigurationPage={isConfigurationPage} />;
-          }
-        })()}
-      </Box>
-    </Flex>
+          {/* Right Sidebar - Page Inspector or Section Inspector */}
+          <Box style={{ 
+            width: rem(400), 
+            borderLeft: '1px solid var(--mantine-color-gray-3)', 
+            height: '100%',
+            overflowY: 'hidden'
+          }}>
+            {(() => {
+              const shouldShowSectionInspector = selectedSectionId && !isNaN(selectedSectionId) && !isConfigurationPage;
+              debug('Right sidebar component selection', 'AdminPage', {
+                selectedSectionId,
+                isNaN: isNaN(selectedSectionId!),
+                shouldShowSectionInspector,
+                selectedPageKeyword: selectedPage?.keyword,
+                selectedPageExists: !!selectedPage,
+                isConfigurationPage
+              });
+              
+              if (shouldShowSectionInspector) {
+                return (
+                  <SectionInspector 
+                    keyword={selectedPage?.keyword || null} 
+                    sectionId={selectedSectionId} 
+                  />
+                );
+              } else {
+                return <PageInspector page={selectedPage} isConfigurationPage={isConfigurationPage} />;
+              }
+            })()}
+          </Box>
+        </Flex>
+      )}
+    </>
   );
 }

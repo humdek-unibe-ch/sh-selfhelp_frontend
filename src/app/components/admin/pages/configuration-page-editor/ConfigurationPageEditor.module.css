@@ -1,0 +1,40 @@
+.fullHeight {
+    height: 100%;
+}
+
+.backgroundGray {
+    background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-8));
+    min-height: 100vh;
+}
+
+.headerSection {
+    background: linear-gradient(135deg, 
+        light-dark(var(--mantine-color-purple-0), var(--mantine-color-dark-7)) 0%, 
+        light-dark(var(--mantine-color-blue-0), var(--mantine-color-dark-6)) 100%);
+}
+
+.contentSectionHeader {
+    background-color: light-dark(var(--mantine-color-blue-0), var(--mantine-color-dark-7));
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.contentSectionHeader:hover {
+    background-color: light-dark(var(--mantine-color-blue-1), var(--mantine-color-dark-6));
+}
+
+.propertiesSectionHeader {
+    background-color: light-dark(var(--mantine-color-purple-0), var(--mantine-color-dark-7));
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.propertiesSectionHeader:hover {
+    background-color: light-dark(var(--mantine-color-purple-1), var(--mantine-color-dark-6));
+}
+
+.fieldGrid {
+    display: grid;
+    gap: var(--mantine-spacing-md);
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+} 
