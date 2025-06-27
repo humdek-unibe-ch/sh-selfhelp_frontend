@@ -1,11 +1,11 @@
 'use client';
 
-import { 
-    Paper, 
-    Title, 
-    Text, 
-    Group, 
-    Badge, 
+import {
+    Paper,
+    Title,
+    Text,
+    Group,
+    Badge,
     Stack,
     Box,
     Alert,
@@ -20,9 +20,9 @@ import {
     Card,
     Divider
 } from '@mantine/core';
-import { 
-    IconInfoCircle, 
-    IconDeviceFloppy, 
+import {
+    IconInfoCircle,
+    IconDeviceFloppy,
     IconChevronDown,
     IconChevronUp,
     IconLanguage,
@@ -54,12 +54,13 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
     const [contentExpanded, setContentExpanded] = useState(true);
     const [propertiesExpanded, setPropertiesExpanded] = useState(true);
     const [activeLanguageTab, setActiveLanguageTab] = useState<string>('');
-    
+
     // Fetch page fields
-    const { 
-        data: pageFieldsData, 
-        isLoading: fieldsLoading, 
-        error: fieldsError 
+    const {
+        data: pageFieldsData,
+        isLoading: fieldsLoading,
+        error: fieldsError,
+        refetch: refetchPageFields
     } = usePageFields(page.keyword, true);
 
     // Fetch available languages
@@ -78,9 +79,11 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
         onSuccess: () => {
             notifications.show({
                 title: 'Success',
-                message: 'Configuration page updated successfully',
+                message: 'Configuration saved successfully',
                 color: 'green',
             });
+            // Refetch page fields to reload the data
+            refetchPageFields();
         }
     });
 
@@ -94,10 +97,10 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
     // Get description field value
     const descriptionValue = useMemo(() => {
         if (!pageFieldsData?.fields || !languages.length) return '';
-        
+
         const descriptionField = pageFieldsData.fields.find(f => f.name.toLowerCase() === 'description');
         if (!descriptionField) return '';
-        
+
         // Get the first language's description
         const firstLang = languages[0];
         const translation = descriptionField.translations.find(t => t.language_id === firstLang.id);
@@ -107,8 +110,8 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
     // Filter out system fields (title and description) from content fields
     const contentFields = useMemo(() => {
         if (!pageFieldsData?.fields) return [];
-        return pageFieldsData.fields.filter(field => 
-            field.display && 
+        return pageFieldsData.fields.filter(field =>
+            field.display &&
             !['title', 'description'].includes(field.name.toLowerCase())
         );
     }, [pageFieldsData]);
@@ -127,7 +130,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
     useEffect(() => {
         if (pageFieldsData && languages.length > 0) {
             const fieldsObject: Record<string, Record<string, string>> = {};
-            
+
             // Initialize all fields with empty strings for all languages
             pageFieldsData.fields.forEach(field => {
                 fieldsObject[field.name] = {};
@@ -136,7 +139,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                     fieldsObject[field.name][langCode] = '';
                 });
             });
-            
+
             // Populate with actual field content from translations
             pageFieldsData.fields.forEach(field => {
                 field.translations.forEach(translation => {
@@ -221,13 +224,13 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
         const fieldKey = `fields.${field.name}.${languageCode}`;
         const currentLanguage = languages.find(lang => lang.locale.split('-')[0] === languageCode);
         const locale = hasMultipleLanguages && currentLanguage ? currentLanguage.locale : undefined;
-        
+
         const fieldValue = form.values.fields?.[field.name]?.[languageCode] ?? '';
         const inputProps = {
             ...form.getInputProps(fieldKey),
             value: fieldValue
         };
-        
+
         if (field.type === 'textarea') {
             return (
                 <Textarea
@@ -260,7 +263,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
             ...form.getInputProps(fieldKey),
             value: fieldValue
         };
-        
+
         if (field.type === 'textarea') {
             return (
                 <Textarea
@@ -304,60 +307,74 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
         <Box className={styles.backgroundGray} style={{ minHeight: '100vh' }}>
             <Container size="xl" p="md" className={styles.fullHeight}>
                 <Stack gap="lg" className={styles.fullHeight}>
-                    {/* Header Section */}
-                    <Paper shadow="md" p="xl" withBorder radius="md" className={styles.headerSection}>
-                        <Group justify="space-between" align="flex-start">
-                            <Box style={{ flex: 1 }}>
-                                <Group gap="xs" mb="sm">
-                                    <Badge color="purple" variant="filled" size="lg" radius="md">
-                                        Configuration Page
-                                    </Badge>
-                                    <Badge color="gray" variant="light" size="lg" radius="md">
-                                        {page.keyword}
-                                    </Badge>
-                                </Group>
-                                <Title order={1} mb="xs" fw={700}>{descriptionValue || page.title || page.keyword}</Title>
-                                <Text c="dimmed" size="md">
-                                    Edit the configuration settings below. Changes will affect system behavior.
-                                </Text>
-                            </Box>
+                    {/* Info Alert - moved to top */}
+                    <Alert
+                        icon={<IconInfoCircle size="1.2rem" />}
+                        color="blue"
+                        variant="light"
+                        radius="md"
+                    >
+                        <Text size="sm">
+                            Configuration pages control system-wide settings and behaviors.
+                            The <strong>title</strong> and <strong>description</strong> fields are system-managed and cannot be edited directly.
+                        </Text>
+                    </Alert>
+
+                    {/* Header Section - made smaller */}
+                    <Paper shadow="md" p="md" withBorder radius="md" className={styles.headerSection}>
+                        <Group justify="space-between" align="center">
+                            <Group gap="xs">
+                                <Badge color="purple" variant="filled" size="md" radius="md">
+                                    Configuration Page
+                                </Badge>
+                                <Title order={2} fw={600}>
+                                    {page.title || page.keyword}
+                                </Title>
+                            </Group>
                             <Button
-                                leftSection={<IconDeviceFloppy size="1.2rem" />}
+                                leftSection={<IconDeviceFloppy size="1rem" />}
                                 onClick={handleSave}
-                                size="lg"
+                                size="sm"
                                 loading={updatePageMutation.isPending}
-                                radius="md"
+                                radius="sm"
                             >
-                                Save Configuration
+                                Save
                             </Button>
+                        </Group>
+                        <Group>
+                            {descriptionValue && (
+                                <Text c="dimmed" size="sm" ml="xs" mt="xs">
+                                    {descriptionValue}
+                                </Text>
+                            )}
                         </Group>
                     </Paper>
 
                     {/* Content Section */}
                     {contentFields.length > 0 && (
                         <Card shadow="sm" withBorder radius="md">
-                            <Card.Section 
-                                p="lg" 
+                            <Card.Section
+                                p="md"
                                 className={styles.contentSectionHeader}
                                 onClick={() => setContentExpanded(!contentExpanded)}
                             >
                                 <Group justify="space-between">
                                     <Group gap="sm">
-                                        <IconLanguage size={24} color="var(--mantine-color-blue-6)" />
-                                        <Title order={3}>Content Fields</Title>
-                                        <Badge color="blue" variant="light" size="lg">{contentFields.length} fields</Badge>
+                                        <IconLanguage size={20} color="var(--mantine-color-blue-6)" />
+                                        <Title order={4}>Content</Title>
+                                        <Badge color="blue" variant="light" size="sm">{contentFields.length} fields</Badge>
                                     </Group>
-                                    <ActionIcon variant="subtle" size="lg">
-                                        {contentExpanded ? <IconChevronUp size={20} /> : <IconChevronDown size={20} />}
+                                    <ActionIcon variant="subtle" size="md">
+                                        {contentExpanded ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
                                     </ActionIcon>
                                 </Group>
                             </Card.Section>
-                            
+
                             <Collapse in={contentExpanded}>
-                                <Card.Section p="xl">
+                                <Card.Section p="lg">
                                     {hasMultipleLanguages ? (
                                         <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || languages[0]?.locale.split('-')[0] || '')}>
-                                            <Tabs.List mb="lg">
+                                            <Tabs.List mb="md">
                                                 {languages.map(lang => {
                                                     const langCode = lang.locale.split('-')[0];
                                                     return (
@@ -400,25 +417,25 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                     {/* Properties Section */}
                     {propertyFields.length > 0 && (
                         <Card shadow="sm" withBorder radius="md">
-                            <Card.Section 
-                                p="lg" 
+                            <Card.Section
+                                p="md"
                                 className={styles.propertiesSectionHeader}
                                 onClick={() => setPropertiesExpanded(!propertiesExpanded)}
                             >
                                 <Group justify="space-between">
                                     <Group gap="sm">
-                                        <IconSettings size={24} color="var(--mantine-color-purple-6)" />
-                                        <Title order={3}>Configuration Properties</Title>
-                                        <Badge color="purple" variant="light" size="lg">{propertyFields.length} properties</Badge>
+                                        <IconSettings size={20} color="var(--mantine-color-purple-6)" />
+                                        <Title order={4}>Properties</Title>
+                                        <Badge color="purple" variant="light" size="sm">{propertyFields.length} properties</Badge>
                                     </Group>
-                                    <ActionIcon variant="subtle" size="lg">
-                                        {propertiesExpanded ? <IconChevronUp size={20} /> : <IconChevronDown size={20} />}
+                                    <ActionIcon variant="subtle" size="md">
+                                        {propertiesExpanded ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
                                     </ActionIcon>
                                 </Group>
                             </Card.Section>
-                            
+
                             <Collapse in={propertiesExpanded}>
-                                <Card.Section p="xl">
+                                <Card.Section p="lg">
                                     <div className={styles.fieldGrid}>
                                         {propertyFields.map(field => (
                                             <div key={field.id}>
@@ -430,19 +447,6 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                             </Collapse>
                         </Card>
                     )}
-
-                    {/* Info Alert */}
-                    <Alert 
-                        icon={<IconInfoCircle size="1.2rem" />} 
-                        color="blue"
-                        variant="light"
-                        radius="md"
-                    >
-                        <Text size="sm">
-                            Configuration pages control system-wide settings and behaviors. 
-                            The <strong>title</strong> and <strong>description</strong> fields are system-managed and cannot be edited directly.
-                        </Text>
-                    </Alert>
                 </Stack>
             </Container>
         </Box>
