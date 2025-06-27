@@ -45,15 +45,18 @@ export function useUpdatePageMutation(options: IUpdatePageMutationOptions = {}) 
                 updatedPage: updatedPage.keyword 
             });
             
-            // Enhanced cache invalidation strategy to prevent menu duplication
+            // Enhanced cache invalidation strategy with consistent query keys
             await Promise.all([
-                // Invalidate admin pages list (for admin interface)
+                // Main admin pages list
                 queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
-                // Invalidate navigation pages (for frontend navigation and menus)
-                queryClient.invalidateQueries({ queryKey: ['pages'] }),
-                // Invalidate specific page data to refetch updated content
+                // Page-specific data
                 queryClient.invalidateQueries({ queryKey: ['pageFields', keyword] }),
                 queryClient.invalidateQueries({ queryKey: ['pageSections', keyword] }),
+                // Frontend navigation pages
+                queryClient.invalidateQueries({ queryKey: ['pages'] }),
+                queryClient.invalidateQueries({ queryKey: ['page-content'] }),
+                // Frontend pages with language support
+                queryClient.invalidateQueries({ queryKey: ['frontend-pages'] }),
                 // Force refetch to ensure fresh data
                 queryClient.refetchQueries({ queryKey: ['adminPages'] }),
                 queryClient.refetchQueries({ queryKey: ['pages'] }),
@@ -66,6 +69,10 @@ export function useUpdatePageMutation(options: IUpdatePageMutationOptions = {}) 
             });
             queryClient.removeQueries({ 
                 queryKey: ['pages'], 
+                exact: false 
+            });
+            queryClient.removeQueries({ 
+                queryKey: ['frontend-pages'], 
                 exact: false 
             });
             

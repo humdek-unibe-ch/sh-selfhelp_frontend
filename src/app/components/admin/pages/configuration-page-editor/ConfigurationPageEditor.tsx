@@ -88,12 +88,18 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
             // Refetch page fields to reload the data
             refetchPageFields();
             
-            // Invalidate relevant queries to refresh data
+            // Invalidate relevant queries to refresh data - using consistent query keys
+            queryClient.invalidateQueries({ queryKey: ['adminPages'] }); // Admin pages list
+            queryClient.invalidateQueries({ queryKey: ['pageFields', page.keyword] }); // Page fields
+            queryClient.invalidateQueries({ queryKey: ['pageSections', page.keyword] }); // Page sections
+            queryClient.invalidateQueries({ queryKey: ['pages'] }); // Frontend pages
+            queryClient.invalidateQueries({ queryKey: ['page-content'] }); // Frontend page content
+            queryClient.invalidateQueries({ queryKey: ['frontend-pages'] }); // Frontend pages with language
+            
+            // Also invalidate any admin-specific queries that might exist
             queryClient.invalidateQueries({ queryKey: ['admin', 'pages'] });
             queryClient.invalidateQueries({ queryKey: ['admin', 'page', page.keyword] });
             queryClient.invalidateQueries({ queryKey: ['admin', 'page-fields', page.keyword] });
-            queryClient.invalidateQueries({ queryKey: ['pages'] }); // Frontend pages
-            queryClient.invalidateQueries({ queryKey: ['page-content'] }); // Frontend page content
         }
     });
 

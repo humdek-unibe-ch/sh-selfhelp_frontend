@@ -101,7 +101,10 @@ export function FieldRenderer({
             <MonacoFieldEditor
                 key={field.id}
                 value={fieldValue}
-                onChange={onChange}
+                onChange={(value) => {
+                    // Ensure the change is propagated immediately
+                    onChange(value);
+                }}
                 language="css"
                 height={250}
                 readOnly={disabled}
@@ -116,7 +119,10 @@ export function FieldRenderer({
             <MonacoFieldEditor
                 key={field.id}
                 value={fieldValue}
-                onChange={onChange}
+                onChange={(value) => {
+                    // Ensure the change is propagated immediately
+                    onChange(value);
+                }}
                 language="json"
                 height={250}
                 readOnly={disabled}
@@ -131,7 +137,10 @@ export function FieldRenderer({
             <MonacoFieldEditor
                 key={field.id}
                 value={fieldValue}
-                onChange={onChange}
+                onChange={(value) => {
+                    // Ensure the change is propagated immediately
+                    onChange(value);
+                }}
                 language="markdown"
                 height={300}
                 readOnly={disabled}

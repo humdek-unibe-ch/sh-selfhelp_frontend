@@ -76,18 +76,25 @@ export function useUpdateSectionMutation({
                 data 
             });
 
-            // Invalidate relevant queries to refresh data
+            // Invalidate relevant queries to refresh data with consistent query keys
             const queryKey = pageKeyword || variables.keyword;
             
-            // Invalidate section details query
+            // Main admin pages list
+            queryClient.invalidateQueries({ queryKey: ['adminPages'] });
+            
+            // Page-specific data
+            queryClient.invalidateQueries({ queryKey: ['pageFields', queryKey] });
+            queryClient.invalidateQueries({ queryKey: ['pageSections', queryKey] });
+            
+            // Section-specific data (using the correct query key pattern)
             queryClient.invalidateQueries({ 
-                queryKey: ['sectionDetails', queryKey, variables.sectionId] 
+                queryKey: ['admin', 'sections', 'details', queryKey, variables.sectionId] 
             });
             
-            // Invalidate page sections query to refresh the sections list
-            queryClient.invalidateQueries({ 
-                queryKey: ['pageSections', queryKey] 
-            });
+            // Frontend navigation pages
+            queryClient.invalidateQueries({ queryKey: ['pages'] });
+            queryClient.invalidateQueries({ queryKey: ['page-content'] });
+            queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
 
             if (showNotifications) {
                 notifications.show({

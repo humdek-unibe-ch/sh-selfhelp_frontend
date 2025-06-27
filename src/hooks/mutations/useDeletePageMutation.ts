@@ -43,12 +43,13 @@ export function useDeletePageMutation(options: IDeletePageMutationOptions = {}) 
         onSuccess: async (result, keyword: string) => {
             debug('Page deleted successfully', 'useDeletePageMutation', { keyword, result });
             
-            // Invalidate and refetch relevant queries to update the UI
+            // Invalidate and refetch relevant queries to update the UI with consistent query keys
             await Promise.all([
-                // Invalidate admin pages list
+                // Main admin pages list
                 queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
-                // Invalidate navigation pages (for frontend navigation)
+                // Frontend navigation pages
                 queryClient.invalidateQueries({ queryKey: ['pages'] }),
+                queryClient.invalidateQueries({ queryKey: ['frontend-pages'] }),
                 // Remove specific page data from cache
                 queryClient.removeQueries({ queryKey: ['pageSections', keyword] }),
                 queryClient.removeQueries({ queryKey: ['pageFields', keyword] }),

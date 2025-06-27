@@ -140,13 +140,21 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
             setOriginalValues({ ...formValues });
             debug('Section updated successfully, original values updated', 'SectionInspector', { sectionId });
             
-            // Invalidate relevant queries to refresh data
+            // Invalidate relevant queries to refresh data - using consistent query keys
             if (keyword) {
+                queryClient.invalidateQueries({ queryKey: ['adminPages'] }); // Admin pages list
+                queryClient.invalidateQueries({ queryKey: ['pageFields', keyword] }); // Page fields
+                queryClient.invalidateQueries({ queryKey: ['pageSections', keyword] }); // Page sections
+                queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'details', keyword, sectionId] }); // Section details (correct key)
+                queryClient.invalidateQueries({ queryKey: ['pages'] }); // Frontend pages
+                queryClient.invalidateQueries({ queryKey: ['page-content'] }); // Frontend page content
+                queryClient.invalidateQueries({ queryKey: ['frontend-pages'] }); // Frontend pages with language
+                
+                // Also invalidate any admin-specific queries that might exist
                 queryClient.invalidateQueries({ queryKey: ['admin', 'pages'] });
                 queryClient.invalidateQueries({ queryKey: ['admin', 'page', keyword] });
                 queryClient.invalidateQueries({ queryKey: ['admin', 'section', keyword, sectionId] });
-                queryClient.invalidateQueries({ queryKey: ['pages'] }); // Frontend pages
-                queryClient.invalidateQueries({ queryKey: ['page-content'] }); // Frontend page content
+                queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'details', keyword, sectionId] });
             }
         },
         onError: (error) => {

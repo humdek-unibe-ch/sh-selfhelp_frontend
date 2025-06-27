@@ -67,6 +67,7 @@ export function MonacoFieldEditor({
     const [isEditorReady, setIsEditorReady] = useState(false);
     const editorRef = useRef<any>(null);
     const monacoRef = useRef<any>(null);
+    const currentValueRef = useRef<string>(value || '');
 
     const config = languageConfig[language];
 
@@ -77,6 +78,11 @@ export function MonacoFieldEditor({
             readOnly
         });
     }, [language, value, readOnly]);
+
+    // Keep the current value ref in sync
+    useEffect(() => {
+        currentValueRef.current = value || '';
+    }, [value]);
 
     const handleBeforeMount = (monaco: any) => {
         monacoRef.current = monaco;
@@ -107,13 +113,27 @@ export function MonacoFieldEditor({
 
     const handleChange = (newValue: string | undefined) => {
         const value = newValue || '';
+        currentValueRef.current = value; // Keep ref in sync
+        
         debug('Monaco Editor value changed', 'MonacoFieldEditor', {
             language,
             newValueLength: value.length,
-            oldValueLength: value.length
+            previousValueLength: (currentValueRef.current || '').length
         });
+        
+        // Ensure the onChange is called immediately with the new value
         onChange(value);
     };
+
+    // Expose a method to get the current value (in case form needs it)
+    useEffect(() => {
+        if (isEditorReady && editorRef.current) {
+            // Add a custom method to get current value
+            (editorRef.current as any).getCurrentValue = () => {
+                return editorRef.current?.getValue() || currentValueRef.current;
+            };
+        }
+    }, [isEditorReady]);
 
     const editorOptions = {
         selectOnLineNumbers: true,

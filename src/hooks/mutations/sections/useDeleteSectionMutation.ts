@@ -45,9 +45,13 @@ export function useDeleteSectionMutation(options: IDeleteSectionMutationOptions 
                 result 
             });
             
-            // Invalidate relevant queries to update the UI
+            // Invalidate relevant queries to update the UI with consistent query keys
             const invalidationPromises = [
                 queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+                // Frontend navigation pages
+                queryClient.invalidateQueries({ queryKey: ['pages'] }),
+                queryClient.invalidateQueries({ queryKey: ['frontend-pages'] }),
+                queryClient.invalidateQueries({ queryKey: ['page-content'] }),
             ];
             
             // If pageKeyword is provided, also invalidate page-specific queries
