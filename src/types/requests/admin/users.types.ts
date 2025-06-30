@@ -2,7 +2,7 @@ export interface ICreateUserRequest {
   email: string;
   name?: string;
   user_name: string;
-  password: string;
+  password?: string;
   id_genders?: number;
   id_languages?: number;
   id_userTypes?: number;

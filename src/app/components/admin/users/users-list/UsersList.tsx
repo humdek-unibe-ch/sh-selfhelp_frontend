@@ -46,6 +46,7 @@ import {
   IconPlus,
   IconSortAscending,
   IconSortDescending,
+  IconX,
 } from '@tabler/icons-react';
 import { useUsers } from '../../../../../hooks/useUsers';
 import type { IUserBasic, IUsersListParams } from '../../../../../types/responses/admin/users.types';
@@ -212,15 +213,7 @@ export function UsersList({
           </Text>
         ),
       },
-      {
-        accessorKey: 'validation_code',
-        header: 'Validation Code',
-        cell: ({ row }) => (
-          <Text size="xs" ff="monospace" c="dimmed">
-            {row.original.validation_code || '-'}
-          </Text>
-        ),
-      },
+
       {
         accessorKey: 'user_type',
         header: ({ column }) => (
@@ -441,6 +434,18 @@ export function UsersList({
           <TextInput
             placeholder="Search users..."
             leftSection={<IconSearch size={16} />}
+            rightSection={
+              params.search ? (
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  onClick={() => handleSearch('')}
+                  size="sm"
+                >
+                  <IconX size={14} />
+                </ActionIcon>
+              ) : null
+            }
             value={params.search}
             onChange={(e) => handleSearch(e.currentTarget.value)}
             style={{ flex: 1 }}

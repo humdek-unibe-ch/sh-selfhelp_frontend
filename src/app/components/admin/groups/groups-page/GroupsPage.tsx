@@ -2,30 +2,26 @@
 
 import { useState } from 'react';
 import { GroupsList } from '../groups-list/GroupsList';
+import { GroupFormModal } from '../group-form-modal/GroupFormModal';
 import { useDeleteGroup } from '../../../../../hooks/useGroups';
 import { notifications } from '@mantine/notifications';
 
 export function GroupsPage() {
+  const [createModalOpened, setCreateModalOpened] = useState(false);
+  const [editModalOpened, setEditModalOpened] = useState(false);
+  const [editingGroupId, setEditingGroupId] = useState<number | null>(null);
+  
   const deleteGroupMutation = useDeleteGroup();
 
   // Handle create group
   const handleCreateGroup = () => {
-    // TODO: Implement create group modal
-    notifications.show({
-      title: 'Coming Soon',
-      message: 'Create group functionality will be implemented soon',
-      color: 'blue',
-    });
+    setCreateModalOpened(true);
   };
 
   // Handle edit group
   const handleEditGroup = (groupId: number) => {
-    // TODO: Implement edit group modal
-    notifications.show({
-      title: 'Coming Soon',
-      message: `Edit group functionality will be implemented soon (Group ID: ${groupId})`,
-      color: 'blue',
-    });
+    setEditingGroupId(groupId);
+    setEditModalOpened(true);
   };
 
   // Handle delete group
@@ -45,12 +41,39 @@ export function GroupsPage() {
     });
   };
 
+  // Handle modal close
+  const handleCloseCreateModal = () => {
+    setCreateModalOpened(false);
+  };
+
+  const handleCloseEditModal = () => {
+    setEditModalOpened(false);
+    setEditingGroupId(null);
+  };
+
   return (
-    <GroupsList
-      onCreateGroup={handleCreateGroup}
-      onEditGroup={handleEditGroup}
-      onDeleteGroup={handleDeleteGroup}
-      onManageAcls={handleManageAcls}
-    />
+    <>
+      <GroupsList
+        onCreateGroup={handleCreateGroup}
+        onEditGroup={handleEditGroup}
+        onDeleteGroup={handleDeleteGroup}
+        onManageAcls={handleManageAcls}
+      />
+
+      {/* Create Group Modal */}
+      <GroupFormModal
+        opened={createModalOpened}
+        onClose={handleCloseCreateModal}
+        mode="create"
+      />
+
+      {/* Edit Group Modal */}
+      <GroupFormModal
+        opened={editModalOpened}
+        onClose={handleCloseEditModal}
+        groupId={editingGroupId}
+        mode="edit"
+      />
+    </>
   );
 } 

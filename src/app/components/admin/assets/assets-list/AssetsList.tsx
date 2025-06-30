@@ -25,7 +25,7 @@ import {
   getSortedRowModel,
   type SortingState,
 } from '@tanstack/react-table';
-import { IconTrash, IconDownload, IconEye, IconSearch, IconChevronUp, IconChevronDown } from '@tabler/icons-react';
+import { IconTrash, IconDownload, IconEye, IconSearch, IconChevronUp, IconChevronDown, IconX } from '@tabler/icons-react';
 import { useAssets, useDeleteAsset } from '../../../../../hooks/useAssets';
 import type { IAsset } from '../../../../../api/admin/asset.api';
 
@@ -50,7 +50,7 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
     pageSize,
     search: debouncedSearch || undefined,
     sort: sorting[0]?.id,
-    sortDirection: sorting[0]?.desc ? 'desc' : 'asc',
+    sortDirection: (sorting[0]?.desc ? 'desc' : 'asc') as 'desc' | 'asc',
   }), [page, pageSize, debouncedSearch, sorting]);
 
   const { data: assetsData, isLoading, error } = useAssets(queryParams);
@@ -247,6 +247,18 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
         <TextInput
           placeholder="Search assets..."
           leftSection={<IconSearch size={16} />}
+          rightSection={
+            search ? (
+              <ActionIcon
+                variant="subtle"
+                color="gray"
+                onClick={() => setSearch('')}
+                size="sm"
+              >
+                <IconX size={14} />
+              </ActionIcon>
+            ) : null
+          }
           value={search}
           onChange={(e) => setSearch(e.currentTarget.value)}
           style={{ flex: 1 }}
@@ -335,7 +347,7 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
         </Table>
 
         {/* Pagination Info */}
-        {assetsData && (
+        {assetsData && assetsData.pagination && (
           <Group justify="space-between" p="md">
             <Text size="sm" c="dimmed">
               Showing {((page - 1) * pageSize) + 1} to {Math.min(page * pageSize, assetsData.pagination.total)} of {assetsData.pagination.total} assets

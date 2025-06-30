@@ -2,30 +2,26 @@
 
 import { useState } from 'react';
 import { RolesList } from '../roles-list/RolesList';
+import { RoleFormModal } from '../role-form-modal/RoleFormModal';
 import { useDeleteRole } from '../../../../../hooks/useRoles';
 import { notifications } from '@mantine/notifications';
 
 export function RolesPage() {
+  const [createModalOpened, setCreateModalOpened] = useState(false);
+  const [editModalOpened, setEditModalOpened] = useState(false);
+  const [editingRoleId, setEditingRoleId] = useState<number | null>(null);
+  
   const deleteRoleMutation = useDeleteRole();
 
   // Handle create role
   const handleCreateRole = () => {
-    // TODO: Implement create role modal
-    notifications.show({
-      title: 'Coming Soon',
-      message: 'Create role functionality will be implemented soon',
-      color: 'blue',
-    });
+    setCreateModalOpened(true);
   };
 
   // Handle edit role
   const handleEditRole = (roleId: number) => {
-    // TODO: Implement edit role modal
-    notifications.show({
-      title: 'Coming Soon',
-      message: `Edit role functionality will be implemented soon (Role ID: ${roleId})`,
-      color: 'blue',
-    });
+    setEditingRoleId(roleId);
+    setEditModalOpened(true);
   };
 
   // Handle delete role
@@ -45,12 +41,39 @@ export function RolesPage() {
     });
   };
 
+  // Handle modal close
+  const handleCloseCreateModal = () => {
+    setCreateModalOpened(false);
+  };
+
+  const handleCloseEditModal = () => {
+    setEditModalOpened(false);
+    setEditingRoleId(null);
+  };
+
   return (
-    <RolesList
-      onCreateRole={handleCreateRole}
-      onEditRole={handleEditRole}
-      onDeleteRole={handleDeleteRole}
-      onManagePermissions={handleManagePermissions}
-    />
+    <>
+      <RolesList
+        onCreateRole={handleCreateRole}
+        onEditRole={handleEditRole}
+        onDeleteRole={handleDeleteRole}
+        onManagePermissions={handleManagePermissions}
+      />
+
+      {/* Create Role Modal */}
+      <RoleFormModal
+        opened={createModalOpened}
+        onClose={handleCloseCreateModal}
+        mode="create"
+      />
+
+      {/* Edit Role Modal */}
+      <RoleFormModal
+        opened={editModalOpened}
+        onClose={handleCloseEditModal}
+        roleId={editingRoleId}
+        mode="edit"
+      />
+    </>
   );
 } 

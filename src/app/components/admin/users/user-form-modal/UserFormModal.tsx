@@ -33,8 +33,6 @@ interface IUserFormValues {
   email: string;
   name: string;
   user_name: string;
-  password?: string;
-  confirmPassword?: string;
   id_genders: string | null;
   blocked: boolean;
   groupIds: string[];
@@ -56,8 +54,6 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
       email: '',
       name: '',
       user_name: '',
-      password: '',
-      confirmPassword: '',
       id_genders: null,
       blocked: false,
       groupIds: [],
@@ -71,16 +67,6 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
       },
       name: (value) => (!value ? 'Name is required' : null),
       user_name: (value) => (!value ? 'Username is required' : null),
-      password: (value) => {
-        if (mode === 'create' && !value) return 'Password is required';
-        if (value && value.length < 8) return 'Password must be at least 8 characters';
-        return null;
-      },
-      confirmPassword: (value, values) => {
-        if (mode === 'create' && !value) return 'Please confirm password';
-        if (value && value !== values.password) return 'Passwords do not match';
-        return null;
-      },
     },
   });
 
@@ -91,8 +77,6 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
         email: userDetails.email,
         name: userDetails.name || '',
         user_name: userDetails.user_name || '',
-        password: '',
-        confirmPassword: '',
         id_genders: userDetails.id_genders?.toString() || null,
         blocked: userDetails.blocked,
         groupIds: userDetails.groups.map((g: any) => g.id.toString()),
@@ -124,7 +108,6 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
       if (mode === 'create') {
         const createData: ICreateUserRequest = {
           ...userData,
-          password: values.password!,
         };
         await createUserMutation.mutateAsync(createData);
         notifications.show({
@@ -135,7 +118,6 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
       } else if (userId) {
         const updateData: IUpdateUserRequest = {
           ...userData,
-          ...(values.password && { password: values.password }),
         };
         await updateUserMutation.mutateAsync({ userId, userData: updateData });
         notifications.show({
@@ -202,6 +184,7 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
                 label="Email"
                 placeholder="user@example.com"
                 required
+                autoComplete="off"
                 {...form.getInputProps('email')}
               />
               
@@ -210,12 +193,14 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
                   label="Full Name"
                   placeholder="John Doe"
                   required
+                  autoComplete="off"
                   {...form.getInputProps('name')}
                 />
                 <TextInput
                   label="Username"
                   placeholder="johndoe"
                   required
+                  autoComplete="off"
                   {...form.getInputProps('user_name')}
                 />
               </Group>
@@ -225,31 +210,6 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
                 placeholder="Select gender"
                 data={genderOptions}
                 {...form.getInputProps('id_genders')}
-              />
-            </Stack>
-          </div>
-
-          <Divider />
-
-          {/* Password Section */}
-          <div>
-            <Text size="sm" fw={500} mb="xs">
-              {mode === 'create' ? 'Password' : 'Change Password (Optional)'}
-            </Text>
-            <Stack gap="sm">
-              <TextInput
-                label="Password"
-                type="password"
-                placeholder="Enter password"
-                required={mode === 'create'}
-                {...form.getInputProps('password')}
-              />
-              <TextInput
-                label="Confirm Password"
-                type="password"
-                placeholder="Confirm password"
-                required={mode === 'create'}
-                {...form.getInputProps('confirmPassword')}
               />
             </Stack>
           </div>

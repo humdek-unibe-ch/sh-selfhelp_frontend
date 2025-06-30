@@ -100,6 +100,9 @@ export const API_CONFIG = {
         ADMIN_ROLES_PERMISSIONS_ADD: (roleId: number) => `/admin/roles/${roleId}/permissions`,
         ADMIN_ROLES_PERMISSIONS_REMOVE: (roleId: number) => `/admin/roles/${roleId}/permissions`,
         ADMIN_ROLES_PERMISSIONS_UPDATE: (roleId: number) => `/admin/roles/${roleId}/permissions`,
+
+        // Admin permissions endpoints
+        ADMIN_PERMISSIONS_GET_ALL: '/admin/permissions',
         
         // Admin section creation endpoints
         ADMIN_PAGES_CREATE_SECTION: (keyword: string) => `/admin/pages/${keyword}/sections/create`,

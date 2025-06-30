@@ -1,5 +1,8 @@
 'use client';
 
+import { Suspense } from 'react';
+import { LoadingScreen } from '../../components/common/LoadingScreen';
+import { AdminShell } from '../../components/admin/admin-shell/AdminShell';
 import { useState, useEffect } from 'react';
 import { 
     Container, 
@@ -26,7 +29,7 @@ import { useLanguages } from '../../../hooks/useLanguages';
 import { ICMSPreferences } from '../../../api/admin/preferences.api';
 import { notifications } from '@mantine/notifications';
 
-export default function PreferencesPage() {
+function PreferencesPageContent() {
     const { data: preferences, isLoading, error } = useCmsPreferences();
     const { languages, isLoading: languagesLoading } = useLanguages();
     const updateMutation = useUpdateCmsPreferences();
@@ -176,5 +179,15 @@ export default function PreferencesPage() {
                 </Paper>
             </Stack>
         </Container>
+    );
+}
+
+export default function PreferencesPage() {
+    return (
+        <AdminShell>
+            <Suspense fallback={<LoadingScreen />}>
+                <PreferencesPageContent />
+            </Suspense>
+        </AdminShell>
     );
 } 
