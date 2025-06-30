@@ -10,6 +10,8 @@ export { AdminSectionApi } from './section.api';
 export { AdminStyleApi } from './style.api';
 export { AdminLanguageApi } from './language.api';
 export { AdminUserApi } from './user.api';
+export { AdminGenderApi } from './gender.api';
+export { AdminAssetApi } from './asset.api';
 
 // Legacy compatibility - re-export as AdminApi for backward compatibility
 import { AdminPageApi } from './page.api';
@@ -17,6 +19,8 @@ import { AdminSectionApi } from './section.api';
 import { AdminStyleApi } from './style.api';
 import { AdminLanguageApi } from './language.api';
 import { AdminUserApi } from './user.api';
+import { AdminGenderApi } from './gender.api';
+import { AdminAssetApi } from './asset.api';
 
 export const AdminApi = {
     // Page methods
@@ -32,5 +36,11 @@ export const AdminApi = {
     ...AdminLanguageApi,
     
     // User methods
-    ...AdminUserApi
+    ...AdminUserApi,
+    
+    // Gender methods
+    ...AdminGenderApi,
+    
+    // Asset methods
+    ...AdminAssetApi
 }; 

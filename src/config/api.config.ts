@@ -51,6 +51,19 @@ export const API_CONFIG = {
         // Admin styles endpoints
         ADMIN_STYLES_GET_ALL: '/admin/styles',
 
+        // Admin genders endpoints
+        ADMIN_GENDERS_GET_ALL: '/admin/genders',
+
+        // Admin CMS preferences endpoints
+        ADMIN_CMS_PREFERENCES_GET: '/admin/cms-preferences',
+        ADMIN_CMS_PREFERENCES_UPDATE: '/admin/cms-preferences',
+
+        // Admin assets endpoints
+        ADMIN_ASSETS_GET_ALL: '/admin/assets',
+        ADMIN_ASSETS_GET_ONE: (assetId: number) => `/admin/assets/${assetId}`,
+        ADMIN_ASSETS_CREATE: '/admin/assets',
+        ADMIN_ASSETS_DELETE: (assetId: number) => `/admin/assets/${assetId}`,
+
         // Admin users endpoints
         ADMIN_USERS_GET_ALL: '/admin/users',
         ADMIN_USERS_GET_ONE: (userId: number) => `/admin/users/${userId}`,

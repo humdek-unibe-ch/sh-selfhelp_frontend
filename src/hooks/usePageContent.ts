@@ -39,7 +39,7 @@ export function usePageContent(keyword: string, enabled: boolean = true) {
         queryFn: () => PageApi.getPageContent(keyword, currentLanguageId),
         enabled: !!keyword && !!currentLanguageId,
         staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-        gcTime: 10 * 60 * 1000, // 10 minutes
+        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
         retry: 2,
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     });

@@ -20,6 +20,7 @@ import { useCreateUser, useUpdateUser, useUserDetails } from '../../../../../hoo
 import type { ICreateUserRequest, IUpdateUserRequest } from '../../../../../types/requests/admin/users.types';
 import { useGroups } from '../../../../../hooks/useGroups';
 import { useRoles } from '../../../../../hooks/useRoles';
+import { useGenders } from '../../../../../hooks/useGenders';
 
 interface IUserFormModalProps {
   opened: boolean;
@@ -35,8 +36,6 @@ interface IUserFormValues {
   password?: string;
   confirmPassword?: string;
   id_genders: string | null;
-  id_languages: string | null;
-  id_userTypes: string | null;
   blocked: boolean;
   groupIds: string[];
   roleIds: string[];
@@ -49,7 +48,7 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
   const { data: userDetails, isLoading: isLoadingUser } = useUserDetails(userId || 0);
   const { data: groups, isLoading: isLoadingGroups } = useGroups();
   const { data: roles, isLoading: isLoadingRoles } = useRoles();
-  // const { data: lookups, isLoading: isLoadingLookups } = useLookups();
+  const { data: genders, isLoading: isLoadingGenders } = useGenders();
 
   // Form
   const form = useForm<IUserFormValues>({
@@ -60,8 +59,6 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
       password: '',
       confirmPassword: '',
       id_genders: null,
-      id_languages: null,
-      id_userTypes: null,
       blocked: false,
       groupIds: [],
       roleIds: [],
@@ -97,8 +94,6 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
         password: '',
         confirmPassword: '',
         id_genders: userDetails.id_genders?.toString() || null,
-        id_languages: userDetails.id_languages?.toString() || null,
-        id_userTypes: userDetails.id_userTypes?.toString() || null,
         blocked: userDetails.blocked,
         groupIds: userDetails.groups.map((g: any) => g.id.toString()),
         roleIds: userDetails.roles.map((r: any) => r.id.toString()),
@@ -121,8 +116,6 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
         name: values.name || undefined,
         user_name: values.user_name,
         id_genders: values.id_genders ? parseInt(values.id_genders, 10) : undefined,
-        id_languages: values.id_languages ? parseInt(values.id_languages, 10) : undefined,
-        id_userTypes: values.id_userTypes ? parseInt(values.id_userTypes, 10) : undefined,
         blocked: values.blocked,
         group_ids: values.groupIds.map(id => parseInt(id, 10)),
         role_ids: values.roleIds.map(id => parseInt(id, 10)),
@@ -162,27 +155,14 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
     }
   };
 
-  const isLoading = isLoadingUser || isLoadingGroups || isLoadingRoles;
+  const isLoading = isLoadingUser || isLoadingGroups || isLoadingRoles || isLoadingGenders;
   const isSubmitting = createUserMutation.isPending || updateUserMutation.isPending;
 
   // Prepare select data
-  const genderOptions = [
-    { value: '1', label: 'Male' },
-    { value: '2', label: 'Female' },
-    { value: '3', label: 'Other' },
-  ];
-
-  const languageOptions = [
-    { value: '1', label: 'English' },
-    { value: '2', label: 'German' },
-    { value: '3', label: 'French' },
-  ];
-
-  const userTypeOptions = [
-    { value: '1', label: 'User' },
-    { value: '2', label: 'Admin' },
-    { value: '3', label: 'Super Admin' },
-  ];
+  const genderOptions = genders?.genders?.map((gender) => ({
+    value: gender.id.toString(),
+    label: gender.name,
+  })) || [];
 
   const groupOptions = groups?.groups?.map((group) => ({
     value: group.id.toString(),
@@ -205,7 +185,7 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
           {mode === 'create' ? 'Create New User' : 'Edit User'}
         </Text>
       }
-      size="lg"
+      size="xl"
       centered
     >
       <LoadingOverlay visible={isLoading} />
@@ -240,26 +220,11 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
                 />
               </Group>
 
-              <Group grow>
-                <Select
-                  label="Gender"
-                  placeholder="Select gender"
-                  data={genderOptions}
-                  {...form.getInputProps('id_genders')}
-                />
-                <Select
-                  label="Language"
-                  placeholder="Select language"
-                  data={languageOptions}
-                  {...form.getInputProps('id_languages')}
-                />
-              </Group>
-
               <Select
-                label="User Type"
-                placeholder="Select user type"
-                data={userTypeOptions}
-                {...form.getInputProps('id_userTypes')}
+                label="Gender"
+                placeholder="Select gender"
+                data={genderOptions}
+                {...form.getInputProps('id_genders')}
               />
             </Stack>
           </div>

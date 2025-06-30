@@ -27,8 +27,8 @@ export const PageApi = {
             url += `?language_id=${languageId}`;
         }
         
-        const response = await apiClient.get<IBaseApiResponse<IPageContent>>(url);
-        return response.data.data;
+        const response = await apiClient.get<IBaseApiResponse<{ page: IPageContent }>>(url);
+        return response.data.data.page;
     },
     
     /**
