@@ -6,11 +6,13 @@
  * @module hooks/usePageContent
  */
 
-import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { PageApi } from '../api/page.api';
+import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useEffect, useRef } from 'react';
 import { usePageContentContext } from '../app/contexts/PageContentContext';
 import { useLanguageContext } from '../app/contexts/LanguageContext';
+import type { IPageContent } from '../types/responses/frontend/frontend.types';
 
 /**
  * Hook for fetching and managing page content.
@@ -32,16 +34,14 @@ export function usePageContent(keyword: string, enabled: boolean = true) {
         isSuccess,
         error,
         isPlaceholderData
-    } = useQuery({
+    } = useQuery<IPageContent>({
         queryKey: ['page-content', keyword, currentLanguageId],
         queryFn: () => PageApi.getPageContent(keyword, currentLanguageId),
-        staleTime: 5 * 60 * 1000, // Cache for 5 minutes instead of 1 second
-        gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
-        enabled: !!keyword && enabled, // Only run query if keyword is provided and enabled is true
-        refetchOnWindowFocus: false, // Prevent refetch on window focus
-        refetchOnMount: true, // Allow refetch on mount to ensure fresh data for new pages
-        retry: 1, // Reduce retries to prevent loops
-        placeholderData: keepPreviousData, // Keep previous data during refetch for smooth transitions
+        enabled: !!keyword && !!currentLanguageId,
+        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
+        gcTime: 10 * 60 * 1000, // 10 minutes
+        retry: 2,
+        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     });
 
     // Sync React Query data with context only when data actually changes

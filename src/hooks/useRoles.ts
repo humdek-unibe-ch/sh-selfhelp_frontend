@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AdminRoleApi } from '../api/admin/role.api';
+import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { notifications } from '@mantine/notifications';
 import type { 
   IRolesListParams, 
@@ -22,7 +23,6 @@ const ROLES_QUERY_KEYS = {
   list: (params: IRolesListParams) => [...ROLES_QUERY_KEYS.lists(), params] as const,
   details: () => [...ROLES_QUERY_KEYS.all, 'detail'] as const,
   detail: (id: number) => [...ROLES_QUERY_KEYS.details(), id] as const,
-  allRoles: () => [...ROLES_QUERY_KEYS.all, 'all-roles'] as const,
   permissions: (id: number) => [...ROLES_QUERY_KEYS.all, 'permissions', id] as const,
 };
 
@@ -31,16 +31,7 @@ export function useRoles(params: IRolesListParams = {}) {
   return useQuery({
     queryKey: ROLES_QUERY_KEYS.list(params),
     queryFn: () => AdminRoleApi.getRoles(params),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-}
-
-// Get all roles (for dropdowns)
-export function useAllRoles() {
-  return useQuery({
-    queryKey: ROLES_QUERY_KEYS.allRoles(),
-    queryFn: () => AdminRoleApi.getAllRoles(),
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.staleTime,
   });
 }
 
@@ -50,6 +41,7 @@ export function useRoleDetails(roleId: number) {
     queryKey: ROLES_QUERY_KEYS.detail(roleId),
     queryFn: () => AdminRoleApi.getRoleById(roleId),
     enabled: !!roleId,
+    staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
   });
 }
 
@@ -59,6 +51,7 @@ export function useRolePermissions(roleId: number) {
     queryKey: ROLES_QUERY_KEYS.permissions(roleId),
     queryFn: () => AdminRoleApi.getRolePermissions(roleId),
     enabled: !!roleId,
+    staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
   });
 }
 

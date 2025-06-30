@@ -17,11 +17,9 @@ import {
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useCreateUser, useUpdateUser, useUserDetails } from '../../../../../hooks/useUsers';
-import { useAllGroups } from '../../../../../hooks/useGroups';
-import { useAllRoles } from '../../../../../hooks/useRoles';
-import { useLookups } from '../../../../../hooks/useLookups';
-import type { IUserDetails } from '../../../../../types/responses/admin/users.types';
 import type { ICreateUserRequest, IUpdateUserRequest } from '../../../../../types/requests/admin/users.types';
+import { useGroups } from '../../../../../hooks/useGroups';
+import { useRoles } from '../../../../../hooks/useRoles';
 
 interface IUserFormModalProps {
   opened: boolean;
@@ -49,8 +47,8 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
   const createUserMutation = useCreateUser();
   const updateUserMutation = useUpdateUser();
   const { data: userDetails, isLoading: isLoadingUser } = useUserDetails(userId || 0);
-  const { data: groups, isLoading: isLoadingGroups } = useAllGroups();
-  const { data: roles, isLoading: isLoadingRoles } = useAllRoles();
+  const { data: groups, isLoading: isLoadingGroups } = useGroups();
+  const { data: roles, isLoading: isLoadingRoles } = useRoles();
   // const { data: lookups, isLoading: isLoadingLookups } = useLookups();
 
   // Form
@@ -186,13 +184,13 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
     { value: '3', label: 'Super Admin' },
   ];
 
-  const groupOptions = groups?.map(group => ({
+  const groupOptions = groups?.groups?.map((group) => ({
     value: group.id.toString(),
     label: group.name,
     description: group.description,
   })) || [];
 
-  const roleOptions = roles?.map(role => ({
+  const roleOptions = roles?.roles?.map((role) => ({
     value: role.id.toString(),
     label: role.name,
     description: role.description,

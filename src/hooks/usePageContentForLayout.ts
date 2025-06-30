@@ -8,7 +8,9 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { PageApi } from '../api/page.api';
+import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useLanguageContext } from '../app/contexts/LanguageContext';
+import type { IPageContent } from '../types/responses/frontend/frontend.types';
 
 /**
  * Hook for fetching page content in layout components.
@@ -27,15 +29,14 @@ export function usePageContentForLayout(keyword: string, enabled: boolean = true
         isFetching,
         isSuccess,
         error 
-    } = useQuery({
-        queryKey: ['page-content', keyword, currentLanguageId],
+    } = useQuery<IPageContent>({
+        queryKey: ['page-content-layout', keyword, currentLanguageId],
         queryFn: () => PageApi.getPageContent(keyword, currentLanguageId),
-        staleTime: 5 * 60 * 1000, // Cache for 5 minutes to match usePageContent
-        gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
-        enabled: !!keyword && enabled, // Only run query if keyword is provided and enabled is true
-        refetchOnWindowFocus: false, // Prevent refetch on window focus
-        refetchOnMount: false, // Don't refetch on mount if data exists
-        retry: 1, // Reduce retries to prevent loops
+        enabled: !!keyword && !!currentLanguageId,
+        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
+        gcTime: 10 * 60 * 1000, // 10 minutes
+        retry: 2,
+        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     });
 
     return {

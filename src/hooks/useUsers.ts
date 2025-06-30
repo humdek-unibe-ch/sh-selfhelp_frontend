@@ -1,7 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AdminUserApi } from '../api/admin/user.api';
+import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import type { 
   IUsersListParams, 
+  IUsersListResponse, 
   IUserDetails, 
   IUserGroup, 
   IUserRole 
@@ -49,7 +51,7 @@ export function useUsers(params: IUsersListParams = {}) {
   return useQuery({
     queryKey: USER_QUERY_KEYS.list(params),
     queryFn: () => AdminUserApi.getUsers(params),
-    staleTime: 30000, // 30 seconds
+    staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.USER_DATA.staleTime,
   });
 }
 

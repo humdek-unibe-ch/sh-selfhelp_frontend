@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AdminGroupApi } from '../api/admin/group.api';
+import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { notifications } from '@mantine/notifications';
 import type { 
   IGroupsListParams, 
@@ -20,7 +21,6 @@ const GROUPS_QUERY_KEYS = {
   list: (params: IGroupsListParams) => [...GROUPS_QUERY_KEYS.lists(), params] as const,
   details: () => [...GROUPS_QUERY_KEYS.all, 'detail'] as const,
   detail: (id: number) => [...GROUPS_QUERY_KEYS.details(), id] as const,
-  allGroups: () => [...GROUPS_QUERY_KEYS.all, 'all-groups'] as const,
   acls: (id: number) => [...GROUPS_QUERY_KEYS.all, 'acls', id] as const,
 };
 
@@ -29,16 +29,7 @@ export function useGroups(params: IGroupsListParams = {}) {
   return useQuery({
     queryKey: GROUPS_QUERY_KEYS.list(params),
     queryFn: () => AdminGroupApi.getGroups(params),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-}
-
-// Get all groups (for dropdowns)
-export function useAllGroups() {
-  return useQuery({
-    queryKey: GROUPS_QUERY_KEYS.allGroups(),
-    queryFn: () => AdminGroupApi.getAllGroups(),
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.staleTime,
   });
 }
 
@@ -48,6 +39,7 @@ export function useGroupDetails(groupId: number) {
     queryKey: GROUPS_QUERY_KEYS.detail(groupId),
     queryFn: () => AdminGroupApi.getGroupById(groupId),
     enabled: !!groupId,
+    staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
   });
 }
 
@@ -57,6 +49,7 @@ export function useGroupAcls(groupId: number) {
     queryKey: GROUPS_QUERY_KEYS.acls(groupId),
     queryFn: () => AdminGroupApi.getGroupAcls(groupId),
     enabled: !!groupId,
+    staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
   });
 }
 

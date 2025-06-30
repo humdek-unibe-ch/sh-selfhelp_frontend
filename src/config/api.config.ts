@@ -50,6 +50,43 @@ export const API_CONFIG = {
         
         // Admin styles endpoints
         ADMIN_STYLES_GET_ALL: '/admin/styles',
+
+        // Admin users endpoints
+        ADMIN_USERS_GET_ALL: '/admin/users',
+        ADMIN_USERS_GET_ONE: (userId: number) => `/admin/users/${userId}`,
+        ADMIN_USERS_CREATE: '/admin/users',
+        ADMIN_USERS_UPDATE: (userId: number) => `/admin/users/${userId}`,
+        ADMIN_USERS_DELETE: (userId: number) => `/admin/users/${userId}`,
+        ADMIN_USERS_BLOCK: (userId: number) => `/admin/users/${userId}/block`,
+        ADMIN_USERS_GROUPS_GET: (userId: number) => `/admin/users/${userId}/groups`,
+        ADMIN_USERS_GROUPS_ADD: (userId: number) => `/admin/users/${userId}/groups`,
+        ADMIN_USERS_GROUPS_REMOVE: (userId: number) => `/admin/users/${userId}/groups`,
+        ADMIN_USERS_ROLES_GET: (userId: number) => `/admin/users/${userId}/roles`,
+        ADMIN_USERS_ROLES_ADD: (userId: number) => `/admin/users/${userId}/roles`,
+        ADMIN_USERS_ROLES_REMOVE: (userId: number) => `/admin/users/${userId}/roles`,
+        ADMIN_USERS_SEND_ACTIVATION: (userId: number) => `/admin/users/${userId}/send-activation-mail`,
+        ADMIN_USERS_CLEAN_DATA: (userId: number) => `/admin/users/${userId}/clean-data`,
+        ADMIN_USERS_IMPERSONATE: (userId: number) => `/admin/users/${userId}/impersonate`,
+
+        // Admin groups endpoints (only paginated endpoint exists)
+        ADMIN_GROUPS_GET_ALL: '/admin/groups',
+        ADMIN_GROUPS_GET_ONE: (groupId: number) => `/admin/groups/${groupId}`,
+        ADMIN_GROUPS_CREATE: '/admin/groups',
+        ADMIN_GROUPS_UPDATE: (groupId: number) => `/admin/groups/${groupId}`,
+        ADMIN_GROUPS_DELETE: (groupId: number) => `/admin/groups/${groupId}`,
+        ADMIN_GROUPS_ACLS_GET: (groupId: number) => `/admin/groups/${groupId}/acls`,
+        ADMIN_GROUPS_ACLS_UPDATE: (groupId: number) => `/admin/groups/${groupId}/acls`,
+
+        // Admin roles endpoints (only paginated endpoint exists)
+        ADMIN_ROLES_GET_ALL: '/admin/roles',
+        ADMIN_ROLES_GET_ONE: (roleId: number) => `/admin/roles/${roleId}`,
+        ADMIN_ROLES_CREATE: '/admin/roles',
+        ADMIN_ROLES_UPDATE: (roleId: number) => `/admin/roles/${roleId}`,
+        ADMIN_ROLES_DELETE: (roleId: number) => `/admin/roles/${roleId}`,
+        ADMIN_ROLES_PERMISSIONS_GET: (roleId: number) => `/admin/roles/${roleId}/permissions`,
+        ADMIN_ROLES_PERMISSIONS_ADD: (roleId: number) => `/admin/roles/${roleId}/permissions`,
+        ADMIN_ROLES_PERMISSIONS_REMOVE: (roleId: number) => `/admin/roles/${roleId}/permissions`,
+        ADMIN_ROLES_PERMISSIONS_UPDATE: (roleId: number) => `/admin/roles/${roleId}/permissions`,
         
         // Admin section creation endpoints
         ADMIN_PAGES_CREATE_SECTION: (keyword: string) => `/admin/pages/${keyword}/sections/create`,

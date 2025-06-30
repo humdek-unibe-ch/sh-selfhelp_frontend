@@ -1,4 +1,5 @@
 import { apiClient } from '../base.api';
+import { API_CONFIG } from '../../config/api.config';
 import type { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
 import type { 
   IGroupsListResponse, 
@@ -25,16 +26,8 @@ export const AdminGroupApi = {
     if (params.sort) searchParams.append('sort', params.sort);
     if (params.sortDirection) searchParams.append('sortDirection', params.sortDirection);
 
-    const url = `/admin/groups${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+    const url = `${API_CONFIG.ENDPOINTS.ADMIN_GROUPS_GET_ALL}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
     const response = await apiClient.get<IBaseApiResponse<IGroupsListResponse>>(url);
-    return response.data.data;
-  },
-
-  /**
-   * Get all groups (without pagination) for dropdowns
-   */
-  async getAllGroups(): Promise<IGroupDetails[]> {
-    const response = await apiClient.get<IBaseApiResponse<IGroupDetails[]>>('/admin/groups/all');
     return response.data.data;
   },
 
@@ -42,7 +35,7 @@ export const AdminGroupApi = {
    * Get single group details by ID
    */
   async getGroupById(groupId: number): Promise<IGroupDetails> {
-    const response = await apiClient.get<IBaseApiResponse<IGroupDetails>>(`/admin/groups/${groupId}`);
+    const response = await apiClient.get<IBaseApiResponse<IGroupDetails>>(API_CONFIG.ENDPOINTS.ADMIN_GROUPS_GET_ONE(groupId));
     return response.data.data;
   },
 
@@ -50,7 +43,7 @@ export const AdminGroupApi = {
    * Create a new group
    */
   async createGroup(groupData: ICreateGroupRequest): Promise<IGroupDetails> {
-    const response = await apiClient.post<IBaseApiResponse<IGroupDetails>>('/admin/groups', groupData);
+    const response = await apiClient.post<IBaseApiResponse<IGroupDetails>>(API_CONFIG.ENDPOINTS.ADMIN_GROUPS_CREATE, groupData);
     return response.data.data;
   },
 
@@ -58,7 +51,7 @@ export const AdminGroupApi = {
    * Update existing group
    */
   async updateGroup(groupId: number, groupData: IUpdateGroupRequest): Promise<IGroupDetails> {
-    const response = await apiClient.put<IBaseApiResponse<IGroupDetails>>(`/admin/groups/${groupId}`, groupData);
+    const response = await apiClient.put<IBaseApiResponse<IGroupDetails>>(API_CONFIG.ENDPOINTS.ADMIN_GROUPS_UPDATE(groupId), groupData);
     return response.data.data;
   },
 
@@ -66,7 +59,7 @@ export const AdminGroupApi = {
    * Delete group
    */
   async deleteGroup(groupId: number): Promise<{ success: boolean }> {
-    const response = await apiClient.delete(`/admin/groups/${groupId}`);
+    const response = await apiClient.delete(API_CONFIG.ENDPOINTS.ADMIN_GROUPS_DELETE(groupId));
     return { success: response.status === 204 || response.status === 200 };
   },
 
@@ -74,7 +67,7 @@ export const AdminGroupApi = {
    * Get group ACLs
    */
   async getGroupAcls(groupId: number): Promise<IGroupAcl[]> {
-    const response = await apiClient.get<IBaseApiResponse<IGroupAcl[]>>(`/admin/groups/${groupId}/acls`);
+    const response = await apiClient.get<IBaseApiResponse<IGroupAcl[]>>(API_CONFIG.ENDPOINTS.ADMIN_GROUPS_ACLS_GET(groupId));
     return response.data.data;
   },
 
@@ -82,7 +75,7 @@ export const AdminGroupApi = {
    * Update group ACLs
    */
   async updateGroupAcls(groupId: number, data: IUpdateGroupAclsRequest): Promise<IGroupAcl[]> {
-    const response = await apiClient.put<IBaseApiResponse<IGroupAcl[]>>(`/admin/groups/${groupId}/acls`, data);
+    const response = await apiClient.put<IBaseApiResponse<IGroupAcl[]>>(API_CONFIG.ENDPOINTS.ADMIN_GROUPS_ACLS_UPDATE(groupId), data);
     return response.data.data;
   }
 }; 

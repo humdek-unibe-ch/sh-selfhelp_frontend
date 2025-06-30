@@ -1,4 +1,5 @@
 import { apiClient } from '../base.api';
+import { API_CONFIG } from '../../config/api.config';
 import type { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
 import type { 
   IRolesListResponse, 
@@ -27,16 +28,8 @@ export const AdminRoleApi = {
     if (params.sort) searchParams.append('sort', params.sort);
     if (params.sortDirection) searchParams.append('sortDirection', params.sortDirection);
 
-    const url = `/admin/roles${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+    const url = `${API_CONFIG.ENDPOINTS.ADMIN_ROLES_GET_ALL}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
     const response = await apiClient.get<IBaseApiResponse<IRolesListResponse>>(url);
-    return response.data.data;
-  },
-
-  /**
-   * Get all roles (without pagination) for dropdowns
-   */
-  async getAllRoles(): Promise<IRoleDetails[]> {
-    const response = await apiClient.get<IBaseApiResponse<IRoleDetails[]>>('/admin/roles/all');
     return response.data.data;
   },
 
@@ -44,7 +37,7 @@ export const AdminRoleApi = {
    * Get single role details by ID
    */
   async getRoleById(roleId: number): Promise<IRoleDetails> {
-    const response = await apiClient.get<IBaseApiResponse<IRoleDetails>>(`/admin/roles/${roleId}`);
+    const response = await apiClient.get<IBaseApiResponse<IRoleDetails>>(API_CONFIG.ENDPOINTS.ADMIN_ROLES_GET_ONE(roleId));
     return response.data.data;
   },
 
@@ -52,7 +45,7 @@ export const AdminRoleApi = {
    * Create a new role
    */
   async createRole(roleData: ICreateRoleRequest): Promise<IRoleDetails> {
-    const response = await apiClient.post<IBaseApiResponse<IRoleDetails>>('/admin/roles', roleData);
+    const response = await apiClient.post<IBaseApiResponse<IRoleDetails>>(API_CONFIG.ENDPOINTS.ADMIN_ROLES_CREATE, roleData);
     return response.data.data;
   },
 
@@ -60,7 +53,7 @@ export const AdminRoleApi = {
    * Update existing role
    */
   async updateRole(roleId: number, roleData: IUpdateRoleRequest): Promise<IRoleDetails> {
-    const response = await apiClient.put<IBaseApiResponse<IRoleDetails>>(`/admin/roles/${roleId}`, roleData);
+    const response = await apiClient.put<IBaseApiResponse<IRoleDetails>>(API_CONFIG.ENDPOINTS.ADMIN_ROLES_UPDATE(roleId), roleData);
     return response.data.data;
   },
 
@@ -68,7 +61,7 @@ export const AdminRoleApi = {
    * Delete role
    */
   async deleteRole(roleId: number): Promise<{ success: boolean }> {
-    const response = await apiClient.delete(`/admin/roles/${roleId}`);
+    const response = await apiClient.delete(API_CONFIG.ENDPOINTS.ADMIN_ROLES_DELETE(roleId));
     return { success: response.status === 204 || response.status === 200 };
   },
 
@@ -76,7 +69,7 @@ export const AdminRoleApi = {
    * Get role permissions
    */
   async getRolePermissions(roleId: number): Promise<IRolePermission[]> {
-    const response = await apiClient.get<IBaseApiResponse<IRolePermission[]>>(`/admin/roles/${roleId}/permissions`);
+    const response = await apiClient.get<IBaseApiResponse<IRolePermission[]>>(API_CONFIG.ENDPOINTS.ADMIN_ROLES_PERMISSIONS_GET(roleId));
     return response.data.data;
   },
 
@@ -84,7 +77,7 @@ export const AdminRoleApi = {
    * Add permissions to role
    */
   async addPermissionsToRole(roleId: number, data: IAddPermissionsToRoleRequest): Promise<IRolePermission[]> {
-    const response = await apiClient.post<IBaseApiResponse<IRolePermission[]>>(`/admin/roles/${roleId}/permissions`, data);
+    const response = await apiClient.post<IBaseApiResponse<IRolePermission[]>>(API_CONFIG.ENDPOINTS.ADMIN_ROLES_PERMISSIONS_ADD(roleId), data);
     return response.data.data;
   },
 
@@ -92,7 +85,7 @@ export const AdminRoleApi = {
    * Remove permissions from role
    */
   async removePermissionsFromRole(roleId: number, data: IRemovePermissionsFromRoleRequest): Promise<{ success: boolean }> {
-    const response = await apiClient.delete(`/admin/roles/${roleId}/permissions`, { data });
+    const response = await apiClient.delete(API_CONFIG.ENDPOINTS.ADMIN_ROLES_PERMISSIONS_REMOVE(roleId), { data });
     return { success: response.status === 204 || response.status === 200 };
   },
 
@@ -100,7 +93,7 @@ export const AdminRoleApi = {
    * Update role permissions (bulk replace)
    */
   async updateRolePermissions(roleId: number, data: IUpdateRolePermissionsRequest): Promise<IRolePermission[]> {
-    const response = await apiClient.put<IBaseApiResponse<IRolePermission[]>>(`/admin/roles/${roleId}/permissions`, data);
+    const response = await apiClient.put<IBaseApiResponse<IRolePermission[]>>(API_CONFIG.ENDPOINTS.ADMIN_ROLES_PERMISSIONS_UPDATE(roleId), data);
     return response.data.data;
   }
 }; 

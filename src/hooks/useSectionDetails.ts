@@ -1,7 +1,17 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AdminApi } from '../api/admin.api';
+import { AdminSectionApi } from '../api/admin/section.api';
+import { REACT_QUERY_CONFIG } from '../config/react-query.config';
+import { notifications } from '@mantine/notifications';
 import { ISectionDetailsData } from '../types/responses/admin/admin.types';
 import { debug } from '../utils/debug-logger';
+
+// Query keys
+const SECTION_DETAILS_QUERY_KEYS = {
+  all: ['section-details'] as const,
+  details: () => [...SECTION_DETAILS_QUERY_KEYS.all, 'detail'] as const,
+  detail: (keyword: string, sectionId: number) => [...SECTION_DETAILS_QUERY_KEYS.details(), keyword, sectionId] as const,
+};
 
 /**
  * Hook for fetching section details by section ID
@@ -30,7 +40,7 @@ export function useSectionDetails(keyword: string | null, sectionId: number | nu
     });
 
     return useQuery<ISectionDetailsData>({
-        queryKey,
+        queryKey: keyword && sectionId ? SECTION_DETAILS_QUERY_KEYS.detail(keyword, sectionId) : ['section-details', 'disabled'],
         queryFn: async () => {
             debug('useSectionDetails queryFn executing', 'useSectionDetails', {
                 keyword,
@@ -44,7 +54,7 @@ export function useSectionDetails(keyword: string | null, sectionId: number | nu
             }
             
             try {
-                const result = await AdminApi.getSectionDetails(keyword, sectionId);
+                const result = await AdminSectionApi.getSectionDetails(keyword, sectionId);
                 debug('useSectionDetails queryFn success', 'useSectionDetails', {
                     keyword,
                     sectionId,
@@ -62,7 +72,7 @@ export function useSectionDetails(keyword: string | null, sectionId: number | nu
             }
         },
         enabled: isEnabled,
-        staleTime: 5 * 60 * 1000, // 5 minutes
+        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
         gcTime: 10 * 60 * 1000, // 10 minutes
         retry: 2,
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),

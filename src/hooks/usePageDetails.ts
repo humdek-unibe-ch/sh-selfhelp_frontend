@@ -5,9 +5,41 @@
  * @module hooks/usePageDetails
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AdminApi } from '../api/admin.api';
+import { REACT_QUERY_CONFIG } from '../config/react-query.config';
+import { notifications } from '@mantine/notifications';
+import type { IPageDetailsData } from '../types/responses/admin/admin.types';
+import type { IUpdatePageRequest } from '../types/requests/admin/update-page.types';
 import { debug } from '../utils/debug-logger';
+
+/**
+ * Hook for fetching page details by keyword
+ * @param keyword - The page keyword to fetch details for
+ * @param enabled - Whether the query should be enabled
+ * @returns React Query result with page details
+ */
+export function usePageDetails(keyword: string | null, enabled: boolean = true) {
+    const queryKey = ['pageDetails', keyword];
+    
+    // More explicit enabled condition
+    const isEnabled = enabled && keyword !== null && keyword !== undefined && keyword !== '';
+    
+    return useQuery<IPageDetailsData>({
+        queryKey,
+        queryFn: async () => {
+            if (!keyword) {
+                throw new Error('Keyword is required');
+            }
+            return AdminApi.getPageDetails(keyword);
+        },
+        enabled: isEnabled,
+        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
+        gcTime: 10 * 60 * 1000, // 10 minutes
+        retry: 2,
+        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    });
+}
 
 /**
  * Hook to fetch page sections by keyword
@@ -44,7 +76,7 @@ export function usePageFields(keyword: string | null, enabled: boolean = true) {
             return data;
         },
         enabled: enabled && !!keyword,
-        staleTime: 5 * 60 * 1000, // 5 minutes
+        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
         gcTime: 10 * 60 * 1000, // 10 minutes
     });
 } 
