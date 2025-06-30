@@ -1,7 +1,7 @@
 "use client";
 
 import { ScrollArea, ActionIcon, Tooltip } from '@mantine/core';
-import { IconAdjustmentsCog, IconFiles, IconSettingsAutomation, IconPlus } from '@tabler/icons-react';
+import { IconAdjustmentsCog, IconFiles, IconSettingsAutomation, IconPlus, IconUsers, IconShield, IconUserCog } from '@tabler/icons-react';
 import { LinksGroup } from '../../common/navbar-links-group/NavbarLinksGroup';
 import { CreatePageModal } from '../pages/create-page/CreatePage';
 import classes from './AdminNavbar.module.css';
@@ -154,6 +154,27 @@ export function AdminNavbar() {
                     </ActionIcon>
                 </Tooltip>
             )
+        },
+        {
+            label: 'User Management',
+            icon: <IconUserCog size="1rem" stroke={1.5} />,
+            children: [
+                {
+                    label: 'Users',
+                    icon: <IconUsers size="0.9rem" stroke={1.5} />,
+                    link: '/admin/users'
+                },
+                {
+                    label: 'Groups',
+                    icon: <IconUsers size="0.9rem" stroke={1.5} />,
+                    link: '/admin/groups'
+                },
+                {
+                    label: 'Roles',
+                    icon: <IconShield size="0.9rem" stroke={1.5} />,
+                    link: '/admin/roles'
+                }
+            ]
         },
         {
             label: 'Configuration',
