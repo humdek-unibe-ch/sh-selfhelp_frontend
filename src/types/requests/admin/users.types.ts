@@ -1,13 +1,12 @@
 export interface ICreateUserRequest {
   email: string;
   name?: string;
-  user_name?: string;
-  password?: string;
-  user_type_id?: number;
-  blocked?: boolean;
+  user_name: string;
+  password: string;
   id_genders?: number;
   id_languages?: number;
-  validation_code?: string;
+  id_userTypes?: number;
+  blocked?: boolean;
   group_ids?: number[];
   role_ids?: number[];
 }
@@ -17,10 +16,12 @@ export interface IUpdateUserRequest {
   name?: string;
   user_name?: string;
   password?: string;
-  user_type_id?: number;
-  blocked?: boolean;
   id_genders?: number;
   id_languages?: number;
+  id_userTypes?: number;
+  blocked?: boolean;
+  group_ids?: number[];
+  role_ids?: number[];
 }
 
 export interface IToggleUserBlockRequest {

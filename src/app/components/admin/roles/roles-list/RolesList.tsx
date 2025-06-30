@@ -32,57 +32,49 @@ import {
   Button,
   Menu,
   Center,
-  Box,
 } from '@mantine/core';
 import {
   IconSearch,
   IconEdit,
   IconTrash,
-  IconLock,
-  IconLockOpen,
-  IconMail,
-  IconUserCheck,
   IconDots,
   IconPlus,
   IconSortAscending,
   IconSortDescending,
+  IconShield,
+  IconUsers,
 } from '@tabler/icons-react';
-import { useUsers } from '../../../../../hooks/useUsers';
-import type { IUserBasic, IUsersListParams } from '../../../../../types/responses/admin/users.types';
-import classes from './UsersList.module.css';
+import { useRoles } from '../../../../../hooks/useRoles';
+import type { IRoleBasic, IRolesListParams } from '../../../../../types/responses/admin/roles.types';
 
-interface IUsersListProps {
-  onCreateUser?: () => void;
-  onEditUser?: (userId: number) => void;
-  onDeleteUser?: (userId: number, email: string) => void;
-  onToggleBlock?: (userId: number, blocked: boolean) => void;
-  onSendActivationMail?: (userId: number) => void;
-  onImpersonateUser?: (userId: number) => void;
+interface IRolesListProps {
+  onCreateRole?: () => void;
+  onEditRole?: (roleId: number) => void;
+  onDeleteRole?: (roleId: number, roleName: string) => void;
+  onManagePermissions?: (roleId: number) => void;
 }
 
-export function UsersList({
-  onCreateUser,
-  onEditUser,
-  onDeleteUser,
-  onToggleBlock,
-  onSendActivationMail,
-  onImpersonateUser,
-}: IUsersListProps) {
+export function RolesList({
+  onCreateRole,
+  onEditRole,
+  onDeleteRole,
+  onManagePermissions,
+}: IRolesListProps) {
   // State for table parameters
-  const [params, setParams] = useState<IUsersListParams>({
+  const [params, setParams] = useState<IRolesListParams>({
     page: 1,
     pageSize: 20,
     search: '',
-    sort: 'email',
+    sort: 'name',
     sortDirection: 'asc',
   });
 
-  // Fetch users data
-  const { data: usersData, isLoading, error } = useUsers(params);
+  // Fetch roles data
+  const { data: rolesData, isLoading, error } = useRoles(params);
 
   // Table sorting state
   const [sorting, setSorting] = useState<SortingState>([
-    { id: params.sort || 'email', desc: params.sortDirection === 'desc' }
+    { id: params.sort || 'name', desc: params.sortDirection === 'desc' }
   ]);
 
   // Handle sorting change
@@ -97,9 +89,9 @@ export function UsersList({
       const sortField = newSorting[0];
       setParams(prev => ({
         ...prev,
-        sort: sortField.id as IUsersListParams['sort'],
+        sort: sortField.id as IRolesListParams['sort'],
         sortDirection: sortField.desc ? 'desc' : 'asc',
-        page: 1, // Reset to first page when sorting
+        page: 1,
       }));
     }
   }, [sorting]);
@@ -109,7 +101,7 @@ export function UsersList({
     setParams(prev => ({
       ...prev,
       search,
-      page: 1, // Reset to first page when searching
+      page: 1,
     }));
   }, []);
 
@@ -124,13 +116,13 @@ export function UsersList({
       setParams(prev => ({
         ...prev,
         pageSize: parseInt(pageSize, 10),
-        page: 1, // Reset to first page when changing page size
+        page: 1,
       }));
     }
   }, []);
 
   // Define table columns
-  const columns = useMemo<ColumnDef<IUserBasic>[]>(
+  const columns = useMemo<ColumnDef<IRoleBasic>[]>(
     () => [
       {
         accessorKey: 'id',
@@ -160,10 +152,10 @@ export function UsersList({
         enableSorting: true,
       },
       {
-        accessorKey: 'email',
+        accessorKey: 'name',
         header: ({ column }) => (
           <Group gap="xs">
-            <Text fw={500}>Email</Text>
+            <Text fw={500}>Name</Text>
             <ActionIcon
               variant="transparent"
               size="xs"
@@ -180,13 +172,13 @@ export function UsersList({
           </Group>
         ),
         cell: ({ row }) => (
-          <div className={classes.emailCell}>
+          <div>
             <Text size="sm" fw={500}>
-              {row.original.email}
+              {row.original.name}
             </Text>
-            {row.original.name && (
+            {row.original.description && (
               <Text size="xs" c="dimmed">
-                {row.original.name}
+                {row.original.description}
               </Text>
             )}
           </div>
@@ -194,38 +186,10 @@ export function UsersList({
         enableSorting: true,
       },
       {
-        accessorKey: 'user_name',
-        header: 'Username',
-        cell: ({ row }) => (
-          <Text size="sm">
-            {row.original.user_name || '-'}
-          </Text>
-        ),
-        enableSorting: true,
-      },
-      {
-        accessorKey: 'code',
-        header: 'User Code',
-        cell: ({ row }) => (
-          <Text size="xs" ff="monospace" c="dimmed">
-            {row.original.code || '-'}
-          </Text>
-        ),
-      },
-      {
-        accessorKey: 'validation_code',
-        header: 'Validation Code',
-        cell: ({ row }) => (
-          <Text size="xs" ff="monospace" c="dimmed">
-            {row.original.validation_code || '-'}
-          </Text>
-        ),
-      },
-      {
-        accessorKey: 'user_type',
+        accessorKey: 'permissions_count',
         header: ({ column }) => (
           <Group gap="xs">
-            <Text fw={500}>Type</Text>
+            <Text fw={500}>Permissions</Text>
             <ActionIcon
               variant="transparent"
               size="xs"
@@ -242,21 +206,17 @@ export function UsersList({
           </Group>
         ),
         cell: ({ row }) => (
-          <Badge
-            variant="light"
-            color={row.original.user_type_code === 'admin' ? 'red' : 'blue'}
-            size="sm"
-          >
-            {row.original.user_type}
+          <Badge variant="light" color="green" size="sm">
+            {row.original.permissions_count} permissions
           </Badge>
         ),
         enableSorting: true,
       },
       {
-        accessorKey: 'status',
+        accessorKey: 'users_count',
         header: ({ column }) => (
           <Group gap="xs">
-            <Text fw={500}>Status</Text>
+            <Text fw={500}>Users</Text>
             <ActionIcon
               variant="transparent"
               size="xs"
@@ -273,30 +233,17 @@ export function UsersList({
           </Group>
         ),
         cell: ({ row }) => (
-          <Badge
-            variant="light"
-            color={row.original.blocked ? 'red' : 'green'}
-            size="sm"
-          >
-            {row.original.blocked ? 'Blocked' : row.original.status}
+          <Badge variant="light" color="blue" size="sm">
+            {row.original.users_count} users
           </Badge>
         ),
         enableSorting: true,
       },
       {
-        accessorKey: 'groups',
-        header: 'Groups',
-        cell: ({ row }) => (
-          <Text size="xs" c="dimmed" lineClamp={2}>
-            {row.original.groups || 'No groups'}
-          </Text>
-        ),
-      },
-      {
-        accessorKey: 'last_login',
+        accessorKey: 'created_at',
         header: ({ column }) => (
           <Group gap="xs">
-            <Text fw={500}>Last Login</Text>
+            <Text fw={500}>Created</Text>
             <ActionIcon
               variant="transparent"
               size="xs"
@@ -314,43 +261,34 @@ export function UsersList({
         ),
         cell: ({ row }) => (
           <Text size="xs" c="dimmed">
-            {row.original.last_login || 'Never'}
+            {new Date(row.original.created_at).toLocaleDateString()}
           </Text>
         ),
         enableSorting: true,
-      },
-      {
-        accessorKey: 'user_activity',
-        header: 'Activity',
-        cell: ({ row }) => (
-          <Text size="xs" c="dimmed">
-            {row.original.user_activity}
-          </Text>
-        ),
       },
       {
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => (
           <Group gap="xs">
-            <Tooltip label="Edit User">
+            <Tooltip label="Edit Role">
               <ActionIcon
                 variant="subtle"
                 size="sm"
-                onClick={() => onEditUser?.(row.original.id)}
+                onClick={() => onEditRole?.(row.original.id)}
               >
                 <IconEdit size={16} />
               </ActionIcon>
             </Tooltip>
             
-            <Tooltip label={row.original.blocked ? 'Unblock User' : 'Block User'}>
+            <Tooltip label="Manage Permissions">
               <ActionIcon
                 variant="subtle"
                 size="sm"
-                color={row.original.blocked ? 'green' : 'red'}
-                onClick={() => onToggleBlock?.(row.original.id, !row.original.blocked)}
+                color="blue"
+                onClick={() => onManagePermissions?.(row.original.id)}
               >
-                {row.original.blocked ? <IconLockOpen size={16} /> : <IconLock size={16} />}
+                <IconShield size={16} />
               </ActionIcon>
             </Tooltip>
 
@@ -363,24 +301,18 @@ export function UsersList({
 
               <Menu.Dropdown>
                 <Menu.Item
-                  leftSection={<IconMail size={14} />}
-                  onClick={() => onSendActivationMail?.(row.original.id)}
+                  leftSection={<IconUsers size={14} />}
+                  onClick={() => {/* Handle view users */}}
                 >
-                  Send Activation Mail
-                </Menu.Item>
-                <Menu.Item
-                  leftSection={<IconUserCheck size={14} />}
-                  onClick={() => onImpersonateUser?.(row.original.id)}
-                >
-                  Impersonate User
+                  View Users
                 </Menu.Item>
                 <Menu.Divider />
                 <Menu.Item
                   leftSection={<IconTrash size={14} />}
                   color="red"
-                  onClick={() => onDeleteUser?.(row.original.id, row.original.email)}
+                  onClick={() => onDeleteRole?.(row.original.id, row.original.name)}
                 >
-                  Delete User
+                  Delete Role
                 </Menu.Item>
               </Menu.Dropdown>
             </Menu>
@@ -388,12 +320,12 @@ export function UsersList({
         ),
       },
     ],
-    [onEditUser, onDeleteUser, onToggleBlock, onSendActivationMail, onImpersonateUser]
+    [onEditRole, onDeleteRole, onManagePermissions]
   );
 
   // Initialize table
   const table = useReactTable({
-    data: usersData?.users || [],
+    data: rolesData?.roles || [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     manualSorting: true,
@@ -409,37 +341,37 @@ export function UsersList({
     return (
       <Card>
         <Text c="red" ta="center">
-          Failed to load users. Please try again.
+          Failed to load roles. Please try again.
         </Text>
       </Card>
     );
   }
 
   return (
-    <Card className={classes.container}>
+    <Card>
       <Stack gap="md">
         {/* Header */}
         <Group justify="space-between">
           <div>
             <Text size="lg" fw={600}>
-              Users Management
+              Roles Management
             </Text>
             <Text size="sm" c="dimmed">
-              Manage system users, their roles, and permissions
+              Manage user roles and their permissions
             </Text>
           </div>
           <Button
             leftSection={<IconPlus size={16} />}
-            onClick={onCreateUser}
+            onClick={onCreateRole}
           >
-            Create User
+            Create Role
           </Button>
         </Group>
 
         {/* Filters */}
         <Group gap="md">
           <TextInput
-            placeholder="Search users..."
+            placeholder="Search roles..."
             leftSection={<IconSearch size={16} />}
             value={params.search}
             onChange={(e) => handleSearch(e.currentTarget.value)}
@@ -460,7 +392,7 @@ export function UsersList({
         </Group>
 
         {/* Table */}
-        <div className={classes.tableContainer}>
+        <div style={{ position: 'relative' }}>
           <LoadingOverlay visible={isLoading} />
           <Table striped highlightOnHover>
             <TableThead>
@@ -493,28 +425,28 @@ export function UsersList({
           </Table>
 
           {/* Empty state */}
-          {!isLoading && (!usersData?.users || usersData.users.length === 0) && (
+          {!isLoading && (!rolesData?.roles || rolesData.roles.length === 0) && (
             <Center py="xl">
-              <Text c="dimmed">No users found</Text>
+              <Text c="dimmed">No roles found</Text>
             </Center>
           )}
         </div>
 
         {/* Pagination */}
-        {usersData?.pagination && (
+        {rolesData?.pagination && (
           <Group justify="space-between">
             <Text size="sm" c="dimmed">
-              Showing {((usersData.pagination.page - 1) * usersData.pagination.pageSize) + 1} to{' '}
+              Showing {((rolesData.pagination.page - 1) * rolesData.pagination.pageSize) + 1} to{' '}
               {Math.min(
-                usersData.pagination.page * usersData.pagination.pageSize,
-                usersData.pagination.totalCount
+                rolesData.pagination.page * rolesData.pagination.pageSize,
+                rolesData.pagination.totalCount
               )}{' '}
-              of {usersData.pagination.totalCount} users
+              of {rolesData.pagination.totalCount} roles
             </Text>
             <Pagination
-              value={usersData.pagination.page}
+              value={rolesData.pagination.page}
               onChange={handlePageChange}
-              total={usersData.pagination.totalPages}
+              total={rolesData.pagination.totalPages}
               size="sm"
             />
           </Group>

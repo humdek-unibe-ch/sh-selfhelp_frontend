@@ -2,10 +2,12 @@ export interface IUserBasic {
   id: number;
   email: string;
   name: string | null;
+  user_name: string | null;
   last_login: string | null;
   status: string;
   blocked: boolean;
   code: string | null;
+  validation_code: string | null;
   groups: string;
   user_activity: number;
   user_type_code: string;
@@ -29,12 +31,17 @@ export interface IUserDetails {
   email: string;
   name: string | null;
   user_name: string | null;
+  code: string | null;
+  validation_code: string | null;
   id_genders: number | null;
   id_languages: number | null;
   id_userTypes: number | null;
   blocked: boolean;
+  status: string;
   groups: IUserGroup[];
   roles: IUserRole[];
+  created_at: string;
+  updated_at: string;
 }
 
 export interface IUsersPagination {
@@ -55,6 +62,6 @@ export interface IUsersListParams {
   page?: number;
   pageSize?: number;
   search?: string;
-  sort?: 'email' | 'name' | 'last_login' | 'blocked' | 'user_type';
+  sort?: 'id' | 'email' | 'name' | 'user_name' | 'last_login' | 'blocked' | 'status' | 'user_type';
   sortDirection?: 'asc' | 'desc';
 } 
