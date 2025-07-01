@@ -36,7 +36,7 @@ export const AdminSectionApi = {
         };
         
         const response = await apiClient.put(
-            API_CONFIG.ENDPOINTS.ADMIN_PAGES_SECTIONS_ADD(keyword),
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_ADD_SECTION(keyword),
             requestBody
         );
         return response.data.data;
@@ -52,7 +52,7 @@ export const AdminSectionApi = {
      */
     async updateSectionInPage(keyword: string, sectionId: number, sectionData: IUpdateSectionInPageData): Promise<any> {
         const response = await apiClient.put(
-            API_CONFIG.ENDPOINTS.ADMIN_PAGES_SECTIONS_UPDATE(keyword, sectionId),
+            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_UPDATE(keyword, sectionId),
             sectionData
         );
         return response.data.data;
@@ -68,7 +68,7 @@ export const AdminSectionApi = {
      */
     async updateSection(keyword: string, sectionId: number, sectionData: any): Promise<any> {
         const response = await apiClient.put(
-            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_UPDATE_SECTION(keyword, sectionId),
+            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_UPDATE(keyword, sectionId),
             sectionData
         );
         return response.data.data;
@@ -83,7 +83,7 @@ export const AdminSectionApi = {
      */
     async removeSectionFromPage(keyword: string, sectionId: number): Promise<{ success: boolean }> {
         const response = await apiClient.delete(
-            API_CONFIG.ENDPOINTS.ADMIN_PAGES_SECTIONS_REMOVE(keyword, sectionId)
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_REMOVE_SECTION(keyword, sectionId)
         );
         // For 204 No Content responses, return success indicator
         return { success: response.status === 204 || response.status === 200 };
@@ -107,7 +107,7 @@ export const AdminSectionApi = {
         };
         
         const response = await apiClient.put(
-            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_ADD_TO_SECTION(keyword, parentSectionId),
+            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_ADD(keyword, parentSectionId),
             requestBody
         );
         return response.data.data;
@@ -123,7 +123,7 @@ export const AdminSectionApi = {
      */
     async removeSectionFromSection(keyword: string, parentSectionId: number, childSectionId: number): Promise<{ success: boolean }> {
         const response = await apiClient.delete(
-            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_REMOVE_FROM_SECTION(keyword, parentSectionId, childSectionId)
+            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_REMOVE(keyword, parentSectionId, childSectionId)
         );
         // For 204 No Content responses, return success indicator
         return { success: response.status === 204 || response.status === 200 };
@@ -138,7 +138,7 @@ export const AdminSectionApi = {
      */
     async createSectionInPage(keyword: string, sectionData: ICreateSectionInPageData): Promise<any> {
         const response = await apiClient.post<IBaseApiResponse<any>>(
-            API_CONFIG.ENDPOINTS.ADMIN_PAGES_SECTIONS_CREATE(keyword),
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_CREATE_SECTION(keyword),
             sectionData
         );
         return response.data.data;
@@ -154,7 +154,7 @@ export const AdminSectionApi = {
      */
     async createSectionInSection(keyword: string, parentSectionId: number, sectionData: ICreateSectionInSectionData): Promise<any> {
         const response = await apiClient.post<IBaseApiResponse<any>>(
-            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_CREATE_IN_SECTION(keyword, parentSectionId),
+            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_CREATE_CHILD(keyword, parentSectionId),
             sectionData
         );
         return response.data.data;
@@ -183,7 +183,7 @@ export const AdminSectionApi = {
      */
     async deleteSection(keyword: string, sectionId: number): Promise<{ success: boolean }> {
         const response = await apiClient.delete(
-            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_DELETE(keyword, sectionId)
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_REMOVE_SECTION(keyword, sectionId)
         );
         // For 204 No Content responses, return success indicator
         return { success: response.status === 204 || response.status === 200 };
