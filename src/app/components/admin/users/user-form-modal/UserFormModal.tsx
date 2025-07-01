@@ -33,6 +33,7 @@ interface IUserFormValues {
   email: string;
   name: string;
   user_name: string;
+  validation_code: string;
   id_genders: string | null;
   blocked: boolean;
   groupIds: string[];
@@ -54,6 +55,7 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
       email: '',
       name: '',
       user_name: '',
+      validation_code: '',
       id_genders: null,
       blocked: false,
       groupIds: [],
@@ -67,6 +69,10 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
       },
       name: (value) => (!value ? 'Name is required' : null),
       user_name: (value) => (!value ? 'Username is required' : null),
+      validation_code: (value) => {
+        if (mode === 'create' && !value) return 'Validation code is required';
+        return null;
+      },
     },
   });
 
@@ -77,6 +83,7 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
         email: userDetails.email,
         name: userDetails.name || '',
         user_name: userDetails.user_name || '',
+        validation_code: userDetails.validation_code || '',
         id_genders: userDetails.id_genders?.toString() || null,
         blocked: userDetails.blocked,
         groupIds: userDetails.groups.map((g: any) => g.id.toString()),
@@ -95,19 +102,16 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
   // Handle form submission
   const handleSubmit = async (values: IUserFormValues) => {
     try {
-      const userData = {
-        email: values.email,
-        name: values.name || undefined,
-        user_name: values.user_name,
-        id_genders: values.id_genders ? parseInt(values.id_genders, 10) : undefined,
-        blocked: values.blocked,
-        group_ids: values.groupIds.map(id => parseInt(id, 10)),
-        role_ids: values.roleIds.map(id => parseInt(id, 10)),
-      };
-
       if (mode === 'create') {
         const createData: ICreateUserRequest = {
-          ...userData,
+          email: values.email,
+          name: values.name || undefined,
+          user_name: values.user_name,
+          validation_code: values.validation_code,
+          id_genders: values.id_genders ? parseInt(values.id_genders, 10) : undefined,
+          blocked: values.blocked,
+          group_ids: values.groupIds.map(id => parseInt(id, 10)),
+          role_ids: values.roleIds.map(id => parseInt(id, 10)),
         };
         await createUserMutation.mutateAsync(createData);
         notifications.show({
@@ -117,7 +121,11 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
         });
       } else if (userId) {
         const updateData: IUpdateUserRequest = {
-          ...userData,
+          name: values.name || undefined,
+          id_genders: values.id_genders ? parseInt(values.id_genders, 10) : undefined,
+          blocked: values.blocked,
+          group_ids: values.groupIds.map(id => parseInt(id, 10)),
+          role_ids: values.roleIds.map(id => parseInt(id, 10)),
         };
         await updateUserMutation.mutateAsync({ userId, userData: updateData });
         notifications.show({
@@ -184,6 +192,7 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
                 label="Email"
                 placeholder="user@example.com"
                 required
+                disabled={mode === 'edit'}
                 autoComplete="off"
                 {...form.getInputProps('email')}
               />
@@ -200,10 +209,21 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
                   label="Username"
                   placeholder="johndoe"
                   required
+                  disabled={mode === 'edit'}
                   autoComplete="off"
                   {...form.getInputProps('user_name')}
                 />
               </Group>
+
+              {mode === 'create' && (
+                <TextInput
+                  label="Validation Code"
+                  placeholder="Enter validation code"
+                  required
+                  autoComplete="off"
+                  {...form.getInputProps('validation_code')}
+                />
+              )}
 
               <Select
                 label="Gender"

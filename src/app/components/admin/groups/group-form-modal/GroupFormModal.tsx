@@ -79,7 +79,7 @@ export function GroupFormModal({ opened, onClose, groupId, mode }: IGroupFormMod
 
   // Prepare ACL options with user permission validation
   const aclOptions = useMemo(() => {
-    if (!permissionsData?.permissions || !user) return [];
+    if (!permissionsData?.permissions || !Array.isArray(permissionsData.permissions) || !user) return [];
 
     const userPermissions = user.permissions || [];
     

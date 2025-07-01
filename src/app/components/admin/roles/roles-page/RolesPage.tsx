@@ -3,13 +3,16 @@
 import { useState } from 'react';
 import { RolesList } from '../roles-list/RolesList';
 import { RoleFormModal } from '../role-form-modal/RoleFormModal';
+import { DeleteRoleModal } from '../delete-role-modal/DeleteRoleModal';
 import { useDeleteRole } from '../../../../../hooks/useRoles';
 import { notifications } from '@mantine/notifications';
 
 export function RolesPage() {
   const [createModalOpened, setCreateModalOpened] = useState(false);
   const [editModalOpened, setEditModalOpened] = useState(false);
+  const [deleteModalOpened, setDeleteModalOpened] = useState(false);
   const [editingRoleId, setEditingRoleId] = useState<number | null>(null);
+  const [deletingRole, setDeletingRole] = useState<{ id: number; name: string } | null>(null);
   
   const deleteRoleMutation = useDeleteRole();
 
@@ -26,8 +29,31 @@ export function RolesPage() {
 
   // Handle delete role
   const handleDeleteRole = (roleId: number, roleName: string) => {
-    if (confirm(`Are you sure you want to delete the role "${roleName}"? This action cannot be undone.`)) {
-      deleteRoleMutation.mutate(roleId);
+    setDeletingRole({ id: roleId, name: roleName });
+    setDeleteModalOpened(true);
+  };
+
+  // Handle confirm delete
+  const handleConfirmDelete = () => {
+    if (deletingRole) {
+      deleteRoleMutation.mutate(deletingRole.id, {
+        onSuccess: () => {
+          notifications.show({
+            title: 'Success',
+            message: 'Role deleted successfully',
+            color: 'green',
+          });
+          setDeleteModalOpened(false);
+          setDeletingRole(null);
+        },
+        onError: (error: any) => {
+          notifications.show({
+            title: 'Error',
+            message: error.response?.data?.message || 'Failed to delete role',
+            color: 'red',
+          });
+        },
+      });
     }
   };
 
@@ -49,6 +75,11 @@ export function RolesPage() {
   const handleCloseEditModal = () => {
     setEditModalOpened(false);
     setEditingRoleId(null);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setDeleteModalOpened(false);
+    setDeletingRole(null);
   };
 
   return (
@@ -73,6 +104,15 @@ export function RolesPage() {
         onClose={handleCloseEditModal}
         roleId={editingRoleId}
         mode="edit"
+      />
+
+      {/* Delete Role Modal */}
+      <DeleteRoleModal
+        opened={deleteModalOpened}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleConfirmDelete}
+        roleName={deletingRole?.name || ''}
+        isLoading={deleteRoleMutation.isPending}
       />
     </>
   );
