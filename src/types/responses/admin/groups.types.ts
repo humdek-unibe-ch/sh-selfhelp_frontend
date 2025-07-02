@@ -4,7 +4,7 @@ export interface IGroupDetails {
   description: string | null;
   id_group_types: number | null;
   requires_2fa: boolean;
-  user_count: number;
+  users_count: number;
   acls: IGroupAcl[];
 }
 

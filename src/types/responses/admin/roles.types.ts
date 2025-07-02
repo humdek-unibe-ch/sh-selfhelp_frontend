@@ -1,21 +1,10 @@
-export interface IRoleBasic {
-  id: number;
-  name: string;
-  description: string | null;
-  permissions_count: number;
-  users_count: number;
-  created_at: string;
-  updated_at: string;
-}
-
 export interface IRoleDetails {
   id: number;
   name: string;
   description: string | null;
   permissions: IRolePermission[];
   users_count: number;
-  created_at: string;
-  updated_at: string;
+  permissions_count: number;
 }
 
 export interface IRolePermission {
@@ -36,7 +25,7 @@ export interface IRolesPagination {
 }
 
 export interface IRolesListResponse {
-  roles: IRoleBasic[];
+  roles: IRoleDetails[];
   pagination: IRolesPagination;
 }
 

@@ -197,7 +197,7 @@ export function GroupsList({
         enableSorting: true,
       },
       {
-        accessorKey: 'user_count',
+        accessorKey: 'users_count',
         header: ({ column }) => (
           <Group gap="xs">
             <Text fw={500}>Users</Text>
@@ -218,7 +218,7 @@ export function GroupsList({
         ),
         cell: ({ row }) => (
           <Badge size="sm" variant="light" color="blue">
-            {row.original.user_count}
+            {row.original.users_count}
           </Badge>
         ),
         enableSorting: true,

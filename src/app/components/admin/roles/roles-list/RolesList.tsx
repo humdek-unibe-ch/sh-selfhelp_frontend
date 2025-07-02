@@ -47,7 +47,7 @@ import {
   IconX,
 } from '@tabler/icons-react';
 import { useRoles } from '../../../../../hooks/useRoles';
-import type { IRoleBasic, IRolesListParams } from '../../../../../types/responses/admin/roles.types';
+import type { IRoleDetails, IRolesListParams } from '../../../../../types/responses/admin/roles.types';
 
 interface IRolesListProps {
   onCreateRole?: () => void;
@@ -133,7 +133,7 @@ export function RolesList({
   }, []);
 
   // Define table columns
-  const columns = useMemo<ColumnDef<IRoleBasic>[]>(
+  const columns = useMemo<ColumnDef<IRoleDetails>[]>(
     () => [
       {
         accessorKey: 'id',
@@ -217,9 +217,9 @@ export function RolesList({
           </Group>
         ),
         cell: ({ row }) => (
-          <Text size="sm" c="dimmed">
-            {row.original.permissions_count} permissions
-          </Text>
+          <Badge size="sm" variant="light" color="blue">
+            {row.original.permissions_count}
+          </Badge>
         ),
         enableSorting: true,
       },
@@ -244,9 +244,9 @@ export function RolesList({
           </Group>
         ),
         cell: ({ row }) => (
-          <Text size="sm" c="dimmed">
-            {row.original.users_count} users
-          </Text>
+          <Badge size="sm" variant="light" color="blue">
+            {row.original.users_count}
+          </Badge>
         ),
         enableSorting: true,
       },
