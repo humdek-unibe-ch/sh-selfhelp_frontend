@@ -42,6 +42,7 @@ import {
   IconMusic,
   IconFileText,
   IconTable,
+  IconCode,
 } from '@tabler/icons-react';
 import { useAssets, useDeleteAsset } from '../../../../../hooks/useAssets';
 import { DeleteAssetModal } from '../delete-asset-modal';
@@ -112,39 +113,87 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
     }
   };
 
-  const getAssetTypeInfo = (mimeType: string | undefined) => {
-    if (!mimeType) return { type: 'unknown', label: 'Unknown Files', icon: <IconFile size={20} />, color: 'gray' };
-    
-    if (mimeType.startsWith('image/')) {
-      return { type: 'image', label: 'Images', icon: <IconPhoto size={20} />, color: 'green' };
-    }
-    if (mimeType.startsWith('video/')) {
-      return { type: 'video', label: 'Videos', icon: <IconVideo size={20} />, color: 'blue' };
-    }
-    if (mimeType.startsWith('audio/')) {
-      return { type: 'audio', label: 'Audio Files', icon: <IconMusic size={20} />, color: 'orange' };
-    }
-    if (mimeType.includes('pdf')) {
-      return { type: 'pdf', label: 'PDF Documents', icon: <IconFileText size={20} />, color: 'red' };
-    }
-    if (mimeType.includes('word') || mimeType.includes('document')) {
-      return { type: 'document', label: 'Documents', icon: <IconFileText size={20} />, color: 'blue' };
-    }
-    if (mimeType.includes('sheet') || mimeType.includes('excel')) {
-      return { type: 'spreadsheet', label: 'Spreadsheets', icon: <IconTable size={20} />, color: 'green' };
-    }
-    if (mimeType.includes('text/css')) {
-      return { type: 'css', label: 'CSS Files', icon: <IconFileText size={20} />, color: 'purple' };
-    }
-    if (mimeType.includes('javascript') || mimeType.includes('json')) {
-      return { type: 'code', label: 'Code Files', icon: <IconFileText size={20} />, color: 'yellow' };
-    }
-    
-    return { type: 'other', label: 'Other Files', icon: <IconFile size={20} />, color: 'gray' };
+  // Get file extension from filename
+  const getFileExtension = (fileName: string): string => {
+    const parts = fileName.split('.');
+    return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : '';
   };
 
-  const isImageFile = (mimeType: string | undefined): boolean => {
-    return mimeType ? mimeType.startsWith('image/') : false;
+  // Determine asset type info from asset_type or file extension
+  const getAssetTypeInfo = (asset: IAsset) => {
+    // Use asset_type if available, otherwise determine from file extension
+    let typeCategory = asset.asset_type?.toLowerCase();
+    
+    if (!typeCategory) {
+      const extension = getFileExtension(asset.file_name);
+      
+      // Map extensions to categories
+      if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico'].includes(extension)) {
+        typeCategory = 'image';
+      } else if (['mp4', 'webm', 'avi', 'mov', 'wmv', 'flv', 'mkv'].includes(extension)) {
+        typeCategory = 'video';
+      } else if (['mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a'].includes(extension)) {
+        typeCategory = 'audio';
+      } else if (['pdf'].includes(extension)) {
+        typeCategory = 'pdf';
+      } else if (['doc', 'docx', 'odt', 'rtf'].includes(extension)) {
+        typeCategory = 'document';
+      } else if (['xls', 'xlsx', 'ods', 'csv'].includes(extension)) {
+        typeCategory = 'spreadsheet';
+      } else if (['css'].includes(extension)) {
+        typeCategory = 'css';
+      } else if (['js', 'jsx', 'ts', 'tsx', 'json', 'xml', 'html', 'htm', 'php', 'py', 'java', 'cpp', 'c', 'h'].includes(extension)) {
+        typeCategory = 'code';
+      } else if (['txt', 'md', 'log'].includes(extension)) {
+        typeCategory = 'text';
+      } else {
+        typeCategory = 'other';
+      }
+    }
+
+    // Return type info based on category
+    switch (typeCategory) {
+      case 'image':
+        return { type: 'image', label: 'Images', icon: <IconPhoto size={20} />, color: 'green' };
+      case 'video':
+        return { type: 'video', label: 'Videos', icon: <IconVideo size={20} />, color: 'blue' };
+      case 'audio':
+        return { type: 'audio', label: 'Audio Files', icon: <IconMusic size={20} />, color: 'orange' };
+      case 'pdf':
+        return { type: 'pdf', label: 'PDF Documents', icon: <IconFileText size={20} />, color: 'red' };
+      case 'document':
+        return { type: 'document', label: 'Documents', icon: <IconFileText size={20} />, color: 'blue' };
+      case 'spreadsheet':
+        return { type: 'spreadsheet', label: 'Spreadsheets', icon: <IconTable size={20} />, color: 'green' };
+      case 'css':
+        return { type: 'css', label: 'CSS Files', icon: <IconCode size={20} />, color: 'purple' };
+      case 'code':
+        return { type: 'code', label: 'Code Files', icon: <IconCode size={20} />, color: 'yellow' };
+      case 'text':
+        return { type: 'text', label: 'Text Files', icon: <IconFileText size={20} />, color: 'gray' };
+      default:
+        return { type: 'other', label: 'Other Files', icon: <IconFile size={20} />, color: 'gray' };
+    }
+  };
+
+  // Check if file is an image based on extension
+  const isImageFile = (fileName: string): boolean => {
+    const extension = getFileExtension(fileName);
+    return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico'].includes(extension);
+  };
+
+  // Fix file path URL - remove /admin prefix if present
+  const getCorrectFilePath = (filePath: string): string => {
+    if (filePath.startsWith('/admin/uploads/')) {
+      return filePath.replace('/admin/uploads/', '/uploads/');
+    }
+    if (filePath.startsWith('admin/uploads/')) {
+      return filePath.replace('admin/uploads/', '/uploads/');
+    }
+    if (!filePath.startsWith('/uploads/') && !filePath.startsWith('http')) {
+      return `/uploads/${filePath}`;
+    }
+    return filePath;
   };
 
   // Group assets by type
@@ -154,7 +203,7 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
     const groupMap = new Map<string, IAssetGroup>();
 
     assetsData.assets.forEach(asset => {
-      const typeInfo = getAssetTypeInfo(asset.mime_type);
+      const typeInfo = getAssetTypeInfo(asset);
       
       if (!groupMap.has(typeInfo.type)) {
         groupMap.set(typeInfo.type, {
@@ -190,11 +239,12 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
       header: 'File Name',
       cell: ({ row }) => {
         const asset = row.original;
+        const correctedPath = getCorrectFilePath(asset.file_path);
         return (
           <Group gap="sm">
-            {isImageFile(asset.mime_type) && (
+            {isImageFile(asset.file_name) && (
               <Image
-                src={asset.file_path}
+                src={correctedPath}
                 alt={asset.file_name}
                 width={40}
                 height={40}
@@ -237,6 +287,7 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
       size: 120,
       cell: ({ row }) => {
         const asset = row.original;
+        const correctedPath = getCorrectFilePath(asset.file_path);
         return (
           <Group gap="xs">
             <Tooltip label="View/Download">
@@ -244,7 +295,7 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
                 variant="subtle"
                 color="blue"
                 component="a"
-                href={asset.file_path}
+                href={correctedPath}
                 target="_blank"
               >
                 <IconEye size={16} />
@@ -255,7 +306,7 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
                 variant="subtle"
                 color="green"
                 component="a"
-                href={asset.file_path}
+                href={correctedPath}
                 download={asset.original_name || asset.file_name}
               >
                 <IconDownload size={16} />
@@ -386,91 +437,94 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
                       </Table.Tr>
                     </Table.Thead>
                     <Table.Tbody>
-                      {group.assets.map((asset) => (
-                        <Table.Tr 
-                          key={asset.id}
-                          style={{ cursor: onAssetSelect ? 'pointer' : 'default' }}
-                          onClick={() => onAssetSelect?.(asset)}
-                        >
-                          <Table.Td>
-                            <Text size="sm">{asset.id}</Text>
-                          </Table.Td>
-                          <Table.Td>
-                            <Group gap="sm">
-                              {isImageFile(asset.mime_type) && (
-                                <Image
-                                  src={asset.file_path}
-                                  alt={asset.file_name}
-                                  width={40}
-                                  height={40}
-                                  fit="cover"
-                                  radius="sm"
-                                />
-                              )}
-                              <div>
-                                <Text size="sm" fw={500}>
-                                  {asset.file_name}
-                                </Text>
-                                {asset.original_name && asset.original_name !== asset.file_name && (
-                                  <Text size="xs" c="dimmed">
-                                    Original: {asset.original_name}
-                                  </Text>
+                      {group.assets.map((asset) => {
+                        const correctedPath = getCorrectFilePath(asset.file_path);
+                        return (
+                          <Table.Tr 
+                            key={asset.id}
+                            style={{ cursor: onAssetSelect ? 'pointer' : 'default' }}
+                            onClick={() => onAssetSelect?.(asset)}
+                          >
+                            <Table.Td>
+                              <Text size="sm">{asset.id}</Text>
+                            </Table.Td>
+                            <Table.Td>
+                              <Group gap="sm">
+                                {isImageFile(asset.file_name) && (
+                                  <Image
+                                    src={correctedPath}
+                                    alt={asset.file_name}
+                                    width={40}
+                                    height={40}
+                                    fit="cover"
+                                    radius="sm"
+                                  />
                                 )}
-                              </div>
-                            </Group>
-                          </Table.Td>
-                          <Table.Td>
-                            {asset.folder ? (
-                              <Badge variant="outline" size="sm">
-                                {asset.folder}
-                              </Badge>
-                            ) : (
-                              <Text size="sm" c="dimmed">Root</Text>
-                            )}
-                          </Table.Td>
-                          <Table.Td>
-                            <Group gap="xs">
-                              <Tooltip label="View/Download">
-                                <ActionIcon
-                                  variant="subtle"
-                                  color="blue"
-                                  component="a"
-                                  href={asset.file_path}
-                                  target="_blank"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <IconEye size={16} />
-                                </ActionIcon>
-                              </Tooltip>
-                              <Tooltip label="Download">
-                                <ActionIcon
-                                  variant="subtle"
-                                  color="green"
-                                  component="a"
-                                  href={asset.file_path}
-                                  download={asset.original_name || asset.file_name}
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <IconDownload size={16} />
-                                </ActionIcon>
-                              </Tooltip>
-                              <Tooltip label="Delete">
-                                <ActionIcon
-                                  variant="subtle"
-                                  color="red"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteAsset(asset);
-                                  }}
-                                  loading={deleteAssetMutation.isPending && deleteModal.asset?.id === asset.id}
-                                >
-                                  <IconTrash size={16} />
-                                </ActionIcon>
-                              </Tooltip>
-                            </Group>
-                          </Table.Td>
-                        </Table.Tr>
-                      ))}
+                                <div>
+                                  <Text size="sm" fw={500}>
+                                    {asset.file_name}
+                                  </Text>
+                                  {asset.original_name && asset.original_name !== asset.file_name && (
+                                    <Text size="xs" c="dimmed">
+                                      Original: {asset.original_name}
+                                    </Text>
+                                  )}
+                                </div>
+                              </Group>
+                            </Table.Td>
+                            <Table.Td>
+                              {asset.folder ? (
+                                <Badge variant="outline" size="sm">
+                                  {asset.folder}
+                                </Badge>
+                              ) : (
+                                <Text size="sm" c="dimmed">Root</Text>
+                              )}
+                            </Table.Td>
+                            <Table.Td>
+                              <Group gap="xs">
+                                <Tooltip label="View/Download">
+                                  <ActionIcon
+                                    variant="subtle"
+                                    color="blue"
+                                    component="a"
+                                    href={correctedPath}
+                                    target="_blank"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <IconEye size={16} />
+                                  </ActionIcon>
+                                </Tooltip>
+                                <Tooltip label="Download">
+                                  <ActionIcon
+                                    variant="subtle"
+                                    color="green"
+                                    component="a"
+                                    href={correctedPath}
+                                    download={asset.original_name || asset.file_name}
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <IconDownload size={16} />
+                                  </ActionIcon>
+                                </Tooltip>
+                                <Tooltip label="Delete">
+                                  <ActionIcon
+                                    variant="subtle"
+                                    color="red"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteAsset(asset);
+                                    }}
+                                    loading={deleteAssetMutation.isPending && deleteModal.asset?.id === asset.id}
+                                  >
+                                    <IconTrash size={16} />
+                                  </ActionIcon>
+                                </Tooltip>
+                              </Group>
+                            </Table.Td>
+                          </Table.Tr>
+                        );
+                      })}
                     </Table.Tbody>
                   </Table>
                 </Card.Section>
