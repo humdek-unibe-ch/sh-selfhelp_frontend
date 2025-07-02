@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import {
   Modal,
   Stack,
@@ -9,13 +9,17 @@ import {
   Group,
   Text,
   Switch,
-  FileInput,
   Progress,
   Alert,
+  Paper,
+  Center,
+  List,
+  Badge,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
-import { IconUpload, IconFile, IconAlertCircle } from '@tabler/icons-react';
+import { Dropzone, FileWithPath } from '@mantine/dropzone';
+import { IconUpload, IconFile, IconAlertCircle, IconX, IconCloudUpload } from '@tabler/icons-react';
 import { useCreateAsset } from '../../../../../hooks/useAssets';
 
 interface IUploadAssetModalProps {
@@ -24,7 +28,7 @@ interface IUploadAssetModalProps {
 }
 
 interface IUploadAssetFormValues {
-  file: File | null;
+  files: FileWithPath[];
   folder: string;
   fileName: string;
   overwrite: boolean;
@@ -32,53 +36,106 @@ interface IUploadAssetFormValues {
 
 export function UploadAssetModal({ opened, onClose }: IUploadAssetModalProps) {
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [currentFileIndex, setCurrentFileIndex] = useState(0);
   const createAssetMutation = useCreateAsset();
+  const openRef = useRef<() => void>(null);
 
   const form = useForm<IUploadAssetFormValues>({
     initialValues: {
-      file: null,
+      files: [],
       folder: '',
       fileName: '',
       overwrite: false,
     },
     validate: {
-      file: (value) => (!value ? 'Please select a file to upload' : null),
+      files: (value: FileWithPath[]) => (value.length === 0 ? 'Please select at least one file to upload' : null),
     },
   });
 
+  const handleDrop = useCallback((files: FileWithPath[]) => {
+    form.setFieldValue('files', [...form.values.files, ...files]);
+    // Clear custom filename when multiple files are selected
+    if (form.values.files.length + files.length > 1) {
+      form.setFieldValue('fileName', '');
+    }
+  }, [form]);
+
+  const removeFile = (index: number) => {
+    const newFiles = form.values.files.filter((_, i) => i !== index);
+    form.setFieldValue('files', newFiles);
+    // Re-enable custom filename if only one file remains
+    if (newFiles.length <= 1) {
+      // Keep the current fileName value if it exists
+    }
+  };
+
   const handleSubmit = async (values: IUploadAssetFormValues) => {
-    if (!values.file) return;
+    if (values.files.length === 0) return;
 
     try {
-      setUploadProgress(10);
+      setUploadProgress(5);
+      const totalFiles = values.files.length;
+      let successCount = 0;
+      let errorCount = 0;
 
-      const assetData = {
-        file: values.file,
-        folder: values.folder || undefined,
-        file_name: values.fileName || undefined,
-        overwrite: values.overwrite,
-      };
+      for (let i = 0; i < totalFiles; i++) {
+        setCurrentFileIndex(i);
+        const file = values.files[i];
+        
+        try {
+          const assetData = {
+            file,
+            folder: values.folder || undefined,
+            // Only use custom filename for single file uploads
+            file_name: totalFiles === 1 ? (values.fileName || undefined) : undefined,
+            overwrite: values.overwrite,
+          };
 
-      setUploadProgress(50);
+          await createAssetMutation.mutateAsync(assetData);
+          successCount++;
+        } catch (error) {
+          errorCount++;
+          console.error(`Failed to upload ${file.name}:`, error);
+        }
 
-      await createAssetMutation.mutateAsync(assetData);
+        // Update progress
+        const progress = Math.round(((i + 1) / totalFiles) * 95) + 5;
+        setUploadProgress(progress);
+      }
 
       setUploadProgress(100);
 
-      notifications.show({
-        title: 'Success',
-        message: 'Asset uploaded successfully',
-        color: 'green',
-      });
+      // Show appropriate notification
+      if (errorCount === 0) {
+        notifications.show({
+          title: 'Success',
+          message: `${successCount} asset${successCount > 1 ? 's' : ''} uploaded successfully`,
+          color: 'green',
+        });
+      } else if (successCount > 0) {
+        notifications.show({
+          title: 'Partial Success',
+          message: `${successCount} asset${successCount > 1 ? 's' : ''} uploaded successfully, ${errorCount} failed`,
+          color: 'yellow',
+        });
+      } else {
+        notifications.show({
+          title: 'Error',
+          message: 'All uploads failed',
+          color: 'red',
+        });
+      }
 
       form.reset();
       setUploadProgress(0);
+      setCurrentFileIndex(0);
       onClose();
     } catch (error: any) {
       setUploadProgress(0);
+      setCurrentFileIndex(0);
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.message || 'Failed to upload asset',
+        message: error.response?.data?.message || 'Failed to upload assets',
         color: 'red',
       });
     }
@@ -88,6 +145,7 @@ export function UploadAssetModal({ opened, onClose }: IUploadAssetModalProps) {
     if (!createAssetMutation.isPending) {
       form.reset();
       setUploadProgress(0);
+      setCurrentFileIndex(0);
       onClose();
     }
   };
@@ -101,6 +159,7 @@ export function UploadAssetModal({ opened, onClose }: IUploadAssetModalProps) {
   };
 
   const isUploading = createAssetMutation.isPending || uploadProgress > 0;
+  const hasMultipleFiles = form.values.files.length > 1;
 
   return (
     <Modal
@@ -110,42 +169,96 @@ export function UploadAssetModal({ opened, onClose }: IUploadAssetModalProps) {
         <Group gap="sm">
           <IconUpload size={20} />
           <Text size="lg" fw={600}>
-            Upload Asset
+            Upload Assets
           </Text>
         </Group>
       }
-      size="md"
+      size="lg"
       centered
       closeOnClickOutside={!isUploading}
       closeOnEscape={!isUploading}
     >
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="md">
-          {/* File Selection */}
-          <FileInput
-            label="Select File"
-            placeholder="Choose a file to upload"
-            leftSection={<IconFile size={16} />}
-            required
-            {...form.getInputProps('file')}
-            accept="*/*"
-          />
+          {/* Dropzone */}
+          <Dropzone
+            openRef={openRef}
+            onDrop={handleDrop}
+            multiple
+            disabled={isUploading}
+            {...form.getInputProps('files')}
+          >
+            <Group justify="center" gap="xl" mih={120} style={{ pointerEvents: 'none' }}>
+              <Dropzone.Accept>
+                <IconCloudUpload size={52} stroke={1.5} />
+              </Dropzone.Accept>
+              <Dropzone.Reject>
+                <IconX size={52} stroke={1.5} />
+              </Dropzone.Reject>
+              <Dropzone.Idle>
+                <IconCloudUpload size={52} stroke={1.5} />
+              </Dropzone.Idle>
 
-          {/* File Info */}
-          {form.values.file && (
-            <Alert icon={<IconAlertCircle size={16} />} color="blue" variant="light">
-              <Stack gap="xs">
-                <Text size="sm">
-                  <strong>File:</strong> {form.values.file.name}
+              <div>
+                <Text size="xl" inline>
+                  Drag files here or click to select files
                 </Text>
-                <Text size="sm">
-                  <strong>Size:</strong> {formatFileSize(form.values.file.size)}
+                <Text size="sm" c="dimmed" inline mt={7}>
+                  You can upload multiple files at once
                 </Text>
-                <Text size="sm">
-                  <strong>Type:</strong> {form.values.file.type || 'Unknown'}
+              </div>
+            </Group>
+          </Dropzone>
+
+          {/* Selected Files List */}
+          {form.values.files.length > 0 && (
+            <Paper withBorder p="md">
+              <Group justify="space-between" mb="sm">
+                <Text size="sm" fw={500}>
+                  Selected Files ({form.values.files.length})
                 </Text>
-              </Stack>
-            </Alert>
+                <Button
+                  variant="subtle"
+                  size="xs"
+                  onClick={() => form.setFieldValue('files', [])}
+                  disabled={isUploading}
+                >
+                  Clear All
+                </Button>
+              </Group>
+              
+              <List spacing="xs">
+                {form.values.files.map((file, index) => (
+                  <List.Item key={`${file.name}-${index}`}>
+                    <Group justify="space-between">
+                      <Group gap="sm">
+                        <IconFile size={16} />
+                        <div>
+                          <Text size="sm">{file.name}</Text>
+                          <Group gap="xs">
+                            <Badge size="xs" variant="light">
+                              {formatFileSize(file.size)}
+                            </Badge>
+                            <Badge size="xs" variant="outline">
+                              {file.type || 'Unknown'}
+                            </Badge>
+                          </Group>
+                        </div>
+                      </Group>
+                      <Button
+                        variant="subtle"
+                        size="xs"
+                        color="red"
+                        onClick={() => removeFile(index)}
+                        disabled={isUploading}
+                      >
+                        <IconX size={14} />
+                      </Button>
+                    </Group>
+                  </List.Item>
+                ))}
+              </List>
+            </Paper>
           )}
 
           {/* Upload Options */}
@@ -154,28 +267,44 @@ export function UploadAssetModal({ opened, onClose }: IUploadAssetModalProps) {
               label="Folder (Optional)"
               placeholder="e.g., images, documents"
               description="Leave empty to upload to root folder"
+              disabled={isUploading}
               {...form.getInputProps('folder')}
             />
 
             <TextInput
               label="Custom File Name (Optional)"
               placeholder="custom-name.ext"
-              description="Leave empty to use original file name"
+              description={hasMultipleFiles ? "Custom filename is disabled for multiple file uploads" : "Leave empty to use original file name"}
+              disabled={isUploading || hasMultipleFiles}
               {...form.getInputProps('fileName')}
             />
 
             <Switch
-              label="Overwrite if file exists"
-              description="Replace the file if it already exists with the same name"
+              label="Overwrite if files exist"
+              description="Replace files if they already exist with the same name"
+              disabled={isUploading}
               {...form.getInputProps('overwrite', { type: 'checkbox' })}
             />
           </Stack>
+
+          {/* Multiple Files Warning */}
+          {hasMultipleFiles && (
+            <Alert icon={<IconAlertCircle size={16} />} color="blue" variant="light">
+              <Text size="sm">
+                <strong>Multiple Files:</strong> Custom file names are disabled when uploading multiple files. 
+                Original file names will be used.
+              </Text>
+            </Alert>
+          )}
 
           {/* Upload Progress */}
           {isUploading && (
             <Stack gap="xs">
               <Text size="sm" fw={500}>
-                Uploading... {uploadProgress}%
+                Uploading file {currentFileIndex + 1} of {form.values.files.length}... {uploadProgress}%
+              </Text>
+              <Text size="xs" c="dimmed">
+                {form.values.files[currentFileIndex]?.name}
               </Text>
               <Progress value={uploadProgress} animated />
             </Stack>
@@ -194,8 +323,9 @@ export function UploadAssetModal({ opened, onClose }: IUploadAssetModalProps) {
               type="submit" 
               loading={isUploading}
               leftSection={<IconUpload size={16} />}
+              disabled={form.values.files.length === 0}
             >
-              Upload Asset
+              Upload {form.values.files.length > 1 ? `${form.values.files.length} Assets` : 'Asset'}
             </Button>
           </Group>
         </Stack>

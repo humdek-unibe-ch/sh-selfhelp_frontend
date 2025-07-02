@@ -7,11 +7,8 @@ export interface IAsset {
   file_name: string;
   original_name?: string;
   file_path: string;
-  file_size?: number;
-  mime_type?: string;
-  folder: string | null;
-  created_at?: string;
-  updated_at?: string;
+  asset_type?: string;
+  folder: string | null;    
 }
 
 export interface IAssetsListResponse {

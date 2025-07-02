@@ -10,10 +10,12 @@ import {
   Select,
   Stack,
   Paper,
-  Badge,
   Image,
-  Anchor,
   Tooltip,
+  Collapse,
+  Card,
+  Badge,
+  Title,
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -25,22 +27,53 @@ import {
   getSortedRowModel,
   type SortingState,
 } from '@tanstack/react-table';
-import { IconTrash, IconDownload, IconEye, IconSearch, IconChevronUp, IconChevronDown, IconX } from '@tabler/icons-react';
+import { 
+  IconTrash, 
+  IconDownload, 
+  IconEye, 
+  IconSearch, 
+  IconChevronUp, 
+  IconChevronDown, 
+  IconX,
+  IconChevronRight,
+  IconPhoto,
+  IconFile,
+  IconVideo,
+  IconMusic,
+  IconFileText,
+  IconTable,
+} from '@tabler/icons-react';
 import { useAssets, useDeleteAsset } from '../../../../../hooks/useAssets';
+import { DeleteAssetModal } from '../delete-asset-modal';
 import type { IAsset } from '../../../../../api/admin/asset.api';
 
 interface IAssetsListProps {
   onAssetSelect?: (asset: IAsset) => void;
 }
 
+interface IAssetGroup {
+  type: string;
+  label: string;
+  icon: React.ReactNode;
+  color: string;
+  assets: IAsset[];
+}
+
+interface IDeleteModalState {
+  opened: boolean;
+  asset: IAsset | null;
+}
+
 const columnHelper = createColumnHelper<IAsset>();
 
 export function AssetsList({ onAssetSelect }: IAssetsListProps) {
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(25);
+  const [pageSize, setPageSize] = useState(100); // Increased for better grouping
   const [search, setSearch] = useState('');
   const [sorting, setSorting] = useState<SortingState>([]);
   const [debouncedSearch] = useDebouncedValue(search, 300);
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+  const [deleteModal, setDeleteModal] = useState<IDeleteModalState>({ opened: false, asset: null });
 
   const deleteAssetMutation = useDeleteAsset();
 
@@ -55,46 +88,96 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
 
   const { data: assetsData, isLoading, error } = useAssets(queryParams);
 
-  const handleDeleteAsset = async (assetId: number, fileName: string) => {
-    if (window.confirm(`Are you sure you want to delete "${fileName}"? This action cannot be undone.`)) {
-      try {
-        await deleteAssetMutation.mutateAsync(assetId);
-        notifications.show({
-          title: 'Success',
-          message: 'Asset deleted successfully',
-          color: 'green',
-        });
-      } catch (error: any) {
-        notifications.show({
-          title: 'Error',
-          message: error.response?.data?.message || 'Failed to delete asset',
-          color: 'red',
-        });
-      }
+  const handleDeleteAsset = (asset: IAsset) => {
+    setDeleteModal({ opened: true, asset });
+  };
+
+  const confirmDeleteAsset = async () => {
+    if (!deleteModal.asset) return;
+
+    try {
+      await deleteAssetMutation.mutateAsync(deleteModal.asset.id);
+      notifications.show({
+        title: 'Success',
+        message: 'Asset deleted successfully',
+        color: 'green',
+      });
+      setDeleteModal({ opened: false, asset: null });
+    } catch (error: any) {
+      notifications.show({
+        title: 'Error',
+        message: error.response?.data?.message || 'Failed to delete asset',
+        color: 'red',
+      });
     }
   };
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  const getAssetTypeInfo = (mimeType: string | undefined) => {
+    if (!mimeType) return { type: 'unknown', label: 'Unknown Files', icon: <IconFile size={20} />, color: 'gray' };
+    
+    if (mimeType.startsWith('image/')) {
+      return { type: 'image', label: 'Images', icon: <IconPhoto size={20} />, color: 'green' };
+    }
+    if (mimeType.startsWith('video/')) {
+      return { type: 'video', label: 'Videos', icon: <IconVideo size={20} />, color: 'blue' };
+    }
+    if (mimeType.startsWith('audio/')) {
+      return { type: 'audio', label: 'Audio Files', icon: <IconMusic size={20} />, color: 'orange' };
+    }
+    if (mimeType.includes('pdf')) {
+      return { type: 'pdf', label: 'PDF Documents', icon: <IconFileText size={20} />, color: 'red' };
+    }
+    if (mimeType.includes('word') || mimeType.includes('document')) {
+      return { type: 'document', label: 'Documents', icon: <IconFileText size={20} />, color: 'blue' };
+    }
+    if (mimeType.includes('sheet') || mimeType.includes('excel')) {
+      return { type: 'spreadsheet', label: 'Spreadsheets', icon: <IconTable size={20} />, color: 'green' };
+    }
+    if (mimeType.includes('text/css')) {
+      return { type: 'css', label: 'CSS Files', icon: <IconFileText size={20} />, color: 'purple' };
+    }
+    if (mimeType.includes('javascript') || mimeType.includes('json')) {
+      return { type: 'code', label: 'Code Files', icon: <IconFileText size={20} />, color: 'yellow' };
+    }
+    
+    return { type: 'other', label: 'Other Files', icon: <IconFile size={20} />, color: 'gray' };
   };
 
   const isImageFile = (mimeType: string | undefined): boolean => {
     return mimeType ? mimeType.startsWith('image/') : false;
   };
 
-  const getFileTypeColor = (mimeType: string | undefined): string => {
-    if (!mimeType) return 'gray';
-    if (mimeType.startsWith('image/')) return 'green';
-    if (mimeType.startsWith('video/')) return 'blue';
-    if (mimeType.startsWith('audio/')) return 'orange';
-    if (mimeType.includes('pdf')) return 'red';
-    if (mimeType.includes('word') || mimeType.includes('document')) return 'blue';
-    if (mimeType.includes('sheet') || mimeType.includes('excel')) return 'green';
-    return 'gray';
+  // Group assets by type
+  const assetGroups = useMemo((): IAssetGroup[] => {
+    if (!assetsData?.assets) return [];
+
+    const groupMap = new Map<string, IAssetGroup>();
+
+    assetsData.assets.forEach(asset => {
+      const typeInfo = getAssetTypeInfo(asset.mime_type);
+      
+      if (!groupMap.has(typeInfo.type)) {
+        groupMap.set(typeInfo.type, {
+          type: typeInfo.type,
+          label: typeInfo.label,
+          icon: typeInfo.icon,
+          color: typeInfo.color,
+          assets: [],
+        });
+      }
+      
+      groupMap.get(typeInfo.type)!.assets.push(asset);
+    });
+
+    // Sort groups by asset count (descending)
+    return Array.from(groupMap.values()).sort((a, b) => b.assets.length - a.assets.length);
+  }, [assetsData?.assets]);
+
+  const toggleGroup = (groupType: string) => {
+    setExpandedGroups(prev => ({
+      ...prev,
+      [groupType]: !prev[groupType],
+    }));
   };
 
   const columns = useMemo(() => [
@@ -123,37 +206,13 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
               <Text size="sm" fw={500}>
                 {asset.file_name}
               </Text>
-              {asset.original_name && (
+              {asset.original_name && asset.original_name !== asset.file_name && (
                 <Text size="xs" c="dimmed">
-                  {asset.original_name}
+                  Original: {asset.original_name}
                 </Text>
               )}
             </div>
           </Group>
-        );
-      },
-      enableSorting: true,
-    }),
-    columnHelper.accessor('mime_type', {
-      header: 'Type',
-      cell: ({ getValue }) => {
-        const mimeType = getValue();
-        return (
-          <Badge color={getFileTypeColor(mimeType)} variant="light" size="sm">
-            {mimeType ? (mimeType.split('/')[1]?.toUpperCase() || 'Unknown') : 'Unknown'}
-          </Badge>
-        );
-      },
-      enableSorting: true,
-    }),
-    columnHelper.accessor('file_size', {
-      header: 'Size',
-      cell: ({ getValue }) => {
-        const fileSize = getValue();
-        return (
-          <Text size="sm">
-            {fileSize ? formatFileSize(fileSize) : 'Unknown'}
-          </Text>
         );
       },
       enableSorting: true,
@@ -168,18 +227,6 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
           </Badge>
         ) : (
           <Text size="sm" c="dimmed">Root</Text>
-        );
-      },
-      enableSorting: true,
-    }),
-    columnHelper.accessor('created_at', {
-      header: 'Created',
-      cell: ({ getValue }) => {
-        const createdAt = getValue();
-        return (
-          <Text size="sm">
-            {createdAt ? new Date(createdAt).toLocaleDateString() : 'Unknown'}
-          </Text>
         );
       },
       enableSorting: true,
@@ -218,8 +265,8 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
               <ActionIcon
                 variant="subtle"
                 color="red"
-                onClick={() => handleDeleteAsset(asset.id, asset.file_name)}
-                loading={deleteAssetMutation.isPending}
+                onClick={() => handleDeleteAsset(asset)}
+                loading={deleteAssetMutation.isPending && deleteModal.asset?.id === asset.id}
               >
                 <IconTrash size={16} />
               </ActionIcon>
@@ -228,20 +275,7 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
         );
       },
     }),
-  ], [deleteAssetMutation.isPending]);
-
-  const table = useReactTable({
-    data: assetsData?.assets || [],
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    state: {
-      sorting,
-    },
-    onSortingChange: setSorting,
-    manualSorting: true,
-    enableSortingRemoval: false,
-  });
+  ], [deleteAssetMutation.isPending, deleteModal.asset?.id]);
 
   if (error) {
     return (
@@ -252,114 +286,202 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
   }
 
   return (
-    <Stack gap="md">
-      {/* Search and Filters */}
-      <Group>
-        <TextInput
-          placeholder="Search assets..."
-          leftSection={<IconSearch size={16} />}
-          rightSection={
-            search ? (
-              <ActionIcon
-                variant="subtle"
-                color="gray"
-                onClick={() => setSearch('')}
-                size="sm"
-              >
-                <IconX size={14} />
-              </ActionIcon>
-            ) : null
-          }
-          value={search}
-          onChange={(e) => setSearch(e.currentTarget.value)}
-          style={{ flex: 1 }}
-        />
-        <Select
-          placeholder="Page size"
-          data={[
-            { value: '10', label: '10 per page' },
-            { value: '25', label: '25 per page' },
-            { value: '50', label: '50 per page' },
-            { value: '100', label: '100 per page' },
-          ]}
-          value={pageSize.toString()}
-          onChange={(value) => {
-            if (value) {
-              setPageSize(parseInt(value, 10));
-              setPage(1);
-            }
-          }}
-          w={150}
-        />
-      </Group>
-
-      {/* Assets Table */}
-      <Paper withBorder>
-        <Table striped highlightOnHover>
-          <Table.Thead>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <Table.Tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <Table.Th
-                    key={header.id}
-                    style={{ 
-                      width: header.getSize(),
-                      cursor: header.column.getCanSort() ? 'pointer' : 'default'
-                    }}
-                    onClick={header.column.getToggleSortingHandler()}
-                  >
-                    <Group gap="xs" justify="space-between">
-                      <Text size="sm" fw={600}>
-                        {flexRender(header.column.columnDef.header, header.getContext())}
-                      </Text>
-                      {header.column.getCanSort() && (
-                        <div>
-                          {header.column.getIsSorted() === 'asc' && <IconChevronUp size={14} />}
-                          {header.column.getIsSorted() === 'desc' && <IconChevronDown size={14} />}
-                        </div>
-                      )}
-                    </Group>
-                  </Table.Th>
-                ))}
-              </Table.Tr>
-            ))}
-          </Table.Thead>
-          <Table.Tbody>
-            {isLoading ? (
-              <Table.Tr>
-                <Table.Td colSpan={columns.length}>
-                  <Text ta="center" py="xl">Loading assets...</Text>
-                </Table.Td>
-              </Table.Tr>
-            ) : table.getRowModel().rows.length === 0 ? (
-              <Table.Tr>
-                <Table.Td colSpan={columns.length}>
-                  <Text ta="center" py="xl" c="dimmed">
-                    No assets found
-                  </Text>
-                </Table.Td>
-              </Table.Tr>
-            ) : (
-              table.getRowModel().rows.map((row) => (
-                <Table.Tr 
-                  key={row.id}
-                  style={{ cursor: onAssetSelect ? 'pointer' : 'default' }}
-                  onClick={() => onAssetSelect?.(row.original)}
+    <>
+      <Stack gap="md">
+        {/* Search and Filters */}
+        <Group>
+          <TextInput
+            placeholder="Search assets..."
+            leftSection={<IconSearch size={16} />}
+            rightSection={
+              search ? (
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  onClick={() => setSearch('')}
+                  size="sm"
                 >
-                  {row.getVisibleCells().map((cell) => (
-                    <Table.Td key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </Table.Td>
-                  ))}
-                </Table.Tr>
-              ))
-            )}
-          </Table.Tbody>
-        </Table>
+                  <IconX size={14} />
+                </ActionIcon>
+              ) : null
+            }
+            value={search}
+            onChange={(e) => setSearch(e.currentTarget.value)}
+            style={{ flex: 1 }}
+          />
+          <Select
+            placeholder="Page size"
+            data={[
+              { value: '50', label: '50 per page' },
+              { value: '100', label: '100 per page' },
+              { value: '200', label: '200 per page' },
+              { value: '500', label: '500 per page' },
+            ]}
+            value={pageSize.toString()}
+            onChange={(value) => {
+              if (value) {
+                setPageSize(parseInt(value, 10));
+                setPage(1);
+              }
+            }}
+            w={150}
+          />
+        </Group>
+
+        {/* Loading State */}
+        {isLoading && (
+          <Paper p="xl">
+            <Text ta="center">Loading assets...</Text>
+          </Paper>
+        )}
+
+        {/* Asset Groups */}
+        {!isLoading && assetGroups.length === 0 && (
+          <Paper p="xl">
+            <Text ta="center" c="dimmed">
+              No assets found
+            </Text>
+          </Paper>
+        )}
+
+        {!isLoading && assetGroups.map((group) => {
+          const isExpanded = expandedGroups[group.type] ?? true;
+          
+          return (
+            <Card key={group.type} withBorder>
+              <Card.Section
+                p="md"
+                style={{ cursor: 'pointer' }}
+                onClick={() => toggleGroup(group.type)}
+              >
+                <Group justify="space-between">
+                  <Group gap="sm">
+                    <div style={{ color: `var(--mantine-color-${group.color}-6)` }}>
+                      {group.icon}
+                    </div>
+                    <Title order={4}>{group.label}</Title>
+                    <Badge variant="light" color={group.color}>
+                      {group.assets.length} file{group.assets.length !== 1 ? 's' : ''}
+                    </Badge>
+                  </Group>
+                  <ActionIcon variant="subtle" color="gray">
+                    {isExpanded ? (
+                      <IconChevronDown size={16} />
+                    ) : (
+                      <IconChevronRight size={16} />
+                    )}
+                  </ActionIcon>
+                </Group>
+              </Card.Section>
+
+              <Collapse in={isExpanded}>
+                <Card.Section>
+                  <Table striped highlightOnHover>
+                    <Table.Thead>
+                      <Table.Tr>
+                        <Table.Th w={80}>ID</Table.Th>
+                        <Table.Th>File Name</Table.Th>
+                        <Table.Th w={120}>Folder</Table.Th>
+                        <Table.Th w={120}>Actions</Table.Th>
+                      </Table.Tr>
+                    </Table.Thead>
+                    <Table.Tbody>
+                      {group.assets.map((asset) => (
+                        <Table.Tr 
+                          key={asset.id}
+                          style={{ cursor: onAssetSelect ? 'pointer' : 'default' }}
+                          onClick={() => onAssetSelect?.(asset)}
+                        >
+                          <Table.Td>
+                            <Text size="sm">{asset.id}</Text>
+                          </Table.Td>
+                          <Table.Td>
+                            <Group gap="sm">
+                              {isImageFile(asset.mime_type) && (
+                                <Image
+                                  src={asset.file_path}
+                                  alt={asset.file_name}
+                                  width={40}
+                                  height={40}
+                                  fit="cover"
+                                  radius="sm"
+                                />
+                              )}
+                              <div>
+                                <Text size="sm" fw={500}>
+                                  {asset.file_name}
+                                </Text>
+                                {asset.original_name && asset.original_name !== asset.file_name && (
+                                  <Text size="xs" c="dimmed">
+                                    Original: {asset.original_name}
+                                  </Text>
+                                )}
+                              </div>
+                            </Group>
+                          </Table.Td>
+                          <Table.Td>
+                            {asset.folder ? (
+                              <Badge variant="outline" size="sm">
+                                {asset.folder}
+                              </Badge>
+                            ) : (
+                              <Text size="sm" c="dimmed">Root</Text>
+                            )}
+                          </Table.Td>
+                          <Table.Td>
+                            <Group gap="xs">
+                              <Tooltip label="View/Download">
+                                <ActionIcon
+                                  variant="subtle"
+                                  color="blue"
+                                  component="a"
+                                  href={asset.file_path}
+                                  target="_blank"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <IconEye size={16} />
+                                </ActionIcon>
+                              </Tooltip>
+                              <Tooltip label="Download">
+                                <ActionIcon
+                                  variant="subtle"
+                                  color="green"
+                                  component="a"
+                                  href={asset.file_path}
+                                  download={asset.original_name || asset.file_name}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <IconDownload size={16} />
+                                </ActionIcon>
+                              </Tooltip>
+                              <Tooltip label="Delete">
+                                <ActionIcon
+                                  variant="subtle"
+                                  color="red"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteAsset(asset);
+                                  }}
+                                  loading={deleteAssetMutation.isPending && deleteModal.asset?.id === asset.id}
+                                >
+                                  <IconTrash size={16} />
+                                </ActionIcon>
+                              </Tooltip>
+                            </Group>
+                          </Table.Td>
+                        </Table.Tr>
+                      ))}
+                    </Table.Tbody>
+                  </Table>
+                </Card.Section>
+              </Collapse>
+            </Card>
+          );
+        })}
 
         {/* Pagination Info */}
         {assetsData && assetsData.pagination && (
-          <Group justify="space-between" p="md">
+          <Group justify="space-between">
             <Text size="sm" c="dimmed">
               Showing {((page - 1) * pageSize) + 1} to {Math.min(page * pageSize, assetsData.pagination.total)} of {assetsData.pagination.total} assets
             </Text>
@@ -384,7 +506,16 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
             </Group>
           </Group>
         )}
-      </Paper>
-    </Stack>
+      </Stack>
+
+      {/* Delete Asset Modal */}
+      <DeleteAssetModal
+        opened={deleteModal.opened}
+        onClose={() => setDeleteModal({ opened: false, asset: null })}
+        onConfirm={confirmDeleteAsset}
+        assetName={deleteModal.asset?.file_name || ''}
+        isLoading={deleteAssetMutation.isPending}
+      />
+    </>
   );
 }
