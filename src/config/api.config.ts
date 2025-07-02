@@ -7,6 +7,7 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export const API_CONFIG = {
+    BACKEND_URL: API_BASE_URL,
     BASE_URL: `${API_BASE_URL}/cms-api/v1`,
     ENDPOINTS: {
         // Authentication endpoints

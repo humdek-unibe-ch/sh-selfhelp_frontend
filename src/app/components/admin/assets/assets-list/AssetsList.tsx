@@ -47,6 +47,7 @@ import {
 import { useAssets, useDeleteAsset } from '../../../../../hooks/useAssets';
 import { DeleteAssetModal } from '../delete-asset-modal';
 import type { IAsset } from '../../../../../api/admin/asset.api';
+import { API_CONFIG } from '../../../../../config/api.config';
 
 interface IAssetsListProps {
   onAssetSelect?: (asset: IAsset) => void;
@@ -182,18 +183,31 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
     return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico'].includes(extension);
   };
 
-  // Fix file path URL - remove /admin prefix if present
+  // Fix file path URL - use Symfony backend server
   const getCorrectFilePath = (filePath: string): string => {
-    if (filePath.startsWith('/admin/uploads/')) {
-      return filePath.replace('/admin/uploads/', '/uploads/');
+    // If it's already a full URL, return as-is
+    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+      return filePath;
     }
-    if (filePath.startsWith('admin/uploads/')) {
-      return filePath.replace('admin/uploads/', '/uploads/');
+    
+    // Remove any leading slashes and admin prefixes
+    let cleanPath = filePath;
+    if (cleanPath.startsWith('/')) {
+      cleanPath = cleanPath.substring(1);
     }
-    if (!filePath.startsWith('/uploads/') && !filePath.startsWith('http')) {
-      return `/uploads/${filePath}`;
+    if (cleanPath.startsWith('admin/uploads/')) {
+      cleanPath = cleanPath.replace('admin/uploads/', 'uploads/');
+    } else if (cleanPath.startsWith('admin/')) {
+      cleanPath = cleanPath.replace('admin/', '');
     }
-    return filePath;
+    
+    // Ensure it starts with uploads/ if it doesn't already
+    if (!cleanPath.startsWith('uploads/')) {
+      cleanPath = `uploads/${cleanPath}`;
+    }
+    
+    // Return full URL pointing to Symfony backend
+    return `${API_CONFIG.BACKEND_URL}/${cleanPath}`;
   };
 
   // Group assets by type
@@ -454,10 +468,9 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
                                   <Image
                                     src={correctedPath}
                                     alt={asset.file_name}
-                                    width={40}
-                                    height={40}
-                                    fit="cover"
-                                    radius="sm"
+                                    fit="contain"
+                                    radius="md"
+                                    style={{ maxWidth: '75px', maxHeight: '75px' }}
                                   />
                                 )}
                                 <div>
@@ -482,8 +495,8 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
                               )}
                             </Table.Td>
                             <Table.Td>
-                              <Group gap="xs">
-                                <Tooltip label="View/Download">
+                              <Group gap="xs" wrap="nowrap">
+                                <Tooltip label="View">
                                   <ActionIcon
                                     variant="subtle"
                                     color="blue"
