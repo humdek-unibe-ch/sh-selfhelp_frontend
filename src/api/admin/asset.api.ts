@@ -5,13 +5,13 @@ import type { IBaseApiResponse } from '../../types/responses/common/response-env
 export interface IAsset {
   id: number;
   file_name: string;
-  original_name: string;
+  original_name?: string;
   file_path: string;
-  file_size: number;
-  mime_type: string;
+  file_size?: number;
+  mime_type?: string;
   folder: string | null;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface IAssetsListResponse {

@@ -82,11 +82,12 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const isImageFile = (mimeType: string): boolean => {
-    return mimeType.startsWith('image/');
+  const isImageFile = (mimeType: string | undefined): boolean => {
+    return mimeType ? mimeType.startsWith('image/') : false;
   };
 
-  const getFileTypeColor = (mimeType: string): string => {
+  const getFileTypeColor = (mimeType: string | undefined): string => {
+    if (!mimeType) return 'gray';
     if (mimeType.startsWith('image/')) return 'green';
     if (mimeType.startsWith('video/')) return 'blue';
     if (mimeType.startsWith('audio/')) return 'orange';
@@ -122,9 +123,11 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
               <Text size="sm" fw={500}>
                 {asset.file_name}
               </Text>
-              <Text size="xs" c="dimmed">
-                {asset.original_name}
-              </Text>
+              {asset.original_name && (
+                <Text size="xs" c="dimmed">
+                  {asset.original_name}
+                </Text>
+              )}
             </div>
           </Group>
         );
@@ -137,7 +140,7 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
         const mimeType = getValue();
         return (
           <Badge color={getFileTypeColor(mimeType)} variant="light" size="sm">
-            {mimeType.split('/')[1]?.toUpperCase() || 'Unknown'}
+            {mimeType ? (mimeType.split('/')[1]?.toUpperCase() || 'Unknown') : 'Unknown'}
           </Badge>
         );
       },
@@ -145,9 +148,14 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
     }),
     columnHelper.accessor('file_size', {
       header: 'Size',
-      cell: ({ getValue }) => (
-        <Text size="sm">{formatFileSize(getValue())}</Text>
-      ),
+      cell: ({ getValue }) => {
+        const fileSize = getValue();
+        return (
+          <Text size="sm">
+            {fileSize ? formatFileSize(fileSize) : 'Unknown'}
+          </Text>
+        );
+      },
       enableSorting: true,
     }),
     columnHelper.accessor('folder', {
@@ -166,11 +174,14 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
     }),
     columnHelper.accessor('created_at', {
       header: 'Created',
-      cell: ({ getValue }) => (
-        <Text size="sm">
-          {new Date(getValue()).toLocaleDateString()}
-        </Text>
-      ),
+      cell: ({ getValue }) => {
+        const createdAt = getValue();
+        return (
+          <Text size="sm">
+            {createdAt ? new Date(createdAt).toLocaleDateString() : 'Unknown'}
+          </Text>
+        );
+      },
       enableSorting: true,
     }),
     columnHelper.display({
@@ -198,7 +209,7 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
                 color="green"
                 component="a"
                 href={asset.file_path}
-                download={asset.original_name}
+                download={asset.original_name || asset.file_name}
               >
                 <IconDownload size={16} />
               </ActionIcon>
