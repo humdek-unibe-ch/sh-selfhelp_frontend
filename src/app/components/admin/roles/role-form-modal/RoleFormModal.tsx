@@ -47,7 +47,10 @@ export function RoleFormModal({ opened, onClose, roleId, mode }: IRoleFormModalP
       permission_ids: [],
     },
     validate: {
-      name: (value) => (!value ? 'Role name is required' : null),
+      name: (value) => {
+        if (mode === 'edit') return null; // Skip validation in edit mode
+        return !value ? 'Role name is required' : null;
+      },
     },
     transformValues: (values) => ({
       ...values,
@@ -77,25 +80,16 @@ export function RoleFormModal({ opened, onClose, roleId, mode }: IRoleFormModalP
     }
   }, [opened]);
 
-  // Prepare permission options - simplified without user permission validation
+  // Prepare permission options
   const permissionOptions = useMemo(() => {
-    // Early return with empty array if data is missing
-    if (!permissionsData) {
-      return [];
-    }
-
-    // Ensure permissions exists and is an array
-    if (!permissionsData.permissions || !Array.isArray(permissionsData.permissions)) {
+    if (!permissionsData?.permissions || !Array.isArray(permissionsData.permissions)) {
       return [];
     }
     
-    // Simple mapping to Mantine v7 expected format
-    return permissionsData.permissions
-      .filter(permission => permission && typeof permission === 'object')
-      .map(permission => ({
-        value: permission.id?.toString() || '',
-        label: permission.name || 'Unnamed Permission',
-      }));
+    return permissionsData.permissions.map((permission: any) => ({
+      value: permission.id.toString(),
+      label: permission.name,
+    }));
   }, [permissionsData]);
 
   // Handle form submission
@@ -158,19 +152,38 @@ export function RoleFormModal({ opened, onClose, roleId, mode }: IRoleFormModalP
       
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="md">
+          {/* Role Information Display for Edit Mode */}
+          {mode === 'edit' && roleDetails && (
+            <div>
+              <Text size="sm" fw={500} mb="xs">
+                Role Information
+              </Text>
+              <Group>
+                <Text size="sm" fw={500} c="dimmed" style={{ minWidth: '80px' }}>
+                  Name:
+                </Text>
+                <Text size="sm">
+                  {roleDetails.name}
+                </Text>
+              </Group>
+            </div>
+          )}
+
           {/* Basic Information */}
           <div>
             <Text size="sm" fw={500} mb="xs">
-              Basic Information
+              {mode === 'create' ? 'Basic Information' : 'Editable Information'}
             </Text>
             <Stack gap="sm">
-              <TextInput
-                label="Role Name"
-                placeholder="Enter role name"
-                required
-                autoComplete="off"
-                {...form.getInputProps('name')}
-              />
+              {mode === 'create' && (
+                <TextInput
+                  label="Role Name"
+                  placeholder="Enter role name"
+                  required
+                  autoComplete="off"
+                  {...form.getInputProps('name')}
+                />
+              )}
               
               <Textarea
                 label="Description"
@@ -191,24 +204,16 @@ export function RoleFormModal({ opened, onClose, roleId, mode }: IRoleFormModalP
               Permissions
             </Text>
             
-            {/* Render MultiSelect when permissionOptions is available */}
-            {Array.isArray(permissionOptions) && permissionOptions.length > 0 ? (
-              <MultiSelect
-                label="Role Permissions"
-                placeholder="Select permissions for this role"
-                data={permissionOptions}
-                searchable
-                clearable
-                maxDropdownHeight={300}
-                disabled={isLoading}
-                value={form.values.permission_ids || []}
-                onChange={(value) => form.setFieldValue('permission_ids', value || [])}
-              />
-            ) : (
-              <Text size="sm" c="dimmed">
-                {isLoading ? 'Loading permissions...' : 'No permissions available'}
-              </Text>
-            )}
+            <MultiSelect
+              label="Role Permissions"
+              placeholder="Select permissions for this role"
+              data={permissionOptions}
+              searchable
+              clearable
+              maxDropdownHeight={300}
+              disabled={isLoading}
+              {...form.getInputProps('permission_ids')}
+            />
             
             <Text size="xs" c="dimmed" mt="xs">
               Select the permissions that users with this role should have.

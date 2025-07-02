@@ -50,6 +50,7 @@ import {
 } from '@tabler/icons-react';
 import { useUsers } from '../../../../../hooks/useUsers';
 import type { IUserBasic, IUsersListParams } from '../../../../../types/responses/admin/users.types';
+import { getUserStatusColor } from '../../../../../utils/status-color.utils';
 import classes from './UsersList.module.css';
 
 interface IUsersListProps {
@@ -111,6 +112,15 @@ export function UsersList({
       ...prev,
       search,
       page: 1, // Reset to first page when searching
+    }));
+  }, []);
+
+  // Handle search clear
+  const handleClearSearch = useCallback(() => {
+    setParams(prev => ({
+      ...prev,
+      search: '',
+      page: 1,
     }));
   }, []);
 
@@ -265,15 +275,18 @@ export function UsersList({
             </ActionIcon>
           </Group>
         ),
-        cell: ({ row }) => (
-          <Badge
-            variant="light"
-            color={row.original.blocked ? 'red' : 'green'}
-            size="sm"
-          >
-            {row.original.blocked ? 'Blocked' : row.original.status}
-          </Badge>
-        ),
+        cell: ({ row }) => {
+          const status = row.original.blocked ? 'blocked' : row.original.status;
+          return (
+            <Badge
+              variant="light"
+              color={getUserStatusColor(status)}
+              size="sm"
+            >
+              {row.original.blocked ? 'Blocked' : row.original.status}
+            </Badge>
+          );
+        },
         enableSorting: true,
       },
       {
@@ -282,6 +295,15 @@ export function UsersList({
         cell: ({ row }) => (
           <Text size="xs" c="dimmed" lineClamp={2}>
             {row.original.groups || 'No groups'}
+          </Text>
+        ),
+      },
+      {
+        accessorKey: 'roles',
+        header: 'Roles',
+        cell: ({ row }) => (
+          <Text size="xs" c="dimmed" lineClamp={2}>
+            {row.original.roles || 'No roles'}
           </Text>
         ),
       },
@@ -409,7 +431,7 @@ export function UsersList({
   }
 
   return (
-    <Card className={classes.container}>
+    <Card>
       <Stack gap="md">
         {/* Header */}
         <Group justify="space-between">
@@ -418,7 +440,7 @@ export function UsersList({
               Users Management
             </Text>
             <Text size="sm" c="dimmed">
-              Manage system users, their roles, and permissions
+              Manage user accounts, permissions, and settings
             </Text>
           </div>
           <Button
@@ -439,8 +461,8 @@ export function UsersList({
                 <ActionIcon
                   variant="subtle"
                   color="gray"
-                  onClick={() => handleSearch('')}
                   size="sm"
+                  onClick={handleClearSearch}
                 >
                   <IconX size={14} />
                 </ActionIcon>
@@ -465,57 +487,80 @@ export function UsersList({
         </Group>
 
         {/* Table */}
-        <div className={classes.tableContainer}>
+        <div style={{ position: 'relative' }}>
           <LoadingOverlay visible={isLoading} />
-          <Table striped highlightOnHover>
-            <TableThead>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableTr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableTh key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableTh>
-                  ))}
-                </TableTr>
-              ))}
-            </TableThead>
-            <TableTbody>
-              {table.getRowModel().rows.map((row) => (
-                <TableTr key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableTd key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableTd>
-                  ))}
-                </TableTr>
-              ))}
-            </TableTbody>
-          </Table>
+          
+          <Box style={{ overflowX: 'auto' }}>
+            <Table striped highlightOnHover className={classes.table}>
+              <TableThead>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableTr key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableTh key={header.id} className={classes.tableHeader}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableTh>
+                    ))}
+                  </TableTr>
+                ))}
+              </TableThead>
+              <TableTbody>
+                {table.getRowModel().rows.map((row) => (
+                  <TableTr key={row.id} className={classes.tableRow}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableTd key={cell.id} className={classes.tableCell}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableTd>
+                    ))}
+                  </TableTr>
+                ))}
+              </TableTbody>
+            </Table>
+          </Box>
 
           {/* Empty state */}
           {!isLoading && (!usersData?.users || usersData.users.length === 0) && (
             <Center py="xl">
-              <Text c="dimmed">No users found</Text>
+              <Stack align="center" gap="sm">
+                <Text size="lg" c="dimmed">
+                  No users found
+                </Text>
+                <Text size="sm" c="dimmed">
+                  {params.search 
+                    ? 'Try adjusting your search criteria'
+                    : 'Get started by creating your first user'
+                  }
+                </Text>
+                {!params.search && (
+                  <Button
+                    leftSection={<IconPlus size={16} />}
+                    onClick={onCreateUser}
+                    variant="light"
+                  >
+                    Create User
+                  </Button>
+                )}
+              </Stack>
             </Center>
           )}
         </div>
 
         {/* Pagination */}
-        {usersData?.pagination && (
+        {usersData?.pagination && usersData.pagination.totalPages > 1 && (
           <Group justify="space-between">
             <Text size="sm" c="dimmed">
               Showing {((usersData.pagination.page - 1) * usersData.pagination.pageSize) + 1} to{' '}
-              {Math.min(
-                usersData.pagination.page * usersData.pagination.pageSize,
-                usersData.pagination.totalCount
-              )}{' '}
-              of {usersData.pagination.totalCount} users
+              {Math.min(usersData.pagination.page * usersData.pagination.pageSize, usersData.pagination.totalCount)} of{' '}
+              {usersData.pagination.totalCount} users
             </Text>
+            
             <Pagination
               value={usersData.pagination.page}
               onChange={handlePageChange}

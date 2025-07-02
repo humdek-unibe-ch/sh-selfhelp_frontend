@@ -32,6 +32,7 @@ import {
   Button,
   Menu,
   Center,
+  Box,
 } from '@mantine/core';
 import {
   IconSearch,
@@ -43,6 +44,7 @@ import {
   IconSortDescending,
   IconShield,
   IconUsers,
+  IconX,
 } from '@tabler/icons-react';
 import { useRoles } from '../../../../../hooks/useRoles';
 import type { IRoleBasic, IRolesListParams } from '../../../../../types/responses/admin/roles.types';
@@ -101,6 +103,15 @@ export function RolesList({
     setParams(prev => ({
       ...prev,
       search,
+      page: 1,
+    }));
+  }, []);
+
+  // Handle search clear
+  const handleClearSearch = useCallback(() => {
+    setParams(prev => ({
+      ...prev,
+      search: '',
       page: 1,
     }));
   }, []);
@@ -206,9 +217,9 @@ export function RolesList({
           </Group>
         ),
         cell: ({ row }) => (
-          <Badge variant="light" color="green" size="sm">
+          <Text size="sm" c="dimmed">
             {row.original.permissions_count} permissions
-          </Badge>
+          </Text>
         ),
         enableSorting: true,
       },
@@ -233,35 +244,8 @@ export function RolesList({
           </Group>
         ),
         cell: ({ row }) => (
-          <Badge variant="light" color="blue" size="sm">
+          <Text size="sm" c="dimmed">
             {row.original.users_count} users
-          </Badge>
-        ),
-        enableSorting: true,
-      },
-      {
-        accessorKey: 'created_at',
-        header: ({ column }) => (
-          <Group gap="xs">
-            <Text fw={500}>Created</Text>
-            <ActionIcon
-              variant="transparent"
-              size="xs"
-              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            >
-              {column.getIsSorted() === 'asc' ? (
-                <IconSortAscending size={14} />
-              ) : column.getIsSorted() === 'desc' ? (
-                <IconSortDescending size={14} />
-              ) : (
-                <IconSortAscending size={14} opacity={0.5} />
-              )}
-            </ActionIcon>
-          </Group>
-        ),
-        cell: ({ row }) => (
-          <Text size="xs" c="dimmed">
-            {new Date(row.original.created_at).toLocaleDateString()}
           </Text>
         ),
         enableSorting: true,
@@ -373,6 +357,18 @@ export function RolesList({
           <TextInput
             placeholder="Search roles..."
             leftSection={<IconSearch size={16} />}
+            rightSection={
+              params.search ? (
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  size="sm"
+                  onClick={handleClearSearch}
+                >
+                  <IconX size={14} />
+                </ActionIcon>
+              ) : null
+            }
             value={params.search}
             onChange={(e) => handleSearch(e.currentTarget.value)}
             style={{ flex: 1 }}
@@ -394,55 +390,78 @@ export function RolesList({
         {/* Table */}
         <div style={{ position: 'relative' }}>
           <LoadingOverlay visible={isLoading} />
-          <Table striped highlightOnHover>
-            <TableThead>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableTr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableTh key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableTh>
-                  ))}
-                </TableTr>
-              ))}
-            </TableThead>
-            <TableTbody>
-              {table.getRowModel().rows.map((row) => (
-                <TableTr key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableTd key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableTd>
-                  ))}
-                </TableTr>
-              ))}
-            </TableTbody>
-          </Table>
+          
+          <Box style={{ overflowX: 'auto' }}>
+            <Table striped highlightOnHover>
+              <TableThead>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableTr key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableTh key={header.id}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableTh>
+                    ))}
+                  </TableTr>
+                ))}
+              </TableThead>
+              <TableTbody>
+                {table.getRowModel().rows.map((row) => (
+                  <TableTr key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableTd key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableTd>
+                    ))}
+                  </TableTr>
+                ))}
+              </TableTbody>
+            </Table>
+          </Box>
 
           {/* Empty state */}
           {!isLoading && (!rolesData?.roles || rolesData.roles.length === 0) && (
             <Center py="xl">
-              <Text c="dimmed">No roles found</Text>
+              <Stack align="center" gap="sm">
+                <Text size="lg" c="dimmed">
+                  No roles found
+                </Text>
+                <Text size="sm" c="dimmed">
+                  {params.search 
+                    ? 'Try adjusting your search criteria'
+                    : 'Get started by creating your first role'
+                  }
+                </Text>
+                {!params.search && (
+                  <Button
+                    leftSection={<IconPlus size={16} />}
+                    onClick={onCreateRole}
+                    variant="light"
+                  >
+                    Create Role
+                  </Button>
+                )}
+              </Stack>
             </Center>
           )}
         </div>
 
         {/* Pagination */}
-        {rolesData?.pagination && (
+        {rolesData?.pagination && rolesData.pagination.totalPages > 1 && (
           <Group justify="space-between">
             <Text size="sm" c="dimmed">
               Showing {((rolesData.pagination.page - 1) * rolesData.pagination.pageSize) + 1} to{' '}
-              {Math.min(
-                rolesData.pagination.page * rolesData.pagination.pageSize,
-                rolesData.pagination.totalCount
-              )}{' '}
-              of {rolesData.pagination.totalCount} roles
+              {Math.min(rolesData.pagination.page * rolesData.pagination.pageSize, rolesData.pagination.totalCount)} of{' '}
+              {rolesData.pagination.totalCount} roles
             </Text>
+            
             <Pagination
               value={rolesData.pagination.page}
               onChange={handlePageChange}

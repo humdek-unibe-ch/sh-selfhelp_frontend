@@ -16,11 +16,13 @@ import {
   LoadingOverlay,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCreateUser, useUpdateUser, useUserDetails } from '../../../../../hooks/useUsers';
 import type { ICreateUserRequest, IUpdateUserRequest } from '../../../../../types/requests/admin/users.types';
 import { useGroups } from '../../../../../hooks/useGroups';
 import { useRoles } from '../../../../../hooks/useRoles';
 import { useGenders } from '../../../../../hooks/useGenders';
+import { validateName, validateValidationCode } from '../../../../../utils/name-validation.utils';
 
 interface IUserFormModalProps {
   opened: boolean;
@@ -42,6 +44,7 @@ interface IUserFormValues {
 
 export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalProps) {
   // Hooks
+  const queryClient = useQueryClient();
   const createUserMutation = useCreateUser();
   const updateUserMutation = useUpdateUser();
   const { data: userDetails, isLoading: isLoadingUser } = useUserDetails(userId || 0);
@@ -63,14 +66,24 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
     },
     validate: {
       email: (value) => {
+        if (mode === 'edit') return null; // Skip validation in edit mode
         if (!value) return 'Email is required';
         if (!/^\S+@\S+$/.test(value)) return 'Invalid email format';
         return null;
       },
       name: (value) => (!value ? 'Name is required' : null),
-      user_name: (value) => (!value ? 'Username is required' : null),
+      user_name: (value) => {
+        if (mode === 'edit') return null; // Skip validation in edit mode
+        if (!value) return 'Username is required';
+        const validation = validateName(value);
+        return validation.isValid ? null : validation.error;
+      },
       validation_code: (value) => {
         if (mode === 'create' && !value) return 'Validation code is required';
+        if (value) {
+          const validation = validateValidationCode(value);
+          return validation.isValid ? null : validation.error;
+        }
         return null;
       },
     },
@@ -86,18 +99,21 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
         validation_code: userDetails.validation_code || '',
         id_genders: userDetails.id_genders?.toString() || null,
         blocked: userDetails.blocked,
-        groupIds: userDetails.groups.map((g: any) => g.id.toString()),
-        roleIds: userDetails.roles.map((r: any) => r.id.toString()),
+        groupIds: userDetails.groups?.map((g: any) => g.id.toString()) || [],
+        roleIds: userDetails.roles?.map((r: any) => r.id.toString()) || [],
       });
     }
   }, [mode, userDetails]);
 
-  // Reset form when modal closes
+  // Reset form when modal closes and invalidate user query on edit
   useEffect(() => {
     if (!opened) {
       form.reset();
+    } else if (mode === 'edit' && userId) {
+      // Invalidate user details query to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: ['adminUserDetails', userId] });
     }
-  }, [opened]);
+  }, [opened, mode, userId, queryClient]);
 
   // Handle form submission
   const handleSubmit = async (values: IUserFormValues) => {
@@ -157,13 +173,11 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
   const groupOptions = groups?.groups?.map((group) => ({
     value: group.id.toString(),
     label: group.name,
-    description: group.description,
   })) || [];
 
   const roleOptions = roles?.roles?.map((role) => ({
     value: role.id.toString(),
     label: role.name,
-    description: role.description,
   })) || [];
 
   return (
@@ -182,46 +196,85 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
       
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="md">
+          {/* User Information Display for Edit Mode */}
+          {mode === 'edit' && userDetails && (
+            <div>
+              <Text size="sm" fw={500} mb="xs">
+                User Information
+              </Text>
+              <Stack gap="xs">
+                <Group>
+                  <Text size="sm" fw={500} c="dimmed" style={{ minWidth: '80px' }}>
+                    Email:
+                  </Text>
+                  <Text size="sm">
+                    {userDetails.email}
+                  </Text>
+                </Group>
+                <Group>
+                  <Text size="sm" fw={500} c="dimmed" style={{ minWidth: '80px' }}>
+                    Username:
+                  </Text>
+                  <Text size="sm">
+                    {userDetails.user_name || '-'}
+                  </Text>
+                </Group>
+              </Stack>
+            </div>
+          )}
+
           {/* Basic Information */}
           <div>
             <Text size="sm" fw={500} mb="xs">
-              Basic Information
+              {mode === 'create' ? 'Basic Information' : 'Editable Information'}
             </Text>
             <Stack gap="sm">
-              <TextInput
-                label="Email"
-                placeholder="user@example.com"
-                required
-                disabled={mode === 'edit'}
-                autoComplete="off"
-                {...form.getInputProps('email')}
-              />
-              
-              <Group grow>
+              {mode === 'create' && (
+                <>
+                  <TextInput
+                    label="Email"
+                    placeholder="user@example.com"
+                    required
+                    autoComplete="off"
+                    {...form.getInputProps('email')}
+                  />
+                  
+                  <Group grow>
+                    <TextInput
+                      label="Full Name"
+                      placeholder="John Doe"
+                      required
+                      autoComplete="off"
+                      {...form.getInputProps('name')}
+                    />
+                    <TextInput
+                      label="Username"
+                      placeholder="johndoe"
+                      required
+                      autoComplete="off"
+                      description="Only letters, numbers, hyphens, and underscores allowed"
+                      {...form.getInputProps('user_name')}
+                    />
+                  </Group>
+
+                  <TextInput
+                    label="Validation Code"
+                    placeholder="Enter validation code"
+                    required
+                    autoComplete="off"
+                    description="Max 16 characters. Only letters, numbers, hyphens, and underscores allowed"
+                    {...form.getInputProps('validation_code')}
+                  />
+                </>
+              )}
+
+              {mode === 'edit' && (
                 <TextInput
                   label="Full Name"
                   placeholder="John Doe"
                   required
                   autoComplete="off"
                   {...form.getInputProps('name')}
-                />
-                <TextInput
-                  label="Username"
-                  placeholder="johndoe"
-                  required
-                  disabled={mode === 'edit'}
-                  autoComplete="off"
-                  {...form.getInputProps('user_name')}
-                />
-              </Group>
-
-              {mode === 'create' && (
-                <TextInput
-                  label="Validation Code"
-                  placeholder="Enter validation code"
-                  required
-                  autoComplete="off"
-                  {...form.getInputProps('validation_code')}
                 />
               )}
 

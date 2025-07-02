@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { useForm } from '@mantine/form';
 import {
   Modal,
@@ -14,13 +14,10 @@ import {
   Divider,
   LoadingOverlay,
   MultiSelect,
-  Alert,
 } from '@mantine/core';
-import { IconInfoCircle } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { useCreateGroup, useUpdateGroup, useGroupDetails } from '../../../../../hooks/useGroups';
 import { usePermissions } from '../../../../../hooks/usePermissions';
-import { useAuth } from '../../../../../hooks/useAuth';
 import type { ICreateGroupRequest, IUpdateGroupRequest } from '../../../../../types/requests/admin/groups.types';
 
 interface IGroupFormModalProps {
@@ -43,7 +40,6 @@ export function GroupFormModal({ opened, onClose, groupId, mode }: IGroupFormMod
   const updateGroupMutation = useUpdateGroup();
   const { data: groupDetails, isLoading: isLoadingGroup } = useGroupDetails(groupId || 0);
   const { data: permissionsData, isLoading: isLoadingPermissions } = usePermissions();
-  const { user } = useAuth();
 
   // Form
   const form = useForm<IGroupFormValues>({
@@ -54,7 +50,10 @@ export function GroupFormModal({ opened, onClose, groupId, mode }: IGroupFormMod
       acls: [],
     },
     validate: {
-      name: (value) => (!value ? 'Group name is required' : null),
+      name: (value) => {
+        if (mode === 'edit') return null; // Skip validation in edit mode
+        return !value ? 'Group name is required' : null;
+      },
     },
   });
 
@@ -77,29 +76,12 @@ export function GroupFormModal({ opened, onClose, groupId, mode }: IGroupFormMod
     }
   }, [opened]);
 
-  // Prepare ACL options with user permission validation
-  const aclOptions = useMemo(() => {
-    if (!permissionsData?.permissions || !Array.isArray(permissionsData.permissions) || !user) return [];
-
-    const userPermissions = user.permissions || [];
-    
-    return permissionsData.permissions.map((permission) => {
-      const hasPermission = userPermissions.includes(permission.name);
-      
-      return {
-        value: permission.id.toString(),
-        label: permission.name,
-        description: permission.description,
-        disabled: !hasPermission,
-        group: hasPermission ? 'Available ACLs' : 'Restricted ACLs',
-      };
-    });
-  }, [permissionsData, user]);
-
-  // Count restricted ACLs
-  const restrictedCount = useMemo(() => {
-    return aclOptions?.filter(option => option.disabled).length || 0;
-  }, [aclOptions]);
+  // Prepare ACL options - simplified without user permission validation
+  const aclOptions = permissionsData?.permissions?.map((permission: any) => ({
+    value: permission.id.toString(),
+    label: permission.name,
+    description: permission.description,
+  })) || [];
 
   // Handle form submission
   const handleSubmit = async (values: IGroupFormValues) => {
@@ -162,19 +144,38 @@ export function GroupFormModal({ opened, onClose, groupId, mode }: IGroupFormMod
       
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="md">
+          {/* Group Information Display for Edit Mode */}
+          {mode === 'edit' && groupDetails && (
+            <div>
+              <Text size="sm" fw={500} mb="xs">
+                Group Information
+              </Text>
+              <Group>
+                <Text size="sm" fw={500} c="dimmed" style={{ minWidth: '80px' }}>
+                  Name:
+                </Text>
+                <Text size="sm">
+                  {groupDetails.name}
+                </Text>
+              </Group>
+            </div>
+          )}
+
           {/* Basic Information */}
           <div>
             <Text size="sm" fw={500} mb="xs">
-              Basic Information
+              {mode === 'create' ? 'Basic Information' : 'Editable Information'}
             </Text>
             <Stack gap="sm">
-              <TextInput
-                label="Group Name"
-                placeholder="Enter group name"
-                required
-                autoComplete="off"
-                {...form.getInputProps('name')}
-              />
+              {mode === 'create' && (
+                <TextInput
+                  label="Group Name"
+                  placeholder="Enter group name"
+                  required
+                  autoComplete="off"
+                  {...form.getInputProps('name')}
+                />
+              )}
               
               <Textarea
                 label="Description"
@@ -209,38 +210,19 @@ export function GroupFormModal({ opened, onClose, groupId, mode }: IGroupFormMod
               Access Control Lists (ACLs)
             </Text>
             
-            {restrictedCount > 0 && (
-              <Alert icon={<IconInfoCircle size="1rem" />} color="yellow" mb="sm">
-                <Text size="sm">
-                  {restrictedCount} ACL(s) are restricted because you don't have them. 
-                  These ACLs appear grayed out and cannot be selected.
-                </Text>
-              </Alert>
-            )}
-            
             <MultiSelect
               label="Group ACLs"
               placeholder="Select ACLs for this group"
-              data={aclOptions || []}
+              data={aclOptions}
               searchable
               clearable
               maxDropdownHeight={300}
               disabled={isLoading}
               {...form.getInputProps('acls')}
-              styles={{
-                option: {
-                  '&[data-disabled]': {
-                    color: 'var(--mantine-color-gray-5)',
-                    backgroundColor: 'var(--mantine-color-gray-1)',
-                    cursor: 'not-allowed',
-                  },
-                },
-              }}
             />
             
             <Text size="xs" c="dimmed" mt="xs">
-              Select the ACLs that members of this group should have. 
-              You can only assign ACLs that you currently possess.
+              Select the ACLs that members of this group should have.
             </Text>
           </div>
 

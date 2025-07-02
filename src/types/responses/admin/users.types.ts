@@ -9,6 +9,7 @@ export interface IUserBasic {
   code: string | null;
   validation_code: string | null;
   groups: string;
+  roles: string;
   user_activity: number;
   user_type_code: string;
   user_type: string;

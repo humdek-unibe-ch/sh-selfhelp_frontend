@@ -32,6 +32,7 @@ import {
   Button,
   Menu,
   Center,
+  Box,
 } from '@mantine/core';
 import {
   IconSearch,
@@ -43,6 +44,7 @@ import {
   IconSortDescending,
   IconShield,
   IconUsers,
+  IconX,
 } from '@tabler/icons-react';
 import { useGroups } from '../../../../../hooks/useGroups';
 import type { IGroupBasic, IGroupsListParams } from '../../../../../types/responses/admin/groups.types';
@@ -101,6 +103,15 @@ export function GroupsList({
     setParams(prev => ({
       ...prev,
       search,
+      page: 1,
+    }));
+  }, []);
+
+  // Handle search clear
+  const handleClearSearch = useCallback(() => {
+    setParams(prev => ({
+      ...prev,
+      search: '',
       page: 1,
     }));
   }, []);
@@ -206,9 +217,9 @@ export function GroupsList({
           </Group>
         ),
         cell: ({ row }) => (
-          <Badge variant="light" color="blue" size="sm">
+          <Text size="sm" c="dimmed">
             {row.original.members_count} members
-          </Badge>
+          </Text>
         ),
         enableSorting: true,
       },
@@ -224,33 +235,6 @@ export function GroupsList({
             {row.original.requires_2fa ? 'Required' : 'Optional'}
           </Badge>
         ),
-      },
-      {
-        accessorKey: 'created_at',
-        header: ({ column }) => (
-          <Group gap="xs">
-            <Text fw={500}>Created</Text>
-            <ActionIcon
-              variant="transparent"
-              size="xs"
-              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            >
-              {column.getIsSorted() === 'asc' ? (
-                <IconSortAscending size={14} />
-              ) : column.getIsSorted() === 'desc' ? (
-                <IconSortDescending size={14} />
-              ) : (
-                <IconSortAscending size={14} opacity={0.5} />
-              )}
-            </ActionIcon>
-          </Group>
-        ),
-        cell: ({ row }) => (
-          <Text size="xs" c="dimmed">
-            {new Date(row.original.created_at).toLocaleDateString()}
-          </Text>
-        ),
-        enableSorting: true,
       },
       {
         id: 'actions',
@@ -359,6 +343,18 @@ export function GroupsList({
           <TextInput
             placeholder="Search groups..."
             leftSection={<IconSearch size={16} />}
+            rightSection={
+              params.search ? (
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  size="sm"
+                  onClick={handleClearSearch}
+                >
+                  <IconX size={14} />
+                </ActionIcon>
+              ) : null
+            }
             value={params.search}
             onChange={(e) => handleSearch(e.currentTarget.value)}
             style={{ flex: 1 }}
@@ -380,55 +376,78 @@ export function GroupsList({
         {/* Table */}
         <div style={{ position: 'relative' }}>
           <LoadingOverlay visible={isLoading} />
-          <Table striped highlightOnHover>
-            <TableThead>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableTr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableTh key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableTh>
-                  ))}
-                </TableTr>
-              ))}
-            </TableThead>
-            <TableTbody>
-              {table.getRowModel().rows.map((row) => (
-                <TableTr key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableTd key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableTd>
-                  ))}
-                </TableTr>
-              ))}
-            </TableTbody>
-          </Table>
+          
+          <Box style={{ overflowX: 'auto' }}>
+            <Table striped highlightOnHover>
+              <TableThead>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableTr key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableTh key={header.id}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableTh>
+                    ))}
+                  </TableTr>
+                ))}
+              </TableThead>
+              <TableTbody>
+                {table.getRowModel().rows.map((row) => (
+                  <TableTr key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableTd key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableTd>
+                    ))}
+                  </TableTr>
+                ))}
+              </TableTbody>
+            </Table>
+          </Box>
 
           {/* Empty state */}
           {!isLoading && (!groupsData?.groups || groupsData.groups.length === 0) && (
             <Center py="xl">
-              <Text c="dimmed">No groups found</Text>
+              <Stack align="center" gap="sm">
+                <Text size="lg" c="dimmed">
+                  No groups found
+                </Text>
+                <Text size="sm" c="dimmed">
+                  {params.search 
+                    ? 'Try adjusting your search criteria'
+                    : 'Get started by creating your first group'
+                  }
+                </Text>
+                {!params.search && (
+                  <Button
+                    leftSection={<IconPlus size={16} />}
+                    onClick={onCreateGroup}
+                    variant="light"
+                  >
+                    Create Group
+                  </Button>
+                )}
+              </Stack>
             </Center>
           )}
         </div>
 
         {/* Pagination */}
-        {groupsData?.pagination && (
+        {groupsData?.pagination && groupsData.pagination.totalPages > 1 && (
           <Group justify="space-between">
             <Text size="sm" c="dimmed">
               Showing {((groupsData.pagination.page - 1) * groupsData.pagination.pageSize) + 1} to{' '}
-              {Math.min(
-                groupsData.pagination.page * groupsData.pagination.pageSize,
-                groupsData.pagination.totalCount
-              )}{' '}
-              of {groupsData.pagination.totalCount} groups
+              {Math.min(groupsData.pagination.page * groupsData.pagination.pageSize, groupsData.pagination.totalCount)} of{' '}
+              {groupsData.pagination.totalCount} groups
             </Text>
+            
             <Pagination
               value={groupsData.pagination.page}
               onChange={handlePageChange}
