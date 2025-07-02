@@ -10,4 +10,5 @@ export {
     type IFormField,
     type IProcessedFormData,
     type IFieldFormHandlerProps
-} from './field-form-handler/FieldFormHandler'; 
+} from './field-form-handler/FieldFormHandler';
+export { AclSelector, type IAclPage, type TAclPageType } from './acl-selector/AclSelector'; 

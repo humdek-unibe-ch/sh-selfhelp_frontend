@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { GroupsList } from '../groups-list/GroupsList';
 import { GroupFormModal } from '../group-form-modal/GroupFormModal';
 import { DeleteGroupModal } from '../delete-group-modal/DeleteGroupModal';
+import { AdvancedAclModal } from '../advanced-acl-modal/AdvancedAclModal';
 import { useDeleteGroup } from '../../../../../hooks/useGroups';
 import { notifications } from '@mantine/notifications';
 
@@ -11,8 +12,10 @@ export function GroupsPage() {
   const [createModalOpened, setCreateModalOpened] = useState(false);
   const [editModalOpened, setEditModalOpened] = useState(false);
   const [deleteModalOpened, setDeleteModalOpened] = useState(false);
+  const [advancedAclModalOpened, setAdvancedAclModalOpened] = useState(false);
   const [editingGroupId, setEditingGroupId] = useState<number | null>(null);
   const [deletingGroup, setDeletingGroup] = useState<{ id: number; name: string } | null>(null);
+  const [managingAclGroup, setManagingAclGroup] = useState<{ id: number; name: string } | null>(null);
   
   const deleteGroupMutation = useDeleteGroup();
 
@@ -58,13 +61,9 @@ export function GroupsPage() {
   };
 
   // Handle manage ACLs
-  const handleManageAcls = (groupId: number) => {
-    // TODO: Implement ACL management modal
-    notifications.show({
-      title: 'Coming Soon',
-      message: `ACL management functionality will be implemented soon (Group ID: ${groupId})`,
-      color: 'blue',
-    });
+  const handleManageAcls = (groupId: number, groupName: string) => {
+    setManagingAclGroup({ id: groupId, name: groupName });
+    setAdvancedAclModalOpened(true);
   };
 
   // Handle modal close
@@ -80,6 +79,11 @@ export function GroupsPage() {
   const handleCloseDeleteModal = () => {
     setDeleteModalOpened(false);
     setDeletingGroup(null);
+  };
+
+  const handleCloseAdvancedAclModal = () => {
+    setAdvancedAclModalOpened(false);
+    setManagingAclGroup(null);
   };
 
   return (
@@ -104,6 +108,7 @@ export function GroupsPage() {
         onClose={handleCloseEditModal}
         groupId={editingGroupId}
         mode="edit"
+        onAdvancedAcls={handleManageAcls}
       />
 
       {/* Delete Group Modal */}
@@ -114,6 +119,16 @@ export function GroupsPage() {
         groupName={deletingGroup?.name || ''}
         isLoading={deleteGroupMutation.isPending}
       />
+
+      {/* Advanced ACL Management Modal */}
+      {managingAclGroup && (
+        <AdvancedAclModal
+          opened={advancedAclModalOpened}
+          onClose={handleCloseAdvancedAclModal}
+          groupId={managingAclGroup.id}
+          groupName={managingAclGroup.name}
+        />
+      )}
     </>
   );
 } 

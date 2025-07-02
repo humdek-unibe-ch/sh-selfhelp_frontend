@@ -53,7 +53,7 @@ interface IGroupsListProps {
   onCreateGroup?: () => void;
   onEditGroup?: (groupId: number) => void;
   onDeleteGroup?: (groupId: number, groupName: string) => void;
-  onManageAcls?: (groupId: number) => void;
+  onManageAcls?: (groupId: number, groupName: string) => void;
 }
 
 export function GroupsList({
@@ -256,7 +256,7 @@ export function GroupsList({
                 variant="subtle"
                 size="sm"
                 color="blue"
-                onClick={() => onManageAcls?.(row.original.id)}
+                                          onClick={() => onManageAcls?.(row.original.id, row.original.name)}
               >
                 <IconShield size={16} />
               </ActionIcon>

@@ -14,17 +14,21 @@ import {
   Divider,
   LoadingOverlay,
   MultiSelect,
+  ActionIcon,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useCreateGroup, useUpdateGroup, useGroupDetails } from '../../../../../hooks/useGroups';
 import { usePermissions } from '../../../../../hooks/usePermissions';
 import type { ICreateGroupRequest, IUpdateGroupRequest } from '../../../../../types/requests/admin/groups.types';
+import { validateName } from '../../../../../utils/name-validation.utils';
+import { IconX, IconSettings } from '@tabler/icons-react';
 
 interface IGroupFormModalProps {
   opened: boolean;
   onClose: () => void;
   groupId?: number | null;
   mode: 'create' | 'edit';
+  onAdvancedAcls?: (groupId: number, groupName: string) => void;
 }
 
 interface IGroupFormValues {
@@ -34,7 +38,7 @@ interface IGroupFormValues {
   acls: string[];
 }
 
-export function GroupFormModal({ opened, onClose, groupId, mode }: IGroupFormModalProps) {
+export function GroupFormModal({ opened, onClose, groupId, mode, onAdvancedAcls }: IGroupFormModalProps) {
   // Hooks
   const createGroupMutation = useCreateGroup();
   const updateGroupMutation = useUpdateGroup();
@@ -52,7 +56,9 @@ export function GroupFormModal({ opened, onClose, groupId, mode }: IGroupFormMod
     validate: {
       name: (value) => {
         if (mode === 'edit') return null; // Skip validation in edit mode
-        return !value ? 'Group name is required' : null;
+        if (!value) return 'Group name is required';
+        const validation = validateName(value);
+        return validation.isValid ? null : validation.error;
       },
     },
   });
@@ -64,7 +70,9 @@ export function GroupFormModal({ opened, onClose, groupId, mode }: IGroupFormMod
         name: groupDetails.name || '',
         description: groupDetails.description || '',
         requires_2fa: groupDetails.requires_2fa || false,
-        acls: groupDetails.acls?.map((acl: any) => acl.id.toString()) || [],
+        acls: groupDetails.acls?.map((acl: any) => {
+          return acl && acl.id != null ? acl.id.toString() : null;
+        }).filter(Boolean) || [],
       });
     }
   }, [mode, groupDetails]);
@@ -211,19 +219,52 @@ export function GroupFormModal({ opened, onClose, groupId, mode }: IGroupFormMod
             </Text>
             
             <MultiSelect
-              label="Group ACLs"
-              placeholder="Select ACLs for this group"
+              label="Group Permissions"
+              placeholder="Select permissions for this group"
               data={aclOptions}
               searchable
               clearable
               maxDropdownHeight={300}
               disabled={isLoading}
               {...form.getInputProps('acls')}
+              rightSection={
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  size="sm"
+                  onClick={() => form.setFieldValue('acls', [])}
+                  style={{ display: form.values.acls.length > 0 ? 'block' : 'none' }}
+                >
+                  <IconX size={14} />
+                </ActionIcon>
+              }
             />
             
-            <Text size="xs" c="dimmed" mt="xs">
-              Select the ACLs that members of this group should have.
-            </Text>
+            <Group justify="space-between" mt="xs">
+              <Text size="xs" c="dimmed">
+                Select the permissions that members of this group should have.
+              </Text>
+              {mode === 'edit' && (
+                <Button
+                  variant="outline"
+                  size="xs"
+                  leftSection={<IconSettings size="0.875rem" />}
+                  onClick={() => {
+                    if (onAdvancedAcls && groupId && groupDetails) {
+                      onAdvancedAcls(groupId, groupDetails.name);
+                    } else {
+                      notifications.show({
+                        title: 'Coming Soon',
+                        message: 'Advanced page-based ACL management will be available soon',
+                        color: 'blue',
+                      });
+                    }
+                  }}
+                >
+                  Advanced ACLs
+                </Button>
+              )}
+            </Group>
           </div>
 
           {/* Actions */}
