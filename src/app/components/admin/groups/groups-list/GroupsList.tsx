@@ -47,7 +47,7 @@ import {
   IconX,
 } from '@tabler/icons-react';
 import { useGroups } from '../../../../../hooks/useGroups';
-import type { IGroupBasic, IGroupsListParams } from '../../../../../types/responses/admin/groups.types';
+import type { IGroupDetails, IGroupsListParams } from '../../../../../types/responses/admin/groups.types';
 
 interface IGroupsListProps {
   onCreateGroup?: () => void;
@@ -133,7 +133,7 @@ export function GroupsList({
   }, []);
 
   // Define table columns
-  const columns = useMemo<ColumnDef<IGroupBasic>[]>(
+  const columns = useMemo<ColumnDef<IGroupDetails>[]>(
     () => [
       {
         accessorKey: 'id',
@@ -197,10 +197,10 @@ export function GroupsList({
         enableSorting: true,
       },
       {
-        accessorKey: 'members_count',
+        accessorKey: 'user_count',
         header: ({ column }) => (
           <Group gap="xs">
-            <Text fw={500}>Members</Text>
+            <Text fw={500}>Users</Text>
             <ActionIcon
               variant="transparent"
               size="xs"
@@ -217,9 +217,9 @@ export function GroupsList({
           </Group>
         ),
         cell: ({ row }) => (
-          <Text size="sm" c="dimmed">
-            {row.original.members_count} members
-          </Text>
+          <Badge size="sm" variant="light" color="blue">
+            {row.original.user_count}
+          </Badge>
         ),
         enableSorting: true,
       },
@@ -232,7 +232,7 @@ export function GroupsList({
             color={row.original.requires_2fa ? 'orange' : 'gray'}
             size="sm"
           >
-            {row.original.requires_2fa ? 'Required' : 'Optional'}
+            {row.original.requires_2fa ? 'Enabled' : 'Disabled'}
           </Badge>
         ),
       },

@@ -1,24 +1,11 @@
-export interface IGroupBasic {
-  id: number;
-  name: string;
-  description: string | null;
-  id_group_types: number | null;
-  requires_2fa: boolean;
-  members_count: number;
-  created_at: string;
-  updated_at: string;
-}
-
 export interface IGroupDetails {
   id: number;
   name: string;
   description: string | null;
   id_group_types: number | null;
   requires_2fa: boolean;
-  members_count: number;
+  user_count: number;
   acls: IGroupAcl[];
-  created_at: string;
-  updated_at: string;
 }
 
 export interface IGroupAcl {
@@ -39,7 +26,7 @@ export interface IGroupsPagination {
 }
 
 export interface IGroupsListResponse {
-  groups: IGroupBasic[];
+  groups: IGroupDetails[];
   pagination: IGroupsPagination;
 }
 
