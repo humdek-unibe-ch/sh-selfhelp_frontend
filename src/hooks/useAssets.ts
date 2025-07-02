@@ -1,5 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { AdminAssetApi, type IAssetsListResponse, type IAssetsListParams, type IAsset, type ICreateAssetRequest } from '../api/admin/asset.api';
+import { 
+  AdminAssetApi, 
+  type IAssetsListResponse, 
+  type IAssetsListParams, 
+  type IAsset, 
+  type ICreateAssetRequest,
+  type ICreateMultipleAssetsRequest,
+  type IMultipleAssetsUploadResponse
+} from '../api/admin/asset.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 
 /**
@@ -28,13 +36,28 @@ export function useAssetDetails(assetId: number) {
 }
 
 /**
- * Hook to create/upload a new asset
+ * Hook to create/upload a new asset (single file)
  */
 export function useCreateAsset() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (assetData: ICreateAssetRequest) => AdminAssetApi.createAsset(assetData),
+    onSuccess: () => {
+      // Invalidate and refetch assets list
+      queryClient.invalidateQueries({ queryKey: ['assets'] });
+    },
+  });
+}
+
+/**
+ * Hook to create/upload multiple assets (multiple files)
+ */
+export function useCreateMultipleAssets() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (assetData: ICreateMultipleAssetsRequest) => AdminAssetApi.createMultipleAssets(assetData),
     onSuccess: () => {
       // Invalidate and refetch assets list
       queryClient.invalidateQueries({ queryKey: ['assets'] });

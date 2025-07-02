@@ -37,6 +37,24 @@ export interface ICreateAssetRequest {
   overwrite?: boolean;
 }
 
+export interface ICreateMultipleAssetsRequest {
+  files: File[];
+  folder?: string;
+  file_names?: string[];
+  overwrite?: boolean;
+}
+
+export interface IMultipleAssetsUploadResponse {
+  success_count: number;
+  error_count: number;
+  total_count: number;
+  uploaded_assets: IAsset[];
+  errors: {
+    file_name: string;
+    error: string;
+  }[];
+}
+
 export const AdminAssetApi = {
   /**
    * Get paginated list of assets with search and sorting
@@ -65,7 +83,7 @@ export const AdminAssetApi = {
   },
 
   /**
-   * Create/upload a new asset
+   * Create/upload a new asset (single file)
    */
   async createAsset(assetData: ICreateAssetRequest): Promise<IAsset> {
     const formData = new FormData();
@@ -82,6 +100,44 @@ export const AdminAssetApi = {
     }
 
     const response = await apiClient.post<IBaseApiResponse<IAsset>>(
+      API_CONFIG.ENDPOINTS.ADMIN_ASSETS_CREATE, 
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Create/upload multiple assets (multiple files)
+   */
+  async createMultipleAssets(assetData: ICreateMultipleAssetsRequest): Promise<IMultipleAssetsUploadResponse> {
+    const formData = new FormData();
+    
+    // Append all files
+    assetData.files.forEach((file) => {
+      formData.append('files[]', file);
+    });
+    
+    if (assetData.folder) {
+      formData.append('folder', assetData.folder);
+    }
+    
+    // Append custom file names if provided
+    if (assetData.file_names && assetData.file_names.length > 0) {
+      assetData.file_names.forEach((fileName) => {
+        formData.append('file_names[]', fileName);
+      });
+    }
+    
+    if (assetData.overwrite !== undefined) {
+      formData.append('overwrite', assetData.overwrite.toString());
+    }
+
+    const response = await apiClient.post<IBaseApiResponse<IMultipleAssetsUploadResponse>>(
       API_CONFIG.ENDPOINTS.ADMIN_ASSETS_CREATE, 
       formData,
       {
