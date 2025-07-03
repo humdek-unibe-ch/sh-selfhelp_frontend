@@ -5,9 +5,23 @@ export interface IGroupDetails {
   id_group_types: number | null;
   requires_2fa: boolean;
   users_count: number;
-  acls: IGroupAcl[];
+  acls: IGroupPageAcl[];
 }
 
+export interface IGroupPageAcl {
+  page_id: number;
+  page_keyword: string;
+  page_title: string | null;
+  page_type: number;
+  is_system: boolean;
+  is_configuration: boolean;
+  acl_select: boolean;
+  acl_insert: boolean;
+  acl_update: boolean;
+  acl_delete: boolean;
+}
+
+// Legacy interface for backward compatibility
 export interface IGroupAcl {
   id: number;
   name: string;

@@ -5,7 +5,8 @@ import type {
   IGroupsListResponse, 
   IGroupsListParams, 
   IGroupDetails,
-  IGroupAcl
+  IGroupAcl,
+  IGroupPageAcl
 } from '../../types/responses/admin/groups.types';
 import type {
   ICreateGroupRequest,
@@ -64,18 +65,18 @@ export const AdminGroupApi = {
   },
 
   /**
-   * Get group ACLs
+   * Get group ACLs (page-based)
    */
-  async getGroupAcls(groupId: number): Promise<IGroupAcl[]> {
-    const response = await apiClient.get<IBaseApiResponse<IGroupAcl[]>>(API_CONFIG.ENDPOINTS.ADMIN_GROUPS_ACLS_GET(groupId));
+  async getGroupAcls(groupId: number): Promise<IGroupPageAcl[]> {
+    const response = await apiClient.get<IBaseApiResponse<IGroupPageAcl[]>>(API_CONFIG.ENDPOINTS.ADMIN_GROUPS_ACLS_GET(groupId));
     return response.data.data;
   },
 
   /**
-   * Update group ACLs
+   * Update group ACLs (page-based)
    */
-  async updateGroupAcls(groupId: number, data: IUpdateGroupAclsRequest): Promise<IGroupAcl[]> {
-    const response = await apiClient.put<IBaseApiResponse<IGroupAcl[]>>(API_CONFIG.ENDPOINTS.ADMIN_GROUPS_ACLS_UPDATE(groupId), data);
+  async updateGroupAcls(groupId: number, data: IUpdateGroupAclsRequest): Promise<IGroupPageAcl[]> {
+    const response = await apiClient.put<IBaseApiResponse<IGroupPageAcl[]>>(API_CONFIG.ENDPOINTS.ADMIN_GROUPS_ACLS_UPDATE(groupId), data);
     return response.data.data;
   }
 }; 

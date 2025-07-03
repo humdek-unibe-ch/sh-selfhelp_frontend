@@ -3,7 +3,7 @@ export interface ICreateGroupRequest {
   description?: string;
   id_group_types?: number;
   requires_2fa?: boolean;
-  acls?: number[];
+  acls?: IAclRequest[];
 }
 
 export interface IUpdateGroupRequest {
@@ -11,9 +11,17 @@ export interface IUpdateGroupRequest {
   description?: string;
   id_group_types?: number;
   requires_2fa?: boolean;
-  acls?: number[];
+  acls?: IAclRequest[];
 }
 
 export interface IUpdateGroupAclsRequest {
-  acls: number[];
+  acls: IAclRequest[];
+}
+
+export interface IAclRequest {
+  page_id: number;
+  acl_select?: boolean;
+  acl_insert?: boolean;
+  acl_update?: boolean;
+  acl_delete?: boolean;
 } 

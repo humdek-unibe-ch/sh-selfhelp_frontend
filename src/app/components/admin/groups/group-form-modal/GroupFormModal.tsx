@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from '@mantine/form';
 import {
   Modal,
@@ -13,15 +13,13 @@ import {
   Text,
   Divider,
   LoadingOverlay,
-  MultiSelect,
-  ActionIcon,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useCreateGroup, useUpdateGroup, useGroupDetails } from '../../../../../hooks/useGroups';
-import { usePermissions } from '../../../../../hooks/usePermissions';
+import { AclManagement, type IAclPage } from '../advanced-acl-modal/AdvancedAclModal';
 import type { ICreateGroupRequest, IUpdateGroupRequest } from '../../../../../types/requests/admin/groups.types';
 import { validateName } from '../../../../../utils/name-validation.utils';
-import { IconX, IconSettings } from '@tabler/icons-react';
+import { convertAclsToApiFormat, convertApiAclsToUiFormat } from '../../../../../utils/acl-conversion.utils';
 
 interface IGroupFormModalProps {
   opened: boolean;
@@ -35,7 +33,6 @@ interface IGroupFormValues {
   name: string;
   description: string;
   requires_2fa: boolean;
-  acls: string[];
 }
 
 export function GroupFormModal({ opened, onClose, groupId, mode, onAdvancedAcls }: IGroupFormModalProps) {
@@ -43,7 +40,9 @@ export function GroupFormModal({ opened, onClose, groupId, mode, onAdvancedAcls 
   const createGroupMutation = useCreateGroup();
   const updateGroupMutation = useUpdateGroup();
   const { data: groupDetails, isLoading: isLoadingGroup } = useGroupDetails(groupId || 0);
-  const { data: permissionsData, isLoading: isLoadingPermissions } = usePermissions();
+  
+  // State for ACL management
+  const [selectedPages, setSelectedPages] = useState<IAclPage[]>([]);
 
   // Form
   const form = useForm<IGroupFormValues>({
@@ -51,7 +50,6 @@ export function GroupFormModal({ opened, onClose, groupId, mode, onAdvancedAcls 
       name: '',
       description: '',
       requires_2fa: false,
-      acls: [],
     },
     validate: {
       name: (value) => {
@@ -70,10 +68,13 @@ export function GroupFormModal({ opened, onClose, groupId, mode, onAdvancedAcls 
         name: groupDetails.name || '',
         description: groupDetails.description || '',
         requires_2fa: groupDetails.requires_2fa || false,
-        acls: groupDetails.acls?.map((acl: any) => {
-          return acl && acl.id != null ? acl.id.toString() : null;
-        }).filter(Boolean) || [],
       });
+
+      // Load ACL data if available
+      if (groupDetails.acls && Array.isArray(groupDetails.acls)) {
+        const aclPages = convertApiAclsToUiFormat(groupDetails.acls);
+        setSelectedPages(aclPages);
+      }
     }
   }, [mode, groupDetails]);
 
@@ -81,15 +82,11 @@ export function GroupFormModal({ opened, onClose, groupId, mode, onAdvancedAcls 
   useEffect(() => {
     if (!opened) {
       form.reset();
+      setSelectedPages([]);
     }
   }, [opened]);
 
-  // Prepare ACL options - simplified without user permission validation
-  const aclOptions = permissionsData?.permissions?.map((permission: any) => ({
-    value: permission.id.toString(),
-    label: permission.name,
-    description: permission.description,
-  })) || [];
+
 
   // Handle form submission
   const handleSubmit = async (values: IGroupFormValues) => {
@@ -98,7 +95,7 @@ export function GroupFormModal({ opened, onClose, groupId, mode, onAdvancedAcls 
         name: values.name,
         description: values.description || undefined,
         requires_2fa: values.requires_2fa,
-        acls: values.acls.map(id => parseInt(id, 10)),
+        acls: convertAclsToApiFormat(selectedPages),
       };
 
       if (mode === 'create') {
@@ -133,7 +130,7 @@ export function GroupFormModal({ opened, onClose, groupId, mode, onAdvancedAcls 
     }
   };
 
-  const isLoading = isLoadingGroup || isLoadingPermissions;
+  const isLoading = isLoadingGroup;
   const isSubmitting = createGroupMutation.isPending || updateGroupMutation.isPending;
 
   return (
@@ -212,59 +209,23 @@ export function GroupFormModal({ opened, onClose, groupId, mode, onAdvancedAcls 
 
           <Divider />
 
-          {/* ACLs */}
+          {/* ACL Management */}
           <div>
             <Text size="sm" fw={500} mb="xs">
               Access Control Lists (ACLs)
             </Text>
             
-            <MultiSelect
-              label="Group Permissions"
-              placeholder="Select permissions for this group"
-              data={aclOptions}
-              searchable
-              clearable
-              maxDropdownHeight={300}
-              disabled={isLoading}
-              {...form.getInputProps('acls')}
-              rightSection={
-                <ActionIcon
-                  variant="subtle"
-                  color="gray"
-                  size="sm"
-                  onClick={() => form.setFieldValue('acls', [])}
-                  style={{ display: form.values.acls.length > 0 ? 'block' : 'none' }}
-                >
-                  <IconX size={14} />
-                </ActionIcon>
-              }
+            <AclManagement
+              selectedPages={selectedPages}
+              onChange={setSelectedPages}
+              showHeader={true}
+              maxHeight={400}
+              initiallyExpanded={false}
             />
             
-            <Group justify="space-between" mt="xs">
-              <Text size="xs" c="dimmed">
-                Select the permissions that members of this group should have.
-              </Text>
-              {mode === 'edit' && (
-                <Button
-                  variant="outline"
-                  size="xs"
-                  leftSection={<IconSettings size="0.875rem" />}
-                  onClick={() => {
-                    if (onAdvancedAcls && groupId && groupDetails) {
-                      onAdvancedAcls(groupId, groupDetails.name);
-                    } else {
-                      notifications.show({
-                        title: 'Coming Soon',
-                        message: 'Advanced page-based ACL management will be available soon',
-                        color: 'blue',
-                      });
-                    }
-                  }}
-                >
-                  Advanced ACLs
-                </Button>
-              )}
-            </Group>
+            <Text size="xs" c="dimmed" mt="xs">
+              Configure page-based access control for this group. Members will inherit these permissions.
+            </Text>
           </div>
 
           {/* Actions */}
