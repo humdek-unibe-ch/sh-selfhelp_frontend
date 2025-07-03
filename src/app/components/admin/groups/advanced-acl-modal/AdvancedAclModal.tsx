@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Modal,
   Stack,
@@ -28,8 +28,10 @@ import {
   IconLock,
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
-import { convertAclsToApiFormat } from '../../../../../utils/acl-conversion.utils';
+import { useGroupDetails, useUpdateGroupAcls } from '../../../../../hooks/useGroups';
+import { convertAclsToApiFormat, convertApiAclsToUiFormat } from '../../../../../utils/acl-conversion.utils';
 
 export interface IAclPage {
   id: number;
@@ -88,22 +90,50 @@ export function AclManagement({
   
   const { pages, isLoading } = useAdminPages();
 
+  // Debug: Log selectedPages when they change
+  useEffect(() => {
+    console.log('AclManagement selectedPages changed:', JSON.stringify(selectedPages, null, 2));
+  }, [selectedPages]);
+
+  // Debug: Log admin pages when they load
+  useEffect(() => {
+    if (pages.length > 0) {
+      console.log('Admin pages loaded:', pages.length, 'pages');
+      const agbPage = pages.find(p => p.keyword === 'agb');
+      if (agbPage) {
+        console.log('Found agb page in admin pages:', agbPage);
+      }
+    }
+  }, [pages]);
+
   // Transform pages and filter by search term
   const filteredPages = useMemo(() => {
-    const transformedPages = pages.map(page => ({
-      id: page.id_pages,
-      keyword: page.keyword,
-      title: page.title,
-      type: page.id_type || 3,
-      isSystem: page.is_system === 1,
-      isConfiguration: (page.id_type || 0) > 3,
-      permissions: {
+    const transformedPages = pages.map(page => {
+      const pagePermissions = {
         select: selectedPages.some(p => p.id === page.id_pages && p.permissions.select),
         insert: selectedPages.some(p => p.id === page.id_pages && p.permissions.insert),
         update: selectedPages.some(p => p.id === page.id_pages && p.permissions.update),
         delete: selectedPages.some(p => p.id === page.id_pages && p.permissions.delete),
-      },
-    }));
+      };
+      
+      // Debug specific page (agb with id 30)
+      if (page.keyword === 'agb' && page.id_pages === 30) {
+        console.log('Processing page agb (id 30):');
+        console.log('  - selectedPages:', selectedPages);
+        console.log('  - calculated permissions:', pagePermissions);
+        console.log('  - matching selected page:', selectedPages.find(p => p.id === page.id_pages));
+      }
+      
+      return {
+        id: page.id_pages,
+        keyword: page.keyword,
+        title: page.title,
+        type: page.id_type || 3,
+        isSystem: page.is_system === 1,
+        isConfiguration: (page.id_type || 0) > 3,
+        permissions: pagePermissions,
+      };
+    });
 
     if (!searchTerm) return transformedPages;
 
@@ -343,35 +373,88 @@ export function AdvancedAclModal({
   groupName 
 }: IAdvancedAclModalProps) {
   const [selectedPages, setSelectedPages] = useState<IAclPage[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
+  
+  // Fetch group details (including ACLs) - with fresh data when modal opens
+  const { data: groupDetails, isLoading: isLoadingGroup, refetch: refetchGroupDetails } = useGroupDetails(groupId);
+  const updateAclsMutation = useUpdateGroupAcls();
+  
+  // Extract ACLs from group details
+  const existingAcls = groupDetails?.acls || [];
+  const isLoadingAcls = isLoadingGroup;
+
+  // Refetch group details when modal opens to get fresh data
+  useEffect(() => {
+    if (opened) {
+      console.log('Modal opened, invalidating and refetching group details for group:', groupId);
+      // Reset selected pages first to avoid stale data
+      setSelectedPages([]);
+      // First invalidate to ensure we don't get cached data
+      queryClient.invalidateQueries({ queryKey: ['groups', 'detail', groupId] });
+      // Then refetch to get fresh data
+      refetchGroupDetails();
+    }
+  }, [opened, groupId, refetchGroupDetails, queryClient]);
+
+  // Load existing ACLs when data is available
+  useEffect(() => {
+    // Only process if modal is open and we have group details
+    if (opened && groupDetails) {
+      console.log('Loading group details:', groupDetails);
+      console.log('Raw ACL data from group details:', JSON.stringify(existingAcls, null, 2));
+      
+      if (existingAcls.length > 0) {
+        const aclPages = convertApiAclsToUiFormat(existingAcls);
+        console.log('Converted ACL pages:', JSON.stringify(aclPages, null, 2));
+        console.log('Setting selectedPages to:', aclPages);
+        setSelectedPages(aclPages);
+      } else {
+        // No existing ACLs, start with empty state
+        console.log('No existing ACLs found, starting with empty state');
+        setSelectedPages([]);
+      }
+    }
+  }, [opened, groupDetails, existingAcls]);
+
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!opened) {
+      setSelectedPages([]);
+    }
+  }, [opened]);
 
   const handleSave = async () => {
-    setIsLoading(true);
     try {
       // Convert to API format
       const aclsData = convertAclsToApiFormat(selectedPages);
+      console.log('Saving ACLs for group:', groupId);
+      console.log('Selected pages:', selectedPages);
+      console.log('Converted ACL data:', aclsData);
 
-      // TODO: Implement API call to save page-based ACLs
-      // This would be a new API endpoint like: PUT /admin/groups/{groupId}/acls
-      // await AdminGroupApi.updateGroupAcls(groupId, { acls: aclsData });
-      
-      notifications.show({
-        title: 'Success',
-        message: 'Page-based ACLs updated successfully',
-        color: 'green',
+      // Execute the API call
+      await updateAclsMutation.mutateAsync({
+        groupId,
+        data: { acls: aclsData }
       });
+
+      // Force invalidate and refetch all related queries using correct query keys
+      await queryClient.invalidateQueries({ queryKey: ['groups'] });
+      await queryClient.invalidateQueries({ queryKey: ['groups', 'acls', groupId] });
+      await queryClient.invalidateQueries({ queryKey: ['groups', 'detail', groupId] });
       
+      // Also refetch the group details to ensure fresh data immediately
+      await refetchGroupDetails();
+      
+      console.log('ACLs saved successfully, queries invalidated');
       onClose();
-    } catch (error: any) {
-      notifications.show({
-        title: 'Error',
-        message: error.response?.data?.message || 'Failed to update ACLs',
-        color: 'red',
-      });
-    } finally {
-      setIsLoading(false);
+    } catch (error) {
+      // Error handling is done in the mutation hook
+      console.error('Failed to update ACLs:', error);
     }
   };
+
+  const isLoading = isLoadingAcls;
+  const isSubmitting = updateAclsMutation.isPending;
 
   return (
     <Modal
@@ -397,13 +480,13 @@ export function AdvancedAclModal({
         />
 
         <Group justify="flex-end" gap="sm">
-          <Button variant="outline" onClick={onClose} disabled={isLoading}>
+          <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
             Cancel
           </Button>
           <Button 
             leftSection={<IconDeviceFloppy size="1rem" />}
             onClick={handleSave} 
-            loading={isLoading}
+            loading={isSubmitting}
           >
             Save ACL Changes
           </Button>

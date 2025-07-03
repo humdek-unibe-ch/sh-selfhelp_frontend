@@ -6,7 +6,8 @@ import type {
   IGroupsListParams, 
   IGroupsListResponse, 
   IGroupDetails,
-  IGroupAcl
+  IGroupAcl,
+  IGroupPageAcl
 } from '../types/responses/admin/groups.types';
 import type {
   ICreateGroupRequest,
@@ -135,6 +136,8 @@ export function useUpdateGroupAcls() {
     mutationFn: ({ groupId, data }: { groupId: number; data: IUpdateGroupAclsRequest }) =>
       AdminGroupApi.updateGroupAcls(groupId, data),
     onSuccess: (_, { groupId }) => {
+      // Invalidate all group-related queries to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: GROUPS_QUERY_KEYS.all });
       queryClient.invalidateQueries({ queryKey: GROUPS_QUERY_KEYS.acls(groupId) });
       queryClient.invalidateQueries({ queryKey: GROUPS_QUERY_KEYS.detail(groupId) });
       notifications.show({
