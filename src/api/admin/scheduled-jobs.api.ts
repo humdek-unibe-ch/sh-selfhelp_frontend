@@ -4,8 +4,6 @@ import {
     TScheduledJobsListResponse,
     TScheduledJobDetailResponse,
     TScheduledJobTransactionsResponse,
-    TScheduledJobStatusesResponse,
-    TScheduledJobTypesResponse,
     IScheduledJobFilters
 } from '../../types/responses/admin/scheduled-jobs.types';
 
@@ -63,30 +61,6 @@ export class AdminScheduledJobsApi {
      */
     static async getScheduledJobTransactions(jobId: number): Promise<TScheduledJobTransactionsResponse> {
         const response = await apiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_TRANSACTIONS(jobId));
-        return response.data;
-    }
-
-    /**
-     * Get all available job statuses
-     */
-    static async getScheduledJobStatuses(): Promise<TScheduledJobStatusesResponse> {
-        const response = await apiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_STATUSES);
-        return response.data;
-    }
-
-    /**
-     * Get all available job types
-     */
-    static async getScheduledJobTypes(): Promise<TScheduledJobTypesResponse> {
-        const response = await apiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_TYPES);
-        return response.data;
-    }
-
-    /**
-     * Get all available search date types
-     */
-    static async getScheduledJobSearchDateTypes(): Promise<TScheduledJobTypesResponse> {
-        const response = await apiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_SEARCH_DATE_TYPES);
         return response.data;
     }
 } 

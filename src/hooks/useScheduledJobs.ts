@@ -50,47 +50,7 @@ export function useScheduledJobTransactions(jobId: number, enabled: boolean = tr
     });
 }
 
-/**
- * Hook to fetch available job statuses
- */
-export function useScheduledJobStatuses() {
-    return useQuery({
-        queryKey: ['scheduledJobStatuses'],
-        queryFn: () => AdminScheduledJobsApi.getScheduledJobStatuses(),
-        staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.staleTime,
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
-        retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
-        retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
-    });
-}
 
-/**
- * Hook to fetch available job types
- */
-export function useScheduledJobTypes() {
-    return useQuery({
-        queryKey: ['scheduledJobTypes'],
-        queryFn: () => AdminScheduledJobsApi.getScheduledJobTypes(),
-        staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.staleTime,
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
-        retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
-        retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
-    });
-}
-
-/**
- * Hook to fetch available search date types
- */
-export function useScheduledJobSearchDateTypes() {
-    return useQuery({
-        queryKey: ['scheduledJobSearchDateTypes'],
-        queryFn: () => AdminScheduledJobsApi.getScheduledJobSearchDateTypes(),
-        staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.staleTime,
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
-        retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
-        retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
-    });
-}
 
 /**
  * Hook to execute a scheduled job

@@ -16,7 +16,7 @@ export const API_CONFIG = {
         AUTH_REFRESH_TOKEN: '/auth/refresh-token',
         AUTH_LOGOUT: '/auth/logout',
         AUTH_SET_LANGUAGE: '/auth/set-language',
-        
+
         // Public pages endpoints
         /**
          * Fetches a list of pages when not logged in.
@@ -26,13 +26,13 @@ export const API_CONFIG = {
         PAGES_GET_ALL: '/pages',
         PAGES_GET_ALL_WITH_LANGUAGE: (languageId: number) => `/pages/${languageId}`,
         PAGES_GET_ONE: (keyword: string) => `/pages/${keyword}`,
-        
+
         // Public languages endpoint
         LANGUAGES: '/languages',
-        
+
         // Admin lookups endpoint
         ADMIN_LOOKUPS: '/admin/lookups',
-        
+
         // Admin pages endpoints
         ADMIN_PAGES_GET_ALL: '/admin/pages',
         ADMIN_PAGES_GET_ALL_WITH_LANGUAGE: (languageId: number) => `/admin/pages/${languageId}`,
@@ -41,14 +41,14 @@ export const API_CONFIG = {
         ADMIN_PAGES_UPDATE: (keyword: string) => `/admin/pages/${keyword}`,
         ADMIN_PAGES_DELETE: (keyword: string) => `/admin/pages/${keyword}`,
         ADMIN_PAGES_SECTIONS_GET: (keyword: string) => `/admin/pages/${keyword}/sections`,
-        
+
         // Admin languages endpoints
         ADMIN_LANGUAGES_GET_ALL: '/admin/languages',
         ADMIN_LANGUAGES_GET_ONE: (id: number) => `/admin/languages/${id}`,
         ADMIN_LANGUAGES_CREATE: '/admin/languages',
         ADMIN_LANGUAGES_UPDATE: (id: number) => `/admin/languages/${id}`,
         ADMIN_LANGUAGES_DELETE: (id: number) => `/admin/languages/${id}`,
-        
+
         // Admin styles endpoints
         ADMIN_STYLES_GET_ALL: '/admin/styles',
 
@@ -104,25 +104,22 @@ export const API_CONFIG = {
 
         // Admin permissions endpoints
         ADMIN_PERMISSIONS_GET_ALL: '/admin/permissions',
-        
-            // Admin scheduled jobs endpoints
-    ADMIN_SCHEDULED_JOBS_GET_ALL: '/admin/scheduled-jobs',
-    ADMIN_SCHEDULED_JOBS_GET_ONE: (jobId: number) => `/admin/scheduled-jobs/${jobId}`,
-    ADMIN_SCHEDULED_JOBS_EXECUTE: (jobId: number) => `/admin/scheduled-jobs/${jobId}/execute`,
-    ADMIN_SCHEDULED_JOBS_DELETE: (jobId: number) => `/admin/scheduled-jobs/${jobId}`,
-    ADMIN_SCHEDULED_JOBS_TRANSACTIONS: (jobId: number) => `/admin/scheduled-jobs/${jobId}/transactions`,
-    ADMIN_SCHEDULED_JOBS_STATUSES: '/admin/scheduled-jobs/statuses',
-    ADMIN_SCHEDULED_JOBS_TYPES: '/admin/scheduled-jobs/types',
-    ADMIN_SCHEDULED_JOBS_SEARCH_DATE_TYPES: '/admin/scheduled-jobs/search-date-types',
 
-    // User input endpoints
-    USER_INPUT_GET_ALL: '/user-input',
-    USER_INPUT_DELETE: (entryId: number) => `/user-input/${entryId}`,
-        
+        // Admin scheduled jobs endpoints
+        ADMIN_SCHEDULED_JOBS_GET_ALL: '/admin/scheduled-jobs',
+        ADMIN_SCHEDULED_JOBS_GET_ONE: (jobId: number) => `/admin/scheduled-jobs/${jobId}`,
+        ADMIN_SCHEDULED_JOBS_EXECUTE: (jobId: number) => `/admin/scheduled-jobs/${jobId}/execute`,
+        ADMIN_SCHEDULED_JOBS_DELETE: (jobId: number) => `/admin/scheduled-jobs/${jobId}`,
+        ADMIN_SCHEDULED_JOBS_TRANSACTIONS: (jobId: number) => `/admin/scheduled-jobs/${jobId}/transactions`,
+
+        // User input endpoints
+        USER_INPUT_GET_ALL: '/user-input',
+        USER_INPUT_DELETE: (entryId: number) => `/user-input/${entryId}`,
+
         // Admin section creation endpoints
         ADMIN_PAGES_CREATE_SECTION: (keyword: string) => `/admin/pages/${keyword}/sections/create`,
         ADMIN_SECTIONS_CREATE_CHILD: (keyword: string, parentSectionId: number) => `/admin/pages/${keyword}/sections/${parentSectionId}/sections/create`,
-        
+
         // Admin section management endpoints
         ADMIN_PAGES_ADD_SECTION: (keyword: string) => `/admin/pages/${keyword}/sections`,
         ADMIN_PAGES_REMOVE_SECTION: (keyword: string, sectionId: number) => `/admin/pages/${keyword}/sections/${sectionId}`,
@@ -131,18 +128,18 @@ export const API_CONFIG = {
         ADMIN_SECTIONS_UPDATE: (keyword: string, sectionId: number) => `/admin/pages/${keyword}/sections/${sectionId}`,
         ADMIN_SECTIONS_GET_ONE: (keyword: string, sectionId: number) => `/admin/pages/${keyword}/sections/${sectionId}`,
         ADMIN_SECTIONS_GET_CHILDREN: (keyword: string, parentSectionId: number) => `/admin/pages/${keyword}/sections/${parentSectionId}/sections`,
-        
+
         // Admin section export/import endpoints
         ADMIN_SECTIONS_EXPORT_PAGE: (keyword: string) => `/admin/pages/${keyword}/sections/export`,
         ADMIN_SECTIONS_EXPORT_SECTION: (keyword: string, sectionId: number) => `/admin/pages/${keyword}/sections/${sectionId}/export`,
         ADMIN_SECTIONS_IMPORT_TO_PAGE: (keyword: string) => `/admin/pages/${keyword}/sections/import`,
         ADMIN_SECTIONS_IMPORT_TO_SECTION: (keyword: string, parentSectionId: number) => `/admin/pages/${keyword}/sections/${parentSectionId}/import`,
-        
+
         // Legacy endpoints (keeping for backward compatibility)
         PAGES_GET_ONE_WITH_LANGUAGE: (keyword: string, languageId: number) => `/pages/${keyword}?language_id=${languageId}`,
         ADMIN_PAGES_GET_ONE_WITH_LANGUAGE: (keyword: string, languageId: number) => `/admin/pages/${keyword}?language_id=${languageId}`,
         ADMIN_LANGUAGES: '/admin/languages', // Alias for ADMIN_LANGUAGES_GET_ALL
-        
+
         // Deprecated endpoints (marked for removal)
         ADMIN_SECTIONS_ADD_TO_PAGE: (keyword: string) => `/admin/pages/${keyword}/sections`, // Use ADMIN_PAGES_ADD_SECTION
         ADMIN_SECTIONS_ADD_TO_SECTION: (keyword: string, parentSectionId: number) => `/admin/pages/${keyword}/sections/${parentSectionId}/sections`, // Use ADMIN_SECTIONS_ADD

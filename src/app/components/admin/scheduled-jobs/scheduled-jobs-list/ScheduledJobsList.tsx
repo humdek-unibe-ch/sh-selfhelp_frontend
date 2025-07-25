@@ -50,7 +50,9 @@ import {
   IconSortDescending,
   IconX,
 } from '@tabler/icons-react';
-import { useScheduledJobs, useScheduledJobStatuses, useScheduledJobTypes, useScheduledJobSearchDateTypes } from '../../../../../hooks/useScheduledJobs';
+import { useScheduledJobs } from '../../../../../hooks/useScheduledJobs';
+import { useLookups } from '../../../../../hooks/useLookups';
+import { getScheduledJobStatuses, getScheduledJobTypes, getScheduledJobSearchDateTypes } from '../../../../../utils/lookup-filters.utils';
 import { IScheduledJobFilters, IScheduledJob } from '../../../../../types/responses/admin/scheduled-jobs.types';
 
 interface IScheduledJobsListProps {
@@ -80,9 +82,21 @@ export function ScheduledJobsList({
 
     // Real API calls
     const { data: scheduledJobsData, isLoading, error, refetch } = useScheduledJobs(params);
-    const { data: statusesData } = useScheduledJobStatuses();
-    const { data: typesData } = useScheduledJobTypes();
-    const { data: searchDateTypesData } = useScheduledJobSearchDateTypes();
+    const { data: lookupsData, isLoading: lookupsLoading } = useLookups();
+
+    // Process lookups for filters
+    const statusOptions = lookupsData ? getScheduledJobStatuses(lookupsData.lookups) : [];
+    const typeOptions = lookupsData ? getScheduledJobTypes(lookupsData.lookups) : [];
+    const dateTypeOptions = lookupsData ? getScheduledJobSearchDateTypes(lookupsData.lookups) : [];
+
+    // Debug logging for filter data
+    console.log('Scheduled Jobs Filter Data:', {
+        lookups: lookupsData?.lookups,
+        statusOptions,
+        typeOptions,
+        dateTypeOptions,
+        lookupsLoading
+    });
 
     const scheduledJobs = scheduledJobsData?.data?.scheduledJobs || [];
     const pagination = {
@@ -187,8 +201,8 @@ export function ScheduledJobsList({
         switch (status.toLowerCase()) {
             case 'queued': return 'blue';
             case 'done': return 'green';
-            case 'failed': return 'red';
-            case 'deleted': return 'gray';
+            case 'failed': return 'orange';
+            case 'deleted': return 'red';
             default: return 'gray';
         }
     };
@@ -446,7 +460,6 @@ export function ScheduledJobsList({
                             <Menu.Item
                                 leftSection={<IconPlayerPlay size={14} />}
                                 onClick={() => onExecuteJob?.(row.original.id)}
-                                disabled={row.original.status.toLowerCase() !== 'queued'}
                             >
                                 Execute Job
                             </Menu.Item>
@@ -573,49 +586,43 @@ export function ScheduledJobsList({
                             <Group grow>
                                 <Select
                                     label="Status"
-                                    placeholder="Select status"
-                                    data={statusesData?.data?.map(status => ({ 
-                                        value: status.value || '', 
-                                        label: status.value || '' 
-                                    })).filter(item => item.value) || [
+                                    placeholder={lookupsLoading ? "Loading..." : "Select status"}
+                                    data={lookupsLoading ? [] : (statusOptions.length > 0 ? statusOptions : [
                                         { value: 'Queued', label: 'Queued' },
                                         { value: 'Done', label: 'Done' },
                                         { value: 'Failed', label: 'Failed' },
                                         { value: 'Deleted', label: 'Deleted' }
-                                    ]}
+                                    ])}
                                     value={params.status || ''}
                                     onChange={(value) => setParams((prev: IScheduledJobFilters) => ({ ...prev, status: value || undefined, page: 1 }))}
                                     clearable
+                                    disabled={lookupsLoading}
                                 />
                                 <Select
                                     label="Type"
-                                    placeholder="Select type"
-                                    data={typesData?.data?.map(type => ({ 
-                                        value: type.value || '', 
-                                        label: type.value || '' 
-                                    })).filter(item => item.value) || [
+                                    placeholder={lookupsLoading ? "Loading..." : "Select type"}
+                                    data={lookupsLoading ? [] : (typeOptions.length > 0 ? typeOptions : [
                                         { value: 'Task', label: 'Task' },
                                         { value: 'Email', label: 'Email' },
                                         { value: 'Notification', label: 'Notification' }
-                                    ]}
+                                    ])}
                                     value={params.jobType || ''}
                                     onChange={(value) => setParams((prev: IScheduledJobFilters) => ({ ...prev, jobType: value || undefined, page: 1 }))}
                                     clearable
+                                    disabled={lookupsLoading}
                                 />
                                 <Select
                                     label="Date Type"
-                                    placeholder="Select date type"
-                                    data={searchDateTypesData?.data?.map(type => ({ 
-                                        value: type.value || '', 
-                                        label: type.value || '' 
-                                    })).filter(item => item.value) || [
+                                    placeholder={lookupsLoading ? "Loading..." : "Select date type"}
+                                    data={lookupsLoading ? [] : (dateTypeOptions.length > 0 ? dateTypeOptions : [
                                         { value: 'date_create', label: 'Date Created' },
                                         { value: 'date_to_be_executed', label: 'Date to be executed' },
                                         { value: 'date_executed', label: 'Date Executed' }
-                                    ]}
+                                    ])}
                                     value={params.dateType || ''}
                                     onChange={(value) => setParams((prev: IScheduledJobFilters) => ({ ...prev, dateType: value as IScheduledJobFilters['dateType'] || undefined, page: 1 }))}
                                     clearable
+                                    disabled={lookupsLoading}
                                 />
                             </Group>
                             <Group grow>
