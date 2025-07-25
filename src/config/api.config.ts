@@ -105,6 +105,20 @@ export const API_CONFIG = {
         // Admin permissions endpoints
         ADMIN_PERMISSIONS_GET_ALL: '/admin/permissions',
         
+            // Admin scheduled jobs endpoints
+    ADMIN_SCHEDULED_JOBS_GET_ALL: '/admin/scheduled-jobs',
+    ADMIN_SCHEDULED_JOBS_GET_ONE: (jobId: number) => `/admin/scheduled-jobs/${jobId}`,
+    ADMIN_SCHEDULED_JOBS_EXECUTE: (jobId: number) => `/admin/scheduled-jobs/${jobId}/execute`,
+    ADMIN_SCHEDULED_JOBS_DELETE: (jobId: number) => `/admin/scheduled-jobs/${jobId}`,
+    ADMIN_SCHEDULED_JOBS_TRANSACTIONS: (jobId: number) => `/admin/scheduled-jobs/${jobId}/transactions`,
+    ADMIN_SCHEDULED_JOBS_STATUSES: '/admin/scheduled-jobs/statuses',
+    ADMIN_SCHEDULED_JOBS_TYPES: '/admin/scheduled-jobs/types',
+    ADMIN_SCHEDULED_JOBS_SEARCH_DATE_TYPES: '/admin/scheduled-jobs/search-date-types',
+
+    // User input endpoints
+    USER_INPUT_GET_ALL: '/user-input',
+    USER_INPUT_DELETE: (entryId: number) => `/user-input/${entryId}`,
+        
         // Admin section creation endpoints
         ADMIN_PAGES_CREATE_SECTION: (keyword: string) => `/admin/pages/${keyword}/sections/create`,
         ADMIN_SECTIONS_CREATE_CHILD: (keyword: string, parentSectionId: number) => `/admin/pages/${keyword}/sections/${parentSectionId}/sections/create`,

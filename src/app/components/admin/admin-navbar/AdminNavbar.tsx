@@ -1,7 +1,7 @@
 "use client";
 
 import { ScrollArea, ActionIcon, Tooltip } from '@mantine/core';
-import { IconAdjustmentsCog, IconFiles, IconSettingsAutomation, IconPlus, IconUsers, IconShield, IconUserCog, IconPhoto, IconSettings } from '@tabler/icons-react';
+import { IconAdjustmentsCog, IconFiles, IconSettingsAutomation, IconPlus, IconUsers, IconShield, IconUserCog, IconPhoto, IconSettings, IconClock } from '@tabler/icons-react';
 import { LinksGroup } from '../../common/navbar-links-group/NavbarLinksGroup';
 import { CreatePageModal } from '../pages/create-page/CreatePage';
 import classes from './AdminNavbar.module.css';
@@ -180,6 +180,11 @@ export function AdminNavbar() {
             label: 'Assets',
             icon: <IconPhoto size="1rem" stroke={1.5} />,
             link: '/admin/assets'
+        },
+        {
+            label: 'Scheduled Jobs',
+            icon: <IconClock size="1rem" stroke={1.5} />,
+            link: '/admin/scheduled-jobs'
         },
         {
             label: 'Configuration',

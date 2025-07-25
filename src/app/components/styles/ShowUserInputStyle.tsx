@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { IShowUserInputStyle } from '../../../types/common/styles.types';
-import { Box, Card, Table, Button, Modal, Text, Group, Collapse } from '@mantine/core';
+import { Box, Card, Table, Button, Modal, Text, Group, Collapse, LoadingOverlay, Center } from '@mantine/core';
 import { IconTrash, IconEye, IconChevronDown, IconChevronUp } from '@tabler/icons-react';
+import { useUserInputEntries, useDeleteUserInputEntryMutation } from '../../../hooks/useUserInput';
+import { IUserInputFilters } from '../../../types/responses/admin/user-input.types';
 
 interface IShowUserInputStyleProps {
     style: IShowUserInputStyle;
@@ -22,25 +24,20 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style }) => {
     const columnNames = style.column_names?.content;
     const loadAsTable = style.load_as_table?.content === '1';
 
-    // Mock data - in real implementation this would come from API
-    const mockEntries = [
-        {
-            id: 1,
-            timestamp: '2024-01-15 10:30:00',
-            name: 'John Doe',
-            email: 'john@example.com',
-            message: 'This is a sample entry',
-            data: { field1: 'value1', field2: 'value2' }
-        },
-        {
-            id: 2,
-            timestamp: '2024-01-14 15:45:00',
-            name: 'Jane Smith',
-            email: 'jane@example.com',
-            message: 'Another sample entry',
-            data: { field1: 'value3', field2: 'value4' }
-        }
-    ];
+    // Build filters based on style configuration
+    const filters: IUserInputFilters = useMemo(() => ({
+        page: 1,
+        pageSize: 50,
+        form_name: formName,
+        sort: 'timestamp',
+        sortDirection: 'desc',
+    }), [formName]);
+
+    // Real API calls
+    const { data: userInputData, isLoading, error } = useUserInputEntries(filters);
+    const deleteEntryMutation = useDeleteUserInputEntryMutation();
+
+    const entries = userInputData?.data?.entries || [];
 
     const handleDelete = (entry: any) => {
         setSelectedEntry(entry);
@@ -48,10 +45,14 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style }) => {
     };
 
     const confirmDelete = () => {
-        // In real implementation, make API call to delete entry
-        console.log('Deleting entry:', selectedEntry);
-        setDeleteModalOpened(false);
-        setSelectedEntry(null);
+        if (selectedEntry) {
+            deleteEntryMutation.mutate(selectedEntry.id, {
+                onSuccess: () => {
+                    setDeleteModalOpened(false);
+                    setSelectedEntry(null);
+                },
+            });
+        }
     };
 
     const toggleExpand = (entryId: string) => {
@@ -64,50 +65,76 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style }) => {
         setExpandedEntries(newExpanded);
     };
 
+    // Format timestamp to European style
+    const formatTimestamp = (timestamp: string) => {
+        try {
+            return new Date(timestamp).toLocaleString('de-DE', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        } catch {
+            return timestamp;
+        }
+    };
+
     if (loadAsTable) {
         return (
-            <Box className={style.css}>
-                <Table striped highlightOnHover withTableBorder>
-                    <Table.Thead>
-                        <Table.Tr>
-                            <Table.Th>Timestamp</Table.Th>
-                            <Table.Th>Name</Table.Th>
-                            <Table.Th>Email</Table.Th>
-                            <Table.Th>Message</Table.Th>
-                            <Table.Th>Actions</Table.Th>
-                        </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                        {mockEntries.map((entry) => (
-                            <Table.Tr key={entry.id}>
-                                <Table.Td>{entry.timestamp}</Table.Td>
-                                <Table.Td>{entry.name}</Table.Td>
-                                <Table.Td>{entry.email}</Table.Td>
-                                <Table.Td>{entry.message}</Table.Td>
-                                <Table.Td>
-                                    <Group gap="xs">
-                                        <Button
-                                            size="xs"
-                                            variant="outline"
-                                            leftSection={<IconEye size={14} />}
-                                        >
-                                            View
-                                        </Button>
-                                        <Button
-                                            size="xs"
-                                            color="red"
-                                            variant="outline"
-                                            leftSection={<IconTrash size={14} />}
-                                            onClick={() => handleDelete(entry)}
-                                        >
-                                            {labelDelete}
-                                        </Button>
-                                    </Group>
-                                </Table.Td>
+            <Box className={style.css} style={{ position: 'relative' }}>
+                <LoadingOverlay visible={isLoading} />
+                
+                {error ? (
+                    <Center py="xl">
+                        <Text c="red" ta="center">
+                            Failed to load entries. Please try again.
+                        </Text>
+                    </Center>
+                ) : (
+                    <Table striped highlightOnHover withTableBorder>
+                        <Table.Thead>
+                            <Table.Tr>
+                                <Table.Th>Timestamp</Table.Th>
+                                <Table.Th>Name</Table.Th>
+                                <Table.Th>Email</Table.Th>
+                                <Table.Th>Message</Table.Th>
+                                <Table.Th>Actions</Table.Th>
                             </Table.Tr>
-                        ))}
-                    </Table.Tbody>
-                </Table>
+                        </Table.Thead>
+                        <Table.Tbody>
+                            {entries.map((entry) => (
+                                <Table.Tr key={entry.id}>
+                                    <Table.Td>{formatTimestamp(entry.timestamp)}</Table.Td>
+                                    <Table.Td>{entry.name}</Table.Td>
+                                    <Table.Td>{entry.email}</Table.Td>
+                                    <Table.Td>{entry.message}</Table.Td>
+                                    <Table.Td>
+                                        <Group gap="xs">
+                                            <Button
+                                                size="xs"
+                                                variant="outline"
+                                                leftSection={<IconEye size={14} />}
+                                            >
+                                                View
+                                            </Button>
+                                            <Button
+                                                size="xs"
+                                                color="red"
+                                                variant="outline"
+                                                leftSection={<IconTrash size={14} />}
+                                                onClick={() => handleDelete(entry)}
+                                            >
+                                                {labelDelete}
+                                            </Button>
+                                        </Group>
+                                    </Table.Td>
+                                </Table.Tr>
+                            ))}
+                        </Table.Tbody>
+                    </Table>
+                )}
 
                 <Modal
                     opened={deleteModalOpened}
@@ -120,7 +147,11 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style }) => {
                         <Button variant="outline" onClick={() => setDeleteModalOpened(false)}>
                             Cancel
                         </Button>
-                        <Button color="red" onClick={confirmDelete}>
+                        <Button 
+                            color="red" 
+                            onClick={confirmDelete}
+                            loading={deleteEntryMutation.isPending}
+                        >
                             {labelDelete}
                         </Button>
                     </Group>
@@ -130,59 +161,69 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style }) => {
     }
 
     return (
-        <Box className={style.css}>
-            {mockEntries.map((entry) => {
-                const entryId = entry.id.toString();
-                const isEntryExpanded = expandedEntries.has(entryId) || isExpanded;
+        <Box className={style.css} style={{ position: 'relative' }}>
+            <LoadingOverlay visible={isLoading} />
+            
+            {error ? (
+                <Center py="xl">
+                    <Text c="red" ta="center">
+                        Failed to load entries. Please try again.
+                    </Text>
+                </Center>
+            ) : (
+                entries.map((entry) => {
+                    const entryId = entry.id.toString();
+                    const isEntryExpanded = expandedEntries.has(entryId) || isExpanded;
 
-                return (
-                    <Card key={entry.id} shadow="sm" padding="lg" radius="md" withBorder mb="md">
-                        <Group justify="space-between" mb="md">
-                            <Group>
-                                <Text fw={500}>{entry.name}</Text>
-                                <Text size="sm" c="dimmed">{entry.timestamp}</Text>
+                    return (
+                        <Card key={entry.id} shadow="sm" padding="lg" radius="md" withBorder mb="md">
+                            <Group justify="space-between" mb="md">
+                                <Group>
+                                    <Text fw={500}>{entry.name}</Text>
+                                    <Text size="sm" c="dimmed">{formatTimestamp(entry.timestamp)}</Text>
+                                </Group>
+                                <Group gap="xs">
+                                    <Button
+                                        size="xs"
+                                        variant="subtle"
+                                        onClick={() => toggleExpand(entryId)}
+                                        leftSection={isEntryExpanded ? <IconChevronUp size={14} /> : <IconChevronDown size={14} />}
+                                    >
+                                        {isEntryExpanded ? 'Collapse' : 'Expand'}
+                                    </Button>
+                                    <Button
+                                        size="xs"
+                                        color="red"
+                                        variant="outline"
+                                        leftSection={<IconTrash size={14} />}
+                                        onClick={() => handleDelete(entry)}
+                                    >
+                                        {labelDelete}
+                                    </Button>
+                                </Group>
                             </Group>
-                            <Group gap="xs">
-                                <Button
-                                    size="xs"
-                                    variant="subtle"
-                                    onClick={() => toggleExpand(entryId)}
-                                    leftSection={isEntryExpanded ? <IconChevronUp size={14} /> : <IconChevronDown size={14} />}
-                                >
-                                    {isEntryExpanded ? 'Collapse' : 'Expand'}
-                                </Button>
-                                <Button
-                                    size="xs"
-                                    color="red"
-                                    variant="outline"
-                                    leftSection={<IconTrash size={14} />}
-                                    onClick={() => handleDelete(entry)}
-                                >
-                                    {labelDelete}
-                                </Button>
-                            </Group>
-                        </Group>
 
-                        <Text mb="md">{entry.message}</Text>
+                            <Text mb="md">{entry.message}</Text>
 
-                        <Collapse in={isEntryExpanded}>
-                            <Box>
-                                <Text size="sm" fw={500} mb="xs">Additional Data:</Text>
-                                <Table>
-                                    <Table.Tbody>
-                                        {Object.entries(entry.data).map(([key, value]) => (
-                                            <Table.Tr key={key}>
-                                                <Table.Td fw={500}>{key}</Table.Td>
-                                                <Table.Td>{String(value)}</Table.Td>
-                                            </Table.Tr>
-                                        ))}
-                                    </Table.Tbody>
-                                </Table>
-                            </Box>
-                        </Collapse>
-                    </Card>
-                );
-            })}
+                            <Collapse in={isEntryExpanded}>
+                                <Box>
+                                    <Text size="sm" fw={500} mb="xs">Additional Data:</Text>
+                                    <Table>
+                                        <Table.Tbody>
+                                            {Object.entries(entry.data).map(([key, value]) => (
+                                                <Table.Tr key={key}>
+                                                    <Table.Td fw={500}>{key}</Table.Td>
+                                                    <Table.Td>{String(value)}</Table.Td>
+                                                </Table.Tr>
+                                            ))}
+                                        </Table.Tbody>
+                                    </Table>
+                                </Box>
+                            </Collapse>
+                        </Card>
+                    );
+                })
+            )}
 
             <Modal
                 opened={deleteModalOpened}
@@ -195,7 +236,11 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style }) => {
                     <Button variant="outline" onClick={() => setDeleteModalOpened(false)}>
                         Cancel
                     </Button>
-                    <Button color="red" onClick={confirmDelete}>
+                    <Button 
+                        color="red" 
+                        onClick={confirmDelete}
+                        loading={deleteEntryMutation.isPending}
+                    >
                         {labelDelete}
                     </Button>
                 </Group>
