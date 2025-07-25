@@ -18,7 +18,7 @@ export function filterLookupsByType(lookups: ILookup[], typeCode: string): Array
     return lookups
         .filter(lookup => lookup.typeCode === typeCode && lookup.lookupValue && lookup.lookupValue.trim() !== '')
         .map(lookup => ({
-            value: lookup.lookupValue,
+            value: lookup.lookupCode,
             label: lookup.lookupValue
         }));
 }

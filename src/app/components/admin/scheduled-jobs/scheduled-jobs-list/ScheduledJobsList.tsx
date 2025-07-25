@@ -597,7 +597,7 @@ export function ScheduledJobsList({
                                     onChange={(value) => setParams((prev: IScheduledJobFilters) => ({ ...prev, status: value || undefined, page: 1 }))}
                                     clearable
                                     disabled={lookupsLoading}
-                                />
+                                />                                
                                 <Select
                                     label="Type"
                                     placeholder={lookupsLoading ? "Loading..." : "Select type"}
