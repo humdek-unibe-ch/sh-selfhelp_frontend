@@ -1,4 +1,5 @@
 import "@mantine/core/styles.css";
+import '@mantine/dates/styles.css';
 import { ColorSchemeScript } from "@mantine/core";
 import { Metadata } from 'next';
 import { AdminShellWrapper } from "../../components/admin/admin-shell/AdminShellWrapper";

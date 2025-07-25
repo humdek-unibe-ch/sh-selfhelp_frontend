@@ -1,6 +1,7 @@
 'use client';
 
 import "../../globals.css";
+import '@mantine/dates/styles.css';
 import "@mantine/core/styles.css";
 import { AppShell } from "@mantine/core";
 import { WebsiteHeader } from "../components/website/WebsiteHeader";
