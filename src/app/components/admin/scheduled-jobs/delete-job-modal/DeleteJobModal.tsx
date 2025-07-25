@@ -31,7 +31,7 @@ export function DeleteJobModal({
     const [confirmText, setConfirmText] = useState('');
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const expectedText = `DELETE JOB ${jobId?.toString().padStart(10, '0')}`;
+    const expectedText = `DELETE JOB ${jobId}`;
     const isConfirmed = confirmText === expectedText;
 
     const handleConfirm = async () => {
@@ -75,7 +75,7 @@ export function DeleteJobModal({
                 <div>
                     <Text size="sm" fw={500} mb="xs">Job Details:</Text>
                     <Text size="sm" c="dimmed">
-                        ID: {jobId?.toString().padStart(10, '0')}
+                        ID: {jobId}
                     </Text>
                     {jobDescription && (
                         <Text size="sm" c="dimmed">

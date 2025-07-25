@@ -251,7 +251,7 @@ export function ScheduledJobsList({
                 ),
                 cell: ({ row }) => (
                     <Text size="sm" fw={500}>
-                        {row.original.id.toString().padStart(10, '0')}
+                        {row.original.id}
                     </Text>
                 ),
                 enableSorting: true,

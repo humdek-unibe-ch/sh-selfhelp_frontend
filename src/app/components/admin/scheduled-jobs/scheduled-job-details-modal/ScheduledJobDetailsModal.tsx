@@ -88,7 +88,7 @@ export function ScheduledJobDetailsModal({
         <Modal
             opened={opened}
             onClose={onClose}
-            title={`Scheduled Job ID: ${jobId?.toString().padStart(10, '0')}`}
+            title={`Scheduled Job ID: ${jobId}`}
             size="xl"
             centered
         >
