@@ -49,11 +49,13 @@ import {
   IconSortAscending,
   IconSortDescending,
   IconX,
+  IconPlus,
+  IconMinus,
 } from '@tabler/icons-react';
 import { useScheduledJobs } from '../../../../../hooks/useScheduledJobs';
 import { useLookups } from '../../../../../hooks/useLookups';
 import { getScheduledJobStatuses, getScheduledJobTypes, getScheduledJobSearchDateTypes } from '../../../../../utils/lookup-filters.utils';
-import { IScheduledJobFilters, IScheduledJob } from '../../../../../types/responses/admin/scheduled-jobs.types';
+import { IScheduledJobFilters, IScheduledJob, IScheduledJobTransaction } from '../../../../../types/responses/admin/scheduled-jobs.types';
 
 interface IScheduledJobsListProps {
     onViewJob?: (jobId: number) => void;
@@ -79,6 +81,7 @@ export function ScheduledJobsList({
 
     const [showFilters, setShowFilters] = useState(false);
     const [selectedJobs, setSelectedJobs] = useState<Set<number>>(new Set());
+    const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
 
     // Real API calls
     const { data: scheduledJobsData, isLoading, error, refetch } = useScheduledJobs(params);
@@ -108,7 +111,7 @@ export function ScheduledJobsList({
 
     // Table sorting state
     const [sorting, setSorting] = useState<SortingState>([
-        { id: 'id', desc: false }
+        { id: 'date_create', desc: true }
     ]);
 
     // Handle sorting change
@@ -196,6 +199,17 @@ export function ScheduledJobsList({
         }
     }, [selectedJobs, scheduledJobs, onBulkDeleteJobs]);
 
+    // Handle row expansion
+    const handleRowExpansion = useCallback((jobId: number) => {
+        const newExpanded = new Set(expandedRows);
+        if (newExpanded.has(jobId)) {
+            newExpanded.delete(jobId);
+        } else {
+            newExpanded.add(jobId);
+        }
+        setExpandedRows(newExpanded);
+    }, [expandedRows]);
+
     // Get status color
     const getStatusColor = (status: string) => {
         switch (status.toLowerCase()) {
@@ -223,6 +237,24 @@ export function ScheduledJobsList({
     // Define table columns
     const columns = useMemo<ColumnDef<IScheduledJob>[]>(
         () => [
+            {
+                id: 'expand',
+                header: '',
+                cell: ({ row }) => (
+                    <ActionIcon
+                        variant="subtle"
+                        size="sm"
+                        onClick={() => handleRowExpansion(row.original.id)}
+                    >
+                        {expandedRows.has(row.original.id) ? (
+                            <IconMinus size={14} />
+                        ) : (
+                            <IconPlus size={14} />
+                        )}
+                    </ActionIcon>
+                ),
+                enableSorting: false,
+            },
             {
                 id: 'select',
                 header: ({ table }) => (
@@ -327,7 +359,7 @@ export function ScheduledJobsList({
                 enableSorting: true,
             },
             {
-                accessorKey: 'entry_date',
+                accessorKey: 'date_create',
                 header: ({ column }) => (
                     <Group gap="xs">
                         <Text fw={500}>Entry Date</Text>
@@ -377,7 +409,7 @@ export function ScheduledJobsList({
                 enableSorting: true,
             },
             {
-                accessorKey: 'execution_date',
+                accessorKey: 'date_executed',
                 header: ({ column }) => (
                     <Group gap="xs">
                         <Text fw={500}>Execution Date</Text>
@@ -405,12 +437,30 @@ export function ScheduledJobsList({
             },
             {
                 accessorKey: 'description',
-                header: 'Description',
+                header: ({ column }) => (
+                    <Group gap="xs">
+                        <Text fw={500}>Description</Text>
+                        <ActionIcon
+                            variant="transparent"
+                            size="xs"
+                            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+                        >
+                            {column.getIsSorted() === 'asc' ? (
+                                <IconSortAscending size={14} />
+                            ) : column.getIsSorted() === 'desc' ? (
+                                <IconSortDescending size={14} />
+                            ) : (
+                                <IconSortAscending size={14} opacity={0.5} />
+                            )}
+                        </ActionIcon>
+                    </Group>
+                ),
                 cell: ({ row }) => (
                     <Text size="sm" style={{ maxWidth: 200 }} truncate>
                         {row.original.description}
                     </Text>
                 ),
+                enableSorting: true,
             },
             {
                 accessorKey: 'recipient',
@@ -476,7 +526,7 @@ export function ScheduledJobsList({
                 ),
             },
         ],
-        [selectedJobs, handleSelectJob, handleSelectAll, onViewJob, onExecuteJob, onDeleteJob]
+        [selectedJobs, handleSelectJob, handleSelectAll, onViewJob, onExecuteJob, onDeleteJob, expandedRows, handleRowExpansion]
     );
 
     // Initialize table
@@ -530,7 +580,7 @@ export function ScheduledJobsList({
                 </Group>
 
                 {/* Filters */}
-                <Group gap="md">
+                <Group gap="md" wrap="nowrap">
                     <TextInput
                         placeholder="Search jobs..."
                         leftSection={<IconSearch size={16} />}
@@ -538,7 +588,6 @@ export function ScheduledJobsList({
                             params.search ? (
                                 <ActionIcon
                                     variant="subtle"
-                                    color="gray"
                                     size="sm"
                                     onClick={handleClearSearch}
                                 >
@@ -547,111 +596,99 @@ export function ScheduledJobsList({
                             ) : null
                         }
                         value={params.search || ''}
-                        onChange={(e) => handleSearch(e.currentTarget.value)}
+                        onChange={(event) => handleSearch(event.currentTarget.value)}
                         style={{ flex: 1 }}
                     />
+                    
                     <Button
-                        variant={showFilters ? "filled" : "light"}
+                        variant={showFilters ? 'filled' : 'light'}
                         leftSection={<IconFilter size={16} />}
                         onClick={() => setShowFilters(!showFilters)}
                     >
                         Filters
                     </Button>
+                    
                     <Button
                         variant="light"
                         leftSection={<IconRefresh size={16} />}
                         onClick={() => refetch()}
-                        loading={isLoading}
                     >
                         Refresh
                     </Button>
+                    
                     <Select
-                        placeholder="Per page"
-                        value={params.pageSize?.toString()}
+                        value={params.pageSize?.toString() || '20'}
                         onChange={handlePageSizeChange}
                         data={[
-                            { value: '10', label: '10' },
-                            { value: '20', label: '20' },
-                            { value: '50', label: '50' },
-                            { value: '100', label: '100' },
+                            { value: '10', label: '10 per page' },
+                            { value: '20', label: '20 per page' },
+                            { value: '50', label: '50 per page' },
+                            { value: '100', label: '100 per page' },
                         ]}
-                        w={100}
+                        style={{ width: 150 }}
                     />
                 </Group>
 
                 {/* Advanced Filters */}
-                <Collapse in={showFilters}>
+                {showFilters && (
                     <Paper p="md" withBorder>
                         <Stack gap="md">
-                            <Group grow>
+                            <Group gap="md" wrap="nowrap">
                                 <Select
-                                    label="Status"
-                                    placeholder={lookupsLoading ? "Loading..." : "Select status"}
-                                    data={lookupsLoading ? [] : (statusOptions.length > 0 ? statusOptions : [
-                                        { value: 'Queued', label: 'Queued' },
-                                        { value: 'Done', label: 'Done' },
-                                        { value: 'Failed', label: 'Failed' },
-                                        { value: 'Deleted', label: 'Deleted' }
-                                    ])}
+                                    placeholder="Status"
+                                    data={statusOptions}
                                     value={params.status || ''}
-                                    onChange={(value) => setParams((prev: IScheduledJobFilters) => ({ ...prev, status: value || undefined, page: 1 }))}
+                                    onChange={(value) => setParams(prev => ({ ...prev, status: value || undefined, page: 1 }))}
                                     clearable
-                                    disabled={lookupsLoading}
-                                />                                
-                                <Select
-                                    label="Type"
-                                    placeholder={lookupsLoading ? "Loading..." : "Select type"}
-                                    data={lookupsLoading ? [] : (typeOptions.length > 0 ? typeOptions : [
-                                        { value: 'Task', label: 'Task' },
-                                        { value: 'Email', label: 'Email' },
-                                        { value: 'Notification', label: 'Notification' }
-                                    ])}
-                                    value={params.jobType || ''}
-                                    onChange={(value) => setParams((prev: IScheduledJobFilters) => ({ ...prev, jobType: value || undefined, page: 1 }))}
-                                    clearable
-                                    disabled={lookupsLoading}
+                                    style={{ flex: 1 }}
                                 />
                                 <Select
-                                    label="Date Type"
-                                    placeholder={lookupsLoading ? "Loading..." : "Select date type"}
-                                    data={lookupsLoading ? [] : (dateTypeOptions.length > 0 ? dateTypeOptions : [
-                                        { value: 'date_create', label: 'Date Created' },
-                                        { value: 'date_to_be_executed', label: 'Date to be executed' },
-                                        { value: 'date_executed', label: 'Date Executed' }
-                                    ])}
-                                    value={params.dateType || ''}
-                                    onChange={(value) => setParams((prev: IScheduledJobFilters) => ({ ...prev, dateType: value as IScheduledJobFilters['dateType'] || undefined, page: 1 }))}
+                                    placeholder="Type"
+                                    data={typeOptions}
+                                    value={params.jobType || ''}
+                                    onChange={(value) => setParams(prev => ({ ...prev, jobType: value || undefined, page: 1 }))}
                                     clearable
-                                    disabled={lookupsLoading}
+                                    style={{ flex: 1 }}
+                                />
+                                <Select
+                                    placeholder="Date Type"
+                                    data={dateTypeOptions}
+                                    value={params.dateType || ''}
+                                    onChange={(value) => setParams(prev => ({ 
+                                        ...prev, 
+                                        dateType: value as IScheduledJobFilters['dateType'] || 'date_to_be_executed',
+                                        page: 1 
+                                    }))}
+                                    style={{ flex: 1 }}
                                 />
                             </Group>
-                            <Group grow>
+                            <Group gap="md" wrap="nowrap">
                                 <DateInput
-                                    label="From Date"
-                                    placeholder="Select from date"
+                                    placeholder="Date From"
                                     value={params.dateFrom ? new Date(params.dateFrom) : null}
-                                    onChange={(date) => setParams((prev: IScheduledJobFilters) => ({ 
+                                    onChange={(date) => setParams(prev => ({ 
                                         ...prev, 
                                         dateFrom: date ? date.toISOString().split('T')[0] : undefined,
-                                        page: 1
+                                        page: 1 
                                     }))}
                                     clearable
+                                    style={{ flex: 1 }}
                                 />
                                 <DateInput
-                                    label="To Date"
-                                    placeholder="Select to date"
+                                    placeholder="Date To"
                                     value={params.dateTo ? new Date(params.dateTo) : null}
-                                    onChange={(date) => setParams((prev: IScheduledJobFilters) => ({ 
+                                    onChange={(date) => setParams(prev => ({ 
                                         ...prev, 
                                         dateTo: date ? date.toISOString().split('T')[0] : undefined,
-                                        page: 1
+                                        page: 1 
                                     }))}
                                     clearable
+                                    style={{ flex: 1 }}
                                 />
                             </Group>
                         </Stack>
                     </Paper>
-                </Collapse>
+                )}
 
                 {/* Table */}
                 <div style={{ position: 'relative' }}>
@@ -677,16 +714,25 @@ export function ScheduledJobsList({
                             </TableThead>
                             <TableTbody>
                                 {table.getRowModel().rows.map((row) => (
-                                    <TableTr key={row.id}>
-                                        {row.getVisibleCells().map((cell) => (
-                                            <TableTd key={cell.id}>
-                                                {flexRender(
-                                                    cell.column.columnDef.cell,
-                                                    cell.getContext()
-                                                )}
-                                            </TableTd>
-                                        ))}
-                                    </TableTr>
+                                    <>
+                                        <TableTr key={row.id}>
+                                            {row.getVisibleCells().map((cell) => (
+                                                <TableTd key={cell.id}>
+                                                    {flexRender(
+                                                        cell.column.columnDef.cell,
+                                                        cell.getContext()
+                                                    )}
+                                                </TableTd>
+                                            ))}
+                                        </TableTr>
+                                        {expandedRows.has(row.original.id) && (
+                                            <TableTr key={`${row.id}-transactions`}>
+                                                <TableTd colSpan={row.getVisibleCells().length}>
+                                                    <TransactionsTable transactions={row.original.transactions} />
+                                                </TableTd>
+                                            </TableTr>
+                                        )}
+                                    </>
                                 ))}
                             </TableTbody>
                         </Table>
@@ -712,22 +758,94 @@ export function ScheduledJobsList({
 
                 {/* Pagination */}
                 {pagination.totalPages > 1 && (
-                    <Group justify="space-between">
-                        <Text size="sm" c="dimmed">
-                            Showing {((pagination.page - 1) * pagination.pageSize) + 1} to{' '}
-                            {Math.min(pagination.page * pagination.pageSize, pagination.totalCount)} of{' '}
-                            {pagination.totalCount} jobs
-                        </Text>
-                        
+                    <Group justify="center">
                         <Pagination
+                            total={pagination.totalPages}
                             value={pagination.page}
                             onChange={handlePageChange}
-                            total={pagination.totalPages}
-                            size="sm"
                         />
                     </Group>
                 )}
+
+                {/* Results info */}
+                <Text size="sm" c="dimmed" ta="center">
+                    Showing {((pagination.page - 1) * pagination.pageSize) + 1} to{' '}
+                    {Math.min(pagination.page * pagination.pageSize, pagination.totalCount)} of{' '}
+                    {pagination.totalCount} entries
+                </Text>
             </Stack>
         </Card>
+    );
+}
+
+// Transactions Table Component
+interface ITransactionsTableProps {
+    transactions: IScheduledJobTransaction[];
+}
+
+function TransactionsTable({ transactions }: ITransactionsTableProps) {
+    // Format date in European style
+    const formatDate = (dateString: string) => {
+        if (!dateString) return '-';
+        return new Date(dateString).toLocaleString('de-DE', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+    };
+
+    return (
+        <Paper p="md" withBorder>
+            <Text size="sm" fw={500} mb="md">Transactions</Text>
+            {transactions.length > 0 ? (
+                <Table>
+                    <TableThead>
+                        <TableTr>
+                            <TableTh>Transaction ID</TableTh>
+                            <TableTh>Transaction Time</TableTh>
+                            <TableTh>Transaction Type</TableTh>
+                            <TableTh>User</TableTh>
+                            <TableTh>Transaction Log</TableTh>
+                        </TableTr>
+                    </TableThead>
+                    <TableTbody>
+                        {transactions.map((transaction) => (
+                            <TableTr key={transaction.transaction_id}>
+                                <TableTd>
+                                    <Text size="xs" fw={500}>
+                                        {transaction.transaction_id}
+                                    </Text>
+                                </TableTd>
+                                <TableTd>
+                                    <Text size="xs">
+                                        {formatDate(transaction.transaction_time)}
+                                    </Text>
+                                </TableTd>
+                                <TableTd>
+                                    <Text size="xs">
+                                        {transaction.transaction_type}
+                                    </Text>
+                                </TableTd>
+                                <TableTd>
+                                    <Text size="xs">
+                                        {transaction.user}
+                                    </Text>
+                                </TableTd>
+                                <TableTd>
+                                    <Text size="xs" style={{ maxWidth: 300 }} truncate>
+                                        {transaction.transaction_verbal_log}
+                                    </Text>
+                                </TableTd>
+                            </TableTr>
+                        ))}
+                    </TableTbody>
+                </Table>
+            ) : (
+                <Text size="sm" c="dimmed">No transactions found for this job</Text>
+            )}
+        </Paper>
     );
 } 
