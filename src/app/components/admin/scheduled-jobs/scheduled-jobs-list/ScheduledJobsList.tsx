@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   flexRender,
   getCoreRowModel,
@@ -714,8 +714,8 @@ export function ScheduledJobsList({
                             </TableThead>
                             <TableTbody>
                                 {table.getRowModel().rows.map((row) => (
-                                    <>
-                                        <TableTr key={row.id}>
+                                    <React.Fragment key={row.id}>
+                                        <TableTr>
                                             {row.getVisibleCells().map((cell) => (
                                                 <TableTd key={cell.id}>
                                                     {flexRender(
@@ -732,7 +732,7 @@ export function ScheduledJobsList({
                                                 </TableTd>
                                             </TableTr>
                                         )}
-                                    </>
+                                    </React.Fragment>
                                 ))}
                             </TableTbody>
                         </Table>
