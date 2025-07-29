@@ -27,6 +27,7 @@ export interface ISectionField {
     name: string;
     type: string | null;
     default_value: string | null;
+    title: string | null;
     help: string | null;
     disabled: boolean;
     hidden: number;

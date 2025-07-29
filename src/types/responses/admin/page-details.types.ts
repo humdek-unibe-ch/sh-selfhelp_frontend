@@ -20,6 +20,7 @@ export interface IPageFieldTranslation {
 export interface IPageField {
     id: number;
     name: string;
+    title: string | null;
     type: string;
     default_value: string | null;
     help: string;

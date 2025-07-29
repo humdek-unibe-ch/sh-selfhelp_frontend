@@ -308,6 +308,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
         const fieldData: IFieldData = {
             id: field.id,
             name: field.name,
+            title: field.title,
             type: field.type,
             default_value: field.default_value,
             help: field.help,
@@ -362,6 +363,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
         const fieldData: IFieldData = {
             id: field.id,
             name: field.name,
+            title: field.title,
             type: field.type,
             default_value: field.default_value,
             help: field.help,

@@ -18,6 +18,7 @@ import { useMantineColorScheme } from '@mantine/core';
 export interface IFieldData {
     id: number;
     name: string;
+    title: string | null;
     type: string | null;
     default_value: string | null;
     help: string | null;
@@ -46,6 +47,11 @@ export function FieldRenderer({
     const { colorScheme } = useMantineColorScheme();
     const fieldValue = typeof value === 'string' ? value : String(value);
     
+    // Helper function to get field label (use title when available, fallback to name)
+    const getFieldLabel = () => {
+        return field.title && field.title.trim() ? field.title : field.name;
+    };
+    
     // Helper function to get field type badge color
     const getFieldTypeBadgeColor = (type: string | null) => {
         switch (type) {
@@ -65,7 +71,7 @@ export function FieldRenderer({
         return (
             <Stack gap="xs" className={className}>
                 <Group gap="xs" align="center">
-                    <FieldLabelWithTooltip label={field.name} tooltip={field.help || ''} locale={locale} />
+                    <FieldLabelWithTooltip label={getFieldLabel()} tooltip={field.help || ''} locale={locale} />
                     <Badge size="xs" variant="light" color={getFieldTypeBadgeColor(field.type)}>
                         {field.type || 'unknown'}
                     </Badge>
@@ -82,7 +88,7 @@ export function FieldRenderer({
                 <Group gap="xs" align="center">
                     <Checkbox
                         key={field.id}
-                        label={<FieldLabelWithTooltip label={field.name} tooltip={field.help || ''} locale={locale} />}
+                        label={<FieldLabelWithTooltip label={getFieldLabel()} tooltip={field.help || ''} locale={locale} />}
                         checked={!!value}
                         onChange={(event) => onChange(event.currentTarget.checked)}
                         disabled={disabled}

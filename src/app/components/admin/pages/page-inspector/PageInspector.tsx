@@ -366,6 +366,11 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
         return languages.length > 1;
     }, [languages]);
 
+    // Helper function to get field label (use title when available, fallback to name)
+    const getFieldLabel = (field: IPageField) => {
+        return field.title && field.title.trim() ? field.title : field.name;
+    };
+
     // Render content field based on type and language
     const renderContentField = (field: IPageField, languageId: number) => {
         const currentLanguage = languages.find(lang => lang.id === languageId);
@@ -379,6 +384,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
         const fieldData: IFieldData = {
             id: field.id,
             name: field.name,
+            title: field.title,
             type: field.type,
             default_value: field.default_value,
             help: field.help,
@@ -760,7 +766,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                                         <Box key={field.id}>
                                                             {field.type === 'textarea' ? (
                                                                 <Textarea
-                                                                    label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
+                                                                    label={<FieldLabelWithTooltip label={getFieldLabel(field)} tooltip={field.help} />}
                                                                     placeholder={field.default_value || ''}
                                                                     {...inputProps}
                                                                     autosize
@@ -768,7 +774,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                                                 />
                                                             ) : (
                                                                 <TextInput
-                                                                    label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
+                                                                    label={<FieldLabelWithTooltip label={getFieldLabel(field)} tooltip={field.help} />}
                                                                     placeholder={field.default_value || ''}
                                                                     {...inputProps}
                                                                 />
@@ -816,7 +822,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                             <Box key={field.id}>
                                                 {field.type === 'textarea' ? (
                                                     <Textarea
-                                                        label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
+                                                        label={<FieldLabelWithTooltip label={getFieldLabel(field)} tooltip={field.help} />}
                                                         placeholder={field.default_value || ''}
                                                         {...inputProps}
                                                         autosize
@@ -824,7 +830,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                                     />
                                                 ) : (
                                                     <TextInput
-                                                        label={<FieldLabelWithTooltip label={field.name} tooltip={field.help} />}
+                                                        label={<FieldLabelWithTooltip label={getFieldLabel(field)} tooltip={field.help} />}
                                                         placeholder={field.default_value || ''}
                                                         {...inputProps}
                                                     />

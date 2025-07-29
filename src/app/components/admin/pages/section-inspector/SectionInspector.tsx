@@ -451,6 +451,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
     const convertToFieldData = (field: ISectionField): IFieldData => ({
         id: field.id,
         name: field.name,
+        title: field.title,
         type: field.type,
         default_value: field.default_value,
         help: field.help,
