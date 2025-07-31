@@ -1386,6 +1386,165 @@ App Router → Authentication → Language Context → Admin Shell → Inspector
 4. Tailwind Utilities (layout only)
 ```
 
+### 🎨 Tailwind CSS Safelist System for CMS User Customization
+
+**How It Works in the CMS:**
+The application uses a comprehensive safelist system that allows users to type Tailwind CSS classes directly in the CMS, which are then applied when the styles render on the frontend.
+
+#### **CMS User Flow:**
+1. **User Types Classes**: In the CMS admin panel, users can enter Tailwind classes in the `css` field
+2. **Classes Are Stored**: The CSS classes are saved to the database as part of the section/page data
+3. **Frontend Rendering**: When the page loads, the classes are extracted and applied to components
+
+#### **How Classes Are Applied in Style Components:**
+
+```typescript
+// Every style component extracts CSS classes using getFieldContent()
+const cssClass = getFieldContent(style, 'css');
+
+// Classes are applied directly to components
+<div className={cssClass}>           // ContainerStyle
+<Card className={cssClass}>          // CardStyle  
+<Button className={cssClass}>        // ButtonStyle
+<Box className={cssClass}>           // DivStyle, PlaintextStyle
+<TagComponent className={cssClass}>  // HtmlTagStyle
+```
+
+#### **Field Extraction System:**
+```typescript
+// src/utils/style-field-extractor.ts
+export const getFieldContent = (style: any, fieldName: string): string => {
+    // Handles both direct properties and nested fields structure
+    if (style[fieldName]?.content) {
+        return String(style[fieldName].content || '');
+    }
+    
+    // For CSS field, tries 'all' language (non-translatable)
+    if (style.fields?.[fieldName]?.all?.content) {
+        return String(style.fields[fieldName].all.content || '');
+    }
+    
+    return '';
+};
+```
+
+#### **Safelist Configuration:**
+
+**Static Classes** (`src/utils/css-safelist.ts`) - Always included:
+```typescript
+export const CSS_SAFELIST = {
+  layout: ['container', 'mx-auto', 'px-4', 'py-8', ...],
+  typography: ['text-sm', 'text-lg', 'font-bold', 'text-center', ...],
+  spacing: ['m-0', 'm-1', 'm-2', 'p-0', 'p-1', 'p-2', ...],
+  backgrounds: ['bg-white', 'bg-gray-100', 'bg-blue-500', ...],
+  borders: ['border', 'border-2', 'rounded-lg', 'rounded-full', ...],
+  // ... 15+ categories with 1000+ classes
+};
+```
+
+**Dynamic Patterns** (`tailwind.config.ts`) - Generated combinations:
+```typescript
+safelist: [
+  ...ALL_CSS_CLASSES, // All static classes
+  
+  // Color system - ALL variants with states
+  {
+    pattern: /^(bg|text|border)-(slate|gray|red|blue|green|purple|...)-(50|100|200|300|400|500|600|700|800|900|950)$/,
+    variants: ['hover', 'focus', 'active', 'dark', 'dark:hover'],
+  },
+  
+  // Spacing system - Complete responsive spacing
+  {
+    pattern: /^(p|m|px|py|pl|pr|pt|pb|mx|my|ml|mr|mt|mb)-(0|0\.5|1|1\.5|2|2\.5|3|3\.5|4|5|6|7|8|9|10|11|12|14|16|20|24|28|32|36|40|44|48|52|56|60|64|72|80|96)$/,
+    variants: ['sm', 'md', 'lg', 'xl', '2xl'],
+  },
+  
+  // Grid system - Complete grid support
+  {
+    pattern: /^grid-cols-(1|2|3|4|5|6|7|8|9|10|11|12|none)$/,
+    variants: ['sm', 'md', 'lg', 'xl', '2xl'],
+  },
+  
+  // ... 10+ more comprehensive patterns
+];
+```
+
+#### **Real-World CMS Usage Examples:**
+
+**Container with Background and Spacing:**
+```
+User types in CMS: "bg-gradient-to-r from-blue-500 to-purple-600 p-8 rounded-lg shadow-xl"
+Frontend result: <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-8 rounded-lg shadow-xl">
+```
+
+**Responsive Card Layout:**
+```
+User types in CMS: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+Frontend result: <Card className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+```
+
+**Interactive Button with Hover Effects:**
+```
+User types in CMS: "transform hover:scale-105 transition-all duration-300 hover:shadow-lg"
+Frontend result: <Button className="transform hover:scale-105 transition-all duration-300 hover:shadow-lg">
+```
+
+#### **Adding New Classes for Users:**
+
+**Method 1 - Static Classes** (for commonly used classes):
+```typescript
+// Add to src/utils/css-safelist.ts
+CSS_SAFELIST.userCustomization.push(
+  'animate-pulse',        // Animations
+  'backdrop-blur-sm',     // Backdrop effects  
+  'ring-2',              // Ring utilities
+  'divide-y',            // Divide utilities
+  'aspect-square'        // Aspect ratios
+);
+```
+
+**Method 2 - Dynamic Patterns** (for systematic class families):
+```typescript
+// Add to tailwind.config.ts safelist
+{
+  // Animation patterns
+  pattern: /^animate-(none|spin|ping|pulse|bounce)$/,
+  variants: ['hover', 'group-hover'],
+},
+{
+  // Filter effects
+  pattern: /^(filter|backdrop-filter|blur|brightness|contrast|grayscale|hue-rotate|invert|saturate|sepia)(-\w+)?$/,
+  variants: ['hover', 'focus'],
+}
+```
+
+#### **Benefits for CMS Users:**
+
+✅ **Direct Control**: Users can apply any Tailwind class directly  
+✅ **No Coding Required**: Just type class names in the CMS interface  
+✅ **Live Preview**: Classes apply immediately when content renders  
+✅ **Comprehensive Coverage**: 1000+ precompiled classes available  
+✅ **Responsive Design**: Full responsive utility support  
+✅ **Interactive States**: Hover, focus, and dark mode variants  
+✅ **Performance Optimized**: Only used classes are included in build  
+
+#### **Class Categories Available to Users:**
+
+1. **Layout**: `container`, `mx-auto`, `flex`, `grid`, `block`, `inline`
+2. **Spacing**: `p-4`, `m-8`, `px-6`, `py-2`, `gap-4`, `space-y-2`  
+3. **Typography**: `text-lg`, `font-bold`, `text-center`, `leading-relaxed`
+4. **Colors**: `bg-blue-500`, `text-white`, `border-gray-300`
+5. **Borders**: `border`, `border-2`, `rounded-lg`, `shadow-xl`
+6. **Sizing**: `w-full`, `h-64`, `max-w-4xl`, `min-h-screen`
+7. **Position**: `relative`, `absolute`, `top-4`, `z-10`
+8. **Responsive**: `sm:text-lg`, `md:grid-cols-2`, `lg:p-8`
+9. **Interactive**: `hover:bg-blue-600`, `focus:ring-2`, `active:scale-95`
+10. **Animations**: `transition-all`, `duration-300`, `animate-pulse`
+11. **Transforms**: `rotate-45`, `scale-110`, `translate-x-2`
+12. **Effects**: `shadow-lg`, `blur-sm`, `opacity-75`
+
+This system gives CMS users complete control over styling while maintaining performance and preventing CSS purging issues.
+
 ---
 
 **This guide serves as the definitive reference for understanding and extending the SelfHelp frontend application. Keep it updated as the architecture evolves!**

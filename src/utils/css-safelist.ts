@@ -1,6 +1,16 @@
 /**
  * CSS Safelist for Tailwind CSS
- * This file ensures that commonly used CSS classes from dynamic content are not purged
+ * This file ensures that commonly used CSS classes from dynamic content are not purged.
+ * 
+ * USAGE:
+ * 1. Static classes are defined here and imported in tailwind.config.ts
+ * 2. Dynamic patterns are defined in tailwind.config.ts using regex patterns
+ * 3. User customization classes should be added to the appropriate category below
+ * 
+ * HOW TO ADD NEW CLASSES:
+ * 1. Add static classes to the appropriate category (layout, typography, etc.)
+ * 2. For dynamic classes, add patterns to tailwind.config.ts safelist
+ * 3. Use the utility functions below to check and validate classes
  */
 
 export const CSS_SAFELIST = {
@@ -217,6 +227,93 @@ export const CSS_SAFELIST = {
     'lg:block', 'lg:hidden', 'lg:flex', 'lg:grid',
     'xl:block', 'xl:hidden', 'xl:flex', 'xl:grid',
   ],
+
+  // User Customization Classes (Add new categories here)
+  userCustomization: [
+    // Animation classes
+    'animate-spin', 'animate-ping', 'animate-pulse', 'animate-bounce',
+    
+    // Advanced transforms
+    'transform', 'rotate-0', 'rotate-1', 'rotate-2', 'rotate-3', 'rotate-6', 'rotate-12', 'rotate-45', 'rotate-90', 'rotate-180',
+    '-rotate-1', '-rotate-2', '-rotate-3', '-rotate-6', '-rotate-12', '-rotate-45', '-rotate-90', '-rotate-180',
+    'translate-x-0', 'translate-x-1', 'translate-x-2', 'translate-x-4', 'translate-x-8',
+    'translate-y-0', 'translate-y-1', 'translate-y-2', 'translate-y-4', 'translate-y-8',
+    'skew-x-0', 'skew-x-1', 'skew-x-2', 'skew-x-3', 'skew-x-6', 'skew-x-12',
+    'skew-y-0', 'skew-y-1', 'skew-y-2', 'skew-y-3', 'skew-y-6', 'skew-y-12',
+    
+    // Backdrop filters
+    'backdrop-blur-none', 'backdrop-blur-sm', 'backdrop-blur', 'backdrop-blur-md', 'backdrop-blur-lg', 'backdrop-blur-xl',
+    'backdrop-brightness-0', 'backdrop-brightness-50', 'backdrop-brightness-75', 'backdrop-brightness-100', 'backdrop-brightness-125', 'backdrop-brightness-150', 'backdrop-brightness-200',
+    
+    // Advanced spacing
+    'space-x-0', 'space-x-1', 'space-x-2', 'space-x-3', 'space-x-4', 'space-x-6', 'space-x-8',
+    'space-y-0', 'space-y-1', 'space-y-2', 'space-y-3', 'space-y-4', 'space-y-6', 'space-y-8',
+    
+    // Divide utilities
+    'divide-x-0', 'divide-x', 'divide-x-2', 'divide-x-4', 'divide-x-8',
+    'divide-y-0', 'divide-y', 'divide-y-2', 'divide-y-4', 'divide-y-8',
+    'divide-gray-100', 'divide-gray-200', 'divide-gray-300', 'divide-gray-400', 'divide-gray-500',
+    
+    // Ring utilities
+    'ring-0', 'ring-1', 'ring-2', 'ring-4', 'ring-8',
+    'ring-gray-100', 'ring-gray-200', 'ring-gray-300', 'ring-gray-400', 'ring-gray-500',
+    'ring-blue-100', 'ring-blue-200', 'ring-blue-300', 'ring-blue-400', 'ring-blue-500',
+    'ring-inset', 'ring-offset-0', 'ring-offset-1', 'ring-offset-2', 'ring-offset-4', 'ring-offset-8',
+    
+    // Aspect ratio
+    'aspect-auto', 'aspect-square', 'aspect-video',
+    
+    // Scroll behavior
+    'scroll-smooth', 'scroll-auto',
+    'snap-none', 'snap-x', 'snap-y', 'snap-both', 'snap-mandatory', 'snap-proximity',
+    'snap-start', 'snap-end', 'snap-center', 'snap-align-none',
+  ],
+
+  // CMS-specific classes for dynamic content
+  cmsContent: [
+    // Content alignment
+    'content-center', 'content-start', 'content-end', 'content-between', 'content-around', 'content-evenly',
+    
+    // List styling
+    'list-none', 'list-disc', 'list-decimal', 'list-inside', 'list-outside',
+    
+    // Table styling
+    'table', 'table-auto', 'table-fixed', 'table-caption', 'table-cell', 'table-column', 'table-column-group',
+    'table-footer-group', 'table-header-group', 'table-row', 'table-row-group',
+    'border-collapse', 'border-separate',
+    
+    // Form styling
+    'appearance-none', 'resize-none', 'resize-y', 'resize-x', 'resize',
+    
+    // Cursor styles
+    'cursor-auto', 'cursor-default', 'cursor-pointer', 'cursor-wait', 'cursor-text', 'cursor-move', 'cursor-help', 'cursor-not-allowed',
+    
+    // User select
+    'select-none', 'select-text', 'select-all', 'select-auto',
+    
+    // Pointer events
+    'pointer-events-none', 'pointer-events-auto',
+    
+    // Common CMS patterns
+    'hero-section', 'content-wrapper', 'card-grid', 'feature-list',
+    'call-to-action', 'testimonial-card', 'pricing-table', 'gallery-grid',
+    
+    // Gradient backgrounds (common patterns)
+    'bg-gradient-to-r', 'bg-gradient-to-l', 'bg-gradient-to-t', 'bg-gradient-to-b',
+    'bg-gradient-to-tr', 'bg-gradient-to-tl', 'bg-gradient-to-br', 'bg-gradient-to-bl',
+    'from-blue-400', 'from-blue-500', 'from-blue-600', 'to-purple-500', 'to-purple-600', 'to-purple-700',
+    'from-green-400', 'from-green-500', 'to-blue-500', 'to-blue-600',
+    'from-pink-400', 'from-pink-500', 'to-red-500', 'to-red-600',
+    'from-yellow-400', 'from-yellow-500', 'to-orange-500', 'to-orange-600',
+    
+    // Image and media
+    'object-cover', 'object-contain', 'object-center', 'object-top', 'object-bottom',
+    'aspect-square', 'aspect-video', 'aspect-auto',
+    
+    // Interactive elements
+    'group', 'group-hover:scale-105', 'group-hover:opacity-75', 'group-hover:shadow-lg',
+    'peer', 'peer-focus:text-blue-600', 'peer-checked:bg-blue-600',
+  ],
 };
 
 // Flatten all classes into a single array
@@ -230,4 +327,45 @@ export const getAllCssClasses = (): string => {
 // Function to check if a class is in the safelist
 export const isCssClassSafe = (className: string): boolean => {
   return ALL_CSS_CLASSES.includes(className);
+};
+
+// Function to add custom classes dynamically (for user customization)
+export const addCustomClasses = (category: keyof typeof CSS_SAFELIST, classes: string[]): void => {
+  CSS_SAFELIST[category].push(...classes);
+};
+
+// Function to get classes by category
+export const getClassesByCategory = (category: keyof typeof CSS_SAFELIST): string[] => {
+  return CSS_SAFELIST[category];
+};
+
+// Function to validate and sanitize user input classes
+export const validateUserClasses = (classes: string[]): string[] => {
+  const validClasses: string[] = [];
+  const tailwindClassPattern = /^[a-z-]+[a-z0-9-]*$/i;
+  
+  classes.forEach(className => {
+    // Basic validation: check if it looks like a valid Tailwind class
+    if (tailwindClassPattern.test(className)) {
+      validClasses.push(className);
+    }
+  });
+  
+  return validClasses;
+};
+
+// Function to generate CSS class combinations for user customization
+export const generateClassCombinations = (
+  baseClasses: string[],
+  modifiers: string[] = ['hover:', 'focus:', 'dark:', 'sm:', 'md:', 'lg:', 'xl:']
+): string[] => {
+  const combinations: string[] = [...baseClasses];
+  
+  baseClasses.forEach(baseClass => {
+    modifiers.forEach(modifier => {
+      combinations.push(`${modifier}${baseClass}`);
+    });
+  });
+  
+  return combinations;
 }; 
