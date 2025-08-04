@@ -457,7 +457,8 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
         help: field.help,
         disabled: field.disabled,
         hidden: field.hidden,
-        display: field.display
+        display: field.display,
+        fieldConfig: field.fieldConfig
     });
 
     // Get fields data for processing

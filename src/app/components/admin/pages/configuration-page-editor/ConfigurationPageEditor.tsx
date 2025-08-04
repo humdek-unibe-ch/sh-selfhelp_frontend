@@ -312,7 +312,8 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
             type: field.type,
             default_value: field.default_value,
             help: field.help,
-            display: field.display
+            display: field.display,
+            fieldConfig: field.fieldConfig
         };
         
         return (
@@ -367,7 +368,8 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
             type: field.type,
             default_value: field.default_value,
             help: field.help,
-            display: field.display
+            display: field.display,
+            fieldConfig: field.fieldConfig
         };
         
         return (

@@ -9,11 +9,15 @@ import {
     Text,
     Code,
     Badge,
-    Stack
+    Stack,
+    Select,
+    MultiSelect
 } from '@mantine/core';
 import { FieldLabelWithTooltip } from '../../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
 import { MonacoFieldEditor, TMonacoLanguage } from '../monaco-field-editor/MonacoFieldEditor';
 import { useMantineColorScheme } from '@mantine/core';
+import { useCssClasses } from '../../../../../hooks/useCssClasses';
+import type { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
 
 export interface IFieldData {
     id: number;
@@ -25,6 +29,7 @@ export interface IFieldData {
     disabled?: boolean;
     hidden?: number;
     display?: boolean;
+    fieldConfig?: IFieldConfig;
 }
 
 interface IFieldRendererProps {
@@ -50,7 +55,7 @@ export function FieldRenderer({
     // Helper function to get field label (use title when available, fallback to name)
     const getFieldLabel = () => {
         return field.title && field.title.trim() ? field.title : field.name;
-    };
+    };    
     
     // Helper function to get field type badge color
     const getFieldTypeBadgeColor = (type: string | null) => {
@@ -62,6 +67,10 @@ export function FieldRenderer({
             case 'text': return 'gray';
             case 'textarea': return 'indigo';
             case 'checkbox': return 'pink';
+            case 'select-css': return 'violet';
+            case 'select-group': return 'cyan';
+            case 'select-data_table': return 'grape';
+            case 'select-page-keyword': return 'lime';
             default: return 'red';
         }
     };
@@ -180,6 +189,261 @@ export function FieldRenderer({
                 value={fieldValue}
                 onChange={(event) => onChange(event.currentTarget.value)}
                 disabled={disabled}
+            />
+        );
+    }
+
+    // Select CSS field - dynamic select with API options
+    if (field.type === 'select-css') {
+        const { data: cssClasses, isLoading } = useCssClasses();
+        const fieldConfig = field.fieldConfig;
+        
+        if (!fieldConfig) {
+            return renderFieldWithBadge(
+                <Box>
+                    <Text size="sm" c="dimmed">No field configuration found</Text>
+                    <TextInput
+                        placeholder={field.default_value || ''}
+                        value={fieldValue}
+                        onChange={(event) => onChange(event.currentTarget.value)}
+                        disabled
+                    />
+                </Box>
+            );
+        }
+
+        // For CSS, prioritize API data over fieldConfig.options
+        const options = (cssClasses || fieldConfig.options || []).map(option => ({
+            value: option.value,
+            label: option.text
+        }));
+        const separator = fieldConfig.separator || ' ';
+
+        // Handle multi-select with creatable
+        if (fieldConfig.multiSelect) {
+            const currentValues = fieldValue ? fieldValue.split(separator).filter(Boolean) : [];
+            
+            return renderFieldWithBadge(
+                <MultiSelect
+                    key={field.id}
+                    data={options}
+                    value={currentValues}
+                    onChange={(values) => onChange(values.join(separator))}
+                    placeholder={field.default_value || 'Select CSS classes...'}
+                    disabled={disabled || isLoading}
+                    searchable
+                    clearable
+                    rightSection={fieldValue ? (
+                        <Text size="xs" c="dimmed" style={{ pointerEvents: 'none' }}>
+                            {currentValues.length} selected
+                        </Text>
+                    ) : null}
+                />
+            );
+        }
+
+        // Handle single select with creatable
+        return renderFieldWithBadge(
+            <Select
+                key={field.id}
+                data={options}
+                value={fieldValue}
+                onChange={(value) => onChange(value || '')}
+                placeholder={field.default_value || 'Select CSS class...'}
+                disabled={disabled || isLoading}
+                searchable
+                clearable
+            />
+        );
+    }
+
+
+
+    // Select Group field - dynamic select with API options
+    if (field.type === 'select-group') {
+        const fieldConfig = field.fieldConfig;
+        
+        if (!fieldConfig) {
+            return renderFieldWithBadge(
+                <Box>
+                    <Text size="sm" c="dimmed">No field configuration found</Text>
+                    <TextInput
+                        placeholder={field.default_value || ''}
+                        value={fieldValue}
+                        onChange={(event) => onChange(event.currentTarget.value)}
+                        disabled
+                    />
+                </Box>
+            );
+        }
+
+        // For groups, use only fieldConfig.options (no API calls needed)
+        const options = (fieldConfig.options || []).map(option => ({
+            value: option.value,
+            label: option.text
+        }));
+        const separator = fieldConfig.separator || ',';
+
+        // Handle multi-select
+        if (fieldConfig.multiSelect) {
+            const currentValues = fieldValue ? fieldValue.split(separator).filter(Boolean) : [];
+            
+            return renderFieldWithBadge(
+                <MultiSelect
+                    key={field.id}
+                    data={options}
+                    value={currentValues}
+                    onChange={(values) => onChange(values.join(separator))}
+                    placeholder={field.default_value || 'Select groups...'}
+                    disabled={disabled}
+                    searchable
+                    clearable
+                    rightSection={fieldValue ? (
+                        <Text size="xs" c="dimmed" style={{ pointerEvents: 'none' }}>
+                            {currentValues.length} selected
+                        </Text>
+                    ) : null}
+                />
+            );
+        }
+
+        // Handle single select
+        return renderFieldWithBadge(
+            <Select
+                key={field.id}
+                data={options}
+                value={fieldValue}
+                onChange={(value) => onChange(value || '')}
+                placeholder={field.default_value || 'Select group...'}
+                disabled={disabled}
+                searchable
+                clearable
+            />
+        );
+    }   
+
+    // Select Data Table field - dynamic select with API options
+    if (field.type === 'select-data_table') {
+        const fieldConfig = field.fieldConfig;
+        
+        if (!fieldConfig) {
+            return renderFieldWithBadge(
+                <Box>
+                    <Text size="sm" c="dimmed">No field configuration found</Text>
+                    <TextInput
+                        placeholder={field.default_value || ''}
+                        value={fieldValue}
+                        onChange={(event) => onChange(event.currentTarget.value)}
+                        disabled
+                    />
+                </Box>
+            );
+        }
+
+        // For data tables, use only fieldConfig.options (no API calls needed)
+        const options = (fieldConfig.options || []).map(option => ({
+            value: option.value,
+            label: option.text
+        }));
+        const separator = fieldConfig.separator || ',';
+
+        // Handle multi-select
+        if (fieldConfig.multiSelect) {
+            const currentValues = fieldValue ? fieldValue.split(separator).filter(Boolean) : [];
+            
+            return renderFieldWithBadge(
+                <MultiSelect
+                    key={field.id}
+                    data={options}
+                    value={currentValues}
+                    onChange={(values) => onChange(values.join(separator))}
+                    placeholder={field.default_value || 'Select data tables...'}
+                    disabled={disabled}
+                    searchable
+                    clearable
+                    rightSection={fieldValue ? (
+                        <Text size="xs" c="dimmed" style={{ pointerEvents: 'none' }}>
+                            {currentValues.length} selected
+                        </Text>
+                    ) : null}
+                />
+            );
+        }
+
+        // Handle single select
+        return renderFieldWithBadge(
+            <Select
+                key={field.id}
+                data={options}
+                value={fieldValue}
+                onChange={(value) => onChange(value || '')}
+                placeholder={field.default_value || 'Select data table...'}
+                disabled={disabled}
+                searchable
+                clearable
+            />
+        );
+    }
+
+    // Select Page Keyword field - dynamic select with API options
+    if (field.type === 'select-page-keyword') {
+        const fieldConfig = field.fieldConfig;
+        
+        if (!fieldConfig) {
+            return renderFieldWithBadge(
+                <Box>
+                    <Text size="sm" c="dimmed">No field configuration found</Text>
+                    <TextInput
+                        placeholder={field.default_value || ''}
+                        value={fieldValue}
+                        onChange={(event) => onChange(event.currentTarget.value)}
+                        disabled
+                    />
+                </Box>
+            );
+        }
+
+        // For page keywords, use only fieldConfig.options (no API calls needed)
+        const options = (fieldConfig.options || []).map(option => ({
+            value: option.value,
+            label: option.text
+        }));
+        const separator = fieldConfig.separator || ',';
+
+        // Handle multi-select
+        if (fieldConfig.multiSelect) {
+            const currentValues = fieldValue ? fieldValue.split(separator).filter(Boolean) : [];
+            
+            return renderFieldWithBadge(
+                <MultiSelect
+                    key={field.id}
+                    data={options}
+                    value={currentValues}
+                    onChange={(values) => onChange(values.join(separator))}
+                    placeholder={field.default_value || 'Select page keywords...'}
+                    disabled={disabled}
+                    searchable
+                    clearable
+                    rightSection={fieldValue ? (
+                        <Text size="xs" c="dimmed" style={{ pointerEvents: 'none' }}>
+                            {currentValues.length} selected
+                        </Text>
+                    ) : null}
+                />
+            );
+        }
+
+        // Handle single select
+        return renderFieldWithBadge(
+            <Select
+                key={field.id}
+                data={options}
+                value={fieldValue}
+                onChange={(value) => onChange(value || '')}
+                placeholder={field.default_value || 'Select page keyword...'}
+                disabled={disabled}
+                searchable
+                clearable
             />
         );
     }

@@ -11,4 +11,5 @@ export {
     type IProcessedFormData,
     type IFieldFormHandlerProps
 } from './field-form-handler/FieldFormHandler';
-export { AclSelector, type IAclPage, type TAclPageType } from './acl-selector/AclSelector'; 
+export { AclSelector, type IAclPage, type TAclPageType } from './acl-selector/AclSelector';
+export { FieldConfigurationExample } from './field-configuration-example'; 

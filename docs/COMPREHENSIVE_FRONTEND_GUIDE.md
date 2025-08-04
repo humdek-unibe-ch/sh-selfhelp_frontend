@@ -353,6 +353,286 @@ QUERY_KEYS: {
 </div>
 ```
 
+### Dynamic Field Configuration System
+
+The application supports dynamic field configuration through the `fieldConfig` property, enabling advanced select fields with API-driven options.
+
+#### Field Configuration Structure
+
+```typescript
+interface IFieldConfig {
+    multiSelect?: boolean;        // Enable multi-select functionality
+    creatable?: boolean;          // Allow custom value creation
+    separator?: string;           // Separator for multi-select values (default: " ")
+    options?: Array<{            // Static options array
+        value: string;
+        text: string;
+    }>;
+    apiUrl?: string;             // API endpoint for dynamic options
+}
+```
+
+#### Supported Field Types
+
+**select-css**: Dynamic CSS class selection with API integration
+- **Multi-select support**: Select multiple CSS classes
+- **API integration**: Fetches options from `/frontend/css-classes`
+- **Searchable**: Real-time filtering of options
+- **Separator handling**: Configurable separator for multi-select values (default: space)
+
+**select-group**: Dynamic group selection with API integration
+- **Multi-select support**: Select multiple groups
+- **API integration**: Fetches options from `/frontend/groups-options`
+- **Searchable**: Real-time filtering of options
+- **Separator handling**: Configurable separator for multi-select values (default: comma)
+
+**select-data_table**: Dynamic data table selection
+- **Single select only**: Select one data table
+- **API integration**: Fetches options from `/frontend/data-tables-options`
+- **Searchable**: Real-time filtering of options
+- **Separator handling**: Configurable separator (default: comma)
+
+**select-page-keyword**: Dynamic page keyword selection with API integration
+- **Multi-select support**: Select multiple page keywords
+- **API integration**: Fetches options from `/frontend/page-keywords-options`
+- **Searchable**: Real-time filtering of options
+- **Separator handling**: Configurable separator for multi-select values (default: comma)
+
+#### Implementation Example
+
+```typescript
+// CSS field configuration from backend
+{
+    "id": 23,
+    "name": "css",
+    "title": "CSS Classes",
+    "type": "select-css",
+    "fieldConfig": {
+        "multiSelect": true,
+        "creatable": true,
+        "separator": " ",
+        "apiUrl": "/cms-api/v1/frontend/css-classes"
+    }
+}
+
+// Group field configuration from backend
+{
+    "id": 24,
+    "name": "groups",
+    "title": "Groups",
+    "type": "select-group",
+    "fieldConfig": {
+        "multiSelect": true,
+        "separator": ",",
+        "apiUrl": "/cms-api/v1/frontend/groups-options"
+    }
+}
+
+// Data table field configuration from backend
+{
+    "id": 25,
+    "name": "data_tables",
+    "title": "Data Tables",
+    "type": "select-data_table",
+    "fieldConfig": {
+        "multiSelect": false,
+        "separator": ",",
+        "apiUrl": "/cms-api/v1/frontend/data-tables-options"
+    }
+}
+
+// Page keyword field configuration from backend
+{
+    "id": 26,
+    "name": "page_keywords",
+    "title": "Page Keywords",
+    "type": "select-page-keyword",
+    "fieldConfig": {
+        "multiSelect": true,
+        "separator": ",",
+        "apiUrl": "/cms-api/v1/frontend/page-keywords-options"
+    }
+}
+
+// API Response Structure (for all select fields)
+{
+    "status": 200,
+    "data": {
+        "options": [
+            { "value": "option_id", "text": "Option Name" }
+        ]
+    }
+}
+
+// CSS Classes API Response (special format)
+{
+    "status": 200,
+    "data": {
+        "classes": [
+            { "value": "container", "text": "container" },
+            { "value": "mx-auto", "text": "mx-auto" },
+            { "value": "flex", "text": "flex" }
+        ]
+    }
+}
+```
+
+#### Field Renderer Integration
+
+The `FieldRenderer` component automatically handles field configuration:
+
+```typescript
+// Automatic field type detection and rendering
+if (field.type === 'select-css') {
+    const { data: cssClasses, isLoading } = useCssClasses();
+    const fieldConfig = field.fieldConfig;
+    
+    // Convert API options to Mantine format
+    const options = (fieldConfig.options || cssClasses || []).map(option => ({
+        value: option.value,
+        label: option.text
+    }));
+    
+    // Render appropriate select component
+    if (fieldConfig.multiSelect) {
+        return <MultiSelect data={options} searchable clearable />;
+    } else {
+        return <Select data={options} searchable clearable />;
+    }
+}
+```
+
+#### API Integration Pattern
+
+**CSS Classes API** (`/frontend/css-classes`):
+- **Purpose**: Provides available CSS classes for select fields
+- **Response**: Array of `{value, text}` objects in `data.classes`
+- **Caching**: Uses static data caching (5 minutes)
+- **Usage**: Automatically loaded when field is rendered
+
+**Groups Options API** (`/frontend/groups-options`):
+- **Purpose**: Provides available groups for select fields
+- **Response**: Array of `{value, text}` objects in `data.options`
+- **Caching**: Uses static data caching (5 minutes)
+- **Usage**: Automatically loaded when field is rendered
+
+**Data Tables Options API** (`/frontend/data-tables-options`):
+- **Purpose**: Provides available data tables for select fields
+- **Response**: Array of `{value, text}` objects in `data.options`
+- **Caching**: Uses static data caching (5 minutes)
+- **Usage**: Automatically loaded when field is rendered
+
+**Page Keywords Options API** (`/frontend/page-keywords-options`):
+- **Purpose**: Provides available page keywords for select fields
+- **Response**: Array of `{value, text}` objects in `data.options`
+- **Caching**: Uses static data caching (5 minutes)
+- **Usage**: Automatically loaded when field is rendered
+
+**React Query Hooks**:
+```typescript
+// CSS Classes Hook
+export function useCssClasses() {
+    return useQuery({
+        queryKey: ['css-classes'],
+        queryFn: async () => {
+            const response = await FrontendApi.getCssClasses();
+            return response.data.classes;
+        },
+        staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.staleTime,
+    });
+}
+
+// Groups Options Hook
+export function useGroupsOptions() {
+    return useQuery({
+        queryKey: ['groups-options'],
+        queryFn: async () => {
+            const response = await FrontendApi.getGroupsOptions();
+            return response.data.options;
+        },
+        staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.staleTime,
+    });
+}
+
+// Data Tables Options Hook
+export function useDataTablesOptions() {
+    return useQuery({
+        queryKey: ['data-tables-options'],
+        queryFn: async () => {
+            const response = await FrontendApi.getDataTablesOptions();
+            return response.data.options;
+        },
+        staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.staleTime,
+    });
+}
+
+// Page Keywords Options Hook
+export function usePageKeywordsOptions() {
+    return useQuery({
+        queryKey: ['page-keywords-options'],
+        queryFn: async () => {
+            const response = await FrontendApi.getPageKeywordsOptions();
+            return response.data.options;
+        },
+        staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.staleTime,
+    });
+}
+```
+
+#### Value Handling
+
+**Multi-select values** are stored as space-separated strings:
+```typescript
+// Input: ["container", "mx-auto", "p-4"]
+// Storage: "container mx-auto p-4"
+// Display: Split by separator and show as individual selections
+```
+
+**Single select values** are stored as single strings:
+```typescript
+// Input: "container"
+// Storage: "container"
+// Display: Single selected value
+```
+
+#### Adding New Field Types
+
+1. **Define field configuration**:
+```typescript
+interface INewFieldConfig extends IFieldConfig {
+    customProperty?: string;
+}
+```
+
+2. **Add to FieldRenderer**:
+```typescript
+if (field.type === 'new-field-type') {
+    // Custom rendering logic
+    return renderFieldWithBadge(<CustomComponent />);
+}
+```
+
+3. **Create API service**:
+```typescript
+export const NewFieldApi = {
+    async getOptions(): Promise<INewFieldResponse> {
+        const response = await apiClient.get(API_CONFIG.ENDPOINTS.NEW_FIELD_OPTIONS);
+        return response.data;
+    }
+};
+```
+
+4. **Create React Query hook**:
+```typescript
+export function useNewFieldOptions() {
+    return useQuery({
+        queryKey: ['new-field-options'],
+        queryFn: NewFieldApi.getOptions,
+        staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.staleTime,
+    });
+}
+```
+
 ### Style System Architecture
 
 **Dynamic Style Components**: 82+ components for different content types
@@ -1364,6 +1644,8 @@ npm run dev
 - ✅ Content fields (display=1) vs Property fields (display=0)
 - ✅ Centralized API endpoints in api.config.ts
 - ✅ Consistent query key patterns for React Query
+- ✅ Field configuration: Use fieldConfig for dynamic select fields with API integration
+- ✅ Supported select field types: select-css, select-group, select-data_table, select-page-keyword
 
 ### Architecture Summary for Quick Understanding
 

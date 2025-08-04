@@ -1,5 +1,6 @@
 import { IBaseApiResponse } from '../common/response-envelope.types';
 import { IPageField } from '../../common/pages.type';
+import { IFieldConfig } from '../../requests/admin/fields.types';
 
 export interface IAdminPageSectionsData {
     page_keyword: string;
@@ -33,6 +34,7 @@ export interface ISectionField {
     hidden: number;
     display: boolean;
     translations: ISectionFieldTranslation[];
+    fieldConfig?: IFieldConfig;
 }
 
 export interface ISectionFieldTranslation {
