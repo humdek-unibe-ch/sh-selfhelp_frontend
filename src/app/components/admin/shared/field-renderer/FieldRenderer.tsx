@@ -3,7 +3,7 @@
 import { Box, Text, Stack, Badge, Group } from '@mantine/core';
 import { FieldLabelWithTooltip } from '../../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
 import {
-    SelectCssField,
+    CustomCssField,
     TextInputField,
     TextareaField,
     CheckboxField,
@@ -185,7 +185,7 @@ export function FieldRenderer({
         }
 
         return renderFieldWithBadge(
-            <SelectCssField
+            <CustomCssField
                 fieldId={field.id}
                 fieldConfig={field.fieldConfig}
                 value={fieldValue}

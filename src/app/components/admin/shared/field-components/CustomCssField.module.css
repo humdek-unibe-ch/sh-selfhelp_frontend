@@ -1,0 +1,68 @@
+/* Custom CSS Field Styling */
+.pillsContainer {
+  width: 100%;
+  min-height: 36px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pillsContainer:hover {
+  background-color: var(--mantine-color-gray-0);
+}
+
+.pillsContainer:focus-within {
+  outline: 2px solid var(--mantine-color-blue-6);
+  outline-offset: -2px;
+}
+
+.pill {
+  transition: all 0.2s ease;
+  font-size: 12px;
+  font-weight: 500;
+  margin: 2px 0;
+}
+
+.pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.predefinedPill {
+  background-color: var(--mantine-color-green-1) !important;
+  color: var(--mantine-color-green-9) !important;
+  border: 1px solid var(--mantine-color-green-4) !important;
+}
+
+.customPill {
+  background-color: var(--mantine-color-blue-1) !important;
+  color: var(--mantine-color-blue-9) !important;
+  border: 1px solid var(--mantine-color-blue-4) !important;
+}
+
+.placeholder {
+  color: var(--mantine-color-dimmed);
+  font-size: 14px;
+  padding: 6px 0;
+  user-select: none;
+}
+
+.dropdownOption {
+  transition: background-color 0.15s ease;
+}
+
+.dropdownOption:hover {
+  background-color: var(--mantine-color-gray-0);
+}
+
+.predefinedOption {
+  font-weight: 400;
+}
+
+.customOption {
+  font-weight: 700;
+}
