@@ -257,7 +257,7 @@ export function FieldRenderer({
                         data={allOptions}
                         value={currentValues}
                         onChange={(values) => onChange(values.join(separator))}
-                        placeholder={field.default_value || 'Search and select CSS classes...'}
+                        placeholder={'Search and select CSS classes...'}
                         disabled={disabled || isLoading}
                         searchable
                         clearable
@@ -327,7 +327,7 @@ export function FieldRenderer({
                     data={allOptions}
                     value={fieldValue}
                     onChange={(value) => onChange(value || '')}
-                    placeholder={field.default_value || 'Search and select CSS class...'}
+                    placeholder={'Search and select CSS class...'}
                     disabled={disabled || isLoading}
                     searchable
                     clearable
@@ -426,7 +426,6 @@ export function FieldRenderer({
                     data={options}
                     value={currentValues}
                     onChange={(values) => onChange(values.join(separator))}
-                    placeholder={field.default_value || 'Search and select groups...'}
                     disabled={disabled}
                     searchable
                     clearable
@@ -448,7 +447,7 @@ export function FieldRenderer({
                 data={options}
                 value={fieldValue}
                 onChange={(value) => onChange(value || '')}
-                placeholder={field.default_value || 'Search and select group...'}
+                placeholder={'Search and select group...'}
                 disabled={disabled}
                 searchable
                 clearable
@@ -498,7 +497,7 @@ export function FieldRenderer({
                     data={options}
                     value={currentValues}
                     onChange={(values) => onChange(values.join(separator))}
-                    placeholder={field.default_value || 'Search and select data tables...'}
+                    placeholder={'Search and select data tables...'}
                     disabled={disabled}
                     searchable
                     clearable
@@ -520,7 +519,7 @@ export function FieldRenderer({
                 data={options}
                 value={fieldValue}
                 onChange={(value) => onChange(value || '')}
-                placeholder={field.default_value || 'Search and select data table...'}
+                placeholder={'Search and select data table...'}
                 disabled={disabled}
                 searchable
                 clearable
@@ -570,7 +569,7 @@ export function FieldRenderer({
                     data={options}
                     value={currentValues}
                     onChange={(values) => onChange(values.join(separator))}
-                    placeholder={field.default_value || 'Search and select page keywords...'}
+                    placeholder={'Search and select page keywords...'}
                     disabled={disabled}
                     searchable
                     clearable
@@ -592,7 +591,7 @@ export function FieldRenderer({
                 data={options}
                 value={fieldValue}
                 onChange={(value) => onChange(value || '')}
-                placeholder={field.default_value || 'Search and select page keyword...'}
+                placeholder={'Search and select page keyword...'}
                 disabled={disabled}
                 searchable
                 clearable

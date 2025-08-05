@@ -12,7 +12,5 @@ export function useCssClasses() {
         },
         staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.staleTime,
         gcTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.gcTime,
-        // staleTime: 1,
-        // gcTime:1
     });
 } 
