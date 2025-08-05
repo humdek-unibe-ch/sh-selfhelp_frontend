@@ -11,8 +11,12 @@ import {
     Badge,
     Stack,
     Select,
-    MultiSelect
+    MultiSelect,
+    Button,
+    ActionIcon
 } from '@mantine/core';
+import { IconPlus, IconX } from '@tabler/icons-react';
+import { useState } from 'react';
 import { FieldLabelWithTooltip } from '../../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
 import { MonacoFieldEditor, TMonacoLanguage } from '../monaco-field-editor/MonacoFieldEditor';
 import { useMantineColorScheme } from '@mantine/core';
@@ -197,6 +201,8 @@ export function FieldRenderer({
     if (field.type === 'select-css') {
         const { data: cssClasses, isLoading } = useCssClasses();
         const fieldConfig = field.fieldConfig;
+        const [showCreateInput, setShowCreateInput] = useState(false);
+        const [newCssClass, setNewCssClass] = useState('');
         
         if (!fieldConfig) {
             return renderFieldWithBadge(
@@ -219,17 +225,109 @@ export function FieldRenderer({
         }));
         const separator = fieldConfig.separator || ' ';
 
+        // Validation function for creatable CSS classes
+        const validateCssClass = (input: string): boolean => {
+            // Only allow letters, numbers, hyphens, and underscores
+            return /^[a-zA-Z0-9_-]+$/.test(input);
+        };
+
+        // Handle creating new CSS class
+        const handleCreateCssClass = () => {
+            if (validateCssClass(newCssClass)) {
+                if (fieldConfig.multiSelect) {
+                    const currentValues = fieldValue ? fieldValue.split(separator).filter(Boolean) : [];
+                    const updatedValues = [...currentValues, newCssClass];
+                    onChange(updatedValues.join(separator));
+                } else {
+                    onChange(newCssClass);
+                }
+                setNewCssClass('');
+                setShowCreateInput(false);
+            }
+        };
+
         // Handle multi-select with large dataset optimization
         if (fieldConfig.multiSelect) {
             const currentValues = fieldValue ? fieldValue.split(separator).filter(Boolean) : [];
             
             return renderFieldWithBadge(
-                <MultiSelect
+                <Stack gap="xs">
+                    <MultiSelect
+                        key={field.id}
+                        data={allOptions}
+                        value={currentValues}
+                        onChange={(values) => onChange(values.join(separator))}
+                        placeholder={field.default_value || 'Search and select CSS classes...'}
+                        disabled={disabled || isLoading}
+                        searchable
+                        clearable
+                        limit={20}
+                        maxDropdownHeight={280}
+                        comboboxProps={{
+                            dropdownPadding: 4,
+                            shadow: 'md'
+                        }}
+                        nothingFoundMessage="No CSS classes found..."
+                    />
+                    {fieldConfig.creatable && (
+                        <>
+                            {!showCreateInput ? (
+                                <Button
+                                    variant="light"
+                                    size="xs"
+                                    leftSection={<IconPlus size={14} />}
+                                    onClick={() => setShowCreateInput(true)}
+                                    disabled={disabled}
+                                >
+                                    Add custom CSS class
+                                </Button>
+                            ) : (
+                                <Group gap="xs">
+                                    <TextInput
+                                        placeholder="Enter CSS class name (letters, numbers, hyphens, underscores only)"
+                                        value={newCssClass}
+                                        onChange={(event) => setNewCssClass(event.currentTarget.value)}
+                                        size="xs"
+                                        style={{ flex: 1 }}
+                                        error={newCssClass && !validateCssClass(newCssClass) ? 'Invalid CSS class name' : null}
+                                    />
+                                    <ActionIcon
+                                        variant="light"
+                                        color="green"
+                                        size="sm"
+                                        onClick={handleCreateCssClass}
+                                        disabled={!newCssClass || !validateCssClass(newCssClass)}
+                                    >
+                                        <IconPlus size={14} />
+                                    </ActionIcon>
+                                    <ActionIcon
+                                        variant="light"
+                                        color="gray"
+                                        size="sm"
+                                        onClick={() => {
+                                            setShowCreateInput(false);
+                                            setNewCssClass('');
+                                        }}
+                                    >
+                                        <IconX size={14} />
+                                    </ActionIcon>
+                                </Group>
+                            )}
+                        </>
+                    )}
+                </Stack>
+            );
+        }
+
+        // Handle single select with large dataset optimization
+        return renderFieldWithBadge(
+            <Stack gap="xs">
+                <Select
                     key={field.id}
                     data={allOptions}
-                    value={currentValues}
-                    onChange={(values) => onChange(values.join(separator))}
-                    placeholder={field.default_value || 'Search and select CSS classes...'}
+                    value={fieldValue}
+                    onChange={(value) => onChange(value || '')}
+                    placeholder={field.default_value || 'Search and select CSS class...'}
                     disabled={disabled || isLoading}
                     searchable
                     clearable
@@ -241,28 +339,53 @@ export function FieldRenderer({
                     }}
                     nothingFoundMessage="No CSS classes found..."
                 />
-            );
-        }
-
-        // Handle single select with large dataset optimization
-        return renderFieldWithBadge(
-            <Select
-                key={field.id}
-                data={allOptions}
-                value={fieldValue}
-                onChange={(value) => onChange(value || '')}
-                placeholder={field.default_value || 'Search and select CSS class...'}
-                disabled={disabled || isLoading}
-                searchable
-                clearable
-                limit={20}
-                maxDropdownHeight={280}
-                comboboxProps={{
-                    dropdownPadding: 4,
-                    shadow: 'md'
-                }}
-                nothingFoundMessage="No CSS classes found..."
-            />
+                {fieldConfig.creatable && (
+                    <>
+                        {!showCreateInput ? (
+                            <Button
+                                variant="light"
+                                size="xs"
+                                leftSection={<IconPlus size={14} />}
+                                onClick={() => setShowCreateInput(true)}
+                                disabled={disabled}
+                            >
+                                Add custom CSS class
+                            </Button>
+                        ) : (
+                            <Group gap="xs">
+                                <TextInput
+                                    placeholder="Enter CSS class name (letters, numbers, hyphens, underscores only)"
+                                    value={newCssClass}
+                                    onChange={(event) => setNewCssClass(event.currentTarget.value)}
+                                    size="xs"
+                                    style={{ flex: 1 }}
+                                    error={newCssClass && !validateCssClass(newCssClass) ? 'Invalid CSS class name' : null}
+                                />
+                                <ActionIcon
+                                    variant="light"
+                                    color="green"
+                                    size="sm"
+                                    onClick={handleCreateCssClass}
+                                    disabled={!newCssClass || !validateCssClass(newCssClass)}
+                                >
+                                    <IconPlus size={14} />
+                                </ActionIcon>
+                                <ActionIcon
+                                    variant="light"
+                                    color="gray"
+                                    size="sm"
+                                    onClick={() => {
+                                        setShowCreateInput(false);
+                                        setNewCssClass('');
+                                    }}
+                                >
+                                    <IconX size={14} />
+                                </ActionIcon>
+                            </Group>
+                        )}
+                    </>
+                )}
+            </Stack>
         );
     }
 
@@ -293,7 +416,7 @@ export function FieldRenderer({
         }));
         const separator = fieldConfig.separator || ',';
 
-        // Handle multi-select
+        // Handle multi-select with optimization
         if (fieldConfig.multiSelect) {
             const currentValues = fieldValue ? fieldValue.split(separator).filter(Boolean) : [];
             
@@ -303,30 +426,39 @@ export function FieldRenderer({
                     data={options}
                     value={currentValues}
                     onChange={(values) => onChange(values.join(separator))}
-                    placeholder={field.default_value || 'Select groups...'}
+                    placeholder={field.default_value || 'Search and select groups...'}
                     disabled={disabled}
                     searchable
                     clearable
-                    rightSection={fieldValue ? (
-                        <Text size="xs" c="dimmed" style={{ pointerEvents: 'none' }}>
-                            {currentValues.length} selected
-                        </Text>
-                    ) : null}
+                    limit={20}
+                    maxDropdownHeight={280}
+                    comboboxProps={{
+                        dropdownPadding: 4,
+                        shadow: 'md'
+                    }}
+                    nothingFoundMessage="No groups found..."
                 />
             );
         }
 
-        // Handle single select
+        // Handle single select with optimization
         return renderFieldWithBadge(
             <Select
                 key={field.id}
                 data={options}
                 value={fieldValue}
                 onChange={(value) => onChange(value || '')}
-                placeholder={field.default_value || 'Select group...'}
+                placeholder={field.default_value || 'Search and select group...'}
                 disabled={disabled}
                 searchable
                 clearable
+                limit={20}
+                maxDropdownHeight={280}
+                comboboxProps={{
+                    dropdownPadding: 4,
+                    shadow: 'md'
+                }}
+                nothingFoundMessage="No groups found..."
             />
         );
     }   
@@ -356,7 +488,7 @@ export function FieldRenderer({
         }));
         const separator = fieldConfig.separator || ',';
 
-        // Handle multi-select
+        // Handle multi-select with optimization
         if (fieldConfig.multiSelect) {
             const currentValues = fieldValue ? fieldValue.split(separator).filter(Boolean) : [];
             
@@ -366,30 +498,39 @@ export function FieldRenderer({
                     data={options}
                     value={currentValues}
                     onChange={(values) => onChange(values.join(separator))}
-                    placeholder={field.default_value || 'Select data tables...'}
+                    placeholder={field.default_value || 'Search and select data tables...'}
                     disabled={disabled}
                     searchable
                     clearable
-                    rightSection={fieldValue ? (
-                        <Text size="xs" c="dimmed" style={{ pointerEvents: 'none' }}>
-                            {currentValues.length} selected
-                        </Text>
-                    ) : null}
+                    limit={20}
+                    maxDropdownHeight={280}
+                    comboboxProps={{
+                        dropdownPadding: 4,
+                        shadow: 'md'
+                    }}
+                    nothingFoundMessage="No data tables found..."
                 />
             );
         }
 
-        // Handle single select
+        // Handle single select with optimization
         return renderFieldWithBadge(
             <Select
                 key={field.id}
                 data={options}
                 value={fieldValue}
                 onChange={(value) => onChange(value || '')}
-                placeholder={field.default_value || 'Select data table...'}
+                placeholder={field.default_value || 'Search and select data table...'}
                 disabled={disabled}
                 searchable
                 clearable
+                limit={20}
+                maxDropdownHeight={280}
+                comboboxProps={{
+                    dropdownPadding: 4,
+                    shadow: 'md'
+                }}
+                nothingFoundMessage="No data tables found..."
             />
         );
     }
@@ -419,7 +560,7 @@ export function FieldRenderer({
         }));
         const separator = fieldConfig.separator || ',';
 
-        // Handle multi-select
+        // Handle multi-select with optimization
         if (fieldConfig.multiSelect) {
             const currentValues = fieldValue ? fieldValue.split(separator).filter(Boolean) : [];
             
@@ -429,30 +570,39 @@ export function FieldRenderer({
                     data={options}
                     value={currentValues}
                     onChange={(values) => onChange(values.join(separator))}
-                    placeholder={field.default_value || 'Select page keywords...'}
+                    placeholder={field.default_value || 'Search and select page keywords...'}
                     disabled={disabled}
                     searchable
                     clearable
-                    rightSection={fieldValue ? (
-                        <Text size="xs" c="dimmed" style={{ pointerEvents: 'none' }}>
-                            {currentValues.length} selected
-                        </Text>
-                    ) : null}
+                    limit={20}
+                    maxDropdownHeight={280}
+                    comboboxProps={{
+                        dropdownPadding: 4,
+                        shadow: 'md'
+                    }}
+                    nothingFoundMessage="No page keywords found..."
                 />
             );
         }
 
-        // Handle single select
+        // Handle single select with optimization
         return renderFieldWithBadge(
             <Select
                 key={field.id}
                 data={options}
                 value={fieldValue}
                 onChange={(value) => onChange(value || '')}
-                placeholder={field.default_value || 'Select page keyword...'}
+                placeholder={field.default_value || 'Search and select page keyword...'}
                 disabled={disabled}
                 searchable
                 clearable
+                limit={20}
+                maxDropdownHeight={280}
+                comboboxProps={{
+                    dropdownPadding: 4,
+                    shadow: 'md'
+                }}
+                nothingFoundMessage="No page keywords found..."
             />
         );
     }

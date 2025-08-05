@@ -108,8 +108,6 @@ export const API_CONFIG = {
         // Frontend CSS classes endpoint
         FRONTEND_CSS_CLASSES: '/frontend/css-classes',
 
-
-
         // Admin scheduled jobs endpoints
         ADMIN_SCHEDULED_JOBS_GET_ALL: '/admin/scheduled-jobs',
         ADMIN_SCHEDULED_JOBS_GET_ONE: (jobId: number) => `/admin/scheduled-jobs/${jobId}`,
