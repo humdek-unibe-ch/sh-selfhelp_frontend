@@ -213,46 +213,55 @@ export function FieldRenderer({
         }
 
         // For CSS, prioritize API data over fieldConfig.options
-        const options = (cssClasses || fieldConfig.options || []).map(option => ({
+        const allOptions = (cssClasses || fieldConfig.options || []).map(option => ({
             value: option.value,
             label: option.text
         }));
         const separator = fieldConfig.separator || ' ';
 
-        // Handle multi-select with creatable
+        // Handle multi-select with large dataset optimization
         if (fieldConfig.multiSelect) {
             const currentValues = fieldValue ? fieldValue.split(separator).filter(Boolean) : [];
             
             return renderFieldWithBadge(
                 <MultiSelect
                     key={field.id}
-                    data={options}
+                    data={allOptions}
                     value={currentValues}
                     onChange={(values) => onChange(values.join(separator))}
-                    placeholder={field.default_value || 'Select CSS classes...'}
+                    placeholder={field.default_value || 'Search and select CSS classes...'}
                     disabled={disabled || isLoading}
                     searchable
                     clearable
-                    rightSection={fieldValue ? (
-                        <Text size="xs" c="dimmed" style={{ pointerEvents: 'none' }}>
-                            {currentValues.length} selected
-                        </Text>
-                    ) : null}
+                    limit={20}
+                    maxDropdownHeight={280}
+                    comboboxProps={{
+                        dropdownPadding: 4,
+                        shadow: 'md'
+                    }}
+                    nothingFoundMessage="No CSS classes found..."
                 />
             );
         }
 
-        // Handle single select with creatable
+        // Handle single select with large dataset optimization
         return renderFieldWithBadge(
             <Select
                 key={field.id}
-                data={options}
+                data={allOptions}
                 value={fieldValue}
                 onChange={(value) => onChange(value || '')}
-                placeholder={field.default_value || 'Select CSS class...'}
+                placeholder={field.default_value || 'Search and select CSS class...'}
                 disabled={disabled || isLoading}
                 searchable
                 clearable
+                limit={20}
+                maxDropdownHeight={280}
+                comboboxProps={{
+                    dropdownPadding: 4,
+                    shadow: 'md'
+                }}
+                nothingFoundMessage="No CSS classes found..."
             />
         );
     }
