@@ -1,6 +1,6 @@
 v0.0.2
  - replace `MUI` with `Mantine`
- - Mantine v7
+ - Mantine v8
  - add `tailwind` css
  - add `refine`
  - rework authentication to be `refine` based

@@ -176,7 +176,7 @@ POST /api/v1/admin/import
 ### Phase 2: Frontend Development
 
 1. **Set up React project**
-   - Configure Next.js with Tailwind CSS and Mantine v7
+   - Configure Next.js with Tailwind CSS and Mantine v8
    - Set up authentication flow
    - Create API service wrappers
 

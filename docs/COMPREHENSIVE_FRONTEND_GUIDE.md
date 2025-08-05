@@ -1,7 +1,7 @@
 # 🚀 SelfHelp Frontend - Comprehensive Developer Guide
 
 **Version**: 0.0.2  
-**Tech Stack**: Next.js 15, React 18, TypeScript, Mantine UI v7, Tailwind CSS, React Query v5, Refine.dev  
+**Tech Stack**: Next.js 15, React 18, TypeScript, Mantine UI v8, Tailwind CSS, React Query v5, Refine.dev  
 **Target Audience**: Developers, AI Coding Assistants, LLMs
 
 ---
@@ -69,7 +69,7 @@ src/
 - **TypeScript 5.5**: Strict type checking
 
 **UI & Styling**
-- **Mantine UI v7**: Primary component library (50+ components)
+- **Mantine UI v8**: Primary component library (50+ components)
 - **Tailwind CSS**: Utility-first CSS framework
 - **CSS Modules**: Component-scoped styling
 - **PostCSS**: CSS processing and optimization
@@ -1501,7 +1501,7 @@ return (
 - App Router for modern routing
 - Built-in optimization features
 
-**Mantine UI v7**:
+**Mantine UI v8**:
 - 50+ accessible components
 - Built-in theming system
 - TypeScript-first design

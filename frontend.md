@@ -3905,7 +3905,7 @@ const transformPage = (page: IAdminPage): any => ({
 ## Navigation System Implementation & UI Optimization (Latest Update)
 
 ### Overview
-Implemented a comprehensive navigation system that fetches page data from the API and organizes it into different navigation contexts for header menus and footer links. Additionally, optimized all UI components to use Mantine UI v7 components with minimal Tailwind CSS for better theming and customization. Fixed critical interface mismatch causing 404 errors for existing pages.
+Implemented a comprehensive navigation system that fetches page data from the API and organizes it into different navigation contexts for header menus and footer links. Additionally, optimized all UI components to use Mantine UI v8 components with minimal Tailwind CSS for better theming and customization. Fixed critical interface mismatch causing 404 errors for existing pages.
 
 ### Changes Made
 
@@ -4000,7 +4000,7 @@ interface IPageItem {
 ### UI Component Optimization Rules
 
 #### Critical Rule
-**Minimize custom Tailwind CSS and maximize Mantine UI v7 components for better theming and customization.**
+**Minimize custom Tailwind CSS and maximize Mantine UI v8 components for better theming and customization.**
 
 #### Mantine First Principles
 - **Use Mantine Components**: Always prefer Mantine components over custom HTML elements
@@ -4143,7 +4143,7 @@ interface INavigationData {
 
 #### Mantine-First Approach
 - Minimizes custom Tailwind CSS
-- Maximizes Mantine UI v7 components for better theming
+- Maximizes Mantine UI v8 components for better theming
 - Enables user customization through Mantine's theme system
 
 ## Debug System
@@ -4231,7 +4231,7 @@ Debug features can be controlled via environment variables:
 ### UI Architecture
 - **Decision**: Mantine-first approach over custom Tailwind
 - **Reasoning**: Better theming, user customization, and component consistency
-- **Implementation**: Maximize Mantine UI v7 components, minimize custom CSS
+- **Implementation**: Maximize Mantine UI v8 components, minimize custom CSS
 
 ## Development Guidelines
 

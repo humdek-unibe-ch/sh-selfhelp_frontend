@@ -7,7 +7,7 @@ SelfHelp CMS is a modern research-oriented content management system built with 
 
 ### Frontend Architecture
 - **Framework**: Next.js 15.0.1
-- **UI Framework**: Mantine v7.15.0
+- **UI Framework**: Mantine v8.2.2
 - **Admin Framework**: Refine v4.56.0
 - **State Management**:
   - React Query v5.62.2 (for server state)
@@ -275,7 +275,7 @@ The interface is divided into three main sections:
    - POST /cms-api/v1/users/:id/clean (clean data)
    - POST /cms-api/v1/users/:id/impersonate (impersonate)
 
-4. **UI Components (Mantine v7)**
+4. **UI Components (Mantine v8)**
    - `Table` for user list
    - `Card` for action cards
    - `TextInput`, `Select`, `MultiSelect` for forms
@@ -610,7 +610,7 @@ Query Parameters:
    - Validation of permission scope
    - Prevention of privilege escalation
 
-5. **UI Components (Mantine v7)**
+5. **UI Components (Mantine v8)**
    - `Table` for role and group lists
    - `Select` for role assignment
    - `MultiSelect` for group assignment

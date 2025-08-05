@@ -1,12 +1,41 @@
-@layer tw_base, mantine, tw_components, tw_utilities;
+@layer theme, base, mantine, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css" layer(utilities);
 
-/* import tailwind */
-@import "tailwindcss/base" layer(tw_base);
-@import "tailwindcss/components" layer(tw_components);
-@import "tailwindcss/utilities" layer(tw_utilities);
-
-/* import mantine */
 @import "@mantine/core/styles.layer.css";
+
+/* Tailwind CSS layers and Mantine integration */
+
+/* Safelist classes for dynamic content - Tailwind 4 approach */
+@source inline("container mx-auto px-4 px-6 px-8 py-4 py-6 py-8");
+@source inline("max-w-xs max-w-sm max-w-md max-w-lg max-w-xl max-w-2xl max-w-3xl max-w-4xl max-w-5xl max-w-6xl max-w-7xl max-w-none max-w-full");
+@source inline("grid grid-cols-1 grid-cols-2 grid-cols-3 grid-cols-4 grid-cols-6 grid-cols-12");
+@source inline("sm:grid-cols-1 sm:grid-cols-2 sm:grid-cols-3 sm:grid-cols-4 md:grid-cols-1 md:grid-cols-2 md:grid-cols-3 md:grid-cols-4 md:grid-cols-6");
+@source inline("lg:grid-cols-1 lg:grid-cols-2 lg:grid-cols-3 lg:grid-cols-4 lg:grid-cols-6 gap-1 gap-2 gap-3 gap-4 gap-6 gap-8");
+@source inline("flex inline-flex flex-row flex-col flex-wrap flex-nowrap");
+@source inline("justify-start justify-center justify-end justify-between justify-around");
+@source inline("items-start items-center items-end items-stretch");
+@source inline("text-left text-center text-right text-justify");
+@source inline("font-normal font-medium font-semibold font-bold");
+@source inline("text-xs text-sm text-base text-lg text-xl text-2xl text-3xl text-4xl text-5xl text-6xl");
+@source inline("leading-none leading-tight leading-snug leading-normal leading-relaxed leading-loose");
+
+/* Dynamic patterns for user customization using brace expansion */
+@source inline("{hover:,focus:,active:,dark:,dark:hover:,dark:focus:}{bg,text,border}-{slate,gray,zinc,neutral,stone,red,orange,amber,yellow,lime,green,emerald,teal,cyan,sky,blue,indigo,violet,purple,fuchsia,pink,rose}-{50,100,200,300,400,500,600,700,800,900,950}");
+@source inline("{sm:,md:,lg:,xl:,2xl:}{p,m,px,py,pl,pr,pt,pb,mx,my,ml,mr,mt,mb}-{0,0.5,1,1.5,2,2.5,3,3.5,4,5,6,7,8,9,10,11,12,14,16,20,24,28,32,36,40,44,48,52,56,60,64,72,80,96}");
+@source inline("{sm:,md:,lg:,xl:,2xl:}{w,h,min-w,min-h,max-w,max-h}-{0,0.5,1,1.5,2,2.5,3,3.5,4,5,6,7,8,9,10,11,12,14,16,20,24,28,32,36,40,44,48,52,56,60,64,72,80,96,auto,full,screen,min,max,fit}");
+@source inline("{sm:,md:,lg:,xl:,2xl:}{w,h}-{1/2,1/3,2/3,1/4,2/4,3/4,1/5,2/5,3/5,4/5,1/6,2/6,3/6,4/6,5/6,1/12,2/12,3/12,4/12,5/12,6/12,7/12,8/12,9/12,10/12,11/12}");
+@source inline("{sm:,md:,lg:,xl:,2xl:}text-{xs,sm,base,lg,xl,2xl,3xl,4xl,5xl,6xl,7xl,8xl,9xl}");
+@source inline("font-{thin,extralight,light,normal,medium,semibold,bold,extrabold,black}");
+@source inline("rounded{,-t,-r,-b,-l,-tl,-tr,-br,-bl}{,-none,-sm,-md,-lg,-xl,-2xl,-3xl,-full}");
+@source inline("{sm:,md:,lg:,xl:,2xl:}grid-cols-{1,2,3,4,5,6,7,8,9,10,11,12,none}");
+@source inline("{sm:,md:,lg:,xl:,2xl:}col-{auto,span-1,span-2,span-3,span-4,span-5,span-6,span-7,span-8,span-9,span-10,span-11,span-12,span-full}");
+@source inline("{hover:,focus:,dark:,dark:hover:}shadow-{none,sm,md,lg,xl,2xl,inner}");
+@source inline("{hover:,focus:,group-hover:}opacity-{0,5,10,20,25,30,40,50,60,70,75,80,90,95,100}");
+@source inline("{hover:,focus:,group-hover:}scale-{0,50,75,90,95,100,105,110,125,150}");
+@source inline("{top,right,bottom,left,inset}-{0,0.5,1,1.5,2,2.5,3,3.5,4,5,6,7,8,9,10,11,12,14,16,20,24,28,32,36,40,44,48,52,56,60,64,72,80,96,auto,full}");
+@source inline("z-{0,10,20,30,40,50,auto}");
 
 /* Smooth transitions for language changes */
 .page-content-transition {

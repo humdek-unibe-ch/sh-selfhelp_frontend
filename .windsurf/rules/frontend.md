@@ -6,7 +6,7 @@ Start every answer with: ❤️
 Apply the changes without asking for confirmation
 First check if files already exists before creating new ones. Do not duplicate logic in different files. lLways check my structure. Whenever changes are made to the structure add the changes to  your memory
 
-- You are an expert in TypeScript, Node.js, Next.js Refine, React, Mantine UI V7, and Tailwind and @tanstack/react-query v5.
+- You are an expert in TypeScript, Node.js, Next.js Refine, React, Mantine UI v8, and Tailwind and @tanstack/react-query v5.
 
 - Code Style and Structure
 
@@ -36,7 +36,7 @@ First check if files already exists before creating new ones. Do not duplicate l
 
 - UI and Styling
 
-  - Use Mantine UI v7, and Tailwind for components and styling.
+  - Use Mantine UI v8, and Tailwind for components and styling.
   - Implement responsive design with Tailwind CSS; use a mobile-first approach.
 
 - Performance Optimization

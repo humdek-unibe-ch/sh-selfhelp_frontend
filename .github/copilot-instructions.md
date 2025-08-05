@@ -7,7 +7,7 @@
 - **Page Content System**: Pages have dynamic fields, separated into content (display: true) and properties (display: false). Editing uses a fixed save button, keyboard shortcuts (Ctrl+S), and locked fields for critical data.
 - **Language Management**: Language selection is ID-based (not locale string), persists in JWT, and is integrated throughout API calls. See `src/hooks/useLanguages.ts` and `src/api/` for usage.
 - **State Management**: TanStack React Query is used for all server state. Use custom hooks in `src/hooks/` and service functions in `src/api/`. Use Zustand for complex local state (e.g., permission matrix).
-- **Styling**: Uses Tailwind CSS (see `globals.css`, `tailwind.config.ts`). Component styling follows Mantine v7 conventions.
+- **Styling**: Uses Tailwind CSS (see `globals.css`, `tailwind.config.ts`). Component styling follows Mantine v8 conventions.
 
 ## Developer Workflows
 - **Build**: Use `npm run build` for production builds. Next.js handles SSR and static generation.

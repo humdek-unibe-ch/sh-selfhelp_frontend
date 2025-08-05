@@ -2,7 +2,7 @@
 
 ## 1. Introduction
 
-This document outlines the frontend architecture for the SH-Self-help project. The frontend is built using Next.js (App Router), React, Refine.dev, Mantine UI v7, Tailwind CSS, and TanStack React Query v5. The goal is to create a scalable, maintainable, and performant application by adhering to modern best practices.
+This document outlines the frontend architecture for the SH-Self-help project. The frontend is built using Next.js (App Router), React, Refine.dev, Mantine UI v8, Tailwind CSS 4, and TanStack React Query v5. The goal is to create a scalable, maintainable, and performant application by adhering to modern best practices.
 
 ## 2. Core Principles
 
@@ -862,7 +862,7 @@ return <PageRenderer sections={sections} isLoading={isLoading} error={error} />;
 
 ## 2.6. UI Component Rules - Mantine First Approach
 
-**CRITICAL RULE**: Minimize custom Tailwind CSS and maximize Mantine UI v7 components for better theming and customization.
+**CRITICAL RULE**: Minimize custom Tailwind CSS and maximize Mantine UI v8 components for better theming and customization.
 
 ### Mantine First Principles
 - **Use Mantine Components**: Always prefer Mantine components over custom HTML elements
@@ -1592,7 +1592,7 @@ A clear directory structure is crucial for organization and scalability.
 
 ## 8. Styling
 
-*   **Mantine UI v7**: Primary component library.
+*   **Mantine UI v8**: Primary component library.
     *   Customize the Mantine theme in `src/lib/mantine-provider.tsx`.
     *   Utilize Mantine components for consistency and accessibility.
 *   **Tailwind CSS**: For utility-first styling and custom layouts.
