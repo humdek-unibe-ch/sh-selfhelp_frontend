@@ -1,0 +1,119 @@
+/* Data Config Modal Styles */
+.modal {
+    --modal-size: 80vw;
+}
+
+.modal :global(.mantine-Modal-content) {
+    height: 80vh;
+    max-height: 80vh;
+}
+
+.modal :global(.mantine-Modal-body) {
+    height: calc(100% - 60px); /* Subtract header height */
+    display: flex;
+    flex-direction: column;
+}
+
+.modal :global(.mantine-ScrollArea-root) {
+    flex: 1;
+}
+
+/* Form layout improvements */
+.formGrid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1rem;
+    align-items: start;
+}
+
+.gridCol2 {
+    grid-column: span 2;
+}
+
+.gridCol4 {
+    grid-column: span 4;
+}
+
+.gridCol6 {
+    grid-column: span 6;
+}
+
+.gridCol12 {
+    grid-column: span 12;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .modal {
+        --modal-size: 95vw;
+    }
+    
+    .modal :global(.mantine-Modal-content) {
+        height: 90vh;
+        max-height: 90vh;
+    }
+    
+    .formGrid {
+        grid-template-columns: 1fr;
+    }
+    
+    .gridCol2,
+    .gridCol4,
+    .gridCol6,
+    .gridCol12 {
+        grid-column: span 1;
+    }
+}
+
+/* Tab styling */
+.modal :global(.mantine-Tabs-tab) {
+    padding: 0.5rem 1rem;
+}
+
+.modal :global(.mantine-Tabs-tabLabel) {
+    font-weight: 500;
+}
+
+/* Field array styling */
+.fieldArray {
+    border: 1px solid var(--mantine-color-gray-3);
+    border-radius: var(--mantine-radius-sm);
+    padding: 1rem;
+    background-color: var(--mantine-color-gray-0);
+}
+
+.fieldArrayHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--mantine-color-gray-3);
+}
+
+.fieldArrayItem {
+    padding: 1rem;
+    border: 1px solid var(--mantine-color-gray-2);
+    border-radius: var(--mantine-radius-sm);
+    background-color: white;
+    margin-bottom: 1rem;
+}
+
+.fieldArrayItem:last-child {
+    margin-bottom: 0;
+}
+
+/* Dark theme adjustments */
+[data-mantine-color-scheme="dark"] .fieldArray {
+    border-color: var(--mantine-color-dark-4);
+    background-color: var(--mantine-color-dark-7);
+}
+
+[data-mantine-color-scheme="dark"] .fieldArrayHeader {
+    border-bottom-color: var(--mantine-color-dark-4);
+}
+
+[data-mantine-color-scheme="dark"] .fieldArrayItem {
+    border-color: var(--mantine-color-dark-5);
+    background-color: var(--mantine-color-dark-6);
+}

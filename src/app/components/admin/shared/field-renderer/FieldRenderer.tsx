@@ -10,7 +10,8 @@ import {
     MonacoEditorField,
     SelectField,
     UnknownField,
-    ConditionBuilderField
+    ConditionBuilderField,
+    DataConfigField
 } from '../field-components';
 import type { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
 
@@ -66,6 +67,7 @@ export function FieldRenderer({
             case 'select-data_table': return 'grape';
             case 'select-page-keyword': return 'lime';
             case 'condition': return 'yellow';
+            case 'data-config': return 'orange';
             default: return 'red';
         }
     };
@@ -288,6 +290,20 @@ export function FieldRenderer({
     if (field.type === 'condition') {
         return renderFieldWithBadge(
             <ConditionBuilderField
+                fieldId={field.id}
+                fieldName={field.name}
+                value={fieldValue}
+                onChange={(value) => onChange(value)}
+                disabled={disabled}
+                placeholder={field.default_value || ''}
+            />
+        );
+    }
+
+    // Data Config field - use Data Config Builder
+    if (field.type === 'data-config') {
+        return renderFieldWithBadge(
+            <DataConfigField
                 fieldId={field.id}
                 fieldName={field.name}
                 value={fieldValue}

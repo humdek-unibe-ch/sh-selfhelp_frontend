@@ -1,1 +1,2 @@
-export { FieldConfigurationExample } from './FieldConfigurationExample'; 
+export { FieldConfigurationExample } from './FieldConfigurationExample';
+export { DataConfigExample } from './DataConfigExample'; 

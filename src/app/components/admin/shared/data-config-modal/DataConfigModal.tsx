@@ -1,0 +1,271 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import {
+    Modal,
+    Button,
+    Group,
+    Stack,
+    Text,
+    LoadingOverlay,
+    Alert,
+    Tabs,
+    Card,
+    Badge,
+    ActionIcon,
+    ScrollArea
+} from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconAlertTriangle, IconCheck, IconX, IconPlus, IconTrash } from '@tabler/icons-react';
+import { DataSourceForm } from './DataSourceForm';
+import classes from './DataConfigModal.module.css';
+
+export interface IDataSource {
+    current_user: boolean;
+    all_fields: boolean;
+    scope: string;
+    table: string;
+    retrieve: 'first' | 'last' | 'all' | 'all_as_array' | 'JSON';
+    filter: string;
+    fields: Array<{
+        field_name: string;
+        field_holder: string;
+        not_found_text: string;
+    }>;
+    map_fields: Array<{
+        field_name: string;
+        field_new_name: string;
+    }>;
+}
+
+interface IDataConfigModalProps {
+    opened: boolean;
+    onClose: () => void;
+    onSave: (dataConfig: IDataSource[]) => void;
+    initialValue?: string;
+    title?: string;
+}
+
+export function DataConfigModal({
+    opened,
+    onClose,
+    onSave,
+    initialValue,
+    title = "Data Config Builder"
+}: IDataConfigModalProps) {
+    const [dataSources, setDataSources] = useState<IDataSource[]>([]);
+    const [activeTab, setActiveTab] = useState<string>('0');
+    const [isSaving, setIsSaving] = useState(false);
+
+    // Initialize data sources from initial value
+    useEffect(() => {
+        if (opened && initialValue) {
+            try {
+                const parsed = JSON.parse(initialValue);
+                if (Array.isArray(parsed)) {
+                    setDataSources(parsed);
+                    if (parsed.length > 0) {
+                        setActiveTab('0');
+                    }
+                } else {
+                    setDataSources([]);
+                }
+            } catch (error) {
+                console.warn('Failed to parse initial data config:', error);
+                setDataSources([]);
+            }
+        } else if (opened) {
+            setDataSources([]);
+        }
+    }, [opened, initialValue]);
+
+    const createNewDataSource = (): IDataSource => ({
+        current_user: true,
+        all_fields: true,
+        scope: '',
+        table: '',
+        retrieve: 'first',
+        filter: '',
+        fields: [],
+        map_fields: []
+    });
+
+    const handleAddDataSource = () => {
+        const newDataSource = createNewDataSource();
+        const updatedSources = [...dataSources, newDataSource];
+        setDataSources(updatedSources);
+        setActiveTab((updatedSources.length - 1).toString());
+    };
+
+    const handleRemoveDataSource = (index: number) => {
+        const updatedSources = dataSources.filter((_, i) => i !== index);
+        setDataSources(updatedSources);
+        
+        // Adjust active tab if necessary
+        if (updatedSources.length === 0) {
+            setActiveTab('0');
+        } else if (parseInt(activeTab) >= updatedSources.length) {
+            setActiveTab((updatedSources.length - 1).toString());
+        }
+    };
+
+    const handleUpdateDataSource = (index: number, updatedSource: IDataSource) => {
+        const updatedSources = [...dataSources];
+        updatedSources[index] = updatedSource;
+        setDataSources(updatedSources);
+    };
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        
+        try {
+            // Validate data sources
+            const errors: string[] = [];
+            
+            dataSources.forEach((source, index) => {
+                if (!source.scope.trim()) {
+                    errors.push(`Data Source ${index + 1}: Scope is required`);
+                }
+                if (!source.table.trim()) {
+                    errors.push(`Data Source ${index + 1}: Table name is required`);
+                }
+                if (!source.all_fields && source.fields.length === 0) {
+                    errors.push(`Data Source ${index + 1}: Fields are required when "All fields" is disabled`);
+                }
+            });
+
+            if (errors.length > 0) {
+                notifications.show({
+                    title: 'Validation Error',
+                    message: errors.join('\n'),
+                    color: 'red',
+                    icon: <IconAlertTriangle size={16} />,
+                    autoClose: false
+                });
+                return;
+            }
+
+            await onSave(dataSources);
+            
+            notifications.show({
+                title: 'Success',
+                message: 'Data configuration saved successfully',
+                color: 'green',
+                icon: <IconCheck size={16} />
+            });
+            
+            onClose();
+        } catch (error) {
+            console.error('Error saving data config:', error);
+            notifications.show({
+                title: 'Error',
+                message: 'Failed to save data configuration',
+                color: 'red',
+                icon: <IconX size={16} />
+            });
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleClose = () => {
+        setDataSources([]);
+        setActiveTab('0');
+        onClose();
+    };
+
+    return (
+        <Modal
+            opened={opened}
+            onClose={handleClose}
+            title={title}
+            size="80%"
+            className={classes.modal}
+            scrollAreaComponent={ScrollArea.Autosize}
+        >
+            <LoadingOverlay visible={isSaving} />
+            
+            <Stack gap="md">
+                {dataSources.length === 0 ? (
+                    <Alert variant="light" color="blue" icon={<IconPlus size={16} />}>
+                        <Text>No data sources configured. Click "Add Data Source" to get started.</Text>
+                    </Alert>
+                ) : (
+                    <Tabs value={activeTab} onChange={(value) => setActiveTab(value || '0')}>
+                        <Group justify="space-between" mb="sm">
+                            <Tabs.List>
+                                {dataSources.map((source, index) => (
+                                    <Tabs.Tab
+                                        key={index}
+                                        value={index.toString()}
+                                        rightSection={
+                                            dataSources.length > 1 ? (
+                                                <ActionIcon
+                                                    size="xs"
+                                                    color="red"
+                                                    variant="subtle"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleRemoveDataSource(index);
+                                                    }}
+                                                >
+                                                    <IconTrash size={12} />
+                                                </ActionIcon>
+                                            ) : null
+                                        }
+                                    >
+                                        <Group gap="xs">
+                                            <Text size="sm">
+                                                Data Source {index + 1}
+                                            </Text>
+                                            {source.scope && (
+                                                <Badge size="xs" variant="light">
+                                                    {source.scope}
+                                                </Badge>
+                                            )}
+                                        </Group>
+                                    </Tabs.Tab>
+                                ))}
+                            </Tabs.List>
+                        </Group>
+
+                        {dataSources.map((source, index) => (
+                            <Tabs.Panel key={index} value={index.toString()}>
+                                <Card withBorder p="lg">
+                                    <DataSourceForm
+                                        dataSource={source}
+                                        onChange={(updatedSource) => handleUpdateDataSource(index, updatedSource)}
+                                        index={index}
+                                    />
+                                </Card>
+                            </Tabs.Panel>
+                        ))}
+                    </Tabs>
+                )}
+
+                <Group justify="space-between">
+                    <Button
+                        variant="light"
+                        leftSection={<IconPlus size={16} />}
+                        onClick={handleAddDataSource}
+                    >
+                        Add Data Source
+                    </Button>
+
+                    <Group gap="sm">
+                        <Button variant="outline" onClick={handleClose}>
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleSave}
+                            disabled={dataSources.length === 0}
+                            loading={isSaving}
+                        >
+                            Save Configuration
+                        </Button>
+                    </Group>
+                </Group>
+            </Stack>
+        </Modal>
+    );
+}
