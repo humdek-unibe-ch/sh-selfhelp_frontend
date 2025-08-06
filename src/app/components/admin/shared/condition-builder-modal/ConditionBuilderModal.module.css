@@ -1,0 +1,63 @@
+/* Condition Builder Modal Styles */
+.queryBuilder {
+    min-height: 300px;
+    min-width: 420px;
+    border: 1px solid var(--mantine-color-gray-3);
+    border-radius: var(--mantine-radius-md);
+    padding: var(--mantine-spacing-md);
+    background-color: var(--mantine-color-white);
+}
+
+/* Validation styles for "Use validation" option */
+.validateQuery .queryBuilderBranches .ruleGroup.queryBuilder-invalid {
+    /* Color invalid groups */
+    background-color: color-mix(in srgb, var(--mantine-color-red-6), transparent 80%);
+    border: 1px solid var(--mantine-color-red-4);
+}
+
+.validateQuery .queryBuilderBranches .ruleGroup.queryBuilder-invalid .ruleGroup-addRule {
+    /* Bold the "+ Rule" button if the group has no child rules or groups */
+    font-weight: bold !important;
+}
+
+.validateQuery .queryBuilderBranches .ruleGroup.queryBuilder-invalid > .ruleGroup-body {
+    display: block;
+}
+
+.validateQuery .queryBuilderBranches .ruleGroup.queryBuilder-invalid > .ruleGroup-body::after {
+    /* Message to user about empty groups */
+    content: "Empty groups are considered invalid. Avoid them by using addRuleToNewGroups.";
+    color: var(--mantine-color-red-7);
+    font-size: var(--mantine-font-size-xs);
+    font-style: italic;
+    margin-top: var(--mantine-spacing-xs);
+    display: block;
+}
+
+.validateQuery .queryBuilderBranches .rule.queryBuilder-invalid .rule-value {
+    /* Red background for empty/invalid text fields */
+    background-color: color-mix(in srgb, var(--mantine-color-red-6), transparent 80%);
+}
+
+.validateQuery .queryBuilderBranches .rule.queryBuilder-invalid .rule-value::placeholder {
+    color: color-mix(in srgb, var(--mantine-color-red-6), var(--mantine-color-dark-9) 30%);
+}
+
+/* Dark theme support for validation */
+[data-mantine-color-scheme="dark"] .validateQuery .queryBuilderBranches .rule.queryBuilder-invalid .rule-value::placeholder {
+    color: color-mix(in srgb, var(--mantine-color-red-6), var(--mantine-color-gray-1) 30%);
+}
+
+/* Dark theme support for main container */
+[data-mantine-color-scheme="dark"] .queryBuilder {
+    background-color: var(--mantine-color-dark-7);
+    border-color: var(--mantine-color-dark-4);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .queryBuilder {
+        min-width: 320px;
+        padding: var(--mantine-spacing-sm);
+    }
+}

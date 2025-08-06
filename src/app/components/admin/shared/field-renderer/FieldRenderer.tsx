@@ -9,7 +9,8 @@ import {
     CheckboxField,
     MonacoEditorField,
     SelectField,
-    UnknownField
+    UnknownField,
+    ConditionBuilderField
 } from '../field-components';
 import type { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
 
@@ -64,6 +65,7 @@ export function FieldRenderer({
             case 'select-group': return 'cyan';
             case 'select-data_table': return 'grape';
             case 'select-page-keyword': return 'lime';
+            case 'condition': return 'yellow';
             default: return 'red';
         }
     };
@@ -278,6 +280,20 @@ export function FieldRenderer({
                 onChange={onChange}
                 placeholder="Search and select page keyword..."
                 disabled={disabled}
+            />
+        );
+    }
+
+    // Condition field - use Condition Builder
+    if (field.type === 'condition') {
+        return renderFieldWithBadge(
+            <ConditionBuilderField
+                fieldId={field.id}
+                fieldName={field.name}
+                value={fieldValue}
+                onChange={(value) => onChange(value)}
+                disabled={disabled}
+                placeholder={field.default_value || ''}
             />
         );
     }
