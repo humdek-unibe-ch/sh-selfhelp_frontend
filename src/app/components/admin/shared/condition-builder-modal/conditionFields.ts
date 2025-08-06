@@ -22,6 +22,7 @@ export function createConditionFields(
     platforms: Record<string, string>,
     pages: Record<string, string>
 ): Field[] {
+    console.log(groups, languages, platforms, pages);
     const fields: Field[] = [
         {
             name: 'user_group',
@@ -74,7 +75,7 @@ export function createConditionFields(
             name: 'page_keyword',
             label: 'Page Keyword',
             valueEditorType: 'select',
-            values: Object.entries(pages).map(([value, label]) => ({ name: value, label })),
+            values: Object.entries(pages).map(([value, label]) => ({ name: value, label:value })),
             operators: defaultOperators.filter(op => ['=', '!='].includes(op.name)),
             validator,
         },
