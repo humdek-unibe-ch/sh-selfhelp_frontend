@@ -7,8 +7,40 @@
     background-color: var(--mantine-color-white);
 }
 
-/* Styles for when "Use validation" option is selected (dark theme variations) */
-html[data-theme="dark"] .validateQuery .queryBuilder .rule.queryBuilder-invalid .rule-value::placeholder {
+/* Styles for when "Use validation" option is selected */
+:global(.validateQuery) .queryBuilder {
+    & :global(.ruleGroup.queryBuilder-invalid) {
+        /* Color invalid groups */
+        background-color: color-mix(in srgb, rebeccapurple, transparent 60%);
+
+        & :global(.ruleGroup-addRule) {
+            /* Bold the "+ Rule" button if the group has no child rules or groups */
+            font-weight: bold !important;
+        }
+
+        &>:global(.ruleGroup-body) {
+            display: block;
+        }
+
+        &>:global(.ruleGroup-body)::after {
+            /* Message to user about empty groups */
+            content: "Empty groups are considered invalid. Avoid them by using addRuleToNewGroups.";
+            color: white;
+        }
+    }
+
+    & :global(.rule.queryBuilder-invalid) :global(.rule-value) {
+        /* Purple background for empty text fields */
+        background-color: color-mix(in srgb, rebeccapurple, transparent 60%);
+
+        &::placeholder {
+            color: color-mix(in srgb, rebeccapurple, black 30%);
+        }
+    }
+}
+
+/* Dark theme variations for validation */
+:global(html[data-theme="dark"]) :global(.validateQuery) .queryBuilder :global(.rule.queryBuilder-invalid) :global(.rule-value)::placeholder {
     color: color-mix(in srgb, rebeccapurple, white 30%);
 }
 
@@ -22,13 +54,12 @@ html[data-theme="dark"] .validateQuery .queryBuilder .rule.queryBuilder-invalid 
     min-width: 100px !important;
 }
 
-
-[data-mantine-color-scheme="dark"] .queryBuilder :global(select) {
+/* Dark theme for selects */
+:global([data-mantine-color-scheme="dark"]) .queryBuilder :global(select) {
     background-color: var(--mantine-color-dark-6) !important;
     border-color: var(--mantine-color-dark-4) !important;
     color: var(--mantine-color-gray-1) !important;
 }
-
 
 /* Responsive design */
 @media (max-width: 768px) {

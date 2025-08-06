@@ -149,14 +149,14 @@ export function ConditionBuilderModal({
                 <Text size="sm" c="dimmed">
                     Build conditions using the query builder below. Use AND/OR for groups.
                 </Text>
-                <div className={classes.queryBuilder}>
+                <div className={`${classes.queryBuilder} validateQuery`}>
                     <QueryBuilderMantine>
                         <QueryBuilder
                             fields={fields}
                             query={query}
                             onQueryChange={setQuery}
                             validator={defaultValidator}
-                            controlClassnames={{ queryBuilder: 'validateQuery queryBuilder-justified queryBuilder-branches' }}
+                            controlClassnames={{ queryBuilder: 'queryBuilder-justified queryBuilder-branches' }}
                             resetOnFieldChange={true}
                             addRuleToNewGroups
                         />
