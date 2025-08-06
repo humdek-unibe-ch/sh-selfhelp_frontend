@@ -3,5 +3,17 @@
 import { createTheme } from "@mantine/core";
 
 export const theme = createTheme({
-  /* Put your mantine theme override here */
+  components: {
+    MultiSelect: {
+      styles: {
+        input: {
+          display: 'flex',
+          alignItems: 'center',
+          minHeight: 36,
+          paddingTop: 4,
+          paddingBottom: 4,
+        },
+      },
+    },
+  },
 });
