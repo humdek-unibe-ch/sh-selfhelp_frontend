@@ -39,6 +39,13 @@ export function ConditionBuilderField({
 
     const handleSave = async (jsonLogic: any) => {
         const jsonString = jsonLogic ? JSON.stringify(jsonLogic) : '';
+        console.log('ConditionBuilderField handleSave:', {
+            fieldId,
+            fieldName,
+            jsonLogic,
+            jsonString,
+            onChange: typeof onChange
+        });
         onChange(jsonString);
     };
 

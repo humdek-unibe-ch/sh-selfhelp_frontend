@@ -1,4 +1,3 @@
-/* Condition Builder Modal Styles */
 .queryBuilder {
     min-height: 300px;
     min-width: 420px;
@@ -8,51 +7,28 @@
     background-color: var(--mantine-color-white);
 }
 
-/* Validation styles for "Use validation" option */
-.validateQuery .queryBuilderBranches .ruleGroup.queryBuilder-invalid {
-    /* Color invalid groups */
-    background-color: color-mix(in srgb, var(--mantine-color-red-6), transparent 80%);
-    border: 1px solid var(--mantine-color-red-4);
+/* Styles for when "Use validation" option is selected (dark theme variations) */
+html[data-theme="dark"] .validateQuery .queryBuilder .rule.queryBuilder-invalid .rule-value::placeholder {
+    color: color-mix(in srgb, rebeccapurple, white 30%);
 }
 
-.validateQuery .queryBuilderBranches .ruleGroup.queryBuilder-invalid .ruleGroup-addRule {
-    /* Bold the "+ Rule" button if the group has no child rules or groups */
-    font-weight: bold !important;
+/* Minimum width for all inputs */
+.queryBuilder :global(.rule-value input),
+.queryBuilder :global(.rule-value select),
+.queryBuilder :global(.rule-value .mantine-MultiSelect-input),
+.queryBuilder :global(.rule-value .mantine-DatePickerInput-input),
+.queryBuilder :global(.rule-fields select),
+.queryBuilder :global(.rule-operators select) {
+    min-width: 100px !important;
 }
 
-.validateQuery .queryBuilderBranches .ruleGroup.queryBuilder-invalid > .ruleGroup-body {
-    display: block;
+
+[data-mantine-color-scheme="dark"] .queryBuilder :global(select) {
+    background-color: var(--mantine-color-dark-6) !important;
+    border-color: var(--mantine-color-dark-4) !important;
+    color: var(--mantine-color-gray-1) !important;
 }
 
-.validateQuery .queryBuilderBranches .ruleGroup.queryBuilder-invalid > .ruleGroup-body::after {
-    /* Message to user about empty groups */
-    content: "Empty groups are considered invalid. Avoid them by using addRuleToNewGroups.";
-    color: var(--mantine-color-red-7);
-    font-size: var(--mantine-font-size-xs);
-    font-style: italic;
-    margin-top: var(--mantine-spacing-xs);
-    display: block;
-}
-
-.validateQuery .queryBuilderBranches .rule.queryBuilder-invalid .rule-value {
-    /* Red background for empty/invalid text fields */
-    background-color: color-mix(in srgb, var(--mantine-color-red-6), transparent 80%);
-}
-
-.validateQuery .queryBuilderBranches .rule.queryBuilder-invalid .rule-value::placeholder {
-    color: color-mix(in srgb, var(--mantine-color-red-6), var(--mantine-color-dark-9) 30%);
-}
-
-/* Dark theme support for validation */
-[data-mantine-color-scheme="dark"] .validateQuery .queryBuilderBranches .rule.queryBuilder-invalid .rule-value::placeholder {
-    color: color-mix(in srgb, var(--mantine-color-red-6), var(--mantine-color-gray-1) 30%);
-}
-
-/* Dark theme support for main container */
-[data-mantine-color-scheme="dark"] .queryBuilder {
-    background-color: var(--mantine-color-dark-7);
-    border-color: var(--mantine-color-dark-4);
-}
 
 /* Responsive design */
 @media (max-width: 768px) {

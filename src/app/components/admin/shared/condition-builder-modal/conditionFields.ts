@@ -22,7 +22,6 @@ export function createConditionFields(
     platforms: Record<string, string>,
     pages: Record<string, string>
 ): Field[] {
-    console.log(groups, languages, platforms, pages);
     const fields: Field[] = [
         {
             name: 'user_group',
@@ -31,6 +30,7 @@ export function createConditionFields(
             values: Object.entries(groups).map(([value, label]) => ({ name: value, label })),
             operators: defaultOperators.filter(op => ['in', 'notIn', '=', '!='].includes(op.name)),
             validator,
+            valueSources: ['value'],
         },
         {
             name: 'field_name',
@@ -75,9 +75,10 @@ export function createConditionFields(
             name: 'page_keyword',
             label: 'Page Keyword',
             valueEditorType: 'select',
-            values: Object.entries(pages).map(([value, label]) => ({ name: value, label:value })),
+            values: Object.entries(pages).map(([value, label]) => ({ name: value, label: value })),
             operators: defaultOperators.filter(op => ['=', '!='].includes(op.name)),
             validator,
+            valueSources: ['value'],
         },
         {
             name: 'platform',
@@ -86,6 +87,7 @@ export function createConditionFields(
             values: Object.entries(platforms).map(([value, label]) => ({ name: value, label })),
             operators: defaultOperators.filter(op => ['=', '!='].includes(op.name)),
             validator,
+            valueSources: ['value'],
         },
         {
             name: 'language',
@@ -94,6 +96,7 @@ export function createConditionFields(
             values: Object.entries(languages).map(([value, label]) => ({ name: value, label })),
             operators: defaultOperators.filter(op => ['=', '!='].includes(op.name)),
             validator,
+            valueSources: ['value'],
         },
         {
             name: 'last_login',

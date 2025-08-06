@@ -51,3 +51,43 @@
     min-height: calc(100vh - 200px);
     transition: min-height 0.3s ease-in-out;
 }
+
+:root {
+    --rqb-branch-indent: var(--rqb-spacing);
+    --rqb-branch-width: var(--rqb-border-width);
+    --rqb-branch-color: var(--rqb-border-color);
+    --rqb-branch-radius: var(--rqb-border-radius);
+    --rqb-branch-style: var(--rqb-border-style);
+}
+
+/* Styles for when "Use validation" option is selected */
+.validateQuery .queryBuilder {
+    & .ruleGroup.queryBuilder-invalid {
+        /* Color invalid groups */
+        background-color: color-mix(in srgb, rebeccapurple, transparent 60%);
+
+        & .ruleGroup-addRule {
+            /* Bold the "+ Rule" button if the group has no child rules or groups */
+            font-weight: bold !important;
+        }
+
+        &>.ruleGroup-body {
+            display: block;
+        }
+
+        &>.ruleGroup-body::after {
+            /* Message to user about empty groups */
+            content: "Empty groups are considered invalid. Avoid them by using addRuleToNewGroups.";
+            color: white;
+        }
+    }
+
+    & .rule.queryBuilder-invalid .rule-value {
+        /* Purple background for empty text fields */
+        background-color: color-mix(in srgb, rebeccapurple, transparent 60%);
+
+        &::placeholder {
+            color: color-mix(in srgb, rebeccapurple, black 30%);
+        }
+    }
+}

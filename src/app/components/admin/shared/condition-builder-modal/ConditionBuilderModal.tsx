@@ -1,18 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-    Modal, 
-    Button, 
-    Group, 
-    Stack, 
-    Text, 
+import {
+    Modal,
+    Button,
+    Group,
+    Stack,
+    Text,
     LoadingOverlay,
     Alert
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconAlertTriangle, IconCheck, IconX } from '@tabler/icons-react';
-import { QueryBuilder, RuleGroupType, defaultValidator } from 'react-querybuilder';
+import { defaultValidator, QueryBuilder, RuleGroupType } from 'react-querybuilder';
 import { QueryBuilderMantine } from '@react-querybuilder/mantine';
 import 'react-querybuilder/dist/query-builder.css';
 import { useConditionBuilderData } from '../../../../../hooks/useConditionBuilderData';
@@ -28,9 +28,9 @@ interface IConditionBuilderModalProps {
     title?: string;
 }
 
-const initialQuery: RuleGroupType = { 
-    combinator: 'and', 
-    rules: [] 
+const initialQuery: RuleGroupType = {
+    combinator: 'and',
+    rules: []
 };
 
 export function ConditionBuilderModal({
@@ -50,17 +50,22 @@ export function ConditionBuilderModal({
     // Initialize query from initial value
     useEffect(() => {
         if (opened) {
-            if (initialValue) {
+            if (initialValue && initialValue.trim() !== '') {
                 try {
                     const parsedValue = JSON.parse(initialValue);
+                    console.log('Parsed initial value:', parsedValue);
+
                     if (isValidJsonLogic(parsedValue)) {
                         const convertedRules = jsonLogicToRules(parsedValue);
-                        if (convertedRules && convertedRules.rules.length > 0) {
+                        console.log('Converted rules:', convertedRules);
+
+                        if (convertedRules && convertedRules.rules && convertedRules.rules.length > 0) {
                             setQuery(convertedRules);
                         } else {
                             setQuery(initialQuery);
                         }
                     } else {
+                        console.warn('Invalid JSON Logic structure:', parsedValue);
                         setQuery(initialQuery);
                     }
                 } catch (error) {
@@ -76,16 +81,19 @@ export function ConditionBuilderModal({
     const handleSave = async () => {
         setIsSaving(true);
         try {
+            console.log('Saving query:', query);
             const jsonLogic = rulesToJsonLogic(query);
+            console.log('Generated JSON Logic:', jsonLogic);
+
             await onSave(jsonLogic);
-            
+
             notifications.show({
                 title: 'Success',
                 message: 'Condition saved successfully',
                 color: 'green',
                 icon: <IconCheck size={16} />,
             });
-            
+
             onClose();
         } catch (error) {
             console.error('Failed to save condition:', error);
@@ -136,12 +144,11 @@ export function ConditionBuilderModal({
             closeOnEscape={false}
         >
             <LoadingOverlay visible={isLoading} />
-            
+
             <Stack gap="md">
                 <Text size="sm" c="dimmed">
-                    Build conditions using the query builder below. Use AND/OR for groups and drag & drop to reorder rules.
+                    Build conditions using the query builder below. Use AND/OR for groups.
                 </Text>
-
                 <div className={classes.queryBuilder}>
                     <QueryBuilderMantine>
                         <QueryBuilder
@@ -149,29 +156,22 @@ export function ConditionBuilderModal({
                             query={query}
                             onQueryChange={setQuery}
                             validator={defaultValidator}
-                            controlClassnames={{ 
-                                queryBuilder: `${classes.queryBuilderBranches} validateQuery`
-                            }}
-                            showCombinatorsBetweenRules
-                            showNotToggle={false}
-                            resetOnFieldChange={false}
-                            resetOnOperatorChange={false}
+                            controlClassnames={{ queryBuilder: 'validateQuery queryBuilder-justified queryBuilder-branches' }}
+                            resetOnFieldChange={true}
                             addRuleToNewGroups
-                            enableDragAndDrop
-                            parseNumbers
                         />
                     </QueryBuilderMantine>
                 </div>
 
                 <Group justify="flex-end" gap="sm">
-                    <Button 
-                        variant="outline" 
+                    <Button
+                        variant="outline"
                         onClick={handleCancel}
                         disabled={isSaving}
                     >
                         Cancel
                     </Button>
-                    <Button 
+                    <Button
                         onClick={handleSave}
                         loading={isSaving}
                         disabled={isLoading}

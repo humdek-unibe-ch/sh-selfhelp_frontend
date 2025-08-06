@@ -27,7 +27,7 @@ export function rulesToJsonLogic(rules: RuleGroupType): any {
 
 /**
  * Converts JSON Logic back to React Query Builder rules format
- * For now, returns empty rules - parsing will be handled by the component initialization
+ * Basic implementation for simple JSON Logic structures
  */
 export function jsonLogicToRules(jsonLogic: any): RuleGroupType | null {
     if (!jsonLogic) {
@@ -37,12 +37,64 @@ export function jsonLogicToRules(jsonLogic: any): RuleGroupType | null {
         };
     }
 
-    // For now, we'll return empty rules and let the user rebuild the query
-    // This can be enhanced later with a proper JSON Logic parser
+    try {
+        // Handle simple JSON Logic structures
+        const keys = Object.keys(jsonLogic);
+        if (keys.length === 1) {
+            const combinator = keys[0];
+            if (['and', 'or'].includes(combinator) && Array.isArray(jsonLogic[combinator])) {
+                const rules: any[] = [];
+                
+                // Convert each JSON Logic rule back to RQB format
+                jsonLogic[combinator].forEach((rule: any) => {
+                    const ruleKeys = Object.keys(rule);
+                    if (ruleKeys.length === 1) {
+                        const operator = ruleKeys[0];
+                        const values = rule[operator];
+                        
+                        if (Array.isArray(values) && values.length >= 2) {
+                            // Simple field comparison
+                            rules.push({
+                                field: values[0],
+                                operator: convertJsonLogicOperatorToRQB(operator),
+                                value: values[1]
+                            });
+                        }
+                    }
+                });
+
+                return {
+                    combinator: combinator as 'and' | 'or',
+                    rules
+                };
+            }
+        }
+    } catch (error) {
+        console.warn('Failed to parse JSON Logic to rules:', error);
+    }
+
+    // Return empty structure if parsing fails
     return {
         combinator: 'and',
         rules: []
     };
+}
+
+/**
+ * Convert JSON Logic operators back to React Query Builder operators
+ */
+function convertJsonLogicOperatorToRQB(jsonLogicOp: string): string {
+    const operatorMap: Record<string, string> = {
+        '==': '=',
+        '!=': '!=',
+        '>': '>',
+        '<': '<',
+        '>=': '>=',
+        '<=': '<=',
+        'in': 'in',
+    };
+    
+    return operatorMap[jsonLogicOp] || jsonLogicOp;
 }
 
 /**
