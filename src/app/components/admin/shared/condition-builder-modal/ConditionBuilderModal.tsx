@@ -45,18 +45,21 @@ export function ConditionBuilderModal({
     const [isSaving, setIsSaving] = useState(false);
 
     // Create fields with dynamic data
-    const fields = createConditionFields(groups, languages, platforms, pages);
+    const fields = createConditionFields(groups, languages, platforms, pages);    
 
-    // Initialize query from initial value
+    // Initialize query from initial value - only after data is loaded
     useEffect(() => {
-        if (opened) {
+        if (opened && !isLoading && !isError) {
+            initialValue ='{"and":[{"==":[{"var":"user_group"},"admin"]},{"and":[{"<":[{"var":"current_time"},"13:43"]},{"==":[{"var":"page_keyword"},"impressum"]},{"==":[{"var":"platform"},"mobile"]},{"==":[{"var":"language"},"3"]}]}]}';
             if (initialValue && initialValue.trim() !== '') {
                 try {
                     const parsedValue = JSON.parse(initialValue);
                     console.log('Parsed initial value:', parsedValue);
+                    console.log('Available fields for conversion:', Object.keys(groups).length, 'groups,', Object.keys(languages).length, 'languages,', Object.keys(platforms).length, 'platforms,', Object.keys(pages).length, 'pages');
 
                     if (isValidJsonLogic(parsedValue)) {
                         const convertedRules = jsonLogicToRules(parsedValue);
+                        console.log('initialValue:', initialValue);
                         console.log('Converted rules:', convertedRules);
 
                         if (convertedRules && convertedRules.rules && convertedRules.rules.length > 0) {
@@ -75,8 +78,11 @@ export function ConditionBuilderModal({
             } else {
                 setQuery(initialQuery);
             }
+        } else if (opened && !isLoading && !isError && !initialValue) {
+            // Reset to initial query if no initial value and data is loaded
+            setQuery(initialQuery);
         }
-    }, [opened, initialValue]);
+    }, [opened, initialValue, isLoading, isError, groups, languages, platforms, pages]);
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -158,7 +164,6 @@ export function ConditionBuilderModal({
                             validator={defaultValidator}
                             controlClassnames={{ queryBuilder: 'queryBuilder-justified queryBuilder-branches' }}
                             resetOnFieldChange={true}
-                            addRuleToNewGroups
                         />
                     </QueryBuilderMantine>
                 </div>

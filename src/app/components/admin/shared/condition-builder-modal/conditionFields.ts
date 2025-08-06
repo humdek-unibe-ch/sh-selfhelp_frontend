@@ -27,7 +27,7 @@ export function createConditionFields(
             name: 'user_group',
             label: 'User Group',
             valueEditorType: 'multiselect',
-            values: Object.entries(groups).map(([value, label]) => ({ name: value, label })),
+            values: Object.entries(groups).map(([value, label]) => ({ name: label, label })),
             operators: defaultOperators.filter(op => ['in', 'notIn', '=', '!='].includes(op.name)),
             validator,
             valueSources: ['value'],

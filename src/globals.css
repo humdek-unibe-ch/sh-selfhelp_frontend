@@ -52,11 +52,3 @@
     transition: min-height 0.3s ease-in-out;
 }
 
-:root {
-    --rqb-branch-indent: var(--rqb-spacing);
-    --rqb-branch-width: var(--rqb-border-width);
-    --rqb-branch-color: var(--rqb-border-color);
-    --rqb-branch-radius: var(--rqb-border-radius);
-    --rqb-branch-style: var(--rqb-border-style);
-}
-

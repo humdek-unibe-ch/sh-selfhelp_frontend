@@ -4,7 +4,7 @@
     border: 1px solid var(--mantine-color-gray-3);
     border-radius: var(--mantine-radius-md);
     padding: var(--mantine-spacing-md);
-    background-color: var(--mantine-color-white);
+    background-color: var(--mantine-color-white);    
 }
 
 /* Styles for when "Use validation" option is selected */
@@ -54,12 +54,22 @@
     min-width: 100px !important;
 }
 
-/* Dark theme for selects */
-:global([data-mantine-color-scheme="dark"]) .queryBuilder :global(select) {
-    background-color: var(--mantine-color-dark-6) !important;
-    border-color: var(--mantine-color-dark-4) !important;
-    color: var(--mantine-color-gray-1) !important;
+.queryBuilder :global(.queryBuilder-branches .rule::after) {
+    --rqb-branch-width:1.2px !important;
 }
+
+.queryBuilder :global(.queryBuilder-branches .rule::before) {
+    --rqb-branch-width: 1.2px !important;
+}
+
+.queryBuilder :global(.queryBuilder-branches .ruleGroup::after) {
+    --rqb-branch-width:1.2px !important;
+}
+
+.queryBuilder :global(.queryBuilder-branches .ruleGroup::before) {
+    --rqb-branch-width: 1.2px !important;
+}
+
 
 /* Responsive design */
 @media (max-width: 768px) {
