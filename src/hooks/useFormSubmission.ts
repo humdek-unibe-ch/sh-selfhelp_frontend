@@ -1,0 +1,150 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { FormSubmissionApi } from '../api/frontend/form-submission.api';
+import {
+    IFormSubmitRequest,
+    IFormUpdateRequest
+} from '../types/requests/frontend/form-submission.types';
+import { REACT_QUERY_CONFIG } from '../config/react-query.config';
+import { notifications } from '@mantine/notifications';
+import { debug } from '../utils/debug-logger';
+
+/**
+ * Hook to get forms for a specific page
+ */
+export function usePageForms(pageId: number, enabled: boolean = true) {
+    return useQuery({
+        queryKey: ['page-forms', pageId],
+        queryFn: () => FormSubmissionApi.getPageForms(pageId),
+        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        enabled: enabled && !!pageId,
+    });
+}
+
+/**
+ * Hook to submit a new form (anonymous users)
+ */
+export function useSubmitFormMutation() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: IFormSubmitRequest) => FormSubmissionApi.submitForm(data),
+        onSuccess: (response, variables) => {
+            debug('Form submitted successfully', 'useSubmitFormMutation', {
+                pageId: variables.page_id,
+                formId: variables.form_id,
+                recordId: response.data?.record_id
+            });
+
+            // Invalidate page forms to refresh the list
+            queryClient.invalidateQueries({ queryKey: ['page-forms', variables.page_id] });
+            queryClient.invalidateQueries({ queryKey: ['userInputEntries'] });
+
+            // Show success notification if not handled by component
+            if (response.data?.success && response.data?.message) {
+                notifications.show({
+                    title: 'Form Submitted',
+                    message: response.data.message,
+                    color: 'green',
+                });
+            }
+        },
+        onError: (error, variables) => {
+            debug('Failed to submit form', 'useSubmitFormMutation', {
+                pageId: variables.page_id,
+                formId: variables.form_id,
+                error
+            });
+
+            notifications.show({
+                title: 'Submission Failed',
+                message: 'Failed to submit form. Please try again.',
+                color: 'red',
+            });
+        },
+    });
+}
+
+/**
+ * Hook to update an existing form (authenticated users)
+ */
+export function useUpdateFormMutation() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: IFormUpdateRequest) => FormSubmissionApi.updateForm(data),
+        onSuccess: (response, variables) => {
+            debug('Form updated successfully', 'useUpdateFormMutation', {
+                pageId: variables.page_id,
+                formId: variables.form_id,
+                recordId: response.data?.record_id,
+                updatedFields: response.data?.updated_fields
+            });
+
+            // Invalidate page forms to refresh the list
+            queryClient.invalidateQueries({ queryKey: ['page-forms', variables.page_id] });
+            queryClient.invalidateQueries({ queryKey: ['userInputEntries'] });
+
+            // Show success notification if not handled by component
+            if (response.data?.success && response.data?.message) {
+                notifications.show({
+                    title: 'Form Updated',
+                    message: response.data.message,
+                    color: 'blue',
+                });
+            }
+        },
+        onError: (error, variables) => {
+            debug('Failed to update form', 'useUpdateFormMutation', {
+                pageId: variables.page_id,
+                formId: variables.form_id,
+                error
+            });
+
+            notifications.show({
+                title: 'Update Failed',
+                message: 'Failed to update form. Please try again.',
+                color: 'red',
+            });
+        },
+    });
+}
+
+/**
+ * Hook to delete a form record
+ */
+export function useDeleteFormMutation() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (recordId: number) => FormSubmissionApi.deleteForm(recordId),
+        onSuccess: (response, recordId) => {
+            debug('Form record deleted successfully', 'useDeleteFormMutation', {
+                recordId,
+                success: response.data?.success
+            });
+
+            // Invalidate related queries
+            queryClient.invalidateQueries({ queryKey: ['page-forms'] });
+            queryClient.invalidateQueries({ queryKey: ['userInputEntries'] });
+
+            notifications.show({
+                title: 'Record Deleted',
+                message: `Form record ${recordId} has been deleted successfully`,
+                color: 'green',
+            });
+        },
+        onError: (error, recordId) => {
+            debug('Failed to delete form record', 'useDeleteFormMutation', {
+                recordId,
+                error
+            });
+
+            notifications.show({
+                title: 'Deletion Failed',
+                message: `Failed to delete record ${recordId}`,
+                color: 'red',
+            });
+        },
+    });
+}

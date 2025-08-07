@@ -119,6 +119,12 @@ export const API_CONFIG = {
         USER_INPUT_GET_ALL: '/user-input',
         USER_INPUT_DELETE: (entryId: number) => `/user-input/${entryId}`,
 
+        // Form submission endpoints (public access)
+        FORMS_SUBMIT: '/forms/submit',
+        FORMS_UPDATE: '/forms/update',
+        FORMS_DELETE: '/forms/delete',
+        FORMS_GET_PAGE_FORMS: '/forms/page',
+
         // Admin section creation endpoints
         ADMIN_PAGES_CREATE_SECTION: (keyword: string) => `/admin/pages/${keyword}/sections/create`,
         ADMIN_SECTIONS_CREATE_CHILD: (keyword: string, parentSectionId: number) => `/admin/pages/${keyword}/sections/${parentSectionId}/sections/create`,
