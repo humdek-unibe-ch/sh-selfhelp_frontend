@@ -49,7 +49,7 @@ export interface IPageFormsResponse extends IFormResponse {
 export interface IFormRecord {
     id: number;
     page_id: number;
-    form_id: string;
+    section_id: number;
     form_data: Record<string, any>;
     created_at: string;
     updated_at?: string;

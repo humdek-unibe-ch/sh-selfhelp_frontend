@@ -43,7 +43,7 @@ const QuizStyle: React.FC<IQuizStyleProps> = ({ style }) => {
             {!showResult ? (
                 <Box>
                     {children.map((childStyle, index) => (
-                        childStyle ? <BasicStyle key={`${childStyle.id.content}-${index}`} style={childStyle} /> : null
+                        childStyle ? <BasicStyle key={`${childStyle.id}-${index}`} style={childStyle} /> : null
                     ))}
                     
                     <Group mt="md">

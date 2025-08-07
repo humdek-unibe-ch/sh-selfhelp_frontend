@@ -1,9 +1,4 @@
 // Base interfaces
-export interface IIdType {
-    content: number;
-    type: string;
-}
-
 export interface IContentField<T> {
     content: T;
     meta?: string;
@@ -14,13 +9,16 @@ export interface IContentField<T> {
 
 // Base style interface that all styles extend
 interface IBaseStyle {
-    id: IIdType;
+    id: number;
     id_styles: number;
     style_name: string;
     can_have_children: number;
     position: number;
     path: string;
     children?: TStyle[];
+    name?: IContentField<string>;
+    label?: IContentField<string>;
+    label_cancel?: IContentField<string>;
     fields: Record<string, IContentField<any>>;
     // Common fields that appear in most styles
     css?: string;

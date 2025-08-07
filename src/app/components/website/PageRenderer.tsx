@@ -47,7 +47,7 @@ export const PageRenderer: React.FC<IPageRendererProps> = ({
             }
 
             // Generate a unique key for each section
-            const key = `section-${section.id?.content || `index-${index}`}`;
+            const key = `section-${section.id || `index-${index}`}`;
 
             // Log section rendering for debugging
             debug('Rendering section', 'PageRenderer', {

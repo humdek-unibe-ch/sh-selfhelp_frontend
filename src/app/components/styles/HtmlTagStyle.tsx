@@ -19,7 +19,7 @@ const HtmlTagStyle: React.FC<IHtmlTagStyleProps> = ({ style }) => {
     return (
         <TagComponent className={style.css}>
             {children.map((childStyle, index) => (
-                childStyle ? <BasicStyle key={`${childStyle.id.content}-${index}`} style={childStyle} /> : null
+                childStyle ? <BasicStyle key={`${childStyle.id}-${index}`} style={childStyle} /> : null
             ))}
         </TagComponent>
     );

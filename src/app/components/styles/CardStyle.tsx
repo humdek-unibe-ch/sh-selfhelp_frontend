@@ -101,7 +101,7 @@ const CardStyle: React.FC<ICardStyleProps> = ({ style }) => {
                     <Card.Section>
                         {Array.isArray(style.children) 
                             ? style.children.map((childStyle, index) => (
-                                childStyle ? <BasicStyle key={`${childStyle.id.content}-${index}`} style={childStyle} /> : null
+                                childStyle ? <BasicStyle key={`${childStyle.id}-${index}`} style={childStyle} /> : null
                             ))
                             : null
                         }

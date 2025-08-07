@@ -27,7 +27,7 @@ export function PageContentRenderer({ sections }: IPageContentRendererProps) {
                     return null;
                 }
 
-                const key = `section-${section.id?.content || index}`;
+                const key = `section-${section.id || index}`;
 
                 // BasicStyle now handles all style routing
                 // It will internally render UnknownStyle for unsupported styles

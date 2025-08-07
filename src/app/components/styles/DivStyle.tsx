@@ -51,7 +51,7 @@ const DivStyle: React.FC<IDivStyleProps> = ({ style }) => {
             style={inlineStyles}
         >
             {children.map((childStyle, index) => (
-                childStyle ? <BasicStyle key={`${childStyle.id.content}-${index}`} style={childStyle} /> : null
+                childStyle ? <BasicStyle key={`${childStyle.id}-${index}`} style={childStyle} /> : null
             ))}
         </Box>
     );

@@ -16,7 +16,7 @@ const TableStyle: React.FC<ITableStyleProps> = ({ style }) => {
             <Table striped highlightOnHover withTableBorder withColumnBorders>
                 <Table.Tbody>
                     {children.map((childStyle, index) => (
-                        childStyle ? <BasicStyle key={`${childStyle.id.content}-${index}`} style={childStyle} /> : null
+                        childStyle ? <BasicStyle key={`${childStyle.id}-${index}`} style={childStyle} /> : null
                     ))}
                 </Table.Tbody>
             </Table>

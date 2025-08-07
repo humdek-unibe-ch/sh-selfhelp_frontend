@@ -17,7 +17,7 @@ const FigureStyle: React.FC<IFigureStyleProps> = ({ style }) => {
     return (
         <Box component="figure" className={style.css}>
             {children.map((childStyle, index) => (
-                childStyle ? <BasicStyle key={`${childStyle.id.content}-${index}`} style={childStyle} /> : null
+                childStyle ? <BasicStyle key={`${childStyle.id}-${index}`} style={childStyle} /> : null
             ))}
             {(captionTitle || caption) && (
                 <Text component="figcaption" size="sm" c="dimmed" mt="xs">

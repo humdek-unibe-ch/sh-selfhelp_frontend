@@ -33,7 +33,7 @@ const FormStyle: React.FC<IFormStyleProps> = ({ style }) => {
     return (
         <Box component="form" className={style.css} onSubmit={handleSubmit}>
             {children.map((childStyle, index) => (
-                childStyle ? <BasicStyle key={`${childStyle.id.content}-${index}`} style={childStyle} /> : null
+                childStyle ? <BasicStyle key={`${childStyle.id}-${index}`} style={childStyle} /> : null
             ))}
             
             <Group mt="md" justify="space-between">

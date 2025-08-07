@@ -31,7 +31,7 @@ const ModalStyle: React.FC<IModalStyleProps> = ({ style }) => {
                 centered
             >
                 {children.map((childStyle: TStyle, index: number) => (
-                    childStyle ? <BasicStyle key={`${childStyle.id.content}-${index}`} style={childStyle} /> : null
+                    childStyle ? <BasicStyle key={`${childStyle.id}-${index}`} style={childStyle} /> : null
                 ))}
             </Modal>
         </Box>

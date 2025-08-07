@@ -32,7 +32,7 @@ export function useSubmitFormMutation() {
         onSuccess: (response, variables) => {
             debug('Form submitted successfully', 'useSubmitFormMutation', {
                 pageId: variables.page_id,
-                formId: variables.form_id,
+                formId: variables.section_id,
                 recordId: response.data?.record_id
             });
 
@@ -52,7 +52,7 @@ export function useSubmitFormMutation() {
         onError: (error, variables) => {
             debug('Failed to submit form', 'useSubmitFormMutation', {
                 pageId: variables.page_id,
-                formId: variables.form_id,
+                formId: variables.section_id,
                 error
             });
 
@@ -76,7 +76,7 @@ export function useUpdateFormMutation() {
         onSuccess: (response, variables) => {
             debug('Form updated successfully', 'useUpdateFormMutation', {
                 pageId: variables.page_id,
-                formId: variables.form_id,
+                formId: variables.section_id,
                 recordId: response.data?.record_id,
                 updatedFields: response.data?.updated_fields
             });
@@ -97,7 +97,7 @@ export function useUpdateFormMutation() {
         onError: (error, variables) => {
             debug('Failed to update form', 'useUpdateFormMutation', {
                 pageId: variables.page_id,
-                formId: variables.form_id,
+                formId: variables.section_id,
                 error
             });
 

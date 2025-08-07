@@ -20,7 +20,7 @@ const JumbotronStyle: React.FC<IJumbotronStyleProps> = ({ style }) => {
     return (
         <div className={`jumbotron ${style.css || ''}`}>
             {children.map((childStyle, index) => (
-                childStyle ? <BasicStyle key={`${childStyle.id.content}-${index}`} style={childStyle} /> : null
+                childStyle ? <BasicStyle key={`${childStyle.id}-${index}`} style={childStyle} /> : null
             ))}
         </div>
     );

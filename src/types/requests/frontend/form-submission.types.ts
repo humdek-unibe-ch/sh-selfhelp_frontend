@@ -5,14 +5,14 @@
 // Form submission request (anonymous users)
 export interface IFormSubmitRequest {
     page_id: number;
-    form_id: string;
+    section_id: string;
     form_data: Record<string, any>;
 }
 
 // Form update request (authenticated users)
 export interface IFormUpdateRequest {
     page_id: number;
-    form_id: string;
+    section_id: Number;
     form_data: Record<string, any>;
     update_based_on?: Record<string, any>;
 }

@@ -31,18 +31,9 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
     const isAjax = getFieldContent(style, 'ajax') === '1';
     const buttonLabel = getFieldContent(style, 'label') || 'Submit';
     
-    // Get form ID from style - handle both possible structures
-    const formId = (() => {
-        // Check if id is a direct number (actual API structure)
-        if (typeof (style as any).id === 'number') {
-            return (style as any).id.toString();
-        }
-        // Check if id has content property (type definition structure)
-        if (style.id?.content) {
-            return style.id.content.toString();
-        }
-        return '';
-    })();
+    // Get form ID from style - now directly available as number
+    console.log('style', style);
+    const sectionId = style.id;
 
     // Get current page ID from context
     const pageId = pageContent?.id;
@@ -53,9 +44,8 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
 
     debug('FormUserInputStyle configuration', 'FormUserInputStyle', {
         styleName: style.style_name,
-        formId,
-        rawStyleId: (style as any).id,
-        styleIdContent: style.id?.content,
+        sectionId,
+        styleId: style.id,
         isRecord,
         isLogType,
         pageId,
@@ -77,9 +67,9 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
         if (!isRecord || !existingForms?.data?.forms) return null;
         
         return existingForms.data.forms.find(form => 
-            form.form_id === formId && form.page_id === pageId
+            form.section_id === sectionId && form.page_id === pageId
         );
-    }, [isRecord, existingForms, formId, pageId]);
+    }, [isRecord, existingForms, sectionId, pageId]);
 
     const validateForm = useCallback((formElement: HTMLFormElement): string | null => {
         const requiredFields = formElement.querySelectorAll('[required]');
@@ -144,16 +134,15 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
         delete formDataObject.__id_sections;
 
         // Convert empty strings to null for better data handling
+        const processedFormData: Record<string, any> = {};
         Object.keys(formDataObject).forEach(key => {
-            if (formDataObject[key] === '') {
-                formDataObject[key] = null;
-            }
+            processedFormData[key] = formDataObject[key] === '' ? null : formDataObject[key];
         });
 
         debug('Form submission data', 'FormUserInputStyle', {
-            formId,
+            sectionId,
             pageId,
-            formDataObject,
+            formDataObject: processedFormData,
             isRecord,
             existingRecord: !!existingRecord
         });
@@ -165,16 +154,16 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
                 // Update existing record
                 response = await updateFormMutation.mutateAsync({
                     page_id: pageId,
-                    form_id: formId,
-                    form_data: formDataObject,
+                    section_id: sectionId,
+                    form_data: processedFormData,
                     update_based_on: { id: existingRecord.id }
                 });
             } else {
                 // Create new record (for both log and new record types)
                 response = await submitFormMutation.mutateAsync({
                     page_id: pageId,
-                    form_id: formId,
-                    form_data: formDataObject
+                    section_id: sectionId,
+                    form_data: processedFormData
                 });
             }
 
@@ -222,7 +211,7 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
     }, [
         validateForm,
         pageId, 
-        formId, 
+        sectionId, 
         isRecord, 
         isLogType, 
         existingRecord, 
@@ -283,9 +272,7 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
             )}
 
             <form key={formKey} onSubmit={handleSubmit}>
-                {style.id?.content && (
-                    <input type="hidden" name="__id_sections" value={style.id.content} />
-                )}
+                <input type="hidden" name="__id_sections" value={style.id} />
                 
                 <div className={getFieldContent(style, 'css') || ''}>
                     {style.children?.map((child, index) => (

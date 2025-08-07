@@ -33,9 +33,9 @@ const TabsStyle: React.FC<ITabsStyleProps> = ({ style }) => {
         <Tabs defaultValue={defaultTab} className={style.css || ''}>
             <Tabs.List>
                 {style.children?.map((child) => {
-                    if (!child || child.style_name !== 'tab' || !child.id?.content) return null;
+                    if (!child || child.style_name !== 'tab' || !child.id) return null;
                     const tabStyle = child as ITabStyle;
-                    const tabId = tabStyle.id.content.toString();
+                    const tabId = tabStyle.id.toString();
                     const label = tabStyle.label?.content || 'Tab';
                     const icon = tabStyle.icon?.content;
 
@@ -49,16 +49,16 @@ const TabsStyle: React.FC<ITabsStyleProps> = ({ style }) => {
             </Tabs.List>
 
             {style.children?.map((child) => {
-                if (!child || child.style_name !== 'tab' || !child.id?.content) return null;
+                if (!child || child.style_name !== 'tab' || !child.id) return null;
                 const tabStyle = child as ITabStyle;
-                const tabId = tabStyle.id.content.toString();
+                const tabId = tabStyle.id.toString();
 
                 return (
                     <Tabs.Panel key={tabId} value={tabId}>
                         {Array.isArray(tabStyle.children) 
                             ? tabStyle.children.map((childStyle, index) => (
-                                childStyle && childStyle.id?.content 
-                                    ? <BasicStyle key={`${childStyle.id.content}-${index}`} style={childStyle} /> 
+                                childStyle && childStyle.id 
+                                    ? <BasicStyle key={`${childStyle.id}-${index}`} style={childStyle} /> 
                                     : null
                             ))
                             : null
