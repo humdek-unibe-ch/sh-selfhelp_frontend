@@ -31,6 +31,7 @@ import { IconEdit, IconTrash, IconDatabaseOff } from '@tabler/icons-react';
 import { useDataRows, useDeleteRecord, DATA_QUERY_KEYS, useDeleteTable } from '../../../../../hooks/useData';
 import { DataTableEditorModal } from '../modals/DataTableEditorModal';
 import { ConfirmDeleteColumnsModal } from '../modals/ConfirmDeleteColumnsModal';
+import { ConfirmDeleteTableModal } from '../modals/ConfirmDeleteTableModal';
 
 interface ISingleDataTableProps {
   formId: number;
@@ -166,26 +167,16 @@ export default function SingleDataTable({ formId, tableName, displayName, select
       </Modal>
 
       {/* Confirm delete entire table */}
-      <Modal
-        opened={isDeleteTableOpen}
+      <ConfirmDeleteTableModal
+        open={isDeleteTableOpen}
         onClose={() => setIsDeleteTableOpen(false)}
-        title={<Title order={4} component="div">Delete Table</Title>}
-        centered
-      >
-        <Stack>
-          <Text>Type the table display name to confirm deletion: <Text span fw={600}>{displayName}</Text></Text>
-          <ConfirmDeleteColumnsModal
-            open={true}
-            onClose={() => setIsDeleteTableOpen(false)}
-            tableDisplayName={displayName}
-            columns={[displayName]}
-            onConfirm={async () => {
-              await deleteTable.mutateAsync({ tableName });
-              setIsDeleteTableOpen(false);
-            }}
-          />
-        </Stack>
-      </Modal>
+        displayName={displayName}
+        loading={deleteTable.isPending}
+        onConfirm={async () => {
+          await deleteTable.mutateAsync({ tableName });
+          setIsDeleteTableOpen(false);
+        }}
+      />
     </Card>
   );
 }
