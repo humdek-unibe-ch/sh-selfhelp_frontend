@@ -23,6 +23,10 @@ export function useSubmitFormMutation() {
                 recordId: response.data?.record_id
             });
 
+            // Invalidate page content so UI pulls latest data
+            queryClient.invalidateQueries({ queryKey: ['page-content'] });
+            queryClient.invalidateQueries({ queryKey: ['page-content-layout'] });
+            queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
             queryClient.invalidateQueries({ queryKey: ['userInputEntries'] });
 
             // Show success notification if not handled by component
@@ -66,6 +70,10 @@ export function useUpdateFormMutation() {
                 updatedFields: response.data?.updated_fields
             });
 
+            // Invalidate page content so UI pulls latest data
+            queryClient.invalidateQueries({ queryKey: ['page-content'] });
+            queryClient.invalidateQueries({ queryKey: ['page-content-layout'] });
+            queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
             queryClient.invalidateQueries({ queryKey: ['userInputEntries'] });
 
             // Show success notification if not handled by component
@@ -110,6 +118,10 @@ export function useDeleteFormMutation() {
                 success: response.data?.success
             });
 
+            // Invalidate page content so UI pulls latest data
+            queryClient.invalidateQueries({ queryKey: ['page-content'] });
+            queryClient.invalidateQueries({ queryKey: ['page-content-layout'] });
+            queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
             queryClient.invalidateQueries({ queryKey: ['userInputEntries'] });
 
             notifications.show({
