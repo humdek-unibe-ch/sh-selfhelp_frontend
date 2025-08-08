@@ -1,4 +1,5 @@
 import { IBaseApiResponse } from '../common/response-envelope.types';
+import { IFieldConfig } from '../../requests/admin/fields.types';
 
 export interface IPageSection {
     id: number;
@@ -26,6 +27,7 @@ export interface IPageField {
     help: string;
     display: boolean;
     translations: IPageFieldTranslation[];
+    fieldConfig?: IFieldConfig;
 }
 
 export interface IPageAction {
