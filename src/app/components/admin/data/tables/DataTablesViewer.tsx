@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Accordion, Card, Stack, Text } from '@mantine/core';
 import { useDataTables } from '../../../../../hooks/useData';
 import SingleDataTable from './SingleDataTable';
@@ -14,6 +14,12 @@ interface IDataTablesViewerProps {
 export function DataTablesViewer({ activeTableIds, selectedUserId, showDeleted }: IDataTablesViewerProps) {
   const { data: tablesResp, isLoading } = useDataTables();
   const tables = tablesResp?.dataTables || [];
+  const [opened, setOpened] = useState<string[]>([]);
+
+  // Reset opened panels when selection changes to prevent mass mounting
+  useEffect(() => {
+    setOpened([]);
+  }, [activeTableIds, selectedUserId, showDeleted]);
 
   const selectedTables = useMemo(() => {
     if (!tables.length) return [] as { id: number; name: string; displayName: string }[];
@@ -40,12 +46,22 @@ export function DataTablesViewer({ activeTableIds, selectedUserId, showDeleted }
   }
 
   return (
-    <Accordion multiple defaultValue={selectedTables.map((t) => String(t.id))}>
+    <Accordion multiple value={opened} onChange={setOpened}>
       {selectedTables.map((t) => (
         <Accordion.Item key={t.id} value={String(t.id)}>
           <Accordion.Control>{t.displayName}</Accordion.Control>
           <Accordion.Panel>
-            <SingleDataTable formId={t.id} tableName={t.name} displayName={t.displayName} selectedUserId={selectedUserId} showDeleted={showDeleted} />
+            {opened.includes(String(t.id)) ? (
+              <SingleDataTable
+                formId={t.id}
+                tableName={t.name}
+                displayName={t.displayName}
+                selectedUserId={selectedUserId}
+                showDeleted={showDeleted}
+              />
+            ) : (
+              <Text c="dimmed" size="sm">Expand to load data…</Text>
+            )}
           </Accordion.Panel>
         </Accordion.Item>
       ))}
