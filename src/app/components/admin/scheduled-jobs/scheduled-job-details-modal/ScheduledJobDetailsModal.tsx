@@ -88,7 +88,7 @@ export function ScheduledJobDetailsModal({
         <Modal
             opened={opened}
             onClose={onClose}
-            title={`Scheduled Job ID: ${jobId}`}
+            title={<Title order={3} component="div">Scheduled Job ID: {jobId}</Title>}
             size="xl"
             centered
         >

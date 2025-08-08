@@ -189,7 +189,7 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
         <Modal
             opened={opened}
             onClose={handleClose}
-            title={parentPage ? `Create Child Page under "${parentPage.keyword}"` : "Create New Page"}
+            title={<Title order={3} component="div">{parentPage ? `Create Child Page under "${parentPage.keyword}"` : "Create New Page"}</Title>}
             size="xl"
             centered
             className={styles.modalContainer}

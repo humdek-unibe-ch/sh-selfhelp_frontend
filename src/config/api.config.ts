@@ -115,6 +115,14 @@ export const API_CONFIG = {
         ADMIN_SCHEDULED_JOBS_DELETE: (jobId: number) => `/admin/scheduled-jobs/${jobId}`,
         ADMIN_SCHEDULED_JOBS_TRANSACTIONS: (jobId: number) => `/admin/scheduled-jobs/${jobId}/transactions`,
 
+        // Admin data management endpoints
+        ADMIN_DATA_TABLES_LIST: '/admin/data/tables',
+        ADMIN_DATA_ROWS_GET: '/admin/data', // query params: form_id, user_id?, exclude_deleted?
+        ADMIN_DATA_TABLE_COLUMNS_GET: (tableName: string) => `/admin/data/tables/${tableName}/columns`,
+        ADMIN_DATA_TABLE_COLUMNS_DELETE: (tableName: string) => `/admin/data/tables/${tableName}/columns`,
+        ADMIN_DATA_RECORD_DELETE: (recordId: number) => `/admin/data/records/${recordId}`,
+        ADMIN_DATA_TABLE_DELETE: (tableName: string) => `/admin/data/tables/${tableName}`,
+
         // User input endpoints
         USER_INPUT_GET_ALL: '/user-input',
         USER_INPUT_DELETE: (entryId: number) => `/user-input/${entryId}`,

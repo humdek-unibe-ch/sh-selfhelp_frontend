@@ -182,6 +182,11 @@ export function AdminNavbar() {
             link: '/admin/assets'
         },
         {
+            label: 'Data',
+            icon: <IconSettingsAutomation size="1rem" stroke={1.5} />,
+            link: '/admin/data'
+        },
+        {
             label: 'Scheduled Jobs',
             icon: <IconClock size="1rem" stroke={1.5} />,
             link: '/admin/scheduled-jobs'

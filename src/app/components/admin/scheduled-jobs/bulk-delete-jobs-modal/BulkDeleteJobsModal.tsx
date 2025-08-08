@@ -59,7 +59,7 @@ export function BulkDeleteJobsModal({
             title={
                 <Group gap="sm">
                     <IconAlertTriangle size={20} color="red" />
-                    <Title order={3}>Delete Multiple Jobs</Title>
+                    <Title order={3} component="div">Delete Multiple Jobs</Title>
                 </Group>
             }
             size="md"
