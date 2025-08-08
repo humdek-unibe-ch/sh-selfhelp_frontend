@@ -409,6 +409,35 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
         );
     };
 
+    // Render property field (single-language, uses first language ID)
+    const renderPropertyField = (field: IPageField) => {
+        const langId = languages[0]?.id || 1;
+        const fieldValue = form.values.fields?.[field.name]?.[langId] ?? '';
+
+        const fieldData: IFieldData = {
+            id: field.id,
+            name: field.name,
+            title: field.title,
+            type: field.type,
+            default_value: field.default_value,
+            help: field.help,
+            display: field.display,
+            fieldConfig: field.fieldConfig
+        };
+
+        return (
+            <FieldRenderer
+                key={`${field.id}-${langId}`}
+                field={fieldData}
+                value={fieldValue}
+                onChange={(value) => {
+                    const fieldKey = `fields.${field.name}.${langId}`;
+                    form.setFieldValue(fieldKey, value);
+                }}
+            />
+        );
+    };
+
     if (!page) {
         return (
             <Paper p="xl" withBorder>
@@ -754,35 +783,9 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                                     </Tooltip>
                                                 </Group>
                                                 
-                                                {propertyFields.map(field => {
-                                                    const langId = languages[0]?.id || 1;
-                                                    const fieldKey = `fields.${field.name}.${langId}`;
-                                                    const fieldValue = form.values.fields?.[field.name]?.[langId] ?? '';
-                                                    const inputProps = {
-                                                        ...form.getInputProps(fieldKey),
-                                                        value: fieldValue
-                                                    };
-                                                    
-                                                    return (
-                                                        <Box key={field.id}>
-                                                            {field.type === 'textarea' ? (
-                                                                <Textarea
-                                                                    label={<FieldLabelWithTooltip label={getFieldLabel(field)} tooltip={field.help} />}
-                                                                    placeholder={field.default_value || ''}
-                                                                    {...inputProps}
-                                                                    autosize
-                                                                    minRows={2}
-                                                                />
-                                                            ) : (
-                                                                <TextInput
-                                                                    label={<FieldLabelWithTooltip label={getFieldLabel(field)} tooltip={field.help} />}
-                                                                    placeholder={field.default_value || ''}
-                                                                    {...inputProps}
-                                                                />
-                                                            )}
-                                                        </Box>
-                                                    );
-                                                })}
+                                                {propertyFields.map(field => (
+                                                    <Box key={field.id}>{renderPropertyField(field)}</Box>
+                                                ))}
                                             </Stack>
                                         </Paper>
                                     )}
@@ -810,35 +813,9 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                         </Tooltip>
                                     </Group>
                                     
-                                    {propertyFields.map(field => {
-                                        const langId = languages[0]?.id || 1;
-                                        const fieldKey = `fields.${field.name}.${langId}`;
-                                        const fieldValue = form.values.fields?.[field.name]?.[langId] ?? '';
-                                        const inputProps = {
-                                            ...form.getInputProps(fieldKey),
-                                            value: fieldValue
-                                        };
-                                        
-                                        return (
-                                            <Box key={field.id}>
-                                                {field.type === 'textarea' ? (
-                                                    <Textarea
-                                                        label={<FieldLabelWithTooltip label={getFieldLabel(field)} tooltip={field.help} />}
-                                                        placeholder={field.default_value || ''}
-                                                        {...inputProps}
-                                                        autosize
-                                                        minRows={2}
-                                                    />
-                                                ) : (
-                                                    <TextInput
-                                                        label={<FieldLabelWithTooltip label={getFieldLabel(field)} tooltip={field.help} />}
-                                                        placeholder={field.default_value || ''}
-                                                        {...inputProps}
-                                                    />
-                                                )}
-                                            </Box>
-                                        );
-                                    })}
+                                    {propertyFields.map(field => (
+                                        <Box key={field.id}>{renderPropertyField(field)}</Box>
+                                    ))}
                                 </Stack>
                             </Box>
                         </Paper>

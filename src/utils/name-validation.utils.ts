@@ -4,25 +4,26 @@
  * - Numbers (0-9)
  * - Hyphens (-)
  * - Underscores (_)
+ * - Dots (.)
  */
 export function isValidName(name: string): boolean {
-    const validNameRegex = /^[a-zA-Z0-9_-]+$/;
+    const validNameRegex = /^[a-zA-Z0-9_.-]+$/;
     return validNameRegex.test(name);
 }
 
 /**
  * Sanitizes a name by removing invalid characters
- * Keeps only letters, numbers, hyphens, and underscores
+ * Keeps only letters, numbers, hyphens, underscores and dots
  */
 export function sanitizeName(name: string): string {
-    return name.replace(/[^a-zA-Z0-9_-]/g, '');
+    return name.replace(/[^a-zA-Z0-9_.-]/g, '');
 }
 
 /**
  * Gets an error message for invalid names
  */
 export function getNameValidationError(): string {
-    return 'Name can only contain letters, numbers, hyphens (-), and underscores (_)';
+    return 'Only letters, numbers, hyphens (-), underscores (_), and dots (.) are allowed';
 }
 
 /**

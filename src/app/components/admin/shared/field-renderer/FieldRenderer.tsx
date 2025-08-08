@@ -14,6 +14,7 @@ import {
     DataConfigField
 } from '../field-components';
 import type { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
+import { sanitizeName, validateName } from '../../../../../utils/name-validation.utils';
 
 export interface IFieldData {
     id: number;
@@ -154,6 +155,7 @@ export function FieldRenderer({
                 onChange={onChange}
                 placeholder={field.default_value || ''}
                 disabled={disabled}
+                {...(field.name === 'name' ? { validator: validateName, sanitize: sanitizeName } : {})}
             />
         );
     }
@@ -167,6 +169,7 @@ export function FieldRenderer({
                 onChange={onChange}
                 placeholder={field.default_value || ''}
                 disabled={disabled}
+                {...(field.name === 'name' ? { validator: validateName, sanitize: sanitizeName } : {})}
             />
         );
     }

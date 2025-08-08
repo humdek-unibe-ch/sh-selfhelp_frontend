@@ -8,6 +8,8 @@ interface ITextareaFieldProps {
     onChange: (value: string) => void;
     placeholder?: string;
     disabled?: boolean;
+    validator?: (value: string) => { isValid: boolean; error?: string };
+    sanitize?: (value: string) => string;
 }
 
 export function TextareaField({
@@ -15,18 +17,26 @@ export function TextareaField({
     value,
     onChange,
     placeholder,
-    disabled = false
+    disabled = false,
+    validator,
+    sanitize
 }: ITextareaFieldProps) {
+    const errorMessage = validator ? (validator(value).isValid ? undefined : validator(value).error) : undefined;
     return (
         <Textarea
             key={fieldId}
             placeholder={placeholder || ''}
             value={value}
-            onChange={(event) => onChange(event.currentTarget.value)}
+            onChange={(event) => {
+                const inputValue = event.currentTarget.value;
+                const nextValue = sanitize ? sanitize(inputValue) : inputValue;
+                onChange(nextValue);
+            }}
             disabled={disabled}
             autosize
             minRows={3}
             maxRows={8}
+            error={errorMessage}
         />
     );
 }
