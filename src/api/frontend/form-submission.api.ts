@@ -3,14 +3,12 @@ import { API_CONFIG } from '../../config/api.config';
 import {
     IFormSubmitRequest,
     IFormUpdateRequest,
-    IFormDeleteRequest,
-    IGetPageFormsRequest
+    IFormDeleteRequest
 } from '../../types/requests/frontend/form-submission.types';
 import {
     IFormSubmitResponse,
     IFormUpdateResponse,
-    IFormDeleteResponse,
-    IPageFormsResponse
+    IFormDeleteResponse
 } from '../../types/responses/frontend/form-submission.types';
 
 /**
@@ -47,14 +45,4 @@ export class FormSubmissionApi {
         return response.data;
     }
 
-    /**
-     * Get all forms for a specific page
-     * Retrieves form records associated with a page
-     */
-    static async getPageForms(pageId: number): Promise<IPageFormsResponse> {
-        const response = await apiClient.get(API_CONFIG.ENDPOINTS.FORMS_GET_PAGE_FORMS, {
-            params: { page_id: pageId }
-        });
-        return response.data;
-    }
 }

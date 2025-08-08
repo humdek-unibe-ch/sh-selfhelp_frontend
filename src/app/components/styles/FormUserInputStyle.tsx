@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { 
     IFormUserInputStyle, 
     IFormUserInputLogStyle, 
@@ -8,7 +8,7 @@ import BasicStyle from './BasicStyle';
 import { Button, Alert, LoadingOverlay } from '@mantine/core';
 import { IconAlertCircle, IconCheck } from '@tabler/icons-react';
 import { usePageContentContext } from '../../contexts/PageContentContext';
-import { useSubmitFormMutation, useUpdateFormMutation, usePageForms } from '../../../hooks/useFormSubmission';
+import { useSubmitFormMutation, useUpdateFormMutation } from '../../../hooks/useFormSubmission';
 import { getFieldContent } from '../../../utils/style-field-extractor';
 import { debug } from '../../../utils/debug-logger';
 
@@ -22,6 +22,7 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
+    const formRef = useRef<HTMLFormElement | null>(null);
 
     // Extract form configuration from style
     const formName = getFieldContent(style, 'name') || 'default_form';
@@ -56,20 +57,20 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
     const submitFormMutation = useSubmitFormMutation();
     const updateFormMutation = useUpdateFormMutation();
     
-    // For record types, fetch existing data to determine if we should update
-    const { data: existingForms, isLoading: isLoadingExisting } = usePageForms(
-        pageId || 0, 
-        isRecord && !!pageId
-    );
+    // For record types, derive existing data from section_data of this style
+    const { existingRecordId, existingFormDataFromSection } = useMemo(() => {
+        if (!isRecord) return { existingRecordId: null as number | null, existingFormDataFromSection: null as Record<string, any> | null };
 
-    // Memoized existing record for update operations
-    const existingRecord = useMemo(() => {
-        if (!isRecord || !existingForms?.data?.forms) return null;
-        
-        return existingForms.data.forms.find(form => 
-            form.section_id === sectionId && form.page_id === pageId
-        );
-    }, [isRecord, existingForms, sectionId, pageId]);
+        // The record form's section_data lives on the parent form style (`style.section_data`)
+        // and contains key-value pairs where keys match input names inside the form.
+        const sectionDataArray: any[] | undefined = (style as any).section_data;
+        const firstRecord = Array.isArray(sectionDataArray) && sectionDataArray.length > 0 ? sectionDataArray[0] : null;
+
+        if (!firstRecord) return { existingRecordId: null, existingFormDataFromSection: null };
+
+        const { record_id, ...rest } = firstRecord as Record<string, any>;
+        return { existingRecordId: record_id ?? null, existingFormDataFromSection: rest };
+    }, [isRecord, style]);
 
     const validateForm = useCallback((formElement: HTMLFormElement): string | null => {
         const requiredFields = formElement.querySelectorAll('[required]');
@@ -144,19 +145,19 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
             pageId,
             formDataObject: processedFormData,
             isRecord,
-            existingRecord: !!existingRecord
+            existingRecord: !!existingRecordId
         });
 
         try {
             let response;
             
-            if (isRecord && existingRecord) {
+            if (isRecord && existingRecordId) {
                 // Update existing record
                 response = await updateFormMutation.mutateAsync({
                     page_id: pageId,
                     section_id: sectionId,
                     form_data: processedFormData,
-                    update_based_on: { id: existingRecord.id }
+                    update_based_on: { record_id: existingRecordId }
                 });
             } else {
                 // Create new record (for both log and new record types)
@@ -214,7 +215,7 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
         sectionId, 
         isRecord, 
         isLogType, 
-        existingRecord, 
+        existingRecordId, 
         alertSuccess, 
         redirectUrl, 
         isAjax,
@@ -222,28 +223,38 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
         updateFormMutation
     ]);
 
-    // Pre-populate form fields for record types with existing data
+    // Pre-populate form fields for record types with existing data from section_data
     useEffect(() => {
-        if (isRecord && existingRecord && existingRecord.form_data) {
-            const form = document.querySelector(`form[key="${formKey}"]`) as HTMLFormElement;
+        if (isRecord && existingFormDataFromSection) {
+            const form = formRef.current as HTMLFormElement | null;
             if (form) {
-                Object.entries(existingRecord.form_data).forEach(([fieldName, value]) => {
+                Object.entries(existingFormDataFromSection).forEach(([fieldName, value]) => {
                     const field = form.querySelector(`[name="${fieldName}"]`) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
                     if (field && value !== null && value !== undefined) {
                         field.value = String(value);
-                        
-                        // Trigger change event for React components
                         const event = new Event('change', { bubbles: true });
                         field.dispatchEvent(event);
                     }
                 });
+
+                // Inject hidden record_id if present so updates are based on it
+                if (existingRecordId) {
+                    let hidden = form.querySelector('input[name="record_id"]') as HTMLInputElement | null;
+                    if (!hidden) {
+                        hidden = document.createElement('input');
+                        hidden.type = 'hidden';
+                        hidden.name = 'record_id';
+                        form.appendChild(hidden);
+                    }
+                    hidden.value = String(existingRecordId);
+                }
             }
         }
-    }, [isRecord, existingRecord, formKey]);
+    }, [isRecord, existingFormDataFromSection, existingRecordId, formKey]);
 
     return (
         <div style={{ position: 'relative' }}>
-            <LoadingOverlay visible={isSubmitting || isLoadingExisting} />
+            <LoadingOverlay visible={isSubmitting} />
             
             {submitSuccess && alertSuccess && (
                 <Alert 
@@ -271,8 +282,11 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
                 </Alert>
             )}
 
-            <form key={formKey} onSubmit={handleSubmit}>
+            <form ref={formRef} key={formKey} onSubmit={handleSubmit}>
                 <input type="hidden" name="__id_sections" value={style.id} />
+                {isRecord && existingRecordId ? (
+                    <input type="hidden" name="record_id" value={String(existingRecordId)} />
+                ) : null}
                 
                 <div className={getFieldContent(style, 'css') || ''}>
                     {style.children?.map((child, index) => (
@@ -285,7 +299,7 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
                         disabled={!pageId}
                         mt="md"
                     >
-                        {isRecord && existingRecord ? `Update ${buttonLabel}` : buttonLabel}
+                        {isRecord && existingRecordId ? `Update ${buttonLabel}` : buttonLabel}
                     </Button>
                 </div>
             </form>

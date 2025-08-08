@@ -123,7 +123,6 @@ export const API_CONFIG = {
         FORMS_SUBMIT: '/forms/submit',
         FORMS_UPDATE: '/forms/update',
         FORMS_DELETE: '/forms/delete',
-        FORMS_GET_PAGE_FORMS: '/forms/page',
 
         // Admin section creation endpoints
         ADMIN_PAGES_CREATE_SECTION: (keyword: string) => `/admin/pages/${keyword}/sections/create`,

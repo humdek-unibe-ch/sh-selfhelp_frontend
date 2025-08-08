@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormSubmissionApi } from '../api/frontend/form-submission.api';
 import {
     IFormSubmitRequest,
@@ -7,19 +7,6 @@ import {
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { notifications } from '@mantine/notifications';
 import { debug } from '../utils/debug-logger';
-
-/**
- * Hook to get forms for a specific page
- */
-export function usePageForms(pageId: number, enabled: boolean = true) {
-    return useQuery({
-        queryKey: ['page-forms', pageId],
-        queryFn: () => FormSubmissionApi.getPageForms(pageId),
-        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
-        enabled: enabled && !!pageId,
-    });
-}
 
 /**
  * Hook to submit a new form (anonymous users)
@@ -36,8 +23,6 @@ export function useSubmitFormMutation() {
                 recordId: response.data?.record_id
             });
 
-            // Invalidate page forms to refresh the list
-            queryClient.invalidateQueries({ queryKey: ['page-forms', variables.page_id] });
             queryClient.invalidateQueries({ queryKey: ['userInputEntries'] });
 
             // Show success notification if not handled by component
@@ -81,8 +66,6 @@ export function useUpdateFormMutation() {
                 updatedFields: response.data?.updated_fields
             });
 
-            // Invalidate page forms to refresh the list
-            queryClient.invalidateQueries({ queryKey: ['page-forms', variables.page_id] });
             queryClient.invalidateQueries({ queryKey: ['userInputEntries'] });
 
             // Show success notification if not handled by component
@@ -124,8 +107,6 @@ export function useDeleteFormMutation() {
                 success: response.data?.success
             });
 
-            // Invalidate related queries
-            queryClient.invalidateQueries({ queryKey: ['page-forms'] });
             queryClient.invalidateQueries({ queryKey: ['userInputEntries'] });
 
             notifications.show({
