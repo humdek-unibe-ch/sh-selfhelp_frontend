@@ -12,7 +12,7 @@ interface IDataTablesViewerProps {
 }
 
 export function DataTablesViewer({ activeTableIds, selectedUserId, showDeleted }: IDataTablesViewerProps) {
-  const { data: tablesResp } = useDataTables();
+  const { data: tablesResp, isLoading } = useDataTables();
   const tables = tablesResp?.dataTables || [];
 
   const selectedTables = useMemo(() => {
@@ -22,6 +22,14 @@ export function DataTablesViewer({ activeTableIds, selectedUserId, showDeleted }
     const set = new Set(activeTableIds);
     return tables.filter((t) => set.has(t.id)).map((t) => ({ id: t.id, name: t.name, displayName: t.displayName || t.name }));
   }, [tables, activeTableIds]);
+
+  if (isLoading) {
+    return (
+      <Card>
+        <Text c="dimmed">Loading data tables...</Text>
+      </Card>
+    );
+  }
 
   if (selectedTables.length === 0) {
     return (

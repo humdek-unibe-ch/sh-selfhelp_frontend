@@ -14,6 +14,7 @@ import {
   Group,
   LoadingOverlay,
   Modal,
+  Stack,
   
   Table,
   TableTbody,
@@ -26,9 +27,10 @@ import {
   Button,
   Tooltip,
 } from '@mantine/core';
-import { IconEdit } from '@tabler/icons-react';
-import { useDataRows, useDeleteRecord, DATA_QUERY_KEYS } from '../../../../../hooks/useData';
+import { IconEdit, IconTrash, IconDatabaseOff } from '@tabler/icons-react';
+import { useDataRows, useDeleteRecord, DATA_QUERY_KEYS, useDeleteTable } from '../../../../../hooks/useData';
 import { DataTableEditorModal } from '../modals/DataTableEditorModal';
+import { ConfirmDeleteColumnsModal } from '../modals/ConfirmDeleteColumnsModal';
 
 interface ISingleDataTableProps {
   formId: number;
@@ -40,7 +42,10 @@ interface ISingleDataTableProps {
 
 export default function SingleDataTable({ formId, tableName, displayName, selectedUserId, showDeleted }: ISingleDataTableProps) {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [isDeleteRowOpen, setIsDeleteRowOpen] = useState<null | { id: number; label: string }>(null);
+  const [isDeleteTableOpen, setIsDeleteTableOpen] = useState(false);
   const deleteRecord = useDeleteRecord();
+  const deleteTable = useDeleteTable();
 
   const { data, isLoading } = useDataRows({ table_name: tableName, user_id: selectedUserId !== -1 ? selectedUserId : undefined, exclude_deleted: !showDeleted });
 
@@ -52,7 +57,7 @@ export default function SingleDataTable({ formId, tableName, displayName, select
     const baseCols = Object.keys(sample).map((key) => ({
       accessorKey: key,
       header: key,
-      cell: ({ row }) => <Text size="sm">{String(row.original[key])}</Text>,
+      cell: ({ row }: { row: any }) => <Text size="sm">{String(row.original[key])}</Text>,
     }));
     return [
       ...baseCols,
@@ -67,19 +72,7 @@ export default function SingleDataTable({ formId, tableName, displayName, select
           if (!recordId || isDeleted) return null;
           return (
             <Group gap="xs">
-              <Button
-                size="xs"
-                color="red"
-                variant="light"
-                onClick={() =>
-                  deleteRecord.mutate({
-                    recordId,
-                    refetchKeys: [DATA_QUERY_KEYS.rows(tableName, selectedUserId, !showDeleted)],
-                  })
-                }
-              >
-                Delete
-              </Button>
+              <Button size="xs" color="red" variant="light" leftSection={<IconTrash size={14} />} onClick={() => setIsDeleteRowOpen({ id: recordId, label: `${displayName} #${recordId}` })}>Delete</Button>
             </Group>
           );
         },
@@ -104,6 +97,11 @@ export default function SingleDataTable({ formId, tableName, displayName, select
           <Tooltip label="Edit table">
             <ActionIcon variant="subtle" onClick={() => setIsEditorOpen(true)}>
               <IconEdit size={16} />
+            </ActionIcon>
+          </Tooltip>
+          <Tooltip label="Delete this entire table">
+            <ActionIcon variant="subtle" color="red" onClick={() => setIsDeleteTableOpen(true)}>
+              <IconDatabaseOff size={16} />
             </ActionIcon>
           </Tooltip>
         </Group>
@@ -136,6 +134,58 @@ export default function SingleDataTable({ formId, tableName, displayName, select
       </Box>
 
       <DataTableEditorModal open={isEditorOpen} onClose={() => setIsEditorOpen(false)} formId={formId} tableName={tableName} displayName={displayName} />
+
+      {/* Confirm delete row modal */}
+      <Modal
+        opened={!!isDeleteRowOpen}
+        onClose={() => setIsDeleteRowOpen(null)}
+        title={<Title order={4} component="div">Confirm delete row</Title>}
+        centered
+      >
+        <Stack>
+          <Text>Are you sure you want to delete the selected row from <Text span fw={600}>{displayName}</Text>?</Text>
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => setIsDeleteRowOpen(null)}>Cancel</Button>
+            <Button
+              color="red"
+              loading={deleteRecord.isPending}
+              onClick={() => {
+                if (!isDeleteRowOpen) return;
+                deleteRecord.mutate({
+                  recordId: isDeleteRowOpen.id,
+                  refetchKeys: [DATA_QUERY_KEYS.rows(tableName, selectedUserId, !showDeleted)],
+                }, {
+                  onSuccess: () => setIsDeleteRowOpen(null),
+                });
+              }}
+            >
+              Delete row
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
+
+      {/* Confirm delete entire table */}
+      <Modal
+        opened={isDeleteTableOpen}
+        onClose={() => setIsDeleteTableOpen(false)}
+        title={<Title order={4} component="div">Delete Table</Title>}
+        centered
+      >
+        <Stack>
+          <Text>Type the table display name to confirm deletion: <Text span fw={600}>{displayName}</Text></Text>
+          <ConfirmDeleteColumnsModal
+            open={true}
+            onClose={() => setIsDeleteTableOpen(false)}
+            tableDisplayName={displayName}
+            columns={[displayName]}
+            onConfirm={async () => {
+              await deleteTable.mutateAsync({ tableName });
+              setIsDeleteTableOpen(false);
+            }}
+          />
+        </Stack>
+      </Modal>
     </Card>
   );
 }

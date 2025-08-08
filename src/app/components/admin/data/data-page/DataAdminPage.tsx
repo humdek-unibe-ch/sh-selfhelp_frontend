@@ -13,6 +13,8 @@ export function DataAdminPage() {
   const [selectedTableIds, setSelectedTableIds] = useState<number[]>([]);
   const [activeTableIds, setActiveTableIds] = useState<number[]>([]);
   const [showDeleted, setShowDeleted] = useState(false);
+  const [activeSelectedUserId, setActiveSelectedUserId] = useState<number>(-1);
+  const [activeShowDeleted, setActiveShowDeleted] = useState<boolean>(false);
 
   // Users - fetch first page with large pageSize to populate dropdown
   const { data: usersResp } = useUsers({ page: 1, pageSize: 1000, sort: 'email', sortDirection: 'asc' });
@@ -30,9 +32,12 @@ export function DataAdminPage() {
   }, [tablesResp]);
 
   const handleSearch = useCallback(() => {
+    // Apply filters only when Search is pressed
+    setActiveSelectedUserId(selectedUserId ?? -1);
+    setActiveShowDeleted(showDeleted);
     if (selectedTableIds.includes(-1)) { setActiveTableIds([-1]); return; }
     setActiveTableIds([...selectedTableIds]);
-  }, [selectedTableIds]);
+  }, [selectedTableIds, selectedUserId, showDeleted]);
 
   return (
     <Stack gap="lg">
@@ -87,8 +92,8 @@ export function DataAdminPage() {
 
       <DataTablesViewer
         activeTableIds={activeTableIds}
-        selectedUserId={selectedUserId ?? -1}
-        showDeleted={showDeleted}
+        selectedUserId={activeSelectedUserId}
+        showDeleted={activeShowDeleted}
       />
     </Stack>
   );

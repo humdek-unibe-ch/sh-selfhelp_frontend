@@ -32,6 +32,8 @@ export function DataTableEditorModal({ open, onClose, formId, tableName, display
     if (selectedColumns.length === 0) return;
     await deleteColumns.mutateAsync({ tableName, body: { columns: selectedColumns } });
     setSelectedColumns([]);
+    setConfirmOpen(false);
+    onClose();
   };
 
   return (

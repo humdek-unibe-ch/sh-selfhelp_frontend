@@ -23,7 +23,7 @@ export function ConfirmDeleteColumnsModal({ open, onClose, tableDisplayName, col
   };
 
   return (
-    <Modal opened={open} onClose={onClose} title={`Delete ${columns.length} column(s)`} size="lg">
+    <Modal opened={open} onClose={onClose} title={`Delete ${columns.length} column(s)`} size="lg" centered>
       <Stack>
         <Alert variant="light" color="red" icon={<IconAlertTriangle />}>This will delete the selected columns from "{tableDisplayName}". Type the table name to confirm.</Alert>
         <List
@@ -37,7 +37,7 @@ export function ConfirmDeleteColumnsModal({ open, onClose, tableDisplayName, col
         <TextInput value={confirm} onChange={(e) => setConfirm(e.currentTarget.value)} placeholder={tableDisplayName} />
         <Group justify="flex-end">
           <Button variant="default" onClick={onClose}>Cancel</Button>
-          <Button color="red" disabled={disabled} onClick={handleConfirm}>Delete Columns</Button>
+          <Button color="red" disabled={disabled} onClick={handleConfirm} loading={false}>Delete Columns</Button>
         </Group>
       </Stack>
     </Modal>

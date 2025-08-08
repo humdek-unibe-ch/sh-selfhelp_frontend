@@ -26,7 +26,8 @@ export function useDataTables() {
   return useQuery<IDataTablesListResponse>({
     queryKey: DATA_QUERY_KEYS.tables(),
     queryFn: () => AdminDataApi.listDataTables(),
-    staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.staleTime,
+    staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.REAL_TIME.staleTime,
+    gcTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.REAL_TIME.gcTime,
   });
 }
 
@@ -36,7 +37,8 @@ export function useDataRows(params: { table_name: string; user_id?: number; excl
     queryKey: DATA_QUERY_KEYS.rows(table_name, user_id, exclude_deleted ?? true),
     queryFn: () => AdminDataApi.getDataRows({ table_name, user_id, exclude_deleted }),
     enabled: !!table_name,
-    staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
+    staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.REAL_TIME.staleTime,
+    gcTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.REAL_TIME.gcTime,
     select: (data) => data, // identity transform
   });
 }
@@ -46,7 +48,8 @@ export function useTableColumns(tableName?: string) {
     queryKey: tableName ? DATA_QUERY_KEYS.columns(tableName) : ['noop'],
     queryFn: () => AdminDataApi.getTableColumns(tableName as string),
     enabled: !!tableName,
-    staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.staleTime,
+    staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.REAL_TIME.staleTime,
+    gcTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.REAL_TIME.gcTime,
   });
 }
 
@@ -57,6 +60,16 @@ export function useDeleteColumns() {
       mutationFn: async ({ tableName, body }) => ({ tableName, result: await AdminDataApi.deleteColumns(tableName, body) }),
       onSuccess: ({ tableName }) => {
         queryClient.invalidateQueries({ queryKey: DATA_QUERY_KEYS.columns(tableName) });
+        // Also refresh any rows for this table (all users, both deleted/non-deleted)
+        queryClient.invalidateQueries({
+          predicate: (q) => {
+            const key = q.queryKey as any[];
+            if (!Array.isArray(key) || key.length < 4) return false;
+            if (key[0] !== 'admin' || key[1] !== 'data' || key[2] !== 'rows') return false;
+            const params = key[3] as { tableName?: string };
+            return params?.tableName === tableName;
+          },
+        });
       },
     }
   );
@@ -68,9 +81,9 @@ export function useDeleteRecord() {
     {
       mutationFn: ({ recordId, ownEntriesOnly }) => AdminDataApi.deleteRecord(recordId, { own_entries_only: ownEntriesOnly }),
       onSuccess: (_, variables) => {
-        if (variables.refetchKeys) {
-          variables.refetchKeys.forEach((key) => queryClient.invalidateQueries({ queryKey: key as any }));
-        }
+        if (variables.refetchKeys) variables.refetchKeys.forEach((key) => queryClient.invalidateQueries({ queryKey: key as any }));
+        // Globally refetch any rows query to ensure consistency after delete
+        queryClient.invalidateQueries({ queryKey: DATA_QUERY_KEYS.all });
       },
     }
   );
@@ -81,8 +94,18 @@ export function useDeleteTable() {
   return useMutation<IDeleteTableResponse, unknown, { tableName: string }>(
     {
       mutationFn: ({ tableName }) => AdminDataApi.deleteTable(tableName),
-      onSuccess: () => {
+      onSuccess: (_, variables) => {
         queryClient.invalidateQueries({ queryKey: DATA_QUERY_KEYS.tables() });
+        // Invalidate any rows queries for this table
+        queryClient.invalidateQueries({
+          predicate: (q) => {
+            const key = q.queryKey as any[];
+            if (!Array.isArray(key) || key.length < 4) return false;
+            if (key[0] !== 'admin' || key[1] !== 'data' || key[2] !== 'rows') return false;
+            const params = key[3] as { tableName?: string };
+            return params?.tableName === variables.tableName;
+          },
+        });
       },
     }
   );
