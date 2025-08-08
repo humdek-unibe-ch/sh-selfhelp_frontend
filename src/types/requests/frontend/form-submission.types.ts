@@ -20,6 +20,8 @@ export interface IFormUpdateRequest {
 // Form deletion request
 export interface IFormDeleteRequest {
     record_id: number;
+    page_id: number;
+    section_id: number;
 }
 
 // Removed: page forms request (no longer used)

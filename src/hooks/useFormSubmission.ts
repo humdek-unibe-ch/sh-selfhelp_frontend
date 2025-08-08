@@ -100,10 +100,13 @@ export function useDeleteFormMutation() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (recordId: number) => FormSubmissionApi.deleteForm(recordId),
-        onSuccess: (response, recordId) => {
+        mutationFn: (data: { record_id: number; page_id: number; section_id: number }) =>
+            FormSubmissionApi.deleteForm(data),
+        onSuccess: (response, variables) => {
             debug('Form record deleted successfully', 'useDeleteFormMutation', {
-                recordId,
+                recordId: variables.record_id,
+                pageId: variables.page_id,
+                formId: variables.section_id,
                 success: response.data?.success
             });
 
@@ -111,19 +114,21 @@ export function useDeleteFormMutation() {
 
             notifications.show({
                 title: 'Record Deleted',
-                message: `Form record ${recordId} has been deleted successfully`,
+                message: `Form record ${variables.record_id} has been deleted successfully`,
                 color: 'green',
             });
         },
-        onError: (error, recordId) => {
+        onError: (error, variables) => {
             debug('Failed to delete form record', 'useDeleteFormMutation', {
-                recordId,
+                recordId: variables.record_id,
+                pageId: variables.page_id,
+                formId: variables.section_id,
                 error
             });
 
             notifications.show({
                 title: 'Deletion Failed',
-                message: `Failed to delete record ${recordId}`,
+                message: `Failed to delete record ${variables.record_id}`,
                 color: 'red',
             });
         },

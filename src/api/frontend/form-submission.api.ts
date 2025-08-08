@@ -38,10 +38,9 @@ export class FormSubmissionApi {
      * Delete form record
      * Removes a form record by ID
      */
-    static async deleteForm(recordId: number): Promise<IFormDeleteResponse> {
-        const response = await apiClient.delete(API_CONFIG.ENDPOINTS.FORMS_DELETE, {
-            params: { record_id: recordId }
-        });
+    static async deleteForm(body: IFormDeleteRequest): Promise<IFormDeleteResponse> {
+        // Backend now expects JSON body for DELETE
+        const response = await apiClient.delete(API_CONFIG.ENDPOINTS.FORMS_DELETE, { data: body });
         return response.data;
     }
 
