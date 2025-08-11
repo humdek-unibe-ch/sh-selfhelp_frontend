@@ -106,11 +106,9 @@ export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormP
         handleFieldChange('map_fields', updatedMapFields);
     }, [dataSource.map_fields, handleFieldChange]);
 
-    const handleSaveFilter = useCallback((payload: { sql: string; config: string }) => {
-        // Save pure SQL into filter
+    const handleSaveFilter = useCallback((payload: { sql: string }) => {
+        // Save combined SQL only
         handleFieldChange('filter', payload.sql);
-        // Save full config into filter_config
-        handleFieldChange('filter_config', payload.config);
     }, [handleFieldChange]);
 
     interface IFilterConfig {
@@ -221,7 +219,7 @@ export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormP
                             <div style={{ marginTop: 12 }}>
                                 <FilterBuilderInline
                                     tableName={dataSource.table}
-                                    initialValue={dataSource.filter_config}
+                                    initialSql={dataSource.filter}
                                     onSave={handleSaveFilter}
                                 />
                             </div>

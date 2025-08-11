@@ -28,7 +28,6 @@ export interface IDataSource {
     table: string;
     retrieve: 'first' | 'last' | 'all' | 'all_as_array' | 'JSON';
     filter: string;
-    filter_config?: string;
     fields: Array<{
         field_name: string;
         field_holder: string;
@@ -88,7 +87,6 @@ export function DataConfigModal({
         table: '',
         retrieve: 'first',
         filter: '',
-        filter_config: '',
         fields: [],
         map_fields: []
     });
@@ -148,33 +146,10 @@ export function DataConfigModal({
                 return;
             }
 
-            // Normalize filter to hold only pure SQL derived from filter_config
+            // Normalize filter to hold only pure SQL
             const normalizedSources = dataSources.map((source) => {
-                let whereSql = source.filter;
-                let orderSql = '';
-                let limitSql = '';
-                try {
-                    if (source.filter_config) {
-                        const cfg = JSON.parse(source.filter_config);
-                        if (cfg) {
-                            if (typeof cfg.sql === 'string') {
-                                whereSql = cfg.sql;
-                            } else if (cfg.rules) {
-                                whereSql = formatQuery(cfg.rules as any, 'sql');
-                            }
-                            if (Array.isArray(cfg.orderBy) && cfg.orderBy.length > 0) {
-                                orderSql = ` ORDER BY ${cfg.orderBy.map((o: any) => `${o.field} ${o.direction}`).join(', ')}`;
-                            }
-                            if (typeof cfg.limit === 'number' && cfg.limit > 0) {
-                                limitSql = ` LIMIT ${cfg.limit}`;
-                            }
-                        }
-                    }
-                } catch {
-                    // keep original parts if parsing fails
-                }
-                const combined = `${whereSql}${orderSql}${limitSql}`.trim();
-                return { ...source, filter: combined };
+                // filter is already the combined SQL; just keep it
+                return { ...source, filter: (source.filter || '').trim() };
             });
 
             // Print JSON to inspect the generated configuration

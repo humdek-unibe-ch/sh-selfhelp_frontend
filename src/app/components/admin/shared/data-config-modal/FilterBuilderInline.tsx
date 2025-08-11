@@ -1,28 +1,31 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
-import { Stack, Text, Code, Divider, Group, Select as MantineSelect, NumberInput, ActionIcon, Button } from '@mantine/core';
+import { Stack, Text, Divider, Group, Select as MantineSelect, NumberInput, ActionIcon, Button } from '@mantine/core';
 import { QueryBuilder, RuleGroupType, defaultValidator, formatQuery } from 'react-querybuilder';
+// react-querybuilder exports parseSQL as a default from the parsesql subpath in some versions
+// Try a dynamic require fallback to avoid build-time breakage if not present
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+let parseSQL: ((sql: string) => RuleGroupType) | undefined;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  // @ts-ignore - subpath may exist depending on library version
+  parseSQL = require('react-querybuilder/parsers/sql').parseSQL;
+} catch {
+  // ignore if not available
+}
 import { mantineControlElements } from '@react-querybuilder/mantine';
 import { useTableColumnNames } from '../../../../../hooks/useData';
 
 interface IProps {
   tableName?: string;
-  initialValue?: string; // JSON config saved in filter_config
-  onSave: (payload: { sql: string; config: string }) => void;
-}
-
-interface IFilterConfig {
-  mode?: 'builder' | 'sql';
-  sql?: string;
-  rules?: RuleGroupType;
-  orderBy?: Array<{ field: string; direction: 'ASC' | 'DESC' }>;
-  limit?: number;
+  initialSql?: string; // combined SQL possibly including ORDER BY / LIMIT
+  onSave: (payload: { sql: string }) => void;
 }
 
 const initialQuery: RuleGroupType = { combinator: 'and', rules: [] };
 
-export function FilterBuilderInline({ tableName, initialValue, onSave }: IProps) {
+export function FilterBuilderInline({ tableName, initialSql, onSave }: IProps) {
   const { data: columnNames } = useTableColumnNames(tableName);
   const fields = useMemo(() => {
     const unique = Array.from(new Set(columnNames || []));
@@ -33,23 +36,59 @@ export function FilterBuilderInline({ tableName, initialValue, onSave }: IProps)
   const [orderBy, setOrderBy] = useState<Array<{ field: string; direction: 'ASC' | 'DESC' }>>([]);
   const [limit, setLimit] = useState<number | undefined>(undefined);
 
-  // Initialize from initialValue only once to avoid feedback loops with parent state
+  // Helpers to split combined SQL into where/order/limit
+  function splitCombinedSql(sqlCombined: string | undefined) {
+    const result = {
+      whereSql: '',
+      orderBy: [] as Array<{ field: string; direction: 'ASC' | 'DESC' }>,
+      limit: undefined as number | undefined,
+    };
+    if (!sqlCombined) return result;
+    const input = sqlCombined.trim();
+    const limitMatch = input.match(/\blimit\s+(\d+)\s*$/i);
+    if (limitMatch) {
+      result.limit = Number(limitMatch[1]);
+    }
+    const orderMatch = input.match(/\border\s+by\s+(.+?)(?:\s+limit\s+\d+)?\s*$/i);
+    if (orderMatch) {
+      const parts = orderMatch[1].split(',').map((p) => p.trim()).filter(Boolean);
+      result.orderBy = parts.map((p) => {
+        const [field, dir] = p.split(/\s+/);
+        const direction = (dir?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC') as 'ASC' | 'DESC';
+        return { field, direction };
+      }).filter((o) => o.field);
+    }
+    let where = input.replace(/\border\s+by\s+.+?(?:\s+limit\s+\d+)?\s*$/i, '').trim();
+    where = where.replace(/\blimit\s+\d+\s*$/i, '').trim();
+    // Strip wrapping (1 = 1) placeholder if present
+    if (/^\(?\s*1\s*=\s*1\s*\)?$/i.test(where)) {
+      where = '';
+    }
+    result.whereSql = where;
+    return result;
+  }
+
+  // Initialize from initialSql only once to avoid feedback loops with parent state
   useEffect(() => {
-    const raw = (initialValue || '').trim();
-    if (!raw) {
+    const { whereSql, orderBy: ob, limit: lim } = splitCombinedSql(initialSql);
+    if (!whereSql) {
       setQuery(initialQuery);
       setOrderBy([]);
       setLimit(undefined);
       return;
     }
     try {
-      const parsed = JSON.parse(raw) as IFilterConfig;
-      if (parsed.rules) setQuery(parsed.rules);
-      if (Array.isArray(parsed.orderBy)) setOrderBy(parsed.orderBy.filter((o) => o.field));
-      if (typeof parsed.limit === 'number') setLimit(parsed.limit);
+      if (parseSQL) {
+        const qb = parseSQL(`SELECT * FROM ${tableName || 't'} WHERE ${whereSql}`) as RuleGroupType;
+        setQuery(qb || initialQuery);
+      } else {
+        setQuery(initialQuery);
+      }
     } catch {
-      // ignore
+      setQuery(initialQuery);
     }
+    setOrderBy(ob);
+    setLimit(lim);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -71,15 +110,7 @@ export function FilterBuilderInline({ tableName, initialValue, onSave }: IProps)
     const limitSql = typeof limit === 'number' && limit > 0 ? ` LIMIT ${limit}` : '';
     const combinedSql = `${whereSql}${orderSql}${limitSql}`.trim();
 
-    const config: IFilterConfig = {
-      mode: 'builder',
-      sql: whereSql,
-      rules: query,
-      orderBy: orderBy.filter((o) => o.field),
-      limit,
-    };
-
-    onSave({ sql: combinedSql, config: JSON.stringify(config) });
+    onSave({ sql: combinedSql });
   };
 
   // Auto-apply on any change
