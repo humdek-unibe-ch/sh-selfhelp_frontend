@@ -27,6 +27,7 @@ export interface IDataSource {
     table: string;
     retrieve: 'first' | 'last' | 'all' | 'all_as_array' | 'JSON';
     filter: string;
+    filter_config?: string;
     fields: Array<{
         field_name: string;
         field_holder: string;
@@ -86,6 +87,7 @@ export function DataConfigModal({
         table: '',
         retrieve: 'first',
         filter: '',
+        filter_config: '',
         fields: [],
         map_fields: []
     });

@@ -16,9 +16,10 @@ import {
     Textarea
 } from '@mantine/core';
 import { IconPlus, IconTrash, IconFilter, IconAlertCircle } from '@tabler/icons-react';
-import { FilterBuilderModal } from './FilterBuilderModal';
+import { FilterBuilderInline } from './FilterBuilderInline';
 import { IDataSource } from './DataConfigModal';
 import { useDataTables, useTableColumnNames } from '../../../../../hooks/useData';
+import { LockedField } from '../../../ui/locked-field/LockedField';
 import classes from './DataConfigModal.module.css';
 
 interface IDataSourceFormProps {
@@ -38,7 +39,7 @@ const RETRIEVE_OPTIONS = [
 ];
 
 export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormProps) {
-    const [filterModalOpened, setFilterModalOpened] = useState(false);
+    const [filterOpened, setFilterOpened] = useState(false);
 
     // Load tables and columns
     const { data: tablesResp, isLoading: isTablesLoading } = useDataTables();
@@ -105,9 +106,38 @@ export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormP
         handleFieldChange('map_fields', updatedMapFields);
     }, [dataSource.map_fields, handleFieldChange]);
 
-    const handleSaveFilter = useCallback((filterValue: string) => {
-        handleFieldChange('filter', filterValue);
+    const handleSaveFilter = useCallback((payload: { sql: string; config: string }) => {
+        // Save pure SQL into filter
+        handleFieldChange('filter', payload.sql);
+        // Save full config into filter_config
+        handleFieldChange('filter_config', payload.config);
     }, [handleFieldChange]);
+
+    interface IFilterConfig {
+        mode?: 'builder' | 'sql';
+        sql?: string;
+        rules?: any;
+        orderBy?: Array<{ field: string; direction: 'ASC' | 'DESC' }>;
+        limit?: number;
+    }
+
+    const filterSummary = useMemo(() => {
+        const raw = (dataSource.filter || '').trim();
+        if (!raw) return '';
+        try {
+            const parsed = JSON.parse(raw) as IFilterConfig;
+            if (typeof parsed !== 'object') return raw;
+            const whereSql = parsed.sql || '';
+            const orderSql = parsed.orderBy && parsed.orderBy.length > 0
+                ? ` ORDER BY ${parsed.orderBy.map((o) => `${o.field} ${o.direction}`).join(', ')}`
+                : '';
+            const limitSql = typeof parsed.limit === 'number' && parsed.limit > 0 ? ` LIMIT ${parsed.limit}` : '';
+            const combined = `${whereSql}${orderSql}${limitSql}`.trim();
+            return combined || raw;
+        } catch {
+            return raw;
+        }
+    }, [dataSource.filter]);
 
     return (
         <Stack gap="lg">
@@ -175,27 +205,39 @@ export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormP
                 </div>
 
                 <div className={classes.gridCol6}>
-                    <Group gap="xs" align="flex-end">
-                        <div style={{ flex: 1 }}>
-                            <Textarea
-                                label="Filter"
-                                placeholder="Advanced SQL filter (optional)"
+                    <Card withBorder>
+                        <Group justify="space-between" align="center">
+                            <Text fw={500}>Filter</Text>
+                            <Button variant="light" size="xs" leftSection={<IconFilter size={14} />} onClick={() => setFilterOpened((v) => !v)}>
+                                {filterOpened ? 'Hide' : 'Show'} builder
+                            </Button>
+                        </Group>
+
+                        <Text size="xs" c="dimmed" mt="xs">
+                            {filterSummary ? `Summary: ${filterSummary}` : 'No filter specified'}
+                        </Text>
+
+                        {filterOpened && (
+                            <div style={{ marginTop: 12 }}>
+                                <FilterBuilderInline
+                                    tableName={dataSource.table}
+                                    initialValue={dataSource.filter_config}
+                                    onSave={handleSaveFilter}
+                                />
+                            </div>
+                        )}
+
+                        <div style={{ marginTop: 12 }}>
+                            <LockedField
+                                label="Filter (SQL only)"
+                                placeholder="SQL WHERE clause"
                                 value={dataSource.filter}
-                                onChange={(e) => handleFieldChange('filter', e.target.value)}
-                                description="Advanced option to filter the data. When a filter is set, then the ordering for 'first' or 'last' should be manually set."
-                                minRows={2}
-                                maxRows={4}
+                                onChange={(e) => handleFieldChange('filter', e.currentTarget.value)}
+                                lockedTooltip="Enable manual editing"
+                                unlockedTooltip="Lock manual editing"
                             />
                         </div>
-                        <Button
-                            variant="light"
-                            leftSection={<IconFilter size={16} />}
-                            onClick={() => setFilterModalOpened(true)}
-                            mb="xs"
-                        >
-                            Builder
-                        </Button>
-                    </Group>
+                    </Card>
                 </div>
             </div>
 
@@ -351,15 +393,7 @@ export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormP
                 </>
             )}
 
-            {/* Filter Builder Modal */}
-            <FilterBuilderModal
-                opened={filterModalOpened}
-                onClose={() => setFilterModalOpened(false)}
-                onSave={handleSaveFilter}
-                initialValue={dataSource.filter}
-                tableName={dataSource.table}
-                tableId={selectedTableId}
-            />
+            {/* Inline Builder (no modal) handled above in card */}
         </Stack>
     );
 }
