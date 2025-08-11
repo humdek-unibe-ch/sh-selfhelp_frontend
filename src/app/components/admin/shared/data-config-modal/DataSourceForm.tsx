@@ -204,7 +204,7 @@ export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormP
                     />
                 </div>
 
-                <div className={classes.gridCol6}>
+                <div className={classes.gridCol12}>
                     <Card withBorder>
                         <Group justify="space-between" align="center">
                             <Text fw={500}>Filter</Text>

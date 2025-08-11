@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
-import { Stack, Text, Code, Divider, Button, Group, Select as MantineSelect, NumberInput, ActionIcon } from '@mantine/core';
+import { Stack, Text, Code, Divider, Group, Select as MantineSelect, NumberInput, ActionIcon, Button } from '@mantine/core';
 import { QueryBuilder, RuleGroupType, defaultValidator, formatQuery } from 'react-querybuilder';
 import { QueryBuilderMantine } from '@react-querybuilder/mantine';
-import { IconAlertTriangle } from '@tabler/icons-react';
-import { notifications } from '@mantine/notifications';
 import { useTableColumnNames } from '../../../../../hooks/useData';
 
 interface IProps {
@@ -59,32 +57,30 @@ export function FilterBuilderInline({ tableName, initialValue, onSave }: IProps)
   const updateOrderByDir = (idx: number, dir: 'ASC' | 'DESC') => setOrderBy((prev) => prev.map((o, i) => i === idx ? { ...o, direction: dir } : o));
 
   const handleSave = () => {
-    let sql = '';
+    // Save only the generated WHERE clause SQL; ORDER/LIMIT remain in the config
+    let whereSql = '';
     try {
-      sql = formatQuery(query, 'sql');
-    } catch (error) {
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to convert rules to SQL',
-        color: 'red',
-        icon: <IconAlertTriangle size={16} />,
-      });
-      return;
+      whereSql = formatQuery(query, 'sql');
+    } catch {
+      whereSql = '';
     }
-    const orderSql = orderBy.length > 0 ? ` ORDER BY ${orderBy.map((o) => `${o.field} ${o.direction}`).join(', ')}` : '';
-    const limitSql = typeof limit === 'number' && limit > 0 ? ` LIMIT ${limit}` : '';
-    const combinedSql = `${sql}${orderSql}${limitSql}`.trim();
 
     const config: IFilterConfig = {
       mode: 'builder',
-      sql,
+      sql: whereSql,
       rules: query,
       orderBy: orderBy.filter((o) => o.field),
       limit,
     };
 
-    onSave({ sql: combinedSql, config: JSON.stringify(config) });
+    onSave({ sql: whereSql, config: JSON.stringify(config) });
   };
+
+  // Auto-apply on any change
+  useEffect(() => {
+    handleSave();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, orderBy, limit]);
 
   return (
     <Stack gap="sm">
@@ -100,26 +96,28 @@ export function FilterBuilderInline({ tableName, initialValue, onSave }: IProps)
       <Divider my="xs" />
       <Text size="sm" fw={500}>Ordering</Text>
       {orderBy.map((o, idx) => (
-        <Group key={idx} gap="sm" align="end">
-          <div style={{ flex: 1 }}>
-            <MantineSelect
-              label="Field"
-              placeholder="Select field"
-              data={(fields || []).map((f) => ({ value: f.name, label: f.label }))}
-              value={o.field || null}
-              onChange={(v) => updateOrderByField(idx, v)}
-              searchable
-              clearable
-            />
-          </div>
+        <Stack key={idx} gap="xs">
           <MantineSelect
-            label="Direction"
-            data={[{ value: 'ASC', label: 'ASC' }, { value: 'DESC', label: 'DESC' }]}
-            value={o.direction}
-            onChange={(v) => updateOrderByDir(idx, (v as 'ASC' | 'DESC') || 'ASC')}
+            label="Field"
+            placeholder="Select field"
+            data={(fields || []).map((f) => ({ value: f.name, label: f.label }))}
+            value={o.field || null}
+            onChange={(v) => updateOrderByField(idx, v)}
+            searchable
+            clearable
           />
-          <ActionIcon color="red" variant="subtle" mt={22} onClick={() => removeOrderBy(idx)}>✕</ActionIcon>
-        </Group>
+          <Group align="end" gap="sm">
+            <div style={{ flex: 1 }}>
+              <MantineSelect
+                label="Direction"
+                data={[{ value: 'ASC', label: 'ASC' }, { value: 'DESC', label: 'DESC' }]}
+                value={o.direction}
+                onChange={(v) => updateOrderByDir(idx, (v as 'ASC' | 'DESC') || 'ASC')}
+              />
+            </div>
+            <ActionIcon color="red" variant="subtle" mt={22} onClick={() => removeOrderBy(idx)}>✕</ActionIcon>
+          </Group>
+        </Stack>
       ))}
       <Button variant="light" onClick={addOrderBy} size="xs">Add order by</Button>
 
@@ -147,9 +145,7 @@ export function FilterBuilderInline({ tableName, initialValue, onSave }: IProps)
         })()}
       </Code>
 
-      <Group justify="flex-end">
-        <Button onClick={handleSave}>Apply Filter</Button>
-      </Group>
+      {/* Auto-applied on change; no explicit apply button */}
     </Stack>
   );
 }
