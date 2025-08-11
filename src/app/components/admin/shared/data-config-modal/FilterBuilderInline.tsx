@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Stack, Text, Divider, Group, Select as MantineSelect, NumberInput, ActionIcon, Button } from '@mantine/core';
 import { QueryBuilder, RuleGroupType, defaultValidator, formatQuery } from 'react-querybuilder';
 import { mantineControlElements } from '@react-querybuilder/mantine';
@@ -25,6 +25,18 @@ export function FilterBuilderInline({ tableName, initialSql, onSave }: IProps) {
   const [query, setQuery] = useState<RuleGroupType>(initialQuery);
   const [orderBy, setOrderBy] = useState<Array<{ field: string; direction: 'ASC' | 'DESC' }>>([]);
   const [limit, setLimit] = useState<number | undefined>(undefined);
+
+  // Sanitize control elements to avoid passing RQB-only props to DOM
+  const sanitizedControlElements = useMemo(() => {
+    const sanitize = (Comp: any) => (props: any) => {
+      // Strip non-DOM props that trigger React warnings
+      const { ruleOrGroup, ruleGroup, ...rest } = props || {};
+      return <Comp {...rest} />;
+    };
+    return Object.fromEntries(
+      Object.entries(mantineControlElements).map(([key, Comp]) => [key, sanitize(Comp as any)])
+    ) as any;
+  }, []);
 
   // Helpers to split combined SQL into where/order/limit
   function splitCombinedSql(sqlCombined: string | undefined) {
@@ -73,6 +85,7 @@ export function FilterBuilderInline({ tableName, initialSql, onSave }: IProps) {
     }
     setOrderBy(initialOrderBy);
     setLimit(initialLimit);
+    lastSubmittedSqlRef.current = (initialSql || '').trim();
   }, []);
 
   const addOrderBy = () => setOrderBy((prev) => [...prev, { field: '', direction: 'ASC' }]);
@@ -80,7 +93,7 @@ export function FilterBuilderInline({ tableName, initialSql, onSave }: IProps) {
   const updateOrderByField = (idx: number, field: string | null) => setOrderBy((prev) => prev.map((o, i) => i === idx ? { ...o, field: field || '' } : o));
   const updateOrderByDir = (idx: number, dir: 'ASC' | 'DESC') => setOrderBy((prev) => prev.map((o, i) => i === idx ? { ...o, direction: dir } : o));
 
-  const handleSave = () => {
+  const buildCombinedSql = (): string => {
     // Build WHERE, and provide a user-friendly combined SQL for display
     let whereSql = '';
     try {
@@ -91,25 +104,36 @@ export function FilterBuilderInline({ tableName, initialSql, onSave }: IProps) {
 
     const orderSql = orderBy.length > 0 ? ` ORDER BY ${orderBy.map((o) => `${o.field} ${o.direction}`).join(', ')}` : '';
     const limitSql = typeof limit === 'number' && limit > 0 ? ` LIMIT ${limit}` : '';
-    const combinedSql = `${whereSql}${orderSql}${limitSql}`.trim();
-
-    onSave({ sql: combinedSql });
+    return `${whereSql}${orderSql}${limitSql}`.trim();
   };
 
-  // Auto-apply on any change
-  useEffect(() => {
-    handleSave();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, orderBy, limit]);
+  const lastSubmittedSqlRef = useRef<string>('');
+
+  // Apply only when user leaves the control (blur or close builder)
+  const applyIfChanged = () => {
+    const combinedSql = buildCombinedSql();
+    if (combinedSql !== lastSubmittedSqlRef.current) {
+      lastSubmittedSqlRef.current = combinedSql;
+      onSave({ sql: combinedSql });
+    }
+  };
+
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  function handleBlurCapture() {
+    // Apply whenever any child input loses focus
+    // Using capture so we run before focus moves elsewhere
+    setTimeout(applyIfChanged, 0);
+  }
 
   return (
-    <Stack gap="sm">
+    <Stack gap="sm" ref={containerRef} onBlurCapture={handleBlurCapture}>
       <QueryBuilder
         fields={fields}
         query={query}
         onQueryChange={setQuery}
         validator={defaultValidator}
-        controlElements={mantineControlElements}
+        controlElements={sanitizedControlElements}
       />
 
       <Divider my="xs" />

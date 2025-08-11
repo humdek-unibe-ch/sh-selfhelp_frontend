@@ -216,7 +216,10 @@ export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormP
                         </Text>
 
                         {filterOpened && (
-                            <div style={{ marginTop: 12 }}>
+                            <div style={{ marginTop: 12 }} onBlurCapture={(e) => {
+                                // Apply on leaving the builder area
+                                // child will call onSave on its own blur hooks
+                              }}>
                                 <FilterBuilderInline
                                     tableName={dataSource.table}
                                     initialSql={dataSource.filter}
