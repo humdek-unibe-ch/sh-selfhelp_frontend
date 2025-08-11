@@ -3,19 +3,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Stack, Text, Divider, Group, Select as MantineSelect, NumberInput, ActionIcon, Button } from '@mantine/core';
 import { QueryBuilder, RuleGroupType, defaultValidator, formatQuery } from 'react-querybuilder';
-// react-querybuilder exports parseSQL as a default from the parsesql subpath in some versions
-// Try a dynamic require fallback to avoid build-time breakage if not present
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-let parseSQL: ((sql: string) => RuleGroupType) | undefined;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  // @ts-ignore - subpath may exist depending on library version
-  parseSQL = require('react-querybuilder/parsers/sql').parseSQL;
-} catch {
-  // ignore if not available
-}
 import { mantineControlElements } from '@react-querybuilder/mantine';
 import { useTableColumnNames } from '../../../../../hooks/useData';
+import { parseSQL } from 'react-querybuilder/parseSQL';
 
 interface IProps {
   tableName?: string;
@@ -70,26 +60,7 @@ export function FilterBuilderInline({ tableName, initialSql, onSave }: IProps) {
 
   // Initialize from initialSql only once to avoid feedback loops with parent state
   useEffect(() => {
-    const { whereSql, orderBy: ob, limit: lim } = splitCombinedSql(initialSql);
-    if (!whereSql) {
-      setQuery(initialQuery);
-      setOrderBy([]);
-      setLimit(undefined);
-      return;
-    }
-    try {
-      if (parseSQL) {
-        const qb = parseSQL(`SELECT * FROM ${tableName || 't'} WHERE ${whereSql}`) as RuleGroupType;
-        setQuery(qb || initialQuery);
-      } else {
-        setQuery(initialQuery);
-      }
-    } catch {
-      setQuery(initialQuery);
-    }
-    setOrderBy(ob);
-    setLimit(lim);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setQuery(parseSQL(initialSql??'1=1'));
   }, []);
 
   const addOrderBy = () => setOrderBy((prev) => [...prev, { field: '', direction: 'ASC' }]);
