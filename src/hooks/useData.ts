@@ -5,6 +5,7 @@ import type {
   IDataTablesListResponse,
   IDataRowsResponse,
   IDataTableColumnsResponse,
+  IDataTableColumnNamesResponse,
   IDeleteColumnsRequest,
   IDeleteColumnsResponse,
   IDeleteRecordResponse,
@@ -20,6 +21,7 @@ export const DATA_QUERY_KEYS = {
     { tableName, userId: userId ?? -1, excludeDeleted },
   ] as const,
   columns: (tableName: string) => [...DATA_QUERY_KEYS.all, 'columns', tableName] as const,
+  columnNames: (tableName: string) => [...DATA_QUERY_KEYS.all, 'column-names', tableName] as const,
 };
 
 export function useDataTables() {
@@ -50,6 +52,18 @@ export function useTableColumns(tableName?: string) {
     enabled: !!tableName,
     staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.REAL_TIME.staleTime,
     gcTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.REAL_TIME.gcTime,
+  });
+}
+
+// Returns just the string[] of column names using select to avoid per-render mapping
+export function useTableColumnNames(tableName?: string) {
+  return useQuery<IDataTableColumnNamesResponse, unknown, string[]>({
+    queryKey: tableName ? DATA_QUERY_KEYS.columnNames(tableName) : ['noop'],
+    queryFn: () => AdminDataApi.getTableColumnNames(tableName as string),
+    enabled: !!tableName,
+    staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.REAL_TIME.staleTime,
+    gcTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.REAL_TIME.gcTime,
+    select: (data) => data.columnNames,
   });
 }
 

@@ -17,6 +17,10 @@ export interface IDataTableColumnsResponse {
   columns: Array<{ id: number; name: string }>;
 }
 
+export interface IDataTableColumnNamesResponse {
+  columnNames: string[];
+}
+
 export interface IDeleteColumnsRequest {
   columns: string[];
 }

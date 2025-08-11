@@ -16,7 +16,7 @@ import { IconAlertTriangle, IconCheck, IconCode, IconFilter } from '@tabler/icon
 import { defaultValidator, QueryBuilder, RuleGroupType, formatQuery } from 'react-querybuilder';
 import { QueryBuilderMantine } from '@react-querybuilder/mantine';
 import 'react-querybuilder/dist/query-builder.css';
-import { useTableColumns } from '../../../../../hooks/useData';
+import { useTableColumnNames } from '../../../../../hooks/useData';
 
 interface IFilterBuilderModalProps {
     opened: boolean;
@@ -24,16 +24,16 @@ interface IFilterBuilderModalProps {
     onSave: (filter: string) => void;
     initialValue?: string;
     tableName?: string;
+    tableId?: number;
 }
 
 // Build fields from real column list
-function useQueryBuilderFields(tableName?: string) {
-    const { data: columnsResp } = useTableColumns(tableName || undefined);
+function useQueryBuilderFieldsById(tableName?: string) {
+    const { data: columnNames } = useTableColumnNames(tableName);
     return useMemo(() => {
-        const cols = columnsResp?.columns || [];
-        // Default to text datatype; users can still write SQL for advanced types
-        return cols.map((c) => ({ name: c.name, label: c.name, dataType: 'text' as const }));
-    }, [columnsResp]);
+        const unique = Array.from(new Set(columnNames || []));
+        return unique.map((name) => ({ name, label: name, dataType: 'text' as const }));
+    }, [columnNames]);
 }
 
 const initialQuery: RuleGroupType = {
@@ -46,12 +46,13 @@ export function FilterBuilderModal({
     onClose,
     onSave,
     initialValue,
-    tableName = 'users'
+    tableName = 'users',
+    tableId
 }: IFilterBuilderModalProps) {
     const [query, setQuery] = useState<RuleGroupType>(initialQuery);
     const [activeTab, setActiveTab] = useState<string>('builder');
     const [rawSql, setRawSql] = useState(initialValue || '');
-    const fields = useQueryBuilderFields(tableName);
+    const fields = useQueryBuilderFieldsById(tableName);
 
     // Initialize query from initial value
     useEffect(() => {

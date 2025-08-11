@@ -5,6 +5,7 @@ import type {
   IDataTablesListResponse,
   IDataRowsResponse,
   IDataTableColumnsResponse,
+  IDataTableColumnNamesResponse,
   IDeleteColumnsRequest,
   IDeleteColumnsResponse,
   IDeleteRecordResponse,
@@ -30,6 +31,11 @@ export const AdminDataApi = {
 
   async getTableColumns(tableName: string): Promise<IDataTableColumnsResponse> {
     const response = await apiClient.get<IBaseApiResponse<IDataTableColumnsResponse>>(API_CONFIG.ENDPOINTS.ADMIN_DATA_TABLE_COLUMNS_GET(tableName));
+    return response.data.data;
+  },
+
+  async getTableColumnNames(tableName: string): Promise<IDataTableColumnNamesResponse> {
+    const response = await apiClient.get<IBaseApiResponse<IDataTableColumnNamesResponse>>(API_CONFIG.ENDPOINTS.ADMIN_DATA_TABLE_COLUMN_NAMES_GET(tableName));
     return response.data.data;
   },
 

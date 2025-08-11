@@ -119,6 +119,7 @@ export const API_CONFIG = {
         ADMIN_DATA_TABLES_LIST: '/admin/data/tables',
         ADMIN_DATA_ROWS_GET: '/admin/data', // query params: form_id, user_id?, exclude_deleted?
         ADMIN_DATA_TABLE_COLUMNS_GET: (tableName: string) => `/admin/data/tables/${tableName}/columns`,
+        ADMIN_DATA_TABLE_COLUMN_NAMES_GET: (tableName: string) => `/admin/data/tables/${tableName}/column-names`,
         ADMIN_DATA_TABLE_COLUMNS_DELETE: (tableName: string) => `/admin/data/tables/${tableName}/columns`,
         ADMIN_DATA_RECORD_DELETE: (recordId: number) => `/admin/data/records/${recordId}`,
         ADMIN_DATA_TABLE_DELETE: (tableName: string) => `/admin/data/tables/${tableName}`,

@@ -18,7 +18,7 @@ import {
 import { IconPlus, IconTrash, IconFilter, IconAlertCircle } from '@tabler/icons-react';
 import { FilterBuilderModal } from './FilterBuilderModal';
 import { IDataSource } from './DataConfigModal';
-import { useDataTables, useTableColumns } from '../../../../../hooks/useData';
+import { useDataTables, useTableColumnNames } from '../../../../../hooks/useData';
 import classes from './DataConfigModal.module.css';
 
 interface IDataSourceFormProps {
@@ -42,7 +42,12 @@ export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormP
 
     // Load tables and columns
     const { data: tablesResp, isLoading: isTablesLoading } = useDataTables();
-    const { data: columnsResp, isLoading: isColumnsLoading } = useTableColumns(dataSource.table || undefined);
+    const selectedTableId = useMemo(() => {
+        if (!tablesResp?.dataTables || !dataSource.table) return undefined;
+        const found = tablesResp.dataTables.find((t) => t.name === dataSource.table);
+        return found?.id;
+    }, [tablesResp, dataSource.table]);
+    const { data: columnNames, isLoading: isColumnsLoading } = useTableColumnNames(dataSource.table);
 
     const tableOptions = useMemo(() => {
         const tables = tablesResp?.dataTables || [];
@@ -50,9 +55,9 @@ export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormP
     }, [tablesResp]);
 
     const columnOptions = useMemo(() => {
-        const cols = columnsResp?.columns || [];
-        return cols.map((c) => ({ value: c.name, label: c.name }));
-    }, [columnsResp]);
+        const unique = Array.from(new Set(columnNames || []));
+        return unique.map((name) => ({ value: name, label: name }));
+    }, [columnNames]);
 
     const handleFieldChange = useCallback((field: keyof IDataSource, value: any) => {
         const updatedSource = { ...dataSource, [field]: value };
@@ -318,12 +323,13 @@ export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormP
                                                 <Select
                                                     label="Field Name"
                                                     placeholder="Select source field"
-                                                    data={MOCK_FIELD_NAMES}
+                                                    data={columnOptions}
                                                     value={mapField.field_name}
                                                     onChange={(value) => handleUpdateMapField(mapFieldIndex, 'field_name', value || '')}
                                                     searchable
                                                     required
                                                     description="Take values from this field"
+                                                    disabled={isColumnsLoading || !dataSource.table}
                                                 />
                                             </div>
                                             <div className={classes.gridCol6}>
@@ -352,6 +358,7 @@ export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormP
                 onSave={handleSaveFilter}
                 initialValue={dataSource.filter}
                 tableName={dataSource.table}
+                tableId={selectedTableId}
             />
         </Stack>
     );
