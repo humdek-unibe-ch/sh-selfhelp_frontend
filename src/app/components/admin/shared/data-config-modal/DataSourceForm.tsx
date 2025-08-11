@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
     Stack,
     Group,
@@ -18,6 +18,7 @@ import {
 import { IconPlus, IconTrash, IconFilter, IconAlertCircle } from '@tabler/icons-react';
 import { FilterBuilderModal } from './FilterBuilderModal';
 import { IDataSource } from './DataConfigModal';
+import { useDataTables, useTableColumns } from '../../../../../hooks/useData';
 import classes from './DataConfigModal.module.css';
 
 interface IDataSourceFormProps {
@@ -26,27 +27,7 @@ interface IDataSourceFormProps {
     index: number;
 }
 
-// Mock table names - in real implementation, these would come from API
-const MOCK_TABLE_NAMES = [
-    { value: 'users', label: 'Users' },
-    { value: 'surveys', label: 'Surveys' },
-    { value: 'responses', label: 'Responses' },
-    { value: 'questions', label: 'Questions' },
-    { value: 'forms', label: 'Forms' },
-    { value: 'submissions', label: 'Submissions' }
-];
-
-// Mock field names - in real implementation, these would come from API based on selected table
-const MOCK_FIELD_NAMES = [
-    { value: 'id', label: 'ID' },
-    { value: 'name', label: 'Name' },
-    { value: 'email', label: 'Email' },
-    { value: 'created_at', label: 'Created At' },
-    { value: 'updated_at', label: 'Updated At' },
-    { value: 'status', label: 'Status' },
-    { value: 'data', label: 'Data' },
-    { value: 'score', label: 'Score' }
-];
+// Real table/column data will be pulled from hooks; no mocks
 
 const RETRIEVE_OPTIONS = [
     { value: 'first', label: 'First Record' },
@@ -58,6 +39,20 @@ const RETRIEVE_OPTIONS = [
 
 export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormProps) {
     const [filterModalOpened, setFilterModalOpened] = useState(false);
+
+    // Load tables and columns
+    const { data: tablesResp, isLoading: isTablesLoading } = useDataTables();
+    const { data: columnsResp, isLoading: isColumnsLoading } = useTableColumns(dataSource.table || undefined);
+
+    const tableOptions = useMemo(() => {
+        const tables = tablesResp?.dataTables || [];
+        return tables.map((t) => ({ value: t.name, label: t.displayName ? `${t.displayName} (${t.name})` : t.name }));
+    }, [tablesResp]);
+
+    const columnOptions = useMemo(() => {
+        const cols = columnsResp?.columns || [];
+        return cols.map((c) => ({ value: c.name, label: c.name }));
+    }, [columnsResp]);
 
     const handleFieldChange = useCallback((field: keyof IDataSource, value: any) => {
         const updatedSource = { ...dataSource, [field]: value };
@@ -132,12 +127,13 @@ export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormP
                     <Select
                         label="Table Name"
                         placeholder="Select table"
-                        data={MOCK_TABLE_NAMES}
+                        data={tableOptions}
                         value={dataSource.table}
                         onChange={(value) => handleFieldChange('table', value || '')}
                         required
                         searchable
                         description="The name of the form that we want to load"
+                        disabled={isTablesLoading}
                     />
                 </div>
 
@@ -241,12 +237,13 @@ export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormP
                                                 <Select
                                                     label="Field Name"
                                                     placeholder="Select field"
-                                                    data={MOCK_FIELD_NAMES}
+                                                    data={columnOptions}
                                                     value={field.field_name}
                                                     onChange={(value) => handleUpdateField(fieldIndex, 'field_name', value || '')}
                                                     searchable
                                                     required
                                                     description="The field name in the form or table"
+                                                    disabled={isColumnsLoading || !dataSource.table}
                                                 />
                                             </div>
                                             <div className={classes.gridCol4}>

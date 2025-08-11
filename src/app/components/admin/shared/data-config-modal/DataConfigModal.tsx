@@ -145,6 +145,10 @@ export function DataConfigModal({
                 return;
             }
 
+            // Print JSON to inspect the generated configuration
+            const jsonString = JSON.stringify(dataSources, null, 2);
+            // eslint-disable-next-line no-console
+            console.log('DataConfigModal save JSON:', jsonString);
             await onSave(dataSources);
             
             notifications.show({

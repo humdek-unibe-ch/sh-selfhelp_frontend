@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
     Modal,
     Button,
@@ -16,6 +16,7 @@ import { IconAlertTriangle, IconCheck, IconCode, IconFilter } from '@tabler/icon
 import { defaultValidator, QueryBuilder, RuleGroupType, formatQuery } from 'react-querybuilder';
 import { QueryBuilderMantine } from '@react-querybuilder/mantine';
 import 'react-querybuilder/dist/query-builder.css';
+import { useTableColumns } from '../../../../../hooks/useData';
 
 interface IFilterBuilderModalProps {
     opened: boolean;
@@ -25,36 +26,15 @@ interface IFilterBuilderModalProps {
     tableName?: string;
 }
 
-// Mock fields based on table name - in real implementation, this would come from API
-const getFieldsForTable = (tableName: string) => {
-    const baseFields = [
-        { name: 'id', label: 'ID', dataType: 'number' },
-        { name: 'created_at', label: 'Created At', dataType: 'date' },
-        { name: 'updated_at', label: 'Updated At', dataType: 'date' },
-        { name: 'status', label: 'Status', dataType: 'select', values: ['active', 'inactive', 'pending'] }
-    ];
-
-    const tableSpecificFields: Record<string, any[]> = {
-        users: [
-            { name: 'name', label: 'Name', dataType: 'text' },
-            { name: 'email', label: 'Email', dataType: 'text' },
-            { name: 'age', label: 'Age', dataType: 'number' },
-            { name: 'role', label: 'Role', dataType: 'select', values: ['admin', 'user', 'moderator'] }
-        ],
-        surveys: [
-            { name: 'title', label: 'Title', dataType: 'text' },
-            { name: 'description', label: 'Description', dataType: 'text' },
-            { name: 'is_active', label: 'Is Active', dataType: 'boolean' }
-        ],
-        responses: [
-            { name: 'response_data', label: 'Response Data', dataType: 'text' },
-            { name: 'score', label: 'Score', dataType: 'number' },
-            { name: 'completed', label: 'Completed', dataType: 'boolean' }
-        ]
-    };
-
-    return [...baseFields, ...(tableSpecificFields[tableName] || [])];
-};
+// Build fields from real column list
+function useQueryBuilderFields(tableName?: string) {
+    const { data: columnsResp } = useTableColumns(tableName || undefined);
+    return useMemo(() => {
+        const cols = columnsResp?.columns || [];
+        // Default to text datatype; users can still write SQL for advanced types
+        return cols.map((c) => ({ name: c.name, label: c.name, dataType: 'text' as const }));
+    }, [columnsResp]);
+}
 
 const initialQuery: RuleGroupType = {
     combinator: 'and',
@@ -71,8 +51,7 @@ export function FilterBuilderModal({
     const [query, setQuery] = useState<RuleGroupType>(initialQuery);
     const [activeTab, setActiveTab] = useState<string>('builder');
     const [rawSql, setRawSql] = useState(initialValue || '');
-
-    const fields = getFieldsForTable(tableName);
+    const fields = useQueryBuilderFields(tableName);
 
     // Initialize query from initial value
     useEffect(() => {
