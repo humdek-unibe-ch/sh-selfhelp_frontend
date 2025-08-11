@@ -60,7 +60,19 @@ export function FilterBuilderInline({ tableName, initialSql, onSave }: IProps) {
 
   // Initialize from initialSql only once to avoid feedback loops with parent state
   useEffect(() => {
-    setQuery(parseSQL(initialSql??'1=1'));
+    const { whereSql, orderBy: initialOrderBy, limit: initialLimit } = splitCombinedSql(initialSql);
+    try {
+      if (whereSql) {
+        const qb = parseSQL(whereSql) as RuleGroupType;
+        setQuery(qb || initialQuery);
+      } else {
+        setQuery(initialQuery);
+      }
+    } catch {
+      setQuery(initialQuery);
+    }
+    setOrderBy(initialOrderBy);
+    setLimit(initialLimit);
   }, []);
 
   const addOrderBy = () => setOrderBy((prev) => [...prev, { field: '', direction: 'ASC' }]);
