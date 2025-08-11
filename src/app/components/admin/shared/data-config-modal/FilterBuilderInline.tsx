@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Stack, Text, Code, Divider, Group, Select as MantineSelect, NumberInput, ActionIcon, Button } from '@mantine/core';
 import { QueryBuilder, RuleGroupType, defaultValidator, formatQuery } from 'react-querybuilder';
-import { QueryBuilderMantine } from '@react-querybuilder/mantine';
+import { mantineControlElements } from '@react-querybuilder/mantine';
 import { useTableColumnNames } from '../../../../../hooks/useData';
 
 interface IProps {
@@ -33,6 +33,7 @@ export function FilterBuilderInline({ tableName, initialValue, onSave }: IProps)
   const [orderBy, setOrderBy] = useState<Array<{ field: string; direction: 'ASC' | 'DESC' }>>([]);
   const [limit, setLimit] = useState<number | undefined>(undefined);
 
+  // Initialize from initialValue only once to avoid feedback loops with parent state
   useEffect(() => {
     const raw = (initialValue || '').trim();
     if (!raw) {
@@ -49,7 +50,8 @@ export function FilterBuilderInline({ tableName, initialValue, onSave }: IProps)
     } catch {
       // ignore
     }
-  }, [initialValue]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const addOrderBy = () => setOrderBy((prev) => [...prev, { field: '', direction: 'ASC' }]);
   const removeOrderBy = (idx: number) => setOrderBy((prev) => prev.filter((_, i) => i !== idx));
@@ -57,13 +59,17 @@ export function FilterBuilderInline({ tableName, initialValue, onSave }: IProps)
   const updateOrderByDir = (idx: number, dir: 'ASC' | 'DESC') => setOrderBy((prev) => prev.map((o, i) => i === idx ? { ...o, direction: dir } : o));
 
   const handleSave = () => {
-    // Save only the generated WHERE clause SQL; ORDER/LIMIT remain in the config
+    // Build WHERE, and provide a user-friendly combined SQL for display
     let whereSql = '';
     try {
       whereSql = formatQuery(query, 'sql');
     } catch {
       whereSql = '';
     }
+
+    const orderSql = orderBy.length > 0 ? ` ORDER BY ${orderBy.map((o) => `${o.field} ${o.direction}`).join(', ')}` : '';
+    const limitSql = typeof limit === 'number' && limit > 0 ? ` LIMIT ${limit}` : '';
+    const combinedSql = `${whereSql}${orderSql}${limitSql}`.trim();
 
     const config: IFilterConfig = {
       mode: 'builder',
@@ -73,7 +79,7 @@ export function FilterBuilderInline({ tableName, initialValue, onSave }: IProps)
       limit,
     };
 
-    onSave({ sql: whereSql, config: JSON.stringify(config) });
+    onSave({ sql: combinedSql, config: JSON.stringify(config) });
   };
 
   // Auto-apply on any change
@@ -84,14 +90,13 @@ export function FilterBuilderInline({ tableName, initialValue, onSave }: IProps)
 
   return (
     <Stack gap="sm">
-      <QueryBuilderMantine>
-        <QueryBuilder
-          fields={fields}
-          query={query}
-          onQueryChange={setQuery}
-          validator={defaultValidator}
-        />
-      </QueryBuilderMantine>
+      <QueryBuilder
+        fields={fields}
+        query={query}
+        onQueryChange={setQuery}
+        validator={defaultValidator}
+        controlElements={mantineControlElements}
+      />
 
       <Divider my="xs" />
       <Text size="sm" fw={500}>Ordering</Text>
@@ -130,22 +135,7 @@ export function FilterBuilderInline({ tableName, initialValue, onSave }: IProps)
         min={1}
       />
 
-      <Divider my="xs" />
-      <Text size="sm" fw={500}>Preview</Text>
-      <Code block p="sm" style={{ fontSize: '0.8rem' }}>
-        {(() => {
-          try {
-            const base = formatQuery(query, 'sql');
-            const orderSql = orderBy.length > 0 ? ` ORDER BY ${orderBy.map((o) => `${o.field} ${o.direction}`).join(', ')}` : '';
-            const limitSql = typeof limit === 'number' && limit > 0 ? ` LIMIT ${limit}` : '';
-            return `${base}${orderSql}${limitSql}`.trim();
-          } catch {
-            return 'Invalid query structure';
-          }
-        })()}
-      </Code>
-
-      {/* Auto-applied on change; no explicit apply button */}
+      {/* Auto-applied on change; no explicit apply button or preview */}
     </Stack>
   );
 }

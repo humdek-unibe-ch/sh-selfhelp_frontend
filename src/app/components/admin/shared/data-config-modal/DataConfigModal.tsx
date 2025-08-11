@@ -19,6 +19,7 @@ import { notifications } from '@mantine/notifications';
 import { IconAlertTriangle, IconCheck, IconX, IconPlus, IconTrash } from '@tabler/icons-react';
 import { DataSourceForm } from './DataSourceForm';
 import classes from './DataConfigModal.module.css';
+  import { formatQuery } from 'react-querybuilder';
 
 export interface IDataSource {
     current_user: boolean;
@@ -147,11 +148,40 @@ export function DataConfigModal({
                 return;
             }
 
+            // Normalize filter to hold only pure SQL derived from filter_config
+            const normalizedSources = dataSources.map((source) => {
+                let whereSql = source.filter;
+                let orderSql = '';
+                let limitSql = '';
+                try {
+                    if (source.filter_config) {
+                        const cfg = JSON.parse(source.filter_config);
+                        if (cfg) {
+                            if (typeof cfg.sql === 'string') {
+                                whereSql = cfg.sql;
+                            } else if (cfg.rules) {
+                                whereSql = formatQuery(cfg.rules as any, 'sql');
+                            }
+                            if (Array.isArray(cfg.orderBy) && cfg.orderBy.length > 0) {
+                                orderSql = ` ORDER BY ${cfg.orderBy.map((o: any) => `${o.field} ${o.direction}`).join(', ')}`;
+                            }
+                            if (typeof cfg.limit === 'number' && cfg.limit > 0) {
+                                limitSql = ` LIMIT ${cfg.limit}`;
+                            }
+                        }
+                    }
+                } catch {
+                    // keep original parts if parsing fails
+                }
+                const combined = `${whereSql}${orderSql}${limitSql}`.trim();
+                return { ...source, filter: combined };
+            });
+
             // Print JSON to inspect the generated configuration
-            const jsonString = JSON.stringify(dataSources, null, 2);
+            const jsonString = JSON.stringify(normalizedSources, null, 2);
             // eslint-disable-next-line no-console
             console.log('DataConfigModal save JSON:', jsonString);
-            await onSave(dataSources);
+            await onSave(normalizedSources);
             
             notifications.show({
                 title: 'Success',
