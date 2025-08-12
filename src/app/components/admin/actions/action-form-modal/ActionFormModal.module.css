@@ -3,14 +3,14 @@
 }
 
 .modal :global(.mantine-Modal-content) {
-  height: 80vh;
-  max-height: 80vh;
+  overflow: hidden; /* prevent outer content from scrolling; use inner ScrollArea only */
 }
 
 .modal :global(.mantine-Modal-body) {
   height: calc(100% - 60px);
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* avoid nested scrollbars */
 }
 
 .formGrid {

@@ -85,8 +85,8 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
       centered
     >
       <LoadingOverlay visible={isSaving || (mode === 'edit' && isDetailsLoading)} />
-
-      <Stack gap="md">
+      <ScrollArea.Autosize mah="100%" style={{ flex: 1 }}>
+      <Stack gap="md" style={{ padding: 8 }}>
         <div className={classes.formGrid}>
           <div className={classes.gridCol6}>
             <TextInput label="Action name" placeholder="Enter action name" value={name} onChange={(e) => setName(e.currentTarget.value)} required />
@@ -114,11 +114,12 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
           </div>
         </div>
 
-        <Group justify="flex-end" gap="sm">
-          <Button variant="outline" onClick={onClose} disabled={isSaving}>Cancel</Button>
-          <Button onClick={handleSave} loading={isSaving} disabled={!name || !trigger}>Save</Button>
-        </Group>
       </Stack>
+      </ScrollArea.Autosize>
+      <Group justify="flex-end" gap="sm" style={{ paddingTop: 8 }}>
+        <Button variant="outline" onClick={onClose} disabled={isSaving}>Cancel</Button>
+        <Button onClick={handleSave} loading={isSaving} disabled={!name || !trigger}>Save</Button>
+      </Group>
     </Modal>
   );
 }
