@@ -265,6 +265,7 @@ export function ActionConfigBuilder({ value, onChange }: IActionConfigBuilderPro
 
   const renderScheduleTime = (job: any, onPatch: (patch: any) => void) => {
     const st = job.schedule_time || {};
+    const customDate: Date | null = st.custom_time ? new Date(String(st.custom_time)) : null;
     return (
       <Card withBorder>
         <Stack gap="xs">
@@ -273,18 +274,32 @@ export function ActionConfigBuilder({ value, onChange }: IActionConfigBuilderPro
             <Group grow>
               <NumberInput label="Send after" min={1} value={st.send_after ?? 1} onChange={(v) => onPatch({ schedule_time: { ...st, send_after: Number(v) || 1 } })} />
               <Select label="Unit" data={timePeriodData} value={st.send_after_type || 'days'} onChange={(v) => onPatch({ schedule_time: { ...st, send_after_type: v || 'days' } })} />
-              <TextInput label="at" placeholder="Enter time (HH:mm)" value={st.send_on_day_at || ''} onChange={(e) => onPatch({ schedule_time: { ...st, send_on_day_at: e.currentTarget.value } })} />
+              <TimeInput
+                label="at"
+                value={st.send_on_day_at || ''}
+                onChange={(e) => onPatch({ schedule_time: { ...st, send_on_day_at: (e.currentTarget as HTMLInputElement).value || '' } })}
+                withSeconds={false}
+              />
             </Group>
           )}
           {st.job_schedule_types === 'after_period_on_day_at_time' && (
             <Group grow>
               <Select label="Send on" data={ordinal20Options} value={st.send_on || null} onChange={(v) => onPatch({ schedule_time: { ...st, send_on: v || undefined } })} />
               <Select label="Week day" data={weekdaysData} value={st.send_on_day || null} onChange={(v) => onPatch({ schedule_time: { ...st, send_on_day: v || undefined } })} />
-              <TextInput label="at" placeholder="Enter time (HH:mm)" value={st.send_on_day_at || ''} onChange={(e) => onPatch({ schedule_time: { ...st, send_on_day_at: e.currentTarget.value } })} />
+              <TimeInput
+                label="at"
+                value={st.send_on_day_at || ''}
+                onChange={(e) => onPatch({ schedule_time: { ...st, send_on_day_at: (e.currentTarget as HTMLInputElement).value || '' } })}
+                withSeconds={false}
+              />
             </Group>
           )}
           {st.job_schedule_types === 'on_fixed_datetime' && (
-            <TextInput label="Select date" placeholder="YYYY-MM-DD HH:mm" value={st.custom_time || ''} onChange={(e) => onPatch({ schedule_time: { ...st, custom_time: e.currentTarget.value } })} />
+            <DateTimePicker
+              label="Select date and time"
+              value={customDate ?? null}
+              onChange={(val) => onPatch({ schedule_time: { ...st, custom_time: val ? new Date(val as unknown as string).toISOString() : '' } })}
+            />
           )}
         </Stack>
       </Card>
