@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Button, Group, LoadingOverlay, Modal, ScrollArea, Select, Stack, Text, TextInput, NumberInput } from '@mantine/core';
 import { IconInfoCircle } from '@tabler/icons-react';
 import classes from './ActionFormModal.module.css';
@@ -33,8 +33,8 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
   const [name, setName] = useState('');
   const [trigger, setTrigger] = useState<string>('');
   const [dataTableId, setDataTableId] = useState<string>('');
-  const [configJson, setConfigJson] = useState<string>('{}');
   const [configObj, setConfigObj] = useState<any>({ blocks: [] });
+  const lastBuilderJsonRef = useRef<string>(JSON.stringify({ blocks: [] }));
 
   const { data: tables } = useDataTables();
   const dataTablesOptions = useMemo(
@@ -47,12 +47,12 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
       setName(details.name || '');
       const triggerId = (details.action_trigger_type?.id ?? details.id_actionTriggerTypes) as any;
       setTrigger(triggerId ? String(triggerId) : '');
-      try { setConfigJson(details.config ? JSON.stringify(details.config, null, 2) : '{}'); setConfigObj(details.config || { blocks: [] }); } catch { setConfigJson('{}'); setConfigObj({ blocks: [] }); }
+      try { setConfigObj(details.config || { blocks: [] }); lastBuilderJsonRef.current = JSON.stringify(details.config || { blocks: [] }); } catch { setConfigObj({ blocks: [] }); lastBuilderJsonRef.current = JSON.stringify({ blocks: [] }); }
       const dtId = (details.data_table?.id ?? details.id_dataTables) as any;
       setDataTableId(dtId ? String(dtId) : '');
     }
     if (mode === 'create' && opened) {
-      setName(''); setTrigger(''); setDataTableId(''); setConfigJson('{\n  \n}'); setConfigObj({ blocks: [] });
+      setName(''); setTrigger(''); setDataTableId(''); setConfigObj({ blocks: [] }); lastBuilderJsonRef.current = JSON.stringify({ blocks: [] });
     }
   }, [mode, details, opened]);
 
@@ -101,7 +101,16 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
             <Alert variant="light" icon={<IconInfoCircle size={16} />}>Use the visual builder to configure blocks and jobs, or switch to JSON tab inside the builder.</Alert>
           </div>
           <div className={classes.gridCol12}>
-            <ActionConfigBuilder value={configObj} onChange={(cfg) => { setConfigObj(cfg); try { setConfigJson(JSON.stringify(cfg, null, 2)); } catch {} }} />
+            <ActionConfigBuilder
+              value={configObj}
+              onChange={(cfg) => {
+                const next = JSON.stringify(cfg);
+                if (next !== lastBuilderJsonRef.current) {
+                  lastBuilderJsonRef.current = next;
+                  setConfigObj(cfg);
+                }
+              }}
+            />
           </div>
         </div>
 
