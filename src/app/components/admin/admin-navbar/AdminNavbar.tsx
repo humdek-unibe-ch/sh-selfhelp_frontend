@@ -192,6 +192,11 @@ export function AdminNavbar() {
             link: '/admin/scheduled-jobs'
         },
         {
+            label: 'Actions',
+            icon: <IconSettingsAutomation size="1rem" stroke={1.5} />,
+            link: '/admin/actions'
+        },
+        {
             label: 'Configuration',
             icon: <IconAdjustmentsCog size="1rem" stroke={1.5} />,
             children: [

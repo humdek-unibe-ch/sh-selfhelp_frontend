@@ -1,0 +1,101 @@
+"use client";
+
+import { useEffect, useMemo, useState } from 'react';
+import { Alert, Button, Group, LoadingOverlay, Modal, ScrollArea, Select, Stack, Text, TextInput, Tabs, Box } from '@mantine/core';
+import { IconInfoCircle } from '@tabler/icons-react';
+import classes from './ActionFormModal.module.css';
+import { useCreateAction, useActionDetails, useUpdateAction } from '../../../../../hooks/useActions';
+import type { ICreateActionRequest, IUpdateActionRequest } from '../../../../../types/requests/admin/actions.types';
+import { useLookupsByType } from '../../../../../hooks/useLookups';
+import { ACTION_TRIGGER_TYPES } from '../../../../../constants/lookups.constants';
+import dynamic from 'next/dynamic';
+import { ActionConfigBuilder } from '../action-config-builder/ActionConfigBuilder';
+
+// Load Monaco JSON editor dynamically
+const MonacoFieldEditor = dynamic(() => import('../../shared/monaco-field-editor/MonacoFieldEditor').then(m => m.MonacoFieldEditor), { ssr: false });
+
+interface IActionFormModalProps {
+  opened: boolean;
+  onClose: () => void;
+  mode: 'create' | 'edit';
+  actionId?: number;
+}
+
+export function ActionFormModal({ opened, onClose, mode, actionId }: IActionFormModalProps) {
+  const { data: details, isLoading: isDetailsLoading } = useActionDetails(actionId || 0);
+  const createMutation = useCreateAction();
+  const updateMutation = useUpdateAction(actionId || 0);
+
+  const triggerLookups = useLookupsByType(ACTION_TRIGGER_TYPES);
+  const triggerData = useMemo(() => triggerLookups.map(l => ({ value: String(l.id), label: l.lookupValue })), [triggerLookups]);
+
+  const [name, setName] = useState('');
+  const [trigger, setTrigger] = useState<string>('');
+  const [configJson, setConfigJson] = useState<string>('{}');
+  const [configObj, setConfigObj] = useState<any>({ blocks: [] });
+
+  useEffect(() => {
+    if (mode === 'edit' && details && opened) {
+      setName(details.name || '');
+      setTrigger(String(details.id_actionTriggerTypes || ''));
+      try { setConfigJson(details.config ? JSON.stringify(details.config, null, 2) : '{}'); setConfigObj(details.config || { blocks: [] }); } catch { setConfigJson('{}'); setConfigObj({ blocks: [] }); }
+    }
+    if (mode === 'create' && opened) {
+      setName(''); setTrigger(''); setConfigJson('{\n  \n}'); setConfigObj({ blocks: [] });
+    }
+  }, [mode, details, opened]);
+
+  const isSaving = createMutation.isPending || updateMutation.isPending;
+
+  const handleSave = async () => {
+    let parsed: any = configObj || null;
+
+    if (mode === 'create') {
+      const payload: ICreateActionRequest = { name, id_actionTriggerTypes: Number(trigger) || trigger, config: parsed || undefined };
+      await createMutation.mutateAsync(payload);
+      onClose();
+    } else if (mode === 'edit' && actionId) {
+      const payload: IUpdateActionRequest = { name, id_actionTriggerTypes: Number(trigger) || trigger, config: parsed || undefined };
+      await updateMutation.mutateAsync(payload);
+      onClose();
+    }
+  };
+
+  return (
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      title={<Text size="lg" fw={600}>{mode === 'create' ? 'Create Action' : 'Edit Action'}</Text>}
+      size="80%"
+      className={classes.modal}
+      scrollAreaComponent={ScrollArea.Autosize}
+      centered
+    >
+      <LoadingOverlay visible={isSaving || (mode === 'edit' && isDetailsLoading)} />
+
+      <Stack gap="md">
+        <div className={classes.formGrid}>
+          <div className={classes.gridCol6}>
+            <TextInput label="Action name" placeholder="Enter action name" value={name} onChange={(e) => setName(e.currentTarget.value)} required />
+          </div>
+          <div className={classes.gridCol6}>
+            <Select label="Trigger type" data={triggerData} value={trigger} onChange={(v) => setTrigger(v || '')} placeholder="Select trigger" searchable clearable />
+          </div>
+          <div className={classes.gridCol12}>
+            <Alert variant="light" icon={<IconInfoCircle size={16} />}>Use the visual builder to configure blocks and jobs, or switch to JSON tab inside the builder.</Alert>
+          </div>
+          <div className={classes.gridCol12}>
+            <ActionConfigBuilder value={configObj} onChange={(cfg) => { setConfigObj(cfg); try { setConfigJson(JSON.stringify(cfg, null, 2)); } catch {} }} />
+          </div>
+        </div>
+
+        <Group justify="flex-end" gap="sm">
+          <Button variant="outline" onClick={onClose} disabled={isSaving}>Cancel</Button>
+          <Button onClick={handleSave} loading={isSaving} disabled={!name || !trigger}>Save</Button>
+        </Group>
+      </Stack>
+    </Modal>
+  );
+}
+
+

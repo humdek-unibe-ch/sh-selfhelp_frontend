@@ -105,6 +105,13 @@ export const API_CONFIG = {
         // Admin permissions endpoints
         ADMIN_PERMISSIONS_GET_ALL: '/admin/permissions',
 
+        // Admin actions endpoints
+        ADMIN_ACTIONS_GET_ALL: '/admin/actions',
+        ADMIN_ACTIONS_GET_ONE: (actionId: number) => `/admin/actions/${actionId}`,
+        ADMIN_ACTIONS_CREATE: '/admin/actions',
+        ADMIN_ACTIONS_UPDATE: (actionId: number) => `/admin/actions/${actionId}`,
+        ADMIN_ACTIONS_DELETE: (actionId: number) => `/admin/actions/${actionId}`,
+
         // Frontend CSS classes endpoint
         FRONTEND_CSS_CLASSES: '/frontend/css-classes',
 

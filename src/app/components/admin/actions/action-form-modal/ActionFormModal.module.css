@@ -1,0 +1,25 @@
+.modal {
+  --modal-size: 80vw;
+}
+
+.modal :global(.mantine-Modal-content) {
+  height: 80vh;
+  max-height: 80vh;
+}
+
+.modal :global(.mantine-Modal-body) {
+  height: calc(100% - 60px);
+  display: flex;
+  flex-direction: column;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1rem;
+}
+
+.gridCol6 { grid-column: span 6; }
+.gridCol12 { grid-column: span 12; }
+
+

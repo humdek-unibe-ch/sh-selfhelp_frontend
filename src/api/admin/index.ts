@@ -25,6 +25,7 @@ import { AdminGenderApi } from './gender.api';
 import { AdminAssetApi } from './asset.api';
 import { AdminPermissionApi } from './permission.api';
 import { AdminScheduledJobsApi } from './scheduled-jobs.api';
+import { AdminActionApi } from './action.api';
 
 export const AdminApi = {
     // Page methods
@@ -52,5 +53,8 @@ export const AdminApi = {
     ...AdminPermissionApi,
     
     // Scheduled Jobs methods
-    ...AdminScheduledJobsApi
+    ...AdminScheduledJobsApi,
+
+    // Actions methods
+    ...AdminActionApi
 }; 
