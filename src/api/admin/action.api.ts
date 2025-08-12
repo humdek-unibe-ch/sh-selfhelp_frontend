@@ -20,7 +20,7 @@ export const AdminActionApi = {
 
   async getActionById(actionId: number): Promise<IActionDetails> {
     const response = await apiClient.get<IBaseApiResponse<IActionDetails>>(API_CONFIG.ENDPOINTS.ADMIN_ACTIONS_GET_ONE(actionId));
-    return response.data.data;
+    return response.data.data as any; // backend returns same nested structure as list
   },
 
   async createAction(payload: ICreateActionRequest): Promise<IActionDetails> {

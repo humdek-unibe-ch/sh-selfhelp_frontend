@@ -1,8 +1,20 @@
 export interface IActionDetails {
   id: number;
   name: string;
-  id_actionTriggerTypes: number | string; // backend may return id or code
-  id_dataTables?: number | null;
+  // Backend returns nested objects for trigger type and data table in list/details
+  action_trigger_type?: {
+    id: number;
+    type_code: string;
+    lookup_code: string;
+    lookup_value: string;
+  };
+  data_table?: {
+    id: number;
+    name: string;
+    displayName: string;
+  };
+  id_actionTriggerTypes?: number | string; // for compatibility when posting/putting
+  id_dataTables?: number | null;           // for compatibility when posting/putting
   config: any | null; // JSON schema-based config
   created_at?: string;
   updated_at?: string;

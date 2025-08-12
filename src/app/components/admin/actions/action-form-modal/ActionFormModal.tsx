@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Button, Group, LoadingOverlay, Modal, ScrollArea, Select, Stack, Text, TextInput, Tabs, Box } from '@mantine/core';
+import { Alert, Button, Group, LoadingOverlay, Modal, ScrollArea, Select, Stack, Text, TextInput, NumberInput } from '@mantine/core';
 import { IconInfoCircle } from '@tabler/icons-react';
 import classes from './ActionFormModal.module.css';
 import { useCreateAction, useActionDetails, useUpdateAction } from '../../../../../hooks/useActions';
@@ -9,6 +9,7 @@ import type { ICreateActionRequest, IUpdateActionRequest } from '../../../../../
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { ACTION_TRIGGER_TYPES } from '../../../../../constants/lookups.constants';
 import dynamic from 'next/dynamic';
+import { useDataTables } from '../../../../../hooks/useData';
 import { ActionConfigBuilder } from '../action-config-builder/ActionConfigBuilder';
 
 // Load Monaco JSON editor dynamically
@@ -31,17 +32,27 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
 
   const [name, setName] = useState('');
   const [trigger, setTrigger] = useState<string>('');
+  const [dataTableId, setDataTableId] = useState<string>('');
   const [configJson, setConfigJson] = useState<string>('{}');
   const [configObj, setConfigObj] = useState<any>({ blocks: [] });
+
+  const { data: tables } = useDataTables();
+  const dataTablesOptions = useMemo(
+    () => (tables?.dataTables || []).map((t) => ({ value: String(t.id), label: t.displayName || t.name })),
+    [tables]
+  );
 
   useEffect(() => {
     if (mode === 'edit' && details && opened) {
       setName(details.name || '');
-      setTrigger(String(details.id_actionTriggerTypes || ''));
+      const triggerId = (details.action_trigger_type?.id ?? details.id_actionTriggerTypes) as any;
+      setTrigger(triggerId ? String(triggerId) : '');
       try { setConfigJson(details.config ? JSON.stringify(details.config, null, 2) : '{}'); setConfigObj(details.config || { blocks: [] }); } catch { setConfigJson('{}'); setConfigObj({ blocks: [] }); }
+      const dtId = (details.data_table?.id ?? details.id_dataTables) as any;
+      setDataTableId(dtId ? String(dtId) : '');
     }
     if (mode === 'create' && opened) {
-      setName(''); setTrigger(''); setConfigJson('{\n  \n}'); setConfigObj({ blocks: [] });
+      setName(''); setTrigger(''); setDataTableId(''); setConfigJson('{\n  \n}'); setConfigObj({ blocks: [] });
     }
   }, [mode, details, opened]);
 
@@ -50,12 +61,14 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
   const handleSave = async () => {
     let parsed: any = configObj || null;
 
+    const id_dataTables = Number(dataTableId) || 0;
+
     if (mode === 'create') {
-      const payload: ICreateActionRequest = { name, id_actionTriggerTypes: Number(trigger) || trigger, config: parsed || undefined };
+      const payload: ICreateActionRequest = { name, id_actionTriggerTypes: Number(trigger) || trigger, id_dataTables, config: parsed || undefined };
       await createMutation.mutateAsync(payload);
       onClose();
     } else if (mode === 'edit' && actionId) {
-      const payload: IUpdateActionRequest = { name, id_actionTriggerTypes: Number(trigger) || trigger, config: parsed || undefined };
+      const payload: IUpdateActionRequest = { name, id_actionTriggerTypes: Number(trigger) || trigger, id_dataTables, config: parsed || undefined };
       await updateMutation.mutateAsync(payload);
       onClose();
     }
@@ -80,6 +93,9 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
           </div>
           <div className={classes.gridCol6}>
             <Select label="Trigger type" data={triggerData} value={trigger} onChange={(v) => setTrigger(v || '')} placeholder="Select trigger" searchable clearable />
+          </div>
+          <div className={classes.gridCol6}>
+            <Select label="Data table" data={dataTablesOptions} value={dataTableId} onChange={(v) => setDataTableId(v || '')} placeholder="Select data table" searchable clearable required />
           </div>
           <div className={classes.gridCol12}>
             <Alert variant="light" icon={<IconInfoCircle size={16} />}>Use the visual builder to configure blocks and jobs, or switch to JSON tab inside the builder.</Alert>

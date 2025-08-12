@@ -29,7 +29,8 @@ export function ActionsPage() {
       <Table.Tr key={action.id}>
         <Table.Td>{action.id}</Table.Td>
         <Table.Td>{action.name}</Table.Td>
-        <Table.Td>{String(action.id_actionTriggerTypes)}</Table.Td>
+        <Table.Td>{action.action_trigger_type?.lookup_value || action.action_trigger_type?.lookup_code || String(action.id_actionTriggerTypes ?? '')}</Table.Td>
+        <Table.Td>{action.data_table?.displayName || action.data_table?.name || ''}</Table.Td>
         <Table.Td>
           <Group gap="xs" justify="right">
             <ActionIcon variant="subtle" color="blue" onClick={() => setEditAction(action)}><IconEdit size={16} /></ActionIcon>
@@ -68,6 +69,7 @@ export function ActionsPage() {
                 <Table.Th>ID</Table.Th>
                 <Table.Th>Name</Table.Th>
                 <Table.Th>Trigger</Table.Th>
+                <Table.Th>Data table</Table.Th>
                 <Table.Th style={{ width: 120 }}></Table.Th>
               </Table.Tr>
             </Table.Thead>

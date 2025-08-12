@@ -35,7 +35,7 @@ export function ActionConfigBuilder({ value, onChange }: IActionConfigBuilderPro
       const groups = await AdminGroupApi.getGroups({ page: 1, pageSize: 1000 });
       setGroupsOptions(groups.groups.map(g => ({ value: String(g.id), label: g.name })));
       const tables = await AdminDataApi.listDataTables();
-      setFormOptions(tables.data_tables.map(t => ({ value: String(t.id), label: t.display_name || t.table_name })));
+      setFormOptions((tables.dataTables || []).map((t: any) => ({ value: String(t.id), label: t.displayName || t.name })));
       const assets = await AdminAssetApi.getAssets({ page: 1, pageSize: 1000 });
       setAssetOptions(assets.assets.map(a => ({ value: a.file_name, label: a.original_name || a.file_name })));
     })();
@@ -66,12 +66,43 @@ export function ActionConfigBuilder({ value, onChange }: IActionConfigBuilderPro
           <Switch checked={!!config.target_groups} onChange={(e) => setConfig({ ...config, target_groups: e.currentTarget.checked })} label="Target groups" />
           <Switch checked={!!config.overwrite_variables} onChange={(e) => setConfig({ ...config, overwrite_variables: e.currentTarget.checked })} label="Overwrite variables" />
         </Group>
+        {config.randomize && (
+          <Group grow>
+            <Switch checked={!!(config.randomizer?.even_presentation)} onChange={(e) => setConfig({ ...config, randomizer: { ...(config.randomizer||{}), even_presentation: e.currentTarget.checked } })} label="Evenly present blocks" />
+            <NumberInput label="Randomly present" min={1} value={config.randomizer?.random_elements ?? 1} onChange={(v) => setConfig({ ...config, randomizer: { ...(config.randomizer||{}), random_elements: Number(v)||1 } })} />
+          </Group>
+        )}
         <Group>
           <Switch checked={!!config.clear_existing_jobs_for_action} onChange={(e) => setConfig({ ...config, clear_existing_jobs_for_action: e.currentTarget.checked })} label="Clear Scheduled Jobs for This Action" />
           <Switch checked={!!config.clear_existing_jobs_for_record_and_action} onChange={(e) => setConfig({ ...config, clear_existing_jobs_for_record_and_action: e.currentTarget.checked })} label="Clear Scheduled Jobs for This Action & Record" />
         </Group>
+        {config.repeat && (
+          <Group grow>
+            <NumberInput label="Occurrences" min={1} value={config.repeater?.occurrences ?? 1} onChange={(v) => setConfig({ ...config, repeater: { ...(config.repeater||{}), occurrences: Number(v)||1 } })} />
+            <Select label="Repeat every" data={[{value:'day',label:'Day'},{value:'week',label:'Week'},{value:'month',label:'Month'}]} value={config.repeater?.frequency || null} onChange={(v)=> setConfig({ ...config, repeater: { ...(config.repeater||{}), frequency: v||undefined } })} />
+          </Group>
+        )}
+        {config.repeat_until_date && (
+          <Stack gap="xs">
+            <TextInput label="Until deadline" placeholder="YYYY-MM-DD HH:mm" value={config.repeater_until_date?.deadline || ''} onChange={(e)=> setConfig({ ...config, repeater_until_date: { ...(config.repeater_until_date||{}), deadline: e.currentTarget.value } })} />
+            <Group grow>
+              <TextInput label="Schedule at" placeholder="HH:mm" value={config.repeater_until_date?.schedule_at || ''} onChange={(e)=> setConfig({ ...config, repeater_until_date: { ...(config.repeater_until_date||{}), schedule_at: e.currentTarget.value } })} />
+              <NumberInput label="Repeat" min={1} max={30} value={config.repeater_until_date?.repeat_every ?? 1} onChange={(v)=> setConfig({ ...config, repeater_until_date: { ...(config.repeater_until_date||{}), repeat_every: Number(v)||1 } })} />
+              <Select label="Frequency" data={[{value:'day',label:'Day'},{value:'week',label:'Week'},{value:'month',label:'Month'}]} value={config.repeater_until_date?.frequency || null} onChange={(v)=> setConfig({ ...config, repeater_until_date: { ...(config.repeater_until_date||{}), frequency: v||undefined } })} />
+            </Group>
+          </Stack>
+        )}
         {config.target_groups && (
           <MultiSelect label="Select target groups" data={groupsOptions} value={config.selected_target_groups || []} onChange={(v) => setConfig({ ...config, selected_target_groups: v })} searchable clearable />
+        )}
+        {config.overwrite_variables && (
+          <MultiSelect label="Overwrite variables" data={[
+            { value: 'send_after', label: 'send_after' },
+            { value: 'send_after_type', label: 'send_after_type' },
+            { value: 'send_on_day_at', label: 'send_on_day_at' },
+            { value: 'custom_time', label: 'custom_time' },
+            { value: 'impersonate_user_code', label: 'impersonate_user_code' },
+          ]} value={config.selected_overwrite_variables || []} onChange={(v)=> setConfig({ ...config, selected_overwrite_variables: v })} searchable clearable />
         )}
       </Stack>
     </Card>
@@ -92,7 +123,13 @@ export function ActionConfigBuilder({ value, onChange }: IActionConfigBuilderPro
           )}
           {st.job_schedule_types === 'after_period_on_day_at_time' && (
             <Group grow>
-              <Select label="Send on" data={[{ value: 'this', label: 'This' }, { value: 'next', label: 'Next' }]} value={st.send_on || null} onChange={(v) => onPatch({ schedule_time: { ...st, send_on: v || undefined } })} />
+              <Select label="Send on" data={[
+                { value: 'this', label: 'This' },
+                { value: 'next', label: 'Next' },
+                { value: 'in_two', label: 'In two' },
+                { value: 'in_three', label: 'In three' },
+                { value: 'in_four', label: 'In four' },
+              ]} value={st.send_on || null} onChange={(v) => onPatch({ schedule_time: { ...st, send_on: v || undefined } })} />
               <Select label="Week day" data={weekdaysData} value={st.send_on_day || null} onChange={(v) => onPatch({ schedule_time: { ...st, send_on_day: v || undefined } })} />
               <TextInput label="at" placeholder="Enter time (HH:mm)" value={st.send_on_day_at || ''} onChange={(e) => onPatch({ schedule_time: { ...st, send_on_day_at: e.currentTarget.value } })} />
             </Group>
