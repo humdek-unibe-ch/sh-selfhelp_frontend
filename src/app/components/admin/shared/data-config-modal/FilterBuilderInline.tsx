@@ -29,17 +29,7 @@ export function FilterBuilderInline({ tableName, initialSql, onSave }: IProps) {
   type TTimeToken = typeof TIME_TOKENS[number];
   const [timeToken, setTimeToken] = useState<TTimeToken | ''>('');
 
-  // Sanitize control elements to avoid passing RQB-only props to DOM
-  const sanitizedControlElements = useMemo(() => {
-    const sanitize = (Comp: any) => (props: any) => {
-      // Strip non-DOM props that trigger React warnings
-      const { ruleOrGroup, ruleGroup, ...rest } = props || {};
-      return <Comp {...rest} />;
-    };
-    return Object.fromEntries(
-      Object.entries(mantineControlElements).map(([key, Comp]) => [key, sanitize(Comp as any)])
-    ) as any;
-  }, []);
+  // Use Mantine control elements directly to preserve editor focus stability
 
   // Helpers to split combined SQL into where/order/limit and extract time token
   function splitCombinedSql(sqlCombined: string | undefined) {
@@ -86,13 +76,26 @@ export function FilterBuilderInline({ tableName, initialSql, onSave }: IProps) {
     return result;
   }
 
+  // Ensure stable IDs on initial query to prevent input remount/focus loss
+  function ensureIds(node: any): any {
+    const withId = { ...node } as any;
+    if (!withId.id) {
+      withId.id = `q_${Math.random().toString(36).slice(2, 10)}`;
+    }
+    if (Array.isArray(withId.rules)) {
+      withId.rules = withId.rules.map((child: any) => ensureIds(child));
+    }
+    return withId;
+  }
+
   // Initialize from initialSql only once to avoid feedback loops with parent state
   useEffect(() => {
     const { whereSql, orderBy: initialOrderBy, limit: initialLimit } = splitCombinedSql(initialSql);
     try {
       if (whereSql) {
         const qb = parseSQL(whereSql) as RuleGroupType;
-        setQuery(qb || initialQuery);
+        const qbWithIds = qb ? (ensureIds(qb) as RuleGroupType) : initialQuery;
+        setQuery(qbWithIds);
       } else {
         setQuery(initialQuery);
       }
@@ -132,26 +135,27 @@ export function FilterBuilderInline({ tableName, initialSql, onSave }: IProps) {
   };
 
   const lastSubmittedSqlRef = useRef<string>('');
+  const debounceRef = useRef<number | null>(null);
 
-  // Apply only when user leaves the control (blur or close builder)
-  const applyIfChanged = () => {
-    const combinedSql = buildCombinedSql();
-    if (combinedSql !== lastSubmittedSqlRef.current) {
-      lastSubmittedSqlRef.current = combinedSql;
-      onSave({ sql: combinedSql });
-    }
-  };
-
-  const containerRef = useRef<HTMLDivElement | null>(null);
-
-  function handleBlurCapture() {
-    // Apply whenever any child input loses focus
-    // Using capture so we run before focus moves elsewhere
-    setTimeout(applyIfChanged, 0);
-  }
+  // Auto-apply with debounce on any builder change (no blur needed)
+  useEffect(() => {
+    const handler = () => {
+      const combinedSql = buildCombinedSql();
+      if (combinedSql !== lastSubmittedSqlRef.current) {
+        lastSubmittedSqlRef.current = combinedSql;
+        onSave({ sql: combinedSql });
+      }
+    };
+    if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    debounceRef.current = window.setTimeout(handler, 500);
+    return () => {
+      if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, orderBy, limit, timeToken]);
 
   return (
-    <Stack gap="sm" ref={containerRef} onBlurCapture={handleBlurCapture}>
+    <Stack gap="sm">
       <MantineSelect
         label="Time range"
         placeholder="None"
@@ -160,12 +164,13 @@ export function FilterBuilderInline({ tableName, initialSql, onSave }: IProps) {
         onChange={(v) => setTimeToken((v as TTimeToken) || '')}
         clearable
       />
+      <Text size="sm" fw={500}>Where clause</Text>
       <QueryBuilder
         fields={fields}
         query={query}
         onQueryChange={setQuery}
         validator={defaultValidator}
-        controlElements={sanitizedControlElements}
+        controlElements={mantineControlElements}
       />
 
       <Divider my="xs" />
