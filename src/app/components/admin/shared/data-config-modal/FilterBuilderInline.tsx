@@ -25,6 +25,9 @@ export function FilterBuilderInline({ tableName, initialSql, onSave }: IProps) {
   const [query, setQuery] = useState<RuleGroupType>(initialQuery);
   const [orderBy, setOrderBy] = useState<Array<{ field: string; direction: 'ASC' | 'DESC' }>>([]);
   const [limit, setLimit] = useState<number | undefined>(undefined);
+  const TIME_TOKENS = ['LAST_HOUR', 'LAST_DAY', 'LAST_WEEK', 'LAST_MONTH', 'LAST_YEAR'] as const;
+  type TTimeToken = typeof TIME_TOKENS[number];
+  const [timeToken, setTimeToken] = useState<TTimeToken | ''>('');
 
   // Sanitize control elements to avoid passing RQB-only props to DOM
   const sanitizedControlElements = useMemo(() => {
@@ -38,7 +41,7 @@ export function FilterBuilderInline({ tableName, initialSql, onSave }: IProps) {
     ) as any;
   }, []);
 
-  // Helpers to split combined SQL into where/order/limit
+  // Helpers to split combined SQL into where/order/limit and extract time token
   function splitCombinedSql(sqlCombined: string | undefined) {
     const result = {
       whereSql: '',
@@ -65,6 +68,19 @@ export function FilterBuilderInline({ tableName, initialSql, onSave }: IProps) {
     // Strip wrapping (1 = 1) placeholder if present
     if (/^\(?\s*1\s*=\s*1\s*\)?$/i.test(where)) {
       where = '';
+    }
+    // Remove leading AND if present (stored filter requires leading AND, but parser does not)
+    where = where.replace(/^\s*AND\s+/i, '');
+    // Extract time token if present at the beginning
+    const upperWhere = where.toUpperCase();
+    for (const token of TIME_TOKENS) {
+      const tokenExpr = `\'${token}\'\s*=\s*\'${token}\'`;
+      const tokenRegex = new RegExp(`^\s*${tokenExpr}(?:\s+AND\s+)?`, 'i');
+      if (tokenRegex.test(where)) {
+        setTimeToken(token);
+        where = where.replace(tokenRegex, '').trim();
+        break;
+      }
     }
     result.whereSql = where;
     return result;
@@ -94,13 +110,21 @@ export function FilterBuilderInline({ tableName, initialSql, onSave }: IProps) {
   const updateOrderByDir = (idx: number, dir: 'ASC' | 'DESC') => setOrderBy((prev) => prev.map((o, i) => i === idx ? { ...o, direction: dir } : o));
 
   const buildCombinedSql = (): string => {
-    // Build WHERE, and provide a user-friendly combined SQL for display
-    let whereSql = '';
+    // Build WHERE parts
+    let formatted = '';
     try {
-      whereSql = formatQuery(query, 'sql');
+      formatted = formatQuery(query, 'sql');
     } catch {
-      whereSql = '';
+      formatted = '';
     }
+    const whereParts: string[] = [];
+    if (timeToken) {
+      whereParts.push(`'${timeToken}' = '${timeToken}'`);
+    }
+    if (formatted && formatted !== '()') {
+      whereParts.push(formatted);
+    }
+    const whereSql = whereParts.length > 0 ? ` AND ${whereParts.join(' AND ')}` : '';
 
     const orderSql = orderBy.length > 0 ? ` ORDER BY ${orderBy.map((o) => `${o.field} ${o.direction}`).join(', ')}` : '';
     const limitSql = typeof limit === 'number' && limit > 0 ? ` LIMIT ${limit}` : '';
@@ -128,6 +152,14 @@ export function FilterBuilderInline({ tableName, initialSql, onSave }: IProps) {
 
   return (
     <Stack gap="sm" ref={containerRef} onBlurCapture={handleBlurCapture}>
+      <MantineSelect
+        label="Time range"
+        placeholder="None"
+        data={[{ value: '', label: 'None' }, ...TIME_TOKENS.map((t) => ({ value: t, label: t.replace('LAST_', 'Last ').toLowerCase().replace(/^\w/, (c) => c.toUpperCase()) }))]}
+        value={timeToken}
+        onChange={(v) => setTimeToken((v as TTimeToken) || '')}
+        clearable
+      />
       <QueryBuilder
         fields={fields}
         query={query}

@@ -227,7 +227,7 @@ export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormP
                         <div style={{ marginTop: 12 }}>
                             <LockedField
                                 label="Filter (SQL only)"
-                                placeholder="SQL WHERE clause"
+                                placeholder="Combined WHERE/ORDER/LIMIT. If WHERE is present it must start with AND ..."
                                 value={dataSource.filter}
                                 onChange={(e) => handleFieldChange('filter', e.currentTarget.value)}
                                 lockedTooltip="Enable manual editing"
