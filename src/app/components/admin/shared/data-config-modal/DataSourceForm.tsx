@@ -205,15 +205,11 @@ export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormP
                 <div className={classes.gridCol12}>
                     <Card withBorder>
                         <Group justify="space-between" align="center">
-                            <Text fw={500}>Filter</Text>
+                            <Text fw={500} className='opacity-0'>Filter</Text>
                             <Button variant="light" size="xs" leftSection={<IconFilter size={14} />} onClick={() => setFilterOpened((v) => !v)}>
                                 {filterOpened ? 'Hide' : 'Show'} builder
                             </Button>
                         </Group>
-
-                        <Text size="xs" c="dimmed" mt="xs">
-                            {filterSummary ? `Summary: ${filterSummary}` : 'No filter specified'}
-                        </Text>
 
                         {filterOpened && (
                             <div style={{ marginTop: 12 }} onBlurCapture={(e) => {

@@ -212,6 +212,7 @@ export function DataConfigModal({
                                         rightSection={
                                             dataSources.length > 1 ? (
                                                 <ActionIcon
+                                                    component="div"
                                                     size="xs"
                                                     color="red"
                                                     variant="subtle"
