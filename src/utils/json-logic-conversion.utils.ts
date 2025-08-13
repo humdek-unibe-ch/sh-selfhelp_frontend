@@ -5,7 +5,7 @@
  * @module utils/json-logic-conversion
  */
 
-import { RuleGroupType, formatQuery } from 'react-querybuilder';
+import { RQBJsonLogic, RuleGroupType, formatQuery } from 'react-querybuilder';
 import { parseJsonLogic } from 'react-querybuilder/parseJsonLogic';
 
 /**
@@ -33,7 +33,7 @@ export function rulesToJsonLogic(rules: RuleGroupType): any {
  * Converts JSON Logic back to React Query Builder rules format
  * Basic implementation for simple JSON Logic structures
  */
-export function jsonLogicToRules(jsonLogic: any): RuleGroupType | null {
+export function jsonLogicToRules(jsonLogic: string | RQBJsonLogic): RuleGroupType | null {
 
     try {
         return parseJsonLogic(jsonLogic);
@@ -51,7 +51,7 @@ export function jsonLogicToRules(jsonLogic: any): RuleGroupType | null {
  * Validates if a JSON Logic object is valid
  */
 export function isValidJsonLogic(jsonLogic: any): boolean {
-    if (!jsonLogic || typeof jsonLogic !== 'object') {
+    if (!jsonLogic) {
         return false;
     }
 

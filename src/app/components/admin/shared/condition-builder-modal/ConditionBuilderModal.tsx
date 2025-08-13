@@ -50,7 +50,6 @@ export function ConditionBuilderModal({
     // Initialize query from initial value - only after data is loaded
     useEffect(() => {
         if (opened && !isLoading && !isError) {
-            initialValue ='{"and":[{"==":[{"var":"user_group"},"admin"]},{"and":[{"<":[{"var":"current_time"},"13:43"]},{"==":[{"var":"page_keyword"},"impressum"]},{"==":[{"var":"platform"},"mobile"]},{"==":[{"var":"language"},"3"]}]}]}';
             if (initialValue && initialValue.trim() !== '') {
                 try {
                     const parsedValue = JSON.parse(initialValue);
@@ -86,20 +85,26 @@ export function ConditionBuilderModal({
 
     const handleSave = async () => {
         setIsSaving(true);
+        
         try {
             console.log('Saving query:', query);
             const jsonLogic = rulesToJsonLogic(query);
             console.log('Generated JSON Logic:', jsonLogic);
 
+            // Print JSON to inspect the generated configuration
+            const jsonString = JSON.stringify(jsonLogic, null, 2);
+            // eslint-disable-next-line no-console
+            console.log('ConditionBuilderModal save JSON:', jsonString);
+            
             await onSave(jsonLogic);
-
+            
             notifications.show({
                 title: 'Success',
                 message: 'Condition saved successfully',
                 color: 'green',
                 icon: <IconCheck size={16} />,
             });
-
+            
             onClose();
         } catch (error) {
             console.error('Failed to save condition:', error);
@@ -114,15 +119,20 @@ export function ConditionBuilderModal({
         }
     };
 
-    const handleCancel = () => {
+    const handleClose = () => {
+        setQuery(initialQuery);
         onClose();
+    };
+
+    const handleCancel = () => {
+        handleClose();
     };
 
     if (isError) {
         return (
             <Modal
                 opened={opened}
-                onClose={onClose}
+                onClose={handleClose}
                 title={title}
                 size="xl"
                 centered
@@ -142,7 +152,7 @@ export function ConditionBuilderModal({
     return (
         <Modal
             opened={opened}
-            onClose={onClose}
+            onClose={handleClose}
             title={title}
             size="xl"
             centered
@@ -162,7 +172,17 @@ export function ConditionBuilderModal({
                             query={query}
                             onQueryChange={setQuery}
                             validator={defaultValidator}
-                            controlClassnames={{ queryBuilder: 'queryBuilder-justified queryBuilder-branches' }}
+                            controlClassnames={{ 
+                                queryBuilder: 'queryBuilder-justified queryBuilder-branches',
+                                ruleGroup: 'ruleGroup',
+                                rule: 'rule',
+                                addRule: 'addRule',
+                                addGroup: 'addGroup',
+                                cloneRule: 'cloneRule',
+                                cloneGroup: 'cloneGroup',
+                                removeRule: 'removeRule',
+                                removeGroup: 'removeGroup'
+                            }}
                             resetOnFieldChange={true}
                         />
                     </QueryBuilderMantine>

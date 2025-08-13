@@ -204,16 +204,37 @@ export function createFieldChangeHandlers<T extends Record<string, any>>(
     const handlePropertyFieldChange = (fieldName: string, languageId: number | null, value: string | boolean) => {
         debug('Property field changed', componentName, {
             fieldName,
-            value
+            languageId,
+            value,
+            valueType: typeof value,
+            valueLength: typeof value === 'string' ? value.length : 'N/A'
         });
 
-        setFormValues(prev => ({
-            ...prev,
-            properties: {
-                ...prev.properties,
-                [fieldName]: value
-            }
-        }));
+        console.log(`[${componentName}] Property field "${fieldName}" changed:`, {
+            fieldName,
+            languageId,
+            value,
+            valueType: typeof value,
+            valueLength: typeof value === 'string' ? value.length : 'N/A'
+        });
+
+        setFormValues(prev => {
+            const newFormValues = {
+                ...prev,
+                properties: {
+                    ...prev.properties,
+                    [fieldName]: value
+                }
+            };
+            
+            console.log(`[${componentName}] Updated form values for "${fieldName}":`, {
+                oldValue: prev.properties?.[fieldName],
+                newValue: value,
+                allProperties: newFormValues.properties
+            });
+            
+            return newFormValues;
+        });
     };
 
     return {

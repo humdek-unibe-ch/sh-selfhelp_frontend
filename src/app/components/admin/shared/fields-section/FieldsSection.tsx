@@ -57,6 +57,23 @@ export function FieldsSection({
             // Single language or property fields
             value = (fieldValues as Record<string, string | boolean>)[field.name] ?? '';
         }
+        
+        // Debug logging for condition and data-config fields
+        if (field.type === 'condition' || field.type === 'data-config') {
+            console.log(`FieldsSection: Rendering ${field.type} field "${field.name}":`, {
+                fieldId: field.id,
+                fieldName: field.name,
+                fieldType: field.type,
+                isMultiLanguage,
+                languageId,
+                value,
+                valueType: typeof value,
+                valueLength: typeof value === 'string' ? value.length : 'N/A',
+                fieldValues: isMultiLanguage ? 
+                    (fieldValues as Record<string, Record<number, string>>)[field.name] : 
+                    (fieldValues as Record<string, string | boolean>)[field.name]
+            });
+        }
 
         const currentLanguage = languageId ? languages.find(lang => lang.id === languageId) : undefined;
         const locale = currentLanguage?.locale;

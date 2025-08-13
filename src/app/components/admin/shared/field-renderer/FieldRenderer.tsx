@@ -291,6 +291,15 @@ export function FieldRenderer({
 
     // Condition field - use Condition Builder
     if (field.type === 'condition') {
+        console.log('FieldRenderer: Rendering condition field:', {
+            fieldId: field.id,
+            fieldName: field.name,
+            fieldValue,
+            originalValue: value,
+            valueType: typeof value,
+            fieldValueType: typeof fieldValue
+        });
+        
         return renderFieldWithBadge(
             <ConditionBuilderField
                 fieldId={field.id}

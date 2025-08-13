@@ -263,6 +263,19 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
                     finalValue: propertyFieldsObject[field.name],
                     fieldType: field.type
                 });
+                
+                // Additional debug logging for condition and data-config fields
+                if (field.type === 'condition' || field.type === 'data-config') {
+                    console.log(`[SectionInspector] Loading ${field.type} field "${field.name}":`, {
+                        fieldId: field.id,
+                        fieldType: field.type,
+                        translations: field.translations,
+                        propertyTranslation: propertyTranslation,
+                        rawValue: value,
+                        finalValue: propertyFieldsObject[field.name],
+                        valueLength: typeof value === 'string' ? value.length : 'N/A'
+                    });
+                }
             });
             
             const newFormValues = {
@@ -363,12 +376,32 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
             const currentValue = formValues.properties[field.name];
             const originalValue = originalValues.properties[field.name];
             
+            // Debug logging for condition and data-config fields
+            if (field.type === 'condition' || field.type === 'data-config') {
+                console.log(`[SectionInspector] Processing ${field.type} field "${field.name}":`, {
+                    fieldId: field.id,
+                    fieldType: field.type,
+                    currentValue: currentValue,
+                    originalValue: originalValue,
+                    hasChanged: currentValue !== originalValue,
+                    currentValueType: typeof currentValue,
+                    currentValueLength: typeof currentValue === 'string' ? currentValue.length : 'N/A'
+                });
+            }
+            
             // Only include if value has changed
             if (currentValue !== originalValue) {
-                submitData.propertyFields.push({
+                const fieldEntry = {
                     fieldId: field.id,
                     value: currentValue !== undefined ? currentValue : ''
-                });
+                };
+                
+                submitData.propertyFields.push(fieldEntry);
+                
+                // Debug logging for condition and data-config fields
+                if (field.type === 'condition' || field.type === 'data-config') {
+                    console.log(`[SectionInspector] Added ${field.type} field to submit data:`, fieldEntry);
+                }
             }
         });
         
