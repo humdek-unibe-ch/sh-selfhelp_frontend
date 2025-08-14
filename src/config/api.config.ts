@@ -4,7 +4,7 @@
  * Frontend is running at http://localhost:3000/Teilnahme
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost/symfony';
 
 export const API_CONFIG = {
     BACKEND_URL: API_BASE_URL,
