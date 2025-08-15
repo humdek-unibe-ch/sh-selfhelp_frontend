@@ -129,6 +129,11 @@ export const API_CONFIG = {
         ADMIN_CACHE_CLEAR_USER: '/admin/cache/clear/user',
         ADMIN_CACHE_RESET_STATS: '/admin/cache/stats/reset',
         ADMIN_CACHE_HEALTH: '/admin/cache/health',
+        ADMIN_CACHE_CLEAR_API_ROUTES: '/admin/cache/api-routes/clear',
+
+        // Admin section utility endpoints
+        ADMIN_SECTIONS_UNUSED_GET: '/admin/sections/unused',
+        ADMIN_SECTIONS_REF_CONTAINERS_GET: '/admin/sections/ref-containers',
 
         // Admin data management endpoints
         ADMIN_DATA_TABLES_LIST: '/admin/data/tables',

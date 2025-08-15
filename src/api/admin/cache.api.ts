@@ -57,4 +57,12 @@ export const AdminCacheApi = {
         const response = await apiClient.get(API_CONFIG.ENDPOINTS.ADMIN_CACHE_HEALTH);
         return response.data;
     },
+
+    /**
+     * Clear API routes cache
+     */
+    async clearApiRoutesCache(): Promise<IResponseEnvelope<ICacheClearedResponse>> {
+        const response = await apiClient.post(API_CONFIG.ENDPOINTS.ADMIN_CACHE_CLEAR_API_ROUTES);
+        return response.data;
+    },
 };

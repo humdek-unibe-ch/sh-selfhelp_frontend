@@ -7,8 +7,9 @@
 
 import React, { useState, useMemo } from 'react';
 import { Card, Title, Stack, Button, Group, Select, Alert, ActionIcon } from '@mantine/core';
-import { IconTrash, IconRefresh, IconUser, IconDatabase, IconX } from '@tabler/icons-react';
+import { IconTrash, IconRefresh, IconUser, IconDatabase, IconX, IconRoute } from '@tabler/icons-react';
 import { useClearAllCachesMutation, useClearCacheCategoryMutation, useClearUserCacheMutation, useResetCacheStatsMutation } from '../../../../../hooks/useCache';
+import { useClearApiRoutesCacheMutation } from '../../../../../hooks/useSectionUtility';
 import { useUsers } from '../../../../../hooks/useUsers';
 import type { TCacheCategory } from '../../../../../types/responses/admin/cache.types';
 
@@ -35,6 +36,7 @@ export function CacheManagementCard() {
     const clearCacheCategoryMutation = useClearCacheCategoryMutation();
     const clearUserCacheMutation = useClearUserCacheMutation();
     const resetCacheStatsMutation = useResetCacheStatsMutation();
+    const clearApiRoutesCacheMutation = useClearApiRoutesCacheMutation();
 
     // Fetch users for the user selector
     const { data: usersResp } = useUsers({ page: 1, pageSize: 1000, sort: 'email', sortDirection: 'asc' });
@@ -75,11 +77,16 @@ export function CacheManagementCard() {
         resetCacheStatsMutation.mutate();
     };
 
+    const handleClearApiRoutesCache = () => {
+        clearApiRoutesCacheMutation.mutate();
+    };
+
     const isAnyMutationLoading = 
         clearAllCachesMutation.isPending ||
         clearCacheCategoryMutation.isPending ||
         clearUserCacheMutation.isPending ||
-        resetCacheStatsMutation.isPending;
+        resetCacheStatsMutation.isPending ||
+        clearApiRoutesCacheMutation.isPending;
 
     return (
         <Card shadow="sm" padding="lg" radius="md" withBorder h="100%">
@@ -179,6 +186,19 @@ export function CacheManagementCard() {
                         </Button>
                     </Group>
                 </Stack>
+
+                {/* Clear API Routes Cache */}
+                <Button
+                    variant="filled"
+                    color="violet"
+                    leftSection={<IconRoute size={16} />}
+                    onClick={handleClearApiRoutesCache}
+                    loading={clearApiRoutesCacheMutation.isPending}
+                    disabled={isAnyMutationLoading}
+                    fullWidth
+                >
+                    Clear API Routes Cache
+                </Button>
 
                 {/* Reset Cache Statistics */}
                 <Button

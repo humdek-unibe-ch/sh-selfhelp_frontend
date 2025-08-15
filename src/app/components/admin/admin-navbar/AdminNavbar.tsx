@@ -211,6 +211,11 @@ export function AdminNavbar() {
                     link: '/admin/cache'
                 },
                 {
+                    label: 'Unused Sections',
+                    icon: <IconDatabase size="0.9rem" stroke={1.5} />,
+                    link: '/admin/unused-sections'
+                },
+                {
                     label: 'System Config',
                     icon: <IconAdjustmentsCog size="0.9rem" stroke={1.5} />,
                     link: '/admin/configuration'
