@@ -13,6 +13,7 @@ import { CacheStatisticsCard } from '../cache-statistics-card/CacheStatisticsCar
 import { CacheHealthCard } from '../cache-health-card/CacheHealthCard';
 import { CacheManagementCard } from '../cache-management-card/CacheManagementCard';
 import { CacheCategoriesCard } from '../cache-categories-card/CacheCategoriesCard';
+import { CachePerformanceCard } from '../cache-performance-card/CachePerformanceCard';
 
 export function CachePage() {
     const { data: cacheStats, isLoading: isLoadingStats, error: statsError } = useCacheStats();
@@ -54,24 +55,25 @@ export function CachePage() {
                 </Alert>
 
                 <Grid>
-                    {/* Cache Health - Top priority */}
+                    {/* Row 1: Health and Statistics */}
                     <Grid.Col span={{ base: 12, md: 6 }}>
                         <CacheHealthCard health={cacheHealth} isLoading={isLoadingHealth} />
                     </Grid.Col>
-
-                    {/* Cache Statistics */}
                     <Grid.Col span={{ base: 12, md: 6 }}>
                         <CacheStatisticsCard stats={cacheStats} isLoading={isLoadingStats} />
                     </Grid.Col>
 
-                    {/* Cache Management Actions */}
+                    {/* Row 2: Performance and Management */}
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                        <CachePerformanceCard stats={cacheStats} isLoading={isLoadingStats} />
+                    </Grid.Col>
                     <Grid.Col span={{ base: 12, md: 6 }}>
                         <CacheManagementCard />
                     </Grid.Col>
 
-                    {/* Cache Categories */}
-                    <Grid.Col span={{ base: 12, md: 6 }}>
-                        <CacheCategoriesCard categories={cacheStats?.cache_categories} isLoading={isLoadingStats} />
+                    {/* Row 3: Categories (full width for better display) */}
+                    <Grid.Col span={12}>
+                        <CacheCategoriesCard stats={cacheStats} isLoading={isLoadingStats} />
                     </Grid.Col>
                 </Grid>
             </Stack>

@@ -6,11 +6,12 @@
 'use client';
 
 import React from 'react';
-import { Card, Title, Text, Stack, Badge, SimpleGrid, Skeleton, Alert } from '@mantine/core';
-import { IconInfoCircle } from '@tabler/icons-react';
+import { Card, Title, Text, Stack, Badge, SimpleGrid, Skeleton, Alert, Group, Progress } from '@mantine/core';
+import { IconInfoCircle, IconTrendingUp, IconTrendingDown } from '@tabler/icons-react';
+import type { ICacheStatsResponse } from '../../../../../types/responses/admin/cache.types';
 
 interface ICacheCategoriesCardProps {
-    categories?: string[];
+    stats?: ICacheStatsResponse;
     isLoading?: boolean;
 }
 
@@ -27,9 +28,10 @@ const CATEGORY_DESCRIPTIONS: Record<string, { label: string; description: string
     frontend_user: { label: 'Frontend User', description: 'Frontend user sessions', color: 'lime' },
     cms_preferences: { label: 'CMS Preferences', description: 'System configuration', color: 'yellow' },
     scheduled_jobs: { label: 'Scheduled Jobs', description: 'Background job data', color: 'grape' },
+    actions: { label: 'Actions', description: 'System actions and workflows', color: 'violet' },
 };
 
-export function CacheCategoriesCard({ categories, isLoading }: ICacheCategoriesCardProps) {
+export function CacheCategoriesCard({ stats, isLoading }: ICacheCategoriesCardProps) {
     if (isLoading) {
         return (
             <Card shadow="sm" padding="lg" radius="md" withBorder h="100%">
@@ -45,7 +47,7 @@ export function CacheCategoriesCard({ categories, isLoading }: ICacheCategoriesC
         );
     }
 
-    if (!categories || categories.length === 0) {
+    if (!stats) {
         return (
             <Card shadow="sm" padding="lg" radius="md" withBorder h="100%">
                 <Alert
@@ -60,36 +62,90 @@ export function CacheCategoriesCard({ categories, isLoading }: ICacheCategoriesC
         );
     }
 
+    const { cache_categories, cache_stats, cache_pools } = stats;
+
     return (
         <Card shadow="sm" padding="lg" radius="md" withBorder h="100%">
             <Stack gap="md">
                 <Title order={3}>Cache Categories</Title>
                 
                 <Text size="sm" c="dimmed">
-                    {categories.length} cache categories available
+                    {cache_categories.length} cache categories available
                 </Text>
 
-                <SimpleGrid cols={1} spacing="xs">
-                    {categories.map((category) => {
+                <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="xs">
+                    {cache_categories.map((category) => {
                         const info = CATEGORY_DESCRIPTIONS[category] || {
                             label: category,
                             description: 'Cache category',
                             color: 'gray'
                         };
+                        
+                        const categoryStats = cache_stats.category_stats[category];
+                        const pool = cache_pools[categoryStats?.cache_pool] || null;
 
                         return (
-                            <Stack key={category} gap="xs" p="sm" style={{ borderRadius: '8px', border: '1px solid var(--mantine-color-gray-3)' }}>
-                                <Badge
-                                    color={info.color}
-                                    variant="light"
-                                    size="sm"
-                                    style={{ alignSelf: 'flex-start' }}
-                                >
-                                    {info.label}
-                                </Badge>
+                            <Stack key={category} gap="xs" p="sm" style={{ 
+                                borderRadius: '8px', 
+                                border: '1px solid var(--mantine-color-gray-3)',
+                                height: '100%'
+                            }}>
+                                <Group justify="space-between" align="center">
+                                    <Badge
+                                        color={info.color}
+                                        variant="light"
+                                        size="sm"
+                                    >
+                                        {info.label}
+                                    </Badge>
+                                    
+                                    {categoryStats && categoryStats.hit_rate > 0 ? (
+                                        <IconTrendingUp size={12} color="var(--mantine-color-green-6)" />
+                                    ) : (
+                                        <IconTrendingDown size={12} color="var(--mantine-color-gray-6)" />
+                                    )}
+                                </Group>
+                                
                                 <Text size="xs" c="dimmed">
                                     {info.description}
                                 </Text>
+                                
+                                {pool && (
+                                    <Text size="xs" c="dimmed">
+                                        Pool: {pool.name}
+                                    </Text>
+                                )}
+                                
+                                {categoryStats && (
+                                    <Stack gap={4}>
+                                        <Group justify="space-between">
+                                            <Text size="xs" fw={600}>
+                                                Hit Rate
+                                            </Text>
+                                            <Text size="xs" fw={600} c={categoryStats.hit_rate > 80 ? 'green' : categoryStats.hit_rate > 60 ? 'yellow' : 'red'}>
+                                                {categoryStats.hit_rate.toFixed(1)}%
+                                            </Text>
+                                        </Group>
+                                        
+                                        <Progress
+                                            value={categoryStats.hit_rate}
+                                            size="xs"
+                                            color={categoryStats.hit_rate > 80 ? 'green' : categoryStats.hit_rate > 60 ? 'yellow' : 'red'}
+                                        />
+                                        
+                                        <Group justify="space-between">
+                                            <Text size="xs" c="green">
+                                                {categoryStats.hits}H
+                                            </Text>
+                                            <Text size="xs" c="red">
+                                                {categoryStats.misses}M
+                                            </Text>
+                                            <Text size="xs" c="blue">
+                                                {categoryStats.sets}S
+                                            </Text>
+                                        </Group>
+                                    </Stack>
+                                )}
                             </Stack>
                         );
                     })}
