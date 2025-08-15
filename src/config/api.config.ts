@@ -134,6 +134,9 @@ export const API_CONFIG = {
         // Admin section utility endpoints
         ADMIN_SECTIONS_UNUSED_GET: '/admin/sections/unused',
         ADMIN_SECTIONS_REF_CONTAINERS_GET: '/admin/sections/ref-containers',
+        ADMIN_SECTIONS_UNUSED_DELETE: (sectionId: number) => `/admin/sections/unused/${sectionId}`,
+        ADMIN_SECTIONS_UNUSED_DELETE_ALL: '/admin/sections/unused',
+        ADMIN_SECTIONS_FORCE_DELETE: (pageKeyword: string, sectionId: number) => `/admin/pages/${pageKeyword}/sections/${sectionId}/force-delete`,
 
         // Admin data management endpoints
         ADMIN_DATA_TABLES_LIST: '/admin/data/tables',

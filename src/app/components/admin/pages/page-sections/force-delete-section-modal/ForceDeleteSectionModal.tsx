@@ -13,25 +13,26 @@ import {
     Badge
 } from '@mantine/core';
 import { IconAlertTriangle, IconTrash } from '@tabler/icons-react';
-import { useDeleteUnusedSectionMutation } from '../../../../../hooks/useSectionUtility';
-import type { IUnusedSection } from '../../../../../types/responses/admin/section-utility.types';
+import { useForceDeleteSectionMutation } from '../../../../../hooks/useSectionUtility';
 
-interface IDeleteUnusedSectionModalProps {
-    section: IUnusedSection | null;
+interface IForceDeleteSectionModalProps {
+    section: { id: number; name: string } | null;
+    pageKeyword: string;
     opened: boolean;
     onClose: () => void;
     onDeleted: () => void;
 }
 
-export function DeleteUnusedSectionModal({ 
+export function ForceDeleteSectionModal({ 
     section, 
+    pageKeyword,
     opened, 
     onClose, 
     onDeleted 
-}: IDeleteUnusedSectionModalProps) {
+}: IForceDeleteSectionModalProps) {
     const [confirmationText, setConfirmationText] = useState('');
 
-    const deleteMutation = useDeleteUnusedSectionMutation();
+    const deleteMutation = useForceDeleteSectionMutation();
 
     const handleClose = () => {
         setConfirmationText('');
@@ -40,7 +41,7 @@ export function DeleteUnusedSectionModal({
 
     const handleDelete = () => {
         if (!section) return;
-        deleteMutation.mutate(section.id, {
+        deleteMutation.mutate({ pageKeyword, sectionId: section.id }, {
             onSuccess: () => {
                 handleClose();
                 onDeleted();
@@ -50,7 +51,8 @@ export function DeleteUnusedSectionModal({
 
     if (!section) return null;
 
-    const isConfirmationValid = confirmationText === section.name;
+    const confirmationPhrase = 'FORCE DELETE';
+    const isConfirmationValid = confirmationText === confirmationPhrase;
 
     return (
         <Modal
@@ -59,7 +61,7 @@ export function DeleteUnusedSectionModal({
             title={
                 <Group gap="sm">
                     <IconAlertTriangle color="var(--mantine-color-red-6)" size={20} />
-                    <Text fw={600} c="red">Delete Unused Section</Text>
+                    <Text fw={600} c="red">Force Delete Section</Text>
                 </Group>
             }
             size="md"
@@ -71,10 +73,11 @@ export function DeleteUnusedSectionModal({
                     color="red"
                     variant="light"
                 >
-                    <Text fw={500} mb="xs">This action cannot be undone!</Text>
+                    <Text fw={500} mb="xs">Dangerous Operation - This action cannot be undone!</Text>
                     <Text size="sm">
-                        You are about to permanently delete this unused section and all its data. 
-                        This action is irreversible.
+                        Force delete will permanently remove this section from the page, even if it has children 
+                        or is referenced elsewhere. This is more aggressive than a normal delete and may cause 
+                        data inconsistencies.
                     </Text>
                 </Alert>
 
@@ -90,18 +93,8 @@ export function DeleteUnusedSectionModal({
                             <Text>{section.id}</Text>
                         </Group>
                         <Group justify="space-between">
-                            <Text fw={500}>Style:</Text>
-                            <Badge
-                                size="sm"
-                                variant="light"
-                                color={section.styleName ? "blue" : "gray"}
-                            >
-                                {section.styleName || 'No style'}
-                            </Badge>
-                        </Group>
-                        <Group justify="space-between">
-                            <Text fw={500}>Style ID:</Text>
-                            <Text>{section.idStyles}</Text>
+                            <Text fw={500}>Page:</Text>
+                            <Badge variant="light" color="blue">{pageKeyword}</Badge>
                         </Group>
                     </Stack>
                 </Card>
@@ -109,13 +102,13 @@ export function DeleteUnusedSectionModal({
                 {/* Confirmation Input */}
                 <Stack gap="xs">
                     <Text fw={500}>
-                        To confirm deletion, type the section name: <Text span c="red" fw={600}>{section.name}</Text>
+                        To confirm force deletion, type: <Text span c="red" fw={600}>{confirmationPhrase}</Text>
                     </Text>
                     <TextInput
-                        placeholder={`Type "${section.name}" to confirm`}
+                        placeholder={`Type "${confirmationPhrase}" to confirm`}
                         value={confirmationText}
                         onChange={(event) => setConfirmationText(event.currentTarget.value)}
-                        error={confirmationText && !isConfirmationValid ? 'Section name does not match' : null}
+                        error={confirmationText && !isConfirmationValid ? 'Confirmation phrase does not match' : null}
                     />
                 </Stack>
 
@@ -135,7 +128,7 @@ export function DeleteUnusedSectionModal({
                         disabled={!isConfirmationValid || deleteMutation.isPending}
                         loading={deleteMutation.isPending}
                     >
-                        Delete Section
+                        Force Delete Section
                     </Button>
                 </Group>
             </Stack>

@@ -72,6 +72,8 @@ export function AddSectionModal({
     const { data: unusedSections, isLoading: isLoadingUnused, error: unusedError } = useUnusedSections();
     const { data: refContainerSections, isLoading: isLoadingRefContainers, error: refContainersError } = useRefContainerSections();
 
+
+
     // Section operations hook
     const sectionOperations = useSectionOperations({
         pageKeyword,

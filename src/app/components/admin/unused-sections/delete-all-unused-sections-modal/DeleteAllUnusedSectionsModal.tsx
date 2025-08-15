@@ -14,8 +14,7 @@ import {
     ScrollArea
 } from '@mantine/core';
 import { IconAlertTriangle, IconTrash } from '@tabler/icons-react';
-import { notifications } from '@mantine/notifications';
-import { useMutation } from '@tanstack/react-query';
+import { useDeleteAllUnusedSectionsMutation } from '../../../../../hooks/useSectionUtility';
 import type { IUnusedSection } from '../../../../../types/responses/admin/section-utility.types';
 
 interface IDeleteAllUnusedSectionsModalProps {
@@ -33,31 +32,7 @@ export function DeleteAllUnusedSectionsModal({
 }: IDeleteAllUnusedSectionsModalProps) {
     const [confirmationText, setConfirmationText] = useState('');
 
-    const deleteAllMutation = useMutation({
-        mutationFn: async (sectionIds: number[]) => {
-            // Since unused sections are not assigned to any page, we need a direct bulk delete endpoint
-            // For now, we'll use a generic approach - this may need backend support
-            throw new Error('Bulk section deletion not implemented yet. Please contact an administrator.');
-        },
-        onSuccess: () => {
-            notifications.show({
-                title: 'Success',
-                message: `${sections.length} sections deleted successfully`,
-                color: 'green',
-            });
-            handleClose();
-            onDeleted();
-        },
-        onError: (error: any) => {
-            console.error('Failed to delete sections:', error);
-            notifications.show({
-                title: 'Error',
-                message: error?.message || 'Failed to delete sections',
-                color: 'red',
-                autoClose: false,
-            });
-        },
-    });
+    const deleteAllMutation = useDeleteAllUnusedSectionsMutation();
 
     const handleClose = () => {
         setConfirmationText('');
@@ -65,8 +40,12 @@ export function DeleteAllUnusedSectionsModal({
     };
 
     const handleDeleteAll = () => {
-        const sectionIds = sections.map(section => section.id);
-        deleteAllMutation.mutate(sectionIds);
+        deleteAllMutation.mutate(undefined, {
+            onSuccess: () => {
+                handleClose();
+                onDeleted();
+            }
+        });
     };
 
     const confirmationPhrase = 'DELETE ALL SECTIONS';

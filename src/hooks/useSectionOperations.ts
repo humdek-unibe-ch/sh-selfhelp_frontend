@@ -17,7 +17,9 @@ import {
 } from '../utils/section-operations.utils';
 import { 
     useCreateSectionInPageMutation, 
-    useCreateSectionInSectionMutation 
+    useCreateSectionInSectionMutation,
+    useAddSectionToPageMutation,
+    useAddSectionToSectionMutation
 } from './mutations';
 import { importSectionsToPage, importSectionsToSection } from '../api/admin/section.api';
 import { notifications } from '@mantine/notifications';
@@ -36,6 +38,10 @@ export interface ISectionOperationsResult {
     // Create operations
     createSectionInPage: (styleId: number, options?: ISectionOperationOptions & { name?: string }) => Promise<void>;
     createSectionInSection: (parentSectionId: number, styleId: number, options?: ISectionOperationOptions & { name?: string }) => Promise<void>;
+    
+    // Add operations (for existing sections)
+    addSectionToPage: (sectionId: number, options?: ISectionOperationOptions) => Promise<void>;
+    addSectionToSection: (parentSectionId: number, sectionId: number, options?: ISectionOperationOptions) => Promise<void>;
     
     // Import operations
     importSectionsToPage: (sections: ISectionExportData[], options?: ISectionOperationOptions) => Promise<void>;
@@ -66,6 +72,31 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
     });
 
     const createSectionInSectionMutation = useCreateSectionInSectionMutation({
+        showNotifications,
+        pageKeyword,
+        onSuccess: (result) => {
+            const sectionId = result?.id || result?.section?.id;
+            if (sectionId && onSectionCreated) {
+                onSectionCreated(sectionId);
+            }
+            onSuccess?.(result);
+        },
+        onError: (error) => onError?.(error)
+    });
+
+    const addSectionToPageMutation = useAddSectionToPageMutation({
+        showNotifications,
+        onSuccess: (result) => {
+            const sectionId = result?.id || result?.section?.id;
+            if (sectionId && onSectionCreated) {
+                onSectionCreated(sectionId);
+            }
+            onSuccess?.(result);
+        },
+        onError: (error) => onError?.(error)
+    });
+
+    const addSectionToSectionMutation = useAddSectionToSectionMutation({
         showNotifications,
         pageKeyword,
         onSuccess: (result) => {
@@ -138,6 +169,58 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
             sectionData
         });
     }, [pageKeyword, createSectionInSectionMutation]);
+
+    // Add existing section to page
+    const addSectionToPage = useCallback(async (
+        sectionId: number, 
+        options: ISectionOperationOptions = {}
+    ) => {
+        if (!pageKeyword) {
+            throw new Error('Page keyword is required for section operations');
+        }
+
+        const position = options.specificPosition !== undefined ? options.specificPosition : -1;
+        
+        logSectionOperation('Add Section to Page', { sectionId }, {
+            position,
+            description: options.specificPosition !== undefined 
+                ? `Specific position: ${options.specificPosition}` 
+                : 'Default position (-1)'
+        });
+
+        await addSectionToPageMutation.mutateAsync({
+            keyword: pageKeyword,
+            sectionId,
+            sectionData: { position }
+        });
+    }, [pageKeyword, addSectionToPageMutation]);
+
+    // Add existing section to section
+    const addSectionToSection = useCallback(async (
+        parentSectionId: number,
+        sectionId: number, 
+        options: ISectionOperationOptions = {}
+    ) => {
+        if (!pageKeyword) {
+            throw new Error('Page keyword is required for section operations');
+        }
+
+        const position = options.specificPosition !== undefined ? options.specificPosition : -1;
+        
+        logSectionOperation('Add Section to Section', { sectionId, parentSectionId }, {
+            position,
+            description: options.specificPosition !== undefined 
+                ? `Specific position: ${options.specificPosition}` 
+                : 'Default position (-1)'
+        });
+
+        await addSectionToSectionMutation.mutateAsync({
+            keyword: pageKeyword,
+            parentSectionId,
+            sectionId,
+            sectionData: { position }
+        });
+    }, [pageKeyword, addSectionToSectionMutation]);
 
     // Import sections to page
     const importSectionsToPageHandler = useCallback(async (
@@ -345,8 +428,13 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
     return {
         createSectionInPage,
         createSectionInSection,
+        addSectionToPage,
+        addSectionToSection,
         importSectionsToPage: importSectionsToPageHandler,
         importSectionsToSection: importSectionsToSectionHandler,
-        isLoading: createSectionInPageMutation.isPending || createSectionInSectionMutation.isPending
+        isLoading: createSectionInPageMutation.isPending || 
+                   createSectionInSectionMutation.isPending ||
+                   addSectionToPageMutation.isPending ||
+                   addSectionToSectionMutation.isPending
     };
 } 

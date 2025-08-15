@@ -17,7 +17,8 @@ export function useUnusedSections() {
         },
         staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
-        select: (data: IUnusedSectionsData) => data,
+        retry: 3,
+        retryDelay: 1000,
     });
 }
 
@@ -33,7 +34,8 @@ export function useRefContainerSections() {
         },
         staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
-        select: (data: IRefContainerSectionsData) => data,
+        retry: 3,
+        retryDelay: 1000,
     });
 }
 
@@ -61,6 +63,100 @@ export function useClearApiRoutesCacheMutation() {
                 title: 'Error',
                 message: error?.response?.data?.message || 'Failed to clear API routes cache',
                 color: 'red',
+            });
+        },
+    });
+}
+
+/**
+ * Hook to delete a specific unused section
+ */
+export function useDeleteUnusedSectionMutation() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (sectionId: number) => AdminSectionUtilityApi.deleteUnusedSection(sectionId),
+        onSuccess: (data) => {
+            notifications.show({
+                title: 'Success',
+                message: data.message || 'Section deleted successfully',
+                color: 'green',
+            });
+
+            // Invalidate unused sections queries
+            queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'unused'] });
+        },
+        onError: (error: any) => {
+            console.error('Failed to delete unused section:', error);
+            notifications.show({
+                title: 'Error',
+                message: error?.response?.data?.message || 'Failed to delete section',
+                color: 'red',
+                autoClose: false,
+            });
+        },
+    });
+}
+
+/**
+ * Hook to delete all unused sections
+ */
+export function useDeleteAllUnusedSectionsMutation() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: () => AdminSectionUtilityApi.deleteAllUnusedSections(),
+        onSuccess: (data) => {
+            notifications.show({
+                title: 'Success',
+                message: data.message || 'All unused sections deleted successfully',
+                color: 'green',
+            });
+
+            // Invalidate unused sections queries
+            queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'unused'] });
+        },
+        onError: (error: any) => {
+            console.error('Failed to delete all unused sections:', error);
+            notifications.show({
+                title: 'Error',
+                message: error?.response?.data?.message || 'Failed to delete all sections',
+                color: 'red',
+                autoClose: false,
+            });
+        },
+    });
+}
+
+/**
+ * Hook to force delete a section from a page
+ */
+export function useForceDeleteSectionMutation() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ pageKeyword, sectionId }: { pageKeyword: string; sectionId: number }) => 
+            AdminSectionUtilityApi.forceDeleteSection(pageKeyword, sectionId),
+        onSuccess: (data, variables) => {
+            notifications.show({
+                title: 'Success',
+                message: data.message || 'Section force deleted successfully',
+                color: 'green',
+            });
+
+            // Invalidate page sections and unused sections queries
+            queryClient.invalidateQueries({ queryKey: ['adminPages'] });
+            queryClient.invalidateQueries({ queryKey: ['page-content'] });
+            queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'unused'] });
+            queryClient.invalidateQueries({ queryKey: ['admin', 'pages', variables.pageKeyword, 'sections'] });
+        },
+        onError: (error: any) => {
+            console.error('Failed to force delete section:', error);
+            notifications.show({
+                title: 'Error',
+                message: error?.response?.data?.message || 'Failed to force delete section',
+                color: 'red',
+                autoClose: false,
             });
         },
     });
