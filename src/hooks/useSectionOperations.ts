@@ -276,25 +276,10 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
                 importedSectionIds = responseData.sectionIds;
             }
             
-            debug('Extracted section IDs for auto-selection', 'useSectionOperations', { 
-                importedSectionIds,
-                hasCallback: !!onSectionsImported,
-                sectionsCount: sections.length
-            });
-            
             if (importedSectionIds.length > 0 && onSectionsImported) {
                 onSectionsImported(importedSectionIds);
             } else if (onSectionsImported && sections.length > 0) {
-                // If we couldn't extract section IDs but have sections, log a warning
-                // This ensures the callback is called but with empty array
-                debug('Could not extract section IDs from import response, calling callback with empty array', 'useSectionOperations', { 
-                    responseStructure: Object.keys(responseData || {}),
-                    dataStructure: Object.keys(responseData?.data || {}),
-                    fullResponse: responseData
-                });
-                
-                // Still call the callback so the UI can handle the import completion
-                // The callback implementation can decide how to handle empty section IDs
+                // If we couldn't extract section IDs but have sections, still call the callback
                 onSectionsImported([]);
             }
             
@@ -378,25 +363,10 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
                 importedSectionIds = responseData.sectionIds;
             }
             
-            debug('Extracted section IDs for auto-selection', 'useSectionOperations', { 
-                importedSectionIds,
-                hasCallback: !!onSectionsImported,
-                sectionsCount: sections.length
-            });
-            
             if (importedSectionIds.length > 0 && onSectionsImported) {
                 onSectionsImported(importedSectionIds);
             } else if (onSectionsImported && sections.length > 0) {
-                // If we couldn't extract section IDs but have sections, log a warning
-                // This ensures the callback is called but with empty array
-                debug('Could not extract section IDs from import response, calling callback with empty array', 'useSectionOperations', { 
-                    responseStructure: Object.keys(responseData || {}),
-                    dataStructure: Object.keys(responseData?.data || {}),
-                    fullResponse: responseData
-                });
-                
-                // Still call the callback so the UI can handle the import completion
-                // The callback implementation can decide how to handle empty section IDs
+                // If we couldn't extract section IDs but have sections, still call the callback
                 onSectionsImported([]);
             }
             

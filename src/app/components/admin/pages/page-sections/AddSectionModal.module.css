@@ -1,13 +1,21 @@
-/* Modal container */
+/* AddSectionModal.module.css */
 .modalContainer {
     display: flex;
     flex-direction: column;
-    height: 70vh;
+    height: 70vh; /* Adjust as needed */
+    max-height: 800px;
 }
 
-/* Header section */
+.tabsContainer {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
 .headerSection {
     border-bottom: 1px solid var(--mantine-color-gray-3);
+    background-color: var(--mantine-color-white);
     flex-shrink: 0;
 }
 

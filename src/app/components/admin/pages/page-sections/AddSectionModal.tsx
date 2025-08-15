@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
     Modal,
     Tabs,
@@ -15,7 +15,6 @@ import {
     Loader,
     Alert,
     ActionIcon,
-    Tooltip,
     Box,
     FileInput,
     Select
@@ -68,11 +67,41 @@ export function AddSectionModal({
     const [selectedUnusedSection, setSelectedUnusedSection] = useState<string | null>(null);
     const [selectedRefContainerSection, setSelectedRefContainerSection] = useState<string | null>(null);
 
-    const { data: styleGroups, isLoading: isLoadingStyles, error: stylesError } = useStyleGroups(opened);
-    const { data: unusedSections, isLoading: isLoadingUnused, error: unusedError } = useUnusedSections();
-    const { data: refContainerSections, isLoading: isLoadingRefContainers, error: refContainersError } = useRefContainerSections();
+    const { data: styleGroups, isLoading: isLoadingStyles, error: stylesError } = useStyleGroups();
+    
+    // Prefetch unused sections and ref containers when modal is opened
+    const { 
+        data: unusedSectionsData, 
+        isLoading: isLoadingUnused, 
+        error: unusedError,
+        isFetching: isFetchingUnused
+    } = useUnusedSections(opened);
 
+    const { 
+        data: refContainerSectionsData, 
+        isLoading: isLoadingRefContainers, 
+        error: refContainersError,
+        isFetching: isFetchingRefContainers
+    } = useRefContainerSections(opened);
 
+    const unusedSections = useMemo(() => unusedSectionsData || [], [unusedSectionsData]);
+    const refContainerSections = useMemo(() => refContainerSectionsData || [], [refContainerSectionsData]);
+
+    const unusedSectionsSelectData = useMemo(() => {
+        return unusedSections.map((section) => ({
+          value: String(section.id),
+          label: `${section.name} (ID: ${section.id}) - ${section.styleName || 'No style'}`
+        }));
+      }, [unusedSections]);
+      
+      const refContainerSectionsSelectData = useMemo(() => {
+        return refContainerSections.map((section) => ({
+          value: String(section.id),
+          label: `${section.name} (ID: ${section.id}) - ${section.styleName}`
+        }));
+      }, [refContainerSections]);
+
+      console.log(refContainerSectionsSelectData, unusedSectionsSelectData);
 
     // Section operations hook
     const sectionOperations = useSectionOperations({
@@ -88,6 +117,11 @@ export function AddSectionModal({
             onSectionsImported?.(sectionIds);
         }
     });
+
+    const handleTabChange = (value: string | null) => {
+        setActiveTab(value || 'new-section');
+        // Data is already prefetched when modal opens, no need to refetch
+    };
 
     const handleClose = () => {
         setSelectedStyle(null);
@@ -106,7 +140,7 @@ export function AddSectionModal({
     };
 
     const handleAddUnusedSection = async () => {
-        if (!selectedUnusedSection || !pageKeyword) {
+        if (!selectedUnusedSection) {
             return;
         }
 
@@ -119,17 +153,17 @@ export function AddSectionModal({
             if (parentSectionId !== null) {
                 // Add unused section to another section
                 await sectionOperations.addSectionToSection(parentSectionId, sectionId, operationOptions);
-            } else {
+            } else if (pageKeyword) {
                 // Add unused section to page
                 await sectionOperations.addSectionToPage(sectionId, operationOptions);
             }
         } catch (error) {
-            // Error handling is done by the section operations hook
+            // Error is handled by the hook
         }
     };
 
     const handleAddRefContainerSection = async () => {
-        if (!selectedRefContainerSection || !pageKeyword) {
+        if (!selectedRefContainerSection) {
             return;
         }
 
@@ -142,12 +176,12 @@ export function AddSectionModal({
             if (parentSectionId !== null) {
                 // Add ref container section to another section
                 await sectionOperations.addSectionToSection(parentSectionId, sectionId, operationOptions);
-            } else {
+            } else if (pageKeyword) {
                 // Add ref container section to page
                 await sectionOperations.addSectionToPage(sectionId, operationOptions);
             }
         } catch (error) {
-            // Error handling is done by the section operations hook
+            // Error is handled by the hook
         }
     };
 
@@ -165,12 +199,12 @@ export function AddSectionModal({
             if (parentSectionId !== null) {
                 // Create section in another section
                 await sectionOperations.createSectionInSection(parentSectionId, selectedStyle.id, operationOptions);
-            } else {
+            } else if (pageKeyword) {
                 // Create section in page
                 await sectionOperations.createSectionInPage(selectedStyle.id, operationOptions);
             }
         } catch (error) {
-            // Error handling is done by the section operations hook
+            // Error is handled by the hook
         }
     };
 
@@ -191,14 +225,14 @@ export function AddSectionModal({
             if (parentSectionId !== null) {
                 // Import to parent section
                 await sectionOperations.importSectionsToSection(parentSectionId, sectionsData, operationOptions);
-            } else {
+            } else if (pageKeyword) {
                 // Import to page
                 await sectionOperations.importSectionsToPage(sectionsData, operationOptions);
             }
 
             handleClose();
         } catch (error) {
-            console.error('Error importing sections:', error);
+            // Error is handled by the hook with notifications
         } finally {
             setIsImporting(false);
         }
@@ -236,9 +270,9 @@ export function AddSectionModal({
                 zIndex={1000}
             >
             <Box className={styles.modalContainer}>
-                {/* Header Section */}
-                <Box p="md" pb="sm" className={styles.headerSection}>
-                    <Tabs value={activeTab} onChange={(value) => setActiveTab(value || 'new-section')}>
+                <Tabs value={activeTab} onChange={handleTabChange} className={styles.tabsContainer}>
+                    {/* Header Section */}
+                    <Box p="md" pb="sm" className={styles.headerSection}>
                         <Tabs.List>
                             <Tabs.Tab value="new-section">New Section</Tabs.Tab>
                             <Tabs.Tab value="unassigned-section">
@@ -305,12 +339,10 @@ export function AddSectionModal({
                                 Click on a style below to select it for your new section
                             </Text>
                         )}
-                    </Tabs>
-                </Box>
+                    </Box>
 
-                {/* Scrollable Content */}
-                <ScrollArea className={styles.scrollableContent} p="md">
-                    <Tabs value={activeTab} onChange={(value) => setActiveTab(value || 'new-section')}>
+                    {/* Scrollable Content */}
+                    <ScrollArea className={styles.scrollableContent} p="md">
                         <Tabs.Panel value="new-section">
                             {isLoadingStyles ? (
                                 <Group justify="center" p="xl">
@@ -394,7 +426,7 @@ export function AddSectionModal({
                                     Select an unused section to add to this {parentSectionId ? 'section' : 'page'}. Unused sections are sections that exist but are not currently assigned to any page or section.
                                 </Alert>
 
-                                {isLoadingUnused ? (
+                                {isLoadingUnused || isFetchingUnused ? (
                                     <Group justify="center" p="xl">
                                         <Loader size="sm" />
                                         <Text size="sm">Loading unused sections...</Text>
@@ -403,24 +435,25 @@ export function AddSectionModal({
                                     <Alert icon={<IconAlertCircle size={16} />} color="red">
                                         Failed to load unused sections. Please try again.
                                     </Alert>
-                                ) : !unusedSections || unusedSections.length === 0 ? (
+                                ) : unusedSections.length === 0 ? (
                                     <Alert icon={<IconInfoCircle size={16} />} color="gray">
                                         No unused sections available. All sections are currently assigned to pages or other sections.
                                     </Alert>
                                 ) : (
-                                    <Select
-                                        label="Select Unused Section"
-                                        placeholder="Choose an unused section to add..."
-                                        data={unusedSections.map((section: IUnusedSection) => ({
-                                            value: section.id.toString(),
-                                            label: `${section.name} (ID: ${section.id}) - ${section.styleName || 'No style'}`
-                                        }))}
-                                        value={selectedUnusedSection}
-                                        onChange={setSelectedUnusedSection}
-                                        searchable
-                                        clearable
-                                        size="sm"
-                                    />
+                                    <Stack gap="sm">
+                                        <Select
+                                            label="Select Unused Section"
+                                            placeholder="Choose an unused section to add..."
+                                            comboboxProps={{ withinPortal: true, zIndex: 10000 }}
+                                            data={unusedSectionsSelectData}
+                                            value={selectedUnusedSection}
+                                            onChange={setSelectedUnusedSection}
+                                            searchable
+                                            clearable
+                                            size="sm"
+                                            nothingFoundMessage="No unused sections found"
+                                        />
+                                    </Stack>
                                 )}
                             </Stack>
                         </Tabs.Panel>
@@ -432,7 +465,7 @@ export function AddSectionModal({
                                     Select a reference container section to add to this {parentSectionId ? 'section' : 'page'}. Reference containers are special sections that can be reused across different pages.
                                 </Alert>
 
-                                {isLoadingRefContainers ? (
+                                {isLoadingRefContainers || isFetchingRefContainers ? (
                                     <Group justify="center" p="xl">
                                         <Loader size="sm" />
                                         <Text size="sm">Loading reference containers...</Text>
@@ -441,24 +474,25 @@ export function AddSectionModal({
                                     <Alert icon={<IconAlertCircle size={16} />} color="red">
                                         Failed to load reference containers. Please try again.
                                     </Alert>
-                                ) : !refContainerSections || refContainerSections.length === 0 ? (
+                                ) : refContainerSections.length === 0 ? (
                                     <Alert icon={<IconInfoCircle size={16} />} color="gray">
                                         No reference container sections available.
                                     </Alert>
                                 ) : (
-                                    <Select
-                                        label="Select Reference Container"
-                                        placeholder="Choose a reference container to add..."
-                                        data={refContainerSections.map((section: IRefContainerSection) => ({
-                                            value: section.id.toString(),
-                                            label: `${section.name} (ID: ${section.id}) - ${section.styleName}`
-                                        }))}
-                                        value={selectedRefContainerSection}
-                                        onChange={setSelectedRefContainerSection}
-                                        searchable
-                                        clearable
-                                        size="sm"
-                                    />
+                                    <Stack gap="sm">
+                                        <Select
+                                            comboboxProps={{ withinPortal: true, zIndex: 10000 }}
+                                            label="Select Reference Container"
+                                            placeholder="Choose a reference container to add..."
+                                            data={refContainerSectionsSelectData}
+                                            value={selectedRefContainerSection}
+                                            onChange={setSelectedRefContainerSection}
+                                            searchable
+                                            clearable
+                                            size="sm"
+                                            nothingFoundMessage="No reference containers found"
+                                        />
+                                    </Stack>
                                 )}
                             </Stack>
                         </Tabs.Panel>
@@ -498,8 +532,8 @@ export function AddSectionModal({
                                 )}
                             </Stack>
                         </Tabs.Panel>
-                    </Tabs>
-                </ScrollArea>
+                    </ScrollArea>
+                </Tabs>
 
                 {/* Fixed Footer */}
                 <Box 

@@ -8,7 +8,7 @@ import type { IUnusedSectionsData, IRefContainerSectionsData } from '../types/re
 /**
  * Hook to fetch unused sections (not in hierarchy and not assigned to pages)
  */
-export function useUnusedSections() {
+export function useUnusedSections(enabled: boolean = true) {
     return useQuery({
         queryKey: ['admin', 'sections', 'unused'],
         queryFn: async () => {
@@ -19,13 +19,14 @@ export function useUnusedSections() {
         gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
         retry: 3,
         retryDelay: 1000,
+        enabled,
     });
 }
 
 /**
  * Hook to fetch sections with refContainer style
  */
-export function useRefContainerSections() {
+export function useRefContainerSections(enabled: boolean = true) {
     return useQuery({
         queryKey: ['admin', 'sections', 'ref-containers'],
         queryFn: async () => {
@@ -36,6 +37,7 @@ export function useRefContainerSections() {
         gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
         retry: 3,
         retryDelay: 1000,
+        enabled,
     });
 }
 

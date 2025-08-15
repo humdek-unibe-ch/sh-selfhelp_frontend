@@ -1,4 +1,4 @@
-import { IResponseEnvelope } from '../common/response-envelope.types';
+import { IBaseApiResponse } from '../common/response-envelope.types';
 
 /**
  * Unused Section Item
@@ -45,13 +45,9 @@ export type IRefContainerSectionsData = IRefContainerSection[];
 /**
  * Unused Sections API Response
  */
-export interface IUnusedSectionsResponse extends IResponseEnvelope {
-    data: IUnusedSectionsData;
-}
+export interface IUnusedSectionsResponse extends IBaseApiResponse<IUnusedSectionsData> {}
 
 /**
  * RefContainer Sections API Response
  */
-export interface IRefContainerSectionsResponse extends IResponseEnvelope {
-    data: IRefContainerSectionsData;
-}
+export interface IRefContainerSectionsResponse extends IBaseApiResponse<IRefContainerSectionsData> {}
