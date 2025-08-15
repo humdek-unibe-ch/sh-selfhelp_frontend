@@ -122,6 +122,14 @@ export const API_CONFIG = {
         ADMIN_SCHEDULED_JOBS_DELETE: (jobId: number) => `/admin/scheduled-jobs/${jobId}`,
         ADMIN_SCHEDULED_JOBS_TRANSACTIONS: (jobId: number) => `/admin/scheduled-jobs/${jobId}/transactions`,
 
+        // Admin cache endpoints
+        ADMIN_CACHE_STATS: '/admin/cache/stats',
+        ADMIN_CACHE_CLEAR_ALL: '/admin/cache/clear/all',
+        ADMIN_CACHE_CLEAR_CATEGORY: '/admin/cache/clear/category',
+        ADMIN_CACHE_CLEAR_USER: '/admin/cache/clear/user',
+        ADMIN_CACHE_RESET_STATS: '/admin/cache/stats/reset',
+        ADMIN_CACHE_HEALTH: '/admin/cache/health',
+
         // Admin data management endpoints
         ADMIN_DATA_TABLES_LIST: '/admin/data/tables',
         ADMIN_DATA_ROWS_GET: '/admin/data', // query params: form_id, user_id?, exclude_deleted?

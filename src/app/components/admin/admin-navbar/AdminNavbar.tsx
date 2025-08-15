@@ -1,7 +1,7 @@
 "use client";
 
 import { ScrollArea, ActionIcon, Tooltip } from '@mantine/core';
-import { IconAdjustmentsCog, IconFiles, IconSettingsAutomation, IconPlus, IconUsers, IconShield, IconUserCog, IconPhoto, IconSettings, IconClock } from '@tabler/icons-react';
+import { IconAdjustmentsCog, IconFiles, IconSettingsAutomation, IconPlus, IconUsers, IconShield, IconUserCog, IconPhoto, IconSettings, IconClock, IconDatabase } from '@tabler/icons-react';
 import { LinksGroup } from '../../common/navbar-links-group/NavbarLinksGroup';
 import { CreatePageModal } from '../pages/create-page/CreatePage';
 import classes from './AdminNavbar.module.css';
@@ -204,6 +204,11 @@ export function AdminNavbar() {
                     label: 'CMS Preferences',
                     icon: <IconSettings size="0.9rem" stroke={1.5} />,
                     link: '/admin/preferences'
+                },
+                {
+                    label: 'Cache',
+                    icon: <IconDatabase size="0.9rem" stroke={1.5} />,
+                    link: '/admin/cache'
                 },
                 {
                     label: 'System Config',
