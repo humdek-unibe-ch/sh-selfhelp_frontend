@@ -5,10 +5,11 @@
 
 'use client';
 
-import React, { useState } from 'react';
-import { Card, Title, Stack, Button, Group, TextInput, Select, Alert, ActionIcon } from '@mantine/core';
+import React, { useState, useMemo } from 'react';
+import { Card, Title, Stack, Button, Group, Select, Alert, ActionIcon } from '@mantine/core';
 import { IconTrash, IconRefresh, IconUser, IconDatabase, IconX } from '@tabler/icons-react';
 import { useClearAllCachesMutation, useClearCacheCategoryMutation, useClearUserCacheMutation, useResetCacheStatsMutation } from '../../../../../hooks/useCache';
+import { useUsers } from '../../../../../hooks/useUsers';
 import type { TCacheCategory } from '../../../../../types/responses/admin/cache.types';
 
 const CACHE_CATEGORIES: { value: TCacheCategory; label: string }[] = [
@@ -28,12 +29,24 @@ const CACHE_CATEGORIES: { value: TCacheCategory; label: string }[] = [
 
 export function CacheManagementCard() {
     const [selectedCategory, setSelectedCategory] = useState<string>('');
-    const [userId, setUserId] = useState<string>('');
+    const [selectedUserId, setSelectedUserId] = useState<string>('');
 
     const clearAllCachesMutation = useClearAllCachesMutation();
     const clearCacheCategoryMutation = useClearCacheCategoryMutation();
     const clearUserCacheMutation = useClearUserCacheMutation();
     const resetCacheStatsMutation = useResetCacheStatsMutation();
+
+    // Fetch users for the user selector
+    const { data: usersResp } = useUsers({ page: 1, pageSize: 1000, sort: 'email', sortDirection: 'asc' });
+
+    // Create user options for the selector
+    const userOptions = useMemo(() => {
+        const users = usersResp?.users || [];
+        return users.map((user) => ({
+            value: String(user.id),
+            label: `${user.email} (ID: ${user.id})`,
+        }));
+    }, [usersResp]);
 
     const handleClearAllCaches = () => {
         clearAllCachesMutation.mutate();
@@ -49,12 +62,12 @@ export function CacheManagementCard() {
     };
 
     const handleClearUserCache = () => {
-        const userIdNumber = parseInt(userId);
+        const userIdNumber = parseInt(selectedUserId);
         if (userIdNumber && userIdNumber > 0) {
             clearUserCacheMutation.mutate({
                 user_id: userIdNumber,
             });
-            setUserId('');
+            setSelectedUserId('');
         }
     };
 
@@ -135,19 +148,20 @@ export function CacheManagementCard() {
                 {/* Clear User Cache */}
                 <Stack gap="xs">
                     <Group>
-                        <TextInput
-                            placeholder="User ID"
-                            value={userId}
-                            onChange={(event) => setUserId(event.currentTarget.value)}
-                            type="number"
-                            min={1}
+                        <Select
+                            placeholder="Select user"
+                            data={userOptions}
+                            value={selectedUserId}
+                            onChange={(value) => setSelectedUserId(value || '')}
                             flex={1}
-                            rightSection={userId ? (
+                            searchable
+                            clearable
+                            rightSection={selectedUserId ? (
                                 <ActionIcon
                                     variant="subtle"
                                     color="gray"
                                     size="sm"
-                                    onClick={() => setUserId('')}
+                                    onClick={() => setSelectedUserId('')}
                                 >
                                     <IconX size={14} />
                                 </ActionIcon>
@@ -159,7 +173,7 @@ export function CacheManagementCard() {
                             leftSection={<IconUser size={16} />}
                             onClick={handleClearUserCache}
                             loading={clearUserCacheMutation.isPending}
-                            disabled={!userId || parseInt(userId) <= 0 || isAnyMutationLoading}
+                            disabled={!selectedUserId || parseInt(selectedUserId) <= 0 || isAnyMutationLoading}
                         >
                             Clear User
                         </Button>

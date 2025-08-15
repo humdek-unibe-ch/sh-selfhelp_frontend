@@ -6,7 +6,7 @@
 'use client';
 
 import React from 'react';
-import { Container, Title, Stack, Grid, Alert, LoadingOverlay } from '@mantine/core';
+import { Title, Stack, Grid, Alert, LoadingOverlay, Box } from '@mantine/core';
 import { IconInfoCircle } from '@tabler/icons-react';
 import { useCacheStats, useCacheHealth } from '../../../../../hooks/useCache';
 import { CacheStatisticsCard } from '../cache-statistics-card/CacheStatisticsCard';
@@ -23,7 +23,7 @@ export function CachePage() {
 
     if (hasError) {
         return (
-            <Container size="xl" py="md">
+            <Box py="md">
                 <Alert
                     icon={<IconInfoCircle size={16} />}
                     title="Error Loading Cache Data"
@@ -32,12 +32,12 @@ export function CachePage() {
                 >
                     Failed to load cache information. Please try refreshing the page.
                 </Alert>
-            </Container>
+            </Box>
         );
     }
 
     return (
-        <Container size="xl" py="md" pos="relative">
+        <Box py="md" pos="relative">
             <LoadingOverlay visible={isLoading} />
             
             <Stack gap="lg">
@@ -75,6 +75,6 @@ export function CachePage() {
                     </Grid.Col>
                 </Grid>
             </Stack>
-        </Container>
+        </Box>
     );
 }
