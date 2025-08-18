@@ -22,7 +22,7 @@ export const AdminPageApi = {
      */
     async getAdminPages(): Promise<IAdminPage[]> {
         const response = await apiClient.get<IBaseApiResponse<IAdminPage[]>>(API_CONFIG.ENDPOINTS.ADMIN_PAGES_GET_ALL);
-        console.log(response.data.data);
+
         return response.data.data;
     },
 

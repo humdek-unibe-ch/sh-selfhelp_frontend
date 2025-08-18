@@ -51,7 +51,7 @@ export default function LoginPage() {
       });
       router.push(redirectTo);
     } catch (error) {
-      console.error('Login error:', error);
+
       notifications.show({
         title: 'Error',
         message: error instanceof Error ? error.message : 'Invalid credentials',

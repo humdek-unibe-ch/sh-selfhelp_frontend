@@ -117,7 +117,7 @@ export function ScheduledJobsPage() {
             try {
                 await deleteJobMutation.mutateAsync(jobId);
             } catch (error) {
-                console.error(`Failed to delete job ${jobId}:`, error);
+
             }
         }
         

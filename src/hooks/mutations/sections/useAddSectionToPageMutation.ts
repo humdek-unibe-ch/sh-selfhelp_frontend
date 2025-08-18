@@ -10,7 +10,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin.api';
-import { debug } from '../../../utils/debug-logger';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IAddSectionToPageMutationOptions {
@@ -43,12 +42,6 @@ export function useAddSectionToPageMutation(options: IAddSectionToPageMutationOp
             AdminApi.addSectionToPage(keyword, sectionId, sectionData),
         
         onSuccess: async (createdSection: any, variables: IAddSectionToPageVariables) => {
-            debug('Section added to page successfully', 'useAddSectionToPageMutation', { 
-                keyword: variables.keyword, 
-                sectionId: variables.sectionId,
-                position: variables.sectionData.position,
-                createdSection 
-            });
             
             // Invalidate relevant queries to update the UI with consistent query keys
             await Promise.all([
@@ -77,8 +70,6 @@ export function useAddSectionToPageMutation(options: IAddSectionToPageMutationOp
         },
         
         onError: (error: any, variables: IAddSectionToPageVariables) => {
-            debug('Error adding section to page', 'useAddSectionToPageMutation', { error, variables });
-            
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);
             

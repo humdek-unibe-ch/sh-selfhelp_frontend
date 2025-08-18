@@ -17,12 +17,6 @@ export function useCreateSiblingBelowMutation() {
 
     return useMutation({
         mutationFn: async ({ referenceSectionId, parentId, pageKeyword, sectionData }: ICreateSiblingBelowParams) => {
-            console.log('Creating sibling section below', {
-                referenceSectionId,
-                parentId,
-                pageKeyword,
-                sectionData
-            });
 
             // Calculate position: reference position + 1
             // TODO: Get reference section position from cache or API
@@ -47,7 +41,7 @@ export function useCreateSiblingBelowMutation() {
             }
         },
         onSuccess: (data, variables) => {
-            console.log('Sibling section created below successfully', { data });
+
             
             // Invalidate relevant queries
             if (variables.parentId !== null) {
@@ -69,11 +63,7 @@ export function useCreateSiblingBelowMutation() {
             });
         },
         onError: (error: any, variables) => {
-            console.log('Error creating sibling section below', { 
-                error, 
-                variables 
-            });
-            
+
             notifications.show({
                 title: 'Error',
                 message: error?.response?.data?.message || 'Failed to create section below',

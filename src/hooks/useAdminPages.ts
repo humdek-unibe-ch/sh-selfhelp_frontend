@@ -12,7 +12,6 @@ import { IAdminPage } from '../types/responses/admin/admin.types';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useAuth } from './useAuth';
 import { getAccessToken } from '../utils/auth.utils';
-import { debug } from '../utils/debug-logger';
 
 export interface ISystemPageLink {
     label: string;
@@ -61,19 +60,10 @@ export function useAdminPages() {
     
     // More robust authentication check: must have Refine auth state, user data, AND access token
     const isActuallyAuthenticated = !!isAuthenticated && !!user && !!getAccessToken();
-
-    debug('useAdminPages called', 'useAdminPages', { 
-        isAuthenticated, 
-        hasUser: !!user, 
-        hasToken: !!getAccessToken(),
-        isActuallyAuthenticated,
-        queryEnabled: isActuallyAuthenticated
-    });
     
     const { data, isLoading, error } = useQuery({
         queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES,
         queryFn: async () => {
-            debug('Fetching admin pages', 'useAdminPages');
             return await AdminApi.getAdminPages();
         },
         enabled: isActuallyAuthenticated, // Only fetch when user is truly authenticated
@@ -83,7 +73,6 @@ export function useAdminPages() {
         select: (data: IAdminPage[]) => {
             // Ensure data is an array to prevent undefined errors
             if (!data || !Array.isArray(data)) {
-                debug('Invalid data received', 'useAdminPages', { data });
                 return {
                     allPages: [],
                     systemPages: [],
@@ -220,21 +209,6 @@ export function useAdminPages() {
                 footer: footerPages.sort((a, b) => (a.footer_position || 0) - (b.footer_position || 0)),
                 other: otherRegularPages.sort((a, b) => a.label.localeCompare(b.label))
             };
-
-            debug('Processed admin pages', 'useAdminPages', { 
-                totalPages: data.length, 
-                systemPages: systemPages.length,
-                regularPages: regularPages.length,
-                systemPageKeywords: systemPages.map(p => p.keyword),
-                hierarchicalSystemPageLinks: systemPageLinks.length,
-                hierarchicalPagesCount: hierarchicalPages.length,
-                menuPagesCount: menuPages.length,
-                footerPagesCount: footerPages.length,
-                otherRegularPagesCount: otherRegularPages.length,
-                profilePagesInCategory: categorizedSystemPages.profile.length,
-                profileLinkPage: systemPageLinks.find(p => p.keyword === 'profile-link'),
-                profileLinkChildren: systemPageLinks.find(p => p.keyword === 'profile-link')?.children?.length || 0
-            });
             
             return {
                 allPages: data,

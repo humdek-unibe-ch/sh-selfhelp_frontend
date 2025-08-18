@@ -5,19 +5,13 @@ import {
   Box, 
   Title, 
   Text, 
-  Group, 
-  Button, 
-  Divider, 
   Stack, 
   rem,
   Flex,
-  Badge,
   Alert,
   Loader
 } from '@mantine/core';
 import { 
-  IconEye,
-  IconDeviceFloppy,
   IconInfoCircle,
   IconAlertCircle
 } from '@tabler/icons-react';
@@ -27,7 +21,6 @@ import { SectionInspector } from '../../components/admin/pages/section-inspector
 import { ConfigurationPageEditor } from '../../components/admin/pages/configuration-page-editor/ConfigurationPageEditor';
 import { useAdminPages } from '../../../hooks/useAdminPages';
 import { useMemo } from 'react';
-import { debug } from '../../../utils/debug-logger';
 import { IAdminPage } from '../../../types/responses/admin/admin.types';
 
 /**
@@ -57,7 +50,6 @@ export default function AdminPage() {
 
   // Parse the path to extract page keyword and section ID
   const { isPageRoute, keyword, selectedSectionId } = useMemo(() => {
-    debug('Parsing admin route path', 'AdminPage', { path });
     
     if (!path.startsWith('pages/')) {
       return { isPageRoute: false, keyword: null, selectedSectionId: null };
@@ -75,16 +67,6 @@ export default function AdminPage() {
         selectedSectionId: !isNaN(sectionId!) ? sectionId : null
       };
       
-      debug('Parsed admin route', 'AdminPage', {
-        path,
-        pathParts,
-        pageKeyword,
-        rawSectionId: pathParts[2],
-        parsedSectionId: sectionId,
-        finalSectionId: result.selectedSectionId,
-        isPageRoute: result.isPageRoute
-      });
-      
       return result;
     }
 
@@ -98,13 +80,6 @@ export default function AdminPage() {
     // Flatten the pages array to include all pages (root and children)
     const allPages = flattenPages(pages);
     const page = allPages.find(p => p.keyword === keyword);
-    
-    debug('Found page for editing', 'AdminPage', { 
-      keyword, 
-      page: page?.keyword,
-      totalPagesSearched: allPages.length,
-      rootPagesCount: pages.length
-    });
     
     return page || null;
   }, [pages, keyword]);
@@ -207,15 +182,6 @@ export default function AdminPage() {
           }}>
             {(() => {
               const shouldShowSectionInspector = selectedSectionId && !isNaN(selectedSectionId) && !isConfigurationPage;
-              debug('Right sidebar component selection', 'AdminPage', {
-                selectedSectionId,
-                isNaN: isNaN(selectedSectionId!),
-                shouldShowSectionInspector,
-                selectedPageKeyword: selectedPage?.keyword,
-                selectedPageExists: !!selectedPage,
-                isConfigurationPage
-              });
-              
               if (shouldShowSectionInspector) {
                 return (
                   <SectionInspector 

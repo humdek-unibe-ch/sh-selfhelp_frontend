@@ -21,7 +21,7 @@ const SortableListStyle: React.FC<ISortableListStyleProps> = ({ style }) => {
             }
         }
     } catch (error) {
-        console.warn('Failed to parse sortable list items:', error);
+
         initialItems = [];
     }
 

@@ -21,7 +21,7 @@ export function AdminUserMenuClient({ userData }: IAdminUserMenuClientProps) {
             await AuthApi.logout();
             router.push('/auth/login');
         } catch (error) {
-            console.error('Logout failed:', error);
+
         }
     };
 

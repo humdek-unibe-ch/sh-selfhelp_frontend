@@ -24,7 +24,6 @@ import { useSectionDetails } from '../../../../../hooks/useSectionDetails';
 import { useLanguages } from '../../../../../hooks/useLanguages';
 import { useUpdateSectionMutation, useDeleteSectionMutation } from '../../../../../hooks/mutations';
 import { ISectionField } from '../../../../../types/responses/admin/admin.types';
-import { debug } from '../../../../../utils/debug-logger';
 import { 
     InspectorLayout, 
     InspectorHeader, 
@@ -100,15 +99,6 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
         properties: {},
         fields: {}
     });
-
-    // Debug logging for props
-    useEffect(() => {
-        debug('SectionInspector props changed', 'SectionInspector', { 
-            keyword, 
-            sectionId, 
-            enabled: !!keyword && !!sectionId 
-        });
-    }, [keyword, sectionId]);
     
     // Fetch section details when section is selected
     const { 
@@ -118,20 +108,6 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
         isFetching,
         isStale
     } = useSectionDetails(keyword, sectionId, !!keyword && !!sectionId);
-
-    // Debug logging for query state
-    useEffect(() => {
-        debug('SectionInspector query state', 'SectionInspector', {
-            keyword,
-            sectionId,
-            hasData: !!sectionDetailsData,
-            isLoading: sectionLoading,
-            isFetching,
-            isStale,
-            error: sectionError?.message,
-            enabled: !!keyword && !!sectionId
-        });
-    }, [sectionDetailsData, sectionLoading, isFetching, isStale, sectionError, keyword, sectionId]);
 
     // Fetch available languages
     const { languages, isLoading: languagesLoading } = useLanguages();
@@ -143,7 +119,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
         onSuccess: () => {
             // Update original values after successful save
             setOriginalValues({ ...formValues });
-            debug('Section updated successfully, original values updated', 'SectionInspector', { sectionId });
+
             
             // Invalidate relevant queries to refresh data - using consistent query keys
             if (keyword) {
@@ -163,7 +139,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
             }
         },
         onError: (error) => {
-            debug('Section update failed', 'SectionInspector', { sectionId, error: error.message });
+
         }
     });
 
@@ -174,7 +150,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
         onSuccess: () => {
             setDeleteModalOpened(false);
             setDeleteConfirmText('');
-            debug('Section deleted successfully', 'SectionInspector', { sectionId });
+
             
             // Navigate to page view after successful deletion
             const currentPath = window.location.pathname;
@@ -189,7 +165,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
             }
         },
         onError: (error) => {
-            debug('Section delete failed', 'SectionInspector', { sectionId, error: error.message });
+
         }
     });
 
@@ -199,14 +175,6 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
     useEffect(() => {
         if (sectionDetailsData && languages.length > 0) {
             const { section, fields } = sectionDetailsData;
-            
-            debug('Processing section data for form update', 'SectionInspector', {
-                sectionId: section.id,
-                sectionName: section.name,
-                fieldsCount: fields.length,
-                languagesCount: languages.length,
-                fields: fields.map(f => ({ name: f.name, type: f.type, display: f.display, translationsCount: f.translations.length }))
-            });
             
             // Process fields for SectionInspector (which has different structure than PageInspector)
             const contentFields = fields.filter(field => field.display);
@@ -257,25 +225,9 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
                     propertyFieldsObject[field.name] = value;
                 }
 
-                debug('Property field processed for SectionInspector', 'SectionInspector', {
-                    fieldName: field.name,
-                    rawValue: value,
-                    finalValue: propertyFieldsObject[field.name],
-                    fieldType: field.type
-                });
+
                 
-                // Additional debug logging for condition and data-config fields
-                if (field.type === 'condition' || field.type === 'data-config') {
-                    console.log(`[SectionInspector] Loading ${field.type} field "${field.name}":`, {
-                        fieldId: field.id,
-                        fieldType: field.type,
-                        translations: field.translations,
-                        propertyTranslation: propertyTranslation,
-                        rawValue: value,
-                        finalValue: propertyFieldsObject[field.name],
-                        valueLength: typeof value === 'string' ? value.length : 'N/A'
-                    });
-                }
+
             });
             
             const newFormValues = {
@@ -284,22 +236,9 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
                 fields: contentFieldsObject
             };
             
-            debug('Form values updated from direct processing', 'SectionInspector', {
-                sectionName: newFormValues.sectionName,
-                propertiesCount: Object.keys(newFormValues.properties).length,
-                fieldsCount: Object.keys(newFormValues.fields).length,
-                properties: newFormValues.properties,
-                fields: newFormValues.fields
-            });
-            
             setFormValues(newFormValues);
             setOriginalValues(newFormValues); // Store original values for change detection
         } else {
-            debug('Resetting form values', 'SectionInspector', {
-                hasSectionData: !!sectionDetailsData,
-                languagesCount: languages.length,
-                reason: !sectionDetailsData ? 'No section data' : 'No languages'
-            });
             
             // Reset form when no section is selected
             const resetValues = {
@@ -376,19 +315,6 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
             const currentValue = formValues.properties[field.name];
             const originalValue = originalValues.properties[field.name];
             
-            // Debug logging for condition and data-config fields
-            if (field.type === 'condition' || field.type === 'data-config') {
-                console.log(`[SectionInspector] Processing ${field.type} field "${field.name}":`, {
-                    fieldId: field.id,
-                    fieldType: field.type,
-                    currentValue: currentValue,
-                    originalValue: originalValue,
-                    hasChanged: currentValue !== originalValue,
-                    currentValueType: typeof currentValue,
-                    currentValueLength: typeof currentValue === 'string' ? currentValue.length : 'N/A'
-                });
-            }
-            
             // Only include if value has changed
             if (currentValue !== originalValue) {
                 const fieldEntry = {
@@ -398,10 +324,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
                 
                 submitData.propertyFields.push(fieldEntry);
                 
-                // Debug logging for condition and data-config fields
-                if (field.type === 'condition' || field.type === 'data-config') {
-                    console.log(`[SectionInspector] Added ${field.type} field to submit data:`, fieldEntry);
-                }
+
             }
         });
         
@@ -411,20 +334,9 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
                           submitData.propertyFields.length > 0;
         
         if (!hasChanges) {
-            console.log('ℹ️ No changes detected - nothing to save');
+
             return;
         }
-        
-        debug('Save section - only changed fields', 'SectionInspector', { 
-            sectionId,
-            submitData,
-            sectionNameChanged: submitData.sectionName !== undefined,
-            contentFieldsChanged: submitData.contentFields.length,
-            propertyFieldsChanged: submitData.propertyFields.length,
-            totalChanges: (submitData.sectionName !== undefined ? 1 : 0) + 
-                         submitData.contentFields.length + 
-                         submitData.propertyFields.length
-        });
         
         // Execute the mutation
         try {
@@ -435,10 +347,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
             });
         } catch (error) {
             // Error handling is done by the mutation hook
-            debug('Section save failed', 'SectionInspector', { 
-                sectionId, 
-                error: error instanceof Error ? error.message : 'Unknown error' 
-            });
+
         }
     };
 
@@ -446,7 +355,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
         if (!sectionId || !sectionDetailsData || !keyword) return;
         
         if (deleteConfirmText === sectionDetailsData.section.name) {
-            debug('Deleting section', 'SectionInspector', { sectionId });
+
             deleteSectionMutation.mutate({
                 keyword,
                 sectionId
@@ -462,7 +371,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
             const filename = generateExportFilename(`section_${sectionDetailsData.section.name}_${sectionId}`);
             downloadJsonFile(response.data.sectionsData, filename);
         } catch (error) {
-            console.error('Error exporting section:', error);
+
             // Error notification is handled by the download function
         }
     };
@@ -550,11 +459,9 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
                         mt="sm" 
                         onClick={async () => {
                             try {
-                                console.log('Manual API test:', { keyword, sectionId });
-                                const result = await AdminApi.getSectionDetails(keyword!, sectionId!);
-                                console.log('Manual API result:', result);
+                                await AdminApi.getSectionDetails(keyword!, sectionId!);
                             } catch (error) {
-                                console.error('Manual API error:', error);
+                                // Error handled by API layer
                             }
                         }}
                     >
@@ -583,11 +490,9 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
                         mt="sm" 
                         onClick={async () => {
                             try {
-                                console.log('Manual API test:', { keyword, sectionId });
-                                const result = await AdminApi.getSectionDetails(keyword!, sectionId!);
-                                console.log('Manual API result:', result);
+                                await AdminApi.getSectionDetails(keyword!, sectionId!);
                             } catch (error) {
-                                console.error('Manual API error:', error);
+                                // Error handled by API layer
                             }
                         }}
                     >

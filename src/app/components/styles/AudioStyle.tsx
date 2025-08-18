@@ -20,7 +20,7 @@ const AudioStyle: React.FC<IAudioStyleProps> = ({ style }) => {
             }
         }
     } catch (error) {
-        console.warn('Failed to parse audio sources:', error);
+
         sources = [];
     }
 

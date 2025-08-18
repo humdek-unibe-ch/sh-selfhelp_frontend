@@ -92,14 +92,7 @@ export function ScheduledJobsList({
     const typeOptions = lookupsData ? getScheduledJobTypes(lookupsData.lookups) : [];
     const dateTypeOptions = lookupsData ? getScheduledJobSearchDateTypes(lookupsData.lookups) : [];
 
-    // Debug logging for filter data
-    console.log('Scheduled Jobs Filter Data:', {
-        lookups: lookupsData?.lookups,
-        statusOptions,
-        typeOptions,
-        dateTypeOptions,
-        lookupsLoading
-    });
+
 
     const scheduledJobs = scheduledJobsData?.data?.scheduledJobs || [];
     const pagination = {

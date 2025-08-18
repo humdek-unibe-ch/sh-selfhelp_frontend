@@ -19,12 +19,10 @@ export function rulesToJsonLogic(rules: RuleGroupType): any {
     try {
         // Use React Query Builder's built-in JSON Logic export
         const jsonLogic = formatQuery(rules, 'jsonlogic');
-        console.log(jsonLogic);
-        console.log(JSON.stringify(jsonLogic));
-        console.log(rules);
+
         return jsonLogic === '{}' ? null : JSON.stringify(jsonLogic);
     } catch (error) {
-        console.error('Failed to convert rules to JSON Logic:', error);
+
         return null;
     }
 }
@@ -38,7 +36,7 @@ export function jsonLogicToRules(jsonLogic: string | RQBJsonLogic): RuleGroupTyp
     try {
         return parseJsonLogic(jsonLogic);
     } catch (error) {
-        console.error('Failed to convert JSON Logic to rules:', error);
+
         return {
             combinator: 'and',
             rules: []

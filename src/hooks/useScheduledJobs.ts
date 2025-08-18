@@ -3,7 +3,6 @@ import { AdminScheduledJobsApi } from '../api/admin/scheduled-jobs.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { IScheduledJobFilters } from '../types/responses/admin/scheduled-jobs.types';
 import { notifications } from '@mantine/notifications';
-import { debug } from '../utils/debug-logger';
 
 /**
  * Hook to fetch scheduled jobs with filtering and pagination
@@ -61,10 +60,6 @@ export function useExecuteScheduledJobMutation() {
     return useMutation({
         mutationFn: (jobId: number) => AdminScheduledJobsApi.executeScheduledJob(jobId),
         onSuccess: (data, jobId) => {
-            debug('Scheduled job executed successfully', 'useExecuteScheduledJobMutation', {
-                jobId,
-                newStatus: data.data?.status
-            });
 
             notifications.show({
                 title: 'Job Executed',
@@ -77,10 +72,6 @@ export function useExecuteScheduledJobMutation() {
             queryClient.invalidateQueries({ queryKey: ['scheduledJob', jobId] });
         },
         onError: (error, jobId) => {
-            debug('Failed to execute scheduled job', 'useExecuteScheduledJobMutation', {
-                jobId,
-                error
-            });
 
             notifications.show({
                 title: 'Execution Failed',
@@ -100,10 +91,6 @@ export function useDeleteScheduledJobMutation() {
     return useMutation({
         mutationFn: (jobId: number) => AdminScheduledJobsApi.deleteScheduledJob(jobId),
         onSuccess: (data, jobId) => {
-            debug('Scheduled job deleted successfully', 'useDeleteScheduledJobMutation', {
-                jobId,
-                newStatus: data.data?.status
-            });
 
             notifications.show({
                 title: 'Job Deleted',
@@ -116,10 +103,6 @@ export function useDeleteScheduledJobMutation() {
             queryClient.invalidateQueries({ queryKey: ['scheduledJob', jobId] });
         },
         onError: (error, jobId) => {
-            debug('Failed to delete scheduled job', 'useDeleteScheduledJobMutation', {
-                jobId,
-                error
-            });
 
             notifications.show({
                 title: 'Deletion Failed',

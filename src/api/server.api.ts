@@ -53,17 +53,14 @@ class ServerApiClient {
             });
 
             if (!response.ok) {
-                // Only log errors that are not expected (404s are normal for some endpoints)
-                if (response.status !== 404) {
-                    console.warn(`Server API Warning: ${response.status} - ${endpoint}`);
-                }
+
                 return null;
             }
 
             const data = await response.json();
             return data.data || data; // Handle both wrapped and unwrapped responses
         } catch (error) {
-            console.warn(`Server API fetch failed for ${endpoint}:`, error);
+
             return null;
         }
     }

@@ -33,9 +33,7 @@ import { ICreatePageFormValues, ICreatePageModalProps, IMenuPageItem } from '../
 import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { DragDropMenuPositioner } from '../../../ui/drag-drop-menu-positioner/DragDropMenuPositioner';
 import { ICreatePageRequest } from '../../../../../types/requests/admin/create-page.types';
-import { debug } from '../../../../../utils/debug-logger';
 import styles from './CreatePage.module.css';
-
 
 
 export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreatePageModalProps) => {
@@ -51,11 +49,6 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
     // Create page mutation
     const createPageMutation = useCreatePageMutation({
         onSuccess: (createdPage) => {
-            debug('Page created successfully, navigating to page', 'CreatePageModal', {
-                createdPage: createdPage.keyword,
-                navigatingTo: `/admin/pages/${createdPage.keyword}`
-            });
-            
             // Reset form and state on successful creation
             form.reset();
             onClose();
@@ -152,19 +145,6 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
             parent: values.parentPage,
         };
 
-        debug('Creating new page with parent context', 'CreatePageModal', {
-            ...submitData,
-            isChildPage: !!parentPage,
-            parentPageKeyword: parentPage?.keyword,
-            parentPageUrl: parentPage?.url,
-            hierarchicalUrl: values.urlPattern,
-            headerMenuEnabled: values.headerMenu,
-            footerMenuEnabled: values.footerMenu,
-            originalHeaderPosition: values.headerMenuPosition,
-            originalFooterPosition: values.footerMenuPosition,
-            finalHeaderPosition,
-            finalFooterPosition,
-        });
         
         // Use the mutation instead of direct API call
         createPageMutation.mutate(submitData);

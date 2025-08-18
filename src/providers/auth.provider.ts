@@ -11,7 +11,7 @@ import { AuthApi } from "../api/auth.api";
 import { ITwoFactorRequiredResponse } from "../types/responses/auth.types";
 import { ROUTES } from "../config/routes.config";
 import { getAccessToken, getCurrentUser, storeTokens, removeTokens, removeAccessToken, getRefreshToken } from "../utils/auth.utils";
-import { debug, info, warn, error } from '../utils/debug-logger';
+import { info, warn, error } from '../utils/debug-logger';
 
 // Custom method for 2FA verification that can be used in components
 export const verifyTwoFactor = async (code: string) => {
@@ -39,7 +39,6 @@ export const verifyTwoFactor = async (code: string) => {
 export const authProvider: AuthProvider = {
     login: async ({ email, password }: ILoginRequest) => {
         try {
-            debug('Attempting login', 'AuthProvider', { email });
             
             try {
                 // Use AuthApi.login instead of direct API call
@@ -101,7 +100,6 @@ export const authProvider: AuthProvider = {
 
     logout: async () => {
         try {
-            debug('Attempting logout', 'AuthProvider');
             
             // Use AuthApi.logout instead of direct API call
             // This will handle the API call and localStorage cleanup
@@ -136,7 +134,6 @@ export const authProvider: AuthProvider = {
         
         // If there's a pending 2FA verification, user is not fully authenticated
         if (pending2fa) {
-            debug('Pending 2FA verification found', 'AuthProvider');
             return {
                 authenticated: false,
                 error: {
@@ -149,7 +146,6 @@ export const authProvider: AuthProvider = {
 
         // No tokens means not authenticated
         if (!token) {
-            debug('No access token found', 'AuthProvider');
             return {
                 authenticated: false,
                 error: {
@@ -164,7 +160,6 @@ export const authProvider: AuthProvider = {
         // Get user from token and check if it's valid
         const user = getCurrentUser();
         if (!user) {
-            debug('Invalid user token', 'AuthProvider');
             // Token is invalid or expired
             removeAccessToken();
             return {
@@ -178,7 +173,6 @@ export const authProvider: AuthProvider = {
             };
         }
 
-        debug('Authentication check successful', 'AuthProvider', { userId: user.id });
         // We have a valid token and user, so we consider the user authenticated
         return {
             authenticated: true,
@@ -191,7 +185,6 @@ export const authProvider: AuthProvider = {
         
         if (!user) return null;
         
-        debug('Getting identity', 'AuthProvider', { userId: user.id });
         return {
             id: user.id,
             name: user.name,
@@ -203,7 +196,6 @@ export const authProvider: AuthProvider = {
     onError: async (error) => {
         // Check if the error is an authentication error (401)
         if (error.response?.status === 401) {
-            debug('401 error in onError handler', 'AuthProvider');
             return {
                 error: {
                     message: "Authentication failed. Please login again.",
@@ -241,11 +233,6 @@ export const checkFrontendAuth = async (): Promise<{
         };
     }
 
-    debug('Frontend auth check', 'AuthProvider', { 
-        userId: user.id,
-        hasRefreshToken: !!getRefreshToken()
-    });
-
     return {
         isAuthenticated: true,
         user,
@@ -259,7 +246,6 @@ export const checkFrontendAuth = async (): Promise<{
  */
 export const forceTokenRefresh = async (): Promise<boolean> => {
     try {
-        debug('Forcing token refresh', 'AuthProvider');
         
         const response = await AuthApi.refreshToken();
         

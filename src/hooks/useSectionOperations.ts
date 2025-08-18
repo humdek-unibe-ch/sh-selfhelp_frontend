@@ -12,7 +12,6 @@ import { ISectionExportData } from '../api/admin/section.api';
 import { 
     prepareSectionImportData, 
     prepareSectionCreateData, 
-    logSectionOperation,
     ISectionOperationOptions 
 } from '../utils/section-operations.utils';
 import { 
@@ -23,7 +22,6 @@ import {
 } from './mutations';
 import { importSectionsToPage, importSectionsToSection } from '../api/admin/section.api';
 import { notifications } from '@mantine/notifications';
-import { debug } from '../utils/debug-logger';
 
 export interface IUseSectionOperationsOptions {
     pageKeyword?: string;
@@ -131,13 +129,6 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
 
         const sectionData = prepareSectionCreateData(styleId, options);
         
-        logSectionOperation('Create Section in Page', sectionData, {
-            position: sectionData.position,
-            description: options.specificPosition !== undefined 
-                ? `Specific position: ${options.specificPosition}` 
-                : 'Default position (-1)'
-        });
-
         await createSectionInPageMutation.mutateAsync({
             keyword: pageKeyword,
             sectionData
@@ -155,13 +146,6 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
         }
 
         const sectionData = prepareSectionCreateData(styleId, options);
-        
-        logSectionOperation('Create Section in Section', sectionData, {
-            position: sectionData.position,
-            description: options.specificPosition !== undefined 
-                ? `Specific position: ${options.specificPosition}` 
-                : 'Default position (-1)'
-        });
 
         await createSectionInSectionMutation.mutateAsync({
             keyword: pageKeyword,
@@ -180,13 +164,6 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
         }
 
         const position = options.specificPosition !== undefined ? options.specificPosition : -1;
-        
-        logSectionOperation('Add Section to Page', { sectionId }, {
-            position,
-            description: options.specificPosition !== undefined 
-                ? `Specific position: ${options.specificPosition}` 
-                : 'Default position (-1)'
-        });
 
         await addSectionToPageMutation.mutateAsync({
             keyword: pageKeyword,
@@ -206,13 +183,6 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
         }
 
         const position = options.specificPosition !== undefined ? options.specificPosition : -1;
-        
-        logSectionOperation('Add Section to Section', { sectionId, parentSectionId }, {
-            position,
-            description: options.specificPosition !== undefined 
-                ? `Specific position: ${options.specificPosition}` 
-                : 'Default position (-1)'
-        });
 
         await addSectionToSectionMutation.mutateAsync({
             keyword: pageKeyword,
@@ -232,26 +202,9 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
         }
 
         const importData = prepareSectionImportData(sections, options);
-        
-        logSectionOperation('Import Sections to Page', importData, {
-            position: importData.position || -1,
-            description: options.specificPosition !== undefined 
-                ? `Specific position: ${options.specificPosition}` 
-                : 'Default position (-1)'
-        });
 
         try {
             const result = await importSectionsToPage(pageKeyword, sections, importData.position);
-            
-            // Debug log the actual response structure
-            debug('Import sections to page response', 'useSectionOperations', { 
-                result, 
-                fullResponse: result,
-                dataField: result?.data,
-                sectionsField: result?.data?.sections,
-                importedSectionsField: result?.data?.importedSections
-            });
-            
             // Invalidate queries to refresh the section list
             await invalidateQueriesAfterImport();
             
@@ -293,7 +246,6 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
             
             onSuccess?.(result);
         } catch (error) {
-            debug('Error importing sections to page', 'useSectionOperations', { error });
             
             if (showNotifications) {
                 notifications.show({
@@ -319,25 +271,9 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
         }
 
         const importData = prepareSectionImportData(sections, options);
-        
-        logSectionOperation('Import Sections to Section', importData, {
-            position: importData.position || -1,
-            description: options.specificPosition !== undefined 
-                ? `Specific position: ${options.specificPosition}` 
-                : 'Default position (-1)'
-        });
 
         try {
             const result = await importSectionsToSection(pageKeyword, parentSectionId, sections, importData.position);
-            
-            // Debug log the actual response structure
-            debug('Import sections to section response', 'useSectionOperations', { 
-                result, 
-                fullResponse: result,
-                dataField: result?.data,
-                sectionsField: result?.data?.sections,
-                importedSectionsField: result?.data?.importedSections
-            });
             
             // Invalidate queries to refresh the section list
             await invalidateQueriesAfterImport();
@@ -380,7 +316,6 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
             
             onSuccess?.(result);
         } catch (error) {
-            debug('Error importing sections to section', 'useSectionOperations', { error });
             
             if (showNotifications) {
                 notifications.show({

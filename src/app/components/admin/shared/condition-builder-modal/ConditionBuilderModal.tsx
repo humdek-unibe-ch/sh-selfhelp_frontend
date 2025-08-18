@@ -53,13 +53,11 @@ export function ConditionBuilderModal({
             if (initialValue && initialValue.trim() !== '') {
                 try {
                     const parsedValue = JSON.parse(initialValue);
-                    console.log('Parsed initial value:', parsedValue);
-                    console.log('Available fields for conversion:', Object.keys(groups).length, 'groups,', Object.keys(languages).length, 'languages,', Object.keys(platforms).length, 'platforms,', Object.keys(pages).length, 'pages');
+
 
                     if (isValidJsonLogic(parsedValue)) {
                         const convertedRules = jsonLogicToRules(parsedValue);
-                        console.log('initialValue:', initialValue);
-                        console.log('Converted rules:', convertedRules);
+
 
                         if (convertedRules && convertedRules.rules && convertedRules.rules.length > 0) {
                             setQuery(convertedRules);
@@ -67,11 +65,11 @@ export function ConditionBuilderModal({
                             setQuery(initialQuery);
                         }
                     } else {
-                        console.warn('Invalid JSON Logic structure:', parsedValue);
+
                         setQuery(initialQuery);
                     }
                 } catch (error) {
-                    console.warn('Failed to parse initial condition value:', error);
+
                     setQuery(initialQuery);
                 }
             } else {
@@ -87,14 +85,7 @@ export function ConditionBuilderModal({
         setIsSaving(true);
         
         try {
-            console.log('Saving query:', query);
             const jsonLogic = rulesToJsonLogic(query);
-            console.log('Generated JSON Logic:', jsonLogic);
-
-            // Print JSON to inspect the generated configuration
-            const jsonString = JSON.stringify(jsonLogic, null, 2);
-            // eslint-disable-next-line no-console
-            console.log('ConditionBuilderModal save JSON:', jsonString);
             
             await onSave(jsonLogic);
             
@@ -107,7 +98,7 @@ export function ConditionBuilderModal({
             
             onClose();
         } catch (error) {
-            console.error('Failed to save condition:', error);
+
             notifications.show({
                 title: 'Error',
                 message: 'Failed to save condition',

@@ -2,7 +2,6 @@
 
 import { Box, LoadingOverlay } from '@mantine/core';
 import { useEffect, useRef, useState } from 'react';
-import { debug } from '../../../../../utils/debug-logger';
 
 // Dynamic import for Monaco Editor to avoid SSR issues
 import dynamic from 'next/dynamic';
@@ -71,14 +70,6 @@ export function MonacoFieldEditor({
 
     const config = languageConfig[language];
 
-    useEffect(() => {
-        debug('MonacoFieldEditor mounted', 'MonacoFieldEditor', {
-            language,
-            valueLength: value?.length || 0,
-            readOnly
-        });
-    }, [language, value, readOnly]);
-
     // Keep the current value ref in sync
     useEffect(() => {
         currentValueRef.current = value || '';
@@ -101,15 +92,6 @@ export function MonacoFieldEditor({
         monacoRef.current = monaco;
         setIsEditorReady(true);
 
-        debug('Monaco Editor mounted', 'MonacoFieldEditor', {
-            language: config.language,
-            initialValue: value,
-            valueLength: (value || '').length,
-            isEmptyString: value === '',
-            isUndefined: value === undefined,
-            isNull: value === null
-        });
-
         // Format document on mount for better initial display
         setTimeout(() => {
             editor.getAction('editor.action.formatDocument')?.run();
@@ -119,14 +101,6 @@ export function MonacoFieldEditor({
     const handleChange = (newValue: string | undefined) => {
         const value = newValue || '';
         currentValueRef.current = value; // Keep ref in sync
-        
-        debug('Monaco Editor value changed', 'MonacoFieldEditor', {
-            language,
-            newValueLength: value.length,
-            previousValueLength: (currentValueRef.current || '').length,
-            isCssField: language === 'css',
-            newValue: language === 'css' ? value : '[content hidden for non-CSS]'
-        });
         
         // Ensure the onChange is called immediately with the new value
         onChange(value);

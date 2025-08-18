@@ -72,7 +72,7 @@ export function DataConfigModal({
                     setDataSources([]);
                 }
             } catch (error) {
-                console.warn('Failed to parse initial data config:', error);
+
                 setDataSources([]);
             }
         } else if (opened) {
@@ -152,10 +152,7 @@ export function DataConfigModal({
                 return { ...source, filter: (source.filter || '').trim() };
             });
 
-            // Print JSON to inspect the generated configuration
-            const jsonString = JSON.stringify(normalizedSources, null, 2);
-            // eslint-disable-next-line no-console
-            console.log('DataConfigModal save JSON:', jsonString);
+
             await onSave(normalizedSources);
             
             notifications.show({
@@ -167,7 +164,7 @@ export function DataConfigModal({
             
             onClose();
         } catch (error) {
-            console.error('Error saving data config:', error);
+
             notifications.show({
                 title: 'Error',
                 message: 'Failed to save data configuration',

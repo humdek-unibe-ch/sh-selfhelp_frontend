@@ -40,7 +40,7 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style }) => {
             }
         }
     } catch (error) {
-        console.warn('Failed to parse select items:', error);
+
         itemsArray = [];
     }
 

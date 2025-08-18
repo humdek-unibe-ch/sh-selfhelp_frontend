@@ -25,7 +25,7 @@ export function downloadJsonFile(data: any, filename: string): void {
             color: 'green'
         });
     } catch (error) {
-        console.error('Error downloading file:', error);
+
         notifications.show({
             title: 'Export Failed',
             message: 'Failed to download the export file',

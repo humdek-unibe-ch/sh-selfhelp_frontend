@@ -10,7 +10,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../api/admin.api';
-import { debug } from '../../utils/debug-logger';
 import { parseApiError } from '../../utils/mutation-error-handler';
 import { useAdminPages } from '../useAdminPages';
 
@@ -41,8 +40,6 @@ export function useDeletePageMutation(options: IDeletePageMutationOptions = {}) 
         },
         
         onSuccess: async (result, keyword: string) => {
-            debug('Page deleted successfully', 'useDeletePageMutation', { keyword, result });
-            
             // Invalidate and refetch relevant queries to update the UI with consistent query keys
             await Promise.all([
                 // Main admin pages list
@@ -71,7 +68,6 @@ export function useDeletePageMutation(options: IDeletePageMutationOptions = {}) 
         },
         
         onError: (error: any, keyword: string) => {
-            debug('Error deleting page', 'useDeletePageMutation', { error, keyword });
             
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);

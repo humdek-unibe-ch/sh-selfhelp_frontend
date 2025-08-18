@@ -5,7 +5,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminSectionApi } from '../../../api/admin/section.api';
-import { debug } from '../../../utils/debug-logger';
 
 interface IUpdateSectionRequest {
     // Section name (only if changed)
@@ -50,32 +49,12 @@ export function useUpdateSectionMutation({
             sectionId: number; 
             sectionData: IUpdateSectionRequest;
         }) => {
-            debug('Updating section', 'useUpdateSectionMutation', { 
-                keyword, 
-                sectionId, 
-                sectionData,
-                changesCount: (sectionData.sectionName ? 1 : 0) + 
-                             sectionData.contentFields.length + 
-                             sectionData.propertyFields.length
-            });
 
             const result = await AdminSectionApi.updateSection(keyword, sectionId, sectionData);
-            
-            debug('Section updated successfully', 'useUpdateSectionMutation', { 
-                keyword, 
-                sectionId, 
-                result 
-            });
             
             return result;
         },
         onSuccess: (data, variables) => {
-            debug('Section update mutation success', 'useUpdateSectionMutation', { 
-                sectionId: variables.sectionId,
-                keyword: variables.keyword,
-                data 
-            });
-
             // Invalidate relevant queries to refresh data with consistent query keys
             const queryKey = pageKeyword || variables.keyword;
             
@@ -109,11 +88,6 @@ export function useUpdateSectionMutation({
             onSuccess?.();
         },
         onError: (error: Error, variables: { keyword: string; sectionId: number; sectionData: IUpdateSectionRequest }) => {
-            debug('Section update mutation error', 'useUpdateSectionMutation', { 
-                error: error.message,
-                sectionId: variables.sectionId,
-                keyword: variables.keyword
-            });
 
             if (showNotifications) {
                 notifications.show({

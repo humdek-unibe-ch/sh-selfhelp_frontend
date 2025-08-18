@@ -10,7 +10,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin.api';
-import { debug } from '../../../utils/debug-logger';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IRemoveSectionFromSectionMutationOptions {
@@ -40,11 +39,6 @@ export function useRemoveSectionFromSectionMutation(options: IRemoveSectionFromS
             AdminApi.removeSectionFromSection(keyword, parentSectionId, childSectionId),
         
         onSuccess: async (result: any, variables: IRemoveSectionFromSectionVariables) => {
-            debug('Section removed from section successfully', 'useRemoveSectionFromSectionMutation', { 
-                parentSectionId: variables.parentSectionId,
-                childSectionId: variables.childSectionId,
-                result 
-            });
             
             // Invalidate relevant queries to update the UI
             const invalidationPromises = [
@@ -77,7 +71,6 @@ export function useRemoveSectionFromSectionMutation(options: IRemoveSectionFromS
         },
         
         onError: (error: any, variables: IRemoveSectionFromSectionVariables) => {
-            debug('Error removing section from section', 'useRemoveSectionFromSectionMutation', { error, variables });
             
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);

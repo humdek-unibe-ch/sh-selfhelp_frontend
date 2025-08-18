@@ -79,7 +79,7 @@ class DebugLogger {
         if (!this.shouldLog('debug')) return;
         
         const formattedMessage = this.formatMessage('debug', message, component);
-        console.debug(formattedMessage, data || '');
+
         this.addLog('debug', message, component, data);
     }
 
@@ -87,7 +87,7 @@ class DebugLogger {
         if (!this.shouldLog('info')) return;
         
         const formattedMessage = this.formatMessage('info', message, component);
-        console.info(formattedMessage, data || '');
+
         this.addLog('info', message, component, data);
     }
 
@@ -95,7 +95,7 @@ class DebugLogger {
         if (!this.shouldLog('warn')) return;
         
         const formattedMessage = this.formatMessage('warn', message, component);
-        console.warn(formattedMessage, data || '');
+
         this.addLog('warn', message, component, data);
     }
 
@@ -103,7 +103,7 @@ class DebugLogger {
         if (!this.shouldLog('error')) return;
         
         const formattedMessage = this.formatMessage('error', message, component);
-        console.error(formattedMessage, data || '');
+
         this.addLog('error', message, component, data);
     }
 
@@ -112,13 +112,13 @@ class DebugLogger {
      */
     time(label: string, component?: string): void {
         if (!this.shouldLog('debug')) return;
-        console.time(label);
+
         this.debug(`Timer started: ${label}`, component);
     }
 
     timeEnd(label: string, component?: string): void {
         if (!this.shouldLog('debug')) return;
-        console.timeEnd(label);
+
         this.debug(`Timer ended: ${label}`, component);
     }
 

@@ -64,13 +64,12 @@ export const handleApiError = (
             // The axios interceptor will handle redirecting to login
         }
         
-        // Log the error for debugging
-        console.error(`API Error (${status}):`, errorMessage, error.config?.url);
+
     } else if (error instanceof Error) {
         errorMessage = error.message;
-        console.error('Non-Axios Error:', error);
+
     } else {
-        console.error('Unknown Error:', error);
+
     }
     
     // Show notification if enabled (can be implemented with a notification library)

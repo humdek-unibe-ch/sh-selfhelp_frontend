@@ -20,7 +20,7 @@ export function AuthButtonClient() {
             await AuthApi.logout();
             router.push(ROUTES.LOGIN);
         } catch (error) {
-            console.error('Logout failed:', error);
+
         }
     };
 

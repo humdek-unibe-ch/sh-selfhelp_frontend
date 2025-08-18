@@ -3,7 +3,6 @@ import { notifications } from '@mantine/notifications';
 import { AdminSectionUtilityApi } from '../api/admin/section-utility.api';
 import { AdminCacheApi } from '../api/admin/cache.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
-import type { IUnusedSectionsData, IRefContainerSectionsData } from '../types/responses/admin/section-utility.types';
 
 /**
  * Hook to fetch unused sections (not in hierarchy and not assigned to pages)
@@ -60,7 +59,7 @@ export function useClearApiRoutesCacheMutation() {
             queryClient.invalidateQueries({ queryKey: ['admin', 'cache'] });
         },
         onError: (error: any) => {
-            console.error('Failed to clear API routes cache:', error);
+
             notifications.show({
                 title: 'Error',
                 message: error?.response?.data?.message || 'Failed to clear API routes cache',
@@ -89,7 +88,7 @@ export function useDeleteUnusedSectionMutation() {
             queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'unused'] });
         },
         onError: (error: any) => {
-            console.error('Failed to delete unused section:', error);
+
             notifications.show({
                 title: 'Error',
                 message: error?.response?.data?.message || 'Failed to delete section',
@@ -119,7 +118,7 @@ export function useDeleteAllUnusedSectionsMutation() {
             queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'unused'] });
         },
         onError: (error: any) => {
-            console.error('Failed to delete all unused sections:', error);
+
             notifications.show({
                 title: 'Error',
                 message: error?.response?.data?.message || 'Failed to delete all sections',
@@ -153,7 +152,7 @@ export function useForceDeleteSectionMutation() {
             queryClient.invalidateQueries({ queryKey: ['admin', 'pages', variables.pageKeyword, 'sections'] });
         },
         onError: (error: any) => {
-            console.error('Failed to force delete section:', error);
+
             notifications.show({
                 title: 'Error',
                 message: error?.response?.data?.message || 'Failed to force delete section',

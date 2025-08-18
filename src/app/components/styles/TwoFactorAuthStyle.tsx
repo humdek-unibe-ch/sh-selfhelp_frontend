@@ -47,7 +47,7 @@ const TwoFactorAuthStyle: React.FC<ITwoFactorAuthStyleProps> = ({ style }) => {
             // For demo purposes, accept any 6-digit code starting with "123"
             if (code.startsWith('123') && code.length === 6) {
                 // Success - redirect or update state
-                console.log('2FA verification successful');
+
             } else {
                 setError(alertFail);
             }

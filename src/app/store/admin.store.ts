@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { IAdminPage } from '../../types/responses/admin/admin.types';
-import { debug } from '../../utils/debug-logger';
 
 export interface AdminState {
     selectedPage: IAdminPage | null;
@@ -20,17 +19,14 @@ export const useAdminStore = create<AdminState>()(
             expandedPageIds: new Set<number>(),
             
             setSelectedPage: (page: IAdminPage | null) => {
-                debug('Setting selected page', 'AdminStore', { keyword: page?.keyword });
                 set({ selectedPage: page });
             },
             
             clearSelectedPage: () => {
-                debug('Clearing selected page', 'AdminStore');
                 set({ selectedPage: null });
             },
             
             setExpandedPageIds: (pageIds: Set<number>) => {
-                debug('Setting expanded page IDs', 'AdminStore', { count: pageIds.size });
                 set({ expandedPageIds: pageIds });
             },
             
@@ -39,10 +35,8 @@ export const useAdminStore = create<AdminState>()(
                 const newSet = new Set(expandedPageIds);
                 if (newSet.has(pageId)) {
                     newSet.delete(pageId);
-                    debug('Collapsing page', 'AdminStore', { pageId });
                 } else {
                     newSet.add(pageId);
-                    debug('Expanding page', 'AdminStore', { pageId });
                 }
                 set({ expandedPageIds: newSet });
             },
@@ -69,11 +63,6 @@ export const useAdminStore = create<AdminState>()(
                 pathToExpand.forEach(pageId => newSet.add(pageId));
                 
                 if (pathToExpand.length > 0) {
-                    debug('Expanding page path', 'AdminStore', { 
-                        targetPage: page.keyword,
-                        pathToExpand,
-                        totalExpanded: newSet.size
-                    });
                     set({ expandedPageIds: newSet });
                 }
             }

@@ -11,7 +11,6 @@ import { IStyleGroup } from '../types/responses/admin/styles.types';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useAuth } from './useAuth';
 import { getAccessToken } from '../utils/auth.utils';
-import { debug } from '../utils/debug-logger';
 
 /**
  * Hook for fetching style groups data (requires authentication)
@@ -27,7 +26,6 @@ export function useStyleGroups() {
     return useQuery({
         queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.STYLE_GROUPS,
         queryFn: async () => {
-            debug('Fetching style groups', 'useStyleGroups');
             return await AdminApi.getStyleGroups();
         },
         enabled: isActuallyAuthenticated, // Only fetch when user is truly authenticated
@@ -35,7 +33,6 @@ export function useStyleGroups() {
         gcTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.gcTime,
         retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
         select: (data: IStyleGroup[]) => {
-            debug('Style groups loaded', 'useStyleGroups', { count: data.length });
             return data;
         }
     });

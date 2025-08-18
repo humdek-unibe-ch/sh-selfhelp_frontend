@@ -48,7 +48,6 @@ import { IPageField } from '../../../../../types/responses/admin/page-details.ty
 import { IUpdatePageField, IUpdatePageData, IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
 import { FieldRenderer, IFieldData } from '../../shared/field-renderer/FieldRenderer';
 import { PAGE_ACCESS_TYPES } from '../../../../../constants/lookups.constants';
-import { debug } from '../../../../../utils/debug-logger';
 import styles from './PageInspector.module.css';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { CreatePageModal } from '../create-page/CreatePage';
@@ -135,10 +134,6 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
     // Update page mutation
     const updatePageMutation = useUpdatePageMutation({
         onSuccess: (updatedPage, keyword) => {
-            debug('Page updated successfully in PageInspector', 'PageInspector', { 
-                keyword, 
-                updatedPage: updatedPage.keyword 
-            });
             
             // Invalidate relevant queries to refresh data - using consistent query keys
             queryClient.invalidateQueries({ queryKey: ['adminPages'] }); // Admin pages list
@@ -154,7 +149,6 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
             queryClient.invalidateQueries({ queryKey: ['admin', 'page-fields', keyword] });
         },
         onError: (error, keyword) => {
-            debug('Update page error in PageInspector', 'PageInspector', { error, keyword });
             // Error is already handled by the mutation hook with notifications
         }
     });
@@ -167,7 +161,6 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
             // Additional success handling can be added here if needed
         },
         onError: (error) => {
-            debug('Delete page error in PageInspector', 'PageInspector', { error });
             // Error is already handled by the mutation hook with notifications
         }
     });
@@ -191,11 +184,6 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
     // Update form when page or pageFieldsData changes
     useEffect(() => {
         if (page && pageFieldsData && languages.length > 0) {
-            debug('Updating PageInspector form with page data', 'PageInspector', {
-                page: page.keyword,
-                hasPageFieldsData: !!pageFieldsData,
-                languagesCount: languages.length
-            });
 
             // Use the modular field initialization utility that handles content vs property fields correctly
             const fieldsObject = initializeFieldFormValues(pageFieldsData.fields, languages);
@@ -215,11 +203,6 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                 fields: fieldsObject
             });
         } else if (!page) {
-            debug('Resetting PageInspector form', 'PageInspector', {
-                hasPage: !!page,
-                hasPageFieldsData: !!pageFieldsData,
-                languagesCount: languages.length
-            });
             
             // Reset form when no page is selected
             form.setValues({
@@ -253,12 +236,6 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
             validationWarnings.push(...validation.warnings);
         });
         
-        if (validationWarnings.length > 0) {
-            debug('Field processing validation warnings', 'PageInspector', {
-                warnings: validationWarnings
-            });
-        }
-
         // Use the modular field processing utility
         const processedFields = processAllFields({
             fields: fields,
@@ -278,17 +255,6 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
             fields: processedFields.fieldEntries
         };
 
-        debug('Saving page with modular field processing', 'PageInspector', {
-            keyword: page?.keyword,
-            updateData,
-            fieldAnalysis: {
-                totalFields: fields.length,
-                contentFields: processedFields.contentFields.length,
-                propertyFields: processedFields.propertyFields.length,
-                totalFieldEntries: processedFields.fieldEntries.length
-            }
-        });
-
         updatePageMutation.mutate({
             keyword: page?.keyword || '',
             updateData
@@ -296,18 +262,15 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
     };
 
     const handleCreateChildPage = () => {
-        debug('Opening create child page modal', 'PageInspector', { parentPage: page });
         setCreateChildModalOpened(true);
     };
 
     const handleCloseChildModal = () => {
-        debug('Closing create child page modal', 'PageInspector');
         setCreateChildModalOpened(false);
     };
 
     const handleDeletePage = () => {
         if (deleteConfirmText === page?.keyword && page?.keyword) {
-            debug('Deleting page', 'PageInspector', { page: page.keyword });
             deletePageMutation.mutate(page.keyword);
         }
     };
@@ -320,7 +283,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
             const filename = generateExportFilename(`page_${page.keyword}`);
             downloadJsonFile(response.data.sectionsData, filename);
         } catch (error) {
-            console.error('Error exporting page sections:', error);
+
             // Error notification is handled by the download function
         }
     };
@@ -341,18 +304,10 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
 
     // Stable callbacks for position changes to prevent infinite loops
     const handleHeaderPositionChange = useCallback((position: number | null) => {
-        debug('Header position change requested', 'PageInspector', { 
-            newPosition: position, 
-            currentPosition: form.values.navPosition 
-        });
         form.setFieldValue('navPosition', position);
     }, []); // Empty dependency array since form.setFieldValue is stable
 
     const handleFooterPositionChange = useCallback((position: number | null) => {
-        debug('Footer position change requested', 'PageInspector', { 
-            newPosition: position, 
-            currentPosition: form.values.footerPosition 
-        });
         form.setFieldValue('footerPosition', position);
     }, []); // Empty dependency array since form.setFieldValue is stable
 

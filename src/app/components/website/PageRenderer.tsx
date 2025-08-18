@@ -3,7 +3,6 @@ import { Container, Stack, Alert, Loader, Center } from '@mantine/core';
 import { IconInfoCircle } from '@tabler/icons-react';
 import type { TStyle } from '../../../types/common/styles.types';
 import BasicStyle from '../styles/BasicStyle';
-import { debug } from '../../../utils/debug-logger';
 
 interface IPageRendererProps {
     sections: TStyle[];
@@ -34,28 +33,14 @@ export const PageRenderer: React.FC<IPageRendererProps> = ({
             return null;
         }
 
-        debug('Rendering sections', 'PageRenderer', {
-            sectionCount: sections.length,
-            sectionTypes: sections.map(s => s.style_name)
-        });
-
         return sections.map((section, index) => {
             // Skip null or undefined sections
             if (!section) {
-                debug('Skipping null section', 'PageRenderer', { index });
                 return null;
             }
 
             // Generate a unique key for each section
             const key = `section-${section.id || `index-${index}`}`;
-
-            // Log section rendering for debugging
-            debug('Rendering section', 'PageRenderer', {
-                key,
-                style_name: section.style_name,
-                hasChildren: !!section.children && section.children.length > 0,
-                fields: Object.keys(section.fields || {})
-            });
 
             // BasicStyle handles all style routing and will render UnknownStyle for unsupported types
             return <BasicStyle key={key} style={section} />;

@@ -5,7 +5,6 @@ import { usePublicLanguages } from '../../hooks/usePublicLanguages';
 import { useLanguages } from '../../hooks/useLanguages';
 import { useAuthUser } from '../../hooks/useUserData';
 import { useLanguageContext } from './LanguageContext';
-import { debug } from '../../utils/debug-logger';
 
 interface IEnhancedLanguageProviderProps {
     children: React.ReactNode;
@@ -48,10 +47,6 @@ export function EnhancedLanguageProvider({ children }: IEnhancedLanguageProvider
         if (user?.id !== lastUserId.current) {
             hasInitializedFromUserData.current = false;
             lastUserId.current = user?.id || null;
-            debug('User changed, resetting user data language sync', 'EnhancedLanguageProvider', { 
-                newUserId: user?.id,
-                oldUserId: lastUserId.current
-            });
         }
 
         if (user && user.languageId && !hasInitializedFromUserData.current) {
@@ -60,11 +55,6 @@ export function EnhancedLanguageProvider({ children }: IEnhancedLanguageProvider
                 ? user.languageId 
                 : parseInt(String(user.languageId), 10);
             
-            debug('Syncing language from user data', 'EnhancedLanguageProvider', {
-                userDataLanguageId: languageId,
-                currentLanguageId,
-                willUpdate: languageId !== currentLanguageId
-            });
             
             // Only update if different from current
             if (languageId !== currentLanguageId) {
@@ -78,11 +68,6 @@ export function EnhancedLanguageProvider({ children }: IEnhancedLanguageProvider
             const validLanguageIds = languages.map(lang => lang.id);
             if (!validLanguageIds.includes(currentLanguageId)) {
                 // Current language ID is not valid, use first language
-                debug('Invalid language ID for non-authenticated user', 'EnhancedLanguageProvider', {
-                    currentLanguageId,
-                    validLanguageIds,
-                    defaultLanguageId: languages[0].id
-                });
                 setCurrentLanguageId(languages[0].id);
             }
         }

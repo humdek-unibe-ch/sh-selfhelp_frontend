@@ -12,7 +12,6 @@ import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../api/admin.api';
 import { IUpdatePageRequest } from '../../types/requests/admin/update-page.types';
 import { IAdminPage } from '../../types/responses/admin/admin.types';
-import { debug } from '../../utils/debug-logger';
 import { parseApiError } from '../../utils/mutation-error-handler';
 
 interface IUpdatePageMutationOptions {
@@ -40,11 +39,7 @@ export function useUpdatePageMutation(options: IUpdatePageMutationOptions = {}) 
             AdminApi.updatePage(keyword, updateData),
         
         onSuccess: async (updatedPage: IAdminPage, { keyword }: IUpdatePageMutationVariables) => {
-            debug('Page updated successfully', 'useUpdatePageMutation', { 
-                keyword, 
-                updatedPage: updatedPage.keyword 
-            });
-            
+
             // Enhanced cache invalidation strategy with consistent query keys
             await Promise.all([
                 // Main admin pages list
@@ -76,12 +71,6 @@ export function useUpdatePageMutation(options: IUpdatePageMutationOptions = {}) 
                 exact: false 
             });
             
-            debug('Cache invalidation completed for page update', 'useUpdatePageMutation', {
-                updatedPageKeyword: updatedPage.keyword,
-                hasNavPosition: updatedPage.nav_position !== null,
-                hasFooterPosition: updatedPage.footer_position !== null
-            });
-            
             if (showNotifications) {
                 notifications.show({
                     title: 'Page Updated Successfully',
@@ -98,7 +87,6 @@ export function useUpdatePageMutation(options: IUpdatePageMutationOptions = {}) 
         },
         
         onError: (error: any, { keyword }: IUpdatePageMutationVariables) => {
-            debug('Error updating page', 'useUpdatePageMutation', { error, keyword });
             
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);

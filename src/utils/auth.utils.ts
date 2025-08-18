@@ -79,7 +79,7 @@ export const getUserPayload = (token: string | null): { id: number; email: strin
             roles: decoded.roles || [],
         };
     } catch (error) {
-        console.error('Failed to decode JWT token:', error);
+
         return null;
     }
 };

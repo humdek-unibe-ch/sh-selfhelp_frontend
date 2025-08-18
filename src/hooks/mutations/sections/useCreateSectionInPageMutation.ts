@@ -10,7 +10,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin.api';
-import { debug } from '../../../utils/debug-logger';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface ICreateSectionInPageMutationOptions {
@@ -43,12 +42,6 @@ export function useCreateSectionInPageMutation(options: ICreateSectionInPageMuta
             AdminApi.createSectionInPage(keyword, sectionData),
         
         onSuccess: async (createdSection: any, variables: ICreateSectionInPageVariables) => {
-            debug('Section created in page successfully', 'useCreateSectionInPageMutation', { 
-                keyword: variables.keyword,
-                styleId: variables.sectionData.styleId,
-                position: variables.sectionData.position,
-                createdSection 
-            });
             
             // Invalidate relevant queries to update the UI with consistent query keys
             await Promise.all([
@@ -77,7 +70,6 @@ export function useCreateSectionInPageMutation(options: ICreateSectionInPageMuta
         },
         
         onError: (error: any, variables: ICreateSectionInPageVariables) => {
-            debug('Error creating section in page', 'useCreateSectionInPageMutation', { error, variables });
             
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);

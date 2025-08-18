@@ -108,20 +108,3 @@ export function prepareSectionCreateData(
         ...(name && { name })
     };
 }
-
-/**
- * Debug helper to log section operation details
- */
-export function logSectionOperation(
-    operation: string,
-    data: any,
-    positionInfo: ISectionOperationPosition
-): void {
-    if (process.env.NODE_ENV === 'development') {
-        console.log(`[SectionOperation] ${operation}:`, {
-            operation,
-            positionInfo,
-            data
-        });
-    }
-} 

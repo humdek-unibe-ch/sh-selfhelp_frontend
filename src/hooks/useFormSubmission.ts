@@ -6,7 +6,6 @@ import {
 } from '../types/requests/frontend/form-submission.types';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { notifications } from '@mantine/notifications';
-import { debug } from '../utils/debug-logger';
 
 /**
  * Hook to submit a new form (anonymous users)
@@ -17,11 +16,6 @@ export function useSubmitFormMutation() {
     return useMutation({
         mutationFn: (data: IFormSubmitRequest) => FormSubmissionApi.submitForm(data),
         onSuccess: (response, variables) => {
-            debug('Form submitted successfully', 'useSubmitFormMutation', {
-                pageId: variables.page_id,
-                formId: variables.section_id,
-                recordId: response.data?.record_id
-            });
 
             // Invalidate page content so UI pulls latest data
             queryClient.invalidateQueries({ queryKey: ['page-content'] });
@@ -39,11 +33,6 @@ export function useSubmitFormMutation() {
             }
         },
         onError: (error, variables) => {
-            debug('Failed to submit form', 'useSubmitFormMutation', {
-                pageId: variables.page_id,
-                formId: variables.section_id,
-                error
-            });
 
             notifications.show({
                 title: 'Submission Failed',
@@ -63,12 +52,6 @@ export function useUpdateFormMutation() {
     return useMutation({
         mutationFn: (data: IFormUpdateRequest) => FormSubmissionApi.updateForm(data),
         onSuccess: (response, variables) => {
-            debug('Form updated successfully', 'useUpdateFormMutation', {
-                pageId: variables.page_id,
-                formId: variables.section_id,
-                recordId: response.data?.record_id,
-                updatedFields: response.data?.updated_fields
-            });
 
             // Invalidate page content so UI pulls latest data
             queryClient.invalidateQueries({ queryKey: ['page-content'] });
@@ -86,11 +69,6 @@ export function useUpdateFormMutation() {
             }
         },
         onError: (error, variables) => {
-            debug('Failed to update form', 'useUpdateFormMutation', {
-                pageId: variables.page_id,
-                formId: variables.section_id,
-                error
-            });
 
             notifications.show({
                 title: 'Update Failed',
@@ -111,13 +89,6 @@ export function useDeleteFormMutation() {
         mutationFn: (data: { record_id: number; page_id: number; section_id: number }) =>
             FormSubmissionApi.deleteForm(data),
         onSuccess: (response, variables) => {
-            debug('Form record deleted successfully', 'useDeleteFormMutation', {
-                recordId: variables.record_id,
-                pageId: variables.page_id,
-                formId: variables.section_id,
-                success: response.data?.success
-            });
-
             // Invalidate page content so UI pulls latest data
             queryClient.invalidateQueries({ queryKey: ['page-content'] });
             queryClient.invalidateQueries({ queryKey: ['page-content-layout'] });
@@ -131,12 +102,6 @@ export function useDeleteFormMutation() {
             });
         },
         onError: (error, variables) => {
-            debug('Failed to delete form record', 'useDeleteFormMutation', {
-                recordId: variables.record_id,
-                pageId: variables.page_id,
-                formId: variables.section_id,
-                error
-            });
 
             notifications.show({
                 title: 'Deletion Failed',

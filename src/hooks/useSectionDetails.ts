@@ -1,10 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { AdminApi } from '../api/admin.api';
+import { useQuery } from '@tanstack/react-query';
 import { AdminSectionApi } from '../api/admin/section.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
-import { notifications } from '@mantine/notifications';
 import { ISectionDetailsData } from '../types/responses/admin/admin.types';
-import { debug } from '../utils/debug-logger';
 
 // Query keys
 const SECTION_DETAILS_QUERY_KEYS = {
@@ -25,49 +22,21 @@ export function useSectionDetails(keyword: string | null, sectionId: number | nu
     
     // More explicit enabled condition
     const isEnabled = enabled && keyword !== null && keyword !== undefined && keyword !== '' && 
-                     sectionId !== null && sectionId !== undefined && !isNaN(sectionId);
-    
-    // Debug logging
-    debug('useSectionDetails hook called', 'useSectionDetails', {
-        keyword,
-        sectionId,
-        enabled,
-        keywordCheck: keyword !== null && keyword !== undefined && keyword !== '',
-        sectionIdCheck: sectionId !== null && sectionId !== undefined && !isNaN(sectionId),
-        finalEnabled: isEnabled,
-        queryKey,
-        shouldExecute: isEnabled
-    });
+                     sectionId !== null && sectionId !== undefined && !isNaN(sectionId);    
 
     return useQuery<ISectionDetailsData>({
         queryKey: keyword && sectionId ? SECTION_DETAILS_QUERY_KEYS.detail(keyword, sectionId) : ['section-details', 'disabled'],
         queryFn: async () => {
-            debug('useSectionDetails queryFn executing', 'useSectionDetails', {
-                keyword,
-                sectionId
-            });
             
             if (!keyword || !sectionId) {
                 const error = `Missing required parameters: keyword=${keyword}, sectionId=${sectionId}`;
-                debug('useSectionDetails queryFn validation failed', 'useSectionDetails', { error });
                 throw new Error(error);
             }
             
             try {
                 const result = await AdminSectionApi.getSectionDetails(keyword, sectionId);
-                debug('useSectionDetails queryFn success', 'useSectionDetails', {
-                    keyword,
-                    sectionId,
-                    hasData: !!result,
-                    sectionName: result?.section?.name
-                });
                 return result;
             } catch (error) {
-                debug('useSectionDetails queryFn error', 'useSectionDetails', {
-                    keyword,
-                    sectionId,
-                    error: error instanceof Error ? error.message : 'Unknown error'
-                });
                 throw error;
             }
         },

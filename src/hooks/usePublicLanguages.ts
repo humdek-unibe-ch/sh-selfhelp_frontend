@@ -13,7 +13,6 @@ import { IBaseApiResponse } from '../types/responses/common/response-envelope.ty
 import { apiClient } from '../api/base.api';
 import { API_CONFIG } from '../config/api.config';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
-import { debug } from '../utils/debug-logger';
 
 /**
  * Hook for fetching and managing public languages data
@@ -30,7 +29,6 @@ export function usePublicLanguages() {
         gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
         retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
         select: (languages: ILanguage[]) => {
-            debug('Public languages loaded', 'usePublicLanguages', { count: languages.length });
             return languages;
         }
     });

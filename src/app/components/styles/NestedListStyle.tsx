@@ -31,7 +31,7 @@ const NestedListStyle: React.FC<INestedListStyleProps> = ({ style }) => {
             }
         }
     } catch (error) {
-        console.warn('Failed to parse nested list items:', error);
+
         items = [];
     }
 

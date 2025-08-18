@@ -47,7 +47,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { [Entity]Api } from '../../api/[entity].api';
-import { debug } from '../../utils/debug-logger';
 
 interface I[Entity][Action]MutationOptions {
     onSuccess?: (data: [ReturnType]) => void;

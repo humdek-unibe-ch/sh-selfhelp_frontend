@@ -3,7 +3,7 @@ import { UserInputApi } from '../api/user-input.api';
 import { IUserInputFilters } from '../types/responses/admin/user-input.types';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { notifications } from '@mantine/notifications';
-import { debug } from '../utils/debug-logger';
+
 
 /**
  * Hook to fetch user input entries with filtering and pagination
@@ -29,11 +29,6 @@ export function useDeleteUserInputEntryMutation() {
     return useMutation({
         mutationFn: (entryId: number) => UserInputApi.deleteUserInputEntry(entryId),
         onSuccess: (data, entryId) => {
-            debug('User input entry deleted successfully', 'useDeleteUserInputEntryMutation', {
-                entryId,
-                success: data.data?.success
-            });
-
             notifications.show({
                 title: 'Entry Deleted',
                 message: `Entry ${entryId} has been deleted successfully`,
@@ -44,10 +39,6 @@ export function useDeleteUserInputEntryMutation() {
             queryClient.invalidateQueries({ queryKey: ['userInputEntries'] });
         },
         onError: (error, entryId) => {
-            debug('Failed to delete user input entry', 'useDeleteUserInputEntryMutation', {
-                entryId,
-                error
-            });
 
             notifications.show({
                 title: 'Deletion Failed',

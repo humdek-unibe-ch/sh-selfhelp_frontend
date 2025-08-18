@@ -40,7 +40,6 @@ import { IPageField } from '../../../../../types/common/pages.type';
 import { SectionsList } from './SectionsList';
 import { AddSectionModal } from './AddSectionModal';
 import { calculateSiblingBelowPosition } from '../../../../../utils/position-calculator';
-import { debug } from '../../../../../utils/debug-logger';
 import styles from './PageSections.module.css';
 
 interface IPageSectionsProps {
@@ -476,10 +475,6 @@ export function PageSections({ keyword, pageName, initialSelectedSectionId }: IP
 
     // Handle auto-selection of imported sections (select the first one)
     const handleSectionsImported = (sectionIds: number[]) => {
-        debug('Handling sections imported callback', 'PageSections', { 
-            sectionIds, 
-            sectionCount: sectionIds.length 
-        });
         
         if (sectionIds.length > 0) {
             const firstSectionId = sectionIds[0];
@@ -492,7 +487,6 @@ export function PageSections({ keyword, pageName, initialSelectedSectionId }: IP
         } else {
             // Even if we don't have section IDs, the import was successful
             // The query invalidation will refresh the section list
-            debug('Import completed but no section IDs provided for auto-selection', 'PageSections');
         }
     };
 
@@ -561,7 +555,6 @@ export function PageSections({ keyword, pageName, initialSelectedSectionId }: IP
                             size="sm" 
                             variant="light"
                             onClick={() => {
-                                debug('Add First Section button clicked', 'PageSections', { keyword });
                                 setAddSectionModalOpened(true);
                             }}
                         >
@@ -693,7 +686,6 @@ export function PageSections({ keyword, pageName, initialSelectedSectionId }: IP
                         size="xs" 
                         variant="light"
                         onClick={() => {
-                            debug('Add Section button clicked', 'PageSections', { keyword });
                             setAddSectionModalOpened(true);
                         }}
                     >

@@ -25,7 +25,7 @@ const AccordionListStyle: React.FC<IAccordionListStyleProps> = ({ style }) => {
             }
         }
     } catch (error) {
-        console.warn('Failed to parse accordion items:', error);
+
         items = [];
     }
 

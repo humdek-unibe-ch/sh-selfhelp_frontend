@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation';
 import { useIsAuthenticated, useLogout } from '@refinedev/core';
 import { ROUTES } from '../../../config/routes.config';
 import { getAccessToken, getRefreshToken } from '../../../utils/auth.utils';
-import { debug } from '../../../utils/debug-logger';
 import { IAdminPage } from '../../../types/responses/admin/admin.types';
 import { useAppNavigation } from '../../../hooks/useAppNavigation';
 
@@ -48,7 +47,6 @@ export function AuthButton() {
         // Listen for storage changes (token updates)
         const handleStorageChange = (e: StorageEvent) => {
             if (e.key === 'access_token' || e.key === 'refresh_token') {
-                debug('Token storage changed, rechecking auth state', 'AuthButton');
                 checkStableAuth();
             }
         };
@@ -77,12 +75,6 @@ export function AuthButton() {
             const probablyRefreshing = (hasToken || hasRefreshToken) && !refineThinks;
             
             if (probablyRefreshing !== isRefreshing) {
-                debug('Refresh state changed', 'AuthButton', { 
-                    probablyRefreshing,
-                    hasToken,
-                    hasRefreshToken,
-                    refineThinks
-                });
                 setIsRefreshing(probablyRefreshing);
             }
         };
@@ -98,7 +90,6 @@ export function AuthButton() {
     };
 
     const handleLogout = () => {
-        debug('Logout initiated from AuthButton', 'AuthButton');
         setStableAuthState(false); // Immediately update UI
         
         // Use Refine's logout hook which will:
@@ -139,11 +130,6 @@ export function AuthButton() {
     const shouldShowAsAuthenticated = stableAuthState || (isRefreshing && stableAuthState !== false);
 
     if (!shouldShowAsAuthenticated) {
-        debug('Showing login button', 'AuthButton', {
-            stableAuthState,
-            isRefreshing,
-            authenticated
-        });
         
         return (
             <Button
@@ -155,13 +141,6 @@ export function AuthButton() {
             </Button>
         );
     }
-
-    debug('Showing profile menu', 'AuthButton', {
-        stableAuthState,
-        isRefreshing,
-        authenticated,
-        profilePages: profilePages.length
-    });
 
     // Get the profile link title
     const profileTitle = profilePages.length > 0 ? getPageTitle(profilePages[0]) : 'Profile';

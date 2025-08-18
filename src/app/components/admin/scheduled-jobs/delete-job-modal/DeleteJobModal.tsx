@@ -42,7 +42,7 @@ export function DeleteJobModal({
             await onConfirm(jobId);
             handleClose();
         } catch (error) {
-            console.error('Failed to delete job:', error);
+
         } finally {
             setIsDeleting(false);
         }

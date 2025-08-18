@@ -27,7 +27,7 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style }) => {
             }
         }
     } catch (error) {
-        console.warn('Failed to parse radio items:', error);
+
         items = [];
     }
 

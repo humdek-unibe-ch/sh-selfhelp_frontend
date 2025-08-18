@@ -10,7 +10,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminSectionApi } from '../../../api/admin/section.api';
-import { debug } from '../../../utils/debug-logger';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IDeleteSectionMutationOptions {
@@ -39,12 +38,7 @@ export function useDeleteSectionMutation(options: IDeleteSectionMutationOptions 
             AdminSectionApi.deleteSection(keyword, sectionId),
         
         onSuccess: async (result: any, variables: IDeleteSectionVariables) => {
-            debug('Section deleted successfully', 'useDeleteSectionMutation', { 
-                keyword: variables.keyword,
-                sectionId: variables.sectionId,
-                result 
-            });
-            
+
             // Invalidate relevant queries to update the UI with consistent query keys
             const invalidationPromises = [
                 queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
@@ -91,7 +85,6 @@ export function useDeleteSectionMutation(options: IDeleteSectionMutationOptions 
         },
         
         onError: (error: any, variables: IDeleteSectionVariables) => {
-            debug('Error deleting section', 'useDeleteSectionMutation', { error, variables });
             
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);

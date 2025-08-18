@@ -30,7 +30,6 @@ import { DropIndicator } from '@atlaskit/pragmatic-drag-and-drop-react-drop-indi
 import { useAdminPages } from '../../../../hooks/useAdminPages';
 import { IAdminPage } from '../../../../types/responses/admin/admin.types';
 import { calculateMenuPosition } from '../../../../utils/position-calculator';
-import { debug } from '../../../../utils/debug-logger';
 
 interface IMenuPageItem {
     id: string;
@@ -308,17 +307,6 @@ export function MenuPositionEditor({
                 label: page.keyword,
                 position: page[positionField] || 0
             }));
-
-        debug('Filtering menu pages by parent context', 'MenuPositionEditor', {
-            menuType,
-            currentPageKeyword: currentPage.keyword,
-            currentPageParent: currentPage.parent,
-            parentPageId: parentPage?.id_pages,
-            targetParentId,
-            totalPages: pages.length,
-            filteredPages: existingMenuPages.length,
-            existingMenuPages: existingMenuPages.map(p => ({ keyword: p.keyword, position: p.position }))
-        });
 
         // Add current page if it has a position
         if (position !== null) {

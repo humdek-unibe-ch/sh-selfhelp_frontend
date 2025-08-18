@@ -90,19 +90,13 @@ export function AclManagement({
   
   const { pages, isLoading } = useAdminPages();
 
-  // Debug: Log selectedPages when they change
   useEffect(() => {
-    console.log('AclManagement selectedPages changed:', JSON.stringify(selectedPages, null, 2));
+
   }, [selectedPages]);
 
-  // Debug: Log admin pages when they load
   useEffect(() => {
     if (pages.length > 0) {
-      console.log('Admin pages loaded:', pages.length, 'pages');
-      const agbPage = pages.find(p => p.keyword === 'agb');
-      if (agbPage) {
-        console.log('Found agb page in admin pages:', agbPage);
-      }
+
     }
   }, [pages]);
 
@@ -116,12 +110,8 @@ export function AclManagement({
         delete: selectedPages.some(p => p.id === page.id_pages && p.permissions.delete),
       };
       
-      // Debug specific page (agb with id 30)
       if (page.keyword === 'agb' && page.id_pages === 30) {
-        console.log('Processing page agb (id 30):');
-        console.log('  - selectedPages:', selectedPages);
-        console.log('  - calculated permissions:', pagePermissions);
-        console.log('  - matching selected page:', selectedPages.find(p => p.id === page.id_pages));
+
       }
       
       return {
@@ -386,7 +376,7 @@ export function AdvancedAclModal({
   // Refetch group details when modal opens to get fresh data
   useEffect(() => {
     if (opened) {
-      console.log('Modal opened, invalidating and refetching group details for group:', groupId);
+
       // Reset selected pages first to avoid stale data
       setSelectedPages([]);
       // First invalidate to ensure we don't get cached data
@@ -400,17 +390,15 @@ export function AdvancedAclModal({
   useEffect(() => {
     // Only process if modal is open and we have group details
     if (opened && groupDetails) {
-      console.log('Loading group details:', groupDetails);
-      console.log('Raw ACL data from group details:', JSON.stringify(existingAcls, null, 2));
+
       
       if (existingAcls.length > 0) {
         const aclPages = convertApiAclsToUiFormat(existingAcls);
-        console.log('Converted ACL pages:', JSON.stringify(aclPages, null, 2));
-        console.log('Setting selectedPages to:', aclPages);
+
         setSelectedPages(aclPages);
       } else {
         // No existing ACLs, start with empty state
-        console.log('No existing ACLs found, starting with empty state');
+
         setSelectedPages([]);
       }
     }
@@ -427,9 +415,7 @@ export function AdvancedAclModal({
     try {
       // Convert to API format
       const aclsData = convertAclsToApiFormat(selectedPages);
-      console.log('Saving ACLs for group:', groupId);
-      console.log('Selected pages:', selectedPages);
-      console.log('Converted ACL data:', aclsData);
+
 
       // Execute the API call
       await updateAclsMutation.mutateAsync({
@@ -445,11 +431,11 @@ export function AdvancedAclModal({
       // Also refetch the group details to ensure fresh data immediately
       await refetchGroupDetails();
       
-      console.log('ACLs saved successfully, queries invalidated');
+
       onClose();
     } catch (error) {
       // Error handling is done in the mutation hook
-      console.error('Failed to update ACLs:', error);
+
     }
   };
 

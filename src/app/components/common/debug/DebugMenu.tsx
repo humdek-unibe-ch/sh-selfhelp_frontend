@@ -463,7 +463,7 @@ export function DebugMenu() {
                                                 })),
                                                 count: languages.length
                                             };
-                                            console.log('Language Debug Info:', languageInfo);
+
                                             notifications.show({
                                                 title: 'Language Debug Info',
                                                 message: `Check console for detailed info. Current: ${currentLanguage?.language || 'None'}`,

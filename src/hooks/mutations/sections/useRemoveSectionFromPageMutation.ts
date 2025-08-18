@@ -10,7 +10,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin.api';
-import { debug } from '../../../utils/debug-logger';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IRemoveSectionFromPageMutationOptions {
@@ -38,11 +37,6 @@ export function useRemoveSectionFromPageMutation(options: IRemoveSectionFromPage
             AdminApi.removeSectionFromPage(keyword, sectionId),
         
         onSuccess: async (result: any, variables: IRemoveSectionFromPageVariables) => {
-            debug('Section removed from page successfully', 'useRemoveSectionFromPageMutation', { 
-                keyword: variables.keyword,
-                sectionId: variables.sectionId,
-                result 
-            });
             
             // Invalidate relevant queries to update the UI
             await Promise.all([
@@ -67,7 +61,6 @@ export function useRemoveSectionFromPageMutation(options: IRemoveSectionFromPage
         },
         
         onError: (error: any, variables: IRemoveSectionFromPageVariables) => {
-            debug('Error removing section from page', 'useRemoveSectionFromPageMutation', { error, variables });
             
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);

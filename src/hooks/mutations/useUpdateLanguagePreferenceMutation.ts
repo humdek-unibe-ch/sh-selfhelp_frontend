@@ -9,7 +9,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AuthApi } from '../../api/auth.api';
 import { ILanguagePreferenceUpdateResponse } from '../../types/responses/auth.types';
 import { notifications } from '@mantine/notifications';
-import { debug, info, error } from '../../utils/debug-logger';
+import { info, error } from '../../utils/debug-logger';
 
 /**
  * Hook for updating user's language preference
@@ -20,18 +20,9 @@ export function useUpdateLanguagePreferenceMutation() {
 
     return useMutation({
         mutationFn: (languageId: number): Promise<ILanguagePreferenceUpdateResponse> => {
-            debug('Updating user language preference', 'useUpdateLanguagePreferenceMutation', { 
-                languageId 
-            });
             return AuthApi.updateLanguagePreference(languageId);
         },
         onSuccess: async (data, languageId) => {
-            info('Language preference updated successfully', 'useUpdateLanguagePreferenceMutation', { 
-                newLanguageId: data.data.language_id,
-                newLanguageLocale: data.data.language_locale,
-                newLanguageName: data.data.language_name,
-                requestedLanguageId: languageId
-            });
             
             // Wait a bit for localStorage to be updated
             await new Promise(resolve => setTimeout(resolve, 100));

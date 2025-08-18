@@ -24,7 +24,6 @@ import {
 } from '@tabler/icons-react';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
-import { debug } from '../../../../../utils/debug-logger';
 import { 
     useSelectedPage, 
     useSetSelectedPage,
@@ -59,7 +58,6 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
     const pageTree = useMemo(() => {
         if (!pages || pages.length === 0) return [];
 
-        debug('Building page tree', 'AdminPagesList', { pagesCount: pages.length });
 
         // Create a map for quick lookup
         const pageMap = new Map<number, PageTreeItem>();
@@ -128,7 +126,6 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
     }, [pageTree, searchQuery]);
 
     const handlePageClick = (page: IAdminPage) => {
-        debug('Page selected', 'AdminPagesList', { keyword: page.keyword });
         
         // Set selected page in store
         setSelectedPage(page);
@@ -138,7 +135,6 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
         
         // Navigate to the page URL smoothly (client-side navigation)
         const pageUrl = `/admin/pages/${page.keyword}`;
-        debug('Navigating to page', 'AdminPagesList', { url: pageUrl });
         router.push(pageUrl);
     };
 

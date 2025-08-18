@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { AdminPermissionApi } from '../api/admin/permission.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
-import type { IPermissionsListResponse } from '../api/admin/permission.api';
 
 // Query keys
 const PERMISSIONS_QUERY_KEYS = {

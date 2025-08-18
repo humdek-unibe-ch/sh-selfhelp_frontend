@@ -27,7 +27,7 @@ const SliderStyle: React.FC<ISliderStyleProps> = ({ style }) => {
             }
         }
     } catch (error) {
-        console.warn('Failed to parse slider labels:', error);
+
         labels = [];
     }
 

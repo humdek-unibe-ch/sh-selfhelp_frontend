@@ -12,7 +12,7 @@ import { AuthApi } from './auth.api';
 import { authProvider } from '../providers/auth.provider';
 import { ROUTES } from '../config/routes.config';
 import { getAccessToken, getRefreshToken, storeTokens, removeTokens } from '../utils/auth.utils';
-import { debug, warn, error } from '../utils/debug-logger';
+import { warn, error } from '../utils/debug-logger';
 
 // Extend Axios request config to include our custom properties
 declare module 'axios' {
@@ -58,7 +58,6 @@ const handleTokenRefreshSuccess = (accessToken: string, refreshToken?: string) =
     // Notify Refine auth provider about successful refresh
     authProvider.check().catch(() => {
         // If check fails after refresh, something is wrong
-        debug('Auth check failed after token refresh', 'BaseApi');
     });
 };
 
@@ -86,7 +85,6 @@ const processQueue = (error: any, token: string | null = null) => {
 const performTokenRefresh = async (): Promise<string> => {
     // If already refreshing, return the existing promise
     if (isRefreshing && refreshPromise) {
-        debug('Token refresh already in progress, waiting...', 'BaseApi');
         return refreshPromise;
     }
 
@@ -94,7 +92,6 @@ const performTokenRefresh = async (): Promise<string> => {
     isRefreshing = true;
     refreshPromise = new Promise(async (resolve, reject) => {
         try {
-            debug('Starting token refresh', 'BaseApi');
             
             const response = await AuthApi.refreshToken();
 
@@ -106,7 +103,6 @@ const performTokenRefresh = async (): Promise<string> => {
                     handleTokenRefreshSuccess(response.data.access_token);
                 }
                 
-                debug('Token refresh successful', 'BaseApi');
                 resolve(response.data.access_token);
             } else {
                 throw new Error('Token refresh failed - no access token received');
@@ -130,7 +126,6 @@ const handleRefreshWithQueue = async (originalRequest: InternalAxiosRequestConfi
     return new Promise((resolve, reject) => {
         // Add to queue if already refreshing
         if (isRefreshing) {
-            debug('Adding request to refresh queue', 'BaseApi');
             failedQueue.push({ resolve, reject });
             return;
         }
@@ -211,7 +206,6 @@ apiClient.interceptors.response.use(
 
                 // Prevent infinite loops
                 if (originalRequest._loggedInRetry) {
-                    debug('Already tried logged_in refresh, skipping', 'BaseApi');
                     handleTokenRefreshFailure();
                     return response;
                 }
@@ -220,7 +214,6 @@ apiClient.interceptors.response.use(
                 originalRequest._loggedInRetry = true;
 
                 try {
-                    debug('Attempting token refresh due to logged_in: false', 'BaseApi');
                     
                     // Use centralized refresh with queue management
                     const newToken = await handleRefreshWithQueue(originalRequest);
@@ -228,7 +221,6 @@ apiClient.interceptors.response.use(
                     // Update the original request with the new token
                     originalRequest.headers.Authorization = `Bearer ${newToken}`;
 
-                    debug('Retrying original request after refresh', 'BaseApi');
                     // Retry the original request
                     return await apiClient(originalRequest);
                 } catch (refreshError) {
@@ -282,7 +274,6 @@ apiClient.interceptors.response.use(
         originalRequest._retry = true;
 
         try {
-            debug('Attempting token refresh due to 401 error', 'BaseApi');
             
             // Use centralized refresh with queue management
             const newToken = await handleRefreshWithQueue(originalRequest);
@@ -290,7 +281,6 @@ apiClient.interceptors.response.use(
             // Update the original request with the new token
             originalRequest.headers.Authorization = `Bearer ${newToken}`;
 
-            debug('Retrying original request after 401 refresh', 'BaseApi');
             // Retry the original request
             return apiClient(originalRequest);
         } catch (refreshError) {

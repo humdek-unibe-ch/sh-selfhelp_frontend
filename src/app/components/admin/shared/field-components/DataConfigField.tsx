@@ -38,13 +38,7 @@ export function DataConfigField({
 
     const handleSave = async (dataConfig: any[]) => {
         const jsonString = dataConfig && dataConfig.length > 0 ? JSON.stringify(dataConfig, null, 2) : '';
-        console.log('DataConfigField handleSave:', {
-            fieldId,
-            fieldName,
-            dataConfig,
-            jsonString,
-            onChange: typeof onChange
-        });
+
         onChange(jsonString);
     };
 

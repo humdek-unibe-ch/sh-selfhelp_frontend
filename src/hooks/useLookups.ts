@@ -9,9 +9,6 @@ import { useQuery } from '@tanstack/react-query';
 import { LookupsApi } from '../api/lookups.api';
 import { ILookup, IProcessedLookups, ILookupMap, ILookupsByType } from '../types/responses/admin/lookups.types';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
-import { useAuth } from './useAuth';
-import { getAccessToken } from '../utils/auth.utils';
-import { debug } from '../utils/debug-logger';
 
 /**
  * React Query hook for fetching lookups data.
@@ -42,12 +39,6 @@ export function useLookups() {
                     lookupsByType[lookup.typeCode] = [];
                 }
                 lookupsByType[lookup.typeCode].push(lookup);
-            });
-
-            debug('Processed lookups data', 'useLookups', {
-                totalLookups: lookups.length,
-                typesCount: Object.keys(lookupsByType).length,
-                mapKeysCount: Object.keys(lookupMap).length
             });
 
             return {

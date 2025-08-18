@@ -20,7 +20,7 @@ const VideoStyle: React.FC<IVideoStyleProps> = ({ style }) => {
             }
         }
     } catch (error) {
-        console.warn('Failed to parse video sources:', error);
+
         sources = [];
     }
     

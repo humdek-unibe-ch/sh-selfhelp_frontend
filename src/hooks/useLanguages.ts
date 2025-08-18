@@ -12,7 +12,6 @@ import { ILanguage } from '../types/responses/admin/languages.types';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useAuth } from './useAuth';
 import { getAccessToken } from '../utils/auth.utils';
-import { debug } from '../utils/debug-logger';
 
 /**
  * Hook for fetching admin languages (requires authentication)
@@ -24,17 +23,9 @@ export function useLanguages() {
     // More robust authentication check
     const isActuallyAuthenticated = !!isAuthenticated && !!user && !!getAccessToken();
 
-    debug('useLanguages called', 'useLanguages', { 
-        isAuthenticated, 
-        hasUser: !!user, 
-        hasToken: !!getAccessToken(),
-        isActuallyAuthenticated
-    });
-
     const { data, isLoading, error } = useQuery({
         queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.LANGUAGES,
         queryFn: async () => {
-            debug('Fetching admin languages', 'useLanguages');
             return await AdminApi.getLanguages();
         },
         enabled: isActuallyAuthenticated, // Only fetch when user is truly authenticated
@@ -42,7 +33,6 @@ export function useLanguages() {
         gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
         retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
         select: (data: ILanguage[]) => {
-            debug('Admin languages loaded', 'useLanguages', { count: data.length });
             return data;
         }
     });

@@ -10,7 +10,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin.api';
-import { debug } from '../../../utils/debug-logger';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IAddSectionToSectionMutationOptions {
@@ -45,12 +44,6 @@ export function useAddSectionToSectionMutation(options: IAddSectionToSectionMuta
             AdminApi.addSectionToSection(keyword, parentSectionId, sectionId, sectionData),
         
         onSuccess: async (createdSection: any, variables: IAddSectionToSectionVariables) => {
-            debug('Section added to section successfully', 'useAddSectionToSectionMutation', { 
-                parentSectionId: variables.parentSectionId,
-                sectionId: variables.sectionId,
-                position: variables.sectionData.position,
-                createdSection 
-            });
             
             // Invalidate relevant queries to update the UI
             const invalidationPromises = [
@@ -83,7 +76,6 @@ export function useAddSectionToSectionMutation(options: IAddSectionToSectionMuta
         },
         
         onError: (error: any, variables: IAddSectionToSectionVariables) => {
-            debug('Error adding section to section', 'useAddSectionToSectionMutation', { error, variables });
             
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);

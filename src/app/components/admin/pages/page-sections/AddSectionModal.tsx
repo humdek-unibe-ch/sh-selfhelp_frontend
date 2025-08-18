@@ -101,7 +101,7 @@ export function AddSectionModal({
         }));
       }, [refContainerSections]);
 
-      console.log(refContainerSectionsSelectData, unusedSectionsSelectData);
+
 
     // Section operations hook
     const sectionOperations = useSectionOperations({

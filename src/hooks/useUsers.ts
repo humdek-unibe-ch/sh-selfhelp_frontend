@@ -3,10 +3,6 @@ import { AdminUserApi } from '../api/admin/user.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import type { 
   IUsersListParams, 
-  IUsersListResponse, 
-  IUserDetails, 
-  IUserGroup, 
-  IUserRole 
 } from '../types/responses/admin/users.types';
 import type {
   ICreateUserRequest,

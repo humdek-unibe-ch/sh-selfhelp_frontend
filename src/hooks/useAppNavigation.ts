@@ -11,7 +11,6 @@ import { NavigationApi } from '../api/navigation.api';
 import { IPageItem } from '../types/responses/frontend/frontend.types';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useLanguageContext } from '../app/contexts/LanguageContext';
-import { debug } from '../utils/debug-logger';
 
 interface INavigationData {
     pages: IPageItem[];
@@ -56,7 +55,6 @@ export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
     const { data, isLoading, error, isFetching } = useQuery({
         queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES(currentLanguageId),
         queryFn: () => {
-            debug('Fetching pages with language', 'useAppNavigation', { languageId: currentLanguageId });
             return NavigationApi.getPagesWithLanguage(currentLanguageId);
         },
         enabled: true, // Always enabled since currentLanguageId will default to 1
@@ -67,12 +65,7 @@ export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
         retry: 3, // Use global retry setting
         placeholderData: keepPreviousData, // Keep previous data during refetch for smooth transitions
         select: (pages: IPageItem[]): INavigationData => {
-            debug('Transform: Raw pages from API with language', 'useAppNavigation', { 
-                count: pages.length,
-                languageId: currentLanguageId,
-                pagesWithTitles: pages.filter(p => p.title).length
-            });
-            
+
             // Transform data once and cache the result
             const menuPages = pages
                 .filter(page => page.nav_position !== null && !page.is_headless)
@@ -101,8 +94,6 @@ export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
                 pagesWithoutTitles: pages.filter(p => !p.title || !p.title.trim()).length
             };
 
-            debug('Transform: Results with language support', 'useAppNavigation', transformResults);
-
             // Generate Refine resources for admin mode
             let resources: any[] = [];
             if (isAdmin) {
@@ -124,12 +115,7 @@ export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
                         protocol: ['web']
                     }
                 }));
-                
-                debug('Generated Refine resources for admin with titles', 'useAppNavigation', { 
-                    resourcesCount: resources.length,
-                    isAdmin,
-                    resourcesWithTitles: resources.filter(r => r.meta.label !== r.name).length
-                });
+
             }
 
             const result = {
@@ -144,7 +130,6 @@ export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
             // Store transformed data in window for DevTools inspection
             if (typeof window !== 'undefined') {
                 (window as any).__NAVIGATION_DATA__ = result;
-                debug('Transformed data with language support stored in window.__NAVIGATION_DATA__', 'useAppNavigation');
             }
 
             return result;

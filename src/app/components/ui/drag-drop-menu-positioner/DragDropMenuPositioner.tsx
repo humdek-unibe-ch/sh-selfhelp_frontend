@@ -28,7 +28,6 @@ import { DropIndicator } from '@atlaskit/pragmatic-drag-and-drop-react-drop-indi
 
 import { useAdminPages } from '../../../../hooks/useAdminPages';
 import { IAdminPage } from '../../../../types/responses/admin/admin.types';
-import { debug } from '../../../../utils/debug-logger';
 import { calculateMenuPosition, calculateFinalMenuPosition } from '../../../../utils/position-calculator';
 import styles from './DragDropMenuPositioner.module.css';
 
@@ -312,18 +311,9 @@ export function DragDropMenuPositioner({
         if (parentPageId) {
             // Creating a child page - show only children of the parent
             pagesToProcess = pages.filter(page => page.parent === parentPageId);
-            debug('Processing child pages for parent', 'DragDropMenuPositioner', {
-                parentPageId,
-                childrenCount: pagesToProcess.length,
-                menuType
-            });
         } else {
             // Show root pages (pages with parent: null)
             pagesToProcess = pages.filter(page => page.parent === null);
-            debug('Processing root pages', 'DragDropMenuPositioner', {
-                rootPagesCount: pagesToProcess.length,
-                menuType
-            });
         }
 
         const processPage = (page: IAdminPage) => {
@@ -346,13 +336,6 @@ export function DragDropMenuPositioner({
 
         // Sort pages by position
         menuPages.sort((a, b) => a.position - b.position);
-
-        debug('Processed menu pages', 'DragDropMenuPositioner', {
-            context: parentPageId ? 'child' : 'root',
-            parentPageId,
-            menuType,
-            pagesCount: menuPages.length
-        });
 
         return menuPages;
     }, [pages, parentPageId, menuType]);
@@ -399,25 +382,8 @@ export function DragDropMenuPositioner({
                 updatedPages = updatedPages.filter((_, index) => index !== existingPageIndex);
                 
                 // Insert at the new position (no adjustment needed since we removed the item first)
-                updatedPages.splice(droppedIndex, 0, currentPageItem);
-                
-                debug('Reordering existing page in menu', 'DragDropMenuPositioner', {
-                    menuType,
-                    pageKeyword,
-                    originalIndex: existingPageIndex,
-                    newIndex: droppedIndex,
-                    droppedIndex,
-                    updatedPagesCount: updatedPages.length
-                });
+                updatedPages.splice(droppedIndex, 0, currentPageItem);            
             }
-            
-            debug('Page already exists in menu, marking as current', 'DragDropMenuPositioner', {
-                menuType,
-                pageKeyword,
-                existingPageIndex,
-                droppedIndex,
-                menuPagesCount: menuPages.length
-            });
             
             return updatedPages;
         } else {
@@ -435,24 +401,9 @@ export function DragDropMenuPositioner({
                 const pagesWithNew = [...menuPages];
                 pagesWithNew.splice(droppedIndex, 0, newPage);
                 
-                debug('Adding new page at dropped position', 'DragDropMenuPositioner', {
-                    menuType,
-                    pageKeyword,
-                    droppedIndex,
-                    menuPagesCount: menuPages.length,
-                    newPagePosition: newPage.position
-                });
-                
                 return pagesWithNew;
             } else {
                 // Add at the end
-                debug('Adding new page at end', 'DragDropMenuPositioner', {
-                    menuType,
-                    pageKeyword,
-                    menuPagesCount: menuPages.length,
-                    newPagePosition: newPage.position
-                });
-                
                 return [...menuPages, newPage];
             }
         }
@@ -519,15 +470,6 @@ export function DragDropMenuPositioner({
                 if (draggedPage.isNew) {
                     onPositionChange(newPosition);
                 }
-
-                debug('Drag ended', 'DragDropMenuPositioner', {
-                    menuType,
-                    draggedPageId,
-                    targetPageId,
-                    edge,
-                    newPosition,
-                    newIndex
-                });
             }
         });
     }, [menuPagesWithNew, findPageById, calculateNewPosition, onPositionChange, menuType]);
@@ -563,26 +505,11 @@ export function DragDropMenuPositioner({
                 
                 // Calculate position based on the new index in the reordered array
                 const finalPosition = calculateFinalPosition(reorderedPages.filter(p => p.keyword !== pageKeyword), droppedIndex);
-                
-                debug('Calculating final position for existing page (dragged)', 'DragDropMenuPositioner', {
-                    menuType,
-                    pageKeyword,
-                    existingPageIndex,
-                    droppedIndex,
-                    finalPosition,
-                    reorderedPagesCount: reorderedPages.length,
-                    otherPagesCount: reorderedPages.filter(p => p.keyword !== pageKeyword).length
-                });
+            
                 return finalPosition;
             } else {
                 // User didn't drag or dragged to same position - keep existing position
                 const existingPosition = menuPages[existingPageIndex].position;
-                debug('Keeping existing position for page in menu', 'DragDropMenuPositioner', {
-                    menuType,
-                    pageKeyword,
-                    existingPageIndex,
-                    existingPosition
-                });
                 return existingPosition;
             }
         } else {
@@ -590,25 +517,12 @@ export function DragDropMenuPositioner({
             if (droppedIndex !== null) {
                 // User dragged to specific position - calculate based on the dropped index
                 const finalPosition = calculateFinalPosition(menuPages, droppedIndex);
-                debug('Calculating final position for new page (dragged)', 'DragDropMenuPositioner', {
-                    menuType,
-                    pageKeyword,
-                    droppedIndex,
-                    menuPagesCount: menuPages.length,
-                    finalPosition
-                });
                 return finalPosition;
             } else {
                 // User enabled menu but didn't drag - add at the end
                 const endPosition = menuPages.length > 0 ? 
                     (menuPages[menuPages.length - 1].position === -1 ? 5 : menuPages[menuPages.length - 1].position + 10) : 
                     -1;
-                debug('Calculating final position for new page (no drag)', 'DragDropMenuPositioner', {
-                    menuType,
-                    pageKeyword,
-                    menuPagesCount: menuPages.length,
-                    endPosition
-                });
                 return endPosition;
             }
         }

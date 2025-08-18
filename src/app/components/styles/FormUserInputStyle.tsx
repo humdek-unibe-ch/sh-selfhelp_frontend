@@ -10,7 +10,6 @@ import { IconAlertCircle, IconCheck } from '@tabler/icons-react';
 import { usePageContentContext } from '../../contexts/PageContentContext';
 import { useSubmitFormMutation, useUpdateFormMutation } from '../../../hooks/useFormSubmission';
 import { getFieldContent } from '../../../utils/style-field-extractor';
-import { debug } from '../../../utils/debug-logger';
 
 interface FormUserInputStyleProps {
     style: IFormUserInputStyle | IFormUserInputLogStyle | IFormUserInputRecordStyle;
@@ -33,7 +32,7 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
     const buttonLabel = getFieldContent(style, 'label') || 'Submit';
     
     // Get form ID from style - now directly available as number
-    console.log('style', style);
+
     const sectionId = style.id;
 
     // Get current page ID from context
@@ -42,16 +41,6 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
     // Determine form behavior based on style name
     const isRecord = style.style_name === 'formUserInputRecord';
     const isLogType = style.style_name === 'formUserInputLog' || isLog;
-
-    debug('FormUserInputStyle configuration', 'FormUserInputStyle', {
-        styleName: style.style_name,
-        sectionId,
-        styleId: style.id,
-        isRecord,
-        isLogType,
-        pageId,
-        isAjax
-    });
 
     // React Query hooks
     const submitFormMutation = useSubmitFormMutation();
@@ -140,14 +129,6 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
             processedFormData[key] = formDataObject[key] === '' ? null : formDataObject[key];
         });
 
-        debug('Form submission data', 'FormUserInputStyle', {
-            sectionId,
-            pageId,
-            formDataObject: processedFormData,
-            isRecord,
-            existingRecord: !!existingRecordId
-        });
-
         try {
             let response;
             
@@ -177,13 +158,6 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
 
             // Handle success alert - prefer backend message over style message
             const successMessage = response?.data?.message || alertSuccess;
-            if (successMessage && !isAjax) {
-                // Success message is already shown by mutation hook
-                debug('Form submitted successfully', 'FormUserInputStyle', {
-                    message: successMessage,
-                    recordId: response?.data?.record_id
-                });
-            }
 
             // Handle redirect
             if (redirectUrl && !isAjax) {
@@ -193,7 +167,7 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
             }
 
         } catch (error: any) {
-            console.error('Form submission error:', error);
+
             
             // Extract error message from API response if available
             let errorMessage = 'Failed to submit form. Please try again.';

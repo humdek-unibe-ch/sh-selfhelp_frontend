@@ -1345,7 +1345,6 @@ import { Button, Card, Text } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 
 // 3. Internal utilities
-import { debug } from '../../utils/debug-logger';
 import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
 
 // 4. Internal components

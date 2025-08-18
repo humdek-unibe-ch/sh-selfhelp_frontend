@@ -4,9 +4,6 @@ import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { notifications } from '@mantine/notifications';
 import type { 
   IRolesListParams, 
-  IRolesListResponse, 
-  IRoleDetails,
-  IRolePermission
 } from '../types/responses/admin/roles.types';
 import type {
   ICreateRoleRequest,

@@ -87,22 +87,6 @@ export function processField(
             content = formValues[field.name]?.[1] || '';
         }
         
-        // Debug logging for CSS fields to track content propagation
-        if (field.type === 'css') {
-            console.log(`[FieldProcessing] Processing CSS property field "${field.name}"`, {
-                fieldId: field.id,
-                languageId: 1, // Always save as language ID 1
-                content: content,
-                contentLength: content.length,
-                formValuesForField: formValues[field.name],
-                searchedLanguages: languages.map(l => ({
-                    id: l.id,
-                    content: formValues[field.name]?.[l.id] || '',
-                    hasContent: !!(formValues[field.name]?.[l.id] || '').trim()
-                }))
-            });
-        }
-        
         // Property fields: always save with language ID 1
         fieldEntries.push({
             fieldId: field.id,
@@ -240,21 +224,6 @@ export function initializeFieldFormValues(
             // Property fields: find content from language_id = 1 and replicate across all languages
             const propertyTranslation = field.translations.find(t => t.language_id === 1);
             const propertyContent = propertyTranslation?.content || '';
-            
-            // Debug logging for CSS property fields
-            if (field.type === 'css') {
-                console.log(`[FieldProcessing] Loading CSS property field "${field.name}"`, {
-                    fieldId: field.id,
-                    propertyContent: propertyContent,
-                    contentLength: propertyContent.length,
-                    translations: field.translations.map(t => ({
-                        language_id: t.language_id,
-                        content: t.content || '',
-                        contentLength: (t.content || '').length
-                    })),
-                    willReplicateToLanguages: languages.map(l => l.id)
-                });
-            }
             
             // Replicate property field content to all language tabs for editing convenience
             languages.forEach(language => {

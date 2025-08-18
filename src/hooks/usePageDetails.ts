@@ -8,7 +8,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { AdminApi } from '../api/admin.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
-import { debug } from '../utils/debug-logger';
 
 /**
  * Hook to fetch page sections by keyword
@@ -21,7 +20,6 @@ export function usePageSections(keyword: string | null, enabled: boolean = true)
         queryKey: ['pageSections', keyword],
         queryFn: async () => {
             if (!keyword) throw new Error('Keyword is required');
-            debug('Fetching page sections', 'usePageSections', { keyword });
             const sections = await AdminApi.getPageSections(keyword);
             return { sections, page_keyword: keyword };
         },
@@ -40,7 +38,6 @@ export function usePageFields(keyword: string | null, enabled: boolean = true) {
         queryKey: ['pageFields', keyword],
         queryFn: async () => {
             if (!keyword) throw new Error('Keyword is required');
-            debug('Fetching page fields', 'usePageFields', { keyword });
             const data = await AdminApi.getPageFields(keyword);
             return data;
         },

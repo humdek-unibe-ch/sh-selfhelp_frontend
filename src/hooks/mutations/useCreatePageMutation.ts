@@ -12,7 +12,6 @@ import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../api/admin.api';
 import { ICreatePageRequest } from '../../types/requests/admin/create-page.types';
 import { IAdminPage } from '../../types/responses/admin/admin.types';
-import { debug } from '../../utils/debug-logger';
 import { parseApiError } from '../../utils/mutation-error-handler';
 
 interface ICreatePageMutationOptions {
@@ -34,7 +33,6 @@ export function useCreatePageMutation(options: ICreatePageMutationOptions = {}) 
         mutationFn: (pageData: ICreatePageRequest) => AdminApi.createPage(pageData),
         
         onSuccess: async (createdPage: IAdminPage) => {
-            debug('Page created successfully', 'useCreatePageMutation', createdPage);
             
             // Enhanced cache invalidation strategy with consistent query keys
             await Promise.all([
@@ -62,12 +60,6 @@ export function useCreatePageMutation(options: ICreatePageMutationOptions = {}) 
                 exact: false 
             });
             
-            debug('Cache invalidation completed for page creation', 'useCreatePageMutation', {
-                createdPageKeyword: createdPage.keyword,
-                hasNavPosition: createdPage.nav_position !== null,
-                hasFooterPosition: createdPage.footer_position !== null
-            });
-            
             if (showNotifications) {
                 notifications.show({
                     title: 'Page Created Successfully',
@@ -84,7 +76,6 @@ export function useCreatePageMutation(options: ICreatePageMutationOptions = {}) 
         },
         
         onError: (error: any) => {
-            debug('Error creating page', 'useCreatePageMutation', { error });
             
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);

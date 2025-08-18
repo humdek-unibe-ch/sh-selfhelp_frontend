@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo } from 'react';
-import { debug } from '../../../../../utils/debug-logger';
 
 export interface ILanguage {
     id: number;
@@ -43,37 +42,15 @@ export function useFieldFormHandler({ fields, languages, componentName = 'FieldF
     
     const processedData = useMemo<IProcessedFormData>(() => {
         if (!fields.length || !languages.length) {
-            debug('No fields or languages available for processing', componentName, {
-                fieldsCount: fields.length,
-                languagesCount: languages.length
-            });
             return {
                 contentFields: {},
                 propertyFields: {}
             };
         }
 
-        debug('Processing fields for form', componentName, {
-            fieldsCount: fields.length,
-            languagesCount: languages.length,
-            fields: fields.map(f => ({ 
-                name: f.name, 
-                type: f.type, 
-                display: f.display, 
-                translationsCount: f.translations.length 
-            }))
-        });
-
         // Separate content fields (display: true) from property fields (display: false)
         const contentFields = fields.filter(field => field.display);
         const propertyFields = fields.filter(field => !field.display);
-
-        debug('Fields categorized', componentName, {
-            contentFieldsCount: contentFields.length,
-            propertyFieldsCount: propertyFields.length,
-            contentFields: contentFields.map(f => f.name),
-            propertyFields: propertyFields.map(f => f.name)
-        });
 
         // Process content fields (translatable)
         const contentFieldsObject: Record<string, Record<number, string>> = {};
@@ -87,12 +64,6 @@ export function useFieldFormHandler({ fields, languages, componentName = 'FieldF
 
             // Then populate with actual data from translations
             field.translations.forEach(translation => {
-                debug('Processing translation', componentName, {
-                    fieldName: field.name,
-                    translationLanguageId: translation.language_id,
-                    translationContent: translation.content,
-                    availableLanguages: languages.map(l => ({ id: l.id, locale: l.locale }))
-                });
 
                 // Find matching language by ID
                 const matchingLang = languages.find(lang => lang.id === translation.language_id);
@@ -100,40 +71,14 @@ export function useFieldFormHandler({ fields, languages, componentName = 'FieldF
                 if (matchingLang) {
                     const value = translation.content || field.default_value || '';
                     contentFieldsObject[field.name][matchingLang.id] = value;
-
-                    debug('Translation matched and applied', componentName, {
-                        fieldName: field.name,
-                        translationLanguageId: translation.language_id,
-                        matchedLanguageId: matchingLang.id,
-                        value: value
-                    });
-                } else {
-                    debug('Translation not matched to any language', componentName, {
-                        fieldName: field.name,
-                        translationLanguageId: translation.language_id,
-                        availableLanguageIds: languages.map(l => l.id)
-                    });
                 }
             });
 
-            debug('Content field processing complete', componentName, {
-                fieldName: field.name,
-                finalValues: contentFieldsObject[field.name]
-            });
         });
 
         // Process property fields (non-translatable)
         const propertyFieldsObject: Record<string, string | boolean> = {};
         propertyFields.forEach(field => {
-            debug('Processing property field', componentName, {
-                fieldName: field.name,
-                fieldType: field.type,
-                translationsCount: field.translations.length,
-                translations: field.translations.map(t => ({ 
-                    language_id: t.language_id, 
-                    content: t.content 
-                }))
-            });
 
             // For property fields, use the first translation or empty
             const propertyTranslation = field.translations.length > 0 ? field.translations[0] : null;
@@ -147,25 +92,12 @@ export function useFieldFormHandler({ fields, languages, componentName = 'FieldF
                 propertyFieldsObject[field.name] = value;
             }
 
-            debug('Property field processed', componentName, {
-                fieldName: field.name,
-                rawValue: value,
-                finalValue: propertyFieldsObject[field.name],
-                fieldType: field.type
-            });
         });
 
         const result = {
             contentFields: contentFieldsObject,
             propertyFields: propertyFieldsObject
         };
-
-        debug('Field processing complete', componentName, {
-            contentFieldsCount: Object.keys(result.contentFields).length,
-            propertyFieldsCount: Object.keys(result.propertyFields).length,
-            contentFields: result.contentFields,
-            propertyFields: result.propertyFields
-        });
 
         return result;
     }, [fields, languages, componentName]);
@@ -183,12 +115,6 @@ export function createFieldChangeHandlers<T extends Record<string, any>>(
     const handleContentFieldChange = (fieldName: string, languageId: number | null, value: string | boolean) => {
         if (!languageId) return;
 
-        debug('Content field changed', componentName, {
-            fieldName,
-            languageId,
-            value
-        });
-
         setFormValues(prev => ({
             ...prev,
             fields: {
@@ -202,21 +128,6 @@ export function createFieldChangeHandlers<T extends Record<string, any>>(
     };
 
     const handlePropertyFieldChange = (fieldName: string, languageId: number | null, value: string | boolean) => {
-        debug('Property field changed', componentName, {
-            fieldName,
-            languageId,
-            value,
-            valueType: typeof value,
-            valueLength: typeof value === 'string' ? value.length : 'N/A'
-        });
-
-        console.log(`[${componentName}] Property field "${fieldName}" changed:`, {
-            fieldName,
-            languageId,
-            value,
-            valueType: typeof value,
-            valueLength: typeof value === 'string' ? value.length : 'N/A'
-        });
 
         setFormValues(prev => {
             const newFormValues = {
@@ -226,13 +137,6 @@ export function createFieldChangeHandlers<T extends Record<string, any>>(
                     [fieldName]: value
                 }
             };
-            
-            console.log(`[${componentName}] Updated form values for "${fieldName}":`, {
-                oldValue: prev.properties?.[fieldName],
-                newValue: value,
-                allProperties: newFormValues.properties
-            });
-            
             return newFormValues;
         });
     };
