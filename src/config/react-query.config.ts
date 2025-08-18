@@ -11,8 +11,8 @@ export const REACT_QUERY_CONFIG = {
      * Increased cache times for smoother language transitions
      */
     CACHE: {
-        staleTime: 30 * 1000, // 30 seconds - how long data is considered fresh
-        gcTime: 60 * 1000, // 60 seconds - how long unused data stays in cache (formerly cacheTime)
+        staleTime: 1000, // 1 second - how long data is considered fresh
+        gcTime: 1000, // 1 second - how long unused data stays in cache (formerly cacheTime)
     },
     
     /**
@@ -20,8 +20,8 @@ export const REACT_QUERY_CONFIG = {
      */
     DEFAULT_OPTIONS: {
         queries: {
-            staleTime: 30 * 1000, // 30 seconds
-            gcTime: 60 * 1000, // 60 seconds
+            staleTime: 1000, // 1 second
+            gcTime: 1000, // 1 second
             retry: 3, // Number of retry attempts
             retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
             refetchOnWindowFocus: false, // Don't refetch on window focus
@@ -79,14 +79,14 @@ export const REACT_QUERY_CONFIG = {
         
         // For real-time data that changes frequently
         REAL_TIME: {
-            staleTime: 0, // Always stale, always refetch
+            staleTime: 1000, // Always stale, always refetch
             gcTime: 1000, // 1 second in cache
         },
         
         // For user-specific data
         USER_DATA: {
-            staleTime: 30 * 1000, // 30 seconds
-            gcTime: 2 * 60 * 1000, // 2 minutes in cache
+            staleTime: 1000, // 1 second
+            gcTime: 1000, // 1 second
         },
     },
 } as const; 
