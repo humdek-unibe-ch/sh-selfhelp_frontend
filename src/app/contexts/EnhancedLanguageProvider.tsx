@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { usePublicLanguages } from '../../hooks/usePublicLanguages';
 import { useLanguages } from '../../hooks/useLanguages';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuthUser } from '../../hooks/useUserData';
 import { useLanguageContext } from './LanguageContext';
 import { LANGUAGE_STORAGE_KEY } from '../../constants/language.constants';
 import { debug } from '../../utils/debug-logger';
@@ -19,11 +19,11 @@ interface IEnhancedLanguageProviderProps {
  * - Clears localStorage language preference when user logs in
  */
 export function EnhancedLanguageProvider({ children }: IEnhancedLanguageProviderProps) {
-    const { user, isLoading: isAuthLoading } = useAuth();
+    const { user, isLoading: isAuthLoading } = useAuthUser();
     const { setCurrentLanguageId, setLanguages, currentLanguageId } = useLanguageContext();
     
-    // Track if we've synced language from JWT to prevent loops
-    const hasInitializedFromJWT = useRef(false);
+    // Track if we've synced language from user data to prevent loops
+    const hasInitializedFromUserData = useRef(false);
     const lastUserId = useRef<number | null>(null);
     
     // Use different language hooks based on authentication status
@@ -41,33 +41,33 @@ export function EnhancedLanguageProvider({ children }: IEnhancedLanguageProvider
         }
     }, [languages, setLanguages]);
 
-    // Handle authentication changes and JWT language sync
+    // Handle authentication changes and user data language sync
     useEffect(() => {
         if (isAuthLoading || languagesLoading) return;
 
         // Reset initialization flag when user changes
         if (user?.id !== lastUserId.current) {
-            hasInitializedFromJWT.current = false;
+            hasInitializedFromUserData.current = false;
             lastUserId.current = user?.id || null;
-            debug('User changed, resetting JWT language sync', 'EnhancedLanguageProvider', { 
+            debug('User changed, resetting user data language sync', 'EnhancedLanguageProvider', { 
                 newUserId: user?.id,
                 oldUserId: lastUserId.current
             });
         }
 
-        if (user && user.languageId && !hasInitializedFromJWT.current) {
+        if (user && user.languageId && !hasInitializedFromUserData.current) {
             // Clear localStorage when user logs in
             if (typeof window !== 'undefined') {
                 localStorage.removeItem(LANGUAGE_STORAGE_KEY);
             }
             
-            // Use language from JWT token
+            // Use language from user data
             const languageId = typeof user.languageId === 'number' 
                 ? user.languageId 
                 : parseInt(String(user.languageId), 10);
             
-            debug('Syncing language from JWT', 'EnhancedLanguageProvider', {
-                jwtLanguageId: languageId,
+            debug('Syncing language from user data', 'EnhancedLanguageProvider', {
+                userDataLanguageId: languageId,
                 currentLanguageId,
                 willUpdate: languageId !== currentLanguageId
             });
@@ -78,7 +78,7 @@ export function EnhancedLanguageProvider({ children }: IEnhancedLanguageProvider
             }
             
             // Mark as initialized to prevent loops
-            hasInitializedFromJWT.current = true;
+            hasInitializedFromUserData.current = true;
         } else if (!user && languages.length > 0) {
             // Non-authenticated user - validate stored preference
             const validLanguageIds = languages.map(lang => lang.id);

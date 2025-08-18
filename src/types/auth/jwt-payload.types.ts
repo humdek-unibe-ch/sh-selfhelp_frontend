@@ -1,42 +1,93 @@
 /**
  * JWT token payload structure returned from the backend after successful authentication
+ * Updated structure - no longer contains permissions, language, or detailed user info
  */
 export interface IJwtPayload {
     /** Token issued at timestamp */
     iat: number;
     /** Token expiration timestamp */
     exp: number;
-    /** User roles array */
+    /** User roles array (simplified to role names only) */
     roles: string[];
-    /** User permissions array */
-    permissions: string[];
     /** User ID */
     id_users: number;
     /** User email */
     email: string;
-    /** User name (same as email in this case) */
+    /** User name */
     user_name: string;
-    /** Username (same as email in this case) */
-    username: string;
-    /** User's preferred language ID */
-    language_id?: number;
-    /** User's preferred language locale (e.g., 'de-CH', 'en-GB') */
-    language_locale?: string;
+    /** Username (nullable) */
+    username: string | null;
 }
 
 /**
- * Extended user interface that includes roles and permissions from JWT
+ * User data response structure from /auth/user-data endpoint
+ */
+export interface IUserDataResponse {
+    status: number;
+    message: string;
+    error: string | null;
+    logged_in: boolean;
+    meta: {
+        version: string;
+        timestamp: string;
+    };
+    data: IUserData;
+}
+
+/**
+ * User data structure containing full user information
+ */
+export interface IUserData {
+    id: number;
+    email: string;
+    name: string | null;
+    user_name: string | null;
+    blocked: boolean;
+    language: {
+        id: number | null;
+        locale: string | null;
+        name: string | null;
+    };
+    roles: Array<{
+        id: number;
+        name: string;
+        description: string | null;
+    }>;
+    permissions: string[];
+    groups: Array<{
+        id: number;
+        name: string;
+        description: string | null;
+    }>;
+}
+
+/**
+ * Extended user interface that includes roles and permissions from user-data endpoint
+ * This replaces the JWT-based user data
  */
 export interface IAuthUser {
     id: number;
     email: string;
     name: string;
-    roles: string[];
+    user_name: string | null;
+    blocked: boolean;
+    roles: Array<{
+        id: number;
+        name: string;
+        description: string | null;
+    }>;
     permissions: string[];
+    groups: Array<{
+        id: number;
+        name: string;
+        description: string | null;
+    }>;
     /** User's preferred language ID */
-    languageId?: number;
+    languageId: number | null;
     /** User's preferred language locale */
-    languageLocale?: string;
+    languageLocale: string | null;
+    /** User's preferred language name */
+    languageName: string | null;
 }
 
 /**

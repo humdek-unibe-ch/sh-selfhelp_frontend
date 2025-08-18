@@ -9,6 +9,7 @@
 import { useNavigation, useIsAuthenticated } from '@refinedev/core';
 import { useEffect } from 'react';
 import { useAuth } from './useAuth';
+import { useHasPermission } from './useUserData';
 import { PERMISSIONS } from '../types/auth/jwt-payload.types';
 import { ROUTES } from '../config/routes.config';
 
@@ -19,14 +20,16 @@ import { ROUTES } from '../config/routes.config';
 export function useAdminAccess() {
     const { replace } = useNavigation();
     const { isLoading: isAuthLoading } = useIsAuthenticated();
-    const { user, isAuthenticated } = useAuth();
+    const { isAuthenticated, isLoading: isUserDataLoading } = useAuth();
+    const hasPermission = useHasPermission();
 
-    // Check JWT token for admin.access permission
-    const hasAccess = user?.permissions?.includes(PERMISSIONS.ADMIN_ACCESS) || false;
+    // Check user data for admin.access permission
+    const hasAccess = hasPermission(PERMISSIONS.ADMIN_ACCESS);
+    const isLoading = isAuthLoading || isUserDataLoading;
 
     // Handle unauthorized access
     useEffect(() => {
-        if (!isAuthLoading) {
+        if (!isLoading) {
             if (!isAuthenticated) {
                 // Not logged in at all
                 replace(ROUTES.LOGIN);
@@ -35,10 +38,10 @@ export function useAdminAccess() {
                 replace(ROUTES.NO_ACCESS);
             }
         }
-    }, [isAuthLoading, hasAccess, isAuthenticated, replace]);
+    }, [isLoading, hasAccess, isAuthenticated, replace]);
 
     return {
         hasAccess,
-        isLoading: isAuthLoading,
+        isLoading,
     };
 }

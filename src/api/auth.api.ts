@@ -9,6 +9,7 @@ import { apiClient } from './base.api';
 import { NavigationApi } from './navigation.api';
 import { ILoginRequest, ILogoutRequest, IRefreshTokenRequest, ITwoFactorVerifyRequest } from '../types/requests/auth/auth.types';
 import { ILoginSuccessResponse, ITwoFactorRequiredResponse, ITwoFactorVerifySuccessResponse, ILogoutSuccessResponse, TRefreshTokenSuccessResponse, ILanguagePreferenceUpdateResponse } from '../types/responses/auth.types';
+import { IUserDataResponse } from '../types/auth/jwt-payload.types';
 import { storeTokens, removeTokens, getRefreshToken, getCurrentUser } from '../utils/auth.utils';
 import { API_CONFIG } from '../config/api.config';
 
@@ -198,6 +199,23 @@ export const AuthApi = {
                 };
                 localStorage.setItem('user', JSON.stringify(updatedUser));
             }
+        }
+
+        return response.data;
+    },
+
+    /**
+     * Fetches current user data including permissions, roles, groups, and language
+     * @returns {Promise<IUserDataResponse>} Response containing complete user information
+     * @throws {Error} When user data fetch fails
+     */
+    async getUserData(): Promise<IUserDataResponse> {
+        const response = await apiClient.get<IUserDataResponse>(
+            API_CONFIG.ENDPOINTS.AUTH_USER_DATA
+        );
+
+        if (response.data.error) {
+            throw new Error(response.data.error);
         }
 
         return response.data;

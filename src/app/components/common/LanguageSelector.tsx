@@ -4,6 +4,7 @@ import { Select, Group, Text, Loader } from '@mantine/core';
 import { useLanguageContext } from '../../contexts/LanguageContext';
 import { useAuth } from '../../../hooks/useAuth';
 import { useUpdateLanguagePreferenceMutation } from '../../../hooks/mutations/useUpdateLanguagePreferenceMutation';
+import { useInvalidateUserData } from '../../../hooks/useUserData';
 import { useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -18,6 +19,7 @@ export function LanguageSelector() {
     
     const queryClient = useQueryClient();
     const updateLanguageMutation = useUpdateLanguagePreferenceMutation();
+    const invalidateUserData = useInvalidateUserData();
     
     const handleLanguageChange = useCallback(async (value: string | null) => {
         if (!value) return;
@@ -33,8 +35,12 @@ export function LanguageSelector() {
         if (user) {
             // For authenticated users, update preference via API
             updateLanguageMutation.mutate(languageId, {
+                onSuccess: () => {
+                    // After successful language update, invalidate user data to get updated language info
+                    invalidateUserData();
+                },
                 onError: () => {
-                    // On error, revert to the user's current language from JWT token
+                    // On error, revert to the user's current language from user data
                     if (user.languageId) {
                         const userLanguageId = typeof user.languageId === 'number' 
                             ? user.languageId 
@@ -48,7 +54,7 @@ export function LanguageSelector() {
             await queryClient.invalidateQueries({ queryKey: ['page-content'] });
             await queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
         }
-    }, [user, updateLanguageMutation, setCurrentLanguageId, currentLanguageId, queryClient]);
+    }, [user, updateLanguageMutation, setCurrentLanguageId, currentLanguageId, queryClient, invalidateUserData]);
     
     // Don't show if languages are empty
     if (languages.length === 0) {

@@ -56,9 +56,11 @@ export const getRefreshToken = (): string | null => {
 };
 
 /**
- * Decode JWT token and extract user information
+ * Decode JWT token and extract basic user information
+ * Note: JWT no longer contains permissions, roles details, or language info
+ * Use useUserData hook for complete user information
  */
-export const getUserPayload = (token: string | null): IAuthUser | null => {
+export const getUserPayload = (token: string | null): { id: number; email: string; name: string; roles: string[] } | null => {
     if (!token) return null;
 
     try {
@@ -75,9 +77,6 @@ export const getUserPayload = (token: string | null): IAuthUser | null => {
             email: decoded.email,
             name: decoded.user_name || decoded.email,
             roles: decoded.roles || [],
-            permissions: decoded.permissions || [],
-            languageId: decoded.language_id,
-            languageLocale: decoded.language_locale,
         };
     } catch (error) {
         console.error('Failed to decode JWT token:', error);
@@ -87,16 +86,18 @@ export const getUserPayload = (token: string | null): IAuthUser | null => {
 
 /**
  * Check if the current user has a specific permission
+ * @deprecated Use useHasPermission hook instead for complete permission checking
  */
 export const hasPermission = (permission: string, user: IAuthUser | null): boolean => {
     if (!user) return false;
-    return user.permissions.includes(permission);
+    return user.permissions?.includes(permission) || false;
 };
 
 /**
- * Get the current authenticated user from the stored token
+ * Get basic user information from JWT token
+ * @deprecated Use useAuthUser hook instead for complete user information
  */
-export const getCurrentUser = (): IAuthUser | null => {
+export const getCurrentUser = (): { id: number; email: string; name: string; roles: string[] } | null => {
     const token = getAccessToken();
     return getUserPayload(token);
 };

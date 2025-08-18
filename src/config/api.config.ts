@@ -16,6 +16,7 @@ export const API_CONFIG = {
         AUTH_REFRESH_TOKEN: '/auth/refresh-token',
         AUTH_LOGOUT: '/auth/logout',
         AUTH_SET_LANGUAGE: '/auth/set-language',
+        AUTH_USER_DATA: '/auth/user-data',
 
         // Public pages endpoints
         /**
