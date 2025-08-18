@@ -37,7 +37,7 @@ const UnknownStyle: React.FC<IUnknownStyleProps> = ({ style }) => {
             <Code block c="orange.7">
                 {JSON.stringify({ 
                     style_name: style.style_name,
-                    id: style.id?.content,
+                    id: style.id,
                     available_props: Object.keys(style).filter(key => key !== 'children')
                 }, null, 2)}
             </Code>

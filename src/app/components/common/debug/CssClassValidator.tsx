@@ -56,7 +56,7 @@ export function CssClassValidator({ testClasses = '' }: ICssClassValidatorProps)
         
         <Alert color="blue" title="Usage">
           This tool helps debug Tailwind CSS classes that might not be included in the final bundle.
-          Enter space-separated class names to check if they're in the safelist.
+          Enter space-separated class names to check if they&apos;re in the safelist.
         </Alert>
 
         <Group>
@@ -107,11 +107,11 @@ export function CssClassValidator({ testClasses = '' }: ICssClassValidatorProps)
               <div className="bg-blue-100 p-2 rounded">Item 1</div>
               <div className="bg-green-100 p-2 rounded">Item 2</div>
             </div>
-            <img 
-              src="https://placekitten.com/200/100" 
-              alt="Test" 
-              className="w-full h-24 object-cover rounded mt-4"
-            />
+            <div 
+              className="w-full h-24 bg-gray-200 rounded mt-4 flex items-center justify-center text-gray-500 text-sm"
+            >
+              Test Image Area
+            </div>
           </div>
         </Stack>
       </Stack>

@@ -1,14 +1,13 @@
 'use client';
 
 import { notFound, useParams } from 'next/navigation';
-import { useEffect, Suspense, useMemo } from 'react';
+import { Suspense, useMemo } from 'react';
 import { Container, Loader, Center, Text } from '@mantine/core';
 import { PageContentProvider, usePageContentContext } from '../contexts/PageContentContext';
 import { usePageContent } from '../../hooks/usePageContent';
 import { useAppNavigation } from '../../hooks/useAppNavigation';
 import { useLanguageContext } from '../contexts/LanguageContext';
 import { PageContentRenderer } from '../components/website/PageContentRenderer';
-import { debug, info, warn } from '../../utils/debug-logger';
 import React from 'react';
 
 export default function DynamicPage() {
@@ -22,13 +21,13 @@ export default function DynamicPage() {
                     <Loader size="lg" />
                 </Center>
             }>
-                <DynamicPageContent keyword={keyword} />
+                <DynamicPageContentOptimized keyword={keyword} />
             </Suspense>
         </PageContentProvider>
     );
 }
 
-const DynamicPageContent = React.memo(function DynamicPageContent({ keyword }: { keyword: string }) {
+const DynamicPageContentOptimized = React.memo(function DynamicPageContentOptimized({ keyword }: { keyword: string }) {
     const { currentLanguageId, isUpdatingLanguage } = useLanguageContext();
     
     const { content: queryContent, isLoading: pageLoading, isFetching: pageFetching } = usePageContent(keyword);
@@ -43,26 +42,6 @@ const DynamicPageContent = React.memo(function DynamicPageContent({ keyword }: {
     // Check if content is being updated (either loading or fetching)
     const isContentUpdating = pageLoading || pageFetching || isUpdatingLanguage;
     
-    // Memoize debug info to prevent unnecessary recalculations
-    const debugInfo = useMemo(() => ({
-        keyword,
-        currentLanguageId,
-        languageLoading: false,
-        routesCount: routes.length,
-        routes: routes.map(r => ({ keyword: r.keyword, url: r.url, id: r.id_pages })),
-        navLoading,
-        pageLoading,
-        hasContent: !!pageContent,
-        pageData: pageContent,
-        sectionsCount: pageContent?.sections?.length || 0,
-        isHeadless
-    }), [keyword, currentLanguageId, routes, navLoading, pageLoading, pageContent, isHeadless]);
-    
-    // Only log debug info when it actually changes
-    useEffect(() => {
-        debug('Page render debug info', 'DynamicPageContent', debugInfo);
-    }, [debugInfo]);
-    
     // Memoize navigation check
     const existsInNavigation = useMemo(() => 
         routes.some(p => p.keyword === keyword), 
@@ -72,7 +51,7 @@ const DynamicPageContent = React.memo(function DynamicPageContent({ keyword }: {
     // Check if page content is available (more reliable than navigation check)
     const hasValidContent = pageContent && pageContent.id;
     
-    // Show loading while data is loading
+    // Show minimal loading while data is loading
     if (pageLoading || navLoading) {
         return (
             <Center h="50vh">
@@ -82,15 +61,8 @@ const DynamicPageContent = React.memo(function DynamicPageContent({ keyword }: {
     }
 
     // Only show 404 if both navigation check fails AND no content is available
-    // This prevents valid pages (like /styles) from showing 404 when they exist but aren't in navigation
     if (!navLoading && routes.length > 0 && !existsInNavigation && !hasValidContent) {
-        warn('Page not found in navigation and no content available, redirecting to 404', 'DynamicPageContent', { keyword });
         notFound();
-    }
-
-    // If page doesn't exist in navigation but has content, show it anyway (like /styles)
-    if (!existsInNavigation && hasValidContent) {
-        info(`Page not in navigation but has content, rendering anyway: ${keyword}`, 'DynamicPageContent', { keyword });
     }
 
     if (!hasValidContent) {

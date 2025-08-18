@@ -24,9 +24,9 @@ const TabsStyle: React.FC<ITabsStyleProps> = ({ style }) => {
     // Get the first available tab as fallback
     const firstTab = style.children?.find(child => child?.style_name === 'tab');
     
-    // Calculate default tab value with proper fallbacks
-    const defaultTab = activeTab?.id?.content?.toString() || 
-                      firstTab?.id?.content?.toString() || 
+        // Calculate default tab value with proper fallbacks
+    const defaultTab = activeTab?.id?.toString() ||
+                      firstTab?.id?.toString() ||
                       'default-tab';
 
     return (

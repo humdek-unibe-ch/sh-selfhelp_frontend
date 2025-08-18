@@ -1,0 +1,196 @@
+/**
+ * Server-side API utilities for fetching data in Server Components
+ * These functions run on the server and don't use React Query
+ */
+
+import { cookies, headers } from 'next/headers';
+import { API_CONFIG } from '../config/api.config';
+import { IPageContent, IPageItem } from '../types/responses/frontend/frontend.types';
+import { ILanguage } from '../types/responses/admin/languages.types';
+import { IUserDataResponse } from '../types/auth/jwt-payload.types';
+
+/**
+ * Server-side API client for making requests from Server Components
+ */
+class ServerApiClient {
+    private baseURL: string;
+
+    constructor() {
+        this.baseURL = API_CONFIG.BASE_URL;
+    }
+
+    /**
+     * Get access token from middleware headers or cookies
+     */
+    private async getAuthHeaders(): Promise<Record<string, string>> {
+        const headersList = await headers();
+        const accessToken = headersList.get('x-access-token');
+        
+        const baseHeaders: Record<string, string> = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Client-Type': 'web',
+        };
+        
+        if (accessToken) {
+            baseHeaders['Authorization'] = `Bearer ${accessToken}`;
+        }
+        
+        return baseHeaders;
+    }
+
+    /**
+     * Make authenticated GET request from server
+     */
+    async get<T>(endpoint: string): Promise<T | null> {
+        try {
+            const authHeaders = await this.getAuthHeaders();
+            
+            const response = await fetch(`${this.baseURL}${endpoint}`, {
+                method: 'GET',
+                headers: authHeaders,
+                cache: 'no-store', // Always fetch fresh data on server
+            });
+
+            if (!response.ok) {
+                // Only log errors that are not expected (404s are normal for some endpoints)
+                if (response.status !== 404) {
+                    console.warn(`Server API Warning: ${response.status} - ${endpoint}`);
+                }
+                return null;
+            }
+
+            const data = await response.json();
+            return data.data || data; // Handle both wrapped and unwrapped responses
+        } catch (error) {
+            console.warn(`Server API fetch failed for ${endpoint}:`, error);
+            return null;
+        }
+    }
+
+    /**
+     * Check if user is authenticated by checking middleware headers
+     */
+    async isAuthenticated(): Promise<boolean> {
+        const headersList = await headers();
+        return headersList.get('x-auth') === '1';
+    }
+
+    /**
+     * Check if current request is for admin route
+     */
+    async isAdminRequest(): Promise<boolean> {
+        const headersList = await headers();
+        return headersList.get('x-admin-check') === '1';
+    }
+}
+
+const serverApi = new ServerApiClient();
+
+/**
+ * Server-side API functions for data fetching in Server Components
+ */
+export const ServerApi = {
+    /**
+     * Fetch user data on server side
+     */
+    async getUserData(): Promise<IUserDataResponse['data'] | null> {
+        const isAuth = await serverApi.isAuthenticated();
+        if (!isAuth) return null;
+        
+        const response = await serverApi.get<IUserDataResponse>(API_CONFIG.ENDPOINTS.AUTH_USER_DATA);
+        return response?.data || null;
+    },
+
+    /**
+     * Fetch public languages on server side
+     */
+    async getPublicLanguages(): Promise<ILanguage[] | null> {
+        return await serverApi.get<ILanguage[]>(API_CONFIG.ENDPOINTS.LANGUAGES);
+    },
+
+    /**
+     * Fetch admin languages on server side (for authenticated users)
+     */
+    async getAdminLanguages(): Promise<ILanguage[] | null> {
+        const isAuth = await serverApi.isAuthenticated();
+        if (!isAuth) return null;
+        
+        return await serverApi.get<ILanguage[]>(API_CONFIG.ENDPOINTS.ADMIN_LANGUAGES_GET_ALL);
+    },
+
+    /**
+     * Fetch frontend pages with language support
+     */
+    async getFrontendPages(languageId: number): Promise<IPageItem[] | null> {
+        return await serverApi.get<IPageItem[]>(API_CONFIG.ENDPOINTS.PAGES_GET_ALL_WITH_LANGUAGE(languageId));
+    },
+
+    /**
+     * Fetch admin pages (for authenticated admin users)
+     */
+    async getAdminPages(): Promise<any[] | null> {
+        const isAuth = await serverApi.isAuthenticated();
+        const isAdmin = await serverApi.isAdminRequest();
+        if (!isAuth || !isAdmin) return null;
+        
+        return await serverApi.get<any[]>(API_CONFIG.ENDPOINTS.ADMIN_PAGES_GET_ALL);
+    },
+
+    /**
+     * Fetch CSS classes for theming
+     */
+    async getCssClasses(): Promise<any[] | null> {
+        const response = await serverApi.get<{ classes: any[] }>(API_CONFIG.ENDPOINTS.FRONTEND_CSS_CLASSES);
+        return response?.classes || null;
+    },
+
+    /**
+     * Fetch CMS preferences (for admin users)
+     */
+    async getCmsPreferences(): Promise<any | null> {
+        const isAuth = await serverApi.isAuthenticated();
+        const isAdmin = await serverApi.isAdminRequest();
+        if (!isAuth || !isAdmin) return null;
+        
+        return await serverApi.get<any>(API_CONFIG.ENDPOINTS.ADMIN_CMS_PREFERENCES_GET);
+    },
+
+    /**
+     * Fetch page content on server side
+     */
+    async getPageContent(keyword: string, languageId: number): Promise<IPageContent | null> {
+        // Don't fetch if keyword is empty
+        if (!keyword || keyword.trim() === '') {
+            return null;
+        }
+        
+        const response = await serverApi.get<{ page: IPageContent }>(API_CONFIG.ENDPOINTS.PAGES_GET_ONE_WITH_LANGUAGE(keyword, languageId));
+        return response?.page || null;
+    },
+
+    /**
+     * Fetch admin page details on server side
+     */
+    async getAdminPageDetails(keyword: string): Promise<any | null> {
+        const isAuth = await serverApi.isAuthenticated();
+        const isAdmin = await serverApi.isAdminRequest();
+        if (!isAuth || !isAdmin) return null;
+        
+        if (!keyword || keyword.trim() === '') {
+            return null;
+        }
+        
+        return await serverApi.get<any>(API_CONFIG.ENDPOINTS.ADMIN_PAGES_GET_ONE(keyword));
+    },
+
+    /**
+     * Check authentication status from middleware
+     */
+    isAuthenticated: serverApi.isAuthenticated.bind(serverApi),
+    
+    /**
+     * Check admin access from middleware  
+     */
+    isAdminRequest: serverApi.isAdminRequest.bind(serverApi),
+};

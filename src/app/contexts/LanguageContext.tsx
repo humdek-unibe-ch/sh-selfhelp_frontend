@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useState, ReactNode } from 'react';
 import { ILanguage } from '../../types/responses/admin/languages.types';
-import { LANGUAGE_STORAGE_KEY } from '../../constants/language.constants';
 
 interface ILanguageContextValue {
     currentLanguageId: number;
@@ -16,27 +15,26 @@ const LanguageContext = createContext<ILanguageContextValue | null>(null);
 
 interface ILanguageProviderProps {
     children: ReactNode;
+    initialData?: {
+        userData: any;
+        languages: any;
+    };
 }
 
 /**
- * Basic Language Provider that doesn't depend on authentication
- * This provides a minimal language context that can be used by navigation
- * Auth-dependent language features are handled in a separate enhanced provider
+ * Language Provider optimized for server-side data hydration
+ * Initializes with server-fetched data to eliminate loading states
  */
-export function LanguageProvider({ children }: ILanguageProviderProps) {
+export function LanguageProvider({ children, initialData }: ILanguageProviderProps) {
     const [isUpdatingLanguage, setIsUpdatingLanguage] = useState(false);
-    const [languages, setLanguages] = useState<ILanguage[]>([]);
     
-    // Initialize language ID from localStorage or default to 1
+    // Initialize languages from server data
+    const [languages, setLanguages] = useState<ILanguage[]>(initialData?.languages || []);
+    
+    // Initialize language ID from server user data or default to 1
     const [currentLanguageId, setCurrentLanguageIdState] = useState<number>(() => {
-        if (typeof window !== 'undefined') {
-            const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
-            if (stored) {
-                const parsed = parseInt(stored, 10);
-                if (!isNaN(parsed)) {
-                    return parsed;
-                }
-            }
+        if (initialData?.userData?.language?.id) {
+            return initialData.userData.language.id;
         }
         return 1; // Default language ID
     });
@@ -44,11 +42,6 @@ export function LanguageProvider({ children }: ILanguageProviderProps) {
     const setCurrentLanguageId = (languageId: number) => {
         setIsUpdatingLanguage(true);
         setCurrentLanguageIdState(languageId);
-        
-        // Save to localStorage
-        if (typeof window !== 'undefined') {
-            localStorage.setItem(LANGUAGE_STORAGE_KEY, languageId.toString());
-        }
         
         // Reset updating state after a short delay
         setTimeout(() => setIsUpdatingLanguage(false), 100);

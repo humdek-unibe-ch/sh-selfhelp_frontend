@@ -199,7 +199,7 @@ export function DataConfigModal({
             <Stack gap="md">
                 {dataSources.length === 0 ? (
                     <Alert variant="light" color="blue" icon={<IconPlus size={16} />}>
-                        <Text>No data sources configured. Click "Add Data Source" to get started.</Text>
+                        <Text>No data sources configured. Click &quot;Add Data Source&quot; to get started.</Text>
                     </Alert>
                 ) : (
                     <Tabs value={activeTab} onChange={(value) => setActiveTab(value || '0')}>

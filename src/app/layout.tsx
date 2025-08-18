@@ -3,9 +3,13 @@ import '@mantine/dates/styles.css';
 import "@mantine/notifications/styles.css";
 import "../globals.css";
 import { ColorSchemeScript } from "@mantine/core";
-import { Providers } from "../providers/providers";
+import { OptimizedProviders } from "../providers/optimized-providers";
 
-export default function RootLayout({ children }: { children: any }) {
+/**
+ * Root Layout Server Component
+ * Optimized for performance with minimal server-side overhead
+ */
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -17,7 +21,7 @@ export default function RootLayout({ children }: { children: any }) {
         />
       </head>
       <body>
-        <Providers>{children}</Providers>
+        <OptimizedProviders>{children}</OptimizedProviders>
       </body>
     </html>
   );

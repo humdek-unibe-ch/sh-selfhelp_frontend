@@ -186,7 +186,7 @@ export function DataConfigExample() {
                                     • Loads specific fields (name, email) from users table
                                     • Only for current logged user
                                     • Applies filter for active and verified users
-                                    • Maps fields to template variables {{user_name}} and {{user_email}}
+                                    • Maps fields to template variables {'{'}user_name{'}'} and {'{'}user_email{'}'}
                                 </Text>
                             </div>
                             <div>
@@ -195,7 +195,7 @@ export function DataConfigExample() {
                                     • Loads all fields from surveys table
                                     • For all users (not just current user)
                                     • Returns data in JSON format
-                                    • Maps 'title' → 'survey_title' and 'created_at' → 'creation_date'
+                                    • Maps &apos;title&apos; → &apos;survey_title&apos; and &apos;created_at&apos; → &apos;creation_date&apos;
                                 </Text>
                             </div>
                         </Stack>

@@ -100,10 +100,6 @@ export function DebugMenu() {
     const profileChildren = profileLinkPage?.children || [];
     const currentLanguage = languages.find(lang => lang.id === currentLanguageId);
 
-    if (!isDebugEnabled()) {
-        return null;
-    }
-
     useEffect(() => {
         const listener = (newLogs: IDebugLogEntry[]) => {
             setLogs(newLogs);

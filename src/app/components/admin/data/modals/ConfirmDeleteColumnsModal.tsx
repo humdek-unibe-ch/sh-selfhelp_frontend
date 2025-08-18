@@ -25,7 +25,7 @@ export function ConfirmDeleteColumnsModal({ open, onClose, tableDisplayName, col
   return (
     <Modal opened={open} onClose={onClose} title={`Delete ${columns.length} column(s)`} size="lg" centered>
       <Stack>
-        <Alert variant="light" color="red" icon={<IconAlertTriangle />}>This will delete the selected columns from "{tableDisplayName}". Type the table name to confirm.</Alert>
+        <Alert variant="light" color="red" icon={<IconAlertTriangle />}>This will delete the selected columns from &quot;{tableDisplayName}&quot;. Type the table name to confirm.</Alert>
         <List
           spacing="xs"
           icon={<ThemeIcon size={16} radius="xl" color="gray"><IconCircleCheck size={12} /></ThemeIcon>}

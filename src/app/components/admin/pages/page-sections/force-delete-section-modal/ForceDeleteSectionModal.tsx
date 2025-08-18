@@ -13,7 +13,7 @@ import {
     Badge
 } from '@mantine/core';
 import { IconAlertTriangle, IconTrash } from '@tabler/icons-react';
-import { useForceDeleteSectionMutation } from '../../../../../hooks/useSectionUtility';
+import { useForceDeleteSectionMutation } from '../../../../../../hooks/useSectionUtility';
 
 interface IForceDeleteSectionModalProps {
     section: { id: number; name: string } | null;

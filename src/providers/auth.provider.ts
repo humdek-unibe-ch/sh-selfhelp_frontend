@@ -185,12 +185,6 @@ export const authProvider: AuthProvider = {
         };
     },
 
-    getPermissions: async () => {
-        const user = getCurrentUser();
-        debug('Getting permissions', 'AuthProvider', { userId: user?.id });
-        return user?.permissions || [];
-    },
-
     getIdentity: async () => {
         const user = getCurrentUser();
         const token = getAccessToken();

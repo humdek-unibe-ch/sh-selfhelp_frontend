@@ -258,7 +258,7 @@ export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormP
 
                         {dataSource.fields.length === 0 ? (
                             <Alert variant="light" color="blue" icon={<IconAlertCircle size={16} />}>
-                                No fields configured. Click "Add Field" to specify which fields to load.
+                                No fields configured. Click &quot;Add Field&quot; to specify which fields to load.
                             </Alert>
                         ) : (
                             <Stack gap="sm">

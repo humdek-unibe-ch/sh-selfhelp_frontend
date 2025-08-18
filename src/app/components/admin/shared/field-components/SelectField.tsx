@@ -2,7 +2,7 @@
 
 import { Select, MultiSelect, Group, Text } from '@mantine/core';
 import { IconCheck } from '@tabler/icons-react';
-import type { IFieldConfig } from '../../../../../../types/requests/admin/fields.types';
+import type { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
 
 interface ISelectFieldProps {
     fieldId: number;

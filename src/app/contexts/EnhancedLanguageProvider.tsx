@@ -5,7 +5,6 @@ import { usePublicLanguages } from '../../hooks/usePublicLanguages';
 import { useLanguages } from '../../hooks/useLanguages';
 import { useAuthUser } from '../../hooks/useUserData';
 import { useLanguageContext } from './LanguageContext';
-import { LANGUAGE_STORAGE_KEY } from '../../constants/language.constants';
 import { debug } from '../../utils/debug-logger';
 
 interface IEnhancedLanguageProviderProps {
@@ -56,11 +55,6 @@ export function EnhancedLanguageProvider({ children }: IEnhancedLanguageProvider
         }
 
         if (user && user.languageId && !hasInitializedFromUserData.current) {
-            // Clear localStorage when user logs in
-            if (typeof window !== 'undefined') {
-                localStorage.removeItem(LANGUAGE_STORAGE_KEY);
-            }
-            
             // Use language from user data
             const languageId = typeof user.languageId === 'number' 
                 ? user.languageId 
@@ -80,7 +74,7 @@ export function EnhancedLanguageProvider({ children }: IEnhancedLanguageProvider
             // Mark as initialized to prevent loops
             hasInitializedFromUserData.current = true;
         } else if (!user && languages.length > 0) {
-            // Non-authenticated user - validate stored preference
+            // Non-authenticated user - validate current language
             const validLanguageIds = languages.map(lang => lang.id);
             if (!validLanguageIds.includes(currentLanguageId)) {
                 // Current language ID is not valid, use first language

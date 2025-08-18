@@ -66,7 +66,7 @@ export interface ICacheStatsResponse {
 }
 
 // Type for cache category options
-export type TCacheCategory = 'pages' | 'users' | 'sections' | 'languages' | 'groups' | 'roles' | 'permissions' | 'lookups' | 'assets' | 'frontend_user' | 'cms_preferences' | 'scheduled_jobs' | 'actions';
+export type TCacheCategory = 'pages' | 'users' | 'sections' | 'languages' | 'groups' | 'roles' | 'permissions' | 'lookups' | 'assets' | 'frontend_user' | 'cms_preferences' | 'scheduled_jobs';
 
 // Type for cache health status
 export type TCacheHealthStatus = 'excellent' | 'good' | 'fair' | 'poor' | 'unknown';

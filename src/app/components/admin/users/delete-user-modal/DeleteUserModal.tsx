@@ -73,7 +73,7 @@ export function DeleteUserModal({
             You are about to delete the user: <strong>{userEmail}</strong>
           </Text>
           <Text size="sm" c="dimmed">
-            To confirm deletion, please type the user's email address below:
+            To confirm deletion, please type the user&apos;s email address below:
           </Text>
         </div>
 
