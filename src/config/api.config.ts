@@ -148,9 +148,7 @@ export const API_CONFIG = {
         ADMIN_DATA_RECORD_DELETE: (recordId: number) => `/admin/data/records/${recordId}`,
         ADMIN_DATA_TABLE_DELETE: (tableName: string) => `/admin/data/tables/${tableName}`,
 
-        // User input endpoints
-        USER_INPUT_GET_ALL: '/user-input',
-        USER_INPUT_DELETE: (entryId: number) => `/user-input/${entryId}`,
+
 
         // Form submission endpoints (public access)
         FORMS_SUBMIT: '/forms/submit',

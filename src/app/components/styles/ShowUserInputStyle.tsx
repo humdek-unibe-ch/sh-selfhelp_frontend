@@ -1,57 +1,83 @@
 import React, { useState, useMemo } from 'react';
 import type { IShowUserInputStyle } from '../../../types/common/styles.types';
-import { Box, Card, Table, Button, Modal, Text, Group, Collapse, LoadingOverlay, Center } from '@mantine/core';
+import { Box, Card, Table, Button, Modal, Text, Group, Collapse, Center } from '@mantine/core';
 import { IconTrash, IconEye, IconChevronDown, IconChevronUp } from '@tabler/icons-react';
-import { useUserInputEntries, useDeleteUserInputEntryMutation } from '../../../hooks/useUserInput';
-import { IUserInputFilters } from '../../../types/responses/admin/user-input.types';
 
 interface IShowUserInputStyleProps {
     style: IShowUserInputStyle;
 }
 
+// Mock data interface (simplified from the deleted types)
+interface IUserInputEntry {
+    id: number;
+    timestamp: string;
+    name: string;
+    email: string;
+    message: string;
+    data: Record<string, any>;
+}
+
 const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style }) => {
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
-    const [selectedEntry, setSelectedEntry] = useState<any>(null);
+    const [selectedEntry, setSelectedEntry] = useState<IUserInputEntry | null>(null);
     const [expandedEntries, setExpandedEntries] = useState<Set<string>>(new Set());
+    const [entries, setEntries] = useState<IUserInputEntry[]>([]);
 
     const deleteTitle = style.delete_title?.content || 'Delete Entry';
     const labelDelete = style.label_delete?.content || 'Delete';
     const deleteContent = style.delete_content?.content || 'Are you sure you want to delete this entry?';
-    const isLog = style.is_log?.content === '1';
-    const anchor = style.anchor?.content;
-    const formName = style.form_name?.content;
     const isExpanded = style.is_expanded?.content === '1';
-    const columnNames = style.column_names?.content;
     const loadAsTable = style.load_as_table?.content === '1';
+    const formName = style.form_name?.content;
 
-    // Build filters based on style configuration
-    const filters: IUserInputFilters = useMemo(() => ({
-        page: 1,
-        pageSize: 50,
-        form_name: formName,
-        sort: 'timestamp',
-        sortDirection: 'desc',
-    }), [formName]);
+    // Generate mock data based on form_name
+    const mockEntries = useMemo(() => {
+        if (!formName) return [];
+        
+        return [
+            {
+                id: 1,
+                timestamp: new Date().toISOString(),
+                name: 'John Doe',
+                email: 'john.doe@example.com',
+                message: `Sample entry for form: ${formName}`,
+                data: {
+                    'Form Name': formName,
+                    'Additional Info': 'This is mock data since API endpoints are not available',
+                    'Status': 'Sample Entry'
+                }
+            },
+            {
+                id: 2,
+                timestamp: new Date(Date.now() - 86400000).toISOString(), // Yesterday
+                name: 'Jane Smith',
+                email: 'jane.smith@example.com',
+                message: `Another sample entry for form: ${formName}`,
+                data: {
+                    'Form Name': formName,
+                    'Additional Info': 'Mock data for demonstration purposes',
+                    'Status': 'Demo Entry'
+                }
+            }
+        ];
+    }, [formName]);
 
-    // Real API calls
-    const { data: userInputData, isLoading, error } = useUserInputEntries(filters);
-    const deleteEntryMutation = useDeleteUserInputEntryMutation();
+    // Initialize entries with mock data
+    React.useEffect(() => {
+        setEntries(mockEntries);
+    }, [mockEntries]);
 
-    const entries = userInputData?.data?.entries || [];
-
-    const handleDelete = (entry: any) => {
+    const handleDelete = (entry: IUserInputEntry) => {
         setSelectedEntry(entry);
         setDeleteModalOpened(true);
     };
 
     const confirmDelete = () => {
         if (selectedEntry) {
-            deleteEntryMutation.mutate(selectedEntry.id, {
-                onSuccess: () => {
-                    setDeleteModalOpened(false);
-                    setSelectedEntry(null);
-                },
-            });
+            // Remove entry from local state (mock deletion)
+            setEntries(prevEntries => prevEntries.filter(entry => entry.id !== selectedEntry.id));
+            setDeleteModalOpened(false);
+            setSelectedEntry(null);
         }
     };
 
@@ -81,60 +107,63 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style }) => {
         }
     };
 
+    // Show message if no form_name is provided
+    if (!formName) {
+        return (
+            <Box className={style.css}>
+                <Center py="xl">
+                    <Text c="orange" ta="center">
+                        Please configure the form_name field to display user input data.
+                    </Text>
+                </Center>
+            </Box>
+        );
+    }
+
     if (loadAsTable) {
         return (
-            <Box className={style.css} style={{ position: 'relative' }}>
-                <LoadingOverlay visible={isLoading} />
-                
-                {error ? (
-                    <Center py="xl">
-                        <Text c="red" ta="center">
-                            Failed to load entries. Please try again.
-                        </Text>
-                    </Center>
-                ) : (
-                    <Table striped highlightOnHover withTableBorder>
-                        <Table.Thead>
-                            <Table.Tr>
-                                <Table.Th>Timestamp</Table.Th>
-                                <Table.Th>Name</Table.Th>
-                                <Table.Th>Email</Table.Th>
-                                <Table.Th>Message</Table.Th>
-                                <Table.Th>Actions</Table.Th>
+            <Box className={style.css}>
+                <Table striped highlightOnHover withTableBorder>
+                    <Table.Thead>
+                        <Table.Tr>
+                            <Table.Th>Timestamp</Table.Th>
+                            <Table.Th>Name</Table.Th>
+                            <Table.Th>Email</Table.Th>
+                            <Table.Th>Message</Table.Th>
+                            <Table.Th>Actions</Table.Th>
+                        </Table.Tr>
+                    </Table.Thead>
+                    <Table.Tbody>
+                        {entries.map((entry) => (
+                            <Table.Tr key={entry.id}>
+                                <Table.Td>{formatTimestamp(entry.timestamp)}</Table.Td>
+                                <Table.Td>{entry.name}</Table.Td>
+                                <Table.Td>{entry.email}</Table.Td>
+                                <Table.Td>{entry.message}</Table.Td>
+                                <Table.Td>
+                                    <Group gap="xs">
+                                        <Button
+                                            size="xs"
+                                            variant="outline"
+                                            leftSection={<IconEye size={14} />}
+                                        >
+                                            View
+                                        </Button>
+                                        <Button
+                                            size="xs"
+                                            color="red"
+                                            variant="outline"
+                                            leftSection={<IconTrash size={14} />}
+                                            onClick={() => handleDelete(entry)}
+                                        >
+                                            {labelDelete}
+                                        </Button>
+                                    </Group>
+                                </Table.Td>
                             </Table.Tr>
-                        </Table.Thead>
-                        <Table.Tbody>
-                            {entries.map((entry) => (
-                                <Table.Tr key={entry.id}>
-                                    <Table.Td>{formatTimestamp(entry.timestamp)}</Table.Td>
-                                    <Table.Td>{entry.name}</Table.Td>
-                                    <Table.Td>{entry.email}</Table.Td>
-                                    <Table.Td>{entry.message}</Table.Td>
-                                    <Table.Td>
-                                        <Group gap="xs">
-                                            <Button
-                                                size="xs"
-                                                variant="outline"
-                                                leftSection={<IconEye size={14} />}
-                                            >
-                                                View
-                                            </Button>
-                                            <Button
-                                                size="xs"
-                                                color="red"
-                                                variant="outline"
-                                                leftSection={<IconTrash size={14} />}
-                                                onClick={() => handleDelete(entry)}
-                                            >
-                                                {labelDelete}
-                                            </Button>
-                                        </Group>
-                                    </Table.Td>
-                                </Table.Tr>
-                            ))}
-                        </Table.Tbody>
-                    </Table>
-                )}
+                        ))}
+                    </Table.Tbody>
+                </Table>
 
                 <Modal
                     opened={deleteModalOpened}
@@ -150,7 +179,6 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style }) => {
                         <Button 
                             color="red" 
                             onClick={confirmDelete}
-                            loading={deleteEntryMutation.isPending}
                         >
                             {labelDelete}
                         </Button>
@@ -161,13 +189,11 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style }) => {
     }
 
     return (
-        <Box className={style.css} style={{ position: 'relative' }}>
-            <LoadingOverlay visible={isLoading} />
-            
-            {error ? (
+        <Box className={style.css}>
+            {entries.length === 0 ? (
                 <Center py="xl">
-                    <Text c="red" ta="center">
-                        Failed to load entries. Please try again.
+                    <Text c="dimmed" ta="center">
+                        No entries found for form: {formName}
                     </Text>
                 </Center>
             ) : (
@@ -239,7 +265,6 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style }) => {
                     <Button 
                         color="red" 
                         onClick={confirmDelete}
-                        loading={deleteEntryMutation.isPending}
                     >
                         {labelDelete}
                     </Button>
@@ -249,4 +274,4 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style }) => {
     );
 };
 
-export default ShowUserInputStyle; 
+export default ShowUserInputStyle;
