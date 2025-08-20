@@ -168,22 +168,22 @@ export function UploadAssetModal({ opened, onClose }: IUploadAssetModalProps) {
         setUploadProgress(100);
 
         // Show detailed results
-        if (result.error_count === 0) {
+        if (result.failed_uploads === 0) {
           notifications.show({
             title: 'Success',
-            message: `All ${result.success_count} assets uploaded successfully`,
+            message: `All ${result.successful_uploads} assets uploaded successfully`,
             color: 'green',
           });
-        } else if (result.success_count > 0) {
+        } else if (result.successful_uploads > 0) {
           notifications.show({
             title: 'Partial Success',
-            message: `${result.success_count} assets uploaded successfully, ${result.error_count} failed`,
+            message: `${result.successful_uploads} assets uploaded successfully, ${result.failed_uploads} failed`,
             color: 'yellow',
           });
         } else {
           notifications.show({
             title: 'Upload Failed',
-            message: `All ${result.error_count} uploads failed`,
+            message: `All ${result.failed_uploads} uploads failed`,
             color: 'red',
           });
         }

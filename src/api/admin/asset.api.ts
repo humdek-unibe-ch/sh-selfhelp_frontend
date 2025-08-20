@@ -45,10 +45,10 @@ export interface ICreateMultipleAssetsRequest {
 }
 
 export interface IMultipleAssetsUploadResponse {
-  success_count: number;
-  error_count: number;
-  total_count: number;
-  uploaded_assets: IAsset[];
+  successful_uploads: number;
+  failed_uploads: number;
+  total_files: number;
+  uploaded: IAsset[];
   errors: {
     file_name: string;
     error: string;
