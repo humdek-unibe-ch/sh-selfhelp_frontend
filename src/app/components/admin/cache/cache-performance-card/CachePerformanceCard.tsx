@@ -29,6 +29,8 @@ const CATEGORY_DESCRIPTIONS: Record<string, { label: string; color: string }> = 
     cms_preferences: { label: 'CMS Preferences', color: 'yellow' },
     scheduled_jobs: { label: 'Scheduled Jobs', color: 'grape' },
     actions: { label: 'Actions', color: 'violet' },
+    api_routes: { label: 'API Routes', color: 'dark' },
+    default: { label: 'Default', color: 'gray' },
 };
 
 export function CachePerformanceCard({ stats, isLoading }: ICachePerformanceCardProps) {
@@ -62,7 +64,7 @@ export function CachePerformanceCard({ stats, isLoading }: ICachePerformanceCard
         );
     }
 
-    const { top_performing_categories, cache_pools } = stats;
+    const { top_performing_categories } = stats;
     const topCategories = Object.entries(top_performing_categories)
         .filter(([_, categoryStats]) => categoryStats.total_operations > 0)
         .sort((a, b) => b[1].hit_rate - a[1].hit_rate)
@@ -93,7 +95,6 @@ export function CachePerformanceCard({ stats, isLoading }: ICachePerformanceCard
                                 color: 'gray'
                             };
                             
-                            const pool = cache_pools[categoryStats.cache_pool];
                             const lastActivity = new Date(categoryStats.last_activity);
                             const isRecent = Date.now() - lastActivity.getTime() < 60000; // Within last minute
 
@@ -148,7 +149,7 @@ export function CachePerformanceCard({ stats, isLoading }: ICachePerformanceCard
                                             <Group gap="xs">
                                                 <IconClock size={12} color="var(--mantine-color-gray-6)" />
                                                 <Text size="xs" c="dimmed">
-                                                    {pool?.name || categoryStats.cache_pool}
+                                                    {lastActivity.toLocaleTimeString()}
                                                 </Text>
                                             </Group>
                                         </Group>

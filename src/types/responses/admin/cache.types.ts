@@ -32,8 +32,6 @@ export interface ICacheGlobalStats {
     sets: number;
     invalidations: number;
     hit_rate: number;
-    total_operations: number;
-    last_updated: string | null;
 }
 
 export interface ICacheCategoryStats {
@@ -41,11 +39,16 @@ export interface ICacheCategoryStats {
     misses: number;
     sets: number;
     invalidations: number;
+}
+
+export interface ITopPerformingCategoryStats {
+    hits: number;
+    misses: number;
+    sets: number;
+    invalidations: number;
     hit_rate: number;
     total_operations: number;
-    cache_pool: string;
     last_activity: string;
-    invalidation_breakdown: any[];
 }
 
 export interface ICachePool {
@@ -60,13 +63,12 @@ export interface ICacheStatsResponse {
         category_stats: Record<string, ICacheCategoryStats>;
     };
     cache_categories: string[];
-    cache_pools: Record<string, ICachePool>;
-    top_performing_categories: Record<string, ICacheCategoryStats>;
+    top_performing_categories: Record<string, ITopPerformingCategoryStats>;
     timestamp: string;
 }
 
 // Type for cache category options
-export type TCacheCategory = 'pages' | 'users' | 'sections' | 'languages' | 'groups' | 'roles' | 'permissions' | 'lookups' | 'assets' | 'frontend_user' | 'cms_preferences' | 'scheduled_jobs';
+export type TCacheCategory = 'pages' | 'users' | 'sections' | 'languages' | 'groups' | 'roles' | 'permissions' | 'lookups' | 'assets' | 'frontend_user' | 'cms_preferences' | 'scheduled_jobs' | 'actions' | 'api_routes' | 'default';
 
 // Type for cache health status
 export type TCacheHealthStatus = 'excellent' | 'good' | 'fair' | 'poor' | 'unknown';

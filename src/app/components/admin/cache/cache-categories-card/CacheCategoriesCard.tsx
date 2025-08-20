@@ -29,6 +29,8 @@ const CATEGORY_DESCRIPTIONS: Record<string, { label: string; description: string
     cms_preferences: { label: 'CMS Preferences', description: 'System configuration', color: 'yellow' },
     scheduled_jobs: { label: 'Scheduled Jobs', description: 'Background job data', color: 'grape' },
     actions: { label: 'Actions', description: 'System actions and workflows', color: 'violet' },
+    api_routes: { label: 'API Routes', description: 'API endpoint caching', color: 'dark' },
+    default: { label: 'Default', description: 'Default cache category', color: 'gray' },
 };
 
 export function CacheCategoriesCard({ stats, isLoading }: ICacheCategoriesCardProps) {
@@ -62,7 +64,7 @@ export function CacheCategoriesCard({ stats, isLoading }: ICacheCategoriesCardPr
         );
     }
 
-    const { cache_categories, cache_stats, cache_pools } = stats;
+    const { cache_categories, cache_stats } = stats;
 
     return (
         <Card shadow="sm" padding="lg" radius="md" withBorder h="100%">
@@ -82,7 +84,10 @@ export function CacheCategoriesCard({ stats, isLoading }: ICacheCategoriesCardPr
                         };
                         
                         const categoryStats = cache_stats.category_stats[category];
-                        const pool = cache_pools[categoryStats?.cache_pool] || null;
+                        const totalOperations = categoryStats ? 
+                            categoryStats.hits + categoryStats.misses + categoryStats.sets + categoryStats.invalidations : 0;
+                        const hitRate = totalOperations > 0 ? 
+                            (categoryStats.hits / totalOperations) * 100 : 0;
 
                         return (
                             <Stack key={category} gap="xs" p="sm" style={{ 
@@ -99,7 +104,7 @@ export function CacheCategoriesCard({ stats, isLoading }: ICacheCategoriesCardPr
                                         {info.label}
                                     </Badge>
                                     
-                                    {categoryStats && categoryStats.hit_rate > 0 ? (
+                                    {totalOperations > 0 ? (
                                         <IconTrendingUp size={12} color="var(--mantine-color-green-6)" />
                                     ) : (
                                         <IconTrendingDown size={12} color="var(--mantine-color-gray-6)" />
@@ -110,9 +115,9 @@ export function CacheCategoriesCard({ stats, isLoading }: ICacheCategoriesCardPr
                                     {info.description}
                                 </Text>
                                 
-                                {pool && (
+                                {totalOperations > 0 && (
                                     <Text size="xs" c="dimmed">
-                                        Pool: {pool.name}
+                                        {totalOperations} total operations
                                     </Text>
                                 )}
                                 
@@ -122,15 +127,15 @@ export function CacheCategoriesCard({ stats, isLoading }: ICacheCategoriesCardPr
                                             <Text size="xs" fw={600}>
                                                 Hit Rate
                                             </Text>
-                                            <Text size="xs" fw={600} c={categoryStats.hit_rate > 80 ? 'green' : categoryStats.hit_rate > 60 ? 'yellow' : 'red'}>
-                                                {categoryStats.hit_rate.toFixed(1)}%
+                                            <Text size="xs" fw={600} c={hitRate > 80 ? 'green' : hitRate > 60 ? 'yellow' : 'red'}>
+                                                {hitRate.toFixed(1)}%
                                             </Text>
                                         </Group>
                                         
                                         <Progress
-                                            value={categoryStats.hit_rate}
+                                            value={hitRate}
                                             size="xs"
-                                            color={categoryStats.hit_rate > 80 ? 'green' : categoryStats.hit_rate > 60 ? 'yellow' : 'red'}
+                                            color={hitRate > 80 ? 'green' : hitRate > 60 ? 'yellow' : 'red'}
                                         />
                                         
                                         <Group justify="space-between">

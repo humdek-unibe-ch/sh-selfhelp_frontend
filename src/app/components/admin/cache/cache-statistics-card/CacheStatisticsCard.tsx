@@ -49,6 +49,7 @@ export function CacheStatisticsCard({ stats, isLoading }: ICacheStatisticsCardPr
     }
 
     const globalStats = stats.cache_stats.global_stats;
+    const totalOperations = globalStats.hits + globalStats.misses + globalStats.sets + globalStats.invalidations;
 
     return (
         <Card shadow="sm" padding="lg" radius="md" withBorder h="100%">
@@ -105,7 +106,7 @@ export function CacheStatisticsCard({ stats, isLoading }: ICacheStatisticsCardPr
 
                 <Group justify="space-between">
                     <Text size="sm" c="dimmed">Total Operations</Text>
-                    <Text size="sm" fw={600}>{globalStats.total_operations.toLocaleString()}</Text>
+                    <Text size="sm" fw={600}>{totalOperations.toLocaleString()}</Text>
                 </Group>
 
                 <Text size="xs" c="dimmed">
