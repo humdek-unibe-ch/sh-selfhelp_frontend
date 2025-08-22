@@ -3,12 +3,12 @@
 import { notFound, useParams } from 'next/navigation';
 import { Suspense, useMemo, useEffect } from 'react';
 import { Container, Loader, Center, Text } from '@mantine/core';
-import { PageContentProvider, usePageContentContext } from '../contexts/PageContentContext';
+import { PageContentProvider, usePageContentContext } from '../components/contexts/PageContentContext';
 import { usePageContent } from '../../hooks/usePageContent';
 import { useAppNavigation } from '../../hooks/useAppNavigation';
 import { useNavigationRefresh } from '../../hooks/useNavigationRefresh';
-import { useLanguageContext } from '../contexts/LanguageContext';
-import { PageContentRenderer } from '../components/website/PageContentRenderer';
+import { useLanguageContext } from '../components/contexts/LanguageContext';
+import { PageContentRenderer } from '../components/frontend/content/PageContentRenderer';
 import React from 'react';
 
 export default function DynamicPage() {

@@ -4,9 +4,9 @@
  */
 
 import { Suspense } from 'react';
-import { LoadingScreen } from '../../components/common/LoadingScreen';
-import { CachePage } from '../../components/admin/cache';
-import { AdminShell } from '../../components/admin/admin-shell/AdminShell';
+import { LoadingScreen } from '../../components/shared/common/LoadingScreen';
+import { CachePage } from '../../components/cms/cache';
+import { AdminShell } from '../../components/cms/admin-shell/AdminShell';
 
 export default function AdminCachePage() {
     return (

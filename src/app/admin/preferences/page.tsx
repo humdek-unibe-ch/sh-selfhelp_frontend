@@ -1,8 +1,8 @@
 'use client';
 
 import { Suspense } from 'react';
-import { LoadingScreen } from '../../components/common/LoadingScreen';
-import { AdminShell } from '../../components/admin/admin-shell/AdminShell';
+import { LoadingScreen } from '../../components/shared/common/LoadingScreen';
+import { AdminShell } from '../../components/cms/admin-shell/AdminShell';
 import { useState, useEffect } from 'react';
 import { 
     Container, 

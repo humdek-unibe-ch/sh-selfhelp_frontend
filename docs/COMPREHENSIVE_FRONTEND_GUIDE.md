@@ -39,15 +39,31 @@ src/
 ├── app/                    # Next.js App Router
 │   ├── admin/             # Admin panel routes
 │   ├── auth/              # Authentication pages
-│   ├── components/        # Shared components
-│   │   ├── admin/         # Admin-specific components
-│   │   ├── auth/          # Auth components
-│   │   ├── common/        # Common UI components
-│   │   ├── shared/        # Shared business components
-│   │   ├── styles/        # Dynamic style components
-│   │   ├── ui/            # Basic UI components
-│   │   └── website/       # Public website components
-│   ├── contexts/          # React contexts
+│   ├── components/        # All React components (organized by usage)
+│   │   ├── cms/           # CMS backend components (admin panel)
+│   │   │   ├── admin-shell/    # Admin layout and navigation
+│   │   │   ├── pages/          # Page management components
+│   │   │   ├── sections/       # Section management components
+│   │   │   ├── users/          # User management components
+│   │   │   ├── groups/         # Group management components
+│   │   │   ├── roles/          # Role management components
+│   │   │   ├── assets/         # Asset management components
+│   │   │   ├── cache/          # Cache management components
+│   │   │   ├── data/           # Data management components
+│   │   │   ├── actions/        # Action management components
+│   │   │   ├── scheduled-jobs/ # Job management components
+│   │   │   ├── unused-sections/# Unused sections management
+│   │   │   ├── shared/         # Shared CMS components (inspectors, field renderers)
+│   │   │   └── ui/             # CMS-specific UI components
+│   │   ├── frontend/      # Frontend user-facing components
+│   │   │   ├── content/        # Page content rendering
+│   │   │   ├── layout/         # Website layout (header, footer)
+│   │   │   └── styles/         # Dynamic style components (82+ types)
+│   │   ├── shared/        # Components used in both CMS and frontend
+│   │   │   ├── auth/           # Authentication components
+│   │   │   ├── common/         # Common utilities (loading, modals, etc.)
+│   │   │   └── ui/             # Shared UI components
+│   │   └── contexts/      # React contexts
 │   └── store/             # Client state management
 ├── api/                   # API layer
 │   ├── admin/             # Admin API endpoints
@@ -661,19 +677,94 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
 
 ### Component Organization
 
+The component architecture follows a clear separation based on usage context:
+
 ```
 src/app/components/
-├── admin/              # Admin-specific components
-│   ├── admin-shell/    # Admin layout shell
-│   ├── shared/         # Shared admin components
-│   └── pages/          # Page-specific admin components
-├── auth/               # Authentication components
-├── common/             # Common utilities
-├── shared/             # Business logic components
-├── styles/             # Dynamic style components
-├── ui/                 # Basic UI components
-└── website/            # Public website components
+├── cms/                # CMS Backend Components (Admin Panel)
+│   ├── admin-shell/    # Admin layout and navigation shell
+│   ├── pages/          # Page management (inspector, list, create)
+│   ├── sections/       # Section management and editing
+│   ├── users/          # User management and forms
+│   ├── groups/         # Group management and ACL editing
+│   ├── roles/          # Role management
+│   ├── assets/         # Asset management and upload
+│   ├── cache/          # Cache management and monitoring
+│   ├── data/           # Data table management
+│   ├── actions/        # Action configuration and management
+│   ├── scheduled-jobs/ # Job scheduling and monitoring
+│   ├── unused-sections/# Cleanup and maintenance tools
+│   ├── shared/         # Shared CMS components
+│   │   ├── field-components/     # Form field types
+│   │   ├── field-renderer/       # Universal field renderer
+│   │   ├── inspector-layout/     # Inspector UI framework
+│   │   ├── inspector-header/     # Inspector header component
+│   │   ├── fields-section/       # Collapsible field sections
+│   │   └── acl-selector/         # ACL management component
+│   └── ui/             # CMS-specific UI components
+├── frontend/           # Frontend User-Facing Components
+│   ├── content/        # Page content rendering
+│   │   ├── PageContentRenderer.tsx    # Main content renderer
+│   │   ├── PageRenderer.tsx           # Page wrapper
+│   │   └── PageContentRendererClient.tsx # Client-side renderer
+│   ├── layout/         # Website layout components
+│   │   ├── WebsiteHeader.tsx          # Main header
+│   │   ├── WebsiteHeaderOptimized.tsx # Optimized header
+│   │   ├── WebsiteHeaderServer.tsx    # Server header
+│   │   ├── WebsiteHeaderMenu.tsx      # Header navigation
+│   │   ├── WebsiteFooter.tsx          # Main footer
+│   │   └── WebsiteFooterOptimized.tsx # Optimized footer
+│   └── styles/         # Dynamic style components (82+ types)
+│       ├── BasicStyle.tsx             # Main style component factory
+│       ├── SelfHelpStyles.ts          # Style exports
+│       ├── ContainerStyle.tsx         # Layout styles
+│       ├── HeadingStyle.tsx           # Typography styles
+│       ├── ImageStyle.tsx             # Media styles
+│       ├── FormStyle.tsx              # Form styles
+│       ├── ButtonStyle.tsx            # Interactive styles
+│       ├── MarkdownStyle.tsx          # Content styles
+│       ├── TabsStyle.tsx              # Navigation styles
+│       └── ... (75+ more style components)
+├── shared/             # Components Used in Both CMS and Frontend
+│   ├── auth/           # Authentication components
+│   │   ├── AuthButton.tsx             # Login/logout button
+│   │   └── AuthButtonClient.tsx       # Client-side auth button
+│   ├── common/         # Common utilities and UI
+│   │   ├── LoadingScreen.tsx          # Loading spinner
+│   │   ├── CustomModal.tsx            # Modal wrapper
+│   │   ├── LanguageSelector.tsx       # Language switcher
+│   │   ├── ThemeToggle.tsx            # Dark/light mode toggle
+│   │   ├── SelfHelpLogo.tsx           # Brand logo
+│   │   ├── BurgerMenuClient.tsx       # Mobile menu
+│   │   ├── navbar-links-group/        # Navigation components
+│   │   └── debug/                     # Debug system components
+│   └── ui/             # Shared UI components
+│       └── InternalLink.tsx           # Internal navigation link
+└── contexts/           # React Contexts
+    ├── LanguageContext.tsx            # Language management
+    ├── EnhancedLanguageProvider.tsx   # Enhanced language features
+    └── PageContentContext.tsx         # Page content state
 ```
+
+### Component Usage Guidelines
+
+**CMS Components** (`src/app/components/cms/`):
+- Used exclusively in the admin panel (`/admin` routes)
+- Include inspectors, forms, management interfaces
+- Have admin-specific styling and functionality
+- Examples: `PageInspector`, `UsersList`, `AdminShell`
+
+**Frontend Components** (`src/app/components/frontend/`):
+- Used exclusively on the public website
+- Include page rendering, layout, and dynamic styles
+- Optimized for end-user experience
+- Examples: `PageRenderer`, `WebsiteHeader`, `BasicStyle`
+
+**Shared Components** (`src/app/components/shared/`):
+- Used in both CMS and frontend contexts
+- Include authentication, common utilities, and basic UI
+- Must work seamlessly in both environments
+- Examples: `AuthButton`, `LoadingScreen`, `LanguageSelector`
 
 ### Theming System
 
@@ -697,6 +788,83 @@ export const theme = createTheme({
 ```
 
 **Dark/Light Theme Support**: Automatic theme switching based on system preference
+
+---
+
+## 🏗️ Component Architecture Refactoring
+
+### Modular Component Structure
+
+The application has been refactored to follow a clear, modular component architecture that separates concerns based on usage context. This refactoring improves maintainability, reduces coupling, and makes the codebase easier to understand and navigate.
+
+### Three-Tier Component Architecture
+
+**1. CMS Backend Components** (`src/app/components/cms/`):
+- **Purpose**: Admin panel functionality and content management
+- **Usage**: Exclusively used in `/admin` routes
+- **Characteristics**: 
+  - Complex forms and data management interfaces
+  - Inspector components for editing content
+  - Administrative tools and dashboards
+  - Permission-aware components
+  - Rich interaction patterns (drag-and-drop, modals, etc.)
+
+**2. Frontend User-Facing Components** (`src/app/components/frontend/`):
+- **Purpose**: Public website rendering and user experience
+- **Usage**: Exclusively used in public routes (`/`, `/[...slug]`)
+- **Characteristics**:
+  - Optimized for performance and SEO
+  - Dynamic content rendering from CMS data
+  - Responsive design for all devices
+  - Minimal JavaScript for better performance
+  - 82+ dynamic style components for flexible content display
+
+**3. Shared Components** (`src/app/components/shared/`):
+- **Purpose**: Components used in both CMS and frontend contexts
+- **Usage**: Used across both admin and public routes
+- **Characteristics**:
+  - Authentication components (login/logout)
+  - Common utilities (loading screens, modals)
+  - Basic UI components (links, selectors)
+  - Debug and development tools
+  - Language and theme management
+
+### Component Migration Summary
+
+**From Old Structure:**
+```
+components/
+├── admin/     → cms/
+├── website/   → frontend/layout/ + frontend/content/
+├── styles/    → frontend/styles/
+├── auth/      → shared/auth/
+├── common/    → shared/common/
+├── ui/        → cms/ui/ + shared/ui/
+└── contexts/  → contexts/ (unchanged)
+```
+
+**Key Benefits of New Structure:**
+- **Clear Separation**: Easy to identify component purpose and usage
+- **Reduced Coupling**: CMS and frontend components are isolated
+- **Better Maintainability**: Easier to find and modify components
+- **Improved Onboarding**: New developers can quickly understand the structure
+- **Scalability**: Easy to add new features in the appropriate category
+
+### Import Path Updates
+
+All import statements have been systematically updated to reflect the new structure:
+
+```typescript
+// Old imports
+import { PageInspector } from '../components/admin/pages/page-inspector/PageInspector';
+import { WebsiteHeader } from '../components/website/WebsiteHeader';
+import { LoadingScreen } from '../components/common/LoadingScreen';
+
+// New imports
+import { PageInspector } from '../components/cms/pages/page-inspector/PageInspector';
+import { WebsiteHeader } from '../components/frontend/layout/WebsiteHeader';
+import { LoadingScreen } from '../components/shared/common/LoadingScreen';
+```
 
 ---
 

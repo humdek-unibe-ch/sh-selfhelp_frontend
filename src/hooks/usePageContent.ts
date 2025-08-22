@@ -10,8 +10,8 @@ import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { PageApi } from '../api/page.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useEffect, useRef } from 'react';
-import { usePageContentContext } from '../app/contexts/PageContentContext';
-import { useLanguageContext } from '../app/contexts/LanguageContext';
+import { usePageContentContext } from '../app/components/contexts/PageContentContext';
+import { useLanguageContext } from '../app/components/contexts/LanguageContext';
 import type { IPageContent } from '../types/responses/frontend/frontend.types';
 
 /**

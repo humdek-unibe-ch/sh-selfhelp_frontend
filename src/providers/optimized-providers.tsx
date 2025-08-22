@@ -14,9 +14,9 @@ import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { authProvider } from './auth.provider';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { LoadingScreen } from '../app/components/common/LoadingScreen';
-import { LanguageProvider } from '../app/contexts/LanguageContext';
-import { EnhancedLanguageProvider } from '../app/contexts/EnhancedLanguageProvider';
+import { LoadingScreen } from '../app/components/shared/common/LoadingScreen';
+import { LanguageProvider } from '../app/components/contexts/LanguageContext';
+import { EnhancedLanguageProvider } from '../app/components/contexts/EnhancedLanguageProvider';
 import { theme } from '../../theme';
 
 // Create a client with global configuration settings WITHOUT persistence

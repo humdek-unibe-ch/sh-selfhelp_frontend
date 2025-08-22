@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
-import { AdminShell } from '../../components/admin/admin-shell/AdminShell';
-import { LoadingScreen } from '../../components/common/LoadingScreen';
-import { UnusedSectionsPage } from '../../components/admin/unused-sections/unused-sections-page/UnusedSectionsPage';
+import { AdminShell } from '../../components/cms/admin-shell/AdminShell';
+import { LoadingScreen } from '../../components/shared/common/LoadingScreen';
+import { UnusedSectionsPage } from '../../components/cms/unused-sections/unused-sections-page/UnusedSectionsPage';
 
 /**
  * Unused Sections Admin Page

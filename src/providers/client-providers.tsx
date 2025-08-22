@@ -8,8 +8,8 @@ import { API_CONFIG } from '../config/api.config';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { usePathname } from 'next/navigation';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { LanguageProvider } from '../app/contexts/LanguageContext';
-import { EnhancedLanguageProvider } from '../app/contexts/EnhancedLanguageProvider';
+import { LanguageProvider } from '../app/components/contexts/LanguageContext';
+import { EnhancedLanguageProvider } from '../app/components/contexts/EnhancedLanguageProvider';
 import { authProvider } from './auth.provider';
 import { useState } from 'react';
 

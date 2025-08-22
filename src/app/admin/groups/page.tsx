@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
-import { LoadingScreen } from '../../components/common/LoadingScreen';
-import { GroupsPage } from '../../components/admin/groups/groups-page/GroupsPage';
-import { AdminShell } from '../../components/admin/admin-shell/AdminShell';
+import { LoadingScreen } from '../../components/shared/common/LoadingScreen';
+import { GroupsPage } from '../../components/cms/groups/groups-page/GroupsPage';
+import { AdminShell } from '../../components/cms/admin-shell/AdminShell';
 
 export default function AdminGroupsPage() {
   return (

@@ -4,13 +4,13 @@ import "../../globals.css";
 import '@mantine/dates/styles.css';
 import "@mantine/core/styles.css";
 import { AppShell } from "@mantine/core";
-import { DebugMenu } from "../components/common/debug";
+import { DebugMenu } from "../components/shared/common/debug";
 import { useParams } from 'next/navigation';
 import { useMemo } from 'react';
 import { usePageContentForLayout } from "../../hooks/usePageContentForLayout";
 import { useAppNavigation } from "../../hooks/useAppNavigation";
-import { WebsiteHeader } from "../components/website/WebsiteHeader";
-import { WebsiteFooter } from "../components/website/WebsiteFooter";
+import { WebsiteHeader } from "../components/frontend/layout/WebsiteHeader";
+import { WebsiteFooter } from "../components/frontend/layout/WebsiteFooter";
 
 export default function SlugLayout({ children }: { children: any }) {
     const { slug } = useParams();

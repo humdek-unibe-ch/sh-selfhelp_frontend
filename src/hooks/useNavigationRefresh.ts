@@ -9,7 +9,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
-import { useLanguageContext } from '../app/contexts/LanguageContext';
+import { useLanguageContext } from '../app/components/contexts/LanguageContext';
 
 /**
  * Hook for refreshing navigation data when user access might have changed.

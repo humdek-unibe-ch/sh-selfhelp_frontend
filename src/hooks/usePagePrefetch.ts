@@ -10,7 +10,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { PageApi } from '../api/page.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
-import { useLanguageContext } from '../app/contexts/LanguageContext';
+import { useLanguageContext } from '../app/components/contexts/LanguageContext';
 
 /**
  * Hook for prefetching page content to enable instant navigation.

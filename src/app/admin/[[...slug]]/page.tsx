@@ -15,10 +15,10 @@ import {
   IconInfoCircle,
   IconAlertCircle
 } from '@tabler/icons-react';
-import { PageSections } from '../../components/admin/pages/page-sections/PageSections';
-import { PageInspector } from '../../components/admin/pages/page-inspector/PageInspector';
-import { SectionInspector } from '../../components/admin/pages/section-inspector';
-import { ConfigurationPageEditor } from '../../components/admin/pages/configuration-page-editor/ConfigurationPageEditor';
+import { PageSections } from '../../components/cms/pages/page-sections/PageSections';
+import { PageInspector } from '../../components/cms/pages/page-inspector/PageInspector';
+import { SectionInspector } from '../../components/cms/pages/section-inspector';
+import { ConfigurationPageEditor } from '../../components/cms/pages/configuration-page-editor/ConfigurationPageEditor';
 import { useAdminPages } from '../../../hooks/useAdminPages';
 import { useMemo } from 'react';
 import { IAdminPage } from '../../../types/responses/admin/admin.types';

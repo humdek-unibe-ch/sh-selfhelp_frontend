@@ -9,7 +9,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { PageApi } from '../api/page.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
-import { useLanguageContext } from '../app/contexts/LanguageContext';
+import { useLanguageContext } from '../app/components/contexts/LanguageContext';
 import type { IPageContent } from '../types/responses/frontend/frontend.types';
 
 /**
