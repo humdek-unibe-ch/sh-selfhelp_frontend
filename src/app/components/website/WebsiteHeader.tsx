@@ -1,16 +1,16 @@
 'use client';
 
-import { Container, Group, Burger, Text, Flex } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
-import { Suspense } from 'react';
-import { WebsiteHeaderMenu } from './WebsiteHeaderMenu';
+import { Container, Group, Text, Flex } from '@mantine/core';
 import { ThemeToggle } from '../common/ThemeToggle';
 import { AuthButton } from '../auth/AuthButton';
 import { LanguageSelector } from '../common/LanguageSelector';
+import { BurgerMenuClient } from '../common/BurgerMenuClient';
+import { WebsiteHeaderMenu } from './WebsiteHeaderMenu';
 
+/**
+ * Website Header with optimized loading behavior
+ */
 export function WebsiteHeader() {
-    const [opened, { toggle }] = useDisclosure(false);
-
     return (
         <Container size="xl" h="100%">
             <Flex justify="space-between" align="center" h="100%">
@@ -26,17 +26,10 @@ export function WebsiteHeader() {
                 <WebsiteHeaderMenu />
                 
                 <Group gap="sm">
-                    <Suspense fallback={null}>
-                        <LanguageSelector />
-                    </Suspense>
+                    <LanguageSelector />
                     <ThemeToggle />
                     <AuthButton />
-                    <Burger
-                        opened={opened}
-                        onClick={toggle}
-                        size="sm"
-                        hiddenFrom="sm"
-                    />
+                    <BurgerMenuClient />
                 </Group>
             </Flex>
         </Container>

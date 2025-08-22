@@ -61,9 +61,9 @@ function MenuItem({ item }: IMenuItemProps) {
 }
 
 /**
- * Optimized Website Header Menu with immediate data from React Query cache
+ * Website Header Menu with optimized loading behavior
  */
-export function WebsiteHeaderMenuOptimized() {
+export function WebsiteHeaderMenu() {
     const { menuPages, isLoading } = useAppNavigation();
 
     // Show nothing while loading to prevent layout shift

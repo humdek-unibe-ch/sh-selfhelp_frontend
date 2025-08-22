@@ -1,7 +1,7 @@
 'use client';
 
 import { IconChevronDown } from '@tabler/icons-react';
-import { Group, Menu, Skeleton, UnstyledButton, Text } from '@mantine/core';
+import { Group, Menu, UnstyledButton, Text } from '@mantine/core';
 import { InternalLink } from '../shared/InternalLink';
 import { useAppNavigation } from '../../../hooks/useAppNavigation';
 import { usePagePrefetch } from '../../../hooks/usePagePrefetch';
@@ -11,13 +11,11 @@ interface IMenuItemProps {
     item: IPageItem;
 }
 
-// Helper function to get page title - use actual title from API or fallback to formatted keyword
+// Helper function to get page title
 const getPageTitle = (item: IPageItem): string => {
-    // Use the actual title if available, otherwise format the keyword as fallback
     if (item.title && item.title.trim()) {
         return item.title;
     }
-    // Fallback to formatted keyword
     return item.keyword.charAt(0).toUpperCase() + item.keyword.slice(1).replace(/_/g, ' ').replace(/-/g, ' ');
 };
 
@@ -62,21 +60,15 @@ function MenuItem({ item }: IMenuItemProps) {
     );
 }
 
-function MenuSkeleton() {
-    return (
-        <Group gap="md" visibleFrom="sm">
-            {Array.from({ length: 4 }).map((_, index) => (
-                <Skeleton key={index} height={24} width={80} />
-            ))}
-        </Group>
-    );
-}
-
+/**
+ * Website Header Menu with optimized loading behavior
+ */
 export function WebsiteHeaderMenu() {
     const { menuPages, isLoading } = useAppNavigation();
 
-    if (isLoading) {
-        return <MenuSkeleton />;
+    // Show nothing while loading to prevent layout shift
+    if (isLoading || menuPages.length === 0) {
+        return null;
     }
 
     // Use only top-level items (parent === null) since children are already included

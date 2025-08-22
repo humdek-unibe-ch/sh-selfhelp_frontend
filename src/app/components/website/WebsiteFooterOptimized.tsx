@@ -15,9 +15,9 @@ const getPageTitle = (item: IPageItem): string => {
 };
 
 /**
- * Optimized Website Footer with immediate data from React Query cache
+ * Website Footer with optimized loading behavior
  */
-export function WebsiteFooterOptimized() {
+export function WebsiteFooter() {
     const { footerPages, isLoading } = useAppNavigation();
     const { createHoverPrefetch } = usePagePrefetch();
 

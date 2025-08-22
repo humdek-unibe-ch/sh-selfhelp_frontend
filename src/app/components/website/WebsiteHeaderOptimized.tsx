@@ -5,13 +5,12 @@ import { ThemeToggle } from '../common/ThemeToggle';
 import { AuthButton } from '../auth/AuthButton';
 import { LanguageSelector } from '../common/LanguageSelector';
 import { BurgerMenuClient } from '../common/BurgerMenuClient';
-import { WebsiteHeaderMenuOptimized } from './WebsiteHeaderMenuOptimized';
+import { WebsiteHeaderMenu } from './WebsiteHeaderMenu';
 
 /**
- * Optimized Website Header with improved caching
- * Uses existing components but with better React Query configuration
+ * Website Header with optimized loading behavior
  */
-export function WebsiteHeaderOptimized() {
+export function WebsiteHeader() {
     return (
         <Container size="xl" h="100%">
             <Flex justify="space-between" align="center" h="100%">
@@ -24,7 +23,7 @@ export function WebsiteHeaderOptimized() {
                     Your Logo
                 </Text>
 
-                <WebsiteHeaderMenuOptimized />
+                <WebsiteHeaderMenu />
                 
                 <Group gap="sm">
                     <LanguageSelector />

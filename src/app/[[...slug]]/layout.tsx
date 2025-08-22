@@ -7,8 +7,8 @@ import { AppShell } from "@mantine/core";
 import { DebugMenu } from "../components/common/debug";
 import { useParams } from 'next/navigation';
 import { usePageContentForLayout } from "../../hooks/usePageContentForLayout";
-import { WebsiteHeaderOptimized } from "../components/website/WebsiteHeaderOptimized";
-import { WebsiteFooterOptimized } from "../components/website/WebsiteFooterOptimized";
+import { WebsiteHeader } from "../components/website/WebsiteHeader";
+import { WebsiteFooter } from "../components/website/WebsiteFooter";
 
 export default function SlugLayout({ children }: { children: any }) {
     const { slug } = useParams();
@@ -24,7 +24,7 @@ export default function SlugLayout({ children }: { children: any }) {
         >
             {!isHeadless && (
                 <AppShell.Header>
-                    <WebsiteHeaderOptimized />
+                    <WebsiteHeader />
                 </AppShell.Header>
             )}
             
@@ -32,7 +32,7 @@ export default function SlugLayout({ children }: { children: any }) {
                 <div style={{ flex: 1 }}>
                     {children}
                 </div>
-                {!isHeadless && <WebsiteFooterOptimized />}
+                {!isHeadless && <WebsiteFooter />}
             </AppShell.Main>
             
             <DebugMenu />

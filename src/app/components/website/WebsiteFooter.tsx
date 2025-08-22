@@ -1,44 +1,28 @@
 'use client';
 
-import { Box, Container, Divider, Group, Skeleton, Stack, Text } from '@mantine/core';
+import { Box, Container, Divider, Group, Stack, Text } from '@mantine/core';
 import { InternalLink } from '../shared/InternalLink';
 import { useAppNavigation } from '../../../hooks/useAppNavigation';
 import { usePagePrefetch } from '../../../hooks/usePagePrefetch';
 import { IPageItem } from '../../../types/responses/frontend/frontend.types';
 
-// Helper function to get page title - use actual title from API or fallback to formatted keyword
+// Helper function to get page title
 const getPageTitle = (item: IPageItem): string => {
-    // Use the actual title if available, otherwise format the keyword as fallback
     if (item.title && item.title.trim()) {
         return item.title;
     }
-    // Fallback to formatted keyword
     return item.keyword.charAt(0).toUpperCase() + item.keyword.slice(1).replace(/_/g, ' ').replace(/-/g, ' ');
 };
 
-function FooterSkeleton() {
-    return (
-        <Box component="footer" w="100%" py="xl">
-            <Container size="xl">
-                <Group justify="center" gap="xl">
-                    {Array.from({ length: 4 }).map((_, index) => (
-                        <Skeleton key={index} height={16} width={80} />
-                    ))}
-                </Group>
-            </Container>
-        </Box>
-    );
-}
-
+/**
+ * Website Footer with optimized loading behavior
+ */
 export function WebsiteFooter() {
     const { footerPages, isLoading } = useAppNavigation();
     const { createHoverPrefetch } = usePagePrefetch();
 
-    if (isLoading) {
-        return <FooterSkeleton />;
-    }
-
-    if (footerPages.length === 0) {
+    // Show nothing while loading to prevent layout shift
+    if (isLoading || footerPages.length === 0) {
         return null;
     }
 
@@ -80,4 +64,4 @@ export function WebsiteFooter() {
             </Container>
         </Box>
     );
-} 
+}
