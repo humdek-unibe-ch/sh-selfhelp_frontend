@@ -9,6 +9,7 @@ import { API_CONFIG } from '../config/api.config';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAppNavigation } from '../hooks/useAppNavigation';
+import { useNavigationPrefetch } from '../hooks/useNavigationPrefetch';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { authProvider } from './auth.provider';
@@ -27,6 +28,9 @@ function RefineWrapper({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const isAdmin = pathname?.startsWith('/admin');
     const { resources, isLoading } = useAppNavigation({ isAdmin });
+    
+    // Initialize navigation prefetching for smooth page transitions
+    useNavigationPrefetch();
 
     if (isLoading) {
         return <LoadingScreen />;

@@ -914,6 +914,113 @@ POST /auth/set-language
 
 ---
 
+## 🔄 Smart Navigation & Page Loading System
+
+### Core Principles
+
+The application implements an intelligent loading system that prioritizes user experience by:
+
+1. **Always Refreshing Navigation**: Navigation data is refreshed on every page change and after user actions
+2. **Smooth Transitions**: Uses `keepPreviousData` to show existing content while loading new data
+3. **Minimal Loading Spinners**: Only shows loading indicators on initial page loads, not during navigation
+4. **Permission-Aware**: Automatically refreshes navigation when user actions might grant new access
+
+### Navigation Refresh Strategy
+
+**When Navigation Gets Refreshed**:
+- On every page navigation (silent background refresh)
+- After form submissions (visible refresh to show new access)
+- After user actions that might change permissions
+- When language preferences change
+
+**Implementation**:
+```typescript
+// useNavigationRefresh hook provides refresh functions
+const { refreshOnPageChange, refreshAfterUserAction } = useNavigationRefresh();
+
+// Page navigation triggers silent refresh
+useEffect(() => {
+    if (keyword) {
+        refreshOnPageChange(); // Silent background refresh
+    }
+}, [keyword, refreshOnPageChange]);
+
+// Form submissions trigger visible refresh
+const submitMutation = useMutation({
+    onSuccess: async () => {
+        await refreshAfterUserAction(); // Visible refresh for new access
+    }
+});
+```
+
+### Smart Page Loading
+
+**Loading States**:
+```typescript
+// Show loading spinner only on initial load (no existing data)
+if ((pageLoading && !pageContent) || (navLoading && routes.length === 0)) {
+    return <Loader />;
+}
+
+// During navigation, show existing content with smooth transitions
+const isContentUpdating = pageFetching || isUpdatingLanguage;
+return (
+    <Container 
+        className={`page-content-transition ${isContentUpdating ? 'page-content-loading' : ''}`}
+    >
+        <PageContentRenderer sections={sections} />
+    </Container>
+);
+```
+
+**Key Features**:
+- **keepPreviousData**: Maintains previous content during navigation
+- **Conditional Loading**: Only shows spinners when no data exists
+- **Smooth Transitions**: CSS transitions for content updates
+- **Background Updates**: New data loads silently while showing existing content
+
+### Navigation Refresh Hooks
+
+**useNavigationRefresh Hook**:
+```typescript
+export function useNavigationRefresh() {
+    return {
+        refreshNavigation,         // Full refresh with loading states
+        refreshNavigationSilently, // Background refresh without UI impact
+        refreshOnPageChange,       // Silent refresh for page navigation
+        refreshAfterUserAction,    // Visible refresh after user actions
+    };
+}
+```
+
+**Integration in Form Submissions**:
+```typescript
+export function useSubmitFormMutation() {
+    const { refreshAfterUserAction } = useNavigationRefresh();
+    
+    return useMutation({
+        onSuccess: async () => {
+            // Invalidate page content
+            queryClient.invalidateQueries({ queryKey: ['page-content'] });
+            
+            // Refresh navigation in case form submission granted new access
+            await refreshAfterUserAction();
+        }
+    });
+}
+```
+
+### Benefits for User Experience
+
+✅ **No Annoying Loading Spinners**: Users see content immediately during navigation  
+✅ **Always Fresh Navigation**: Navigation reflects current user permissions  
+✅ **Smooth Transitions**: Content updates smoothly without jarring reloads  
+✅ **Permission-Aware**: New pages appear immediately after gaining access  
+✅ **Background Updates**: Navigation stays current without disrupting workflow  
+✅ **Language-Aware**: Navigation updates correctly when language changes
+
+---
+
 ## 🛠️ Admin Panel & Inspector System
 
 ### Admin Shell Layout
@@ -1645,6 +1752,9 @@ npm run dev
 - ✅ Consistent query key patterns for React Query
 - ✅ Field configuration: Use fieldConfig for dynamic select fields with API integration
 - ✅ Supported select field types: select-css, select-group, select-data_table, select-page-keyword
+- ✅ **Smart Navigation Loading**: Always refresh navigation on page changes and user actions
+- ✅ **keepPreviousData Strategy**: Use for smooth transitions without loading spinners
+- ✅ **useNavigationRefresh Hook**: Use for triggering navigation updates after user actions
 
 ### Architecture Summary for Quick Understanding
 

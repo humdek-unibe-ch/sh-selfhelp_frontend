@@ -4,6 +4,7 @@ import { IconChevronDown } from '@tabler/icons-react';
 import { Group, Menu, UnstyledButton, Text } from '@mantine/core';
 import { InternalLink } from '../shared/InternalLink';
 import { useAppNavigation } from '../../../hooks/useAppNavigation';
+import { usePagePrefetch } from '../../../hooks/usePagePrefetch';
 import { IPageItem } from '../../../types/responses/frontend/frontend.types';
 
 interface IMenuItemProps {
@@ -21,6 +22,7 @@ const getPageTitle = (item: IPageItem): string => {
 function MenuItem({ item }: IMenuItemProps) {
     const hasChildren = item.children && item.children.length > 0;
     const pageTitle = getPageTitle(item);
+    const { createHoverPrefetch } = usePagePrefetch();
 
     if (hasChildren) {
         return (
@@ -35,7 +37,10 @@ function MenuItem({ item }: IMenuItemProps) {
                 </Menu.Target>
                 <Menu.Dropdown>
                     {item.children?.map(child => (
-                        <Menu.Item key={child.id_pages}>
+                        <Menu.Item 
+                            key={child.id_pages}
+                            onMouseEnter={createHoverPrefetch(child.keyword)}
+                        >
                             <InternalLink href={child.url}>
                                 <Text size="sm">{getPageTitle(child)}</Text>
                             </InternalLink>
@@ -48,7 +53,7 @@ function MenuItem({ item }: IMenuItemProps) {
 
     return (
         <InternalLink key={item.id_pages} href={item.url}>
-            <UnstyledButton>
+            <UnstyledButton onMouseEnter={createHoverPrefetch(item.keyword)}>
                 <Text size="sm" fw={500}>{pageTitle}</Text>
             </UnstyledButton>
         </InternalLink>

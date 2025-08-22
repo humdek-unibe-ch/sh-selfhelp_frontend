@@ -6,7 +6,7 @@
  * @module hooks/usePageContent
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { PageApi } from '../api/page.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useEffect, useRef } from 'react';
@@ -26,7 +26,7 @@ export function usePageContent(keyword: string, enabled: boolean = true) {
     const { currentLanguageId } = useLanguageContext();
     const lastDataRef = useRef<any>(null);
 
-    // Query configuration using React Query
+    // Query configuration using React Query with aggressive caching for smooth navigation
     const { 
         data, 
         isLoading, 
@@ -37,11 +37,14 @@ export function usePageContent(keyword: string, enabled: boolean = true) {
     } = useQuery<IPageContent>({
         queryKey: ['page-content', keyword, currentLanguageId],
         queryFn: () => PageApi.getPageContent(keyword, currentLanguageId),
-        enabled: !!keyword && !!currentLanguageId,
+        enabled: !!keyword && !!currentLanguageId && enabled,
         staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        gcTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.gcTime, // Longer cache time for better navigation
         retry: 2,
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+        placeholderData: keepPreviousData, // Keep previous data during refetch for smooth page transitions
+        refetchOnWindowFocus: false, // Don't refetch when window gains focus
+        refetchOnMount: false, // Don't refetch if we already have data
     });
 
     // Sync React Query data with context only when data actually changes

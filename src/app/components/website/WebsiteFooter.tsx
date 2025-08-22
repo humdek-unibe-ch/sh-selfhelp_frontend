@@ -3,6 +3,7 @@
 import { Box, Container, Divider, Group, Skeleton, Stack, Text } from '@mantine/core';
 import { InternalLink } from '../shared/InternalLink';
 import { useAppNavigation } from '../../../hooks/useAppNavigation';
+import { usePagePrefetch } from '../../../hooks/usePagePrefetch';
 import { IPageItem } from '../../../types/responses/frontend/frontend.types';
 
 // Helper function to get page title - use actual title from API or fallback to formatted keyword
@@ -31,6 +32,7 @@ function FooterSkeleton() {
 
 export function WebsiteFooter() {
     const { footerPages, isLoading } = useAppNavigation();
+    const { createHoverPrefetch } = usePagePrefetch();
 
     if (isLoading) {
         return <FooterSkeleton />;
@@ -58,6 +60,7 @@ export function WebsiteFooter() {
                                 key={page.id_pages}
                                 href={page.url}
                                 className="text-sm font-medium hover:text-blue-600 transition-colors"
+                                onMouseEnter={createHoverPrefetch(page.keyword)}
                             >
                                 {getPageTitle(page)}
                             </InternalLink>

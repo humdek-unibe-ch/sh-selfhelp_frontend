@@ -21,6 +21,8 @@ interface PageContentContextType {
     setPageContent: (content: IPageContent) => void;
     /** Updates both React Query cache and local state */
     updatePageContent: (keyword: string, content: IPageContent) => void;
+    /** Clears the current page content */
+    clearPageContent: () => void;
 }
 
 /**
@@ -49,11 +51,19 @@ export const PageContentProvider = ({ children }: { children: ReactNode }) => {
         setPageContent(content);
     };
 
+    /**
+     * Clears the current page content (useful when navigating between pages)
+     */
+    const clearPageContent = () => {
+        setPageContent(null);
+    };
+
     return (
         <PageContentContext.Provider value={{ 
             pageContent, 
             setPageContent, 
-            updatePageContent 
+            updatePageContent,
+            clearPageContent 
         }}>
             {children}
         </PageContentContext.Provider>

@@ -19,6 +19,7 @@ interface IInternalLinkProps {
     className?: string;
     target?: string;
     rel?: string;
+    onMouseEnter?: () => void;
 }
 
 /**
@@ -30,7 +31,7 @@ interface IInternalLinkProps {
  * @param {IInternalLinkProps} props - Component props
  * @returns {JSX.Element} Rendered link component
  */
-export const InternalLink: React.FC<IInternalLinkProps> = ({ href, children, className, ...props }) => {
+export const InternalLink: React.FC<IInternalLinkProps> = ({ href, children, className, onMouseEnter, ...props }) => {
     const { user, isLoading: isAuthLoading } = useAuth();
     const [isClient, setIsClient] = useState(false);
 
@@ -62,6 +63,7 @@ export const InternalLink: React.FC<IInternalLinkProps> = ({ href, children, cla
             <Link 
                 href={path}
                 className={className}
+                onMouseEnter={onMouseEnter}
             >
                 {children}
             </Link>
@@ -75,6 +77,7 @@ export const InternalLink: React.FC<IInternalLinkProps> = ({ href, children, cla
             target="_blank"
             rel="noopener noreferrer"
             className={className}
+            onMouseEnter={onMouseEnter}
             {...props}
         >
             {children}

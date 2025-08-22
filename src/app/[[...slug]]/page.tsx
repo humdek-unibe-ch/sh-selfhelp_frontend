@@ -1,11 +1,12 @@
 'use client';
 
 import { notFound, useParams } from 'next/navigation';
-import { Suspense, useMemo } from 'react';
+import { Suspense, useMemo, useEffect } from 'react';
 import { Container, Loader, Center, Text } from '@mantine/core';
 import { PageContentProvider, usePageContentContext } from '../contexts/PageContentContext';
 import { usePageContent } from '../../hooks/usePageContent';
 import { useAppNavigation } from '../../hooks/useAppNavigation';
+import { useNavigationRefresh } from '../../hooks/useNavigationRefresh';
 import { useLanguageContext } from '../contexts/LanguageContext';
 import { PageContentRenderer } from '../components/website/PageContentRenderer';
 import React from 'react';
@@ -29,18 +30,36 @@ export default function DynamicPage() {
 
 const DynamicPageContentOptimized = React.memo(function DynamicPageContentOptimized({ keyword }: { keyword: string }) {
     const { currentLanguageId, isUpdatingLanguage } = useLanguageContext();
+    const { refreshOnPageChange } = useNavigationRefresh();
     
-    const { content: queryContent, isLoading: pageLoading, isFetching: pageFetching } = usePageContent(keyword);
-    const { pageContent: contextContent } = usePageContentContext();
-    const pageContent = contextContent || queryContent;
+    const { content: queryContent, isLoading: pageLoading, isFetching: pageFetching, isPlaceholderData } = usePageContent(keyword);
+    const { pageContent: contextContent, clearPageContent, setPageContent } = usePageContentContext();
+    
+    // Use React Query data as primary source, context as fallback for immediate display
+    const pageContent = queryContent || contextContent;
 
-    const { routes, isLoading: navLoading } = useAppNavigation();
+    const { routes, isLoading: navLoading, isFetching: navFetching } = useAppNavigation();
+    
+    // Refresh navigation when page changes (but don't clear content immediately)
+    useEffect(() => {
+        if (keyword) {
+            // Refresh navigation to ensure user sees updated navigation
+            refreshOnPageChange();
+        }
+    }, [keyword, refreshOnPageChange]);
+    
+    // Update context when new query data arrives, but keep previous data during transitions
+    useEffect(() => {
+        if (queryContent) {
+            setPageContent(queryContent);
+        }
+    }, [queryContent, setPageContent]);
     
     // Extract headless flag for rendering decisions
     const isHeadless = Boolean(pageContent?.is_headless);
     
     // Check if content is being updated (either loading or fetching)
-    const isContentUpdating = pageLoading || pageFetching || isUpdatingLanguage;
+    const isContentUpdating = pageFetching || isUpdatingLanguage;
     
     // Memoize navigation check
     const existsInNavigation = useMemo(() => 
@@ -51,8 +70,16 @@ const DynamicPageContentOptimized = React.memo(function DynamicPageContentOptimi
     // Check if page content is available (more reliable than navigation check)
     const hasValidContent = pageContent && pageContent.id;
     
-    // Show minimal loading while data is loading
-    if (pageLoading || navLoading) {
+    // Show loading spinner only on initial load when absolutely no data exists
+    // This prevents annoying loading spinners when navigating between pages
+    const showLoadingSpinner = (
+        // Show spinner only if we're loading AND have no content at all
+        (pageLoading && !pageContent && !isPlaceholderData) || 
+        // OR if navigation is loading and we have no routes at all
+        (navLoading && routes.length === 0)
+    );
+    
+    if (showLoadingSpinner) {
         return (
             <Center h="50vh">
                 <Loader size="lg" />

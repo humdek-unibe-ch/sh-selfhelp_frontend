@@ -6,22 +6,27 @@ import {
 } from '../types/requests/frontend/form-submission.types';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { notifications } from '@mantine/notifications';
+import { useNavigationRefresh } from './useNavigationRefresh';
 
 /**
  * Hook to submit a new form (anonymous users)
  */
 export function useSubmitFormMutation() {
     const queryClient = useQueryClient();
+    const { refreshAfterUserAction } = useNavigationRefresh();
 
     return useMutation({
         mutationFn: (data: IFormSubmitRequest) => FormSubmissionApi.submitForm(data),
-        onSuccess: (response, variables) => {
+        onSuccess: async (response, variables) => {
 
             // Invalidate page content so UI pulls latest data
             queryClient.invalidateQueries({ queryKey: ['page-content'] });
             queryClient.invalidateQueries({ queryKey: ['page-content-layout'] });
             queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
             queryClient.invalidateQueries({ queryKey: ['userInputEntries'] });
+
+            // Refresh navigation in case form submission granted access to new pages
+            await refreshAfterUserAction();
 
             // Show success notification if not handled by component
             if (response.data?.success && response.data?.message) {
@@ -48,16 +53,20 @@ export function useSubmitFormMutation() {
  */
 export function useUpdateFormMutation() {
     const queryClient = useQueryClient();
+    const { refreshAfterUserAction } = useNavigationRefresh();
 
     return useMutation({
         mutationFn: (data: IFormUpdateRequest) => FormSubmissionApi.updateForm(data),
-        onSuccess: (response, variables) => {
+        onSuccess: async (response, variables) => {
 
             // Invalidate page content so UI pulls latest data
             queryClient.invalidateQueries({ queryKey: ['page-content'] });
             queryClient.invalidateQueries({ queryKey: ['page-content-layout'] });
             queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
             queryClient.invalidateQueries({ queryKey: ['userInputEntries'] });
+
+            // Refresh navigation in case form update granted access to new pages
+            await refreshAfterUserAction();
 
             // Show success notification if not handled by component
             if (response.data?.success && response.data?.message) {
