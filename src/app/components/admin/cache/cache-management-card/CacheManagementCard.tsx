@@ -13,7 +13,9 @@ import { useClearApiRoutesCacheMutation } from '../../../../../hooks/useSectionU
 import { useUsers } from '../../../../../hooks/useUsers';
 import type { TCacheCategory } from '../../../../../types/responses/admin/cache.types';
 
-const CACHE_CATEGORIES: { value: TCacheCategory; label: string }[] = [
+type TSupportedCacheCategory = 'pages' | 'users' | 'sections' | 'languages' | 'groups' | 'roles' | 'permissions' | 'lookups' | 'assets' | 'frontend_user' | 'cms_preferences' | 'scheduled_jobs';
+
+const CACHE_CATEGORIES: { value: TSupportedCacheCategory; label: string }[] = [
     { value: 'pages', label: 'Pages' },
     { value: 'users', label: 'Users' },
     { value: 'sections', label: 'Sections' },
@@ -57,7 +59,7 @@ export function CacheManagementCard() {
     const handleClearCacheCategory = () => {
         if (selectedCategory) {
             clearCacheCategoryMutation.mutate({
-                category: selectedCategory as TCacheCategory,
+                category: selectedCategory as TSupportedCacheCategory,
             });
             setSelectedCategory('');
         }

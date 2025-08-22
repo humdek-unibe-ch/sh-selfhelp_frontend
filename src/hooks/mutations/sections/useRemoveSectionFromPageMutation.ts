@@ -13,13 +13,13 @@ import { AdminApi } from '../../../api/admin.api';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IRemoveSectionFromPageMutationOptions {
-    onSuccess?: (data: any, variables: { keyword: string; sectionId: number }) => void;
-    onError?: (error: any, variables: { keyword: string; sectionId: number }) => void;
+    onSuccess?: (data: any, variables: { pageId: number; sectionId: number }) => void;
+    onError?: (error: any, variables: { pageId: number; sectionId: number }) => void;
     showNotifications?: boolean;
 }
 
 interface IRemoveSectionFromPageVariables {
-    keyword: string;
+    pageId: number;
     sectionId: number;
 }
 
@@ -33,22 +33,22 @@ export function useRemoveSectionFromPageMutation(options: IRemoveSectionFromPage
     const { onSuccess, onError, showNotifications = true } = options;
 
     return useMutation({
-        mutationFn: ({ keyword, sectionId }: IRemoveSectionFromPageVariables) => 
-            AdminApi.removeSectionFromPage(keyword, sectionId),
+        mutationFn: ({ pageId, sectionId }: IRemoveSectionFromPageVariables) => 
+            AdminApi.removeSectionFromPage(pageId, sectionId),
         
         onSuccess: async (result: any, variables: IRemoveSectionFromPageVariables) => {
             
             // Invalidate relevant queries to update the UI
             await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['pageSections', variables.keyword] }),
-                queryClient.invalidateQueries({ queryKey: ['pageFields', variables.keyword] }),
+                queryClient.invalidateQueries({ queryKey: ['pageSections', variables.pageId] }),
+                queryClient.invalidateQueries({ queryKey: ['pageFields', variables.pageId] }),
                 queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
             ]);
             
             if (showNotifications) {
                 notifications.show({
                     title: 'Section Removed Successfully',
-                    message: `Section was removed from page "${variables.keyword}" successfully!`,
+                    message: `Section was removed from page "${variables.pageId}" successfully!`,
                     icon: React.createElement(IconCheck, { size: '1rem' }),
                     color: 'green',
                     autoClose: 5000,
@@ -68,7 +68,7 @@ export function useRemoveSectionFromPageMutation(options: IRemoveSectionFromPage
             if (showNotifications) {
                 notifications.show({
                     title: errorTitle || 'Remove Section Failed',
-                    message: errorMessage || `Failed to remove section from page "${variables.keyword}". Please try again.`,
+                    message: errorMessage || `Failed to remove section from page "${variables.pageId}". Please try again.`,
                     icon: React.createElement(IconX, { size: '1rem' }),
                     color: 'red',
                     autoClose: 8000,

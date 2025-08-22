@@ -24,7 +24,7 @@ import { importSectionsToPage, importSectionsToSection } from '../api/admin/sect
 import { notifications } from '@mantine/notifications';
 
 export interface IUseSectionOperationsOptions {
-    pageKeyword?: string;
+    pageId?: number;
     showNotifications?: boolean;
     onSuccess?: (result?: any) => void;
     onError?: (error: any) => void;
@@ -53,7 +53,7 @@ export interface ISectionOperationsResult {
  * Hook that provides unified section operations with position handling
  */
 export function useSectionOperations(hookOptions: IUseSectionOperationsOptions = {}): ISectionOperationsResult {
-    const { pageKeyword, showNotifications = true, onSuccess, onError, onSectionCreated, onSectionsImported } = hookOptions;
+    const { pageId, showNotifications = true, onSuccess, onError, onSectionCreated, onSectionsImported } = hookOptions;
     const queryClient = useQueryClient();
 
     // Mutation hooks
@@ -71,7 +71,7 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
 
     const createSectionInSectionMutation = useCreateSectionInSectionMutation({
         showNotifications,
-        pageKeyword,
+        pageId,
         onSuccess: (result) => {
             const sectionId = result?.id || result?.section?.id;
             if (sectionId && onSectionCreated) {
@@ -96,7 +96,7 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
 
     const addSectionToSectionMutation = useAddSectionToSectionMutation({
         showNotifications,
-        pageKeyword,
+        pageId,
         onSuccess: (result) => {
             const sectionId = result?.id || result?.section?.id;
             if (sectionId && onSectionCreated) {
@@ -109,31 +109,31 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
 
     // Helper function to invalidate relevant queries after import operations
     const invalidateQueriesAfterImport = useCallback(async () => {
-        if (!pageKeyword) return;
+        if (!pageId) return;
 
         await Promise.all([
-            queryClient.invalidateQueries({ queryKey: ['pageSections', pageKeyword] }),
-            queryClient.invalidateQueries({ queryKey: ['pageFields', pageKeyword] }),
+            queryClient.invalidateQueries({ queryKey: ['pageSections', pageId] }),
+            queryClient.invalidateQueries({ queryKey: ['pageFields', pageId] }),
             queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
         ]);
-    }, [queryClient, pageKeyword]);
+    }, [queryClient, pageId]);
 
     // Create section in page
     const createSectionInPage = useCallback(async (
         styleId: number, 
         options: ISectionOperationOptions & { name?: string } = {}
     ) => {
-        if (!pageKeyword) {
-            throw new Error('Page keyword is required for section operations');
+        if (!pageId) {
+            throw new Error('Page ID is required for section operations');
         }
 
         const sectionData = prepareSectionCreateData(styleId, options);
         
         await createSectionInPageMutation.mutateAsync({
-            keyword: pageKeyword,
+            pageId: pageId,
             sectionData
         });
-    }, [pageKeyword, createSectionInPageMutation]);
+    }, [pageId, createSectionInPageMutation]);
 
     // Create section in section
     const createSectionInSection = useCallback(async (
@@ -141,36 +141,36 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
         styleId: number, 
         options: ISectionOperationOptions & { name?: string } = {}
     ) => {
-        if (!pageKeyword) {
-            throw new Error('Page keyword is required for section operations');
+        if (!pageId) {
+            throw new Error('Page ID is required for section operations');
         }
 
         const sectionData = prepareSectionCreateData(styleId, options);
 
         await createSectionInSectionMutation.mutateAsync({
-            keyword: pageKeyword,
+            pageId: pageId,
             parentSectionId,
             sectionData
         });
-    }, [pageKeyword, createSectionInSectionMutation]);
+    }, [pageId, createSectionInSectionMutation]);
 
     // Add existing section to page
     const addSectionToPage = useCallback(async (
         sectionId: number, 
         options: ISectionOperationOptions = {}
     ) => {
-        if (!pageKeyword) {
-            throw new Error('Page keyword is required for section operations');
+        if (!pageId) {
+            throw new Error('Page ID is required for section operations');
         }
 
         const position = options.specificPosition !== undefined ? options.specificPosition : -1;
 
         await addSectionToPageMutation.mutateAsync({
-            keyword: pageKeyword,
+            pageId: pageId,
             sectionId,
             sectionData: { position }
         });
-    }, [pageKeyword, addSectionToPageMutation]);
+    }, [pageId, addSectionToPageMutation]);
 
     // Add existing section to section
     const addSectionToSection = useCallback(async (
@@ -178,33 +178,33 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
         sectionId: number, 
         options: ISectionOperationOptions = {}
     ) => {
-        if (!pageKeyword) {
-            throw new Error('Page keyword is required for section operations');
+        if (!pageId) {
+            throw new Error('Page ID is required for section operations');
         }
 
         const position = options.specificPosition !== undefined ? options.specificPosition : -1;
 
         await addSectionToSectionMutation.mutateAsync({
-            keyword: pageKeyword,
+            pageId: pageId,
             parentSectionId,
             sectionId,
             sectionData: { position }
         });
-    }, [pageKeyword, addSectionToSectionMutation]);
+    }, [pageId, addSectionToSectionMutation]);
 
     // Import sections to page
     const importSectionsToPageHandler = useCallback(async (
         sections: ISectionExportData[],
         options: ISectionOperationOptions = {}
     ) => {
-        if (!pageKeyword) {
-            throw new Error('Page keyword is required for section operations');
+        if (!pageId) {
+            throw new Error('Page ID is required for section operations');
         }
 
         const importData = prepareSectionImportData(sections, options);
 
         try {
-            const result = await importSectionsToPage(pageKeyword, sections, importData.position);
+            const result = await importSectionsToPage(pageId, sections, importData.position);
             // Invalidate queries to refresh the section list
             await invalidateQueriesAfterImport();
             
@@ -258,7 +258,7 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
             onError?.(error);
             throw error;
         }
-    }, [pageKeyword, showNotifications, onSuccess, onError, onSectionsImported, invalidateQueriesAfterImport]);
+    }, [pageId, showNotifications, onSuccess, onError, onSectionsImported, invalidateQueriesAfterImport]);
 
     // Import sections to section
     const importSectionsToSectionHandler = useCallback(async (
@@ -266,14 +266,14 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
         sections: ISectionExportData[],
         options: ISectionOperationOptions = {}
     ) => {
-        if (!pageKeyword) {
-            throw new Error('Page keyword is required for section operations');
+        if (!pageId) {
+            throw new Error('Page ID is required for section operations');
         }
 
         const importData = prepareSectionImportData(sections, options);
 
         try {
-            const result = await importSectionsToSection(pageKeyword, parentSectionId, sections, importData.position);
+            const result = await importSectionsToSection(pageId, parentSectionId, sections, importData.position);
             
             // Invalidate queries to refresh the section list
             await invalidateQueriesAfterImport();
@@ -328,7 +328,7 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
             onError?.(error);
             throw error;
         }
-    }, [pageKeyword, showNotifications, onSuccess, onError, onSectionsImported, invalidateQueriesAfterImport]);
+    }, [pageId, showNotifications, onSuccess, onError, onSectionsImported, invalidateQueriesAfterImport]);
 
     return {
         createSectionInPage,

@@ -15,13 +15,13 @@ import { IAdminPage } from '../../types/responses/admin/admin.types';
 import { parseApiError } from '../../utils/mutation-error-handler';
 
 interface IUpdatePageMutationOptions {
-    onSuccess?: (data: IAdminPage, keyword: string) => void;
-    onError?: (error: any, keyword: string) => void;
+    onSuccess?: (data: IAdminPage, pageId: number) => void;
+    onError?: (error: any, pageId: number) => void;
     showNotifications?: boolean;
 }
 
 interface IUpdatePageMutationVariables {
-    keyword: string;
+    pageId: number;
     updateData: IUpdatePageRequest;
 }
 
@@ -35,18 +35,18 @@ export function useUpdatePageMutation(options: IUpdatePageMutationOptions = {}) 
     const { onSuccess, onError, showNotifications = true } = options;
 
     return useMutation({
-        mutationFn: ({ keyword, updateData }: IUpdatePageMutationVariables) => 
-            AdminApi.updatePage(keyword, updateData),
+        mutationFn: ({ pageId, updateData }: IUpdatePageMutationVariables) => 
+            AdminApi.updatePage(pageId, updateData),
         
-        onSuccess: async (updatedPage: IAdminPage, { keyword }: IUpdatePageMutationVariables) => {
+        onSuccess: async (updatedPage: IAdminPage, { pageId }: IUpdatePageMutationVariables) => {
 
             // Enhanced cache invalidation strategy with consistent query keys
             await Promise.all([
                 // Main admin pages list
                 queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
                 // Page-specific data
-                queryClient.invalidateQueries({ queryKey: ['pageFields', keyword] }),
-                queryClient.invalidateQueries({ queryKey: ['pageSections', keyword] }),
+                queryClient.invalidateQueries({ queryKey: ['pageFields', pageId] }),
+                queryClient.invalidateQueries({ queryKey: ['pageSections', pageId] }),
                 // Frontend navigation pages
                 queryClient.invalidateQueries({ queryKey: ['pages'] }),
                 queryClient.invalidateQueries({ queryKey: ['page-content'] }),
@@ -74,7 +74,7 @@ export function useUpdatePageMutation(options: IUpdatePageMutationOptions = {}) 
             if (showNotifications) {
                 notifications.show({
                     title: 'Page Updated Successfully',
-                    message: `Page "${keyword}" has been updated successfully with all changes saved!`,
+                    message: `Page "${pageId}" has been updated successfully with all changes saved!`,
                     icon: React.createElement(IconCheck, { size: '1rem' }),
                     color: 'green',
                     autoClose: 5000,
@@ -83,10 +83,10 @@ export function useUpdatePageMutation(options: IUpdatePageMutationOptions = {}) 
             }
             
             // Call custom success handler if provided
-            onSuccess?.(updatedPage, keyword);
+            onSuccess?.(updatedPage, pageId);
         },
         
-        onError: (error: any, { keyword }: IUpdatePageMutationVariables) => {
+        onError: (error: any, { pageId }: IUpdatePageMutationVariables) => {
             
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);
@@ -94,7 +94,7 @@ export function useUpdatePageMutation(options: IUpdatePageMutationOptions = {}) 
             if (showNotifications) {
                 notifications.show({
                     title: errorTitle || 'Update Failed',
-                    message: errorMessage || `Failed to update page "${keyword}". Please try again.`,
+                    message: errorMessage || `Failed to update page "${pageId}". Please try again.`,
                     icon: React.createElement(IconX, { size: '1rem' }),
                     color: 'red',
                     autoClose: 8000,
@@ -103,7 +103,7 @@ export function useUpdatePageMutation(options: IUpdatePageMutationOptions = {}) 
             }
             
             // Call custom error handler if provided
-            onError?.(error, keyword);
+            onError?.(error, pageId);
         },
     });
 } 

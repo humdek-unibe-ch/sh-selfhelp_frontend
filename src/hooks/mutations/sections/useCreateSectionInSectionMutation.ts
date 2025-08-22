@@ -16,7 +16,7 @@ interface ICreateSectionInSectionMutationOptions {
     onSuccess?: (data: any, variables: ICreateSectionInSectionVariables) => void;
     onError?: (error: any, variables: ICreateSectionInSectionVariables) => void;
     showNotifications?: boolean;
-    pageKeyword?: string; // Optional page keyword for cache invalidation
+    pageId?: number; // Optional page ID for cache invalidation
 }
 
 interface ICreateSectionInSectionData {
@@ -25,7 +25,7 @@ interface ICreateSectionInSectionData {
 }
 
 interface ICreateSectionInSectionVariables {
-    keyword: string;
+    pageId: number;
     parentSectionId: number;
     sectionData: ICreateSectionInSectionData;
 }
@@ -37,11 +37,11 @@ interface ICreateSectionInSectionVariables {
  */
 export function useCreateSectionInSectionMutation(options: ICreateSectionInSectionMutationOptions = {}) {
     const queryClient = useQueryClient();
-    const { onSuccess, onError, showNotifications = true, pageKeyword } = options;
+    const { onSuccess, onError, showNotifications = true, pageId: cachePageId } = options;
 
     return useMutation({
-        mutationFn: ({ keyword, parentSectionId, sectionData }: ICreateSectionInSectionVariables) => 
-            AdminApi.createSectionInSection(keyword, parentSectionId, sectionData),
+        mutationFn: ({ pageId, parentSectionId, sectionData }: ICreateSectionInSectionVariables) => 
+            AdminApi.createSectionInSection(pageId, parentSectionId, sectionData),
         
         onSuccess: async (createdSection: any, variables: ICreateSectionInSectionVariables) => {
             
@@ -50,11 +50,11 @@ export function useCreateSectionInSectionMutation(options: ICreateSectionInSecti
                 queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
             ];
             
-            // If pageKeyword is provided, also invalidate page-specific queries
-            if (pageKeyword) {
+            // If pageId is provided, also invalidate page-specific queries
+            if (cachePageId) {
                 invalidationPromises.push(
-                    queryClient.invalidateQueries({ queryKey: ['pageSections', pageKeyword] }),
-                    queryClient.invalidateQueries({ queryKey: ['pageFields', pageKeyword] })
+                    queryClient.invalidateQueries({ queryKey: ['pageSections', cachePageId] }),
+                    queryClient.invalidateQueries({ queryKey: ['pageFields', cachePageId] })
                 );
             }
             

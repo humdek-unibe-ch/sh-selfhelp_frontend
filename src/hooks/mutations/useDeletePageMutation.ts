@@ -14,7 +14,7 @@ import { parseApiError } from '../../utils/mutation-error-handler';
 import { useAdminPages } from '../useAdminPages';
 
 interface IDeletePageMutationOptions {
-    onSuccess?: (keyword: string) => void;
+    onSuccess?: (pageId: number) => void;
     onError?: (error: any) => void;
     showNotifications?: boolean;
 }
@@ -30,16 +30,16 @@ export function useDeletePageMutation(options: IDeletePageMutationOptions = {}) 
     const { pages } = useAdminPages();
 
     return useMutation({
-        mutationFn: (keyword: string) => {
+        mutationFn: (pageId: number) => {
             // Check if the page is a system page before attempting deletion
-            const page = pages.find(p => p.keyword === keyword);
+            const page = pages.find(p => p.id_pages === pageId);
             if (page?.is_system === 1) {
                 throw new Error('System pages cannot be deleted');
             }
-            return AdminApi.deletePage(keyword);
+            return AdminApi.deletePage(pageId);
         },
         
-        onSuccess: async (result, keyword: string) => {
+        onSuccess: async (result, pageId: number) => {
             // Invalidate and refetch relevant queries to update the UI with consistent query keys
             await Promise.all([
                 // Main admin pages list
@@ -48,14 +48,14 @@ export function useDeletePageMutation(options: IDeletePageMutationOptions = {}) 
                 queryClient.invalidateQueries({ queryKey: ['pages'] }),
                 queryClient.invalidateQueries({ queryKey: ['frontend-pages'] }),
                 // Remove specific page data from cache
-                queryClient.removeQueries({ queryKey: ['pageSections', keyword] }),
-                queryClient.removeQueries({ queryKey: ['pageFields', keyword] }),
+                queryClient.removeQueries({ queryKey: ['pageSections', pageId] }),
+                queryClient.removeQueries({ queryKey: ['pageFields', pageId] }),
             ]);
             
             if (showNotifications) {
                 notifications.show({
                     title: 'Page Deleted Successfully',
-                    message: `Page "${keyword}" was deleted successfully and removed from all menus!`,
+                    message: `Page "${pageId}" was deleted successfully and removed from all menus!`,
                     icon: React.createElement(IconCheck, { size: '1rem' }),
                     color: 'green',
                     autoClose: 5000,
@@ -64,10 +64,10 @@ export function useDeletePageMutation(options: IDeletePageMutationOptions = {}) 
             }
             
             // Call custom success handler if provided
-            onSuccess?.(keyword);
+            onSuccess?.(pageId);
         },
         
-        onError: (error: any, keyword: string) => {
+        onError: (error: any, pageId: number) => {
             
             // Use centralized error parsing
             const { errorMessage, errorTitle } = parseApiError(error);

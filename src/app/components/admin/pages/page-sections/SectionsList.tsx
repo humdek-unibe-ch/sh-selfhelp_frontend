@@ -43,7 +43,7 @@ interface ISectionsListProps {
     onSectionSelect?: (sectionId: number) => void;
     selectedSectionId?: number | null;
     focusedSectionId?: number | null;
-    pageKeyword?: string;
+    pageId?: number;
     isProcessing?: boolean;
 }
 
@@ -53,7 +53,7 @@ interface ISectionItemProps {
     index: number;
     parentId: number | null;
     allSections: IPageField[];
-    keyword: string; // Added keyword prop for delete functionality
+    pageId: number;
     onRemoveSection: (sectionId: number, parentId: number | null) => void;
     onAddChildSection?: (parentSectionId: number) => void;
     onAddSiblingAbove?: (referenceSectionId: number, parentId: number | null) => void;
@@ -103,7 +103,7 @@ function SectionItem({
     index,
     parentId,
     allSections,
-    keyword,
+    pageId,
     onRemoveSection,
     onAddChildSection,
     onAddSiblingAbove,
@@ -491,7 +491,7 @@ function SectionItem({
                 section={section}
                 level={level}
                 parentId={parentId}
-                keyword={keyword}
+                                                    pageId={pageId}
                 expandedSections={expandedSections}
                 onToggleExpand={onToggleExpand}
                 onRemoveSection={onRemoveSection}
@@ -543,7 +543,7 @@ function SectionItem({
                             index={childIndex}
                             parentId={section.id}
                             allSections={allSections}
-                            keyword={keyword}
+                            pageId={pageId}
                             onRemoveSection={onRemoveSection}
                             onAddChildSection={onAddChildSection}
                             onAddSiblingAbove={onAddSiblingAbove}
@@ -594,7 +594,7 @@ export function SectionsList({
     onSectionSelect,
     selectedSectionId,
     focusedSectionId,
-    pageKeyword,
+    pageId,
     isProcessing = false
 }: ISectionsListProps) {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -753,14 +753,14 @@ export function SectionsList({
                 const isMovingFromSectionToRoot = oldParentId !== null && newParentId === null;
                 const isChangingParent = isMovingFromRootToSection || isMovingFromSectionToRoot;
                 
-                const oldParentPageId = isChangingParent && oldParentId === null ? pageKeyword : null;
+                const oldParentPageId = isChangingParent && oldParentId === null ? pageId : null;
 
                 // Execute the section move with API call
                 onSectionMove({
                     draggedSectionId,
                     newParentId,
                     newPosition,
-                    pageKeyword,
+                    pageId,
                     draggedSection,
                     newParent: newParentId ? findSectionById(newParentId, sections) : null,
                     descendantIds: getAllDescendantIds(draggedSection),
@@ -770,7 +770,7 @@ export function SectionsList({
                 });
             },
         });
-    }, [sections, findSectionById, getAllDescendantIds, calculateNewPosition, pageKeyword, findParentId]);
+    }, [sections, findSectionById, getAllDescendantIds, calculateNewPosition, pageId, findParentId]);
 
     if (isProcessing) {
         return (
@@ -809,7 +809,7 @@ export function SectionsList({
                                     index={index}
                                     parentId={null}
                                     allSections={sections}
-                                    keyword={pageKeyword || ''}
+                                    pageId={pageId || 0}
                                     onRemoveSection={onRemoveSection}
                                     onAddChildSection={onAddChildSection}
                                     onAddSiblingAbove={onAddSiblingAbove}

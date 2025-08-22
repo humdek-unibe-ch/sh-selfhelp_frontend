@@ -40,7 +40,7 @@ import { ISectionOperationOptions } from '../../../../../utils/section-operation
 interface IAddSectionModalProps {
     opened: boolean;
     onClose: () => void;
-    pageKeyword?: string;
+    pageId?: number;
     parentSectionId?: number | null;
     title?: string;
     specificPosition?: number;
@@ -51,7 +51,7 @@ interface IAddSectionModalProps {
 export function AddSectionModal({
     opened,
     onClose,
-    pageKeyword,
+    pageId,
     parentSectionId = null,
     title = 'Add Section',
     specificPosition,
@@ -105,7 +105,7 @@ export function AddSectionModal({
 
     // Section operations hook
     const sectionOperations = useSectionOperations({
-        pageKeyword,
+        pageId,
         showNotifications: true,
         onSuccess: () => {
             handleClose();
@@ -153,7 +153,7 @@ export function AddSectionModal({
             if (parentSectionId !== null) {
                 // Add unused section to another section
                 await sectionOperations.addSectionToSection(parentSectionId, sectionId, operationOptions);
-            } else if (pageKeyword) {
+            } else if (pageId) {
                 // Add unused section to page
                 await sectionOperations.addSectionToPage(sectionId, operationOptions);
             }
@@ -176,7 +176,7 @@ export function AddSectionModal({
             if (parentSectionId !== null) {
                 // Add ref container section to another section
                 await sectionOperations.addSectionToSection(parentSectionId, sectionId, operationOptions);
-            } else if (pageKeyword) {
+            } else if (pageId) {
                 // Add ref container section to page
                 await sectionOperations.addSectionToPage(sectionId, operationOptions);
             }
@@ -199,7 +199,7 @@ export function AddSectionModal({
             if (parentSectionId !== null) {
                 // Create section in another section
                 await sectionOperations.createSectionInSection(parentSectionId, selectedStyle.id, operationOptions);
-            } else if (pageKeyword) {
+            } else if (pageId) {
                 // Create section in page
                 await sectionOperations.createSectionInPage(selectedStyle.id, operationOptions);
             }
@@ -209,7 +209,7 @@ export function AddSectionModal({
     };
 
     const handleImportSections = async () => {
-        if (!selectedFile || !pageKeyword) return;
+        if (!selectedFile || !pageId) return;
 
         setIsImporting(true);
 
@@ -225,7 +225,7 @@ export function AddSectionModal({
             if (parentSectionId !== null) {
                 // Import to parent section
                 await sectionOperations.importSectionsToSection(parentSectionId, sectionsData, operationOptions);
-            } else if (pageKeyword) {
+            } else if (pageId) {
                 // Import to page
                 await sectionOperations.importSectionsToPage(sectionsData, operationOptions);
             }

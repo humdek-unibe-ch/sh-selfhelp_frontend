@@ -24,15 +24,15 @@ export function usePagePrefetch() {
     const { currentLanguageId } = useLanguageContext();
     
     /**
-     * Prefetches page content for a specific keyword.
+     * Prefetches page content for a specific page ID.
      * This is typically called on hover events for navigation links.
      * 
-     * @param {string} keyword - The page keyword to prefetch
+     * @param {number} pageId - The page ID to prefetch
      */
-    const prefetchPage = useCallback(async (keyword: string) => {
-        if (!keyword || !currentLanguageId) return;
+    const prefetchPage = useCallback(async (pageId: number) => {
+        if (!pageId || !currentLanguageId) return;
         
-        const queryKey = ['page-content', keyword, currentLanguageId];
+        const queryKey = ['page-content', pageId, currentLanguageId];
         
         // Check if we already have this data in cache
         const existingData = queryClient.getQueryData(queryKey);
@@ -43,7 +43,7 @@ export function usePagePrefetch() {
         // Prefetch the page content
         await queryClient.prefetchQuery({
             queryKey,
-            queryFn: () => PageApi.getPageContent(keyword, currentLanguageId),
+            queryFn: () => PageApi.getPageContent(pageId, currentLanguageId),
             staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
             gcTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.gcTime,
         });
@@ -53,12 +53,12 @@ export function usePagePrefetch() {
      * Prefetches multiple pages at once.
      * Useful for prefetching all navigation pages on app load.
      * 
-     * @param {string[]} keywords - Array of page keywords to prefetch
+     * @param {number[]} pageIds - Array of page IDs to prefetch
      */
-    const prefetchPages = useCallback(async (keywords: string[]) => {
+    const prefetchPages = useCallback(async (pageIds: number[]) => {
         if (!currentLanguageId) return;
         
-        const prefetchPromises = keywords.map(keyword => prefetchPage(keyword));
+        const prefetchPromises = pageIds.map(pageId => prefetchPage(pageId));
         await Promise.all(prefetchPromises);
     }, [prefetchPage, currentLanguageId]);
     
@@ -66,11 +66,11 @@ export function usePagePrefetch() {
      * Creates a hover handler that prefetches page content.
      * This can be attached to navigation links to enable instant navigation.
      * 
-     * @param {string} keyword - The page keyword to prefetch on hover
+     * @param {number} pageId - The page ID to prefetch on hover
      * @returns {Function} Hover event handler
      */
-    const createHoverPrefetch = useCallback((keyword: string) => {
-        return () => prefetchPage(keyword);
+    const createHoverPrefetch = useCallback((pageId: number) => {
+        return () => prefetchPage(pageId);
     }, [prefetchPage]);
     
     return {

@@ -24,15 +24,15 @@ export function useNavigationPrefetch() {
     // Prefetch all navigation pages when navigation data becomes available
     useEffect(() => {
         if (!isLoading && (menuPages.length > 0 || footerPages.length > 0)) {
-            const allNavigationKeywords = [
-                ...menuPages.map(page => page.keyword),
-                ...menuPages.flatMap(page => page.children?.map(child => child.keyword) || []),
-                ...footerPages.map(page => page.keyword),
+            const allNavigationPageIds = [
+                ...menuPages.map(page => page.id_pages),
+                ...menuPages.flatMap(page => page.children?.map(child => child.id_pages) || []),
+                ...footerPages.map(page => page.id_pages),
             ].filter(Boolean); // Remove any undefined values
             
-            if (allNavigationKeywords.length > 0) {
+            if (allNavigationPageIds.length > 0) {
                 // Prefetch all navigation pages in the background
-                prefetchPages(allNavigationKeywords);
+                prefetchPages(allNavigationPageIds);
             }
         }
     }, [menuPages, footerPages, isLoading, prefetchPages]);

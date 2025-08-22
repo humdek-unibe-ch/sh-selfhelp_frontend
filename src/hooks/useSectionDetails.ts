@@ -7,34 +7,34 @@ import { ISectionDetailsData } from '../types/responses/admin/admin.types';
 const SECTION_DETAILS_QUERY_KEYS = {
   all: ['section-details'] as const,
   details: () => [...SECTION_DETAILS_QUERY_KEYS.all, 'detail'] as const,
-  detail: (keyword: string, sectionId: number) => [...SECTION_DETAILS_QUERY_KEYS.details(), keyword, sectionId] as const,
+  detail: (pageId: number, sectionId: number) => [...SECTION_DETAILS_QUERY_KEYS.details(), pageId, sectionId] as const,
 };
 
 /**
  * Hook for fetching section details by section ID
- * @param keyword - The page keyword
+ * @param pageId - The page ID
  * @param sectionId - The section ID to fetch details for
  * @param enabled - Whether the query should be enabled
  * @returns React Query result with section details
  */
-export function useSectionDetails(keyword: string | null, sectionId: number | null, enabled: boolean = true) {
-    const queryKey = ['admin', 'sections', 'details', keyword, sectionId];
+export function useSectionDetails(pageId: number | null, sectionId: number | null, enabled: boolean = true) {
+    const queryKey = ['admin', 'sections', 'details', pageId, sectionId];
     
     // More explicit enabled condition
-    const isEnabled = enabled && keyword !== null && keyword !== undefined && keyword !== '' && 
+    const isEnabled = enabled && pageId !== null && pageId !== undefined && pageId > 0 && 
                      sectionId !== null && sectionId !== undefined && !isNaN(sectionId);    
 
     return useQuery<ISectionDetailsData>({
-        queryKey: keyword && sectionId ? SECTION_DETAILS_QUERY_KEYS.detail(keyword, sectionId) : ['section-details', 'disabled'],
+        queryKey: pageId && sectionId ? SECTION_DETAILS_QUERY_KEYS.detail(pageId, sectionId) : ['section-details', 'disabled'],
         queryFn: async () => {
             
-            if (!keyword || !sectionId) {
-                const error = `Missing required parameters: keyword=${keyword}, sectionId=${sectionId}`;
+            if (!pageId || !sectionId) {
+                const error = `Missing required parameters: pageId=${pageId}, sectionId=${sectionId}`;
                 throw new Error(error);
             }
             
             try {
-                const result = await AdminSectionApi.getSectionDetails(keyword, sectionId);
+                const result = await AdminSectionApi.getSectionDetails(pageId, sectionId);
                 return result;
             } catch (error) {
                 throw error;

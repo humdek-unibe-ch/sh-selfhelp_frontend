@@ -13,14 +13,14 @@ import { AdminApi } from '../../../api/admin.api';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IRemoveSectionFromSectionMutationOptions {
-    onSuccess?: (data: any, variables: { keyword: string; parentSectionId: number; childSectionId: number }) => void;
-    onError?: (error: any, variables: { keyword: string; parentSectionId: number; childSectionId: number }) => void;
+    onSuccess?: (data: any, variables: { pageId: number; parentSectionId: number; childSectionId: number }) => void;
+    onError?: (error: any, variables: { pageId: number; parentSectionId: number; childSectionId: number }) => void;
     showNotifications?: boolean;
-    pageKeyword?: string; // Optional page keyword for cache invalidation
+    pageId?: number; // Optional page ID for cache invalidation
 }
 
 interface IRemoveSectionFromSectionVariables {
-    keyword: string;
+    pageId: number;
     parentSectionId: number;
     childSectionId: number;
 }
@@ -32,11 +32,11 @@ interface IRemoveSectionFromSectionVariables {
  */
 export function useRemoveSectionFromSectionMutation(options: IRemoveSectionFromSectionMutationOptions = {}) {
     const queryClient = useQueryClient();
-    const { onSuccess, onError, showNotifications = true, pageKeyword } = options;
+    const { onSuccess, onError, showNotifications = true, pageId: cachePageId } = options;
 
     return useMutation({
-        mutationFn: ({ keyword, parentSectionId, childSectionId }: IRemoveSectionFromSectionVariables) => 
-            AdminApi.removeSectionFromSection(keyword, parentSectionId, childSectionId),
+        mutationFn: ({ pageId, parentSectionId, childSectionId }: IRemoveSectionFromSectionVariables) => 
+            AdminApi.removeSectionFromSection(pageId, parentSectionId, childSectionId),
         
         onSuccess: async (result: any, variables: IRemoveSectionFromSectionVariables) => {
             
@@ -45,11 +45,11 @@ export function useRemoveSectionFromSectionMutation(options: IRemoveSectionFromS
                 queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
             ];
             
-            // If pageKeyword is provided, also invalidate page-specific queries
-            if (pageKeyword) {
+            // If pageId is provided, also invalidate page-specific queries
+            if (cachePageId) {
                 invalidationPromises.push(
-                    queryClient.invalidateQueries({ queryKey: ['pageSections', pageKeyword] }),
-                    queryClient.invalidateQueries({ queryKey: ['pageFields', pageKeyword] })
+                    queryClient.invalidateQueries({ queryKey: ['pageSections', cachePageId] }),
+                    queryClient.invalidateQueries({ queryKey: ['pageFields', cachePageId] })
                 );
             }
             

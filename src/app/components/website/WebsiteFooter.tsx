@@ -44,7 +44,7 @@ export function WebsiteFooter() {
                                 key={page.id_pages}
                                 href={page.url}
                                 className="text-sm font-medium hover:text-blue-600 transition-colors"
-                                onMouseEnter={createHoverPrefetch(page.keyword)}
+                                onMouseEnter={createHoverPrefetch(page.id_pages)}
                             >
                                 {getPageTitle(page)}
                             </InternalLink>

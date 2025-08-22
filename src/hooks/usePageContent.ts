@@ -16,12 +16,12 @@ import type { IPageContent } from '../types/responses/frontend/frontend.types';
 
 /**
  * Hook for fetching and managing page content.
- * @param {string} keyword - The unique identifier for the page content
+ * @param {number | null} pageId - The unique identifier for the page content
  * @param {boolean} [enabled=true] - Whether to enable the query
  * @throws {Error} When used outside of PageContentProvider
  * @returns {Object} Object containing page content data and query state
  */
-export function usePageContent(keyword: string, enabled: boolean = true) {
+export function usePageContent(pageId: number | null, enabled: boolean = true) {
     const { setPageContent } = usePageContentContext();
     const { currentLanguageId } = useLanguageContext();
     const lastDataRef = useRef<any>(null);
@@ -35,9 +35,9 @@ export function usePageContent(keyword: string, enabled: boolean = true) {
         error,
         isPlaceholderData
     } = useQuery<IPageContent>({
-        queryKey: ['page-content', keyword, currentLanguageId],
-        queryFn: () => PageApi.getPageContent(keyword, currentLanguageId),
-        enabled: !!keyword && !!currentLanguageId && enabled,
+        queryKey: ['page-content', pageId, currentLanguageId],
+        queryFn: () => PageApi.getPageContent(pageId!, currentLanguageId),
+        enabled: !!pageId && !!currentLanguageId && enabled,
         staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
         gcTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.gcTime, // Longer cache time for better navigation
         retry: 2,

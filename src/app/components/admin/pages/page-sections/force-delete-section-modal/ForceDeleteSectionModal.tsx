@@ -17,7 +17,7 @@ import { useForceDeleteSectionMutation } from '../../../../../../hooks/useSectio
 
 interface IForceDeleteSectionModalProps {
     section: { id: number; name: string } | null;
-    pageKeyword: string;
+    pageId: number;
     opened: boolean;
     onClose: () => void;
     onDeleted: () => void;
@@ -25,7 +25,7 @@ interface IForceDeleteSectionModalProps {
 
 export function ForceDeleteSectionModal({ 
     section, 
-    pageKeyword,
+    pageId,
     opened, 
     onClose, 
     onDeleted 
@@ -41,7 +41,7 @@ export function ForceDeleteSectionModal({
 
     const handleDelete = () => {
         if (!section) return;
-        deleteMutation.mutate({ pageKeyword, sectionId: section.id }, {
+        deleteMutation.mutate({ pageId, sectionId: section.id }, {
             onSuccess: () => {
                 handleClose();
                 onDeleted();
@@ -94,7 +94,7 @@ export function ForceDeleteSectionModal({
                         </Group>
                         <Group justify="space-between">
                             <Text fw={500}>Page:</Text>
-                            <Badge variant="light" color="blue">{pageKeyword}</Badge>
+                            <Badge variant="light" color="blue">{pageId}</Badge>
                         </Group>
                     </Stack>
                 </Card>

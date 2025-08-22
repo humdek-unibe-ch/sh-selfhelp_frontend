@@ -32,13 +32,20 @@ const DynamicPageContentOptimized = React.memo(function DynamicPageContentOptimi
     const { currentLanguageId, isUpdatingLanguage } = useLanguageContext();
     const { refreshOnPageChange } = useNavigationRefresh();
     
-    const { content: queryContent, isLoading: pageLoading, isFetching: pageFetching, isPlaceholderData } = usePageContent(keyword);
+    const { routes, isLoading: navLoading, isFetching: navFetching } = useAppNavigation();
+    
+    // Convert keyword to pageId using navigation data
+    const pageId = useMemo(() => {
+        if (!keyword || routes.length === 0) return null;
+        const page = routes.find(p => p.keyword === keyword);
+        return page?.id_pages || null;
+    }, [keyword, routes]);
+    
+    const { content: queryContent, isLoading: pageLoading, isFetching: pageFetching, isPlaceholderData } = usePageContent(pageId);
     const { pageContent: contextContent, clearPageContent, setPageContent } = usePageContentContext();
     
     // Use React Query data as primary source, context as fallback for immediate display
     const pageContent = queryContent || contextContent;
-
-    const { routes, isLoading: navLoading, isFetching: navFetching } = useAppNavigation();
     
     // Refresh navigation when page changes (but don't clear content immediately)
     useEffect(() => {

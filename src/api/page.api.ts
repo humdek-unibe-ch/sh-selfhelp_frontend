@@ -13,14 +13,14 @@ import { IBaseApiResponse } from '../types/responses/common/response-envelope.ty
 
 export const PageApi = {
     /**
-     * Fetches page content for a specific keyword.
-     * @param {string} keyword - The page identifier
+     * Fetches page content for a specific page ID.
+     * @param {number} pageId - The page identifier
      * @param {number} [languageId] - The language ID for localized content
      * @returns {Promise<IPageContent>} Page content data
      * @throws {Error} When API request fails
      */
-    async getPageContent(keyword: string, languageId?: number): Promise<IPageContent> {
-        let url = API_CONFIG.ENDPOINTS.PAGES_GET_ONE(keyword);
+    async getPageContent(pageId: number, languageId?: number): Promise<IPageContent> {
+        let url = API_CONFIG.ENDPOINTS.PAGES_GET_ONE(pageId);
         
         // Add language parameter if provided
         if (languageId) {
@@ -42,15 +42,15 @@ export const PageApi = {
     },
 
     /**
-     * Updates page content for a specific keyword.
-     * @param {string} keyword - The page identifier
+     * Updates page content for a specific page ID.
+     * @param {number} pageId - The page identifier
      * @param {any} content - The new content to update
      * @returns {Promise<IBaseApiResponse<any>>} API response with updated data
      * @throws {Error} When update fails
      */
-    async updatePageContent(keyword: string, content: any): Promise<IBaseApiResponse<any>> {
+    async updatePageContent(pageId: number, content: any): Promise<IBaseApiResponse<any>> {
         try {
-            const response = await apiClient.put<IBaseApiResponse<any>>(API_CONFIG.ENDPOINTS.PAGES_GET_ONE(keyword), content);
+            const response = await apiClient.put<IBaseApiResponse<any>>(API_CONFIG.ENDPOINTS.PAGES_GET_ONE(pageId), content);
             return response.data;
         } catch (error: any) {
             if (error.response?.data) {

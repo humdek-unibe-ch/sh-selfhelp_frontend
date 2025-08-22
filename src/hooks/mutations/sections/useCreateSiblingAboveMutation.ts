@@ -8,7 +8,7 @@ import { ICreateSectionInPageData, ICreateSectionInSectionData } from '../../../
 interface ICreateSiblingAboveParams {
     referenceSectionId: number;
     parentId: number | null;
-    pageKeyword?: string;
+    pageId?: number;
     sectionData: ICreateSectionInPageData | ICreateSectionInSectionData; // Both have same structure
 }
 
@@ -16,7 +16,7 @@ export function useCreateSiblingAboveMutation() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ referenceSectionId, parentId, pageKeyword, sectionData }: ICreateSiblingAboveParams) => {
+        mutationFn: async ({ referenceSectionId, parentId, pageId, sectionData }: ICreateSiblingAboveParams) => {
 
             // Calculate position: reference position - 1
             // TODO: Get reference section position from cache or API
@@ -29,15 +29,15 @@ export function useCreateSiblingAboveMutation() {
 
             if (parentId !== null) {
                 // Create sibling in parent section
-                if (!pageKeyword) {
-                    throw new Error('Page keyword is required for section operations');
+                if (!pageId) {
+                    throw new Error('Page ID is required for section operations');
                 }
-                return AdminApi.createSectionInSection(pageKeyword, parentId, finalSectionData);
-            } else if (pageKeyword) {
+                return AdminApi.createSectionInSection(pageId, parentId, finalSectionData);
+            } else if (pageId) {
                 // Create sibling in page
-                return AdminApi.createSectionInPage(pageKeyword, finalSectionData);
+                return AdminApi.createSectionInPage(pageId, finalSectionData);
             } else {
-                throw new Error('Either parentId or pageKeyword must be provided');
+                throw new Error('Either parentId or pageId must be provided');
             }
         },
         onSuccess: (data, variables) => {
@@ -49,9 +49,9 @@ export function useCreateSiblingAboveMutation() {
                 });
             }
             
-            if (variables.pageKeyword) {
+            if (variables.pageId) {
                 queryClient.invalidateQueries({ 
-                    queryKey: ['admin', 'pages', variables.pageKeyword, 'sections'] 
+                    queryKey: ['admin', 'pages', variables.pageId, 'sections'] 
                 });
             }
 

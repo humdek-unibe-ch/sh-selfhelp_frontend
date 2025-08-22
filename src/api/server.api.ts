@@ -156,29 +156,29 @@ export const ServerApi = {
     /**
      * Fetch page content on server side
      */
-    async getPageContent(keyword: string, languageId: number): Promise<IPageContent | null> {
-        // Don't fetch if keyword is empty
-        if (!keyword || keyword.trim() === '') {
+    async getPageContent(pageId: number, languageId: number): Promise<IPageContent | null> {
+        // Don't fetch if pageId is invalid
+        if (!pageId || pageId <= 0) {
             return null;
         }
         
-        const response = await serverApi.get<{ page: IPageContent }>(API_CONFIG.ENDPOINTS.PAGES_GET_ONE_WITH_LANGUAGE(keyword, languageId));
+        const response = await serverApi.get<{ page: IPageContent }>(API_CONFIG.ENDPOINTS.PAGES_GET_ONE_WITH_LANGUAGE(pageId, languageId));
         return response?.page || null;
     },
 
     /**
      * Fetch admin page details on server side
      */
-    async getAdminPageDetails(keyword: string): Promise<any | null> {
+    async getAdminPageDetails(pageId: number): Promise<any | null> {
         const isAuth = await serverApi.isAuthenticated();
         const isAdmin = await serverApi.isAdminRequest();
         if (!isAuth || !isAdmin) return null;
         
-        if (!keyword || keyword.trim() === '') {
+        if (!pageId || pageId <= 0) {
             return null;
         }
         
-        return await serverApi.get<any>(API_CONFIG.ENDPOINTS.ADMIN_PAGES_GET_ONE(keyword));
+        return await serverApi.get<any>(API_CONFIG.ENDPOINTS.ADMIN_PAGES_GET_ONE(pageId));
     },
 
     /**

@@ -71,7 +71,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
         isLoading: fieldsLoading,
         error: fieldsError,
         refetch: refetchPageFields
-    } = usePageFields(page.keyword, true);
+    } = usePageFields(page.id_pages, true);
 
     // Fetch available languages
     const { languages, isLoading: languagesLoading } = useLanguages();
@@ -214,7 +214,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
         });
 
         updatePageMutation.mutate({
-            keyword: page.keyword,
+            pageId: page.id_pages,
             updateData: backendPayload
         });
     };

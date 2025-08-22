@@ -39,7 +39,7 @@ function MenuItem({ item }: IMenuItemProps) {
                     {item.children?.map(child => (
                         <Menu.Item 
                             key={child.id_pages}
-                            onMouseEnter={createHoverPrefetch(child.keyword)}
+                            onMouseEnter={createHoverPrefetch(child.id_pages)}
                         >
                             <InternalLink href={child.url}>
                                 <Text size="sm">{getPageTitle(child)}</Text>
@@ -53,7 +53,7 @@ function MenuItem({ item }: IMenuItemProps) {
 
     return (
         <InternalLink key={item.id_pages} href={item.url}>
-            <UnstyledButton onMouseEnter={createHoverPrefetch(item.keyword)}>
+            <UnstyledButton onMouseEnter={createHoverPrefetch(item.id_pages)}>
                 <Text size="sm" fw={500}>{pageTitle}</Text>
             </UnstyledButton>
         </InternalLink>

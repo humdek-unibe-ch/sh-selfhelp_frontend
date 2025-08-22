@@ -24,7 +24,7 @@ interface ICreateSectionInPageData {
 }
 
 interface ICreateSectionInPageVariables {
-    keyword: string;
+    pageId: number;
     sectionData: ICreateSectionInPageData;
 }
 
@@ -38,15 +38,15 @@ export function useCreateSectionInPageMutation(options: ICreateSectionInPageMuta
     const { onSuccess, onError, showNotifications = true } = options;
 
     return useMutation({
-        mutationFn: ({ keyword, sectionData }: ICreateSectionInPageVariables) => 
-            AdminApi.createSectionInPage(keyword, sectionData),
+        mutationFn: ({ pageId, sectionData }: ICreateSectionInPageVariables) => 
+            AdminApi.createSectionInPage(pageId, sectionData),
         
         onSuccess: async (createdSection: any, variables: ICreateSectionInPageVariables) => {
             
             // Invalidate relevant queries to update the UI with consistent query keys
             await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['pageSections', variables.keyword] }),
-                queryClient.invalidateQueries({ queryKey: ['pageFields', variables.keyword] }),
+                queryClient.invalidateQueries({ queryKey: ['pageSections', variables.pageId] }),
+                queryClient.invalidateQueries({ queryKey: ['pageFields', variables.pageId] }),
                 queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
                 // Frontend navigation pages
                 queryClient.invalidateQueries({ queryKey: ['pages'] }),
@@ -57,7 +57,7 @@ export function useCreateSectionInPageMutation(options: ICreateSectionInPageMuta
             if (showNotifications) {
                 notifications.show({
                     title: 'Section Created Successfully',
-                    message: `Section was created in page "${variables.keyword}" successfully!`,
+                    message: `Section was created in page "${variables.pageId}" successfully!`,
                     icon: React.createElement(IconCheck, { size: '1rem' }),
                     color: 'green',
                     autoClose: 5000,
@@ -77,7 +77,7 @@ export function useCreateSectionInPageMutation(options: ICreateSectionInPageMuta
             if (showNotifications) {
                 notifications.show({
                     title: errorTitle || 'Create Section Failed',
-                    message: errorMessage || `Failed to create section in page "${variables.keyword}". Please try again.`,
+                    message: errorMessage || `Failed to create section in page "${variables.pageId}". Please try again.`,
                     icon: React.createElement(IconX, { size: '1rem' }),
                     color: 'red',
                     autoClose: 8000,

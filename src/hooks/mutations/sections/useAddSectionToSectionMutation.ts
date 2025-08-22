@@ -13,10 +13,10 @@ import { AdminApi } from '../../../api/admin.api';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IAddSectionToSectionMutationOptions {
-    onSuccess?: (data: any, variables: { keyword: string; parentSectionId: number; sectionId: number; sectionData: IAddSectionToSectionData }) => void;
-    onError?: (error: any, variables: { keyword: string; parentSectionId: number; sectionId: number; sectionData: IAddSectionToSectionData }) => void;
+    onSuccess?: (data: any, variables: { pageId: number; parentSectionId: number; sectionId: number; sectionData: IAddSectionToSectionData }) => void;
+    onError?: (error: any, variables: { pageId: number; parentSectionId: number; sectionId: number; sectionData: IAddSectionToSectionData }) => void;
     showNotifications?: boolean;
-    pageKeyword?: string; // Optional page keyword for cache invalidation
+    pageId?: number; // Optional page ID for cache invalidation
 }
 
 interface IAddSectionToSectionData {
@@ -24,7 +24,7 @@ interface IAddSectionToSectionData {
 }
 
 interface IAddSectionToSectionVariables {
-    keyword: string;
+    pageId: number;
     parentSectionId: number;
     sectionId: number;
     sectionData: IAddSectionToSectionData;
@@ -37,11 +37,11 @@ interface IAddSectionToSectionVariables {
  */
 export function useAddSectionToSectionMutation(options: IAddSectionToSectionMutationOptions = {}) {
     const queryClient = useQueryClient();
-    const { onSuccess, onError, showNotifications = true, pageKeyword } = options;
+    const { onSuccess, onError, showNotifications = true, pageId: cachePageId } = options;
 
     return useMutation({
-        mutationFn: ({ keyword, parentSectionId, sectionId, sectionData }: IAddSectionToSectionVariables) => 
-            AdminApi.addSectionToSection(keyword, parentSectionId, sectionId, sectionData),
+        mutationFn: ({ pageId, parentSectionId, sectionId, sectionData }: IAddSectionToSectionVariables) => 
+            AdminApi.addSectionToSection(pageId, parentSectionId, sectionId, sectionData),
         
         onSuccess: async (createdSection: any, variables: IAddSectionToSectionVariables) => {
             
@@ -50,11 +50,11 @@ export function useAddSectionToSectionMutation(options: IAddSectionToSectionMuta
                 queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
             ];
             
-            // If pageKeyword is provided, also invalidate page-specific queries
-            if (pageKeyword) {
+            // If pageId is provided, also invalidate page-specific queries
+            if (cachePageId) {
                 invalidationPromises.push(
-                    queryClient.invalidateQueries({ queryKey: ['pageSections', pageKeyword] }),
-                    queryClient.invalidateQueries({ queryKey: ['pageFields', pageKeyword] })
+                    queryClient.invalidateQueries({ queryKey: ['pageSections', cachePageId] }),
+                    queryClient.invalidateQueries({ queryKey: ['pageFields', cachePageId] })
                 );
             }
             

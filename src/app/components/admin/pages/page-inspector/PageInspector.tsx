@@ -106,7 +106,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
         data: pageFieldsData, 
         isLoading: fieldsLoading, 
         error: fieldsError 
-    } = usePageFields(page?.keyword || null, !!page);
+    } = usePageFields(page?.id_pages || null, !!page);
 
     // Fetch page access types
     const pageAccessTypes = useLookupsByType(PAGE_ACCESS_TYPES);
@@ -133,22 +133,22 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
 
     // Update page mutation
     const updatePageMutation = useUpdatePageMutation({
-        onSuccess: (updatedPage, keyword) => {
+        onSuccess: (updatedPage, pageId) => {
             
             // Invalidate relevant queries to refresh data - using consistent query keys
             queryClient.invalidateQueries({ queryKey: ['adminPages'] }); // Admin pages list
-            queryClient.invalidateQueries({ queryKey: ['pageFields', keyword] }); // Page fields
-            queryClient.invalidateQueries({ queryKey: ['pageSections', keyword] }); // Page sections
+            queryClient.invalidateQueries({ queryKey: ['pageFields', pageId] }); // Page fields
+            queryClient.invalidateQueries({ queryKey: ['pageSections', pageId] }); // Page sections
             queryClient.invalidateQueries({ queryKey: ['pages'] }); // Frontend pages
             queryClient.invalidateQueries({ queryKey: ['page-content'] }); // Frontend page content
             queryClient.invalidateQueries({ queryKey: ['frontend-pages'] }); // Frontend pages with language
             
             // Also invalidate any admin-specific queries that might exist
             queryClient.invalidateQueries({ queryKey: ['admin', 'pages'] });
-            queryClient.invalidateQueries({ queryKey: ['admin', 'page', keyword] });
-            queryClient.invalidateQueries({ queryKey: ['admin', 'page-fields', keyword] });
+            queryClient.invalidateQueries({ queryKey: ['admin', 'page', pageId] });
+            queryClient.invalidateQueries({ queryKey: ['admin', 'page-fields', pageId] });
         },
-        onError: (error, keyword) => {
+        onError: (error, pageId) => {
             // Error is already handled by the mutation hook with notifications
         }
     });
@@ -256,7 +256,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
         };
 
         updatePageMutation.mutate({
-            keyword: page?.keyword || '',
+            pageId: page?.id_pages || 0,
             updateData
         });
     };
@@ -271,7 +271,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
 
     const handleDeletePage = () => {
         if (deleteConfirmText === page?.keyword && page?.keyword) {
-            deletePageMutation.mutate(page.keyword);
+            deletePageMutation.mutate(page.id_pages);
         }
     };
 
@@ -279,7 +279,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
         if (!page) return;
         
         try {
-            const response = await exportPageSections(page.keyword);
+            const response = await exportPageSections(page.id_pages);
             const filename = generateExportFilename(`page_${page.keyword}`);
             downloadJsonFile(response.data.sectionsData, filename);
         } catch (error) {

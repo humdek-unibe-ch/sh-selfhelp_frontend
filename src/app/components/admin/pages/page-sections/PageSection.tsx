@@ -20,7 +20,7 @@ interface IPageSectionProps {
     section: IPageField;
     level: number;
     parentId: number | null;
-    keyword: string;
+    pageId: number;
     expandedSections: Set<number>;
     onToggleExpand: (sectionId: number) => void;
     onRemoveSection: (sectionId: number, parentId: number | null) => void;
@@ -43,7 +43,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     section,
     level,
     parentId,
-    keyword,
+    pageId,
     expandedSections,
     onToggleExpand,
     onRemoveSection,

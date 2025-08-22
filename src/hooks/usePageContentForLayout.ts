@@ -14,11 +14,11 @@ import type { IPageContent } from '../types/responses/frontend/frontend.types';
 
 /**
  * Hook for fetching page content in layout components.
- * @param {string} keyword - The unique identifier for the page content
+ * @param {number | null} pageId - The unique identifier for the page content
  * @param {boolean} [enabled=true] - Whether to enable the query
  * @returns {Object} Object containing page content data and query state
  */
-export function usePageContentForLayout(keyword: string, enabled: boolean = true) {
+export function usePageContentForLayout(pageId: number | null, enabled: boolean = true) {
     const { currentLanguageId } = useLanguageContext();
     
     // Query configuration using React Query
@@ -30,9 +30,9 @@ export function usePageContentForLayout(keyword: string, enabled: boolean = true
         isSuccess,
         error 
     } = useQuery<IPageContent>({
-        queryKey: ['page-content-layout', keyword, currentLanguageId],
-        queryFn: () => PageApi.getPageContent(keyword, currentLanguageId),
-        enabled: !!keyword && !!currentLanguageId,
+        queryKey: ['page-content-layout', pageId, currentLanguageId],
+        queryFn: () => PageApi.getPageContent(pageId!, currentLanguageId),
+        enabled: !!pageId && !!currentLanguageId && enabled,
         staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
         retry: 2,

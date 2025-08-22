@@ -136,8 +136,8 @@ export function useForceDeleteSectionMutation() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ pageKeyword, sectionId }: { pageKeyword: string; sectionId: number }) => 
-            AdminSectionUtilityApi.forceDeleteSection(pageKeyword, sectionId),
+        mutationFn: ({ pageId, sectionId }: { pageId: number; sectionId: number }) => 
+            AdminSectionUtilityApi.forceDeleteSection(pageId, sectionId),
         onSuccess: (data, variables) => {
             notifications.show({
                 title: 'Success',
@@ -149,7 +149,7 @@ export function useForceDeleteSectionMutation() {
             queryClient.invalidateQueries({ queryKey: ['adminPages'] });
             queryClient.invalidateQueries({ queryKey: ['page-content'] });
             queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'unused'] });
-            queryClient.invalidateQueries({ queryKey: ['admin', 'pages', variables.pageKeyword, 'sections'] });
+            queryClient.invalidateQueries({ queryKey: ['admin', 'pages', variables.pageId, 'sections'] });
         },
         onError: (error: any) => {
 

@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { PageContentRenderer } from './PageContentRenderer';
 import { PageContentProvider, usePageContentContext } from '../../contexts/PageContentContext';
 import { usePageContent } from '../../../hooks/usePageContent';
 import { useLanguageContext } from '../../contexts/LanguageContext';
+import { useAppNavigation } from '../../../hooks/useAppNavigation';
 import { IPageContent } from '../../../types/responses/frontend/frontend.types';
 import { TStyle } from '../../../types/common/styles.types';
 
@@ -17,9 +18,17 @@ interface IPageContentRendererClientProps {
 function PageContentRendererInner({ sections, initialPageContent, keyword }: IPageContentRendererClientProps) {
     const { setPageContent } = usePageContentContext();
     const { currentLanguageId, isUpdatingLanguage } = useLanguageContext();
+    const { routes } = useAppNavigation();
+    
+    // Convert keyword to pageId using navigation data
+    const pageId = useMemo(() => {
+        if (!keyword || routes.length === 0) return null;
+        const page = routes.find(p => p.keyword === keyword);
+        return page?.id_pages || null;
+    }, [keyword, routes]);
     
     // Use React Query hook with server-provided initial data
-    const { content: queryContent, isFetching } = usePageContent(keyword);
+    const { content: queryContent, isFetching } = usePageContent(pageId);
     
     // Use server-provided data initially, then switch to React Query data
     const pageContent = queryContent || initialPageContent;

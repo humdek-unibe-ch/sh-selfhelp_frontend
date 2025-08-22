@@ -43,7 +43,7 @@ import { calculateSiblingBelowPosition } from '../../../../../utils/position-cal
 import styles from './PageSections.module.css';
 
 interface IPageSectionsProps {
-    keyword: string | null;
+    pageId: number | null;
     pageName?: string;
     initialSelectedSectionId?: number | null;
 }
@@ -51,19 +51,19 @@ interface IPageSectionsProps {
 interface IMoveData {
     draggedSectionId: number;
     newParentId: number | null;
-    pageKeyword?: string;
+    pageId?: number;
     newPosition: number;
     draggedSection: IPageField;
     newParent: IPageField | null;
     descendantIds: number[];
     totalMovingItems: number;
     // Old parent tracking for backend
-    oldParentPageId: string | null; // Page keyword if section was at page level
+    oldParentPageId: number | null; // Page ID if section was at page level
     oldParentSectionId: number | null; // Section ID if section was inside another section
 }
 
-export function PageSections({ keyword, pageName, initialSelectedSectionId }: IPageSectionsProps) {
-    const { data, isLoading, error } = usePageSections(keyword);
+export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSectionsProps) {
+    const { data, isLoading, error } = usePageSections(pageId);
     const router = useRouter();
     
     const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
@@ -85,7 +85,7 @@ export function PageSections({ keyword, pageName, initialSelectedSectionId }: IP
 
     const addSectionToSectionMutation = useAddSectionToSectionMutation({
         showNotifications: true,
-        pageKeyword: keyword || undefined
+        pageId: pageId || undefined
     });
 
     const removeSectionFromPageMutation = useRemoveSectionFromPageMutation({
@@ -94,7 +94,7 @@ export function PageSections({ keyword, pageName, initialSelectedSectionId }: IP
 
     const removeSectionFromSectionMutation = useRemoveSectionFromSectionMutation({
         showNotifications: true,
-        pageKeyword: keyword || undefined
+        pageId: pageId || undefined
     });
 
     // Search functionality
@@ -337,7 +337,7 @@ export function PageSections({ keyword, pageName, initialSelectedSectionId }: IP
     const handleSectionMove = async (moveData: IMoveData) => {
         
         try {
-            const { draggedSectionId, newParentId, newPosition, pageKeyword, oldParentPageId, oldParentSectionId } = moveData;
+            const { draggedSectionId, newParentId, newPosition, pageId, oldParentPageId, oldParentSectionId } = moveData;
             
             // Prepare section data with new position and old parent information
             const sectionData = {
@@ -348,22 +348,22 @@ export function PageSections({ keyword, pageName, initialSelectedSectionId }: IP
 
             if (newParentId === null) {
                 // Moving to page level - use page mutation
-                if (!pageKeyword) {
-                    throw new Error('Page keyword is required for page-level moves');
+                if (!pageId) {
+                    throw new Error('Page ID is required for page-level moves');
                 }
                 
                 await addSectionToPageMutation.mutateAsync({
-                    keyword: pageKeyword,
+                    pageId: pageId,
                     sectionId: draggedSectionId,
                     sectionData: sectionData
                 });
             } else {
                 // Moving to another section - use section mutation
-                if (!keyword) {
-                    throw new Error('Page keyword is required for section operations');
+                if (!pageId) {
+                    throw new Error('Page ID is required for section operations');
                 }
                 await addSectionToSectionMutation.mutateAsync({
-                    keyword,
+                    pageId,
                     parentSectionId: newParentId,
                     sectionId: draggedSectionId,
                     sectionData: sectionData
@@ -384,21 +384,21 @@ export function PageSections({ keyword, pageName, initialSelectedSectionId }: IP
         try {
             if (parentId === null) {
                 // Remove from page
-                if (!keyword) {
-                    throw new Error('Page keyword is required for removing sections from page');
+                if (!pageId) {
+                    throw new Error('Page ID is required for removing sections from page');
                 }
                 
                 await removeSectionFromPageMutation.mutateAsync({
-                    keyword,
+                    pageId,
                     sectionId
                 });
             } else {
                 // Remove from parent section
-                if (!keyword) {
-                    throw new Error('Page keyword is required for section operations');
+                if (!pageId) {
+                    throw new Error('Page ID is required for section operations');
                 }
                 await removeSectionFromSectionMutation.mutateAsync({
-                    keyword,
+                    pageId,
                     parentSectionId: parentId,
                     childSectionId: sectionId
                 });
@@ -567,7 +567,7 @@ export function PageSections({ keyword, pageName, initialSelectedSectionId }: IP
                 <AddSectionModal
                     opened={addSectionModalOpened}
                     onClose={handleCloseAddSectionModal}
-                    pageKeyword={keyword || undefined}
+                    pageId={pageId || undefined}
                     parentSectionId={selectedParentSectionId}
                     title={selectedParentSectionId ? "Add Child Section" : "Add Section to Page"}
                     specificPosition={specificPosition}
@@ -707,7 +707,7 @@ export function PageSections({ keyword, pageName, initialSelectedSectionId }: IP
                 onSectionSelect={handleSectionSelect}
                 selectedSectionId={selectedSectionId}
                 focusedSectionId={focusedSectionId}
-                pageKeyword={keyword || undefined}
+                pageId={pageId || undefined}
                 isProcessing={isProcessingMove || isProcessingRemove}
             />
 
@@ -715,7 +715,7 @@ export function PageSections({ keyword, pageName, initialSelectedSectionId }: IP
             <AddSectionModal
                 opened={addSectionModalOpened}
                 onClose={handleCloseAddSectionModal}
-                pageKeyword={keyword || undefined}
+                pageId={pageId || undefined}
                 parentSectionId={selectedParentSectionId}
                 title={selectedParentSectionId ? "Add Child Section" : "Add Section to Page"}
                 specificPosition={specificPosition}

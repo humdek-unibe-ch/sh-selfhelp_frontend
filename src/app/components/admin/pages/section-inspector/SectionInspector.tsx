@@ -47,7 +47,7 @@ import {
 } from '../../../../../utils/field-processing.utils';
 
 interface ISectionInspectorProps {
-    keyword: string | null;
+    pageId: number | null;
     sectionId: number | null;
 }
 
@@ -82,7 +82,7 @@ interface ISectionSubmitData {
     }>;
 }
 
-export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps) {
+export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) {
     const router = useRouter();
     const queryClient = useQueryClient();
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
@@ -107,7 +107,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
         error: sectionError,
         isFetching,
         isStale
-    } = useSectionDetails(keyword, sectionId, !!keyword && !!sectionId);
+    } = useSectionDetails(pageId, sectionId, !!pageId && !!sectionId);
 
     // Fetch available languages
     const { languages, isLoading: languagesLoading } = useLanguages();
@@ -115,27 +115,27 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
     // Section update mutation
     const updateSectionMutation = useUpdateSectionMutation({
         showNotifications: true,
-        pageKeyword: keyword || undefined,
+        pageId: pageId || undefined,
         onSuccess: () => {
             // Update original values after successful save
             setOriginalValues({ ...formValues });
 
             
             // Invalidate relevant queries to refresh data - using consistent query keys
-            if (keyword) {
+            if (pageId) {
                 queryClient.invalidateQueries({ queryKey: ['adminPages'] }); // Admin pages list
-                queryClient.invalidateQueries({ queryKey: ['pageFields', keyword] }); // Page fields
-                queryClient.invalidateQueries({ queryKey: ['pageSections', keyword] }); // Page sections
-                queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'details', keyword, sectionId] }); // Section details (correct key)
+                queryClient.invalidateQueries({ queryKey: ['pageFields', pageId] }); // Page fields
+                queryClient.invalidateQueries({ queryKey: ['pageSections', pageId] }); // Page sections
+                queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'details', pageId, sectionId] }); // Section details (correct key)
                 queryClient.invalidateQueries({ queryKey: ['pages'] }); // Frontend pages
                 queryClient.invalidateQueries({ queryKey: ['page-content'] }); // Frontend page content
                 queryClient.invalidateQueries({ queryKey: ['frontend-pages'] }); // Frontend pages with language
                 
                 // Also invalidate any admin-specific queries that might exist
                 queryClient.invalidateQueries({ queryKey: ['admin', 'pages'] });
-                queryClient.invalidateQueries({ queryKey: ['admin', 'page', keyword] });
-                queryClient.invalidateQueries({ queryKey: ['admin', 'section', keyword, sectionId] });
-                queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'details', keyword, sectionId] });
+                queryClient.invalidateQueries({ queryKey: ['admin', 'page', pageId] });
+                queryClient.invalidateQueries({ queryKey: ['admin', 'section', pageId, sectionId] });
+                queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'details', pageId, sectionId] });
             }
         },
         onError: (error) => {
@@ -146,7 +146,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
     // Section delete mutation
     const deleteSectionMutation = useDeleteSectionMutation({
         showNotifications: true,
-        pageKeyword: keyword || undefined,
+        pageId: pageId || undefined,
         onSuccess: () => {
             setDeleteModalOpened(false);
             setDeleteConfirmText('');
@@ -253,7 +253,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
     }, [sectionDetailsData, languages]);
 
     const handleSave = async () => {
-        if (!sectionId || !sectionDetailsData || !languages.length || !keyword) return;
+        if (!sectionId || !sectionDetailsData || !languages.length || !pageId) return;
         
         // Validate section name if it has changed
         if (formValues.sectionName !== originalValues.sectionName) {
@@ -341,7 +341,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
         // Execute the mutation
         try {
             await updateSectionMutation.mutateAsync({
-                keyword,
+                pageId,
                 sectionId,
                 sectionData: submitData
             });
@@ -352,22 +352,22 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
     };
 
     const handleDeleteSection = () => {
-        if (!sectionId || !sectionDetailsData || !keyword) return;
+        if (!sectionId || !sectionDetailsData || !pageId) return;
         
         if (deleteConfirmText === sectionDetailsData.section.name) {
 
             deleteSectionMutation.mutate({
-                keyword,
+                pageId,
                 sectionId
             });
         }
     };
 
     const handleExportSection = async () => {
-        if (!sectionId || !sectionDetailsData || !keyword) return;
+        if (!sectionId || !sectionDetailsData || !pageId) return;
         
         try {
-            const response = await exportSection(keyword, sectionId);
+            const response = await exportSection(pageId, sectionId);
             const filename = generateExportFilename(`section_${sectionDetailsData.section.name}_${sectionId}`);
             downloadJsonFile(response.data.sectionsData, filename);
         } catch (error) {
@@ -424,7 +424,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
             >
                 <Box p="md">
                     <Text size="sm" c="dimmed">Debug Info:</Text>
-                    <Text size="xs" c="dimmed">Keyword: {keyword || 'null'}</Text>
+                    <Text size="xs" c="dimmed">Page ID: {pageId || 'null'}</Text>
                     <Text size="xs" c="dimmed">Section ID: {sectionId || 'null'}</Text>
                 </Box>
             </InspectorLayout>
@@ -451,7 +451,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
             >
                 <Box p="md">
                     <Text size="sm" c="dimmed">Debug Info:</Text>
-                    <Text size="xs" c="dimmed">Keyword: {keyword || 'null'}</Text>
+                    <Text size="xs" c="dimmed">Page ID: {pageId || 'null'}</Text>
                     <Text size="xs" c="dimmed">Section ID: {sectionId || 'null'}</Text>
                     <Text size="xs" c="dimmed">Error: {sectionError.message}</Text>
                     <Button 
@@ -459,7 +459,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
                         mt="sm" 
                         onClick={async () => {
                             try {
-                                await AdminApi.getSectionDetails(keyword!, sectionId!);
+                                await AdminApi.getSectionDetails(pageId!, sectionId!);
                             } catch (error) {
                                 // Error handled by API layer
                             }
@@ -480,7 +480,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
             >
                 <Box p="md">
                     <Text size="sm" c="dimmed">Debug Info:</Text>
-                    <Text size="xs" c="dimmed">Keyword: {keyword || 'null'}</Text>
+                    <Text size="xs" c="dimmed">Page ID: {pageId || 'null'}</Text>
                     <Text size="xs" c="dimmed">Section ID: {sectionId || 'null'}</Text>
                     <Text size="xs" c="dimmed">Loading: {sectionLoading.toString()}</Text>
                     <Text size="xs" c="dimmed">Fetching: {isFetching.toString()}</Text>
@@ -490,7 +490,7 @@ export function SectionInspector({ keyword, sectionId }: ISectionInspectorProps)
                         mt="sm" 
                         onClick={async () => {
                             try {
-                                await AdminApi.getSectionDetails(keyword!, sectionId!);
+                                await AdminApi.getSectionDetails(pageId!, sectionId!);
                             } catch (error) {
                                 // Error handled by API layer
                             }

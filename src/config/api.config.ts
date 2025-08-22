@@ -25,8 +25,8 @@ export const API_CONFIG = {
          * NOT a list of pages. Use ALL_ROUTES for a consistent list of navigation routes.
          */
         PAGES_GET_ALL: '/pages',
-        PAGES_GET_ALL_WITH_LANGUAGE: (languageId: number) => `/pages/${languageId}`,
-        PAGES_GET_ONE: (keyword: string) => `/pages/${keyword}`,
+        PAGES_GET_ALL_WITH_LANGUAGE: (languageId: number) => `/pages/language/${languageId}`,
+        PAGES_GET_ONE: (pageId: number) => `/pages/${pageId}`,
 
         // Public languages endpoint
         LANGUAGES: '/languages',
@@ -36,12 +36,12 @@ export const API_CONFIG = {
 
         // Admin pages endpoints
         ADMIN_PAGES_GET_ALL: '/admin/pages',
-        ADMIN_PAGES_GET_ALL_WITH_LANGUAGE: (languageId: number) => `/admin/pages/${languageId}`,
-        ADMIN_PAGES_GET_ONE: (keyword: string) => `/admin/pages/${keyword}`,
+        ADMIN_PAGES_GET_ALL_WITH_LANGUAGE: (languageId: number) => `/admin/pages/language/${languageId}`,
+        ADMIN_PAGES_GET_ONE: (pageId: number) => `/admin/pages/${pageId}`,
         ADMIN_PAGES_CREATE: '/admin/pages',
-        ADMIN_PAGES_UPDATE: (keyword: string) => `/admin/pages/${keyword}`,
-        ADMIN_PAGES_DELETE: (keyword: string) => `/admin/pages/${keyword}`,
-        ADMIN_PAGES_SECTIONS_GET: (keyword: string) => `/admin/pages/${keyword}/sections`,
+        ADMIN_PAGES_UPDATE: (pageId: number) => `/admin/pages/${pageId}`,
+        ADMIN_PAGES_DELETE: (pageId: number) => `/admin/pages/${pageId}`,
+        ADMIN_PAGES_SECTIONS_GET: (pageId: number) => `/admin/pages/${pageId}/sections`,
 
         // Admin languages endpoints
         ADMIN_LANGUAGES_GET_ALL: '/admin/languages',
@@ -137,7 +137,7 @@ export const API_CONFIG = {
         ADMIN_SECTIONS_REF_CONTAINERS_GET: '/admin/sections/ref-containers',
         ADMIN_SECTIONS_UNUSED_DELETE: (sectionId: number) => `/admin/sections/unused/${sectionId}`,
         ADMIN_SECTIONS_UNUSED_DELETE_ALL: '/admin/sections/unused',
-        ADMIN_SECTIONS_FORCE_DELETE: (pageKeyword: string, sectionId: number) => `/admin/pages/${pageKeyword}/sections/${sectionId}/force-delete`,
+        ADMIN_SECTIONS_FORCE_DELETE: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}/force-delete`,
 
         // Admin data management endpoints
         ADMIN_DATA_TABLES_LIST: '/admin/data/tables',
@@ -156,37 +156,37 @@ export const API_CONFIG = {
         FORMS_DELETE: '/forms/delete',
 
         // Admin section creation endpoints
-        ADMIN_PAGES_CREATE_SECTION: (keyword: string) => `/admin/pages/${keyword}/sections/create`,
-        ADMIN_SECTIONS_CREATE_CHILD: (keyword: string, parentSectionId: number) => `/admin/pages/${keyword}/sections/${parentSectionId}/sections/create`,
+        ADMIN_PAGES_CREATE_SECTION: (pageId: number) => `/admin/pages/${pageId}/sections/create`,
+        ADMIN_SECTIONS_CREATE_CHILD: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections/create`,
 
         // Admin section management endpoints
-        ADMIN_PAGES_ADD_SECTION: (keyword: string) => `/admin/pages/${keyword}/sections`,
-        ADMIN_PAGES_REMOVE_SECTION: (keyword: string, sectionId: number) => `/admin/pages/${keyword}/sections/${sectionId}`,
-        ADMIN_SECTIONS_ADD: (keyword: string, parentSectionId: number) => `/admin/pages/${keyword}/sections/${parentSectionId}/sections`,
-        ADMIN_SECTIONS_REMOVE: (keyword: string, parentSectionId: number, childSectionId: number) => `/admin/pages/${keyword}/sections/${parentSectionId}/sections/${childSectionId}`,
-        ADMIN_SECTIONS_UPDATE: (keyword: string, sectionId: number) => `/admin/pages/${keyword}/sections/${sectionId}`,
-        ADMIN_SECTIONS_GET_ONE: (keyword: string, sectionId: number) => `/admin/pages/${keyword}/sections/${sectionId}`,
-        ADMIN_SECTIONS_GET_CHILDREN: (keyword: string, parentSectionId: number) => `/admin/pages/${keyword}/sections/${parentSectionId}/sections`,
+        ADMIN_PAGES_ADD_SECTION: (pageId: number) => `/admin/pages/${pageId}/sections`,
+        ADMIN_PAGES_REMOVE_SECTION: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}`,
+        ADMIN_SECTIONS_ADD: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections`,
+        ADMIN_SECTIONS_REMOVE: (pageId: number, parentSectionId: number, childSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections/${childSectionId}`,
+        ADMIN_SECTIONS_UPDATE: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}`,
+        ADMIN_SECTIONS_GET_ONE: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}`,
+        ADMIN_SECTIONS_GET_CHILDREN: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections`,
 
         // Admin section export/import endpoints
-        ADMIN_SECTIONS_EXPORT_PAGE: (keyword: string) => `/admin/pages/${keyword}/sections/export`,
-        ADMIN_SECTIONS_EXPORT_SECTION: (keyword: string, sectionId: number) => `/admin/pages/${keyword}/sections/${sectionId}/export`,
-        ADMIN_SECTIONS_IMPORT_TO_PAGE: (keyword: string) => `/admin/pages/${keyword}/sections/import`,
-        ADMIN_SECTIONS_IMPORT_TO_SECTION: (keyword: string, parentSectionId: number) => `/admin/pages/${keyword}/sections/${parentSectionId}/import`,
+        ADMIN_SECTIONS_EXPORT_PAGE: (pageId: number) => `/admin/pages/${pageId}/sections/export`,
+        ADMIN_SECTIONS_EXPORT_SECTION: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}/export`,
+        ADMIN_SECTIONS_IMPORT_TO_PAGE: (pageId: number) => `/admin/pages/${pageId}/sections/import`,
+        ADMIN_SECTIONS_IMPORT_TO_SECTION: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/import`,
 
         // Legacy endpoints (keeping for backward compatibility)
-        PAGES_GET_ONE_WITH_LANGUAGE: (keyword: string, languageId: number) => `/pages/${keyword}?language_id=${languageId}`,
-        ADMIN_PAGES_GET_ONE_WITH_LANGUAGE: (keyword: string, languageId: number) => `/admin/pages/${keyword}?language_id=${languageId}`,
+        PAGES_GET_ONE_WITH_LANGUAGE: (pageId: number, languageId: number) => `/pages/${pageId}?language_id=${languageId}`,
+        ADMIN_PAGES_GET_ONE_WITH_LANGUAGE: (pageId: number, languageId: number) => `/admin/pages/${pageId}?language_id=${languageId}`,
         ADMIN_LANGUAGES: '/admin/languages', // Alias for ADMIN_LANGUAGES_GET_ALL
 
         // Deprecated endpoints (marked for removal)
-        ADMIN_SECTIONS_ADD_TO_PAGE: (keyword: string) => `/admin/pages/${keyword}/sections`, // Use ADMIN_PAGES_ADD_SECTION
-        ADMIN_SECTIONS_ADD_TO_SECTION: (keyword: string, parentSectionId: number) => `/admin/pages/${keyword}/sections/${parentSectionId}/sections`, // Use ADMIN_SECTIONS_ADD
-        ADMIN_SECTIONS_UPDATE_SECTION: (keyword: string, sectionId: number) => `/admin/pages/${keyword}/sections/${sectionId}`, // Use ADMIN_SECTIONS_UPDATE
-        ADMIN_SECTIONS_REMOVE_FROM_SECTION: (keyword: string, parentSectionId: number, childSectionId: number) => `/admin/pages/${keyword}/sections/${parentSectionId}/sections/${childSectionId}`, // Use ADMIN_SECTIONS_REMOVE
-        ADMIN_SECTIONS_DELETE: (keyword: string, sectionId: number) => `/admin/pages/${keyword}/sections/${sectionId}`, // Use ADMIN_PAGES_REMOVE_SECTION
-        ADMIN_PAGES_SECTIONS_CREATE: (keyword: string) => `/admin/pages/${keyword}/sections/create`, // Use ADMIN_PAGES_CREATE_SECTION
-        ADMIN_SECTIONS_CREATE_IN_SECTION: (keyword: string, parentSectionId: number) => `/admin/pages/${keyword}/sections/${parentSectionId}/sections/create`, // Use ADMIN_SECTIONS_CREATE_CHILD
+        ADMIN_SECTIONS_ADD_TO_PAGE: (pageId: number) => `/admin/pages/${pageId}/sections`, // Use ADMIN_PAGES_ADD_SECTION
+        ADMIN_SECTIONS_ADD_TO_SECTION: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections`, // Use ADMIN_SECTIONS_ADD
+        ADMIN_SECTIONS_UPDATE_SECTION: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}`, // Use ADMIN_SECTIONS_UPDATE
+        ADMIN_SECTIONS_REMOVE_FROM_SECTION: (pageId: number, parentSectionId: number, childSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections/${childSectionId}`, // Use ADMIN_SECTIONS_REMOVE
+        ADMIN_SECTIONS_DELETE: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}`, // Use ADMIN_PAGES_REMOVE_SECTION
+        ADMIN_PAGES_SECTIONS_CREATE: (pageId: number) => `/admin/pages/${pageId}/sections/create`, // Use ADMIN_PAGES_CREATE_SECTION
+        ADMIN_SECTIONS_CREATE_IN_SECTION: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections/create`, // Use ADMIN_SECTIONS_CREATE_CHILD
         USER_LANGUAGE_PREFERENCE: '/auth/set-language', // Use AUTH_SET_LANGUAGE
     },
     CORS_CONFIG: {

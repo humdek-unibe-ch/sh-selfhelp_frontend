@@ -26,14 +26,14 @@ interface IUpdateSectionRequest {
 
 interface IUpdateSectionMutationOptions {
     showNotifications?: boolean;
-    pageKeyword?: string;
+    pageId?: number;
     onSuccess?: () => void;
     onError?: (error: Error) => void;
 }
 
 export function useUpdateSectionMutation({
     showNotifications = true,
-    pageKeyword,
+    pageId,
     onSuccess,
     onError
 }: IUpdateSectionMutationOptions = {}) {
@@ -41,22 +41,22 @@ export function useUpdateSectionMutation({
 
     return useMutation({
         mutationFn: async ({ 
-            keyword, 
+            pageId: mutationPageId, 
             sectionId, 
             sectionData 
         }: { 
-            keyword: string; 
+            pageId: number; 
             sectionId: number; 
             sectionData: IUpdateSectionRequest;
         }) => {
 
-            const result = await AdminSectionApi.updateSection(keyword, sectionId, sectionData);
+            const result = await AdminSectionApi.updateSection(mutationPageId, sectionId, sectionData);
             
             return result;
         },
         onSuccess: (data, variables) => {
             // Invalidate relevant queries to refresh data with consistent query keys
-            const queryKey = pageKeyword || variables.keyword;
+            const queryKey = pageId || variables.pageId;
             
             // Main admin pages list
             queryClient.invalidateQueries({ queryKey: ['adminPages'] });
@@ -87,7 +87,7 @@ export function useUpdateSectionMutation({
 
             onSuccess?.();
         },
-        onError: (error: Error, variables: { keyword: string; sectionId: number; sectionData: IUpdateSectionRequest }) => {
+        onError: (error: Error, variables: { pageId: number; sectionId: number; sectionData: IUpdateSectionRequest }) => {
 
             if (showNotifications) {
                 notifications.show({

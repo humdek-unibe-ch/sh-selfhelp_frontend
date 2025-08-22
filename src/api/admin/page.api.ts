@@ -27,27 +27,27 @@ export const AdminPageApi = {
     },
 
     /**
-     * Fetches page fields for a specific page by keyword.
-     * @param {string} keyword - The page keyword to fetch fields for
+     * Fetches page fields for a specific page by ID.
+     * @param {number} pageId - The page ID to fetch fields for
      * @returns {Promise<IPageFieldsData>} Page fields response with page details
      * @throws {Error} When API request fails
      */
-    async getPageFields(keyword: string): Promise<IPageFieldsData> {
+    async getPageFields(pageId: number): Promise<IPageFieldsData> {
         const response = await apiClient.get<TPageFieldsResponse>(
-            API_CONFIG.ENDPOINTS.ADMIN_PAGES_GET_ONE(keyword)
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_GET_ONE(pageId)
         );
         return response.data.data;
     },
 
     /**
-     * Fetches page sections for a specific page by keyword.
-     * @param {string} keyword - The page keyword to fetch sections for
+     * Fetches page sections for a specific page by ID.
+     * @param {number} pageId - The page ID to fetch sections for
      * @returns {Promise<IPageField[]>} Array of page sections with nested structure
      * @throws {Error} When API request fails
      */
-    async getPageSections(keyword: string): Promise<IPageField[]> {
+    async getPageSections(pageId: number): Promise<IPageField[]> {
         const response = await apiClient.get<IPageFieldsResponse>(
-            API_CONFIG.ENDPOINTS.ADMIN_PAGES_SECTIONS_GET(keyword)
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_SECTIONS_GET(pageId)
         );
         return response.data.data.sections;
     },
@@ -68,28 +68,28 @@ export const AdminPageApi = {
 
     /**
      * Updates an existing page
-     * @param {string} keyword - The page keyword to update
+     * @param {number} pageId - The page ID to update
      * @param {IUpdatePageRequest} updateData - The page data and fields to update
      * @returns {Promise<IAdminPage>} The updated page data
      * @throws {Error} When API request fails
      */
-    async updatePage(keyword: string, updateData: IUpdatePageRequest): Promise<IAdminPage> {
+    async updatePage(pageId: number, updateData: IUpdatePageRequest): Promise<IAdminPage> {
         const response = await apiClient.put<IBaseApiResponse<IAdminPage>>(
-            API_CONFIG.ENDPOINTS.ADMIN_PAGES_UPDATE(keyword),
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_UPDATE(pageId),
             updateData
         );
         return response.data.data;
     },
 
     /**
-     * Deletes a page by keyword
-     * @param {string} keyword - The page keyword to delete
+     * Deletes a page by ID
+     * @param {number} pageId - The page ID to delete
      * @returns {Promise<{ success: boolean }>} Success response
      * @throws {Error} When API request fails
      */
-    async deletePage(keyword: string): Promise<{ success: boolean }> {
+    async deletePage(pageId: number): Promise<{ success: boolean }> {
         const response = await apiClient.delete(
-            API_CONFIG.ENDPOINTS.ADMIN_PAGES_DELETE(keyword)
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_DELETE(pageId)
         );
         // For 204 No Content responses, return success indicator
         return { success: response.status === 204 || response.status === 200 };

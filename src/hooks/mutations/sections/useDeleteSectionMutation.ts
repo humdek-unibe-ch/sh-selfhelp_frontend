@@ -13,14 +13,14 @@ import { AdminSectionApi } from '../../../api/admin/section.api';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IDeleteSectionMutationOptions {
-    onSuccess?: (data: any, variables: { keyword: string; sectionId: number }) => void;
-    onError?: (error: any, variables: { keyword: string; sectionId: number }) => void;
+    onSuccess?: (data: any, variables: { pageId: number; sectionId: number }) => void;
+    onError?: (error: any, variables: { pageId: number; sectionId: number }) => void;
     showNotifications?: boolean;
-    pageKeyword?: string; // Optional page keyword for cache invalidation
+    pageId?: number; // Optional page ID for cache invalidation
 }
 
 interface IDeleteSectionVariables {
-    keyword: string;
+    pageId: number;
     sectionId: number;
 }
 
@@ -31,11 +31,11 @@ interface IDeleteSectionVariables {
  */
 export function useDeleteSectionMutation(options: IDeleteSectionMutationOptions = {}) {
     const queryClient = useQueryClient();
-    const { onSuccess, onError, showNotifications = true, pageKeyword } = options;
+    const { onSuccess, onError, showNotifications = true, pageId: cachePageId } = options;
 
     return useMutation({
-        mutationFn: ({ keyword, sectionId }: IDeleteSectionVariables) => 
-            AdminSectionApi.deleteSection(keyword, sectionId),
+        mutationFn: ({ pageId, sectionId }: IDeleteSectionVariables) => 
+            AdminSectionApi.deleteSection(pageId, sectionId),
         
         onSuccess: async (result: any, variables: IDeleteSectionVariables) => {
 
@@ -48,23 +48,23 @@ export function useDeleteSectionMutation(options: IDeleteSectionMutationOptions 
                 queryClient.invalidateQueries({ queryKey: ['page-content'] }),
             ];
             
-            // If pageKeyword is provided, also invalidate page-specific queries
-            if (pageKeyword) {
+            // If pageId is provided, also invalidate page-specific queries
+            if (cachePageId) {
                 invalidationPromises.push(
-                    queryClient.invalidateQueries({ queryKey: ['pageSections', pageKeyword] }),
-                    queryClient.invalidateQueries({ queryKey: ['pageFields', pageKeyword] })
+                    queryClient.invalidateQueries({ queryKey: ['pageSections', cachePageId] }),
+                    queryClient.invalidateQueries({ queryKey: ['pageFields', cachePageId] })
                 );
             } else {
-                // Use the keyword from variables if pageKeyword not provided
+                // Use the pageId from variables if cachePageId not provided
                 invalidationPromises.push(
-                    queryClient.invalidateQueries({ queryKey: ['pageSections', variables.keyword] }),
-                    queryClient.invalidateQueries({ queryKey: ['pageFields', variables.keyword] })
+                    queryClient.invalidateQueries({ queryKey: ['pageSections', variables.pageId] }),
+                    queryClient.invalidateQueries({ queryKey: ['pageFields', variables.pageId] })
                 );
             }
             
             // Remove specific section details from cache
             queryClient.removeQueries({ 
-                queryKey: ['sectionDetails', pageKeyword || variables.keyword, variables.sectionId] 
+                queryKey: ['sectionDetails', cachePageId || variables.pageId, variables.sectionId] 
             });
             
             await Promise.all(invalidationPromises);

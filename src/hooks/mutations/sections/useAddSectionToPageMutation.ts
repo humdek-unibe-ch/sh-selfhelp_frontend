@@ -13,8 +13,8 @@ import { AdminApi } from '../../../api/admin.api';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IAddSectionToPageMutationOptions {
-    onSuccess?: (data: any, variables: { keyword: string; sectionId: number; sectionData: IAddSectionToPageData }) => void;
-    onError?: (error: any, variables: { keyword: string; sectionId: number; sectionData: IAddSectionToPageData }) => void;
+    onSuccess?: (data: any, variables: { pageId: number; sectionId: number; sectionData: IAddSectionToPageData }) => void;
+    onError?: (error: any, variables: { pageId: number; sectionId: number; sectionData: IAddSectionToPageData }) => void;
     showNotifications?: boolean;
 }
 
@@ -23,7 +23,7 @@ interface IAddSectionToPageData {
 }
 
 interface IAddSectionToPageVariables {
-    keyword: string;
+    pageId: number;
     sectionId: number;
     sectionData: IAddSectionToPageData;
 }
@@ -38,15 +38,15 @@ export function useAddSectionToPageMutation(options: IAddSectionToPageMutationOp
     const { onSuccess, onError, showNotifications = true } = options;
 
     return useMutation({
-        mutationFn: ({ keyword, sectionId, sectionData }: IAddSectionToPageVariables) => 
-            AdminApi.addSectionToPage(keyword, sectionId, sectionData),
+        mutationFn: ({ pageId, sectionId, sectionData }: IAddSectionToPageVariables) => 
+            AdminApi.addSectionToPage(pageId, sectionId, sectionData),
         
         onSuccess: async (createdSection: any, variables: IAddSectionToPageVariables) => {
             
             // Invalidate relevant queries to update the UI with consistent query keys
             await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['pageSections', variables.keyword] }),
-                queryClient.invalidateQueries({ queryKey: ['pageFields', variables.keyword] }),
+                queryClient.invalidateQueries({ queryKey: ['pageSections', variables.pageId] }),
+                queryClient.invalidateQueries({ queryKey: ['pageFields', variables.pageId] }),
                 queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
                 // Frontend navigation pages
                 queryClient.invalidateQueries({ queryKey: ['pages'] }),
@@ -57,7 +57,7 @@ export function useAddSectionToPageMutation(options: IAddSectionToPageMutationOp
             if (showNotifications) {
                 notifications.show({
                     title: 'Section Added Successfully',
-                    message: `Section was added to page "${variables.keyword}" successfully!`,
+                    message: `Section was added to page "${variables.pageId}" successfully!`,
                     icon: React.createElement(IconCheck, { size: '1rem' }),
                     color: 'green',
                     autoClose: 5000,
@@ -76,7 +76,7 @@ export function useAddSectionToPageMutation(options: IAddSectionToPageMutationOp
             if (showNotifications) {
                 notifications.show({
                     title: errorTitle || 'Add Section Failed',
-                    message: errorMessage || `Failed to add section to page "${variables.keyword}". Please try again.`,
+                    message: errorMessage || `Failed to add section to page "${variables.pageId}". Please try again.`,
                     icon: React.createElement(IconX, { size: '1rem' }),
                     color: 'red',
                     autoClose: 8000,

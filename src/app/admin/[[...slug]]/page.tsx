@@ -132,7 +132,7 @@ export default function AdminPage() {
         <Box style={{ height: '100%' }}>
           {/* Page Sections - Full height */}
           <PageSections 
-            keyword={selectedPage.keyword} 
+            pageId={selectedPage.id_pages} 
             pageName={selectedPage.keyword}
             initialSelectedSectionId={selectedSectionId}
           />
@@ -185,7 +185,7 @@ export default function AdminPage() {
               if (shouldShowSectionInspector) {
                 return (
                   <SectionInspector 
-                    keyword={selectedPage?.keyword || null} 
+                    pageId={selectedPage?.id_pages || null} 
                     sectionId={selectedSectionId} 
                   />
                 );
