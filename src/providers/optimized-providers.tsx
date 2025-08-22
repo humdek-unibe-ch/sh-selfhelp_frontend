@@ -30,7 +30,8 @@ function RefineWrapper({ children }: { children: React.ReactNode }) {
     const { resources, isLoading } = useAppNavigation({ isAdmin });
     
     // Initialize navigation prefetching for smooth page transitions
-    useNavigationPrefetch();
+    // TODO: Uncomment this when we have a way to prefetch the navigation data
+    // useNavigationPrefetch();
 
     if (isLoading) {
         return <LoadingScreen />;
