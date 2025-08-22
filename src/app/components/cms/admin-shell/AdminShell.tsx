@@ -1,7 +1,6 @@
 'use client';
 
 import { AppShell, MantineProvider } from "@mantine/core";
-import { AdminHeader } from "./admin-header/AdminHeader";
 import { AdminNavbar } from "./admin-navbar/AdminNavbar";
 import { useDisclosure } from '@mantine/hooks';
 import { useIsAuthenticated } from '@refinedev/core';
@@ -54,7 +53,6 @@ export function AdminShell({ children }: AdminShellProps) {
     return (
         <MantineProvider theme={theme}>
             <AppShell
-                header={{ height: 60 }}
                 navbar={{
                     width: 300,
                     breakpoint: 'sm',
@@ -62,9 +60,6 @@ export function AdminShell({ children }: AdminShellProps) {
                 }}
                 padding="md"
             >
-                <AppShell.Header>
-                    <AdminHeader opened={opened} onToggle={toggle} />
-                </AppShell.Header>
                 <AppShell.Navbar>
                     <AdminNavbar />
                 </AppShell.Navbar>
