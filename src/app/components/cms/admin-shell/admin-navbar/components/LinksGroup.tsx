@@ -31,23 +31,33 @@ interface ILinksGroupProps {
   links?: Array<{
     label: string;
     link: string;
+    selectable?: boolean;
+    onClick?: () => void;
     links?: Array<{
       label: string;
       link: string;
+      selectable?: boolean;
+      onClick?: () => void;
       links?: Array<{
         label: string;
         link: string;
+        selectable?: boolean;
+        onClick?: () => void;
         links?: Array<{
           label: string;
           link: string;
+          selectable?: boolean;
+          onClick?: () => void;
         }>;
       }>;
     }>;
   }>;
   link?: string;
+  selectable?: boolean;
+  onClick?: () => void;
 }
 
-export function LinksGroup({ icon, label, initiallyOpened, links, link }: ILinksGroupProps) {
+export function LinksGroup({ icon, label, initiallyOpened, links, link, selectable = true, onClick }: ILinksGroupProps) {
   const router = useRouter();
   const pathname = usePathname();
   const hasLinks = Array.isArray(links);
@@ -82,14 +92,23 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link }: ILinks
     }
   }, [opened, storageKey]);
 
-  const handleItemClick = (href: string, e?: React.MouseEvent) => {
+  const handleItemClick = (href: string, clickHandler?: () => void, e?: React.MouseEvent) => {
     // Support middle click and ctrl+click for new tab
     if (e && (e.button === 1 || e.ctrlKey || e.metaKey)) {
       window.open(href, '_blank');
       return;
     }
     
-    router.push(href);
+    // If there's a custom click handler, use it
+    if (clickHandler) {
+      clickHandler();
+      return;
+    }
+    
+    // Only navigate if it's not just a '#' placeholder
+    if (href && href !== '#') {
+      router.push(href);
+    }
   };
 
   const renderNestedLinks = (linkItems: any[], level: number = 0): React.ReactNode => {
@@ -104,9 +123,12 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link }: ILinks
           <NestedLinksGroup
             key={item.label}
             label={item.label}
+            link={item.link}
             links={item.links}
             level={level}
             pathname={pathname}
+            selectable={item.selectable}
+            onClick={item.onClick}
           />
         );
       }
@@ -120,7 +142,7 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link }: ILinks
           data-active={isItemActive}
           onClick={(e) => {
             e.preventDefault();
-            handleItemClick(item.link, e);
+            handleItemClick(item.link, item.onClick, e);
           }}
           onMouseDown={(e: React.MouseEvent) => {
             // Handle middle click
@@ -147,47 +169,83 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link }: ILinks
 
   return (
     <>
-      <UnstyledButton 
-        onClick={() => {
-          if (hasLinks) {
-            setOpened((o) => !o);
-          } else if (link) {
-            handleItemClick(link);
-          }
-        }}
-        className={classes.control}
-        data-active={isActive}
-        onMouseDown={(e: React.MouseEvent) => {
-          // Handle middle click for direct links
-          if (e.button === 1 && link) {
-            e.preventDefault();
-            window.open(link, '_blank');
-          }
-        }}
-        onContextMenu={(e: React.MouseEvent) => {
-          // Allow right-click context menu for "open in new tab"
-          if (link) {
-            e.stopPropagation();
-          }
-        }}
-      >
+      <Box className={classes.control} data-active={isActive}>
         <Group justify="space-between" gap={0}>
-          <Box style={{ display: 'flex', alignItems: 'center' }}>
-            <Box mr="md">{icon}</Box>
-            <Box>{label}</Box>
-          </Box>
+          {/* Main clickable area for navigation */}
+          <UnstyledButton
+            onClick={() => {
+              // Always handle navigation/selection for main area
+              if (link && link !== '#') {
+                handleItemClick(link, onClick);
+              } else if (onClick) {
+                onClick();
+              }
+            }}
+            onMouseDown={(e: React.MouseEvent) => {
+              // Handle middle click for direct links
+              if (e.button === 1 && link && link !== '#') {
+                e.preventDefault();
+                window.open(link, '_blank');
+              }
+            }}
+            onContextMenu={(e: React.MouseEvent) => {
+              // Allow right-click context menu for "open in new tab"
+              if (link && link !== '#') {
+                e.stopPropagation();
+              }
+            }}
+            style={{ 
+              flex: 1, 
+              display: 'flex', 
+              alignItems: 'center',
+              justifyContent: 'flex-start',
+              padding: 0,
+              backgroundColor: 'transparent',
+              border: 'none'
+            }}
+          >
+            <Box style={{ display: 'flex', alignItems: 'center' }}>
+              <Box mr="md">{icon}</Box>
+              <Box>{label}</Box>
+            </Box>
+          </UnstyledButton>
+          
+          {/* Separate clickable area for expand/collapse */}
           {hasLinks && (
-            <IconChevronRight
-              className={classes.chevron}
-              size="1rem"
-              stroke={1.5}
-              style={{
-                transform: opened ? `rotate(${rem(90)})` : 'none',
+            <UnstyledButton
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpened((o: boolean) => !o);
               }}
-            />
+              style={{
+                padding: '4px',
+                backgroundColor: 'transparent',
+                border: 'none',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              styles={{
+                root: {
+                  '&:hover': {
+                    backgroundColor: 'light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-5))'
+                  }
+                }
+              }}
+            >
+              <IconChevronRight
+                className={classes.chevron}
+                size="1rem"
+                stroke={1.5}
+                style={{
+                  transform: opened ? `rotate(${rem(90)})` : 'none',
+                }}
+              />
+            </UnstyledButton>
           )}
         </Group>
-      </UnstyledButton>
+      </Box>
       {hasLinks ? <Collapse in={opened}>{items}</Collapse> : null}
     </>
   );
@@ -196,23 +254,32 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link }: ILinks
 // Nested component for handling deeper levels
 interface INestedLinksGroupProps {
   label: string;
+  link: string;
   links: Array<{
     label: string;
     link: string;
+    selectable?: boolean;
+    onClick?: () => void;
     links?: Array<{
       label: string;
       link: string;
+      selectable?: boolean;
+      onClick?: () => void;
       links?: Array<{
         label: string;
         link: string;
+        selectable?: boolean;
+        onClick?: () => void;
       }>;
     }>;
   }>;
   level: number;
   pathname: string;
+  selectable?: boolean;
+  onClick?: () => void;
 }
 
-function NestedLinksGroup({ label, links, level, pathname }: INestedLinksGroupProps) {
+function NestedLinksGroup({ label, link, links, level, pathname, selectable = true, onClick }: INestedLinksGroupProps) {
   const router = useRouter();
   const storageKey = `navbar-nested-${label.replace(/\s+/g, '-').toLowerCase()}-${level}-opened`;
   const hasActiveChild = checkForActiveChild(links, pathname);
@@ -241,14 +308,23 @@ function NestedLinksGroup({ label, links, level, pathname }: INestedLinksGroupPr
     }
   }, [opened, storageKey]);
 
-  const handleItemClick = (href: string, e?: React.MouseEvent) => {
+  const handleItemClick = (href: string, clickHandler?: () => void, e?: React.MouseEvent) => {
     // Support middle click and ctrl+click for new tab
     if (e && (e.button === 1 || e.ctrlKey || e.metaKey)) {
       window.open(href, '_blank');
       return;
     }
     
-    router.push(href);
+    // If there's a custom click handler, use it
+    if (clickHandler) {
+      clickHandler();
+      return;
+    }
+    
+    // Only navigate if it's not just a '#' placeholder
+    if (href && href !== '#') {
+      router.push(href);
+    }
   };
 
   const renderNestedLinks = (linkItems: any[], currentLevel: number): React.ReactNode => {
@@ -263,9 +339,12 @@ function NestedLinksGroup({ label, links, level, pathname }: INestedLinksGroupPr
           <NestedLinksGroup
             key={item.label}
             label={item.label}
+            link={item.link}
             links={item.links}
             level={currentLevel}
             pathname={pathname}
+            selectable={item.selectable}
+            onClick={item.onClick}
           />
         );
       }
@@ -279,7 +358,7 @@ function NestedLinksGroup({ label, links, level, pathname }: INestedLinksGroupPr
           data-active={isItemActive}
           onClick={(e) => {
             e.preventDefault();
-            handleItemClick(item.link, e);
+            handleItemClick(item.link, item.onClick, e);
           }}
           onMouseDown={(e: React.MouseEvent) => {
             // Handle middle click
@@ -306,8 +385,7 @@ function NestedLinksGroup({ label, links, level, pathname }: INestedLinksGroupPr
 
   return (
     <>
-      <UnstyledButton 
-        onClick={() => setOpened((o) => !o)}
+      <Box 
         className={classes.link}
         style={{
           paddingLeft: `calc(${rem((level + 1) * 16)} + var(--mantine-spacing-md))`,
@@ -315,17 +393,63 @@ function NestedLinksGroup({ label, links, level, pathname }: INestedLinksGroupPr
         }}
       >
         <Group justify="space-between" gap={0}>
-          <Box>{label}</Box>
-          <IconChevronRight
-            className={classes.chevron}
-            size="1rem"
-            stroke={1.5}
-            style={{
-              transform: opened ? `rotate(${rem(90)})` : 'none',
+          {/* Main clickable area for navigation */}
+          <UnstyledButton
+            onClick={() => {
+              // Always handle navigation/selection for main area  
+              if (selectable && link && link !== '#') {
+                handleItemClick(link, onClick, undefined);
+              } else if (onClick) {
+                onClick();
+              }
             }}
-          />
+            style={{ 
+              flex: 1, 
+              display: 'flex', 
+              alignItems: 'center',
+              justifyContent: 'flex-start',
+              padding: 0,
+              backgroundColor: 'transparent',
+              border: 'none'
+            }}
+          >
+            <Box>{label}</Box>
+          </UnstyledButton>
+          
+          {/* Separate clickable area for expand/collapse */}
+          <UnstyledButton
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpened((o: boolean) => !o);
+            }}
+            style={{
+              padding: '4px',
+              backgroundColor: 'transparent',
+              border: 'none',
+              borderRadius: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+            styles={{
+              root: {
+                '&:hover': {
+                  backgroundColor: 'light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-5))'
+                }
+              }
+            }}
+          >
+            <IconChevronRight
+              className={classes.chevron}
+              size="1rem"
+              stroke={1.5}
+              style={{
+                transform: opened ? `rotate(${rem(90)})` : 'none',
+              }}
+            />
+          </UnstyledButton>
         </Group>
-      </UnstyledButton>
+      </Box>
       <Collapse in={opened}>{items}</Collapse>
     </>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { ScrollArea, Group, Code, Box } from '@mantine/core';
 import { 
     IconDashboard,
@@ -12,12 +12,14 @@ import {
     IconClock, 
     IconDatabase,
     IconPlayerPlay,
-    IconFileText
+    IconFileText,
+    IconPlus
 } from '@tabler/icons-react';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { LinksGroup } from './components/LinksGroup';
 import { UserButton } from './components/UserButton';
 import { NavigationSearch } from './components/NavigationSearch';
+import { CreatePageModal } from '../../pages/create-page/CreatePage';
 import classes from './AdminNavbar.module.css';
 import { SelfHelpLogo } from '../../../shared';
 
@@ -25,6 +27,8 @@ interface INavigationLink {
     label: string;
     link: string;
     links?: INavigationLink[];
+    selectable?: boolean; // Flag to determine if parent item is clickable when it has children
+    onClick?: () => void; // Optional click handler for custom actions
 }
 
 // Helper function to transform pages into navigation structure
@@ -32,7 +36,8 @@ function transformPagesToNavigation(pages: any[]): INavigationLink[] {
     return pages.map((page: any): INavigationLink => ({
         label: page.title || page.keyword,
         link: `/admin/pages/${page.keyword}`,
-        links: page.children ? transformPagesToNavigation(page.children) : undefined
+        links: page.children ? transformPagesToNavigation(page.children) : undefined,
+        selectable: true // Page parent items are always selectable
     }));
 }
 
@@ -44,6 +49,8 @@ export function AdminNavbar() {
         categorizedRegularPages, 
         isLoading 
     } = useAdminPages();
+    
+    const [isCreatePageModalOpen, setIsCreatePageModalOpen] = useState(false);
 
     // Transform pages data for search component with full hierarchical structure
     const adminPagesData = useMemo(() => ({
@@ -115,42 +122,41 @@ export function AdminNavbar() {
                     { label: 'Unused Sections', link: '/admin/unused-sections' },
                 ],
             },
-            // Menu Pages section (pages that appear in website navigation)
+            
+            // PAGE CATEGORIES - All page categories together in requested order:
+            // 1. Create Page functionality
+            {
+                label: 'Create Page',
+                icon: <IconPlus size={16} />,
+                link: '#',
+                onClick: () => setIsCreatePageModalOpen(true)
+            },
+            // 2. Menu Pages section (pages that appear in website navigation)
             ...(menuPages.length > 0 ? [{
                 label: 'Menu Pages',
                 icon: <IconFiles size={16} />,
                 initiallyOpened: true,
                 links: transformPagesToNavigation(menuPages)
             }] : []),
-            // Content Pages section (pages that don't appear in website navigation)
+            // 3. Footer Pages section (separate category for footer pages)
+            ...(footerPages.length > 0 ? [{
+                label: 'Footer Pages',
+                icon: <IconFiles size={16} />,
+                links: footerPages.map(page => ({
+                    label: page.title || page.keyword,
+                    link: `/admin/pages/${page.keyword}`
+                }))
+            }] : []),
+            // 4. Content Pages section (pages that don't appear in website navigation)
             ...(contentPages.length > 0 ? [{
                 label: 'Content Pages',
                 icon: <IconFileText size={16} />,
-                links: [
-                    ...contentPages.map(page => ({
-                        label: page.title || page.keyword,
-                        link: `/admin/pages/${page.keyword}`
-                    })),
-                    // Add footer pages to content pages if they exist
-                    ...footerPages.map(page => ({
-                        label: `${page.title || page.keyword} (Footer)`,
-                        link: `/admin/pages/${page.keyword}`
-                    }))
-                ]
+                links: contentPages.map(page => ({
+                    label: page.title || page.keyword,
+                    link: `/admin/pages/${page.keyword}`
+                }))
             }] : []),
-            // Configuration pages (only configuration pages, no duplication)
-            ...(configurationPageLinks && configurationPageLinks.length > 0 
-                ? [{
-                    label: 'Configuration',
-                    icon: <IconSettings size={16} />,
-                    links: configurationPageLinks.map(page => ({
-                        label: page.label,
-                        link: `/admin/pages/${page.keyword}`
-                    }))
-                }] 
-                : []
-            ),
-            // System pages
+            // 5. System pages
             {
                 label: 'System Pages',
                 icon: <IconSettingsAutomation size={16} />,
@@ -182,6 +188,19 @@ export function AdminNavbar() {
                     })),
                 ],
             },
+            
+            // Configuration pages (separate from page categories)
+            ...(configurationPageLinks && configurationPageLinks.length > 0 
+                ? [{
+                    label: 'Configuration',
+                    icon: <IconSettings size={16} />,
+                    links: configurationPageLinks.map(page => ({
+                        label: page.label,
+                        link: `/admin/pages/${page.keyword}`
+                    }))
+                }] 
+                : []
+            ),
             {
                 label: 'Automation',
                 icon: <IconPlayerPlay size={16} />,
@@ -221,13 +240,18 @@ export function AdminNavbar() {
                 />
             </Box>
 
-            <ScrollArea className={classes.links}>
+            <ScrollArea className={classes.links} scrollbars="y">
                 <div className={classes.linksInner}>{links}</div>
             </ScrollArea>
 
             <div className={classes.footer}>
                 <UserButton />
             </div>
+            
+            <CreatePageModal
+                opened={isCreatePageModalOpen}
+                onClose={() => setIsCreatePageModalOpen(false)}
+            />
         </nav>
     );
 }
