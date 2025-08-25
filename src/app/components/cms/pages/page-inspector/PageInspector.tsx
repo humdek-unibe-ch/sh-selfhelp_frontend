@@ -430,34 +430,35 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
     const pageDetails = pageFieldsData?.page;
 
     return (
-        <Stack gap={0} h="100%">
+        <div className={styles.asideContainer}>
             {/* Fixed Save Button */}
-            <Paper p="md" withBorder style={{ borderBottom: 'none' }}>
-                <Group justify="space-between" align="center">
-                    <Group gap="xs">
-                        <Title order={2}>{page.keyword}</Title>
-                        <Badge color="blue" variant="light">
-                            ID: {pageDetails?.id}
-                        </Badge>
-                    </Group>
-                    <Button
-                        leftSection={<IconDeviceFloppy size="1rem" />}
-                        onClick={handleSave}
-                        variant="filled"
-                        loading={updatePageMutation.isPending}
-                        disabled={!page?.keyword}
-                    >
-                        Save
-                    </Button>
+            <div className={styles.asideHeader}>
+                <Group justify="space-between" align="center" mb="xs">
+                    <Title order={4} size="md">{page.keyword}</Title>
+                    <Badge color="blue" variant="light" size="sm">
+                        ID: {pageDetails?.id}
+                    </Badge>
                 </Group>
-            </Paper>
+                <Button
+                    leftSection={<IconDeviceFloppy size="0.875rem" />}
+                    onClick={handleSave}
+                    variant="filled"
+                    loading={updatePageMutation.isPending}
+                    disabled={!page?.keyword}
+                    size="sm"
+                    fullWidth
+                >
+                    Save
+                </Button>
+            </div>
 
             {/* Scrollable Content */}
-            <ScrollArea flex={1}>
-                <Stack gap="lg" p="md">
+            <ScrollArea className={styles.asideContent}>
+                <Stack gap="xs">
                     {/* Page Information Section */}
-                    <Paper withBorder style={{ backgroundColor: 'light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-9))' }}>
-                        <Box p="md">
+                    <div className={styles.asideSection}>
+                        <Paper withBorder={false} style={{ backgroundColor: 'light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-9))' }}>
+                            <Box p="sm">
                             <Group gap="xs" mb="sm">
                                 <IconInfoCircle size={16} style={{ color: 'var(--mantine-color-blue-6)' }} />
                                 <Text size="sm" fw={500} c="blue">Page Information</Text>
@@ -502,26 +503,27 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                     )}
                                 </Group>
                             </Stack>
-                        </Box>
-                    </Paper>
+                            </Box>
+                        </Paper>
+                    </div>
 
                     {/* Content Section */}
-                    <Paper withBorder>
+                    <div className={styles.asideSection}>
                         <Group 
-                            p="md" 
+                            p="sm" 
                             justify="space-between" 
                             style={{ cursor: 'pointer' }}
                             onClick={() => setContentExpanded(!contentExpanded)}
                         >
-                            <Title order={3}>Content</Title>
-                            <ActionIcon variant="subtle">
-                                {contentExpanded ? <IconChevronUp /> : <IconChevronDown />}
+                            <Title order={5}>Content</Title>
+                            <ActionIcon variant="subtle" size="sm">
+                                {contentExpanded ? <IconChevronUp size="1rem" /> : <IconChevronDown size="1rem" />}
                             </ActionIcon>
                         </Group>
                         
                         <Collapse in={contentExpanded}>
                             <Divider />
-                            <Box p="md">
+                            <Box p="sm">
                                 {contentFields.length > 0 ? (
                                     hasMultipleLanguages ? (
                                         <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || (languages[0]?.id.toString() || ''))}>
@@ -563,31 +565,31 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                 )}
                             </Box>
                         </Collapse>
-                    </Paper>
+                    </div>
 
                     {/* Properties Section */}
                     {!isConfigurationPage && (
-                    <Paper withBorder>
+                    <div className={styles.asideSection}>
                         <Group 
-                            p="md" 
+                            p="sm" 
                             justify="space-between" 
                             style={{ cursor: 'pointer' }}
                             onClick={() => setPropertiesExpanded(!propertiesExpanded)}
                         >
-                            <Title order={3}>Properties</Title>
-                            <ActionIcon variant="subtle">
-                                {propertiesExpanded ? <IconChevronUp /> : <IconChevronDown />}
+                            <Title order={5}>Properties</Title>
+                            <ActionIcon variant="subtle" size="sm">
+                                {propertiesExpanded ? <IconChevronUp size="1rem" /> : <IconChevronDown size="1rem" />}
                             </ActionIcon>
                         </Group>
                         
                         <Collapse in={propertiesExpanded}>
                             <Divider />
-                            <Box p="md">
-                                <Stack gap="md">
+                            <Box p="sm">
+                                <Stack gap="xs" className={styles.compactStack}>
                                     {/* Page Basic Properties */}
-                                    <Paper p="md" withBorder>
-                                        <Stack gap="md">
-                                            <Text size="sm" fw={500} c="blue">Basic Information</Text>
+                                    <Paper p="sm" withBorder>
+                                        <Stack gap="sm">
+                                            <Text size="xs" fw={500} c="blue">Basic Information</Text>
                                             <LockedField
                                                 label={
                                                     <FieldLabelWithTooltip 
@@ -747,16 +749,16 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                 </Stack>
                             </Box>
                         </Collapse>
-                    </Paper>
+                    </div>
                     )}
 
                     {/* Property Fields for Configuration Pages */}
                     {isConfigurationPage && propertyFields.length > 0 && (
-                        <Paper withBorder>
-                            <Box p="md">
-                                <Stack gap="md">
+                        <div className={styles.asideSection}>
+                            <Box p="sm">
+                                <Stack gap="sm">
                                     <Group gap="xs">
-                                        <Text size="sm" fw={500} c="blue">Configuration Properties</Text>
+                                        <Text size="xs" fw={500} c="blue">Configuration Properties</Text>
                                         <Tooltip 
                                             label="Configuration fields specific to this page type."
                                             multiline
@@ -773,14 +775,15 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                     ))}
                                 </Stack>
                             </Box>
-                        </Paper>
+                        </div>
                     )}
 
                     {/* Action Buttons - Hide for configuration pages */}
                     {!isConfigurationPage && (
-                    <Paper p="md" withBorder>
-                        <Stack gap="md">
-                            <Title order={4}>Actions</Title>
+                    <div className={styles.asideSection}>
+                        <Box p="sm">
+                            <Stack gap="sm">
+                                <Title order={6} size="xs">Actions</Title>
                             
                             {/* System page indicator */}
                             {page?.is_system === 1 && (
@@ -833,7 +836,8 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                 </Tooltip>
                             </Group>
                         </Stack>
-                    </Paper>
+                        </Box>
+                    </div>
                     )}
                 </Stack>
             </ScrollArea>
@@ -891,6 +895,6 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                     </Group>
                 </Stack>
             </Modal>
-        </Stack>
+        </div>
     );
 } 

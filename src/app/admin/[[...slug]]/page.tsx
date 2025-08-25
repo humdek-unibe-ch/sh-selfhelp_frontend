@@ -6,8 +6,6 @@ import {
   Title, 
   Text, 
   Stack, 
-  rem,
-  Flex,
   Alert,
   Loader
 } from '@mantine/core';
@@ -19,6 +17,7 @@ import { PageSections } from '../../components/cms/pages/page-sections/PageSecti
 import { PageInspector } from '../../components/cms/pages/page-inspector/PageInspector';
 import { SectionInspector } from '../../components/cms/pages/section-inspector';
 import { ConfigurationPageEditor } from '../../components/cms/pages/configuration-page-editor/ConfigurationPageEditor';
+import { AdminShellWrapper } from '../../components/cms/admin-shell/AdminShellWrapper';
 import { useAdminPages } from '../../../hooks/useAdminPages';
 import { useMemo } from 'react';
 import { IAdminPage } from '../../../types/responses/admin/admin.types';
@@ -159,43 +158,42 @@ export default function AdminPage() {
     return path || 'Dashboard';
   };
 
+  // Determine which inspector to show in the aside panel
+  const renderAside = () => {
+    // Configuration pages don't show aside panels
+    if (isConfigurationPage) {
+      return null;
+    }
+
+    const shouldShowSectionInspector = selectedSectionId && !isNaN(selectedSectionId);
+    if (shouldShowSectionInspector) {
+      return (
+        <SectionInspector 
+          pageId={selectedPage?.id_pages || null} 
+          sectionId={selectedSectionId} 
+        />
+      );
+    } else if (isPageRoute) {
+      return <PageInspector page={selectedPage} isConfigurationPage={isConfigurationPage} />;
+    }
+    
+    return null;
+  };
+
   return (
-    <>
+    <AdminShellWrapper 
+      aside={renderAside()}
+      asideWidth={420}
+    >
       {isConfigurationPage && selectedPage ? (
         // Configuration pages use full-width editor
         <ConfigurationPageEditor page={selectedPage} />
       ) : (
-        // Regular pages use the split layout
-        <Flex style={{ height: 'calc(100vh - var(--mantine-header-height, 60px))' }}>
-          {/* Main Content Area */}
-          <Box style={{ flex: '1', overflowY: 'auto' }}>
-            {/* Dynamic Content */}
-            {renderMainContent()}
-          </Box>
-          
-          {/* Right Sidebar - Page Inspector or Section Inspector */}
-          <Box style={{ 
-            width: rem(400), 
-            borderLeft: '1px solid var(--mantine-color-gray-3)', 
-            height: '100%',
-            overflowY: 'hidden'
-          }}>
-            {(() => {
-              const shouldShowSectionInspector = selectedSectionId && !isNaN(selectedSectionId) && !isConfigurationPage;
-              if (shouldShowSectionInspector) {
-                return (
-                  <SectionInspector 
-                    pageId={selectedPage?.id_pages || null} 
-                    sectionId={selectedSectionId} 
-                  />
-                );
-              } else {
-                return <PageInspector page={selectedPage} isConfigurationPage={isConfigurationPage} />;
-              }
-            })()}
-          </Box>
-        </Flex>
+        // Regular pages show main content only (aside is handled by shell)
+        <Box style={{ height: '100%', overflowY: 'auto' }}>
+          {renderMainContent()}
+        </Box>
       )}
-    </>
+    </AdminShellWrapper>
   );
 }

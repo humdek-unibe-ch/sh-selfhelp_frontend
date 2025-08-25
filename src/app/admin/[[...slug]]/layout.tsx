@@ -2,7 +2,6 @@ import "@mantine/core/styles.css";
 import '@mantine/dates/styles.css';
 import { ColorSchemeScript } from "@mantine/core";
 import { Metadata } from 'next';
-import { AdminShellWrapper } from "../../components/cms/admin-shell/AdminShellWrapper";
 
 export const metadata: Metadata = {
   title: {
@@ -21,8 +20,8 @@ export const metadata: Metadata = {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <AdminShellWrapper>
+    <>
       {children}
-    </AdminShellWrapper>
+    </>
   );
 }

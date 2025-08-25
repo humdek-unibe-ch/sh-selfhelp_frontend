@@ -9,9 +9,11 @@ import { LoadingOverlay } from "@mantine/core";
 
 interface AdminShellWrapperProps {
     children: React.ReactNode;
+    aside?: React.ReactNode;
+    asideWidth?: number;
 }
 
-export function AdminShellWrapper({ children }: AdminShellWrapperProps) {
+export function AdminShellWrapper({ children, aside, asideWidth }: AdminShellWrapperProps) {
     const { isAuthenticated, hasAdminAccess, isLoading } = useAuth();
     const router = useRouter();
     const [isChecking, setIsChecking] = useState(true);
@@ -46,7 +48,7 @@ export function AdminShellWrapper({ children }: AdminShellWrapperProps) {
     }
 
     return (
-        <AdminShell>
+        <AdminShell aside={aside} asideWidth={asideWidth}>
             {children}
         </AdminShell>
     );

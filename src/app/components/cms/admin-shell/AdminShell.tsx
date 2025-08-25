@@ -11,9 +11,11 @@ import { theme } from "../../../../../theme";
 
 interface AdminShellProps {
     children: React.ReactNode;
+    aside?: React.ReactNode;
+    asideWidth?: number;
 }
 
-export function AdminShell({ children }: AdminShellProps) {
+export function AdminShell({ children, aside, asideWidth = 400 }: AdminShellProps) {
     const [opened, { toggle }] = useDisclosure();
     const { data: { authenticated } = {}, isLoading: isAuthLoading } = useIsAuthenticated();
     const [localAuth, setLocalAuth] = useState<boolean | null>(null);
@@ -58,6 +60,11 @@ export function AdminShell({ children }: AdminShellProps) {
                     breakpoint: 'sm',
                     collapsed: { mobile: !opened }
                 }}
+                aside={aside ? {
+                    width: asideWidth,
+                    breakpoint: 'md',
+                    collapsed: { mobile: true, desktop: false }
+                } : undefined}
                 padding="md"
             >
                 <AppShell.Navbar>
@@ -66,6 +73,11 @@ export function AdminShell({ children }: AdminShellProps) {
                 <AppShell.Main>
                     {children}
                 </AppShell.Main>
+                {aside && (
+                    <AppShell.Aside p={0}>
+                        {aside}
+                    </AppShell.Aside>
+                )}
             </AppShell>
         </MantineProvider>
     );

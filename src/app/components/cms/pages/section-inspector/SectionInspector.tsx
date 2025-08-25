@@ -10,7 +10,9 @@ import {
     TextInput,
     Button,
     Alert,
-    Badge
+    Badge,
+    Title,
+    ScrollArea
 } from '@mantine/core';
 import { 
     IconInfoCircle, 
@@ -540,18 +542,44 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
 
     return (
         <>
-            <InspectorLayout
-                header={
-                    <InspectorHeader
-                        title={section.name}
-                        badges={headerBadges}
-                        actions={headerActions}
-                    />
-                }
-            >
-                {/* Section Information */}
-                <Paper withBorder style={{ backgroundColor: 'light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-9))' }}>
-                    <Box p="md">
+            <div className={styles.asideContainer}>
+                {/* Header with title, badges, and actions */}
+                <div className={styles.asideHeader}>
+                    <Group justify="space-between" align="center" mb="xs">
+                        <Title order={4} size="md">{section.name}</Title>
+                        <Group gap="xs">
+                            {headerBadges.map((badge, index) => (
+                                <Badge key={index} color={badge.color} variant="light" size="sm">
+                                    {badge.label}
+                                </Badge>
+                            ))}
+                        </Group>
+                    </Group>
+                    <Group gap="xs">
+                        {headerActions.map((action, index) => (
+                            <Button
+                                key={index}
+                                leftSection={action.icon}
+                                onClick={action.onClick}
+                                variant={action.variant}
+                                color={action.color}
+                                disabled={action.disabled}
+                                loading={action.loading}
+                                size="xs"
+                            >
+                                {action.label}
+                            </Button>
+                        ))}
+                    </Group>
+                </div>
+
+                {/* Scrollable Content */}
+                <ScrollArea className={styles.asideContent}>
+                    <Stack gap="xs">
+                        {/* Section Information */}
+                        <div className={styles.asideSection}>
+                            <Paper withBorder={false} style={{ backgroundColor: 'light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-9))' }}>
+                                <Box p="sm">
                         <Group gap="xs" mb="sm">
                             <IconInfoCircle size={16} style={{ color: 'var(--mantine-color-blue-6)' }} />
                             <Text size="sm" fw={500} c="blue">Section Information</Text>
@@ -591,31 +619,38 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                                 </Box>
                             )}
                         </Stack>
-                    </Box>
-                </Paper>
+                                </Box>
+                            </Paper>
+                        </div>
 
-                {/* Content Fields */}
-                <FieldsSection
-                    title="Content Fields"
-                    fields={contentFields}
-                    languages={languages}
-                    fieldValues={formValues.fields}
-                    onFieldChange={handleContentFieldChange}
-                    isMultiLanguage={true}
-                    className={styles.fullWidthLabel}
-                />
+                        {/* Content Fields */}
+                        <div className={styles.asideSection}>
+                            <FieldsSection
+                                title="Content Fields"
+                                fields={contentFields}
+                                languages={languages}
+                                fieldValues={formValues.fields}
+                                onFieldChange={handleContentFieldChange}
+                                isMultiLanguage={true}
+                                className={styles.fullWidthLabel}
+                            />
+                        </div>
 
-                {/* Property Fields */}
-                <FieldsSection
-                    title="Properties"
-                    fields={propertyFields}
-                    languages={languages}
-                    fieldValues={formValues.properties}
-                    onFieldChange={handlePropertyFieldChange}
-                    isMultiLanguage={false}
-                    className={styles.fullWidthLabel}
-                />
-            </InspectorLayout>
+                        {/* Property Fields */}
+                        <div className={styles.asideSection}>
+                            <FieldsSection
+                                title="Properties"
+                                fields={propertyFields}
+                                languages={languages}
+                                fieldValues={formValues.properties}
+                                onFieldChange={handlePropertyFieldChange}
+                                isMultiLanguage={false}
+                                className={styles.fullWidthLabel}
+                            />
+                        </div>
+                    </Stack>
+                </ScrollArea>
+            </div>
 
             {/* Delete Confirmation Modal */}
             <Modal

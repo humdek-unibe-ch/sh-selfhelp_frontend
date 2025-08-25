@@ -1,6 +1,5 @@
 // Admin Shell Components
 export { AdminShell } from './AdminShell';
-export { AdminShellServer } from './AdminShellServer';
 export { AdminShellWrapper } from './AdminShellWrapper';
 export { AdminHeader } from './admin-header/AdminHeader';
 export { AdminHeaderServer } from './admin-header/AdminHeaderServer';
