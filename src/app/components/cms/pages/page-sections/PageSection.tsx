@@ -14,6 +14,7 @@ import {
 } from '@tabler/icons-react';
 import { IPageField } from '../../../../../types/common/pages.type';
 import { RemoveSectionModal } from './RemoveSectionModal';
+import { SectionLink } from './SectionLink';
 import styles from './PageSection.module.css';
 
 interface IPageSectionProps {
@@ -137,21 +138,21 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
         }
     };
 
-    const handleSectionClick = () => {
-        if (onSectionSelect) {
-            onSectionSelect(section.id);
-        }
-    };
+    // Remove the old click handler - now handled by SectionLink
 
     return (
         <>
             <div style={getIndentationStyle()} className={styles.indentationWrapper}>
-                <Paper
-                    ref={ref}
+                <SectionLink
+                    sectionId={section.id}
+                    onSectionSelect={onSectionSelect}
                     className={`${styles.sectionItem} ${getLevelClass()} ${isSelected ? styles.selected : ''} ${isFocused ? styles.focused : ''}`}
-                    onClick={handleSectionClick}
                     data-section-id={section.id}
                 >
+                    <Paper
+                        ref={ref}
+                        className={styles.sectionPaper}
+                    >
                     <Group gap="xs" p="xs" wrap="nowrap" align="center" className={styles.compactGroup}>
                         {/* Drag Handle - properly connected */}
                         <div {...dragHandleProps}>
@@ -282,7 +283,8 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                             </Tooltip>
                         </Group>
                     </Group>
-                </Paper>
+                    </Paper>
+                </SectionLink>
             </div>
 
             {/* Remove Section Modal */}

@@ -1,15 +1,24 @@
-/* Compact section item styling */
+/* Compact section item styling - now applied to SectionLink */
 .sectionItem {
+    display: block;
+    text-decoration: none;
+    color: inherit;
     transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 3px;
-    border: 1px solid var(--mantine-color-default-border);
-    background: var(--mantine-color-body);
-    position: relative;
     margin-bottom: 1px;
     cursor: pointer;
 }
 
-.sectionItem:hover {
+/* Paper inside SectionLink */
+.sectionPaper {
+    border-radius: 3px;
+    border: 1px solid var(--mantine-color-default-border);
+    background: var(--mantine-color-body);
+    position: relative;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sectionItem:hover .sectionPaper {
     border-color: var(--mantine-color-text);
 }
 
@@ -18,14 +27,14 @@
 }
 
 /* Selected state - Blue color */
-.sectionItem.selected {
+.sectionItem.selected .sectionPaper {
     border-color: var(--mantine-color-blue-5);
     background-color: light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-9));
     box-shadow: 0 2px 6px light-dark(rgba(37, 99, 235, 0.15), rgba(37, 99, 235, 0.3));
 }
 
 /* Focused state - Yellow highlight for search results */
-.sectionItem.focused {
+.sectionItem.focused .sectionPaper {
     border-color: var(--mantine-color-yellow-5);
     background-color: light-dark(var(--mantine-color-yellow-0), var(--mantine-color-yellow-9));
     box-shadow: 0 2px 6px light-dark(rgba(234, 179, 8, 0.25), rgba(234, 179, 8, 0.4));

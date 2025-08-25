@@ -265,21 +265,8 @@ const PageSectionsComponent = function PageSections({
     };
 
     const handleSectionSelect = (sectionId: number) => {
+        // Just update the selected section ID - navigation is handled by SectionLink
         setSelectedSectionId(sectionId);
-
-        // Update URL with section ID as path parameter
-        const currentPath = window.location.pathname;
-        const pathParts = currentPath.split('/');
-
-        // Find the admin pages path and reconstruct with section ID
-        const adminIndex = pathParts.indexOf('admin');
-        const pagesIndex = pathParts.indexOf('pages', adminIndex);
-
-        if (pagesIndex !== -1 && pathParts[pagesIndex + 1]) {
-            const pageKeyword = pathParts[pagesIndex + 1];
-            const newPath = `/admin/pages/${pageKeyword}/${sectionId}`;
-            router.push(newPath, { scroll: false });
-        }
     };
 
     // Collapse/Expand all functionality - use memoized sections
