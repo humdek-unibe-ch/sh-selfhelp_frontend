@@ -1,0 +1,91 @@
+/* Force Mantine input components to give full width to custom labels */
+.fullWidthLabel :global(.mantine-InputWrapper-label) {
+    width: 100% !important;
+    display: flex !important;
+}
+
+.fullWidthLabel :global(.mantine-Input-label) {
+    width: 100% !important;
+    display: flex !important;
+}
+
+.fullWidthLabel :global(.mantine-Textarea-label) {
+    width: 100% !important;
+    display: flex !important;
+}
+
+.fullWidthLabel :global(.mantine-TextInput-label) {
+    width: 100% !important;
+    display: flex !important;
+}
+
+/* Ensure the input wrapper itself allows full width labels */
+.fullWidthLabel {
+    width: 100%;
+}
+
+.fullWidthLabel :global(.mantine-InputWrapper-root) {
+    width: 100%;
+}
+
+/* Professional aside panel styling */
+.asideContainer {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: light-dark(var(--mantine-color-white), var(--mantine-color-dark-8));
+    border-left: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+}
+
+.asideHeader {
+    border-bottom: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5));
+    background: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7));
+    padding: var(--mantine-spacing-md);
+    flex-shrink: 0;
+}
+
+.asideContent {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+}
+
+.asideSection {
+    border-bottom: 1px solid light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
+}
+
+.asideSection:last-child {
+    border-bottom: none;
+}
+
+/* Compact spacing for aside */
+.compactStack > * {
+    margin-bottom: var(--mantine-spacing-sm) !important;
+}
+
+.compactStack > *:last-child {
+    margin-bottom: 0 !important;
+}
+
+/* Global classes that can be used by both inspectors */
+:global(.aside-container) {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: light-dark(var(--mantine-color-white), var(--mantine-color-dark-8));
+    border-left: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+}
+
+:global(.aside-content) {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+}
+
+:global(.aside-section) {
+    border-bottom: 1px solid light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
+}
+
+:global(.aside-section:last-child) {
+    border-bottom: none;
+}

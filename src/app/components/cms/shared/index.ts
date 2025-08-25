@@ -1,7 +1,11 @@
 export { FieldRenderer, type IFieldData } from './field-renderer/FieldRenderer';
-export { InspectorHeader } from './inspector-header/InspectorHeader';
+export { InspectorHeader, type IInspectorButton } from './inspector-header/InspectorHeader';
 export { FieldsSection } from './fields-section/FieldsSection';
 export { InspectorLayout } from './inspector-layout/InspectorLayout';
+export { CollapsibleInspectorSection } from './collapsible-inspector-section/CollapsibleInspectorSection';
+export { InspectorInfoSection } from './inspector-info-section/InspectorInfoSection';
+export { InspectorContainer } from './inspector-container/InspectorContainer';
+export { ContentFieldsSection } from './content-fields-section/ContentFieldsSection';
 export { 
     useFieldFormHandler, 
     createFieldChangeHandlers,

@@ -28,7 +28,7 @@ function RefineWrapper({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const isAdmin = pathname?.startsWith('/admin');
     const { resources, isLoading } = useAppNavigation({ isAdmin });
-    
+
     // Initialize navigation prefetching for smooth page transitions
     // TODO: Uncomment this when we have a way to prefetch the navigation data
     // useNavigationPrefetch();
@@ -74,13 +74,10 @@ export function OptimizedProviders({ children }: { children: React.ReactNode }) 
                     </RefineWrapper>
                 </LanguageProvider>
             </MantineProvider>
-            {process.env.NODE_ENV === 'development' && (
-                <ReactQueryDevtools 
-                    initialIsOpen={false}
-                    position="bottom-right"
-                    buttonPosition="bottom-right"
-                />
-            )}
+            <ReactQueryDevtools
+                initialIsOpen={false}
+                buttonPosition="bottom-right"
+            />
         </QueryClientProvider>
     );
 }

@@ -29,6 +29,7 @@ interface IFieldsSectionProps {
     defaultExpanded?: boolean;
     className?: string;
     inspectorType: string; // Required for persistent state
+    sectionName: string; // Consistent section name for state management
 }
 
 export function FieldsSection({
@@ -40,13 +41,14 @@ export function FieldsSection({
     isMultiLanguage = false,
     defaultExpanded = true,
     className,
-    inspectorType
+    inspectorType,
+    sectionName
 }: IFieldsSectionProps) {
     const { isCollapsed, setCollapsed } = useInspectorStore();
     
     // Get persistent state, fallback to defaultExpanded if no stored state
     const [expanded, setExpanded] = useState(() => {
-        const storedCollapsed = isCollapsed(inspectorType, title.toLowerCase());
+        const storedCollapsed = isCollapsed(inspectorType, sectionName);
         return storedCollapsed ? false : defaultExpanded;
     });
     
@@ -54,8 +56,8 @@ export function FieldsSection({
     
     // Update persistent state when expanded changes
     useEffect(() => {
-        setCollapsed(inspectorType, title.toLowerCase(), !expanded);
-    }, [expanded, inspectorType, title, setCollapsed]);
+        setCollapsed(inspectorType, sectionName, !expanded);
+    }, [expanded, inspectorType, sectionName, setCollapsed]);
 
     if (fields.length === 0) {
         return null;
@@ -91,19 +93,51 @@ export function FieldsSection({
     };
 
     return (
-        <Paper withBorder>
-            <Box p="md">
-                <Group justify="space-between" mb="md">
-                    <Text fw={500}>{title}</Text>
-                    <ActionIcon
-                        variant="subtle"
-                        onClick={() => setExpanded(!expanded)}
-                    >
-                        {expanded ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
-                    </ActionIcon>
-                </Group>
-                
-                <Collapse in={expanded}>
+        <Box>
+            {title && (
+                <Paper withBorder>
+                    <Box p="md">
+                        <Group justify="space-between" mb="md">
+                            <Text fw={500}>{title}</Text>
+                            <ActionIcon
+                                variant="subtle"
+                                onClick={() => setExpanded(!expanded)}
+                            >
+                                {expanded ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
+                            </ActionIcon>
+                        </Group>
+                        
+                        <Collapse in={expanded}>
+                            {isMultiLanguage && languages.length > 1 ? (
+                                <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || '')}>
+                                    <Tabs.List>
+                                        {languages.map(language => (
+                                            <Tabs.Tab key={language.id} value={language.id.toString()}>
+                                                {language.language}
+                                            </Tabs.Tab>
+                                        ))}
+                                    </Tabs.List>
+                                    
+                                    {languages.map(language => (
+                                        <Tabs.Panel key={language.id} value={language.id.toString()} pt="md">
+                                            <Stack gap="md">
+                                                {fields.map(field => renderField(field, language.id))}
+                                            </Stack>
+                                        </Tabs.Panel>
+                                    ))}
+                                </Tabs>
+                            ) : (
+                                <Stack gap="md">
+                                    {fields.map(field => renderField(field, isMultiLanguage ? languages[0]?.id : undefined))}
+                                </Stack>
+                            )}
+                        </Collapse>
+                    </Box>
+                </Paper>
+            )}
+            
+            {!title && (
+                <Box>
                     {isMultiLanguage && languages.length > 1 ? (
                         <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || '')}>
                             <Tabs.List>
@@ -127,8 +161,8 @@ export function FieldsSection({
                             {fields.map(field => renderField(field, isMultiLanguage ? languages[0]?.id : undefined))}
                         </Stack>
                     )}
-                </Collapse>
-            </Box>
-        </Paper>
+                </Box>
+            )}
+        </Box>
     );
 } 

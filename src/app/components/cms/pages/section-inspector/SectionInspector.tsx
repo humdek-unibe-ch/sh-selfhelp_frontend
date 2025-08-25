@@ -33,12 +33,16 @@ import {
     IFieldData,
     useFieldFormHandler,
     createFieldChangeHandlers,
-    type ILanguage
+    type ILanguage,
+    InspectorContainer,
+    InspectorInfoSection,
+    CollapsibleInspectorSection,
+    type IInspectorButton
 } from '../../shared';
 import styles from './SectionInspector.module.css';
 import { exportSection } from '../../../../../api/admin/section.api';
 import { downloadJsonFile, generateExportFilename } from '../../../../../utils/export-import.utils';
-import { INSPECTOR_TYPES } from '../../../../../store/inspectorStore';
+import { INSPECTOR_TYPES, INSPECTOR_SECTIONS } from '../../../../../store/inspectorStore';
 import { AdminApi } from '../../../../../api/admin';
 import { validateName, getNameValidationError } from '../../../../../utils/name-validation.utils';
 import { notifications } from '@mantine/notifications';
@@ -49,22 +53,13 @@ import {
     isPropertyField
 } from '../../../../../utils/field-processing.utils';
 
-export interface ISectionInspectorButton {
-    id: string;
-    label: string;
-    icon: React.ReactNode;
-    onClick: () => void;
-    variant?: 'filled' | 'outline' | 'subtle';
-    color?: string;
-    disabled?: boolean;
-    loading?: boolean;
-}
+
 
 interface ISectionInspectorProps {
     pageId: number | null;
     sectionId: number | null;
     // Callback to expose inspector buttons to parent
-    onButtonsChange?: (buttons: ISectionInspectorButton[]) => void;
+    onButtonsChange?: (buttons: IInspectorButton[]) => void;
 }
 
 interface ISectionFormValues {
@@ -411,7 +406,7 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
     useEffect(() => {
         if (onButtonsChange && sectionDetailsData?.section) {
             const section = sectionDetailsData.section;
-            const buttons: ISectionInspectorButton[] = [
+            const buttons: IInspectorButton[] = [
                 {
                     id: 'save',
                     label: 'Save',
@@ -609,95 +604,80 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
 
     return (
         <>
-            <div className={styles.asideContainer}>
-                {/* Inspector Header */}
-                <InspectorHeader 
-                    inspectorType="section"
-                    inspectorTitle={`Section: ${section.name}`}
-                    inspectorId={section.id}
-                    inspectorButtons={inspectorButtons}
-                />
-                
-                {/* Scrollable Content - Now full height */}
-                <ScrollArea className={styles.asideContent}>
-                    <Stack gap="xs">
-                        {/* Section Information */}
-                        <div className={styles.asideSection}>
-                            <Paper withBorder={false} style={{ backgroundColor: 'light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-9))' }}>
-                                <Box p="sm">
-                        <Group gap="xs" mb="sm">
-                            <IconInfoCircle size={16} style={{ color: 'var(--mantine-color-blue-6)' }} />
-                            <Text size="sm" fw={500} c="blue">Section Information</Text>
-                        </Group>
-                        
-                        <Stack gap="xs">
-                            {/* Editable Section Name */}
-                            <Box>
-                                <Text size="xs" fw={500} c="dimmed" mb="xs">Section Name</Text>
-                                <TextInput
-                                    value={formValues.sectionName}
-                                    onChange={(e) => handleSectionNameChange(e.currentTarget.value)}
-                                    placeholder="Enter section name"
-                                    size="sm"
-                                />
-                            </Box>
-                            
-                            <Group gap="md" wrap="wrap">
-                                <Box>
-                                    <Text size="xs" fw={500} c="dimmed">Style</Text>
-                                    <Text size="sm">{section.style.name}</Text>
-                                </Box>
-                                <Box>
-                                    <Text size="xs" fw={500} c="dimmed">Type</Text>
-                                    <Text size="sm">{section.style.type}</Text>
-                                </Box>
-                                <Box>
-                                    <Text size="xs" fw={500} c="dimmed">Section ID</Text>
-                                    <Text size="sm">{section.id}</Text>
-                                </Box>
-                            </Group>
-                            
-                            {section.style.description && (
-                                <Box mt="sm">
-                                    <Text size="xs" fw={500} c="dimmed">Description</Text>
-                                    <Text size="sm">{section.style.description}</Text>
-                                </Box>
-                            )}
-                        </Stack>
-                                </Box>
-                            </Paper>
-                        </div>
+            <InspectorContainer
+                inspectorType="section"
+                inspectorTitle={`Section: ${section.name}`}
+                inspectorId={section.id}
+                inspectorButtons={inspectorButtons}
+            >
+                {/* Section Information */}
+                <InspectorInfoSection
+                    title="Section Information"
+                    infoItems={[
+                        { label: 'Style', value: section.style.name },
+                        { label: 'Type', value: section.style.type },
+                        { label: 'Section ID', value: section.id }
+                    ]}
+                >
+                    {/* Editable Section Name */}
+                    <Box>
+                        <Text size="xs" fw={500} c="dimmed" mb="xs">Section Name</Text>
+                        <TextInput
+                            value={formValues.sectionName}
+                            onChange={(e) => handleSectionNameChange(e.currentTarget.value)}
+                            placeholder="Enter section name"
+                            size="sm"
+                        />
+                    </Box>
+                    
+                    {section.style.description && (
+                        <Box mt="sm">
+                            <Text size="xs" fw={500} c="dimmed">Description</Text>
+                            <Text size="sm">{section.style.description}</Text>
+                        </Box>
+                    )}
+                </InspectorInfoSection>
 
-                        {/* Content Fields */}
-                        <div className={styles.asideSection}>
-                            <FieldsSection
-                                title="Content Fields"
-                                fields={contentFields}
-                                languages={languages}
-                                fieldValues={formValues.fields}
-                                onFieldChange={handleContentFieldChange}
-                                isMultiLanguage={true}
-                                className={styles.fullWidthLabel}
-                                inspectorType={INSPECTOR_TYPES.SECTION}
-                            />
-                        </div>
+                {/* Content Fields */}
+                <CollapsibleInspectorSection
+                    title="Content"
+                    inspectorType={INSPECTOR_TYPES.SECTION}
+                    sectionName={INSPECTOR_SECTIONS.CONTENT}
+                    defaultExpanded={true}
+                >
+                    <FieldsSection
+                        title=""
+                        fields={contentFields}
+                        languages={languages}
+                        fieldValues={formValues.fields}
+                        onFieldChange={handleContentFieldChange}
+                        isMultiLanguage={true}
+                        className={styles.fullWidthLabel}
+                        inspectorType={INSPECTOR_TYPES.SECTION}
+                        sectionName={INSPECTOR_SECTIONS.CONTENT}
+                    />
+                </CollapsibleInspectorSection>
 
-                        {/* Property Fields */}
-                        <div className={styles.asideSection}>
-                            <FieldsSection
-                                title="Properties"
-                                fields={propertyFields}
-                                languages={languages}
-                                fieldValues={formValues.properties}
-                                onFieldChange={handlePropertyFieldChange}
-                                isMultiLanguage={false}
-                                className={styles.fullWidthLabel}
-                                inspectorType={INSPECTOR_TYPES.SECTION}
-                            />
-                        </div>
-                    </Stack>
-                </ScrollArea>
-            </div>
+                {/* Property Fields */}
+                <CollapsibleInspectorSection
+                    title="Properties"
+                    inspectorType={INSPECTOR_TYPES.SECTION}
+                    sectionName={INSPECTOR_SECTIONS.PROPERTIES}
+                    defaultExpanded={true}
+                >
+                    <FieldsSection
+                        title=""
+                        fields={propertyFields}
+                        languages={languages}
+                        fieldValues={formValues.properties}
+                        onFieldChange={handlePropertyFieldChange}
+                        isMultiLanguage={false}
+                        className={styles.fullWidthLabel}
+                        inspectorType={INSPECTOR_TYPES.SECTION}
+                        sectionName={INSPECTOR_SECTIONS.PROPERTIES}
+                    />
+                </CollapsibleInspectorSection>
+            </InspectorContainer>
 
             {/* Delete Confirmation Modal */}
             <Modal

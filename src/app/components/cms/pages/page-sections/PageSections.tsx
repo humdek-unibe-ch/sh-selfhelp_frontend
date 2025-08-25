@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
     Paper,
@@ -69,13 +69,16 @@ interface IMoveData {
     oldParentSectionId: number | null; // Section ID if section was inside another section
 }
 
-export function PageSections({
+const PageSectionsComponent = function PageSections({
     pageId,
     pageName,
     initialSelectedSectionId,
     onStateChange
 }: IPageSectionsProps) {
     const { data, isLoading, error } = usePageSections(pageId);
+    
+    // Memoize sections data to prevent unnecessary re-renders
+    const memoizedSections = useMemo(() => data?.sections || [], [data?.sections]);
     const router = useRouter();
 
     const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
@@ -131,9 +134,9 @@ export function PageSections({
         return results;
     }, []);
 
-    // Helper function to expand all parent sections of a given section
+    // Helper function to expand all parent sections of a given section - use memoized sections
     const expandParentsOfSection = useCallback((sectionId: number) => {
-        if (!data?.sections) return;
+        if (!memoizedSections.length) return;
 
         const parentsToExpand = new Set<number>();
 
@@ -154,12 +157,12 @@ export function PageSections({
             return false;
         };
 
-        findParents(data.sections);
+        findParents(memoizedSections);
 
         if (parentsToExpand.size > 0) {
             setExpandedSections(prev => new Set([...Array.from(prev), ...Array.from(parentsToExpand)]));
         }
-    }, [data?.sections]);
+    }, [memoizedSections]);
 
     // Helper function to scroll to a section element
     const scrollToSection = useCallback((sectionId: number) => {
@@ -176,10 +179,10 @@ export function PageSections({
         }, 100); // Small delay to allow for DOM updates
     }, []);
 
-    // Update search results when query changes
+    // Update search results when query changes - use memoized sections
     useEffect(() => {
-        if (searchQuery.trim() && data?.sections) {
-            const results = searchInSections(data.sections, searchQuery.trim());
+        if (searchQuery.trim() && memoizedSections.length > 0) {
+            const results = searchInSections(memoizedSections, searchQuery.trim());
             setSearchResults(results);
             if (results.length > 0) {
                 const firstResultId = results[0];
@@ -200,11 +203,11 @@ export function PageSections({
             setFocusedSectionId(null);
         }
 
-    }, [searchQuery, data?.sections, searchInSections, expandParentsOfSection, scrollToSection]);
+    }, [searchQuery, memoizedSections, searchInSections, expandParentsOfSection, scrollToSection]);
 
-    // Expand all sections that contain search results
+    // Expand all sections that contain search results - use memoized sections
     useEffect(() => {
-        if (searchResults.length > 0 && data?.sections) {
+        if (searchResults.length > 0 && memoizedSections.length > 0) {
             const sectionsToExpand = new Set<number>();
 
             const findParentsOfResults = (sections: IPageField[], parentId: number | null = null) => {
@@ -232,10 +235,10 @@ export function PageSections({
                 return false;
             };
 
-            findParentsOfResults(data.sections);
+            findParentsOfResults(memoizedSections);
             setExpandedSections(prev => new Set([...Array.from(prev), ...Array.from(sectionsToExpand)]));
         }
-    }, [searchResults, data?.sections]);
+    }, [searchResults, memoizedSections]);
 
     // Helper function to find a section by ID
     const findSectionById = useCallback((sectionId: number, sections: IPageField[]): IPageField | null => {
@@ -279,9 +282,9 @@ export function PageSections({
         }
     };
 
-    // Collapse/Expand all functionality
-    const handleExpandAll = () => {
-        if (!data?.sections) return;
+    // Collapse/Expand all functionality - use memoized sections
+    const handleExpandAll = useCallback(() => {
+        if (!memoizedSections.length) return;
 
         const allSectionIds = new Set<number>();
         const collectAllIds = (sections: IPageField[]) => {
@@ -293,13 +296,13 @@ export function PageSections({
             });
         };
 
-        collectAllIds(data.sections);
+        collectAllIds(memoizedSections);
         setExpandedSections(allSectionIds);
-    };
+    }, [memoizedSections]);
 
-    const handleCollapseAll = () => {
+    const handleCollapseAll = useCallback(() => {
         setExpandedSections(new Set());
-    };
+    }, []);
 
     // Search navigation
     const handleSearchNext = () => {
@@ -515,9 +518,9 @@ export function PageSections({
         }
     }, [initialSelectedSectionId, expandParentsOfSection, scrollToSection]);
 
-    // Auto-expand sections with children on initial load
+    // Auto-expand sections with children on initial load - use memoized sections
     useEffect(() => {
-        if (data?.sections && data.sections.length > 0) {
+        if (memoizedSections.length > 0) {
             const sectionsWithChildren = new Set<number>();
 
             const findSectionsWithChildren = (items: IPageField[]) => {
@@ -529,10 +532,10 @@ export function PageSections({
                 });
             };
 
-            findSectionsWithChildren(data.sections);
+            findSectionsWithChildren(memoizedSections);
             setExpandedSections(sectionsWithChildren);
         }
-    }, [data?.sections]);
+    }, [memoizedSections]);
 
     // Expose state and handlers to parent component
     useEffect(() => {
@@ -564,7 +567,7 @@ export function PageSections({
         searchQuery,
         searchResults,
         currentSearchIndex,
-        data?.sections?.length,
+        memoizedSections.length,
         addSectionToPageMutation.isPending,
         addSectionToSectionMutation.isPending,
         removeSectionFromPageMutation.isPending,
@@ -615,7 +618,7 @@ export function PageSections({
         onAddSection: handleAddSectionClick
     };
 
-    if (!data?.sections || data.sections.length === 0) {
+    if (!memoizedSections.length) {
         return (
             <>
                 <Box className={styles.pageSectionsContainer}>
@@ -661,7 +664,8 @@ export function PageSections({
             {/* Scrollable Content Area - Now full height */}
             <ScrollArea h="calc(100vh - 106px)">
                 <SectionsList
-                    sections={data.sections}
+                    key={`sections-${pageId}`} // Stable key based on pageId
+                    sections={memoizedSections}
                     expandedSections={expandedSections}
                     onToggleExpand={handleToggleExpand}
                     onSectionMove={handleSectionMove}
@@ -690,4 +694,13 @@ export function PageSections({
             />
         </Box>
     );
-} 
+};
+
+// Export memoized component to prevent unnecessary re-renders
+export const PageSections = memo(PageSectionsComponent, (prevProps, nextProps) => {
+    return (
+        prevProps.pageId === nextProps.pageId &&
+        prevProps.pageName === nextProps.pageName &&
+        prevProps.initialSelectedSectionId === nextProps.initialSelectedSectionId
+    );
+}); 

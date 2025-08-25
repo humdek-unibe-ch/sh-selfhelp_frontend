@@ -6,7 +6,9 @@ import {
     useEffect,
     useRef,
     useState,
-    createContext
+    createContext,
+    memo,
+    useMemo
 } from 'react';
 import { Box, Text, Paper } from '@mantine/core';
 import { IconPlus } from '@tabler/icons-react';
@@ -96,8 +98,8 @@ const HoverPreviewContext = createContext<{
     setHoverState: (state: IHoverPreviewState) => void;
 } | null>(null);
 
-// Clean Section Item Component with improved drop detection
-function SectionItem({
+// Clean Section Item Component with improved drop detection - memoized for performance
+const SectionItem = memo(function SectionItem({
     section,
     level,
     index,
@@ -537,7 +539,7 @@ function SectionItem({
                 <Box className={`${styles.childrenContainer} ${styles[`level${level}`] || styles.level0}`}>
                     {section.children.map((child, childIndex) => (
                         <SectionItem
-                            key={child.id}
+                            key={`section-${child.id}-${child.position || childIndex}`}
                             section={child}
                             level={level + 1}
                             index={childIndex}
@@ -557,7 +559,21 @@ function SectionItem({
             )}
         </Box>
     );
-}
+}, (prevProps, nextProps) => {
+    // Custom comparison for memoization
+    return (
+        prevProps.section.id === nextProps.section.id &&
+        prevProps.section.name === nextProps.section.name &&
+        prevProps.section.position === nextProps.section.position &&
+        prevProps.level === nextProps.level &&
+        prevProps.index === nextProps.index &&
+        prevProps.parentId === nextProps.parentId &&
+        prevProps.selectedSectionId === nextProps.selectedSectionId &&
+        prevProps.focusedSectionId === nextProps.focusedSectionId &&
+        prevProps.pageId === nextProps.pageId &&
+        JSON.stringify(prevProps.section.children) === JSON.stringify(nextProps.section.children)
+    );
+});
 
 // Context for sections functionality
 const SectionsContext = createContext<{
@@ -581,8 +597,8 @@ function useHoverPreviewContext() {
     return context;
 }
 
-// Main sections list component
-export function SectionsList({
+// Main sections list component - memoized for performance
+const SectionsListComponent = function SectionsList({
     sections,
     expandedSections,
     onToggleExpand,
@@ -597,6 +613,9 @@ export function SectionsList({
     pageId,
     isProcessing = false
 }: ISectionsListProps) {
+    
+    // Memoize sections to prevent unnecessary re-renders
+    const memoizedSections = useMemo(() => sections, [sections]);
     const containerRef = useRef<HTMLDivElement>(null);
     const [dragState, setDragState] = useState<IDragState>({
         isDragActive: false,
@@ -801,14 +820,14 @@ export function SectionsList({
                         </Paper>
                     ) : (
                         <div className={styles.sectionsList}>
-                            {sections.map((section, index) => (
+                            {memoizedSections.map((section, index) => (
                                 <SectionItem
-                                    key={section.id}
+                                    key={`section-${section.id}-${section.position || index}`}
                                     section={section}
                                     level={0}
                                     index={index}
                                     parentId={null}
-                                    allSections={sections}
+                                    allSections={memoizedSections}
                                     pageId={pageId || 0}
                                     onRemoveSection={onRemoveSection}
                                     onAddChildSection={onAddChildSection}
@@ -826,4 +845,21 @@ export function SectionsList({
         </HoverPreviewContext.Provider>
     </DragContext.Provider>
 );
-} 
+};
+
+// Export memoized component
+export const SectionsList = memo(SectionsListComponent, (prevProps, nextProps) => {
+    return (
+        prevProps.sections.length === nextProps.sections.length &&
+        prevProps.sections.every((section, index) => 
+            section.id === nextProps.sections[index]?.id &&
+            section.position === nextProps.sections[index]?.position
+        ) &&
+        prevProps.selectedSectionId === nextProps.selectedSectionId &&
+        prevProps.focusedSectionId === nextProps.focusedSectionId &&
+        prevProps.pageId === nextProps.pageId &&
+        prevProps.isProcessing === nextProps.isProcessing &&
+        prevProps.expandedSections.size === nextProps.expandedSections.size &&
+        Array.from(prevProps.expandedSections).every(id => nextProps.expandedSections.has(id))
+    );
+}); 

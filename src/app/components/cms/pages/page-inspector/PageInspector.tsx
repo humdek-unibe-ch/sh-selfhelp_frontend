@@ -46,8 +46,17 @@ import { DragDropMenuPositioner } from '../../ui/drag-drop-menu-positioner/DragD
 import { FieldLabelWithTooltip } from '../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
 import { IPageField } from '../../../../../types/responses/admin/page-details.types';
 import {IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
-import { FieldRenderer, IFieldData, InspectorHeader } from '../../shared';
-import { IInspectorButton } from '../../shared/inspector-header/InspectorHeader';
+import { 
+    FieldRenderer, 
+    IFieldData, 
+    InspectorHeader, 
+    IInspectorButton,
+    InspectorContainer,
+    InspectorInfoSection,
+    CollapsibleInspectorSection,
+    FieldsSection,
+    ContentFieldsSection
+} from '../../shared';
 import { PAGE_ACCESS_TYPES } from '../../../../../constants/lookups.constants';
 import styles from './PageInspector.module.css';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
@@ -102,6 +111,15 @@ export function PageInspector({ page, isConfigurationPage = false, onButtonsChan
     const [propertiesExpanded, setPropertiesExpanded] = useState(() => 
         !isCollapsed(INSPECTOR_TYPES.PAGE, INSPECTOR_SECTIONS.PROPERTIES)
     );
+    
+    // Update persistent state when expanded states change
+    useEffect(() => {
+        setCollapsed(INSPECTOR_TYPES.PAGE, INSPECTOR_SECTIONS.CONTENT, !contentExpanded);
+    }, [contentExpanded, setCollapsed]);
+    
+    useEffect(() => {
+        setCollapsed(INSPECTOR_TYPES.PAGE, INSPECTOR_SECTIONS.PROPERTIES, !propertiesExpanded);
+    }, [propertiesExpanded, setCollapsed]);
     const [activeLanguageTab, setActiveLanguageTab] = useState<string>('');
     
     // References to get final positions from DragDropMenuPositioner components
@@ -504,324 +522,117 @@ export function PageInspector({ page, isConfigurationPage = false, onButtonsChan
     const inspectorButtons = generateInspectorButtons();
 
     return (
-        <div className={styles.asideContainer}>
-            {/* Inspector Header */}
-            <InspectorHeader 
+        <>
+            <InspectorContainer
                 inspectorType="page"
                 inspectorTitle={page.title || page.keyword}
                 inspectorId={pageDetails?.id || page.id_pages}
                 inspectorButtons={inspectorButtons}
-            />
-            
-            {/* Scrollable Content - Now full height */}
-            <ScrollArea className={styles.asideContent}>
-                <Stack gap="xs">
-                    {/* Page Information Section */}
-                    <div className={styles.asideSection}>
-                        <Paper withBorder={false} style={{ backgroundColor: 'light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-9))' }}>
-                            <Box p="sm">
-                            <Group gap="xs" mb="sm">
-                                <IconInfoCircle size={16} style={{ color: 'var(--mantine-color-blue-6)' }} />
-                                <Text size="sm" fw={500} c="blue">Page Information</Text>
-                            </Group>
-                            
-                            <Stack gap="xs">
-                                <Group gap="md" wrap="wrap">
-                                    <Box>
-                                        <Text size="xs" fw={500} c="dimmed">Keyword</Text>
-                                        <Text size="sm" style={{ fontFamily: 'monospace', color: 'var(--mantine-color-text)' }}>{page.keyword}</Text>
-                                    </Box>
-                                    <Box>
-                                        <Text size="xs" fw={500} c="dimmed">URL</Text>
-                                        <Text size="sm" style={{ fontFamily: 'monospace', color: 'var(--mantine-color-text)' }}>{page.url}</Text>
-                                    </Box>
-                                    <Box>
-                                        <Text size="xs" fw={500} c="dimmed">Page ID</Text>
-                                        <Text size="sm" style={{ color: 'var(--mantine-color-text)' }}>{pageDetails?.id || page.id_pages}</Text>
-                                    </Box>
-                                </Group>
-                                
-                                <Group gap="xs" mt="xs">
-                                    {isConfigurationPage && (
-                                        <Badge color="purple" variant="light" size="sm">
-                                            Configuration Page
-                                        </Badge>
-                                    )}
-                                    {page.is_headless === 1 && (
-                                        <Badge color="orange" variant="light" size="sm">
-                                            Headless
-                                        </Badge>
-                                    )}
-                                    {page.nav_position !== null && (
-                                        <Badge color="blue" variant="light" size="sm">
-                                            Menu Position: {page.nav_position}
-                                        </Badge>
-                                    )}
-                                    {page.parent !== null && (
-                                        <Badge color="green" variant="light" size="sm">
-                                            Child Page
-                                        </Badge>
-                                    )}
-                                </Group>
-                            </Stack>
-                            </Box>
-                        </Paper>
-                    </div>
+            >
+                {/* Page Information Section */}
+                <InspectorInfoSection
+                    title="Page Information"
+                    infoItems={[
+                        { label: 'Keyword', value: page.keyword, variant: 'code' },
+                        { label: 'URL', value: page.url, variant: 'code' },
+                        { label: 'Page ID', value: pageDetails?.id || page.id_pages }
+                    ]}
+                    badges={[
+                        ...(isConfigurationPage ? [{ label: 'Configuration Page', color: 'purple' }] : []),
+                        ...(page.is_headless === 1 ? [{ label: 'Headless', color: 'orange' }] : []),
+                        ...(page.nav_position !== null ? [{ label: `Menu Position: ${page.nav_position}`, color: 'blue' }] : []),
+                        ...(page.parent !== null ? [{ label: 'Child Page', color: 'green' }] : [])
+                    ]}
+                />
 
-                    {/* Content Section */}
-                    <div className={styles.asideSection}>
-                        <Group 
-                            p="sm" 
-                            justify="space-between" 
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => setContentExpanded(!contentExpanded)}
-                        >
-                            <Title order={5}>Content</Title>
-                            <ActionIcon variant="subtle" size="sm">
-                                {contentExpanded ? <IconChevronUp size="1rem" /> : <IconChevronDown size="1rem" />}
-                            </ActionIcon>
-                        </Group>
-                        
-                        <Collapse in={contentExpanded}>
-                            <Divider />
-                            <Box p="sm">
-                                {contentFields.length > 0 ? (
-                                    hasMultipleLanguages ? (
-                                        <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || (languages[0]?.id.toString() || ''))}>
-                                            <Tabs.List>
-                                                {languages.map(lang => {
-                                                    const langId = lang.id.toString();
-                                                    return (
-                                                        <Tabs.Tab key={langId} value={langId}>
-                                                            {lang.language}
-                                                        </Tabs.Tab>
-                                                    );
-                                                })}
-                                            </Tabs.List>
+                {/* Content Section */}
+                <CollapsibleInspectorSection
+                    title="Content"
+                    inspectorType={INSPECTOR_TYPES.PAGE}
+                    sectionName={INSPECTOR_SECTIONS.CONTENT}
+                    defaultExpanded={true}
+                >
+                    <ContentFieldsSection
+                        fields={contentFields.map(field => convertToFieldData(field))}
+                        languages={languages}
+                        hasMultipleLanguages={hasMultipleLanguages}
+                        activeLanguageTab={activeLanguageTab}
+                        onLanguageTabChange={(value) => setActiveLanguageTab(value || (languages[0]?.id.toString() || ''))}
+                        renderField={(field, languageId) => renderContentField(field as IPageField, languageId)}
+                        className={styles.fullWidthLabel}
+                    />
+                </CollapsibleInspectorSection>
 
-                                            {languages.map(lang => {
-                                                const langId = lang.id.toString();
-                                                return (
-                                                    <Tabs.Panel key={langId} value={langId} pt="md">
-                                                        <Stack gap="md">
-                                                            {contentFields.map(field => 
-                                                                renderContentField(field, lang.id)
-                                                            )}
-                                                        </Stack>
-                                                    </Tabs.Panel>
-                                                );
-                                            })}
-                                        </Tabs>
-                                    ) : (
-                                        <Stack gap="md">
-                                            {contentFields.map(field => 
-                                                renderContentField(field, languages[0]?.id || 1) // Default to first language
-                                            )}
-                                        </Stack>
-                                    )
-                                ) : (
-                                    <Alert icon={<IconInfoCircle size="1rem" />} color="blue">
-                                        No content fields available for this page.
-                                    </Alert>
-                                )}
-                            </Box>
-                        </Collapse>
-                    </div>
-
-                    {/* Properties Section */}
-                    {!isConfigurationPage && (
-                    <div className={styles.asideSection}>
-                        <Group 
-                            p="sm" 
-                            justify="space-between" 
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => setPropertiesExpanded(!propertiesExpanded)}
-                        >
-                            <Title order={5}>Properties</Title>
-                            <ActionIcon variant="subtle" size="sm">
-                                {propertiesExpanded ? <IconChevronUp size="1rem" /> : <IconChevronDown size="1rem" />}
-                            </ActionIcon>
-                        </Group>
-                        
-                        <Collapse in={propertiesExpanded}>
-                            <Divider />
-                            <Box p="sm">
-                                <Stack gap="xs" className={styles.compactStack}>
-                                    {/* Page Basic Properties */}
-                                    <Paper p="sm" withBorder>
-                                        <Stack gap="sm">
-                                            <Text size="xs" fw={500} c="blue">Basic Information</Text>
-                                            <LockedField
-                                                label={
-                                                    <FieldLabelWithTooltip 
-                                                        label="Keyword" 
-                                                        tooltip="Unique identifier for the page. Used in URLs and internal references. Cannot contain spaces or special characters."
-                                                    />
-                                                }
-                                                {...form.getInputProps('keyword')}
-                                                lockedTooltip="Enable keyword editing"
-                                                unlockedTooltip="Lock keyword editing"
-                                            />
-                                            
-                                            <LockedField
-                                                label={
-                                                    <FieldLabelWithTooltip 
-                                                        label="URL" 
-                                                        tooltip="The web address path for this page. Should start with / and be user-friendly."
-                                                    />
-                                                }
-                                                {...form.getInputProps('url')}
-                                                lockedTooltip="Enable URL editing"
-                                                unlockedTooltip="Lock URL editing"
-                                            />
-                                        </Stack>
-                                    </Paper>
-
-                                    {/* Page Access Type */}
-                                    <Paper p="md" withBorder>
-                                        <Stack gap="md">
-                                            <FieldLabelWithTooltip 
-                                                label="Page Access Type" 
-                                                tooltip="Controls who can access this page - web only, mobile only, or both platforms"
-                                            />
-                                            <Radio.Group
-                                                value={form.values.pageAccessType}
-                                                onChange={(value) => form.setFieldValue('pageAccessType', value)}
-                                            >
-                                                <Stack gap="xs">
-                                                    {pageAccessTypes.map((type) => (
-                                                        <Radio
-                                                            key={type.lookupCode}
-                                                            value={type.lookupCode}
-                                                            label={type.lookupValue}
-                                                        />
-                                                    ))}
-                                                </Stack>
-                                            </Radio.Group>
-                                        </Stack>
-                                    </Paper>
-
-                                    {/* Menu Positions */}
-                                    <Paper p="md" withBorder>
-                                        <Stack gap="md">
-                                            <Group gap="xs">
-                                                <Text size="sm" fw={500} c="blue">Menu Positions</Text>
-                                                <Tooltip 
-                                                    label="Configure where this page appears in the website navigation menus. You can drag to reorder positions."
-                                                    multiline
-                                                    w={300}
-                                                >
-                                                    <ActionIcon variant="subtle" size="xs" color="gray">
-                                                        <IconInfoCircle size="0.75rem" />
-                                                    </ActionIcon>
-                                                </Tooltip>
-                                            </Group>
-                                            
-                                                                        <DragDropMenuPositioner
-                                currentPage={page}
-                                menuType="header"
-                                title="Header Menu Position"
-                                enabled={form.values.headerMenuEnabled}
-                                position={form.values.navPosition}
-                                onEnabledChange={handleHeaderMenuChange}
-                                onPositionChange={handleHeaderPositionChange}
-                                onGetFinalPosition={(getFinalPositionFn) => {
-                                    headerMenuGetFinalPosition.current = getFinalPositionFn;
-                                }}
-                                parentPage={parentPage}
-                                checkboxLabel="Header Menu"
-                                showAlert={false}
-                            />
-
-                            <DragDropMenuPositioner
-                                currentPage={page}
-                                menuType="footer"
-                                title="Footer Menu Position"
-                                enabled={form.values.footerMenuEnabled}
-                                position={form.values.footerPosition}
-                                onEnabledChange={handleFooterMenuChange}
-                                onPositionChange={handleFooterPositionChange}
-                                onGetFinalPosition={(getFinalPositionFn) => {
-                                    footerMenuGetFinalPosition.current = getFinalPositionFn;
-                                }}
-                                parentPage={parentPage}
-                                checkboxLabel="Footer Menu"
-                                showAlert={false}
-                            />
-                                        </Stack>
-                                    </Paper>
-
-                                    {/* Page Settings */}
-                                    <Paper p="md" withBorder>
-                                        <Stack gap="md">
-                                            <Group gap="xs">
-                                                <Text size="sm" fw={500} c="blue">Page Settings</Text>
-                                                <Tooltip 
-                                                    label="Configure special page behaviors and access controls."
-                                                    multiline
-                                                    w={300}
-                                                >
-                                                    <ActionIcon variant="subtle" size="xs" color="gray">
-                                                        <IconInfoCircle size="0.75rem" />
-                                                    </ActionIcon>
-                                                </Tooltip>
-                                            </Group>
-                                            
-                                            <Group>
-                                                <Tooltip label="Page will not include header/footer layout - useful for popups, embeds, or standalone pages">
-                                                    <Checkbox
-                                                        label="Headless Page"
-                                                        {...form.getInputProps('headless', { type: 'checkbox' })}
-                                                    />
-                                                </Tooltip>
-                                                <Tooltip label="Page can be accessed without authentication - visible to all users including guests">
-                                                    <Checkbox
-                                                        label="Open Access"
-                                                        {...form.getInputProps('openAccess', { type: 'checkbox' })}
-                                                    />
-                                                </Tooltip>
-                                            </Group>
-                                        </Stack>
-                                    </Paper>
-
-                                    {/* Property Fields */}
-                                    {propertyFields.length > 0 && (
-                                        <Paper p="md" withBorder>
-                                            <Stack gap="md">
-                                                <Group gap="xs">
-                                                    <Text size="sm" fw={500} c="blue">Additional Properties</Text>
-                                                    <Tooltip 
-                                                        label="Additional configuration fields specific to this page type."
-                                                        multiline
-                                                        w={300}
-                                                    >
-                                                        <ActionIcon variant="subtle" size="xs" color="gray">
-                                                            <IconInfoCircle size="0.75rem" />
-                                                        </ActionIcon>
-                                                    </Tooltip>
-                                                </Group>
-                                                
-                                                {propertyFields.map(field => (
-                                                    <Box key={field.id}>{renderPropertyField(field)}</Box>
-                                                ))}
-                                            </Stack>
-                                        </Paper>
-                                    )}
-                                </Stack>
-                            </Box>
-                        </Collapse>
-                    </div>
-                    )}
-
-                    {/* Property Fields for Configuration Pages */}
-                    {isConfigurationPage && propertyFields.length > 0 && (
-                        <div className={styles.asideSection}>
-                            <Box p="sm">
+                {/* Properties Section */}
+                {!isConfigurationPage && (
+                    <CollapsibleInspectorSection
+                        title="Properties"
+                        inspectorType={INSPECTOR_TYPES.PAGE}
+                        sectionName={INSPECTOR_SECTIONS.PROPERTIES}
+                        defaultExpanded={true}
+                    >
+                        <Stack gap="xs" className={styles.compactStack}>
+                            {/* Page Basic Properties */}
+                            <Paper p="sm" withBorder>
                                 <Stack gap="sm">
+                                    <Text size="xs" fw={500} c="blue">Basic Information</Text>
+                                    <LockedField
+                                        label={
+                                            <FieldLabelWithTooltip 
+                                                label="Keyword" 
+                                                tooltip="Unique identifier for the page. Used in URLs and internal references. Cannot contain spaces or special characters."
+                                            />
+                                        }
+                                        {...form.getInputProps('keyword')}
+                                        lockedTooltip="Enable keyword editing"
+                                        unlockedTooltip="Lock keyword editing"
+                                    />
+                                    
+                                    <LockedField
+                                        label={
+                                            <FieldLabelWithTooltip 
+                                                label="URL" 
+                                                tooltip="The web address path for this page. Should start with / and be user-friendly."
+                                            />
+                                        }
+                                        {...form.getInputProps('url')}
+                                        lockedTooltip="Enable URL editing"
+                                        unlockedTooltip="Lock URL editing"
+                                    />
+                                </Stack>
+                            </Paper>
+
+                            {/* Page Access Type */}
+                            <Paper p="md" withBorder>
+                                <Stack gap="md">
+                                    <FieldLabelWithTooltip 
+                                        label="Page Access Type" 
+                                        tooltip="Controls who can access this page - web only, mobile only, or both platforms"
+                                    />
+                                    <Radio.Group
+                                        value={form.values.pageAccessType}
+                                        onChange={(value) => form.setFieldValue('pageAccessType', value)}
+                                    >
+                                        <Stack gap="xs">
+                                            {pageAccessTypes.map((type) => (
+                                                <Radio
+                                                    key={type.lookupCode}
+                                                    value={type.lookupCode}
+                                                    label={type.lookupValue}
+                                                />
+                                            ))}
+                                        </Stack>
+                                    </Radio.Group>
+                                </Stack>
+                            </Paper>
+
+                            {/* Menu Positions */}
+                            <Paper p="md" withBorder>
+                                <Stack gap="md">
                                     <Group gap="xs">
-                                        <Text size="xs" fw={500} c="blue">Configuration Properties</Text>
+                                        <Text size="sm" fw={500} c="blue">Menu Positions</Text>
                                         <Tooltip 
-                                            label="Configuration fields specific to this page type."
+                                            label="Configure where this page appears in the website navigation menus. You can drag to reorder positions."
                                             multiline
                                             w={300}
                                         >
@@ -831,17 +642,114 @@ export function PageInspector({ page, isConfigurationPage = false, onButtonsChan
                                         </Tooltip>
                                     </Group>
                                     
-                                    {propertyFields.map(field => (
-                                        <Box key={field.id}>{renderPropertyField(field)}</Box>
-                                    ))}
+                                    <DragDropMenuPositioner
+                                        currentPage={page}
+                                        menuType="header"
+                                        title="Header Menu Position"
+                                        enabled={form.values.headerMenuEnabled}
+                                        position={form.values.navPosition}
+                                        onEnabledChange={handleHeaderMenuChange}
+                                        onPositionChange={handleHeaderPositionChange}
+                                        onGetFinalPosition={(getFinalPositionFn) => {
+                                            headerMenuGetFinalPosition.current = getFinalPositionFn;
+                                        }}
+                                        parentPage={parentPage}
+                                        checkboxLabel="Header Menu"
+                                        showAlert={false}
+                                    />
+
+                                    <DragDropMenuPositioner
+                                        currentPage={page}
+                                        menuType="footer"
+                                        title="Footer Menu Position"
+                                        enabled={form.values.footerMenuEnabled}
+                                        position={form.values.footerPosition}
+                                        onEnabledChange={handleFooterMenuChange}
+                                        onPositionChange={handleFooterPositionChange}
+                                        onGetFinalPosition={(getFinalPositionFn) => {
+                                            footerMenuGetFinalPosition.current = getFinalPositionFn;
+                                        }}
+                                        parentPage={parentPage}
+                                        checkboxLabel="Footer Menu"
+                                        showAlert={false}
+                                    />
                                 </Stack>
-                            </Box>
-                        </div>
-                    )}
+                            </Paper>
 
+                            {/* Page Settings */}
+                            <Paper p="md" withBorder>
+                                <Stack gap="md">
+                                    <Group gap="xs">
+                                        <Text size="sm" fw={500} c="blue">Page Settings</Text>
+                                        <Tooltip 
+                                            label="Configure special page behaviors and access controls."
+                                            multiline
+                                            w={300}
+                                        >
+                                            <ActionIcon variant="subtle" size="xs" color="gray">
+                                                <IconInfoCircle size="0.75rem" />
+                                            </ActionIcon>
+                                        </Tooltip>
+                                    </Group>
+                                    
+                                    <Group>
+                                        <Tooltip label="Page will not include header/footer layout - useful for popups, embeds, or standalone pages">
+                                            <Checkbox
+                                                label="Headless Page"
+                                                {...form.getInputProps('headless', { type: 'checkbox' })}
+                                            />
+                                        </Tooltip>
+                                        <Tooltip label="Page can be accessed without authentication - visible to all users including guests">
+                                            <Checkbox
+                                                label="Open Access"
+                                                {...form.getInputProps('openAccess', { type: 'checkbox' })}
+                                            />
+                                        </Tooltip>
+                                    </Group>
+                                </Stack>
+                            </Paper>
 
-                </Stack>
-            </ScrollArea>
+                            {/* Property Fields */}
+                            {propertyFields.length > 0 && (
+                                <Paper p="md" withBorder>
+                                    <Stack gap="md">
+                                        <Group gap="xs">
+                                            <Text size="sm" fw={500} c="blue">Additional Properties</Text>
+                                            <Tooltip 
+                                                label="Additional configuration fields specific to this page type."
+                                                multiline
+                                                w={300}
+                                            >
+                                                <ActionIcon variant="subtle" size="xs" color="gray">
+                                                    <IconInfoCircle size="0.75rem" />
+                                                </ActionIcon>
+                                            </Tooltip>
+                                        </Group>
+                                        
+                                        {propertyFields.map(field => (
+                                            <Box key={field.id}>{renderPropertyField(field)}</Box>
+                                        ))}
+                                    </Stack>
+                                </Paper>
+                            )}
+                        </Stack>
+                    </CollapsibleInspectorSection>
+                )}
+
+                {/* Property Fields for Configuration Pages */}
+                {isConfigurationPage && propertyFields.length > 0 && (
+                    <InspectorInfoSection
+                        title="Configuration Properties"
+                        infoItems={[]}
+                    >
+                        <Stack gap="sm">
+                            {propertyFields.map(field => (
+                                <Box key={field.id}>{renderPropertyField(field)}</Box>
+                            ))}
+                        </Stack>
+                    </InspectorInfoSection>
+                )}
+            </InspectorContainer>
 
             {/* Create Child Page Modal */}
             <CreatePageModal
@@ -896,6 +804,6 @@ export function PageInspector({ page, isConfigurationPage = false, onButtonsChan
                     </Group>
                 </Stack>
             </Modal>
-        </div>
+        </>
     );
 } 

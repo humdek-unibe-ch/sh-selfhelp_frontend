@@ -91,13 +91,10 @@ function Providers({ children }: { children: React.ReactNode }) {
                     </RefineWrapper>
                 </LanguageProvider>
             </MantineProvider>
-            {process.env.NODE_ENV === 'development' && (
-                <ReactQueryDevtools 
-                    initialIsOpen={false}
-                    position="bottom-right"
-                    buttonPosition="bottom-right"
-                />
-            )}
+            <ReactQueryDevtools
+                initialIsOpen={true}
+                buttonPosition="bottom-right"
+            />
         </QueryClientProvider>
     );
 }
