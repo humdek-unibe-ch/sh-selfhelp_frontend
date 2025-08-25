@@ -55,6 +55,7 @@ import { CreatePageModal } from '../create-page/CreatePage';
 import { exportPageSections } from '../../../../../api/admin/section.api';
 import { downloadJsonFile, generateExportFilename } from '../../../../../utils/export-import.utils';
 import { useQueryClient } from '@tanstack/react-query';
+import { useInspectorStore, INSPECTOR_TYPES, INSPECTOR_SECTIONS } from '../../../../../store/inspectorStore';
 import { 
     processAllFields, 
     isContentField, 
@@ -92,8 +93,15 @@ export function PageInspector({ page, isConfigurationPage = false, onButtonsChan
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [createChildModalOpened, setCreateChildModalOpened] = useState(false);
-    const [contentExpanded, setContentExpanded] = useState(true);
-    const [propertiesExpanded, setPropertiesExpanded] = useState(true);
+    // Use persistent inspector state
+    const { isCollapsed, setCollapsed } = useInspectorStore();
+    
+    const [contentExpanded, setContentExpanded] = useState(() => 
+        !isCollapsed(INSPECTOR_TYPES.PAGE, INSPECTOR_SECTIONS.CONTENT)
+    );
+    const [propertiesExpanded, setPropertiesExpanded] = useState(() => 
+        !isCollapsed(INSPECTOR_TYPES.PAGE, INSPECTOR_SECTIONS.PROPERTIES)
+    );
     const [activeLanguageTab, setActiveLanguageTab] = useState<string>('');
     
     // References to get final positions from DragDropMenuPositioner components
@@ -132,6 +140,15 @@ export function PageInspector({ page, isConfigurationPage = false, onButtonsChan
             setActiveLanguageTab(firstLangId);
         }
     }, [languages, activeLanguageTab]);
+    
+    // Update persistent state when collapse states change
+    useEffect(() => {
+        setCollapsed(INSPECTOR_TYPES.PAGE, INSPECTOR_SECTIONS.CONTENT, !contentExpanded);
+    }, [contentExpanded, setCollapsed]);
+    
+    useEffect(() => {
+        setCollapsed(INSPECTOR_TYPES.PAGE, INSPECTOR_SECTIONS.PROPERTIES, !propertiesExpanded);
+    }, [propertiesExpanded, setCollapsed]);
 
     // Update page mutation
     const updatePageMutation = useUpdatePageMutation({

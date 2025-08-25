@@ -39,11 +39,11 @@ export const DEBUG_CONFIG: IDebugConfig = {
         showComponent: true,
     },
     components: {
-        navigationDebug: process.env.NEXT_PUBLIC_DEBUG_NAV === 'true' || process.env.NODE_ENV === 'development',
+        navigationDebug: process.env.NEXT_PUBLIC_DEBUG_NAV === 'true',
         performanceMonitor: process.env.NEXT_PUBLIC_DEBUG_PERF === 'true',
         stateInspector: process.env.NEXT_PUBLIC_DEBUG_STATE === 'true',
         apiLogger: process.env.NEXT_PUBLIC_DEBUG_API === 'true',
-        dragDropDebug: process.env.NEXT_PUBLIC_DEBUG_DRAGDROP === 'true' || process.env.NODE_ENV === 'development',
+        dragDropDebug: process.env.NEXT_PUBLIC_DEBUG_DRAGDROP === 'true',
     },
     features: {
         showBoundingBoxes: process.env.NEXT_PUBLIC_DEBUG_BOXES === 'true',

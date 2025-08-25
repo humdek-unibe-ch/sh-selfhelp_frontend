@@ -72,6 +72,8 @@ export function AdminNavbar() {
         })) || []
     }), [configurationPageLinks, categorizedSystemPages, categorizedRegularPages, pages]);
 
+
+
     // Build navigation data structure
     const navigationData = useMemo(() => {
         if (isLoading) return [];

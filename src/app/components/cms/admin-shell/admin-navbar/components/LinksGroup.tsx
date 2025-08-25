@@ -367,6 +367,7 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
               window.open(item.link, '_blank');
             }
           }}
+
           onContextMenu={(e: React.MouseEvent) => {
             // Allow right-click context menu for "open in new tab"
             e.stopPropagation();

@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { AdminDataApi } from '../api/admin/data.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import type {
@@ -28,8 +28,10 @@ export function useDataTables() {
   return useQuery<IDataTablesListResponse>({
     queryKey: DATA_QUERY_KEYS.tables(),
     queryFn: () => AdminDataApi.listDataTables(),
-    staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.REAL_TIME.staleTime,
-    gcTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.REAL_TIME.gcTime,
+    staleTime: REACT_QUERY_CONFIG.CACHE.staleTime, // Use normal caching instead of real-time
+    gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+    refetchOnMount: false, // Use cached data first
+    placeholderData: keepPreviousData, // Keep previous data for smooth transitions
   });
 }
 

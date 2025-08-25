@@ -16,8 +16,8 @@ export function DataAdminPage() {
   const [activeSelectedUserId, setActiveSelectedUserId] = useState<number>(-1);
   const [activeShowDeleted, setActiveShowDeleted] = useState<boolean>(false);
 
-  // Users - fetch first page with large pageSize to populate dropdown
-  const { data: usersResp } = useUsers({ page: 1, pageSize: 1000, sort: 'email', sortDirection: 'asc' });
+  // Users - fetch reasonable amount for dropdown, can be searched if needed
+  const { data: usersResp } = useUsers({ page: 1, pageSize: 100, sort: 'email', sortDirection: 'asc' });
   const { data: tablesResp } = useDataTables();
 
   const userOptions = useMemo(() => {

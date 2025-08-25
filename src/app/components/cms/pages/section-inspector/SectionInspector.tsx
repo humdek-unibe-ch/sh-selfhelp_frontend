@@ -38,6 +38,7 @@ import {
 import styles from './SectionInspector.module.css';
 import { exportSection } from '../../../../../api/admin/section.api';
 import { downloadJsonFile, generateExportFilename } from '../../../../../utils/export-import.utils';
+import { INSPECTOR_TYPES } from '../../../../../store/inspectorStore';
 import { AdminApi } from '../../../../../api/admin';
 import { validateName, getNameValidationError } from '../../../../../utils/name-validation.utils';
 import { notifications } from '@mantine/notifications';
@@ -677,6 +678,7 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
                                 onFieldChange={handleContentFieldChange}
                                 isMultiLanguage={true}
                                 className={styles.fullWidthLabel}
+                                inspectorType={INSPECTOR_TYPES.SECTION}
                             />
                         </div>
 
@@ -690,6 +692,7 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
                                 onFieldChange={handlePropertyFieldChange}
                                 isMultiLanguage={false}
                                 className={styles.fullWidthLabel}
+                                inspectorType={INSPECTOR_TYPES.SECTION}
                             />
                         </div>
                     </Stack>

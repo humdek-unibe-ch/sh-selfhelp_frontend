@@ -14,9 +14,10 @@ import {
     IconChevronDown,
     IconChevronUp
 } from '@tabler/icons-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FieldRenderer, IFieldData } from '../field-renderer/FieldRenderer';
 import { ILanguage } from '../field-form-handler/FieldFormHandler';
+import { useInspectorStore } from '../../../../../store/inspectorStore';
 
 interface IFieldsSectionProps {
     title: string;
@@ -27,6 +28,7 @@ interface IFieldsSectionProps {
     isMultiLanguage?: boolean;
     defaultExpanded?: boolean;
     className?: string;
+    inspectorType: string; // Required for persistent state
 }
 
 export function FieldsSection({
@@ -37,10 +39,23 @@ export function FieldsSection({
     onFieldChange,
     isMultiLanguage = false,
     defaultExpanded = true,
-    className
+    className,
+    inspectorType
 }: IFieldsSectionProps) {
-    const [expanded, setExpanded] = useState(defaultExpanded);
+    const { isCollapsed, setCollapsed } = useInspectorStore();
+    
+    // Get persistent state, fallback to defaultExpanded if no stored state
+    const [expanded, setExpanded] = useState(() => {
+        const storedCollapsed = isCollapsed(inspectorType, title.toLowerCase());
+        return storedCollapsed ? false : defaultExpanded;
+    });
+    
     const [activeLanguageTab, setActiveLanguageTab] = useState(languages[0]?.id?.toString() || '');
+    
+    // Update persistent state when expanded changes
+    useEffect(() => {
+        setCollapsed(inspectorType, title.toLowerCase(), !expanded);
+    }, [expanded, inspectorType, title, setCollapsed]);
 
     if (fields.length === 0) {
         return null;

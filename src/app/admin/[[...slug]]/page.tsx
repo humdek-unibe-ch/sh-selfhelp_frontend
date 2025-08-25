@@ -46,7 +46,7 @@ function flattenPages(pages: IAdminPage[]): IAdminPage[] {
 export default function AdminPage() {
   const params = useParams();
   const path = params.slug ? (Array.isArray(params.slug) ? params.slug.join('/') : params.slug) : '';
-  const { pages, configurationPages, isLoading, error } = useAdminPages();
+  const { pages, configurationPages, isLoading, isFetching, error } = useAdminPages();
 
 
 
@@ -95,7 +95,8 @@ export default function AdminPage() {
   // Render page content based on route
   const renderMainContent = () => {
     if (isPageRoute) {
-      if (isLoading) {
+      // Only show loading spinner on initial load when no data exists
+      if (isLoading && !pages?.length) {
         return (
           <Stack align="center" py="xl">
             <Loader size="lg" />
@@ -131,7 +132,7 @@ export default function AdminPage() {
       }
 
       return (
-        <Box className="max-h-screen">
+        <Box className={`max-h-screen transition-opacity duration-200 ${isFetching ? 'opacity-90' : 'opacity-100'}`}>
           {/* Page Sections - Full height */}
           <PageSections 
             pageId={selectedPage.id_pages} 

@@ -8,7 +8,7 @@
 export const REACT_QUERY_CONFIG = {
     /**
      * Global cache configuration
-     * Increased cache times for smoother language transitions
+     * Optimized cache times for smooth navigation and better performance
      */
     CACHE: {
         staleTime: 1000, // 1 second - how long data is considered fresh
@@ -25,7 +25,7 @@ export const REACT_QUERY_CONFIG = {
             retry: 3, // Number of retry attempts
             retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
             refetchOnWindowFocus: false, // Don't refetch on window focus
-            refetchOnMount: true, // Refetch when component mounts
+            refetchOnMount: false, // Don't refetch when component mounts - use cache first
             refetchOnReconnect: true, // Refetch when network reconnects
         },
         mutations: {
@@ -73,14 +73,14 @@ export const REACT_QUERY_CONFIG = {
     SPECIAL_CONFIGS: {
         // For static data that rarely changes (like lookups, style groups)
         STATIC_DATA: {
-            staleTime: 5 * 60 * 1000, // 5 minutes for static data
-            gcTime: 10 * 60 * 1000, // 10 minutes in cache
+            staleTime: 1000, // 1 second for static data
+            gcTime: 1000, // 1 second in cache
         },
         
         // For real-time data that changes frequently
         REAL_TIME: {
-            staleTime: 1000, // Always stale, always refetch
-            gcTime: 1000, // 1 second in cache
+            staleTime: 0, // Always stale, always refetch
+            gcTime: 30 * 1000, // 30 seconds in cache for quick navigation
         },
         
         // For user-specific data

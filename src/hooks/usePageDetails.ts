@@ -5,7 +5,7 @@
  * @module hooks/usePageDetails
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { AdminApi } from '../api/admin.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 
@@ -24,6 +24,10 @@ export function usePageSections(pageId: number | null, enabled: boolean = true) 
             return { sections, page_id: pageId };
         },
         enabled: enabled && !!pageId,
+        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        placeholderData: keepPreviousData, // Keep previous data for smooth transitions
+        refetchOnMount: false, // Use cached data first
     });
 }
 
@@ -44,5 +48,7 @@ export function usePageFields(pageId: number | null, enabled: boolean = true) {
         enabled: enabled && !!pageId,
         staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        placeholderData: keepPreviousData, // Keep previous data for smooth transitions
+        refetchOnMount: false, // Use cached data first
     });
 } 

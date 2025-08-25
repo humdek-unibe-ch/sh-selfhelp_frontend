@@ -6,7 +6,7 @@
  * @module hooks/useAdminPages
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { AdminApi } from '../api/admin.api';
 import { IAdminPage } from '../types/responses/admin/admin.types';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
@@ -61,7 +61,7 @@ export function useAdminPages() {
     // More robust authentication check: must have Refine auth state, user data, AND access token
     const isActuallyAuthenticated = !!isAuthenticated && !!user && !!getAccessToken();
     
-    const { data, isLoading, error } = useQuery({
+    const { data, isLoading, error, isFetching } = useQuery({
         queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES,
         queryFn: async () => {
             return await AdminApi.getAdminPages();
@@ -70,6 +70,7 @@ export function useAdminPages() {
         staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
         retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
+        placeholderData: keepPreviousData, // Keep previous data for smooth transitions
         select: (data: IAdminPage[]) => {
             // Ensure data is an array to prevent undefined errors
             if (!data || !Array.isArray(data)) {
@@ -223,7 +224,7 @@ export function useAdminPages() {
             };
         },
         refetchOnWindowFocus: false,
-        refetchOnMount: true,
+        refetchOnMount: false, // Use cached data first for faster navigation
     });
 
     return {
@@ -247,6 +248,7 @@ export function useAdminPages() {
             other: []
         },
         isLoading,
+        isFetching,
         error
     };
 }

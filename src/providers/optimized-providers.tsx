@@ -74,7 +74,13 @@ export function OptimizedProviders({ children }: { children: React.ReactNode }) 
                     </RefineWrapper>
                 </LanguageProvider>
             </MantineProvider>
-            <ReactQueryDevtools initialIsOpen={false} />
+            {process.env.NODE_ENV === 'development' && (
+                <ReactQueryDevtools 
+                    initialIsOpen={false}
+                    position="bottom-right"
+                    buttonPosition="bottom-right"
+                />
+            )}
         </QueryClientProvider>
     );
 }

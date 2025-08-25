@@ -1,9 +1,19 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
+  
     experimental: {
-        optimizePackageImports: ['@mantine/core', '@mantine/hooks', '@mantine/notifications'],
+      optimizePackageImports: [
+        '@mantine/core',
+        '@mantine/hooks',
+        '@mantine/notifications',
+      ],
     },
-};
-
-export default nextConfig;
+  
+    turbopack: {
+      // You can add options here if needed, usually empty is fine
+    },
+  };
+  
+  export default nextConfig;
+  
