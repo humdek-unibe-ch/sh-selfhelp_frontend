@@ -65,8 +65,14 @@ const handleTokenRefreshSuccess = (accessToken: string, refreshToken?: string) =
 const handleTokenRefreshFailure = () => {
     removeTokens();
     delete apiClient.defaults.headers.common.Authorization;
-    if (!window.location.pathname.startsWith(ROUTES.LOGIN)) {
-        window.location.href = ROUTES.LOGIN;
+    if (typeof window !== 'undefined' && !window.location.pathname.startsWith(ROUTES.LOGIN)) {
+        // Use Next.js router for client-side navigation
+        import('next/navigation').then(({ redirect }) => {
+            redirect(ROUTES.LOGIN);
+        }).catch(() => {
+            // Fallback for edge cases
+            window.location.href = ROUTES.LOGIN;
+        });
     }   
 };
 
@@ -256,9 +262,14 @@ apiClient.interceptors.response.use(
                 const responseData = error.response.data;
                 if (responseData?.logged_in === true) {
                     // User is logged in but doesn't have permission
-                    // Use Refine's navigation or fallback to direct redirect
-                    if (!window.location.pathname.startsWith(ROUTES.NO_ACCESS)) {
-                        window.location.href = ROUTES.NO_ACCESS;
+                    // Use Next.js router for client-side navigation
+                    if (typeof window !== 'undefined' && !window.location.pathname.startsWith(ROUTES.NO_ACCESS)) {
+                        import('next/navigation').then(({ redirect }) => {
+                            redirect(ROUTES.NO_ACCESS);
+                        }).catch(() => {
+                            // Fallback for edge cases
+                            window.location.href = ROUTES.NO_ACCESS;
+                        });
                     }
                 }
             }
@@ -289,8 +300,13 @@ apiClient.interceptors.response.use(
             // Use Refine's logout method which handles navigation properly
             authProvider.logout({ redirectPath: ROUTES.LOGIN }).catch(() => {
                 // Fallback if Refine logout fails
-                if (!window.location.pathname.startsWith(ROUTES.LOGIN)) {
-                    window.location.href = ROUTES.LOGIN;
+                if (typeof window !== 'undefined' && !window.location.pathname.startsWith(ROUTES.LOGIN)) {
+                    import('next/navigation').then(({ redirect }) => {
+                        redirect(ROUTES.LOGIN);
+                    }).catch(() => {
+                        // Final fallback for edge cases
+                        window.location.href = ROUTES.LOGIN;
+                    });
                 }
             });
 

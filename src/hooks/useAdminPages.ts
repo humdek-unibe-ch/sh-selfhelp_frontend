@@ -225,6 +225,7 @@ export function useAdminPages() {
         },
         refetchOnWindowFocus: false,
         refetchOnMount: false, // Use cached data first for faster navigation
+        refetchOnReconnect: true, // Refetch when connection is restored
     });
 
     return {

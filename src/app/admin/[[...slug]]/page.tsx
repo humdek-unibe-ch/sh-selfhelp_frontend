@@ -19,8 +19,10 @@ import { SectionInspector } from '../../components/cms/pages/section-inspector';
 import { ConfigurationPageEditor } from '../../components/cms/pages/configuration-page-editor/ConfigurationPageEditor';
 import { AdminShellWrapper } from '../../components/cms/admin-shell/AdminShellWrapper';
 import { useAdminPages } from '../../../hooks/useAdminPages';
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { IAdminPage } from '../../../types/responses/admin/admin.types';
+import { useQueryClient } from '@tanstack/react-query';
+import { REACT_QUERY_CONFIG } from '../../../config/react-query.config';
 
 
 /**
@@ -47,8 +49,7 @@ export default function AdminPage() {
   const params = useParams();
   const path = params.slug ? (Array.isArray(params.slug) ? params.slug.join('/') : params.slug) : '';
   const { pages, configurationPages, isLoading, isFetching, error } = useAdminPages();
-
-
+  const queryClient = useQueryClient();
 
   // Parse the path to extract page keyword and section ID
   const { isPageRoute, keyword, selectedSectionId } = useMemo(() => {
@@ -74,6 +75,27 @@ export default function AdminPage() {
 
     return { isPageRoute: false, keyword: null, selectedSectionId: null };
   }, [path]);
+
+  // Refresh admin pages data on navigation to ensure fresh data
+  useEffect(() => {
+    const refreshAdminPages = async () => {
+      // Invalidate admin pages to ensure fresh data
+      await queryClient.invalidateQueries({ 
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES 
+      });
+      
+      // Refetch admin pages silently in the background
+      queryClient.prefetchQuery({
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES,
+        staleTime: 0, // Force fresh data
+      });
+    };
+
+    // Only refresh when we have a valid page route
+    if (isPageRoute && keyword) {
+      refreshAdminPages();
+    }
+  }, [path, queryClient, isPageRoute, keyword]); // Refresh when path changes
 
   // Find the specific page by keyword - search in ALL pages including children
   const selectedPage = useMemo(() => {

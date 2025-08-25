@@ -56,7 +56,13 @@ export const handleApiError = (
             if (options.redirectOnPermissionDenied && 
                 typeof window !== 'undefined' && 
                 !window.location.pathname.startsWith(ROUTES.NO_ACCESS)) {
-                window.location.href = ROUTES.NO_ACCESS;
+                // Use Next.js router for client-side navigation
+                import('next/navigation').then(({ redirect }) => {
+                    redirect(ROUTES.NO_ACCESS);
+                }).catch(() => {
+                    // Fallback for edge cases
+                    window.location.href = ROUTES.NO_ACCESS;
+                });
             }
         } else if (status === 401) {
             errorMessage = 'Authentication required';

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Box, List, Text, ActionIcon, Group, Button } from '@mantine/core';
+import { useRouter } from 'next/navigation';
 import { ISortableListStyle } from '../../../../types/common/styles.types';
 import { IconGripVertical, IconTrash, IconPlus } from '@tabler/icons-react';
 
@@ -8,6 +9,8 @@ interface ISortableListStyleProps {
 }
 
 const SortableListStyle: React.FC<ISortableListStyleProps> = ({ style }) => {
+    const router = useRouter();
+    
     // Parse items - handle both array and JSON string formats
     let initialItems: any[] = [];
     try {
@@ -35,8 +38,20 @@ const SortableListStyle: React.FC<ISortableListStyleProps> = ({ style }) => {
 
     const handleDelete = (index: number) => {
         if (urlDelete) {
-            // In a real implementation, you'd make an API call here
-            window.location.href = urlDelete.replace('{id}', items[index]?.id || index.toString());
+            const deleteUrl = urlDelete.replace('{id}', items[index]?.id || index.toString());
+            
+            // Check if URL is internal (relative or same origin)
+            const isInternal = deleteUrl.startsWith('/') || 
+                              (typeof window !== 'undefined' && deleteUrl.startsWith(window.location.origin));
+            
+            if (isInternal) {
+                // Use Next.js router for internal navigation
+                const path = deleteUrl.replace(window.location.origin, '');
+                router.push(path);
+            } else {
+                // Use window.location for external URLs
+                window.location.href = deleteUrl;
+            }
         } else {
             const newItems = items.filter((_, i) => i !== index);
             setItems(newItems);
@@ -45,7 +60,18 @@ const SortableListStyle: React.FC<ISortableListStyleProps> = ({ style }) => {
 
     const handleAdd = () => {
         if (urlAdd) {
-            window.location.href = urlAdd;
+            // Check if URL is internal (relative or same origin)
+            const isInternal = urlAdd.startsWith('/') || 
+                              (typeof window !== 'undefined' && urlAdd.startsWith(window.location.origin));
+            
+            if (isInternal) {
+                // Use Next.js router for internal navigation
+                const path = urlAdd.replace(window.location.origin, '');
+                router.push(path);
+            } else {
+                // Use window.location for external URLs
+                window.location.href = urlAdd;
+            }
         } else {
             const newItem = {
                 id: Date.now(),
