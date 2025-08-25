@@ -42,8 +42,13 @@ export default function SlugLayout({ children }: { children: any }) {
                 <div style={{ flex: 1 }}>
                     {children}
                 </div>
-                {!isHeadless && <WebsiteFooter />}
             </AppShell.Main>
+
+            {!isHeadless && (
+                <AppShell.Footer>
+                    <WebsiteFooter />
+                </AppShell.Footer>
+            )}
             
             <DebugMenu />
         </AppShell>

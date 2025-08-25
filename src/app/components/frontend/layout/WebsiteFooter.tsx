@@ -51,8 +51,6 @@ export function WebsiteFooter() {
                         ))}
                     </Group>
                     
-                    <Divider />
-                    
                     <Text 
                         size="sm" 
                         c="dimmed"
