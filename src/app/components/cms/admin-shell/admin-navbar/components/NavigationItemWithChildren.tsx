@@ -1,31 +1,20 @@
 'use client';
 
 import { 
-    UnstyledButton, 
     Group, 
     Text, 
-    Badge,
     Box,
-    Tooltip,
     Collapse,
-    Stack,
-    ActionIcon
+    Stack
 } from '@mantine/core';
 import { IconChevronRight, IconChevronDown } from '@tabler/icons-react';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useNavigationStore } from '../../../../../store/navigation.store';
 
 interface INavigationItemWithChildrenProps {
     label: string;
     href: string;
-    icon?: React.ReactNode;
-    badge?: {
-        text: string;
-        color: string;
-    };
-    description?: string;
-    onClick?: () => void;
     children?: INavigationItemWithChildrenProps[];
     level?: number;
 }
@@ -33,10 +22,6 @@ interface INavigationItemWithChildrenProps {
 export function NavigationItemWithChildren({ 
     label, 
     href, 
-    icon, 
-    badge, 
-    description,
-    onClick,
     children = [],
     level = 0
 }: INavigationItemWithChildrenProps) {
@@ -47,21 +32,32 @@ export function NavigationItemWithChildren({
     const isActive = activeItem === href;
     const hasChildren = children.length > 0;
 
-    const handleClick = useCallback(() => {
-        if (onClick) {
-            onClick();
-        } else {
-            setActiveItem(href);
-            router.push(href);
+    // Check if any child is active to auto-expand parent
+    const hasActiveChild = children.some(child => 
+        activeItem === child.href || 
+        (child.children && child.children.some(grandchild => activeItem === grandchild.href))
+    );
+
+    // Auto-expand if this item or any child is active
+    useEffect(() => {
+        if (isActive || hasActiveChild) {
+            setIsExpanded(true);
+        }
+    }, [isActive, hasActiveChild]);
+
+    const handleClick = useCallback((e: React.MouseEvent) => {
+        // Support middle click and ctrl+click for new tab
+        if (e.button === 1 || e.ctrlKey || e.metaKey) {
+            window.open(href, '_blank');
+            return;
         }
         
-        // If has children, toggle expansion
-        if (hasChildren) {
-            setIsExpanded(prev => !prev);
-        }
-    }, [onClick, href, setActiveItem, router, hasChildren]);
+        setActiveItem(href);
+        router.push(href);
+    }, [href, setActiveItem, router]);
 
     const handleToggleExpand = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
         e.stopPropagation();
         setIsExpanded(prev => !prev);
     }, []);
@@ -70,12 +66,25 @@ export function NavigationItemWithChildren({
 
     const content = (
         <Box>
-            <UnstyledButton
+            {/* Use div instead of UnstyledButton to avoid nested buttons */}
+            <div
                 onClick={handleClick}
-                w="100%"
-                px="xs"
-                py={2}
+                onMouseDown={(e: React.MouseEvent) => {
+                    // Handle middle click
+                    if (e.button === 1) {
+                        e.preventDefault();
+                        window.open(href, '_blank');
+                    }
+                }}
+                onContextMenu={(e: React.MouseEvent) => {
+                    // Allow right-click context menu for "open in new tab"
+                    e.stopPropagation();
+                }}
                 style={{
+                    width: '100%',
+                    padding: 'var(--mantine-spacing-xs)',
+                    paddingTop: '2px',
+                    paddingBottom: '2px',
                     borderRadius: 'var(--mantine-radius-xs)',
                     transition: 'all 0.15s ease',
                     backgroundColor: isActive ? 'var(--mantine-color-blue-0)' : 'transparent',
@@ -84,46 +93,51 @@ export function NavigationItemWithChildren({
                     borderLeft: isActive ? '3px solid var(--mantine-color-blue-6)' : '3px solid var(--mantine-color-gray-3)',
                     position: 'relative',
                     marginLeft: `${leftPadding}px`,
-                    minHeight: '20px'
+                    minHeight: '20px',
+                    cursor: 'pointer'
                 }}
-                styles={{
-                    root: {
-                        '&:hover': {
-                            backgroundColor: isActive 
-                                ? 'var(--mantine-color-blue-0)' 
-                                : 'var(--mantine-color-gray-0)',
-                            borderColor: isActive 
-                                ? 'var(--mantine-color-blue-4)' 
-                                : 'var(--mantine-color-gray-3)',
-                            borderLeftColor: isActive 
-                                ? 'var(--mantine-color-blue-6)' 
-                                : 'var(--mantine-color-gray-4)'
-                        }
+                onMouseEnter={(e) => {
+                    if (!isActive) {
+                        e.currentTarget.style.backgroundColor = 'var(--mantine-color-gray-0)';
+                        e.currentTarget.style.borderColor = 'var(--mantine-color-gray-3)';
+                        e.currentTarget.style.borderLeftColor = 'var(--mantine-color-gray-4)';
+                    }
+                }}
+                onMouseLeave={(e) => {
+                    if (!isActive) {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.borderColor = 'transparent';
+                        e.currentTarget.style.borderLeftColor = 'var(--mantine-color-gray-3)';
                     }
                 }}
                 data-active={isActive || undefined}
             >
                 <Group gap="xs" wrap="nowrap">
                     {hasChildren && (
-                        <ActionIcon
-                            size="xs"
-                            variant="subtle"
-                            color="gray"
+                        <div
                             onClick={handleToggleExpand}
-                            style={{ flexShrink: 0 }}
+                            style={{ 
+                                flexShrink: 0,
+                                cursor: 'pointer',
+                                padding: '2px',
+                                borderRadius: '2px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = 'var(--mantine-color-gray-1)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'transparent';
+                            }}
                         >
                             {isExpanded ? (
-                                <IconChevronDown size={12} />
+                                <IconChevronDown size={12} color="var(--mantine-color-gray-6)" />
                             ) : (
-                                <IconChevronRight size={12} />
+                                <IconChevronRight size={12} color="var(--mantine-color-gray-6)" />
                             )}
-                        </ActionIcon>
-                    )}
-                    
-                    {icon && (
-                        <Box style={{ flexShrink: 0 }}>
-                            {icon}
-                        </Box>
+                        </div>
                     )}
                     
                     <Box style={{ flex: 1, minWidth: 0 }}>
@@ -135,20 +149,9 @@ export function NavigationItemWithChildren({
                         >
                             {label}
                         </Text>
-                        {description && (
-                            <Text size="xs" c="dimmed" truncate>
-                                {description}
-                            </Text>
-                        )}
                     </Box>
-                    
-                    {badge && (
-                        <Badge size="xs" variant="light" color={badge.color}>
-                            {badge.text}
-                        </Badge>
-                    )}
                 </Group>
-            </UnstyledButton>
+            </div>
 
             {/* Render children with collapse animation */}
             {hasChildren && (
@@ -166,14 +169,6 @@ export function NavigationItemWithChildren({
             )}
         </Box>
     );
-
-    if (description && !badge && !hasChildren) {
-        return (
-            <Tooltip label={description} position="right" withArrow>
-                {content}
-            </Tooltip>
-        );
-    }
 
     return content;
 }

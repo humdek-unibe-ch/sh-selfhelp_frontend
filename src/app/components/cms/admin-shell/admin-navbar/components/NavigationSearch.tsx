@@ -27,8 +27,39 @@ interface ISearchableItem {
     keywords: string[];
 }
 
+interface IAdminPageData {
+    configurationPageLinks?: Array<{
+        keyword: string;
+        label: string;
+    }>;
+    categorizedSystemPages?: {
+        authentication: Array<{ keyword: string; label: string; title?: string; }>;
+        profile: Array<{ keyword: string; label: string; title?: string; }>;
+        errors: Array<{ keyword: string; label: string; title?: string; }>;
+        legal: Array<{ keyword: string; label: string; title?: string; }>;
+        other: Array<{ keyword: string; label: string; title?: string; }>;
+    };
+    categorizedRegularPages?: {
+        menu: Array<{ keyword: string; label: string; title?: string; children?: Array<{ keyword: string; label: string; title?: string; children?: unknown[]; }>; }>;
+        footer: Array<{ keyword: string; label: string; title?: string; children?: Array<{ keyword: string; label: string; title?: string; children?: unknown[]; }>; }>;
+        other: Array<{ keyword: string; label: string; title?: string; children?: Array<{ keyword: string; label: string; title?: string; children?: unknown[]; }>; }>;
+    };
+    allPages?: Array<{
+        keyword: string;
+        title?: string;
+        nav_position?: number | null;
+        footer_position?: number | null;
+        is_system: boolean;
+        children?: Array<{
+            keyword: string;
+            title?: string;
+            children?: unknown[];
+        }>;
+    }>;
+}
+
 interface INavigationSearchProps {
-    adminPagesData: any;
+    adminPagesData: IAdminPageData;
     onItemSelect?: () => void;
 }
 
@@ -61,27 +92,28 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
         // Add dynamic pages from adminPagesData
         if (adminPagesData) {
             // Configuration pages
-            adminPagesData.configurationPageLinks?.forEach((page: any) => {
+            adminPagesData.configurationPageLinks?.forEach((page) => {
                 items.push({
                     id: `config-${page.keyword}`,
                     label: page.label,
                     href: `/admin/pages/${page.keyword}`,
                     icon: <IconSettings size={16} />,
                     category: 'Configuration Pages',
-                    keywords: [page.label.toLowerCase(), page.keyword, 'configuration', 'config']
+                    keywords: [page.label.toLowerCase(), page.keyword, 'configuration', 'config'].filter(Boolean)
                 });
             });
 
             // System pages
-            const addSystemPages = (pages: any[], categoryName: string) => {
-                pages.forEach((page: any) => {
+            const addSystemPages = (pages: Array<{ keyword: string; label: string; title?: string; }>, categoryName: string) => {
+                pages.forEach((page) => {
+                    const displayName = page.title || page.label || page.keyword;
                     items.push({
                         id: `system-${page.keyword}`,
-                        label: page.label,
+                        label: displayName,
                         href: `/admin/pages/${page.keyword}`,
                         icon: <IconFile size={16} />,
                         category: `System - ${categoryName}`,
-                        keywords: [page.label.toLowerCase(), page.keyword, 'system', categoryName.toLowerCase()]
+                        keywords: [displayName.toLowerCase(), page.keyword, page.label.toLowerCase(), categoryName.toLowerCase()].filter(Boolean)
                     });
                 });
             };
@@ -94,43 +126,197 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                 addSystemPages(adminPagesData.categorizedSystemPages.other, 'Other');
             }
 
-            // Regular pages
-            const addRegularPages = (pages: any[], categoryName: string) => {
-                pages.forEach((page: any) => {
+            // Regular pages (with recursive children support)
+            const addRegularPages = (pages: Array<{
+                keyword: string;
+                label: string;
+                title?: string;
+                children?: Array<{
+                    keyword: string;
+                    label: string;
+                    title?: string;
+                    children?: unknown[];
+                }>;
+            }>, categoryName: string) => {
+                const addPageAndChildren = (page: {
+                    keyword: string;
+                    label: string;
+                    title?: string;
+                    children?: Array<{
+                        keyword: string;
+                        label: string;
+                        title?: string;
+                        children?: unknown[];
+                    }>;
+                }, level: number = 0) => {
+                    const prefix = level > 0 ? '  '.repeat(level) : '';
+                    const displayName = page.title || page.label || page.keyword;
+                    // Create more specific keywords - avoid generic terms like 'submenu' and 'child'
+                    const specificKeywords = [
+                        displayName.toLowerCase(),
+                        page.keyword,
+                        page.label.toLowerCase(),
+                        categoryName.toLowerCase()
+                    ];
+                    
+                    // Only add level-specific keywords for actual submenus (level > 0)
+                    if (level > 0) {
+                        specificKeywords.push('nested', 'sub');
+                    }
+                    
                     items.push({
-                        id: `page-${page.keyword}`,
-                        label: page.label,
+                        id: `page-${page.keyword}-${level}`,
+                        label: `${prefix}${displayName}`,
                         href: `/admin/pages/${page.keyword}`,
                         icon: <IconFileText size={16} />,
                         category: `Pages - ${categoryName}`,
-                        keywords: [page.label.toLowerCase(), page.keyword, 'page', categoryName.toLowerCase()]
+                        keywords: specificKeywords.filter(Boolean)
                     });
+                    
+                    // Recursively add children
+                    if (page.children && page.children.length > 0) {
+                        page.children.forEach((child) => {
+                            if (child && typeof child === 'object' && 'keyword' in child && 'label' in child) {
+                                addPageAndChildren(child as {
+                                    keyword: string;
+                                    label: string;
+                                    title?: string;
+                                    children?: Array<{
+                                        keyword: string;
+                                        label: string;
+                                        title?: string;
+                                        children?: unknown[];
+                                    }>;
+                                }, level + 1);
+                            }
+                        });
+                    }
+                };
+                
+                pages.forEach((page) => {
+                    addPageAndChildren(page);
                 });
             };
 
-            if (adminPagesData.categorizedRegularPages) {
-                addRegularPages(adminPagesData.categorizedRegularPages.menu, 'Menu');
-                addRegularPages(adminPagesData.categorizedRegularPages.footer, 'Footer');
-                addRegularPages(adminPagesData.categorizedRegularPages.other, 'Other');
+            // Use raw pages data if available (includes hierarchy), fallback to categorized
+            if (adminPagesData.allPages && adminPagesData.allPages.length > 0) {
+                // Convert allPages format to expected format (allPages has title, not label)
+                const convertAllPagesToRegularFormat = (pages: typeof adminPagesData.allPages): Array<{
+                    keyword: string;
+                    label: string;
+                    title?: string;
+                    children?: Array<{
+                        keyword: string;
+                        label: string;
+                        title?: string;
+                        children?: unknown[];
+                    }>;
+                }> => {
+                    if (!pages) return [];
+                    return pages.map(page => ({
+                        keyword: page.keyword,
+                        label: page.title || page.keyword, // Use title as label for display
+                        title: page.title,
+                        children: page.children ? convertAllPagesToRegularFormat(page.children as typeof adminPagesData.allPages) : undefined
+                    }));
+                };
+
+                // Filter menu pages from raw data (preserves hierarchy)
+                const menuPages = convertAllPagesToRegularFormat(
+                    adminPagesData.allPages.filter((page) => 
+                        page.nav_position !== null && page.nav_position !== undefined && !page.is_system
+                    )
+                );
+                const footerPages = convertAllPagesToRegularFormat(
+                    adminPagesData.allPages.filter((page) => 
+                        page.footer_position !== null && page.footer_position !== undefined && !page.is_system
+                    )
+                );
+                const otherPages = convertAllPagesToRegularFormat(
+                    adminPagesData.allPages.filter((page) => 
+                        (page.nav_position === null || page.nav_position === undefined) &&
+                        (page.footer_position === null || page.footer_position === undefined) &&
+                        !page.is_system
+                    )
+                );
+                
+                if (menuPages.length > 0) addRegularPages(menuPages, 'Menu');
+                if (footerPages.length > 0) addRegularPages(footerPages, 'Footer');
+                if (otherPages.length > 0) addRegularPages(otherPages, 'Other');
+            } else if (adminPagesData.categorizedRegularPages) {
+                // Fallback to categorized data (flat structure)
+                if (adminPagesData.categorizedRegularPages.menu) {
+                    addRegularPages(adminPagesData.categorizedRegularPages.menu, 'Menu');
+                }
+                if (adminPagesData.categorizedRegularPages.footer) {
+                    addRegularPages(adminPagesData.categorizedRegularPages.footer, 'Footer');
+                }
+                if (adminPagesData.categorizedRegularPages.other) {
+                    addRegularPages(adminPagesData.categorizedRegularPages.other, 'Other');
+                }
             }
         }
 
         return items;
     }, [adminPagesData]);
 
-    // Filter items based on search query
+    // Filter items based on search query with improved ranking
     const filteredItems = useMemo(() => {
         if (!searchQuery.trim()) return [];
 
         const query = searchQuery.toLowerCase().trim();
-        return searchableItems.filter(item => 
-            item.label.toLowerCase().includes(query) ||
-            item.category.toLowerCase().includes(query) ||
-            item.keywords.some(keyword => keyword.includes(query))
-        ).slice(0, 10); // Limit to 10 results for performance
+        
+        // Score items based on match quality
+        const scoredItems = searchableItems.map(item => {
+            let score = 0;
+            const label = item.label.toLowerCase();
+            const category = item.category.toLowerCase();
+            
+            // Exact label match gets highest score
+            if (label === query) score += 100;
+            // Label starts with query gets high score
+            else if (label.startsWith(query)) score += 50;
+            // Label contains query gets medium score
+            else if (label.includes(query)) score += 25;
+            
+            // Category match gets lower score
+            if (category.includes(query)) score += 10;
+            
+            // Keyword matches get varying scores
+            item.keywords.forEach(keyword => {
+                if (keyword && typeof keyword === 'string') {
+                    const keywordLower = keyword.toLowerCase();
+                    
+                    // Special handling for generic terms - only match if they're specific
+                    if (['sub', 'nested'].includes(keywordLower) && !query.startsWith(keywordLower)) {
+                        return; // Skip generic level keywords unless specifically searched
+                    }
+                    
+                    if (keywordLower === query) score += 30;
+                    else if (keywordLower.startsWith(query)) score += 15;
+                    else if (keywordLower.includes(query)) score += 5;
+                }
+            });
+            
+            return { item, score };
+        }).filter(({ score }) => score > 0);
+        
+        // Sort by score (highest first) and limit results
+        return scoredItems
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 10)
+            .map(({ item }) => item);
     }, [searchableItems, searchQuery]);
 
-    const handleItemClick = (item: ISearchableItem) => {
+    const handleItemClick = (item: ISearchableItem, e?: React.MouseEvent) => {
+        // Support middle click and ctrl+click for new tab
+        if (e && (e.button === 1 || e.ctrlKey || e.metaKey)) {
+            window.open(item.href, '_blank');
+            setSearchQuery('');
+            onItemSelect?.();
+            return;
+        }
+        
         setActiveItem(item.href);
         router.push(item.href);
         setSearchQuery('');
@@ -168,7 +354,7 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
             {searchQuery && (
                 <Box mb="xs">
                     {filteredItems.length > 0 ? (
-                        <ScrollArea.Autosize maxHeight={200}>
+                        <ScrollArea.Autosize mah={200}>
                             <Stack gap={1}>
                                 <Text size="xs" c="dimmed" fw={500} tt="uppercase" px="xs" mb={2}>
                                     Search Results ({filteredItems.length})
@@ -176,7 +362,20 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                                 {filteredItems.map((item) => (
                                     <UnstyledButton
                                         key={item.id}
-                                        onClick={() => handleItemClick(item)}
+                                        onClick={(e) => handleItemClick(item, e)}
+                                        onMouseDown={(e: React.MouseEvent) => {
+                                            // Handle middle click
+                                            if (e.button === 1) {
+                                                e.preventDefault();
+                                                window.open(item.href, '_blank');
+                                                setSearchQuery('');
+                                                onItemSelect?.();
+                                            }
+                                        }}
+                                        onContextMenu={(e: React.MouseEvent) => {
+                                            // Allow right-click context menu for "open in new tab"
+                                            e.stopPropagation();
+                                        }}
                                         px="xs"
                                         py={4}
                                         style={{
@@ -197,7 +396,7 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                                             {item.icon}
                                             <Box style={{ flex: 1, minWidth: 0 }}>
                                                 <Text size="xs" fw={500} truncate>
-                                                    <Highlight highlight={searchQuery}>
+                                                    <Highlight highlight={searchQuery} component="span">
                                                         {item.label}
                                                     </Highlight>
                                                 </Text>

@@ -65,22 +65,43 @@ export function useAppNavigation(options: { isAdmin?: boolean; forceRefresh?: bo
         retry: 3, // Use global retry setting
         placeholderData: keepPreviousData, // Keep previous data during refetch for smooth transitions
         select: (pages: IPageItem[]): INavigationData => {
+            // Fix child page URLs to use direct paths instead of nested paths
+            const fixChildPageUrls = (pageList: IPageItem[]): IPageItem[] => {
+                return pageList.map(page => {
+                    const fixedPage = { ...page };
+                    
+                    // For child pages (pages with parent), use direct URL based on keyword
+                    if (page.parent && page.keyword) {
+                        fixedPage.url = `/${page.keyword}`;
+                    }
+                    
+                    // Recursively fix children URLs
+                    if (page.children && page.children.length > 0) {
+                        fixedPage.children = fixChildPageUrls(page.children);
+                    }
+                    
+                    return fixedPage;
+                });
+            };
+
+            // Apply URL fixes to all pages
+            const fixedPages = fixChildPageUrls(pages);
 
             // Transform data once and cache the result
-            const menuPages = pages
+            const menuPages = fixedPages
                 .filter(page => page.nav_position !== null && !page.is_headless)
                 .sort((a, b) => (a.nav_position ?? 0) - (b.nav_position ?? 0));
 
-            const footerPages = pages
+            const footerPages = fixedPages
                 .filter(page => page.footer_position !== null && !page.is_headless)
                 .sort((a, b) => (a.footer_position ?? 0) - (b.footer_position ?? 0));
 
-            const profilePages = pages
+            const profilePages = fixedPages
                 .filter(page => page.is_system === 1 && page.keyword === 'profile-link')
                 .sort((a, b) => (a.nav_position ?? 0) - (b.nav_position ?? 0));
 
             // Flatten ALL pages (including children) for route checking
-            const routes = flattenPages(pages);
+            const routes = flattenPages(fixedPages);
 
             const transformResults = {
                 totalPages: pages.length,

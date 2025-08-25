@@ -36,7 +36,13 @@ export function NavigationItem({
     
     const isActive = activeItem === href;
 
-    const handleClick = () => {
+    const handleClick = (e: React.MouseEvent) => {
+        // Support middle click and ctrl+click for new tab
+        if (e.button === 1 || e.ctrlKey || e.metaKey) {
+            window.open(href, '_blank');
+            return;
+        }
+        
         if (onClick) {
             onClick();
         } else {
@@ -48,6 +54,17 @@ export function NavigationItem({
     const content = (
         <UnstyledButton
             onClick={handleClick}
+            onMouseDown={(e: React.MouseEvent) => {
+                // Handle middle click
+                if (e.button === 1) {
+                    e.preventDefault();
+                    window.open(href, '_blank');
+                }
+            }}
+            onContextMenu={(e: React.MouseEvent) => {
+                // Allow right-click context menu for "open in new tab"
+                e.stopPropagation();
+            }}
             w="100%"
             px="xs"
             py={2}

@@ -62,8 +62,14 @@ export function NavigationSection({
     
     const hasContent = (links && links.length > 0) || children;
 
-    const handleSectionClick = () => {
+    const handleSectionClick = (e: React.MouseEvent) => {
         if (directLink) {
+            // Support middle click and ctrl+click for new tab
+            if (e.button === 1 || e.ctrlKey || e.metaKey) {
+                window.open(directLink, '_blank');
+                return;
+            }
+            
             setActiveItem(directLink);
             router.push(directLink);
         } else if (hasContent) {
@@ -75,6 +81,19 @@ export function NavigationSection({
         <Box>
             <UnstyledButton
                 onClick={handleSectionClick}
+                onMouseDown={(e: React.MouseEvent) => {
+                    // Handle middle click for direct links
+                    if (e.button === 1 && directLink) {
+                        e.preventDefault();
+                        window.open(directLink, '_blank');
+                    }
+                }}
+                onContextMenu={(e: React.MouseEvent) => {
+                    // Allow right-click context menu for direct links
+                    if (directLink) {
+                        e.stopPropagation();
+                    }
+                }}
                 w="100%"
                 px="xs"
                 py={2}

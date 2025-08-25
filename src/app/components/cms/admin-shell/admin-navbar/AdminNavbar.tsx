@@ -27,21 +27,15 @@ import classes from './AdminNavbar.module.css';
 interface ITransformedPage {
     label: string;
     href: string;
-    icon: React.ReactNode;
-    badge?: { text: string; color: string };
-    description: string;
     children: ITransformedPage[];
 }
 
 // Helper function to transform pages with children into navigation structure
-function transformPagesWithChildren(pages: any[], icon: React.ReactNode, badge?: { text: string; color: string }): ITransformedPage[] {
+function transformPagesWithChildren(pages: any[]): ITransformedPage[] {
     return pages.map((page: any): ITransformedPage => ({
         label: page.label || page.title || page.keyword,
         href: `/admin/pages/${page.keyword}`,
-        icon,
-        badge,
-        description: page.nav_position ? `Menu page (position: ${page.nav_position})` : 'Content page',
-        children: page.children ? transformPagesWithChildren(page.children, icon, badge) : []
+        children: page.children ? transformPagesWithChildren(page.children) : []
     }));
 }
 
@@ -70,12 +64,14 @@ export function AdminNavbar() {
         }
     }, [queryClient]);
 
-    // Transform pages data for search component
+    // Transform pages data for search component with full hierarchical structure
     const adminPagesData = useMemo(() => ({
         configurationPageLinks,
         categorizedSystemPages,
-        categorizedRegularPages
-    }), [configurationPageLinks, categorizedSystemPages, categorizedRegularPages]);
+        categorizedRegularPages,
+        // Add raw pages data for hierarchical search
+        allPages: pages
+    }), [configurationPageLinks, categorizedSystemPages, categorizedRegularPages, pages]);
 
     // Build navigation links for each section
     const userManagementLinks = [
@@ -173,11 +169,7 @@ export function AdminNavbar() {
         );
         
         // Build tree structure with children
-        return transformPagesWithChildren(
-            menuPages, 
-            <IconFiles size={16} />, 
-            { text: 'MENU', color: 'blue' }
-        ).sort((a: ITransformedPage, b: ITransformedPage) => {
+        return transformPagesWithChildren(menuPages).sort((a: ITransformedPage, b: ITransformedPage) => {
             // Sort by nav_position from the original page data
             const pageA = pages.find((p: any) => p.keyword === a.label);
             const pageB = pages.find((p: any) => p.keyword === b.label);
