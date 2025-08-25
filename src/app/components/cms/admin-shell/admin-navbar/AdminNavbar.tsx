@@ -20,13 +20,36 @@ import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { useQueryClient } from '@tanstack/react-query';
 import { CreatePageModal } from '../../pages/create-page/CreatePage';
 import { NavigationSearch, NavigationSection, NavigationItem, NavigationQuickActions, CategoryHeader, UserButton } from './components';
+import { NavigationItemWithChildren } from './components/NavigationItemWithChildren';
 import { REACT_QUERY_CONFIG } from '../../../../../config/react-query.config';
 import classes from './AdminNavbar.module.css';
+
+interface ITransformedPage {
+    label: string;
+    href: string;
+    icon: React.ReactNode;
+    badge?: { text: string; color: string };
+    description: string;
+    children: ITransformedPage[];
+}
+
+// Helper function to transform pages with children into navigation structure
+function transformPagesWithChildren(pages: any[], icon: React.ReactNode, badge?: { text: string; color: string }): ITransformedPage[] {
+    return pages.map((page: any): ITransformedPage => ({
+        label: page.label || page.title || page.keyword,
+        href: `/admin/pages/${page.keyword}`,
+        icon,
+        badge,
+        description: page.nav_position ? `Menu page (position: ${page.nav_position})` : 'Content page',
+        children: page.children ? transformPagesWithChildren(page.children, icon, badge) : []
+    }));
+}
 
 export function AdminNavbar() {
     const router = useRouter();
     const queryClient = useQueryClient();
     const { 
+        pages,
         configurationPageLinks, 
         categorizedSystemPages, 
         categorizedRegularPages, 
@@ -138,7 +161,31 @@ export function AdminNavbar() {
         }));
     }, [configurationPageLinks, isLoading]);
 
-    // Transform regular pages
+    // Transform regular pages with children support
+    const menuPagesLinksWithChildren = useMemo(() => {
+        if (isLoading || !pages) return [];
+        
+        // Get only menu pages (pages with nav_position)
+        const menuPages = pages.filter(page => 
+            page.nav_position !== null && 
+            page.nav_position !== undefined &&
+            !page.is_system
+        );
+        
+        // Build tree structure with children
+        return transformPagesWithChildren(
+            menuPages, 
+            <IconFiles size={16} />, 
+            { text: 'MENU', color: 'blue' }
+        ).sort((a: ITransformedPage, b: ITransformedPage) => {
+            // Sort by nav_position from the original page data
+            const pageA = pages.find((p: any) => p.keyword === a.label);
+            const pageB = pages.find((p: any) => p.keyword === b.label);
+            return (pageA?.nav_position || 0) - (pageB?.nav_position || 0);
+        });
+    }, [pages, isLoading]);
+    
+    // Legacy flat menu pages for backward compatibility
     const menuPagesLinks = useMemo(() => {
         if (isLoading) return [];
         return categorizedRegularPages.menu.map(page => ({
@@ -297,7 +344,7 @@ export function AdminNavbar() {
                                 title="Pages"
                                 icon={<IconFiles size={18} />}
                                 itemCount={
-                                    (menuPagesLinks.length + footerPagesLinks.length + otherPagesLinks.length) || undefined
+                                    (menuPagesLinksWithChildren.length + footerPagesLinks.length + otherPagesLinks.length) || undefined
                                 }
                                 rightSection={
                                     <Tooltip label="Create new page">
@@ -331,15 +378,15 @@ export function AdminNavbar() {
                                 }
                             >
                                 <Stack gap={2}>
-                                    {menuPagesLinks.length > 0 && (
+                                    {menuPagesLinksWithChildren.length > 0 && (
                                         <Box>
                                             <CategoryHeader 
                                                 title="Menu Pages" 
-                                                count={menuPagesLinks.length} 
+                                                count={menuPagesLinksWithChildren.length} 
                                             />
                                             <Stack gap={1}>
-                                                {menuPagesLinks.map(link => (
-                                                    <NavigationItem key={link.href} {...link} />
+                                                {menuPagesLinksWithChildren.map((link: ITransformedPage) => (
+                                                    <NavigationItemWithChildren key={link.href} {...link} />
                                                 ))}
                                             </Stack>
                                         </Box>

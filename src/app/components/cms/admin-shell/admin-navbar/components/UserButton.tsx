@@ -5,18 +5,15 @@ import {
     Group, 
     Avatar, 
     Text, 
-    Box,
-    ActionIcon,
-    Tooltip,
-    useMantineColorScheme 
+    Box
 } from '@mantine/core';
-import { IconChevronRight, IconSun, IconMoon } from '@tabler/icons-react';
+import { IconChevronRight } from '@tabler/icons-react';
 import { useAuthUser } from '../../../../../../hooks/useUserData';
 import { useRouter } from 'next/navigation';
+import { ThemeToggle } from '../../../../shared';
 
 export function UserButton() {
     const { user } = useAuthUser();
-    const { colorScheme, toggleColorScheme } = useMantineColorScheme();
     const router = useRouter();
 
     const handleProfileClick = () => {
@@ -66,21 +63,7 @@ export function UserButton() {
                     </Group>
                 </UnstyledButton>
                 
-                <Tooltip label={`Switch to ${colorScheme === 'dark' ? 'light' : 'dark'} theme`}>
-                    <ActionIcon
-                        onClick={toggleColorScheme}
-                        variant="light"
-                        size="md"
-                        color="blue"
-                        style={{ flexShrink: 0 }}
-                    >
-                        {colorScheme === 'dark' ? (
-                            <IconSun size={18} />
-                        ) : (
-                            <IconMoon size={18} />
-                        )}
-                    </ActionIcon>
-                </Tooltip>
+                <ThemeToggle />
             </Group>
         </Box>
     );
