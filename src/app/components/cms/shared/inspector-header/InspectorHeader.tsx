@@ -1,73 +1,74 @@
 'use client';
 
-import {
-    Paper,
-    Group,
-    Title,
+import { 
+    Group, 
+    Button, 
+    Title, 
     Badge,
-    Button,
-    Stack
+    Box
 } from '@mantine/core';
-import { ReactNode } from 'react';
+
+export interface IInspectorButton {
+    id: string;
+    label: string;
+    icon: React.ReactNode;
+    onClick: () => void;
+    variant?: 'filled' | 'outline' | 'subtle';
+    color?: string;
+    disabled?: boolean;
+    loading?: boolean;
+}
 
 interface IInspectorHeaderProps {
-    title: string;
-    badges?: Array<{
-        label: string;
-        color: string;
-        variant?: 'light' | 'filled' | 'outline';
-    }>;
-    actions?: Array<{
-        label: string;
-        icon: ReactNode;
-        onClick: () => void;
-        variant?: 'filled' | 'light' | 'outline';
-        color?: string;
-        loading?: boolean;
-        disabled?: boolean;
-    }>;
+    inspectorType?: 'page' | 'section' | null;
+    inspectorTitle?: string;
+    inspectorId?: string | number;
+    inspectorButtons?: IInspectorButton[];
 }
 
 export function InspectorHeader({
-    title,
-    badges = [],
-    actions = []
+    inspectorType,
+    inspectorTitle,
+    inspectorId,
+    inspectorButtons = []
 }: IInspectorHeaderProps) {
+    if (!inspectorType || !inspectorTitle) {
+        return null;
+    }
+
     return (
-        <Paper p="md" withBorder style={{ borderBottom: 'none' }}>
-            <Group justify="space-between" align="center">
-                <Group gap="xs">
-                    <Title order={2}>{title}</Title>
-                    {badges.map((badge, index) => (
-                        <Badge
-                            key={index}
-                            color={badge.color}
-                            variant={badge.variant || 'light'}
-                        >
-                            {badge.label}
+        <Box p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
+            <Group gap="xs" align="center" wrap="nowrap" mb="md">
+                <Group gap="xs" align="center">
+                    <Title order={6} size="sm">
+                        {inspectorTitle}
+                    </Title>
+                    {inspectorId && (
+                        <Badge size="xs" variant="light" color={inspectorType === 'page' ? 'blue' : 'green'}>
+                            ID: {inspectorId}
                         </Badge>
+                    )}
+                </Group>
+            </Group>
+
+            {inspectorButtons.length > 0 && (
+                <Group gap="xs" align="center" wrap="wrap">
+                    {inspectorButtons.map((button) => (
+                        <Button
+                            key={button.id}
+                            leftSection={button.icon}
+                            onClick={button.onClick}
+                            variant={button.variant || 'outline'}
+                            color={button.color}
+                            disabled={button.disabled}
+                            loading={button.loading}
+                            size="sm"
+                        >
+                            {button.label}
+                        </Button>
                     ))}
                 </Group>
-                
-                {actions.length > 0 && (
-                    <Group gap="xs">
-                        {actions.map((action, index) => (
-                            <Button
-                                key={index}
-                                leftSection={action.icon}
-                                onClick={action.onClick}
-                                variant={action.variant || 'filled'}
-                                color={action.color}
-                                size="sm"
-                                loading={action.loading}
-                                disabled={action.disabled}
-                            >
-                                {action.label}
-                            </Button>
-                        ))}
-                    </Group>
-                )}
-            </Group>
-        </Paper>
+            )}
+        </Box>
     );
-} 
+}

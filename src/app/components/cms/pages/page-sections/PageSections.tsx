@@ -2,35 +2,21 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-    Paper, 
-    Title, 
-    Text, 
-    Stack,
+import {
+    Paper,
+    Text,
     Loader,
     Alert,
     Group,
-    Badge,
-    Button,
-    TextInput,
-    ActionIcon,
-    Tooltip,
-    Box
+    Box,
+    ScrollArea
 } from '@mantine/core';
-import { 
-    IconInfoCircle, 
-    IconAlertCircle, 
-    IconFile, 
-    IconPlus,
-    IconSearch,
-    IconChevronUp,
-    IconChevronDown,
-    IconX,
-    IconArrowLeft,
-    IconArrowRight
+import {
+    IconInfoCircle,
+    IconAlertCircle,
 } from '@tabler/icons-react';
 import { usePageSections } from '../../../../../hooks/usePageDetails';
-import { 
+import {
     useAddSectionToPageMutation,
     useRemoveSectionFromPageMutation,
     useRemoveSectionFromSectionMutation,
@@ -39,13 +25,34 @@ import {
 import { IPageField } from '../../../../../types/common/pages.type';
 import { SectionsList } from './SectionsList';
 import { AddSectionModal } from './AddSectionModal';
+import { PageSectionsHeader } from './PageSectionsHeader';
 import { calculateSiblingBelowPosition } from '../../../../../utils/position-calculator';
 import styles from './PageSections.module.css';
+
+export interface IPageSectionsState {
+    searchQuery: string;
+    searchResults: number[];
+    currentSearchIndex: number;
+    sectionsCount: number;
+    isProcessing: boolean;
+}
+
+export interface IPageSectionsHandlers {
+    onSearchChange: (query: string) => void;
+    onSearchNext: () => void;
+    onSearchPrevious: () => void;
+    onSearchClear: () => void;
+    onExpandAll: () => void;
+    onCollapseAll: () => void;
+    onAddSection: () => void;
+}
 
 interface IPageSectionsProps {
     pageId: number | null;
     pageName?: string;
     initialSelectedSectionId?: number | null;
+    // Callback to expose internal state and handlers to parent
+    onStateChange?: (state: IPageSectionsState, handlers: IPageSectionsHandlers) => void;
 }
 
 interface IMoveData {
@@ -62,16 +69,21 @@ interface IMoveData {
     oldParentSectionId: number | null; // Section ID if section was inside another section
 }
 
-export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSectionsProps) {
+export function PageSections({
+    pageId,
+    pageName,
+    initialSelectedSectionId,
+    onStateChange
+}: IPageSectionsProps) {
     const { data, isLoading, error } = usePageSections(pageId);
     const router = useRouter();
-    
+
     const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
     const [addSectionModalOpened, setAddSectionModalOpened] = useState(false);
     const [selectedParentSectionId, setSelectedParentSectionId] = useState<number | null>(null);
     const [selectedSectionId, setSelectedSectionId] = useState<number | null>(null);
     const [specificPosition, setSpecificPosition] = useState<number | undefined>(undefined);
-    
+
     // Search functionality
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<number[]>([]);
@@ -101,10 +113,10 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
     const searchInSections = useCallback((sections: IPageField[], query: string): number[] => {
         const results: number[] = [];
         const searchLower = query.toLowerCase();
-        
+
         const searchRecursive = (items: IPageField[]) => {
             items.forEach(item => {
-                if (item.name.toLowerCase().includes(searchLower) || 
+                if (item.name.toLowerCase().includes(searchLower) ||
                     item.style_name.toLowerCase().includes(searchLower) ||
                     item.id.toString().includes(query)) {
                     results.push(item.id);
@@ -114,7 +126,7 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
                 }
             });
         };
-        
+
         searchRecursive(sections);
         return results;
     }, []);
@@ -122,15 +134,15 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
     // Helper function to expand all parent sections of a given section
     const expandParentsOfSection = useCallback((sectionId: number) => {
         if (!data?.sections) return;
-        
+
         const parentsToExpand = new Set<number>();
-        
+
         const findParents = (sections: IPageField[], parentId: number | null = null): boolean => {
             for (const section of sections) {
                 if (section.id === sectionId) {
                     return true; // Found the target section
                 }
-                
+
                 if (section.children) {
                     const foundInChildren = findParents(section.children, section.id);
                     if (foundInChildren) {
@@ -141,9 +153,9 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
             }
             return false;
         };
-        
+
         findParents(data.sections);
-        
+
         if (parentsToExpand.size > 0) {
             setExpandedSections(prev => new Set([...Array.from(prev), ...Array.from(parentsToExpand)]));
         }
@@ -174,7 +186,7 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
                 setCurrentSearchIndex(0);
                 setFocusedSectionId(firstResultId);
                 setSelectedSectionId(firstResultId);
-                
+
                 // Auto-expand and scroll to first result
                 expandParentsOfSection(firstResultId);
                 scrollToSection(firstResultId);
@@ -187,30 +199,31 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
             setCurrentSearchIndex(-1);
             setFocusedSectionId(null);
         }
+
     }, [searchQuery, data?.sections, searchInSections, expandParentsOfSection, scrollToSection]);
 
     // Expand all sections that contain search results
     useEffect(() => {
         if (searchResults.length > 0 && data?.sections) {
             const sectionsToExpand = new Set<number>();
-            
+
             const findParentsOfResults = (sections: IPageField[], parentId: number | null = null) => {
                 sections.forEach(section => {
                     if (section.children) {
-                        const hasResultInChildren = section.children.some(child => 
-                            searchResults.includes(child.id) || 
+                        const hasResultInChildren = section.children.some(child =>
+                            searchResults.includes(child.id) ||
                             hasDeepResult(child, searchResults)
                         );
-                        
+
                         if (hasResultInChildren) {
                             sectionsToExpand.add(section.id);
                         }
-                        
+
                         findParentsOfResults(section.children, section.id);
                     }
                 });
             };
-            
+
             const hasDeepResult = (section: IPageField, results: number[]): boolean => {
                 if (results.includes(section.id)) return true;
                 if (section.children) {
@@ -218,7 +231,7 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
                 }
                 return false;
             };
-            
+
             findParentsOfResults(data.sections);
             setExpandedSections(prev => new Set([...Array.from(prev), ...Array.from(sectionsToExpand)]));
         }
@@ -250,15 +263,15 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
 
     const handleSectionSelect = (sectionId: number) => {
         setSelectedSectionId(sectionId);
-        
+
         // Update URL with section ID as path parameter
         const currentPath = window.location.pathname;
         const pathParts = currentPath.split('/');
-        
+
         // Find the admin pages path and reconstruct with section ID
         const adminIndex = pathParts.indexOf('admin');
         const pagesIndex = pathParts.indexOf('pages', adminIndex);
-        
+
         if (pagesIndex !== -1 && pathParts[pagesIndex + 1]) {
             const pageKeyword = pathParts[pagesIndex + 1];
             const newPath = `/admin/pages/${pageKeyword}/${sectionId}`;
@@ -269,7 +282,7 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
     // Collapse/Expand all functionality
     const handleExpandAll = () => {
         if (!data?.sections) return;
-        
+
         const allSectionIds = new Set<number>();
         const collectAllIds = (sections: IPageField[]) => {
             sections.forEach(section => {
@@ -279,7 +292,7 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
                 }
             });
         };
-        
+
         collectAllIds(data.sections);
         setExpandedSections(allSectionIds);
     };
@@ -291,40 +304,36 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
     // Search navigation
     const handleSearchNext = () => {
         if (searchResults.length === 0) return;
-        
+
         const nextIndex = (currentSearchIndex + 1) % searchResults.length;
         const nextSectionId = searchResults[nextIndex];
-        
+
         setCurrentSearchIndex(nextIndex);
         setFocusedSectionId(nextSectionId);
         setSelectedSectionId(nextSectionId);
-        
+
         // Auto-expand parent sections containing the focused result
         expandParentsOfSection(nextSectionId);
-        
+
         // Auto-scroll to the focused element
         scrollToSection(nextSectionId);
-        
-
     };
 
     const handleSearchPrevious = () => {
         if (searchResults.length === 0) return;
-        
+
         const prevIndex = currentSearchIndex === 0 ? searchResults.length - 1 : currentSearchIndex - 1;
         const prevSectionId = searchResults[prevIndex];
-        
+
         setCurrentSearchIndex(prevIndex);
         setFocusedSectionId(prevSectionId);
         setSelectedSectionId(prevSectionId);
-        
+
         // Auto-expand parent sections containing the focused result
         expandParentsOfSection(prevSectionId);
-        
+
         // Auto-scroll to the focused element
         scrollToSection(prevSectionId);
-        
-
     };
 
     const handleSearchClear = () => {
@@ -335,10 +344,10 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
     };
 
     const handleSectionMove = async (moveData: IMoveData) => {
-        
+
         try {
             const { draggedSectionId, newParentId, newPosition, pageId, oldParentPageId, oldParentSectionId } = moveData;
-            
+
             // Prepare section data with new position and old parent information
             const sectionData = {
                 position: newPosition,
@@ -351,7 +360,7 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
                 if (!pageId) {
                     throw new Error('Page ID is required for page-level moves');
                 }
-                
+
                 await addSectionToPageMutation.mutateAsync({
                     pageId: pageId,
                     sectionId: draggedSectionId,
@@ -369,9 +378,9 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
                     sectionData: sectionData
                 });
             }
-            
 
-            
+
+
         } catch (error) {
             // Error handling is done by the mutation hooks
         }
@@ -380,14 +389,14 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
     const handleRemoveSection = async (sectionId: number, parentId: number | null) => {
         // Check if we're removing the currently selected section
         const isRemovingSelectedSection = selectedSectionId === sectionId;
-        
+
         try {
             if (parentId === null) {
                 // Remove from page
                 if (!pageId) {
                     throw new Error('Page ID is required for removing sections from page');
                 }
-                
+
                 await removeSectionFromPageMutation.mutateAsync({
                     pageId,
                     sectionId
@@ -403,7 +412,7 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
                     childSectionId: sectionId
                 });
             }
-            
+
             // If we removed the currently selected section, navigate to page
             if (isRemovingSelectedSection) {
                 setSelectedSectionId(null);
@@ -412,14 +421,14 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
                 const pathParts = currentPath.split('/');
                 const adminIndex = pathParts.indexOf('admin');
                 const pagesIndex = pathParts.indexOf('pages', adminIndex);
-                
+
                 if (pagesIndex !== -1 && pathParts[pagesIndex + 1]) {
                     const pageKeyword = pathParts[pagesIndex + 1];
                     const newPath = `/admin/pages/${pageKeyword}`;
                     router.push(newPath, { scroll: false });
                 }
             }
-            
+
         } catch (error) {
             // Error handling is done by the mutation hooks
         }
@@ -433,12 +442,12 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
 
     const handleAddSiblingAbove = (referenceSectionId: number, parentId: number | null) => {
         if (!data?.sections) return;
-        
+
         const referenceSection = findSectionById(referenceSectionId, data.sections);
         if (!referenceSection) return;
-        
+
         const newPosition = referenceSection.position - 5;
-        
+
         setSelectedParentSectionId(parentId);
         setSpecificPosition(newPosition);
         setAddSectionModalOpened(true);
@@ -446,12 +455,12 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
 
     const handleAddSiblingBelow = (referenceSectionId: number, parentId: number | null) => {
         if (!data?.sections) return;
-        
+
         const referenceSection = findSectionById(referenceSectionId, data.sections);
         if (!referenceSection) return;
-        
+
         const result = calculateSiblingBelowPosition(referenceSection, parentId);
-        
+
         setSelectedParentSectionId(parentId);
         setSpecificPosition(result.newPosition);
         setAddSectionModalOpened(true);
@@ -461,6 +470,10 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
         setAddSectionModalOpened(false);
         setSelectedParentSectionId(null);
         setSpecificPosition(undefined);
+    };
+
+    const handleAddSectionClick = () => {
+        setAddSectionModalOpened(true);
     };
 
     // Handle auto-selection of newly created sections
@@ -475,7 +488,7 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
 
     // Handle auto-selection of imported sections (select the first one)
     const handleSectionsImported = (sectionIds: number[]) => {
-        
+
         if (sectionIds.length > 0) {
             const firstSectionId = sectionIds[0];
             setSelectedSectionId(firstSectionId);
@@ -506,7 +519,7 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
     useEffect(() => {
         if (data?.sections && data.sections.length > 0) {
             const sectionsWithChildren = new Set<number>();
-            
+
             const findSectionsWithChildren = (items: IPageField[]) => {
                 items.forEach(item => {
                     if (item.children && item.children.length > 0) {
@@ -515,11 +528,49 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
                     }
                 });
             };
-            
+
             findSectionsWithChildren(data.sections);
             setExpandedSections(sectionsWithChildren);
         }
     }, [data?.sections]);
+
+    // Expose state and handlers to parent component
+    useEffect(() => {
+        if (onStateChange) {
+            const isProcessingMove = addSectionToPageMutation.isPending || addSectionToSectionMutation.isPending;
+            const isProcessingRemove = removeSectionFromPageMutation.isPending || removeSectionFromSectionMutation.isPending;
+
+            const state: IPageSectionsState = {
+                searchQuery,
+                searchResults,
+                currentSearchIndex,
+                sectionsCount: data?.sections?.length || 0,
+                isProcessing: isProcessingMove || isProcessingRemove
+            };
+
+            const handlers: IPageSectionsHandlers = {
+                onSearchChange: setSearchQuery,
+                onSearchNext: handleSearchNext,
+                onSearchPrevious: handleSearchPrevious,
+                onSearchClear: handleSearchClear,
+                onExpandAll: handleExpandAll,
+                onCollapseAll: handleCollapseAll,
+                onAddSection: handleAddSectionClick
+            };
+
+            onStateChange(state, handlers);
+        }
+    }, [
+        searchQuery,
+        searchResults,
+        currentSearchIndex,
+        data?.sections?.length,
+        addSectionToPageMutation.isPending,
+        addSectionToSectionMutation.isPending,
+        removeSectionFromPageMutation.isPending,
+        removeSectionFromSectionMutation.isPending,
+        onStateChange
+    ]);
 
     if (isLoading) {
         return (
@@ -542,26 +593,48 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
         );
     }
 
+    // Prepare current state and handlers for header
+    const isProcessingMove = addSectionToPageMutation.isPending || addSectionToSectionMutation.isPending;
+    const isProcessingRemove = removeSectionFromPageMutation.isPending || removeSectionFromSectionMutation.isPending;
+
+    const currentState: IPageSectionsState = {
+        searchQuery,
+        searchResults,
+        currentSearchIndex,
+        sectionsCount: data?.sections?.length || 0,
+        isProcessing: isProcessingMove || isProcessingRemove
+    };
+
+    const currentHandlers: IPageSectionsHandlers = {
+        onSearchChange: setSearchQuery,
+        onSearchNext: handleSearchNext,
+        onSearchPrevious: handleSearchPrevious,
+        onSearchClear: handleSearchClear,
+        onExpandAll: handleExpandAll,
+        onCollapseAll: handleCollapseAll,
+        onAddSection: handleAddSectionClick
+    };
+
     if (!data?.sections || data.sections.length === 0) {
         return (
             <>
-                <Paper p="md" withBorder>
-                    <Alert icon={<IconInfoCircle size={16} />} color="blue" title="No sections found">
-                        <Text size="sm" mb="md">
-                            This page doesn&apos;t have any sections yet.
-                        </Text>
-                        <Button 
-                            leftSection={<IconPlus size={16} />} 
-                            size="sm" 
-                            variant="light"
-                            onClick={() => {
-                                setAddSectionModalOpened(true);
-                            }}
-                        >
-                            Add First Section
-                        </Button>
-                    </Alert>
-                </Paper>
+                <Box className={styles.pageSectionsContainer}>
+                    {/* Header - Always show when we have a page */}
+                    <PageSectionsHeader
+                        pageName={pageName}
+                        state={currentState}
+                        handlers={currentHandlers}
+                    />
+
+                    {/* Empty State Content */}
+                    <Box className={styles.scrollableContent}>
+                        <Alert icon={<IconInfoCircle size={16} />} color="blue" title="No sections found" className={styles.emptyStateAlert}>
+                            <Text size="sm">
+                                This page doesn&apos;t have any sections yet. Click the &quot;Add Section&quot; button in the header to get started.
+                            </Text>
+                        </Alert>
+                    </Box>
+                </Box>
 
                 {/* Add Section Modal - Now available even when no sections exist */}
                 <AddSectionModal
@@ -576,126 +649,17 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
         );
     }
 
-    const isProcessingMove = addSectionToPageMutation.isPending || addSectionToSectionMutation.isPending;
-    const isProcessingRemove = removeSectionFromPageMutation.isPending || removeSectionFromSectionMutation.isPending;
-
     return (
-        <Paper p="xs" withBorder className={styles.paperContainer}>
-            {/* Header with Search */}
-            <Group justify="space-between" mb="xs" px="xs" wrap="nowrap">
-                <Group gap="xs" wrap="nowrap">
-                    <IconFile size={16} />
-                    <Title order={6} size="sm" className={styles.titleNoWrap}>
-                        {pageName ? `${pageName} - Sections` : 'Page Sections'}
-                    </Title>
-                    <Badge size="xs" variant="light" color="blue">
-                        {data.sections.length}
-                    </Badge>
-                    {(isProcessingMove || isProcessingRemove) && (
-                        <Badge size="xs" variant="light" color="orange">
-                            Processing...
-                        </Badge>
-                    )}
-                </Group>
+        <Box className={styles.pageSectionsContainer}>
+            {/* Header - Always show when we have sections */}
+            <PageSectionsHeader
+                pageName={pageName}
+                state={currentState}
+                handlers={currentHandlers}
+            />
 
-                {/* Search Bar - Flexible width */}
-                <Group gap="xs" className={styles.searchGroup} wrap="nowrap">
-                    <TextInput
-                        placeholder="Search sections..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.currentTarget.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && searchResults.length > 0) {
-                                e.preventDefault();
-                                handleSearchNext();
-                            }
-                            if (e.key === 'Escape') {
-                                e.preventDefault();
-                                handleSearchClear();
-                            }
-                        }}
-                        leftSection={<IconSearch size={14} />}
-                        rightSection={
-                            searchQuery && (
-                                <ActionIcon 
-                                    size="xs" 
-                                    variant="subtle" 
-                                    onClick={handleSearchClear}
-                                >
-                                    <IconX size={12} />
-                                </ActionIcon>
-                            )
-                        }
-                        size="xs"
-                        className={styles.contentContainer}
-                    />
-                    {searchResults.length > 0 && (
-                        <>
-                            <Text size="xs" c="dimmed" className={styles.infoText}>
-                                {currentSearchIndex + 1}/{searchResults.length}
-                            </Text>
-                            <Group gap={2}>
-                                <Tooltip label="Previous">
-                                    <ActionIcon 
-                                        size="xs" 
-                                        variant="subtle" 
-                                        onClick={handleSearchPrevious}
-                                        disabled={searchResults.length === 0}
-                                    >
-                                        <IconArrowLeft size={12} />
-                                    </ActionIcon>
-                                </Tooltip>
-                                <Tooltip label="Next">
-                                    <ActionIcon 
-                                        size="xs" 
-                                        variant="subtle" 
-                                        onClick={handleSearchNext}
-                                        disabled={searchResults.length === 0}
-                                    >
-                                        <IconArrowRight size={12} />
-                                    </ActionIcon>
-                                </Tooltip>
-                            </Group>
-                        </>
-                    )}
-                </Group>
-
-                <Group gap="xs" wrap="nowrap">
-                    <Tooltip label="Expand All">
-                        <ActionIcon 
-                            size="xs" 
-                            variant="subtle" 
-                            color="blue"
-                            onClick={handleExpandAll}
-                        >
-                            <IconChevronDown size={12} />
-                        </ActionIcon>
-                    </Tooltip>
-                    <Tooltip label="Collapse All">
-                        <ActionIcon 
-                            size="xs" 
-                            variant="subtle" 
-                            color="blue"
-                            onClick={handleCollapseAll}
-                        >
-                            <IconChevronUp size={12} />
-                        </ActionIcon>
-                    </Tooltip>
-                    <Button 
-                        leftSection={<IconPlus size={14} />} 
-                        size="xs" 
-                        variant="light"
-                        onClick={() => {
-                            setAddSectionModalOpened(true);
-                        }}
-                    >
-                        Add Section
-                    </Button>
-                </Group>
-            </Group>
-
-            {/* Sections List - Scrollable Content Area */}
-            <Box className={styles.contentContainer}>
+            {/* Scrollable Content Area - Now full height */}
+            <ScrollArea h="calc(100vh - 106px)">
                 <SectionsList
                     sections={data.sections}
                     expandedSections={expandedSections}
@@ -709,9 +673,9 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
                     selectedSectionId={selectedSectionId}
                     focusedSectionId={focusedSectionId}
                     pageId={pageId || undefined}
-                    isProcessing={isProcessingMove || isProcessingRemove}
+                    isProcessing={currentState.isProcessing}
                 />
-            </Box>
+            </ScrollArea>
 
             {/* Add Section Modal */}
             <AddSectionModal
@@ -724,6 +688,6 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
                 onSectionCreated={handleSectionCreated}
                 onSectionsImported={handleSectionsImported}
             />
-        </Paper>
+        </Box>
     );
 } 

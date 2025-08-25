@@ -18,10 +18,10 @@ import {
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { LinksGroup } from './components/LinksGroup';
 import { UserButton } from './components/UserButton';
-import { NavigationSearch } from './components/NavigationSearch';
 import { CreatePageModal } from '../../pages/create-page/CreatePage';
-import classes from './AdminNavbar.module.css';
+import { NavigationSearch } from './components/NavigationSearch';
 import { SelfHelpLogo } from '../../../shared';
+import classes from './AdminNavbar.module.css';
 
 interface INavigationLink {
     label: string;
@@ -225,18 +225,16 @@ export function AdminNavbar() {
 
     return (
         <nav className={classes.navbar}>
-            <div className={classes.header}>
-                <Group justify="space-between">
+            {/* Navigation Header */}
+            <Box p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
+                <Group gap="md" align="center" mb="md">
                     <SelfHelpLogo size={30} />
                     <Code fw={700}>v3.1.2</Code>
                 </Group>
-            </div>
-
-            {/* Search section */}
-            <Box p="md" style={{ borderBottom: '1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))' }}>
+                
                 <NavigationSearch 
                     adminPagesData={adminPagesData}
-                    onItemSelect={() => {}} 
+                    onItemSelect={() => {}} // Navigation search handles routing internally
                 />
             </Box>
 

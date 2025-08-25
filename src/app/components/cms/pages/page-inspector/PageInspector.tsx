@@ -45,29 +45,31 @@ import { LockedField } from '../../ui/locked-field/LockedField';
 import { DragDropMenuPositioner } from '../../ui/drag-drop-menu-positioner/DragDropMenuPositioner';
 import { FieldLabelWithTooltip } from '../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
 import { IPageField } from '../../../../../types/responses/admin/page-details.types';
-import { IUpdatePageField, IUpdatePageData, IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
-import { FieldRenderer, IFieldData } from '../../shared/field-renderer/FieldRenderer';
+import {IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
+import { FieldRenderer, IFieldData, InspectorHeader } from '../../shared';
+import { IInspectorButton } from '../../shared/inspector-header/InspectorHeader';
 import { PAGE_ACCESS_TYPES } from '../../../../../constants/lookups.constants';
 import styles from './PageInspector.module.css';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { CreatePageModal } from '../create-page/CreatePage';
 import { exportPageSections } from '../../../../../api/admin/section.api';
 import { downloadJsonFile, generateExportFilename } from '../../../../../utils/export-import.utils';
-import { validateName, getNameValidationError } from '../../../../../utils/name-validation.utils';
-import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
 import { 
     processAllFields, 
     isContentField, 
     isPropertyField, 
-    getFieldTypeDisplayName,
     validateFieldProcessing,
     initializeFieldFormValues
 } from '../../../../../utils/field-processing.utils';
 
+
+
 interface PageInspectorProps {
     page: IAdminPage | null;
     isConfigurationPage?: boolean;
+    // Callback to expose inspector buttons to parent
+    onButtonsChange?: (buttons: IInspectorButton[]) => void;
 }
 
 interface IPageFormValues {
@@ -86,7 +88,7 @@ interface IPageFormValues {
     fields: Record<string, Record<number, string>>; // fields[fieldName][languageId] = content
 }
 
-export function PageInspector({ page, isConfigurationPage = false }: PageInspectorProps) {
+export function PageInspector({ page, isConfigurationPage = false, onButtonsChange }: PageInspectorProps) {
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [createChildModalOpened, setCreateChildModalOpened] = useState(false);
@@ -220,6 +222,8 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
         }
     }, [page, pageFieldsData, languages]);
 
+
+
     // Save hotkey (Ctrl+S)
     useHotkeys([
         ['ctrl+S', (e) => {
@@ -288,6 +292,8 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
         }
     };
 
+
+
     const handleHeaderMenuChange = (enabled: boolean) => {
         form.setFieldValue('headerMenuEnabled', enabled);
         if (!enabled) {
@@ -311,6 +317,68 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
         form.setFieldValue('footerPosition', position);
     }, []); // Empty dependency array since form.setFieldValue is stable
 
+    // Generate inspector buttons (consolidated logic)
+    const generateInspectorButtons = useCallback((): IInspectorButton[] => {
+        if (!page) return [];
+        
+        const buttons: IInspectorButton[] = [
+            {
+                id: 'save',
+                label: 'Save',
+                icon: <IconDeviceFloppy size="0.875rem" />,
+                onClick: handleSave,
+                variant: 'filled',
+                loading: updatePageMutation.isPending,
+                disabled: !page.keyword
+            }
+        ];
+
+        // Add additional buttons only for non-configuration pages
+        if (!isConfigurationPage) {
+            buttons.push(
+                {
+                    id: 'export',
+                    label: 'Export',
+                    icon: <IconFileExport size="1rem" />,
+                    onClick: handleExportPageSections,
+                    variant: 'outline',
+                    color: 'blue'
+                }
+            );
+
+            // Only show Create Child Page for non-system pages
+            if (page.is_system !== 1) {
+                buttons.push({
+                    id: 'create-child',
+                    label: 'Create Child Page',
+                    icon: <IconPlus size="1rem" />,
+                    onClick: () => setCreateChildModalOpened(true),
+                    variant: 'outline',
+                    color: 'green'
+                });
+            }
+
+            buttons.push({
+                id: 'delete',
+                label: 'Delete',
+                icon: <IconTrash size="1rem" />,
+                onClick: () => setDeleteModalOpened(true),
+                variant: 'outline',
+                color: 'red',
+                disabled: page.is_system === 1
+            });
+        }
+
+        return buttons;
+    }, [page, isConfigurationPage, updatePageMutation.isPending, handleSave, handleExportPageSections]);
+
+    // Expose inspector buttons to parent
+    useEffect(() => {
+        if (onButtonsChange) {
+            onButtonsChange(generateInspectorButtons());
+        }
+    }, [onButtonsChange, generateInspectorButtons]);
+
     // Get fields data for processing (before early returns)
     const fields = pageFieldsData?.fields || [];
     const contentFields = fields.filter(field => isContentField(field));
@@ -326,17 +394,9 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
         return field.title && field.title.trim() ? field.title : field.name;
     };
 
-    // Render content field based on type and language
-    const renderContentField = (field: IPageField, languageId: number) => {
-        const currentLanguage = languages.find(lang => lang.id === languageId);
-        const locale = currentLanguage?.locale;
-        const fieldValue = form.values.fields?.[field.name]?.[languageId] ?? '';
-        
-        // Check if this is the title field and we're in a configuration page
-        const isReadOnly = isConfigurationPage && field.name.toLowerCase() === 'title';
-        
-        // Convert IPageField to IFieldData
-        const fieldData: IFieldData = {
+    // Convert IPageField to IFieldData (consolidated conversion logic)
+    const convertToFieldData = useCallback((field: IPageField, isReadOnly: boolean = false): IFieldData => {
+        return {
             id: field.id,
             name: field.name,
             title: field.title,
@@ -347,6 +407,18 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
             display: field.display,
             fieldConfig: field.fieldConfig
         };
+    }, []);
+
+    // Consolidated field renderer (handles both content and property fields)
+    const renderField = useCallback((field: IPageField, languageId: number, isContentField: boolean = true) => {
+        const currentLanguage = languages.find(lang => lang.id === languageId);
+        const locale = currentLanguage?.locale;
+        const fieldValue = form.values.fields?.[field.name]?.[languageId] ?? '';
+        
+        // Check if this is the title field and we're in a configuration page
+        const isReadOnly = isConfigurationPage && field.name.toLowerCase() === 'title';
+        
+        const fieldData = convertToFieldData(field, isReadOnly);
         
         return (
             <FieldRenderer
@@ -357,41 +429,23 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                     const fieldKey = `fields.${field.name}.${languageId}`;
                     form.setFieldValue(fieldKey, value);
                 }}
-                locale={locale}
-                className={styles.fullWidthLabel}
+                locale={isContentField ? locale : undefined}
+                className={isContentField ? styles.fullWidthLabel : undefined}
                 disabled={isReadOnly}
             />
         );
-    };
+    }, [languages, form.values.fields, isConfigurationPage, convertToFieldData]);
+
+    // Render content field based on type and language
+    const renderContentField = useCallback((field: IPageField, languageId: number) => {
+        return renderField(field, languageId, true);
+    }, [renderField]);
 
     // Render property field (single-language, uses first language ID)
-    const renderPropertyField = (field: IPageField) => {
+    const renderPropertyField = useCallback((field: IPageField) => {
         const langId = languages[0]?.id || 1;
-        const fieldValue = form.values.fields?.[field.name]?.[langId] ?? '';
-
-        const fieldData: IFieldData = {
-            id: field.id,
-            name: field.name,
-            title: field.title,
-            type: field.type,
-            default_value: field.default_value,
-            help: field.help,
-            display: field.display,
-            fieldConfig: field.fieldConfig
-        };
-
-        return (
-            <FieldRenderer
-                key={`${field.id}-${langId}`}
-                field={fieldData}
-                value={fieldValue}
-                onChange={(value) => {
-                    const fieldKey = `fields.${field.name}.${langId}`;
-                    form.setFieldValue(fieldKey, value);
-                }}
-            />
-        );
-    };
+        return renderField(field, langId, false);
+    }, [renderField, languages]);
 
     if (!page) {
         return (
@@ -428,31 +482,21 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
     }
 
     const pageDetails = pageFieldsData?.page;
+    
+    // Get inspector buttons using consolidated logic
+    const inspectorButtons = generateInspectorButtons();
 
     return (
         <div className={styles.asideContainer}>
-            {/* Fixed Save Button */}
-            <div className={styles.asideHeader}>
-                <Group justify="space-between" align="center" mb="xs">
-                    <Title order={4} size="md">{page.keyword}</Title>
-                    <Badge color="blue" variant="light" size="sm">
-                        ID: {pageDetails?.id}
-                    </Badge>
-                </Group>
-                <Button
-                    leftSection={<IconDeviceFloppy size="0.875rem" />}
-                    onClick={handleSave}
-                    variant="filled"
-                    loading={updatePageMutation.isPending}
-                    disabled={!page?.keyword}
-                    size="sm"
-                    fullWidth
-                >
-                    Save
-                </Button>
-            </div>
-
-            {/* Scrollable Content */}
+            {/* Inspector Header */}
+            <InspectorHeader 
+                inspectorType="page"
+                inspectorTitle={page.title || page.keyword}
+                inspectorId={pageDetails?.id || page.id_pages}
+                inspectorButtons={inspectorButtons}
+            />
+            
+            {/* Scrollable Content - Now full height */}
             <ScrollArea className={styles.asideContent}>
                 <Stack gap="xs">
                     {/* Page Information Section */}
@@ -778,67 +822,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                         </div>
                     )}
 
-                    {/* Action Buttons - Hide for configuration pages */}
-                    {!isConfigurationPage && (
-                    <div className={styles.asideSection}>
-                        <Box p="sm">
-                            <Stack gap="sm">
-                                <Title order={6} size="xs">Actions</Title>
-                            
-                            {/* System page indicator */}
-                            {page?.is_system === 1 && (
-                                <Alert 
-                                    icon={<IconInfoCircle size="1rem" />}
-                                    title="System Page"
-                                    color="blue"
-                                    variant="light"
-                                >
-                                    This is a system page that provides core functionality. 
-                                    It can be styled and edited but cannot be deleted.
-                                </Alert>
-                            )}
-                            
-                            <Group>
-                                {/* Export Page Sections */}
-                                <Button
-                                    leftSection={<IconFileExport size="1rem" />}
-                                    variant="outline"
-                                    color="blue"
-                                    onClick={handleExportPageSections}
-                                >
-                                    Export Sections
-                                </Button>
 
-                                {/* Only show Create Child Page for non-system pages */}
-                                {page?.is_system !== 1 && (
-                                    <Button
-                                        leftSection={<IconPlus size="1rem" />}
-                                        variant="outline"
-                                        onClick={handleCreateChildPage}
-                                    >
-                                        Create Child Page
-                                    </Button>
-                                )}
-                                
-                                <Tooltip 
-                                    label={page?.is_system === 1 ? "System pages cannot be deleted" : "Delete this page"}
-                                    position="top"
-                                >
-                                    <Button
-                                        leftSection={<IconTrash size="1rem" />}
-                                        color="red"
-                                        variant="outline"
-                                        onClick={() => setDeleteModalOpened(true)}
-                                        disabled={page?.is_system === 1}
-                                    >
-                                        Delete Page
-                                    </Button>
-                                </Tooltip>
-                            </Group>
-                        </Stack>
-                        </Box>
-                    </div>
-                    )}
                 </Stack>
             </ScrollArea>
 

@@ -412,7 +412,7 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                     ) : (
                         <Box p="xs" ta="center">
                             <Text size="xs" c="dimmed">
-                                No results found for "{searchQuery}"
+                                No results found for &quot;{searchQuery}&quot;
                             </Text>
                         </Box>
                     )}

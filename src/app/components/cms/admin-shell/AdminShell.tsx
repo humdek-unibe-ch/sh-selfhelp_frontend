@@ -1,6 +1,6 @@
 'use client';
 
-import { AppShell, MantineProvider } from "@mantine/core";
+import { AppShell, MantineProvider, Box } from "@mantine/core";
 import { AdminNavbar } from "./admin-navbar/AdminNavbar";
 import { useDisclosure } from '@mantine/hooks';
 import { useIsAuthenticated } from '@refinedev/core';
@@ -65,12 +65,12 @@ export function AdminShell({ children, aside, asideWidth = 400 }: AdminShellProp
                     breakpoint: 'md',
                     collapsed: { mobile: true, desktop: false }
                 } : undefined}
-                padding="md"
+                padding={0}
             >
                 <AppShell.Navbar>
                     <AdminNavbar />
                 </AppShell.Navbar>
-                <AppShell.Main className="max-h-screen overflow-y-auto">
+                <AppShell.Main className="max-h-screen">
                     {children}
                 </AppShell.Main>
                 {aside && (

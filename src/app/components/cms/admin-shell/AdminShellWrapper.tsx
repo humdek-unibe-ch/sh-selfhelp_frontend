@@ -6,7 +6,6 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../../../hooks/useAuth';
 import { ROUTES } from '../../../../config/routes.config';
 import { LoadingOverlay } from "@mantine/core";
-
 interface AdminShellWrapperProps {
     children: React.ReactNode;
     aside?: React.ReactNode;

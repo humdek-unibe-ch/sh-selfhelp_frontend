@@ -22,6 +22,7 @@ import { useAdminPages } from '../../../hooks/useAdminPages';
 import { useMemo } from 'react';
 import { IAdminPage } from '../../../types/responses/admin/admin.types';
 
+
 /**
  * Utility function to flatten a hierarchical pages array into a flat array
  * This ensures we can find all pages including nested children
@@ -46,6 +47,8 @@ export default function AdminPage() {
   const params = useParams();
   const path = params.slug ? (Array.isArray(params.slug) ? params.slug.join('/') : params.slug) : '';
   const { pages, configurationPages, isLoading, error } = useAdminPages();
+
+
 
   // Parse the path to extract page keyword and section ID
   const { isPageRoute, keyword, selectedSectionId } = useMemo(() => {
@@ -128,12 +131,13 @@ export default function AdminPage() {
       }
 
       return (
-        <Box className="max-h-screen overflow-y-auto">
+        <Box className="max-h-screen">
           {/* Page Sections - Full height */}
           <PageSections 
             pageId={selectedPage.id_pages} 
             pageName={selectedPage.keyword}
             initialSelectedSectionId={selectedSectionId}
+
           />
         </Box>
       );
@@ -170,15 +174,24 @@ export default function AdminPage() {
       return (
         <SectionInspector 
           pageId={selectedPage?.id_pages || null} 
-          sectionId={selectedSectionId} 
+          sectionId={selectedSectionId}
+
         />
       );
     } else if (isPageRoute) {
-      return <PageInspector page={selectedPage} isConfigurationPage={isConfigurationPage} />;
+      return (
+        <PageInspector 
+          page={selectedPage} 
+          isConfigurationPage={isConfigurationPage}
+
+        />
+      );
     }
     
     return null;
   };
+
+
 
   return (
     <AdminShellWrapper 

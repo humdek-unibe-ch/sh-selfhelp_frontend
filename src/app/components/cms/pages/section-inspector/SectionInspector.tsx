@@ -48,9 +48,22 @@ import {
     isPropertyField
 } from '../../../../../utils/field-processing.utils';
 
+export interface ISectionInspectorButton {
+    id: string;
+    label: string;
+    icon: React.ReactNode;
+    onClick: () => void;
+    variant?: 'filled' | 'outline' | 'subtle';
+    color?: string;
+    disabled?: boolean;
+    loading?: boolean;
+}
+
 interface ISectionInspectorProps {
     pageId: number | null;
     sectionId: number | null;
+    // Callback to expose inspector buttons to parent
+    onButtonsChange?: (buttons: ISectionInspectorButton[]) => void;
 }
 
 interface ISectionFormValues {
@@ -84,7 +97,7 @@ interface ISectionSubmitData {
     }>;
 }
 
-export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) {
+export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectionInspectorProps) {
     const router = useRouter();
     const queryClient = useQueryClient();
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
@@ -101,6 +114,8 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
         properties: {},
         fields: {}
     });
+
+
     
     // Fetch section details when section is selected
     const { 
@@ -391,6 +406,50 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
         }));
     };
 
+    // Expose inspector buttons to parent
+    useEffect(() => {
+        if (onButtonsChange && sectionDetailsData?.section) {
+            const section = sectionDetailsData.section;
+            const buttons: ISectionInspectorButton[] = [
+                {
+                    id: 'save',
+                    label: 'Save',
+                    icon: <IconDeviceFloppy size="1rem" />,
+                    onClick: handleSave,
+                    variant: 'filled',
+                    loading: updateSectionMutation.isPending,
+                    disabled: !sectionId || updateSectionMutation.isPending || deleteSectionMutation.isPending
+                },
+                {
+                    id: 'export',
+                    label: 'Export',
+                    icon: <IconFileExport size="1rem" />,
+                    onClick: handleExportSection,
+                    variant: 'outline',
+                    color: 'blue',
+                    disabled: !sectionId || deleteSectionMutation.isPending
+                },
+                {
+                    id: 'delete',
+                    label: 'Delete',
+                    icon: <IconTrash size="1rem" />,
+                    onClick: () => setDeleteModalOpened(true),
+                    variant: 'outline',
+                    color: 'red',
+                    disabled: !sectionId || deleteSectionMutation.isPending
+                }
+            ];
+
+            onButtonsChange(buttons);
+        }
+    }, [
+        sectionDetailsData?.section,
+        sectionId,
+        updateSectionMutation.isPending,
+        deleteSectionMutation.isPending,
+        onButtonsChange
+    ]);
+
     // Convert ISectionField to IFieldData
     const convertToFieldData = (field: ISectionField): IFieldData => ({
         id: field.id,
@@ -514,66 +573,51 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
         { label: `Type ID: ${section.style.typeId}`, color: 'gray' }
     ];
 
-    const headerActions = [
+
+
+    // Prepare inspector buttons
+    const inspectorButtons = [
         {
+            id: 'save',
             label: 'Save',
             icon: <IconDeviceFloppy size="1rem" />,
             onClick: handleSave,
             variant: 'filled' as const,
-            disabled: !sectionId || updateSectionMutation.isPending || deleteSectionMutation.isPending,
-            loading: updateSectionMutation.isPending
+            loading: updateSectionMutation.isPending,
+            disabled: !sectionId || !sectionDetailsData
         },
         {
+            id: 'export',
             label: 'Export',
             icon: <IconFileExport size="1rem" />,
             onClick: handleExportSection,
-            variant: 'light' as const,
-            disabled: !sectionId || deleteSectionMutation.isPending
+            variant: 'outline' as const,
+            color: 'blue',
+            disabled: !sectionId || !sectionDetailsData
         },
         {
-            label: 'Delete',
+            id: 'delete',
+            label: 'Delete Section',
             icon: <IconTrash size="1rem" />,
             onClick: () => setDeleteModalOpened(true),
-            variant: 'light' as const,
+            variant: 'outline' as const,
             color: 'red',
-            disabled: !sectionId || deleteSectionMutation.isPending
+            disabled: !sectionId || !sectionDetailsData
         }
     ];
 
     return (
         <>
             <div className={styles.asideContainer}>
-                {/* Header with title, badges, and actions */}
-                <div className={styles.asideHeader}>
-                    <Group justify="space-between" align="center" mb="xs">
-                        <Title order={4} size="md">{section.name}</Title>
-                        <Group gap="xs">
-                            {headerBadges.map((badge, index) => (
-                                <Badge key={index} color={badge.color} variant="light" size="sm">
-                                    {badge.label}
-                                </Badge>
-                            ))}
-                        </Group>
-                    </Group>
-                    <Group gap="xs">
-                        {headerActions.map((action, index) => (
-                            <Button
-                                key={index}
-                                leftSection={action.icon}
-                                onClick={action.onClick}
-                                variant={action.variant}
-                                color={action.color}
-                                disabled={action.disabled}
-                                loading={action.loading}
-                                size="xs"
-                            >
-                                {action.label}
-                            </Button>
-                        ))}
-                    </Group>
-                </div>
-
-                {/* Scrollable Content */}
+                {/* Inspector Header */}
+                <InspectorHeader 
+                    inspectorType="section"
+                    inspectorTitle={`Section: ${section.name}`}
+                    inspectorId={section.id}
+                    inspectorButtons={inspectorButtons}
+                />
+                
+                {/* Scrollable Content - Now full height */}
                 <ScrollArea className={styles.asideContent}>
                     <Stack gap="xs">
                         {/* Section Information */}
