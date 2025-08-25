@@ -1,47 +1,42 @@
 "use client";
 
-import { useState, useMemo, useCallback } from 'react';
-import { ScrollArea, Stack, Divider, Box, Text, Group, ActionIcon, Tooltip } from '@mantine/core';
+import { useMemo } from 'react';
+import { ScrollArea, Group, Code, Box } from '@mantine/core';
 import { 
     IconDashboard,
     IconUsers, 
     IconFiles, 
     IconSettingsAutomation, 
-    IconPlus, 
     IconPhoto, 
     IconSettings, 
     IconClock, 
     IconDatabase,
     IconPlayerPlay,
-    IconRefresh
+    IconFileText
 } from '@tabler/icons-react';
-import { useRouter } from 'next/navigation';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
-import { useQueryClient } from '@tanstack/react-query';
-import { CreatePageModal } from '../../pages/create-page/CreatePage';
-import { NavigationSearch, NavigationSection, NavigationItem, NavigationQuickActions, CategoryHeader, UserButton } from './components';
-import { NavigationItemWithChildren } from './components/NavigationItemWithChildren';
-import { REACT_QUERY_CONFIG } from '../../../../../config/react-query.config';
+import { LinksGroup } from './components/LinksGroup';
+import { UserButton } from './components/UserButton';
+import { Logo } from './components/Logo';
+import { NavigationSearch } from './components/NavigationSearch';
 import classes from './AdminNavbar.module.css';
 
-interface ITransformedPage {
+interface INavigationLink {
     label: string;
-    href: string;
-    children: ITransformedPage[];
+    link: string;
+    links?: INavigationLink[];
 }
 
-// Helper function to transform pages with children into navigation structure
-function transformPagesWithChildren(pages: any[]): ITransformedPage[] {
-    return pages.map((page: any): ITransformedPage => ({
-        label: page.label || page.title || page.keyword,
-        href: `/admin/pages/${page.keyword}`,
-        children: page.children ? transformPagesWithChildren(page.children) : []
+// Helper function to transform pages into navigation structure
+function transformPagesToNavigation(pages: any[]): INavigationLink[] {
+    return pages.map((page: any): INavigationLink => ({
+        label: page.title || page.keyword,
+        link: `/admin/pages/${page.keyword}`,
+        links: page.children ? transformPagesToNavigation(page.children) : undefined
     }));
 }
 
 export function AdminNavbar() {
-    const router = useRouter();
-    const queryClient = useQueryClient();
     const { 
         pages,
         configurationPageLinks, 
@@ -49,502 +44,190 @@ export function AdminNavbar() {
         categorizedRegularPages, 
         isLoading 
     } = useAdminPages();
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isRefreshing, setIsRefreshing] = useState(false);
-
-    // Handle data refresh
-    const handleRefreshData = useCallback(async () => {
-        setIsRefreshing(true);
-        try {
-            await queryClient.invalidateQueries({ 
-                queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES 
-            });
-        } finally {
-            setIsRefreshing(false);
-        }
-    }, [queryClient]);
 
     // Transform pages data for search component with full hierarchical structure
     const adminPagesData = useMemo(() => ({
         configurationPageLinks,
         categorizedSystemPages,
         categorizedRegularPages,
-        // Add raw pages data for hierarchical search
-        allPages: pages
+        // Add raw pages data for hierarchical search (cast to match expected format)
+        allPages: pages?.map(page => ({
+            keyword: page.keyword,
+            title: page.title || undefined,
+            nav_position: page.nav_position || undefined,
+            footer_position: page.footer_position || undefined,
+            is_system: Boolean(page.is_system),
+            children: page.children?.map(child => ({
+                keyword: child.keyword,
+                title: child.title || undefined,
+                children: child.children || []
+            }))
+        })) || []
     }), [configurationPageLinks, categorizedSystemPages, categorizedRegularPages, pages]);
 
-    // Build navigation links for each section
-    const userManagementLinks = [
-                {
-                    label: 'Users',
-            href: '/admin/users', 
-            icon: <IconUsers size={16} />,
-            description: 'Manage user accounts and profiles'
-                },
-                {
-                    label: 'Groups',
-            href: '/admin/groups', 
-            icon: <IconUsers size={16} />,
-            description: 'Manage user groups and permissions'
-                },
-                {
-                    label: 'Roles',
-            href: '/admin/roles', 
-            icon: <IconUsers size={16} />,
-            description: 'Manage user roles and access control'
-                }
-    ];
-
-    const contentManagementLinks = [
-        {
-            label: 'Assets',
-            href: '/admin/assets', 
-            icon: <IconPhoto size={16} />,
-            description: 'Manage files, images and media'
-        },
-        { 
-            label: 'Unused Sections', 
-            href: '/admin/unused-sections', 
-            icon: <IconDatabase size={16} />,
-            description: 'Clean up unused content sections'
-        }
-    ];
-
-    const automationLinks = [
-        { 
-            label: 'Actions', 
-            href: '/admin/actions', 
-            icon: <IconPlayerPlay size={16} />,
-            description: 'Automated actions and triggers'
-        },
-        {
-            label: 'Scheduled Jobs',
-            href: '/admin/scheduled-jobs', 
-            icon: <IconClock size={16} />,
-            description: 'Manage scheduled tasks and cron jobs'
-        }
-    ];
-
-    const systemLinks = [
-        { 
-            label: 'Data Browser', 
-            href: '/admin/data', 
-            icon: <IconDatabase size={16} />,
-            description: 'Browse and manage database tables'
-        },
-                {
-                    label: 'CMS Preferences',
-            href: '/admin/preferences', 
-            icon: <IconSettings size={16} />,
-            description: 'Configure CMS settings'
-        },
-        { 
-            label: 'Cache Management', 
-            href: '/admin/cache', 
-            icon: <IconDatabase size={16} />,
-            description: 'Monitor and manage application cache'
-        }
-    ];
-
-    // Transform configuration pages
-    const configurationLinks = useMemo(() => {
+    // Build navigation data structure
+    const navigationData = useMemo(() => {
         if (isLoading) return [];
-        return configurationPageLinks.map(page => ({
-            label: page.label,
-            href: `/admin/pages/${page.keyword}`,
-            icon: <IconSettings size={16} />,
-            description: 'Configuration page'
-        }));
-    }, [configurationPageLinks, isLoading]);
 
-    // Transform regular pages with children support
-    const menuPagesLinksWithChildren = useMemo(() => {
-        if (isLoading || !pages) return [];
-        
-        // Get only menu pages (pages with nav_position)
-        const menuPages = pages.filter(page => 
+        // Get menu pages (pages that appear in website navigation)
+        const menuPages = pages?.filter(page => 
             page.nav_position !== null && 
             page.nav_position !== undefined &&
-            !page.is_system
-        );
-        
-        // Build tree structure with children
-        return transformPagesWithChildren(menuPages).sort((a: ITransformedPage, b: ITransformedPage) => {
-            // Sort by nav_position from the original page data
-            const pageA = pages.find((p: any) => p.keyword === a.label);
-            const pageB = pages.find((p: any) => p.keyword === b.label);
-            return (pageA?.nav_position || 0) - (pageB?.nav_position || 0);
-        });
-    }, [pages, isLoading]);
-    
-    // Legacy flat menu pages for backward compatibility
-    const menuPagesLinks = useMemo(() => {
-        if (isLoading) return [];
-        return categorizedRegularPages.menu.map(page => ({
-            label: page.label,
-            href: `/admin/pages/${page.keyword}`,
-            icon: <IconFiles size={16} />,
-            badge: { text: 'Menu', color: 'blue' },
-            description: `Menu page (position: ${page.nav_position})`
-        }));
-    }, [categorizedRegularPages.menu, isLoading]);
+            !Boolean(page.is_system)
+        ).sort((a, b) => (a.nav_position || 0) - (b.nav_position || 0)) || [];
 
-    const footerPagesLinks = useMemo(() => {
-        if (isLoading) return [];
-        return categorizedRegularPages.footer.map(page => ({
-            label: page.label,
-            href: `/admin/pages/${page.keyword}`,
-            icon: <IconFiles size={16} />,
-            badge: { text: 'Footer', color: 'green' },
-            description: `Footer page (position: ${page.footer_position})`
-        }));
-    }, [categorizedRegularPages.footer, isLoading]);
+        // Get content pages (pages that don't appear in website navigation, excluding configuration pages)
+        const configurationKeywords = new Set(configurationPageLinks?.map(p => p.keyword) || []);
+        const contentPages = pages?.filter(page => 
+            (page.nav_position === null || page.nav_position === undefined) &&
+            (page.footer_position === null || page.footer_position === undefined) &&
+            !Boolean(page.is_system) &&
+            !configurationKeywords.has(page.keyword) // Exclude configuration pages
+        ) || [];
 
-    const otherPagesLinks = useMemo(() => {
-        if (isLoading) return [];
-        return categorizedRegularPages.other.map(page => ({
-            label: page.label,
-            href: `/admin/pages/${page.keyword}`,
-            icon: <IconFiles size={16} />,
-            description: 'Content page'
-        }));
-    }, [categorizedRegularPages.other, isLoading]);
+        // Get footer pages
+        const footerPages = pages?.filter(page =>
+            page.footer_position !== null &&
+            page.footer_position !== undefined &&
+            !Boolean(page.is_system)
+        ).sort((a, b) => (a.footer_position || 0) - (b.footer_position || 0)) || [];
 
-    // Transform system pages
-    const authPagesLinks = useMemo(() => {
-        if (isLoading) return [];
-        return categorizedSystemPages.authentication.map(page => ({
-            label: page.label,
-            href: `/admin/pages/${page.keyword}`,
-            icon: <IconUsers size={16} />,
-            description: 'Authentication page'
-        }));
-    }, [categorizedSystemPages.authentication, isLoading]);
+        return [
+            { 
+                label: 'Dashboard', 
+                icon: <IconDashboard size={16} />,
+                link: '/admin'
+            },
+            {
+                label: 'User Management',
+                icon: <IconUsers size={16} />,
+                links: [
+                    { label: 'Users', link: '/admin/users' },
+                    { label: 'Groups', link: '/admin/groups' },
+                    { label: 'Roles', link: '/admin/roles' },
+                ],
+            },
+            {
+                label: 'Content',
+                icon: <IconPhoto size={16} />,
+                links: [
+                    { label: 'Assets', link: '/admin/assets' },
+                    { label: 'Unused Sections', link: '/admin/unused-sections' },
+                ],
+            },
+            // Menu Pages section (pages that appear in website navigation)
+            ...(menuPages.length > 0 ? [{
+                label: 'Menu Pages',
+                icon: <IconFiles size={16} />,
+                initiallyOpened: true,
+                links: transformPagesToNavigation(menuPages)
+            }] : []),
+            // Content Pages section (pages that don't appear in website navigation)
+            ...(contentPages.length > 0 ? [{
+                label: 'Content Pages',
+                icon: <IconFileText size={16} />,
+                links: [
+                    ...contentPages.map(page => ({
+                        label: page.title || page.keyword,
+                        link: `/admin/pages/${page.keyword}`
+                    })),
+                    // Add footer pages to content pages if they exist
+                    ...footerPages.map(page => ({
+                        label: `${page.title || page.keyword} (Footer)`,
+                        link: `/admin/pages/${page.keyword}`
+                    }))
+                ]
+            }] : []),
+            // Configuration pages (only configuration pages, no duplication)
+            ...(configurationPageLinks && configurationPageLinks.length > 0 
+                ? [{
+                    label: 'Configuration',
+                    icon: <IconSettings size={16} />,
+                    links: configurationPageLinks.map(page => ({
+                        label: page.label,
+                        link: `/admin/pages/${page.keyword}`
+                    }))
+                }] 
+                : []
+            ),
+            // System pages
+            {
+                label: 'System Pages',
+                icon: <IconSettingsAutomation size={16} />,
+                links: [
+                    // Authentication pages
+                    ...(categorizedSystemPages?.authentication || []).map(page => ({
+                        label: page.label,
+                        link: `/admin/pages/${page.keyword}`
+                    })),
+                    // Profile pages
+                    ...(categorizedSystemPages?.profile || []).map(page => ({
+                        label: page.label,
+                        link: `/admin/pages/${page.keyword}`
+                    })),
+                    // Error pages
+                    ...(categorizedSystemPages?.errors || []).map(page => ({
+                        label: page.label,
+                        link: `/admin/pages/${page.keyword}`
+                    })),
+                    // Legal pages
+                    ...(categorizedSystemPages?.legal || []).map(page => ({
+                        label: page.label,
+                        link: `/admin/pages/${page.keyword}`
+                    })),
+                    // Other system pages
+                    ...(categorizedSystemPages?.other || []).map(page => ({
+                        label: page.label,
+                        link: `/admin/pages/${page.keyword}`
+                    })),
+                ],
+            },
+            {
+                label: 'Automation',
+                icon: <IconPlayerPlay size={16} />,
+                links: [
+                    { label: 'Actions', link: '/admin/actions' },
+                    { label: 'Scheduled Jobs', link: '/admin/scheduled-jobs' },
+                ],
+            },
+            {
+                label: 'System Tools',
+                icon: <IconDatabase size={16} />,
+                links: [
+                    { label: 'Data Browser', link: '/admin/data' },
+                    { label: 'CMS Preferences', link: '/admin/preferences' },
+                    { label: 'Cache Management', link: '/admin/cache' },
+                ],
+            },
+        ];
+    }, [pages, configurationPageLinks, categorizedSystemPages, categorizedRegularPages, isLoading]);
 
-    const profilePagesLinks = useMemo(() => {
-        if (isLoading) return [];
-        return categorizedSystemPages.profile.map(page => ({
-            label: page.label,
-            href: `/admin/pages/${page.keyword}`,
-            icon: <IconUsers size={16} />,
-            description: 'User profile page'
-        }));
-    }, [categorizedSystemPages.profile, isLoading]);
-
-    const errorPagesLinks = useMemo(() => {
-        if (isLoading) return [];
-        return categorizedSystemPages.errors.map(page => ({
-            label: page.label,
-            href: `/admin/pages/${page.keyword}`,
-            icon: <IconFiles size={16} />,
-            description: 'Error page'
-        }));
-    }, [categorizedSystemPages.errors, isLoading]);
-
-    const legalPagesLinks = useMemo(() => {
-        if (isLoading) return [];
-        return categorizedSystemPages.legal.map(page => ({
-            label: page.label,
-            href: `/admin/pages/${page.keyword}`,
-            icon: <IconFiles size={16} />,
-            description: 'Legal page'
-        }));
-    }, [categorizedSystemPages.legal, isLoading]);
-
-    const otherSystemPagesLinks = useMemo(() => {
-        if (isLoading) return [];
-        return categorizedSystemPages.other.map(page => ({
-            label: page.label,
-            href: `/admin/pages/${page.keyword}`,
-            icon: <IconFiles size={16} />,
-            description: 'System page'
-        }));
-    }, [categorizedSystemPages.other, isLoading]);
+    const links = navigationData.map((item) => <LinksGroup {...item} key={item.label} />);
 
     return (
-        <>
-            <Box className={classes.navbar}>
-                {/* User section at top */}
-                <Box className={classes.userSection}>
-                    <UserButton />
-                </Box>
+        <nav className={classes.navbar}>
+            <div className={classes.header}>
+                <Group justify="space-between">
+                    <Logo style={{ width: 120 }} />
+                    <Code fw={700}>v3.1.2</Code>
+                </Group>
+            </div>
 
-                {/* Search section */}
-                <Box className={classes.searchSection}>
-                    <Group justify="space-between" align="center" mb="xs" px="xs">
-                        <Text size="xs" fw={600} c="dimmed" tt="uppercase">
-                            Admin Panel
-                        </Text>
-                        <Tooltip label="Refresh navigation">
-                            <ActionIcon
-                                variant="subtle"
-                                color="gray"
-                                size="xs"
-                                onClick={handleRefreshData}
-                                loading={isRefreshing}
-                            >
-                                <IconRefresh size={12} />
-                            </ActionIcon>
-                        </Tooltip>
-                    </Group>
-                    
-                    <Box px="xs">
-                        <NavigationSearch 
-                            adminPagesData={adminPagesData}
-                            onItemSelect={() => {}} 
-                        />
-                    </Box>
-                </Box>
-
-                <Divider />
-
-                {/* Main navigation content */}
-                <ScrollArea style={{ flex: 1 }} p="xs" pt="xs">
-                    <Stack gap="xs">
-                        {/* Core Admin */}
-                        <Box pb="xs" style={{ borderBottom: '1px solid var(--mantine-color-gray-2)' }}>
-                            <NavigationSection
-                                title="Dashboard"
-                                icon={<IconDashboard size={18} />}
-                                directLink="/admin"
-                            />
-                        </Box>
-
-                        {/* User Management */}
-                        <Box pb="xs" style={{ borderBottom: '1px solid var(--mantine-color-gray-2)' }}>
-                            <NavigationSection
-                                title="User Management"
-                                icon={<IconUsers size={18} />}
-                                links={userManagementLinks}
-                                itemCount={userManagementLinks.length}
-                            />
-                        </Box>
-
-                        {/* Content Management */}
-                        <Box pb="xs" style={{ borderBottom: '1px solid var(--mantine-color-gray-2)' }}>
-                            <NavigationSection
-                                title="Content"
-                                icon={<IconPhoto size={18} />}
-                                links={contentManagementLinks}
-                                itemCount={contentManagementLinks.length}
-                            />
-                        </Box>
-
-                        {/* Pages */}
-                        <Box pb="xs" style={{ borderBottom: '1px solid var(--mantine-color-gray-2)' }}>
-                            <NavigationSection
-                                title="Pages"
-                                icon={<IconFiles size={18} />}
-                                itemCount={
-                                    (menuPagesLinksWithChildren.length + footerPagesLinks.length + otherPagesLinks.length) || undefined
-                                }
-                                rightSection={
-                                    <Tooltip label="Create new page">
-                                        <div
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                setIsModalOpen(true);
-                                            }}
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                width: '20px',
-                                                height: '20px',
-                                                borderRadius: '4px',
-                                                cursor: 'pointer',
-                                                color: 'var(--mantine-color-green-6)',
-                                                transition: 'all 0.15s ease'
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                e.currentTarget.style.backgroundColor = 'var(--mantine-color-green-0)';
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.backgroundColor = 'transparent';
-                                            }}
-                                        >
-                                            <IconPlus size={12} />
-                                        </div>
-                                    </Tooltip>
-                                }
-                            >
-                                <Stack gap={2}>
-                                    {menuPagesLinksWithChildren.length > 0 && (
-                                        <Box>
-                                            <CategoryHeader 
-                                                title="Menu Pages" 
-                                                count={menuPagesLinksWithChildren.length} 
-                                            />
-                                            <Stack gap={1}>
-                                                {menuPagesLinksWithChildren.map((link: ITransformedPage) => (
-                                                    <NavigationItemWithChildren key={link.href} {...link} />
-                                                ))}
-                                            </Stack>
-                                        </Box>
-                                    )}
-                                    
-                                    {footerPagesLinks.length > 0 && (
-                                        <Box>
-                                            <CategoryHeader 
-                                                title="Footer Pages" 
-                                                count={footerPagesLinks.length} 
-                                            />
-                                            <Stack gap={1}>
-                                                {footerPagesLinks.map(link => (
-                                                    <NavigationItem key={link.href} {...link} />
-                                                ))}
-                                            </Stack>
-                                        </Box>
-                                    )}
-                                    
-                                    {otherPagesLinks.length > 0 && (
-                                        <Box>
-                                            <CategoryHeader 
-                                                title="Other Pages" 
-                                                count={otherPagesLinks.length} 
-                                            />
-                                            <Stack gap={1}>
-                                                {otherPagesLinks.map(link => (
-                                                    <NavigationItem key={link.href} {...link} />
-                                                ))}
-                                            </Stack>
-                                        </Box>
-                                    )}
-                                </Stack>
-                            </NavigationSection>
-                        </Box>
-
-                        {/* Configuration Pages */}
-                        {configurationLinks.length > 0 && (
-                            <Box pb="xs" style={{ borderBottom: '1px solid var(--mantine-color-gray-2)' }}>
-                                <NavigationSection
-                                    title="Configuration Pages"
-                                    icon={<IconSettings size={18} />}
-                                    links={configurationLinks}
-                                    itemCount={configurationLinks.length}
-                                />
-                            </Box>
-                        )}
-
-                        {/* System Pages */}
-                        <Box pb="xs" style={{ borderBottom: '1px solid var(--mantine-color-gray-2)' }}>
-                            <NavigationSection
-                                title="System Pages"
-                                icon={<IconSettingsAutomation size={18} />}
-                                itemCount={
-                                    (authPagesLinks.length + profilePagesLinks.length + errorPagesLinks.length + 
-                                     legalPagesLinks.length + otherSystemPagesLinks.length) || undefined
-                                }
-                            >
-                                <Stack gap={2}>
-                                    {authPagesLinks.length > 0 && (
-                                        <Box>
-                                            <CategoryHeader 
-                                                title="Authentication" 
-                                                count={authPagesLinks.length} 
-                                            />
-                                            <Stack gap={1}>
-                                                {authPagesLinks.map(link => (
-                                                    <NavigationItem key={link.href} {...link} />
-                                                ))}
-                                            </Stack>
-                                        </Box>
-                                    )}
-                                    
-                                    {profilePagesLinks.length > 0 && (
-                                        <Box>
-                                            <CategoryHeader 
-                                                title="User Profile" 
-                                                count={profilePagesLinks.length} 
-                                            />
-                                            <Stack gap={1}>
-                                                {profilePagesLinks.map(link => (
-                                                    <NavigationItem key={link.href} {...link} />
-                                                ))}
-                                            </Stack>
-                                        </Box>
-                                    )}
-                                    
-                                    {errorPagesLinks.length > 0 && (
-                                        <Box>
-                                            <CategoryHeader 
-                                                title="Error Pages" 
-                                                count={errorPagesLinks.length} 
-                                            />
-                                            <Stack gap={1}>
-                                                {errorPagesLinks.map(link => (
-                                                    <NavigationItem key={link.href} {...link} />
-                                                ))}
-                                            </Stack>
-                                        </Box>
-                                    )}
-                                    
-                                    {legalPagesLinks.length > 0 && (
-                                        <Box>
-                                            <CategoryHeader 
-                                                title="Legal Pages" 
-                                                count={legalPagesLinks.length} 
-                                            />
-                                            <Stack gap={1}>
-                                                {legalPagesLinks.map(link => (
-                                                    <NavigationItem key={link.href} {...link} />
-                                                ))}
-                                            </Stack>
-                                        </Box>
-                                    )}
-                                    
-                                    {otherSystemPagesLinks.length > 0 && (
-                                        <Box>
-                                            <CategoryHeader 
-                                                title="Other System" 
-                                                count={otherSystemPagesLinks.length} 
-                                            />
-                                            <Stack gap={1}>
-                                                {otherSystemPagesLinks.map(link => (
-                                                    <NavigationItem key={link.href} {...link} />
-                                                ))}
-                                            </Stack>
-                                        </Box>
-                                    )}
-                                </Stack>
-                            </NavigationSection>
-                        </Box>
-
-                        {/* Automation */}
-                        <Box pb="xs" style={{ borderBottom: '1px solid var(--mantine-color-gray-2)' }}>
-                            <NavigationSection
-                                title="Automation"
-                                icon={<IconPlayerPlay size={18} />}
-                                links={automationLinks}
-                                itemCount={automationLinks.length}
-                            />
-                        </Box>
-
-                        {/* System Tools */}
-                        <Box>
-                            <NavigationSection
-                                title="System Tools"
-                                icon={<IconDatabase size={18} />}
-                                links={systemLinks}
-                                itemCount={systemLinks.length}
-                            />
-                        </Box>
-                    </Stack>
-            </ScrollArea>
-
-                {/* Footer with quick actions */}
-                <NavigationQuickActions
-                    onCreatePage={() => setIsModalOpen(true)}
-                    onRefreshData={handleRefreshData}
-                    isRefreshing={isRefreshing}
+            {/* Search section */}
+            <Box p="md" style={{ borderBottom: '1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))' }}>
+                <NavigationSearch 
+                    adminPagesData={adminPagesData}
+                    onItemSelect={() => {}} 
                 />
             </Box>
 
-            <CreatePageModal
-                opened={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-            />
-        </>
+            <ScrollArea className={classes.links}>
+                <div className={classes.linksInner}>{links}</div>
+            </ScrollArea>
+
+            <div className={classes.footer}>
+                <UserButton />
+            </div>
+        </nav>
     );
 }
