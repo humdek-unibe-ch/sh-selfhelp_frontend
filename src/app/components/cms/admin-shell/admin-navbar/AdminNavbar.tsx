@@ -17,9 +17,9 @@ import {
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { LinksGroup } from './components/LinksGroup';
 import { UserButton } from './components/UserButton';
-import { Logo } from './components/Logo';
 import { NavigationSearch } from './components/NavigationSearch';
 import classes from './AdminNavbar.module.css';
+import { SelfHelpLogo } from '../../../shared';
 
 interface INavigationLink {
     label: string;
@@ -208,7 +208,7 @@ export function AdminNavbar() {
         <nav className={classes.navbar}>
             <div className={classes.header}>
                 <Group justify="space-between">
-                    <Logo style={{ width: 120 }} />
+                    <SelfHelpLogo size={30} />
                     <Code fw={700}>v3.1.2</Code>
                 </Group>
             </div>

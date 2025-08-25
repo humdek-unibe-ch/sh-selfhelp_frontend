@@ -1,6 +1,5 @@
 export { LinksGroup } from './LinksGroup';
 export { UserButton } from './UserButton';
-export { Logo } from './Logo';
 
 // Legacy components (kept for potential future use)
 export { NavigationSearch } from './NavigationSearch';
