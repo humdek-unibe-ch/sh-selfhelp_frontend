@@ -128,7 +128,7 @@ export default function AdminPage() {
       }
 
       return (
-        <Box style={{ height: '100%' }}>
+        <Box className="max-h-screen overflow-y-auto">
           {/* Page Sections - Full height */}
           <PageSections 
             pageId={selectedPage.id_pages} 
@@ -190,7 +190,7 @@ export default function AdminPage() {
         <ConfigurationPageEditor page={selectedPage} />
       ) : (
         // Regular pages show main content only (aside is handled by shell)
-        <Box style={{ height: '100%', overflowY: 'auto' }}>
+        <Box>
           {renderMainContent()}
         </Box>
       )}

@@ -694,22 +694,24 @@ export function PageSections({ pageId, pageName, initialSelectedSectionId }: IPa
                 </Group>
             </Group>
 
-            {/* Sections List */}
-            <SectionsList
-                sections={data.sections}
-                expandedSections={expandedSections}
-                onToggleExpand={handleToggleExpand}
-                onSectionMove={handleSectionMove}
-                onRemoveSection={handleRemoveSection}
-                onAddChildSection={handleAddChildSection}
-                onAddSiblingAbove={handleAddSiblingAbove}
-                onAddSiblingBelow={handleAddSiblingBelow}
-                onSectionSelect={handleSectionSelect}
-                selectedSectionId={selectedSectionId}
-                focusedSectionId={focusedSectionId}
-                pageId={pageId || undefined}
-                isProcessing={isProcessingMove || isProcessingRemove}
-            />
+            {/* Sections List - Scrollable Content Area */}
+            <Box className={styles.contentContainer}>
+                <SectionsList
+                    sections={data.sections}
+                    expandedSections={expandedSections}
+                    onToggleExpand={handleToggleExpand}
+                    onSectionMove={handleSectionMove}
+                    onRemoveSection={handleRemoveSection}
+                    onAddChildSection={handleAddChildSection}
+                    onAddSiblingAbove={handleAddSiblingAbove}
+                    onAddSiblingBelow={handleAddSiblingBelow}
+                    onSectionSelect={handleSectionSelect}
+                    selectedSectionId={selectedSectionId}
+                    focusedSectionId={focusedSectionId}
+                    pageId={pageId || undefined}
+                    isProcessing={isProcessingMove || isProcessingRemove}
+                />
+            </Box>
 
             {/* Add Section Modal */}
             <AddSectionModal

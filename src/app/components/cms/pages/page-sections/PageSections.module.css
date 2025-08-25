@@ -27,6 +27,7 @@
     height: 100%;
     display: flex;
     flex-direction: column;
+    overflow: hidden; /* Prevent outer scroll, let inner sections handle it */
 }
 
 /* Title styling */
@@ -46,7 +47,10 @@
     white-space: nowrap;
 }
 
-/* Content container styling */
+/* Content container styling - this will be the scrollable area for sections */
 .contentContainer {
     flex: 1;
+    overflow: hidden; /* Let the sections list handle its own scrolling */
+    display: flex;
+    flex-direction: column;
 }

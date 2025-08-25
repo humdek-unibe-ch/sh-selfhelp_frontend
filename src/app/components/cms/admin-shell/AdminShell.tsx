@@ -70,7 +70,7 @@ export function AdminShell({ children, aside, asideWidth = 400 }: AdminShellProp
                 <AppShell.Navbar>
                     <AdminNavbar />
                 </AppShell.Navbar>
-                <AppShell.Main>
+                <AppShell.Main className="max-h-screen overflow-y-auto">
                     {children}
                 </AppShell.Main>
                 {aside && (
