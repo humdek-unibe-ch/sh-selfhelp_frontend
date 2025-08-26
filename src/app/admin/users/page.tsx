@@ -11,4 +11,4 @@ export default function AdminUsersPage() {
       </Suspense>
     </AdminShell>
   );
-} 
+}

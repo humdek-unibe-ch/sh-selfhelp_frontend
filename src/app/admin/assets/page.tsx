@@ -11,4 +11,4 @@ export default function AdminAssetsPage() {
       </Suspense>
     </AdminShell>
   );
-} 
+}

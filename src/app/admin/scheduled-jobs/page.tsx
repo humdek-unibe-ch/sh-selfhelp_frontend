@@ -4,11 +4,11 @@ import { ScheduledJobsPage } from '../../components/cms/scheduled-jobs/scheduled
 import { AdminShell } from '../../components/cms/admin-shell/AdminShell';
 
 export default function AdminScheduledJobsPage() {
-    return (
-        <AdminShell>
-            <Suspense fallback={<LoadingScreen />}>
-                <ScheduledJobsPage />
-            </Suspense>
-        </AdminShell>
-    );
-} 
+  return (
+    <AdminShell>
+      <Suspense fallback={<LoadingScreen />}>
+        <ScheduledJobsPage />
+      </Suspense>
+    </AdminShell>
+  );
+}
