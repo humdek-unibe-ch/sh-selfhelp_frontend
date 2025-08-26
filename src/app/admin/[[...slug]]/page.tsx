@@ -17,7 +17,7 @@ import { PageSections } from '../../components/cms/pages/page-sections/PageSecti
 import { PageInspector } from '../../components/cms/pages/page-inspector/PageInspector';
 import { SectionInspector } from '../../components/cms/pages/section-inspector';
 import { ConfigurationPageEditor } from '../../components/cms/pages/configuration-page-editor/ConfigurationPageEditor';
-import { AdminShellWrapper } from '../../components/cms/admin-shell/AdminShellWrapper';
+import { useAdminRouteAside } from './AdminRouteFrame';
 import { useAdminPages } from '../../../hooks/useAdminPages';
 import { useMemo, useEffect } from 'react';
 import { IAdminPage } from '../../../types/responses/admin/admin.types';
@@ -186,50 +186,52 @@ export default function AdminPage() {
   };
 
   // Determine which inspector to show in the aside panel
-  const renderAside = () => {
-    // Configuration pages don't show aside panels
+  const { setAside, setAsideWidth } = useAdminRouteAside();
+
+  // Keep aside persistent via AdminRouteFrame; update on relevant changes
+  useEffect(() => {
+    setAsideWidth(420);
+
     if (isConfigurationPage) {
-      return null;
+      setAside(null);
+      return;
     }
 
     const shouldShowSectionInspector = selectedSectionId && !isNaN(selectedSectionId);
     if (shouldShowSectionInspector) {
-      return (
+      setAside(
         <SectionInspector 
           pageId={selectedPage?.id_pages || null} 
           sectionId={selectedSectionId}
-
         />
       );
     } else if (isPageRoute) {
-      return (
+      setAside(
         <PageInspector 
           page={selectedPage} 
           isConfigurationPage={isConfigurationPage}
-
         />
       );
+    } else {
+      setAside(null);
     }
-    
-    return null;
-  };
+
+    return () => {
+      // Do not clear aside on every minor change to avoid flicker
+    };
+  }, [isConfigurationPage, selectedSectionId, isPageRoute, selectedPage, setAside, setAsideWidth]);
 
 
 
   return (
-    <AdminShellWrapper 
-      aside={renderAside()}
-      asideWidth={420}
-    >
+    <>
       {isConfigurationPage && selectedPage ? (
-        // Configuration pages use full-width editor
         <ConfigurationPageEditor page={selectedPage} />
       ) : (
-        // Regular pages show main content only (aside is handled by shell)
         <Box>
           {renderMainContent()}
         </Box>
       )}
-    </AdminShellWrapper>
+    </>
   );
 }

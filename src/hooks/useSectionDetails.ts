@@ -3,12 +3,8 @@ import { AdminSectionApi } from '../api/admin/section.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { ISectionDetailsData } from '../types/responses/admin/admin.types';
 
-// Query keys
-const SECTION_DETAILS_QUERY_KEYS = {
-  all: ['section-details'] as const,
-  details: () => [...SECTION_DETAILS_QUERY_KEYS.all, 'detail'] as const,
-  detail: (pageId: number, sectionId: number) => [...SECTION_DETAILS_QUERY_KEYS.details(), pageId, sectionId] as const,
-};
+// Query key helper aligned with invalidation pattern
+const SECTION_DETAILS_QUERY_KEY = (pageId: number, sectionId: number) => ['admin', 'sections', 'details', pageId, sectionId] as const;
 
 /**
  * Hook for fetching section details by section ID
@@ -18,14 +14,14 @@ const SECTION_DETAILS_QUERY_KEYS = {
  * @returns React Query result with section details
  */
 export function useSectionDetails(pageId: number | null, sectionId: number | null, enabled: boolean = true) {
-    const queryKey = ['admin', 'sections', 'details', pageId, sectionId];
+    const queryKey = pageId && sectionId ? SECTION_DETAILS_QUERY_KEY(pageId, sectionId) : ['admin', 'sections', 'details', 'disabled'];
     
     // More explicit enabled condition
     const isEnabled = enabled && pageId !== null && pageId !== undefined && pageId > 0 && 
                      sectionId !== null && sectionId !== undefined && !isNaN(sectionId);    
 
     return useQuery<ISectionDetailsData>({
-        queryKey: pageId && sectionId ? SECTION_DETAILS_QUERY_KEYS.detail(pageId, sectionId) : ['section-details', 'disabled'],
+        queryKey,
         queryFn: async () => {
             
             if (!pageId || !sectionId) {

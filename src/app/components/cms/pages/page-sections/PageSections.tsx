@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, memo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import {
     Paper,
@@ -75,6 +76,7 @@ const PageSectionsComponent = function PageSections({
     initialSelectedSectionId,
     onStateChange
 }: IPageSectionsProps) {
+    const queryClient = useQueryClient();
     const { data, isLoading, error } = usePageSections(pageId);
     
     // Memoize sections data to prevent unnecessary re-renders
@@ -504,6 +506,15 @@ const PageSectionsComponent = function PageSections({
             scrollToSection(initialSelectedSectionId);
         }
     }, [initialSelectedSectionId, expandParentsOfSection, scrollToSection]);
+
+    // Silently refresh sections on section selection changes to keep left list fresh
+    useEffect(() => {
+        if (!pageId) return;
+        queryClient.prefetchQuery({
+            queryKey: ['pageSections', pageId],
+            staleTime: 0
+        });
+    }, [initialSelectedSectionId, pageId, queryClient]);
 
     // Auto-expand sections with children on initial load - use memoized sections
     useEffect(() => {
