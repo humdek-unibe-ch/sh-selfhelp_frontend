@@ -190,10 +190,6 @@ const PageSectionsComponent = function PageSections({
                     threshold: 0.7 // Only scroll if less than 70% visible
                 });
                 
-                // Optional: Log scroll action for debugging
-                if (process.env.NODE_ENV === 'development' && !didScroll) {
-                    console.log(`Section ${sectionId} already visible, skipping scroll`);
-                }
             }
         }, 100); // Small delay to allow for DOM updates
     }, []);

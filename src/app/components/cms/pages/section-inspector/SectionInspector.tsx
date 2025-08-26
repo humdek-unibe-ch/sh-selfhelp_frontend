@@ -1,7 +1,6 @@
 'use client';
 
 import { 
-    Paper, 
     Box,
     Modal,
     Stack,
@@ -10,17 +9,13 @@ import {
     TextInput,
     Button,
     Alert,
-    Badge,
-    Title,
-    ScrollArea
 } from '@mantine/core';
 import { 
-    IconInfoCircle, 
     IconDeviceFloppy, 
     IconTrash,
     IconFileExport
 } from '@tabler/icons-react';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSectionDetails } from '../../../../../hooks/useSectionDetails';
 import { useLanguages } from '../../../../../hooks/useLanguages';
@@ -28,31 +23,23 @@ import { useUpdateSectionMutation, useDeleteSectionMutation } from '../../../../
 import { ISectionField } from '../../../../../types/responses/admin/admin.types';
 import { 
     InspectorLayout, 
-    InspectorHeader, 
-    FieldsSection, 
     IFieldData,
-    useFieldFormHandler,
     createFieldChangeHandlers,
-    type ILanguage,
     InspectorContainer,
-    InspectorInfoSection,
-    CollapsibleInspectorSection,
     type IInspectorButton
 } from '../../shared';
+import { 
+    SectionInformation, 
+    SectionContentFields, 
+    SectionPropertyFields 
+} from './components';
 import styles from './SectionInspector.module.css';
 import { exportSection } from '../../../../../api/admin/section.api';
 import { downloadJsonFile, generateExportFilename } from '../../../../../utils/export-import.utils';
-import { INSPECTOR_TYPES, INSPECTOR_SECTIONS } from '../../../../../store/inspectorStore';
 import { AdminApi } from '../../../../../api/admin';
 import { validateName, getNameValidationError } from '../../../../../utils/name-validation.utils';
 import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
-import { 
-    initializeFieldFormValues,
-    isContentField,
-    isPropertyField
-} from '../../../../../utils/field-processing.utils';
-
 
 
 interface ISectionInspectorProps {
@@ -390,10 +377,15 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
     };
 
     // Use shared field change handlers
-    const { handleContentFieldChange, handlePropertyFieldChange } = createFieldChangeHandlers(
+    const { handleContentFieldChange, handlePropertyFieldChange: originalHandlePropertyFieldChange } = createFieldChangeHandlers(
         setFormValues,
         'SectionInspector'
     );
+
+    // Wrapper for property field change to match expected signature
+    const handlePropertyFieldChange = useCallback((fieldName: string, value: string | boolean) => {
+        originalHandlePropertyFieldChange(fieldName, null, value);
+    }, [originalHandlePropertyFieldChange]);
 
     const handleSectionNameChange = (value: string) => {
         setFormValues(prev => ({
@@ -488,17 +480,10 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
         );
     }
 
-    if (sectionLoading || languagesLoading) {
-        return (
-            <InspectorLayout
-                header={<></>}
-                loading={true}
-                loadingText="Loading section details..."
-            >
-                <></>
-            </InspectorLayout>
-        );
-    }
+    console.log('Section Inspector Rendered', sectionLoading, languagesLoading);
+
+    // Don't show full loading screen - it breaks UI experience
+    // Instead, show loading state within the inspector container
 
     if (sectionError) {
         return (
@@ -606,77 +591,44 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
         <>
             <InspectorContainer
                 inspectorType="section"
-                inspectorTitle={`Section: ${section.name}`}
-                inspectorId={section.id}
-                inspectorButtons={inspectorButtons}
+                inspectorTitle={sectionDetailsData ? `Section: ${section.name}` : 'Loading...'}
+                inspectorId={sectionDetailsData ? section.id : ''}
+                inspectorButtons={sectionDetailsData ? inspectorButtons : []}
             >
-                {/* Section Information */}
-                <InspectorInfoSection
-                    title="Section Information"
-                    infoItems={[
-                        { label: 'Style', value: section.style.name },
-                        { label: 'Type', value: section.style.type },
-                        { label: 'Section ID', value: section.id }
-                    ]}
-                >
-                    {/* Editable Section Name */}
-                    <Box>
-                        <Text size="xs" fw={500} c="dimmed" mb="xs">Section Name</Text>
-                        <TextInput
-                            value={formValues.sectionName}
-                            onChange={(e) => handleSectionNameChange(e.currentTarget.value)}
-                            placeholder="Enter section name"
-                            size="sm"
-                        />
+                {(sectionLoading || languagesLoading) && (
+                    <Box p="md">
+                        <Text size="sm" c="dimmed">Loading section details...</Text>
                     </Box>
-                    
-                    {section.style.description && (
-                        <Box mt="sm">
-                            <Text size="xs" fw={500} c="dimmed">Description</Text>
-                            <Text size="sm">{section.style.description}</Text>
-                        </Box>
-                    )}
-                </InspectorInfoSection>
+                )}
 
-                {/* Content Fields */}
-                <CollapsibleInspectorSection
-                    title="Content"
-                    inspectorType={INSPECTOR_TYPES.SECTION}
-                    sectionName={INSPECTOR_SECTIONS.CONTENT}
-                    defaultExpanded={true}
-                >
-                    <FieldsSection
-                        title=""
-                        fields={contentFields}
-                        languages={languages}
-                        fieldValues={formValues.fields}
-                        onFieldChange={handleContentFieldChange}
-                        isMultiLanguage={true}
-                        className={styles.fullWidthLabel}
-                        inspectorType={INSPECTOR_TYPES.SECTION}
-                        sectionName={INSPECTOR_SECTIONS.CONTENT}
-                    />
-                </CollapsibleInspectorSection>
+                {sectionDetailsData && !sectionLoading && !languagesLoading && (
+                    <>
+                        {/* Section Information - Using modular component */}
+                        <SectionInformation 
+                            section={section}
+                            sectionName={formValues.sectionName}
+                            onSectionNameChange={handleSectionNameChange}
+                        />
 
-                {/* Property Fields */}
-                <CollapsibleInspectorSection
-                    title="Properties"
-                    inspectorType={INSPECTOR_TYPES.SECTION}
-                    sectionName={INSPECTOR_SECTIONS.PROPERTIES}
-                    defaultExpanded={true}
-                >
-                    <FieldsSection
-                        title=""
-                        fields={propertyFields}
-                        languages={languages}
-                        fieldValues={formValues.properties}
-                        onFieldChange={handlePropertyFieldChange}
-                        isMultiLanguage={false}
-                        className={styles.fullWidthLabel}
-                        inspectorType={INSPECTOR_TYPES.SECTION}
-                        sectionName={INSPECTOR_SECTIONS.PROPERTIES}
-                    />
-                </CollapsibleInspectorSection>
+                        {/* Content Fields - Using modular component */}
+                        <SectionContentFields 
+                            contentFields={contentFields}
+                            languages={languages}
+                            fieldValues={formValues.fields}
+                            onFieldChange={handleContentFieldChange}
+                            className={styles.fullWidthLabel}
+                        />
+
+                        {/* Property Fields - Using modular component */}
+                        <SectionPropertyFields 
+                            propertyFields={propertyFields}
+                            languages={languages}
+                            fieldValues={formValues.properties}
+                            onFieldChange={handlePropertyFieldChange}
+                            className={styles.fullWidthLabel}
+                        />
+                    </>
+                )}
             </InspectorContainer>
 
             {/* Delete Confirmation Modal */}
