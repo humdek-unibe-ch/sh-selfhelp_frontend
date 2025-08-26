@@ -54,6 +54,18 @@ export const SectionLink: React.FC<ISectionLinkProps> = ({
             return;
         }
 
+        // Check if the click originated from an action button or other interactive element
+        const target = e.target as HTMLElement;
+        const isActionButton = target.closest('button, [role="button"], .mantine-ActionIcon-root, [data-action-button="true"]') ||
+                              target.tagName === 'BUTTON' ||
+                              target.closest('[class*="ActionIcon"]') ||
+                              target.closest('[class*="actionButton"]');
+        
+        if (isActionButton) {
+            // Don't handle section navigation if clicking on action buttons
+            return;
+        }
+
         // Prevent default link navigation for regular clicks
         e.preventDefault();
 

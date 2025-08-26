@@ -16,6 +16,8 @@ import {
     IconInfoCircle,
     IconAlertCircle,
 } from '@tabler/icons-react';
+import { useSectionsStore } from '../../../../../store/sectionsStore';
+import { smartScrollToElement } from '../../../../../utils/viewport.utils';
 import { usePageSections } from '../../../../../hooks/usePageDetails';
 import {
     useAddSectionToPageMutation,
@@ -83,7 +85,16 @@ const PageSectionsComponent = function PageSections({
     const memoizedSections = useMemo(() => data?.sections || [], [data?.sections]);
     const router = useRouter();
 
-    const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
+    // Use sections store for expanded sections state for better persistence
+    const { getExpandedSections, setExpandedSections: setStoreExpandedSections, toggleSection, expandAll, collapseAll } = useSectionsStore();
+    const storedExpandedSections = useMemo(() => {
+        if (!pageId) return [];
+        return getExpandedSections(pageId);
+    }, [pageId, getExpandedSections]);
+    
+    const [expandedSections, setExpandedSections] = useState<Set<number>>(() => 
+        new Set(storedExpandedSections)
+    );
     const [addSectionModalOpened, setAddSectionModalOpened] = useState(false);
     const [selectedParentSectionId, setSelectedParentSectionId] = useState<number | null>(null);
     const [selectedSectionId, setSelectedSectionId] = useState<number | null>(null);
@@ -166,17 +177,23 @@ const PageSectionsComponent = function PageSections({
         }
     }, [memoizedSections]);
 
-    // Helper function to scroll to a section element
+    // Smart scroll function that only scrolls if element is not already visible
     const scrollToSection = useCallback((sectionId: number) => {
         // Use setTimeout to ensure the DOM has updated after expansion
         setTimeout(() => {
             const sectionElement = document.querySelector(`[data-section-id="${sectionId}"]`);
             if (sectionElement) {
-                sectionElement.scrollIntoView({
+                const didScroll = smartScrollToElement(sectionElement, {
                     behavior: 'smooth',
                     block: 'center',
-                    inline: 'nearest'
+                    inline: 'nearest',
+                    threshold: 0.7 // Only scroll if less than 70% visible
                 });
+                
+                // Optional: Log scroll action for debugging
+                if (process.env.NODE_ENV === 'development' && !didScroll) {
+                    console.log(`Section ${sectionId} already visible, skipping scroll`);
+                }
             }
         }, 100); // Small delay to allow for DOM updates
     }, []);
@@ -262,6 +279,12 @@ const PageSectionsComponent = function PageSections({
             } else {
                 newSet.add(sectionId);
             }
+            
+            // Persist to store for better UX
+            if (pageId) {
+                setStoreExpandedSections(pageId, Array.from(newSet));
+            }
+            
             return newSet;
         });
     };
@@ -273,7 +296,7 @@ const PageSectionsComponent = function PageSections({
 
     // Collapse/Expand all functionality - use memoized sections
     const handleExpandAll = useCallback(() => {
-        if (!memoizedSections.length) return;
+        if (!memoizedSections.length || !pageId) return;
 
         const allSectionIds = new Set<number>();
         const collectAllIds = (sections: IPageField[]) => {
@@ -287,11 +310,19 @@ const PageSectionsComponent = function PageSections({
 
         collectAllIds(memoizedSections);
         setExpandedSections(allSectionIds);
-    }, [memoizedSections]);
+        
+        // Use store method for consistency
+        expandAll(pageId, Array.from(allSectionIds));
+    }, [memoizedSections, pageId, expandAll]);
 
     const handleCollapseAll = useCallback(() => {
+        if (!pageId) return;
+        
         setExpandedSections(new Set());
-    }, []);
+        
+        // Use store method for consistency
+        collapseAll(pageId);
+    }, [pageId, collapseAll]);
 
     // Search navigation
     const handleSearchNext = () => {
@@ -516,24 +547,35 @@ const PageSectionsComponent = function PageSections({
         });
     }, [initialSelectedSectionId, pageId, queryClient]);
 
-    // Auto-expand sections with children on initial load - use memoized sections
+    // Auto-expand sections with children on initial load - use stored state or default
     useEffect(() => {
-        if (memoizedSections.length > 0) {
-            const sectionsWithChildren = new Set<number>();
+        if (memoizedSections.length > 0 && pageId) {
+            const storedExpanded = getExpandedSections(pageId);
+            
+            if (storedExpanded.length > 0) {
+                // Use stored expanded state
+                setExpandedSections(new Set(storedExpanded));
+            } else {
+                // First time loading - auto-expand sections with children
+                const sectionsWithChildren = new Set<number>();
 
-            const findSectionsWithChildren = (items: IPageField[]) => {
-                items.forEach(item => {
-                    if (item.children && item.children.length > 0) {
-                        sectionsWithChildren.add(item.id);
-                        findSectionsWithChildren(item.children);
-                    }
-                });
-            };
+                const findSectionsWithChildren = (items: IPageField[]) => {
+                    items.forEach(item => {
+                        if (item.children && item.children.length > 0) {
+                            sectionsWithChildren.add(item.id);
+                            findSectionsWithChildren(item.children);
+                        }
+                    });
+                };
 
-            findSectionsWithChildren(memoizedSections);
-            setExpandedSections(sectionsWithChildren);
+                findSectionsWithChildren(memoizedSections);
+                setExpandedSections(sectionsWithChildren);
+                
+                // Store the initial expanded state
+                setStoreExpandedSections(pageId, Array.from(sectionsWithChildren));
+            }
         }
-    }, [memoizedSections]);
+    }, [memoizedSections, pageId, getExpandedSections, setStoreExpandedSections]);
 
     // Expose state and handlers to parent component
     useEffect(() => {

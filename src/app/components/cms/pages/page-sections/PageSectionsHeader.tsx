@@ -1,26 +1,14 @@
 'use client';
 
-import { 
-    Group, 
-    ActionIcon, 
-    TextInput, 
-    Button, 
-    Title, 
-    Badge,
-    Tooltip,
-    Box
-} from '@mantine/core';
-import { 
-    IconSearch, 
-    IconChevronUp, 
-    IconChevronDown, 
-    IconX, 
-    IconArrowLeft, 
-    IconArrowRight,
-    IconPlus
-} from '@tabler/icons-react';
+import { memo } from 'react';
+import { Group, Box } from '@mantine/core';
 import { IPageSectionsState, IPageSectionsHandlers } from './PageSections';
-import styles from './PageSections.module.css';
+import { 
+    PageTitle, 
+    ExpandCollapseControls, 
+    SearchControls, 
+    AddSectionButton 
+} from './components';
 
 interface IPageSectionsHeaderProps {
     pageName?: string;
@@ -28,131 +16,53 @@ interface IPageSectionsHeaderProps {
     handlers: IPageSectionsHandlers;
 }
 
-export function PageSectionsHeader({
-    pageName,
-    state,
-    handlers
-}: IPageSectionsHeaderProps) {
-    if (!pageName) {
-        return null;
-    }
+export const PageSectionsHeader = memo<IPageSectionsHeaderProps>(
+    function PageSectionsHeader({ pageName, state, handlers }) {
+        if (!pageName) {
+            return null;
+        }
 
-    return (
-        <Box p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
-            {/* Page Title and Section Count */}
-            <Group gap="xs" align="center" wrap="nowrap" mb="md">
-                <Title order={6} size="sm">
-                    {pageName} - Sections
-                </Title>
-                <Badge size="xs" variant="light" color="blue">
-                    {state.sectionsCount}
-                </Badge>
-                {state.isProcessing && (
-                    <Badge size="xs" variant="light" color="orange">
-                        Processing...
-                    </Badge>
-                )}
-            </Group>
-
-            {/* Page Controls */}
-            <Group gap="xs" align="center" wrap="nowrap" justify="space-between">
-                {/* Left side - Collapse/Expand Controls */}
-                <Group gap={4}>
-                    <Tooltip label="Expand All">
-                        <ActionIcon 
-                            size="sm" 
-                            variant="subtle" 
-                            color="blue"
-                            onClick={handlers.onExpandAll}
-                        >
-                            <IconChevronDown size={12} />
-                        </ActionIcon>
-                    </Tooltip>
-                    <Tooltip label="Collapse All">
-                        <ActionIcon 
-                            size="sm" 
-                            variant="subtle" 
-                            color="blue"
-                            onClick={handlers.onCollapseAll}
-                        >
-                            <IconChevronUp size={12} />
-                        </ActionIcon>
-                    </Tooltip>
-                </Group>
-
-                {/* Center - Search */}
-                <Group gap="xs" style={{ flex: 1, maxWidth: 300 }} wrap="nowrap">
-                    <TextInput
-                        placeholder="Search sections..."
-                        value={state.searchQuery}
-                        onChange={(e) => handlers.onSearchChange(e.currentTarget.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && state.searchResults.length > 0) {
-                                e.preventDefault();
-                                handlers.onSearchNext();
-                            }
-                            if (e.key === 'Escape') {
-                                e.preventDefault();
-                                handlers.onSearchClear();
-                            }
-                        }}
-                        leftSection={<IconSearch size={14} />}
-                        rightSection={
-                            state.searchQuery && (
-                                <ActionIcon 
-                                    size="xs" 
-                                    variant="subtle" 
-                                    color="gray"
-                                    onClick={handlers.onSearchClear}
-                                >
-                                    <IconX size={14} />
-                                </ActionIcon>
-                            )
-                        }
-                        size="sm"
-                        style={{ flex: 1 }}
+        return (
+            <Box p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
+                {/* Page Title and Section Count - Only re-renders when title/count changes */}
+                <Box mb="md">
+                    <PageTitle 
+                        pageName={pageName}
+                        sectionsCount={state.sectionsCount}
+                        isProcessing={state.isProcessing}
                     />
-                    {state.searchResults.length > 0 && (
-                        <>
-                            <Badge size="xs" variant="light">
-                                {state.currentSearchIndex + 1}/{state.searchResults.length}
-                            </Badge>
-                            <Group gap={2}>
-                                <Tooltip label="Previous">
-                                    <ActionIcon 
-                                        size="sm" 
-                                        variant="subtle" 
-                                        onClick={handlers.onSearchPrevious}
-                                        disabled={state.searchResults.length === 0}
-                                    >
-                                        <IconArrowLeft size={14} />
-                                    </ActionIcon>
-                                </Tooltip>
-                                <Tooltip label="Next">
-                                    <ActionIcon 
-                                        size="sm" 
-                                        variant="subtle" 
-                                        onClick={handlers.onSearchNext}
-                                        disabled={state.searchResults.length === 0}
-                                    >
-                                        <IconArrowRight size={14} />
-                                    </ActionIcon>
-                                </Tooltip>
-                            </Group>
-                        </>
-                    )}
-                </Group>
+                </Box>
 
-                {/* Right side - Add Section Button */}
-                <Button 
-                    leftSection={<IconPlus size={16} />} 
-                    size="sm" 
-                    variant="filled"
-                    onClick={handlers.onAddSection}
-                >
-                    Add Section
-                </Button>
-            </Group>
-        </Box>
-    );
-}
+                {/* Page Controls - Each component only re-renders when its specific props change */}
+                <Group gap="xs" align="center" wrap="nowrap" justify="space-between">
+                    {/* Left side - Expand/Collapse Controls */}
+                    <ExpandCollapseControls 
+                        onExpandAll={handlers.onExpandAll}
+                        onCollapseAll={handlers.onCollapseAll}
+                    />
+
+                    {/* Center - Search Controls */}
+                    <SearchControls 
+                        searchQuery={state.searchQuery}
+                        searchResults={state.searchResults}
+                        currentSearchIndex={state.currentSearchIndex}
+                        onSearchChange={handlers.onSearchChange}
+                        onSearchNext={handlers.onSearchNext}
+                        onSearchPrevious={handlers.onSearchPrevious}
+                        onSearchClear={handlers.onSearchClear}
+                    />
+
+                    {/* Right side - Add Section Button */}
+                    <AddSectionButton onAddSection={handlers.onAddSection} />
+                </Group>
+            </Box>
+        );
+    },
+    // Custom comparison - only re-render if pageName changes
+    // Child components handle their own prop changes
+    (prevProps, nextProps) => {
+        return prevProps.pageName === nextProps.pageName;
+        // Note: We don't compare state/handlers here because child components
+        // have their own memo comparisons for optimal granular updates
+    }
+);

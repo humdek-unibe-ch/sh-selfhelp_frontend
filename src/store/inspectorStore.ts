@@ -47,8 +47,9 @@ export const useInspectorStore = create<IInspectorState>()(
         }),
         {
             name: 'inspector-state', // localStorage key
-            // Only persist the collapsedSections object
-            partialize: (state) => ({ collapsedSections: state.collapsedSections }),
+            partialize: (state) => ({ 
+                collapsedSections: state.collapsedSections
+            }),
         }
     )
 );

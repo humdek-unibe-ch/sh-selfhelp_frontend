@@ -14,7 +14,7 @@ import {
     IconChevronDown,
     IconChevronUp
 } from '@tabler/icons-react';
-import { useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect, ReactNode, memo } from 'react';
 import { useInspectorStore } from '../../../../../store/inspectorStore';
 
 interface ICollapsibleInspectorSectionProps {
@@ -26,51 +26,64 @@ interface ICollapsibleInspectorSectionProps {
     className?: string;
 }
 
-export function CollapsibleInspectorSection({
-    title,
-    children,
-    inspectorType,
-    sectionName,
-    defaultExpanded = true,
-    className
-}: ICollapsibleInspectorSectionProps) {
-    const { isCollapsed, setCollapsed } = useInspectorStore();
-    
-    // Get persistent state, fallback to defaultExpanded if no stored state
-    const [expanded, setExpanded] = useState(() => {
-        const storedCollapsed = isCollapsed(inspectorType, sectionName);
-        return storedCollapsed ? false : defaultExpanded;
-    });
-    
-    // Update persistent state when expanded changes
-    useEffect(() => {
-        setCollapsed(inspectorType, sectionName, !expanded);
-    }, [expanded, inspectorType, sectionName, setCollapsed]);
+export const CollapsibleInspectorSection = memo<ICollapsibleInspectorSectionProps>(
+    function CollapsibleInspectorSection({
+        title,
+        children,
+        inspectorType,
+        sectionName,
+        defaultExpanded = true,
+        className
+    }) {
+        const { isCollapsed, setCollapsed } = useInspectorStore();
+        
+        // Get persistent state, fallback to defaultExpanded if no stored state
+        const [expanded, setExpanded] = useState(() => {
+            const storedCollapsed = isCollapsed(inspectorType, sectionName);
+            return storedCollapsed ? false : defaultExpanded;
+        });
+        
+        // Update persistent state when expanded changes
+        useEffect(() => {
+            setCollapsed(inspectorType, sectionName, !expanded);
+        }, [expanded, inspectorType, sectionName, setCollapsed]);
 
-    const handleToggle = () => {
-        setExpanded(!expanded);
-    };
+        const handleToggle = () => {
+            setExpanded(!expanded);
+        };
 
-    return (
-        <div className={`aside-section ${className || ''}`}>
-            <Group 
-                p="sm" 
-                justify="space-between" 
-                style={{ cursor: 'pointer' }}
-                onClick={handleToggle}
-            >
-                <Title order={5}>{title}</Title>
-                <ActionIcon variant="subtle" size="sm">
-                    {expanded ? <IconChevronUp size="1rem" /> : <IconChevronDown size="1rem" />}
-                </ActionIcon>
-            </Group>
-            
-            <Collapse in={expanded}>
-                <Divider />
-                <Box p="sm">
-                    {children}
-                </Box>
-            </Collapse>
-        </div>
-    );
-}
+        return (
+            <div className={`aside-section ${className || ''}`}>
+                <Group 
+                    p="sm" 
+                    justify="space-between" 
+                    style={{ cursor: 'pointer' }}
+                    onClick={handleToggle}
+                >
+                    <Title order={5}>{title}</Title>
+                    <ActionIcon variant="subtle" size="sm">
+                        {expanded ? <IconChevronUp size="1rem" /> : <IconChevronDown size="1rem" />}
+                    </ActionIcon>
+                </Group>
+                
+                <Collapse in={expanded}>
+                    <Divider />
+                    <Box p="sm">
+                        {children}
+                    </Box>
+                </Collapse>
+            </div>
+        );
+    },
+    // Custom comparison for optimal performance
+    (prevProps, nextProps) => {
+        return (
+            prevProps.title === nextProps.title &&
+            prevProps.inspectorType === nextProps.inspectorType &&
+            prevProps.sectionName === nextProps.sectionName &&
+            prevProps.defaultExpanded === nextProps.defaultExpanded &&
+            prevProps.className === nextProps.className
+            // Children comparison handled by React's default behavior
+        );
+    }
+);

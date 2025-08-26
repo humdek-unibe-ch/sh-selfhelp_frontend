@@ -3,7 +3,7 @@ import '@mantine/dates/styles.css';
 import "@mantine/notifications/styles.css";
 import "../globals.css";
 import { ColorSchemeScript } from "@mantine/core";
-import { OptimizedProviders } from "../providers/optimized-providers";
+import { Providers } from "../providers/providers";
 
 /**
  * Root Layout Server Component
@@ -21,7 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <OptimizedProviders>{children}</OptimizedProviders>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

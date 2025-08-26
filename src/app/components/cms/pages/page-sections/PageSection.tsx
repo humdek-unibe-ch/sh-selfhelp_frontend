@@ -101,13 +101,17 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
         return styles[`level${cycleLevel + 18}`]; // Use levels 18-29 for cycling
     };
 
-    const handleToggleExpand = () => {
+    const handleToggleExpand = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
         if (hasChildren) {
             onToggleExpand(section.id);
         }
     };
 
-    const handleRemoveSection = () => {
+    const handleRemoveSection = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
         setRemoveModalOpened(true);
     };
 
@@ -120,19 +124,25 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
         setRemoveModalOpened(false);
     };
 
-    const handleAddChild = () => {
+    const handleAddChild = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
         if (canHaveChildren && onAddChildSection) {
             onAddChildSection(section.id);
         }
     };
 
-    const handleAddSiblingAbove = () => {
+    const handleAddSiblingAbove = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
         if (onAddSiblingAbove) {
             onAddSiblingAbove(section.id, parentId);
         }
     };
 
-    const handleAddSiblingBelow = () => {
+    const handleAddSiblingBelow = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
         if (onAddSiblingBelow) {
             onAddSiblingBelow(section.id, parentId);
         }
@@ -171,11 +181,9 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                             <ActionIcon
                                 variant="subtle"
                                 size="xs"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleToggleExpand();
-                                }}
+                                onClick={handleToggleExpand}
                                 className={styles.expandButton}
+                                data-action-button="true"
                             >
                                 {isExpanded ? <IconChevronDown  /> : <IconChevronRight  />}
                             </ActionIcon>
@@ -226,11 +234,9 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                                         size="xs"
                                         variant="subtle"
                                         color="green"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleAddChild();
-                                        }}
+                                        onClick={handleAddChild}
                                         className={styles.actionButton}
+                                        data-action-button="true"
                                     >
                                         <IconPlus />
                                     </ActionIcon>
@@ -242,11 +248,9 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                                     size="xs"
                                     variant="subtle"
                                     color="blue"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleAddSiblingAbove();
-                                    }}
+                                    onClick={handleAddSiblingAbove}
                                     className={styles.actionButton}
+                                    data-action-button="true"
                                 >
                                     <IconPlus />
                                 </ActionIcon>
@@ -257,11 +261,9 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                                     size="xs"
                                     variant="subtle"
                                     color="blue"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleAddSiblingBelow();
-                                    }}
+                                    onClick={handleAddSiblingBelow}
                                     className={styles.actionButton}
+                                    data-action-button="true"
                                 >
                                     <IconPlus />
                                 </ActionIcon>
@@ -272,11 +274,9 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                                     size="xs"
                                     variant="subtle"
                                     color="orange"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleRemoveSection();
-                                    }}
+                                    onClick={handleRemoveSection}
                                     className={styles.actionButton}
+                                    data-action-button="true"
                                 >
                                     <IconTrash />
                                 </ActionIcon>
