@@ -341,7 +341,8 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
             help: field.help,
             disabled: isReadOnly,
             display: field.display,
-            fieldConfig: field.fieldConfig
+            fieldConfig: field.fieldConfig,
+            translations: field.translations || []
         };
         
         return (
@@ -373,7 +374,8 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
             default_value: field.default_value,
             help: field.help,
             display: field.display,
-            fieldConfig: field.fieldConfig
+            fieldConfig: field.fieldConfig,
+            translations: field.translations || []
         };
 
         return (

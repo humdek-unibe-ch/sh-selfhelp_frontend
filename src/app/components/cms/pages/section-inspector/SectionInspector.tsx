@@ -392,7 +392,8 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
         disabled: field.disabled,
         hidden: field.hidden,
         display: field.display,
-        fieldConfig: field.fieldConfig
+        fieldConfig: field.fieldConfig,
+        translations: field.translations
     });
 
     // Get fields data for processing
