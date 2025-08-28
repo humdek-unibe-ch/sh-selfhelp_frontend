@@ -10,6 +10,7 @@ import {
     Button,
     Alert
 } from '@mantine/core';
+import { useForm } from '@mantine/form';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { notifications } from '@mantine/notifications';
@@ -61,7 +62,7 @@ interface ISectionFormValues {
     // Section properties (non-translatable fields)
     properties: Record<string, string | boolean>;
     
-    // Field values by language (translatable fields)
+    // Field values by language (translatable fields) - unified structure like ConfigurationPageEditor
     fields: Record<string, Record<number, string>>; // fields[fieldName][languageId] = content
 }
 
@@ -70,10 +71,14 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
     const queryClient = useQueryClient();
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
-    const [formValues, setFormValues] = useState<ISectionFormValues>({
-        sectionName: '',
-        properties: {},
-        fields: {}
+    
+    // Create Mantine form like ConfigurationPageEditor
+    const form = useForm<ISectionFormValues>({
+        initialValues: {
+            sectionName: '',
+            properties: {},
+            fields: {}
+        }
     });
     
     // Track original values to detect changes
@@ -101,7 +106,7 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
         pageId: pageId || undefined,
         onSuccess: () => {
             // Update original values after successful save
-            setOriginalValues({ ...formValues });
+            setOriginalValues({ ...form.values });
             
             // Invalidate relevant queries to refresh data
             if (pageId) {
@@ -153,7 +158,8 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
                 fields: contentFieldsObject
             };
             
-            setFormValues(newFormValues);
+            // Set both Mantine form and tracking state
+            form.setValues(newFormValues);
             setOriginalValues(newFormValues);
         } else {
             // Reset form when no section is selected
@@ -163,13 +169,16 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
                 fields: {}
             };
             
-            setFormValues(resetValues);
+            form.setValues(resetValues);
             setOriginalValues(resetValues);
         }
     }, [sectionDetailsData, languages]);
 
     const handleSave = async () => {
         if (!sectionId || !sectionDetailsData || !languages.length || !pageId) return;
+        
+        // Get current form values
+        const formValues = form.values;
         
         // Validate section name if it has changed
         if (formValues.sectionName !== originalValues.sectionName) {
@@ -249,6 +258,8 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
                 sectionId,
                 sectionData: submitData
             });
+            // Update original values after successful save (like ConfigurationPageEditor)
+            setOriginalValues({ ...formValues });
         } catch (error) {
             // Error handling is done by the mutation hook
         }
@@ -279,34 +290,26 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
 
     const handleContentFieldChange = useCallback((fieldName: string, languageId: number | null, value: string | boolean) => {
         if (!languageId) return;
-        setFormValues(prev => ({
-            ...prev,
-            fields: {
-                ...prev.fields,
-                [fieldName]: {
-                    ...prev.fields[fieldName],
-                    [languageId]: String(value)
-                }
-            }
-        }));
-    }, []);
+        // Ensure the field structure exists before setting the value
+        if (!form.values.fields[fieldName]) {
+            const fieldObj = {} as Record<number, string>;
+            form.setFieldValue(`fields.${fieldName}`, fieldObj);
+        }
+        // Update Mantine form like ConfigurationPageEditor
+        const fieldKey = `fields.${fieldName}.${languageId}`;
+        form.setFieldValue(fieldKey, String(value));
+    }, [form]);
 
     const handlePropertyFieldChange = useCallback((fieldName: string, value: string | boolean) => {
-        setFormValues(prev => ({
-            ...prev,
-            properties: {
-                ...prev.properties,
-                [fieldName]: value
-            }
-        }));
-    }, []);
+        // Update Mantine form properties
+        const propertyKey = `properties.${fieldName}`;
+        form.setFieldValue(propertyKey, value);
+    }, [form]);
 
     const handleSectionNameChange = useCallback((value: string) => {
-        setFormValues(prev => ({
-            ...prev,
-            sectionName: value
-        }));
-    }, []);
+        // Update Mantine form section name
+        form.setFieldValue('sectionName', value);
+    }, [form]);
 
     // Generate action props for SectionActions component
     const sectionActions = useMemo(() => ({
@@ -412,7 +415,7 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
                         {/* Section Information */}
                         <SectionInfo 
                             section={section}
-                            sectionName={formValues.sectionName}
+                            sectionName={form.values.sectionName}
                             onSectionNameChange={handleSectionNameChange}
                         />
 
@@ -420,18 +423,20 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
                         <SectionContentFields 
                             contentFields={contentFields as any}
                             languages={languages}
-                            fieldValues={formValues.fields}
+                            fieldValues={form.values.fields}
                             onFieldChange={handleContentFieldChange}
                             className={styles.fullWidthLabel}
+                            form={{ values: { fields: form.values.fields }, setFieldValue: (path: string, value: string) => form.setFieldValue(path, value) }}
                         />
 
                         {/* Property Fields */}
                         <SectionProperties 
                             propertyFields={propertyFields as any}
                             languages={languages}
-                            fieldValues={formValues.properties}
+                            fieldValues={form.values.properties}
                             onFieldChange={handlePropertyFieldChange}
                             className={styles.fullWidthLabel}
+                            form={form as any}
                         />
                     </>
                 )}

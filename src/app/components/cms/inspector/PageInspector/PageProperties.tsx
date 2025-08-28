@@ -25,6 +25,11 @@ import { IPageField } from '../../../../../types/responses/admin/page-details.ty
 import { ILanguage } from '../../../../../types/responses/admin/languages.types';
 import { useForm } from '@mantine/form';
 
+type TFieldsForm = {
+    values: { fields: Record<string, Record<number, string>> };
+    setFieldValue: (path: string, value: string) => void;
+};
+
 interface IPagePropertiesProps {
     form: ReturnType<typeof useForm<any>>; // Mantine form instance
     pageAccessTypes: Array<{ lookupCode: string; lookupValue: string }>;
@@ -37,6 +42,8 @@ interface IPagePropertiesProps {
     languages?: ILanguage[];
     propertyValues?: Record<string, string | boolean>;
     onPropertyFieldChange?: (fieldName: string, value: string | boolean) => void;
+    // Shared fields form (content + properties)
+    fieldsForm?: TFieldsForm;
     // Menu position handlers (for non-configuration pages)
     headerMenuGetFinalPosition?: React.MutableRefObject<(() => number | null) | null>;
     footerMenuGetFinalPosition?: React.MutableRefObject<(() => number | null) | null>;
@@ -63,7 +70,8 @@ export const PageProperties = memo<IPagePropertiesProps>(
         onHeaderMenuChange,
         onHeaderPositionChange,
         onFooterMenuChange,
-        onFooterPositionChange
+        onFooterPositionChange,
+        fieldsForm
     }) {
         return (
             <CollapsibleInspector
@@ -74,7 +82,7 @@ export const PageProperties = memo<IPagePropertiesProps>(
             >
                 <Stack gap="xs" className={className}>
                     {/* Configuration Page Property Fields */}
-                    {isConfigurationPage && propertyFields.length > 0 && onPropertyFieldChange && (
+                    {isConfigurationPage && propertyFields.length > 0 && (
                         <InspectorInfo
                             title="Configuration Properties"
                             infoItems={[]}
@@ -96,10 +104,8 @@ export const PageProperties = memo<IPagePropertiesProps>(
                                 }))}
                                 languages={languages}
                                 fieldValues={propertyValues}
-                                onFieldChange={(fieldName, languageId, value) => {
-                                    // Property fields don't use languageId, so ignore it
-                                    onPropertyFieldChange(fieldName, value);
-                                }}
+                                onFieldChange={onPropertyFieldChange ? (fieldName, _languageId, value) => onPropertyFieldChange(fieldName, value) : undefined}
+                                form={fieldsForm as any}
                                 isMultiLanguage={false}
                                 className={className}
                                 inspectorType={INSPECTOR_TYPES.PAGE}
@@ -180,7 +186,7 @@ export const PageProperties = memo<IPagePropertiesProps>(
                                         enabled={form?.values.headerMenuEnabled || (form?.values.navPosition !== null && form?.values.navPosition !== undefined)}
                                         position={form?.values.navPosition}
                                         onEnabledChange={onHeaderMenuChange || (() => {})}
-                                        onPositionChange={onHeaderPositionChange || (() => {})}
+                                        onPositionChange={(pos) => onHeaderPositionChange ? onHeaderPositionChange(pos ?? 0) : undefined}
                                         onGetFinalPosition={(getFinalPositionFn) => {
                                             if (headerMenuGetFinalPosition) {
                                                 headerMenuGetFinalPosition.current = getFinalPositionFn;
@@ -198,7 +204,7 @@ export const PageProperties = memo<IPagePropertiesProps>(
                                         enabled={form?.values.footerMenuEnabled || (form?.values.footerPosition !== null && form?.values.footerPosition !== undefined)}
                                         position={form?.values.footerPosition}
                                         onEnabledChange={onFooterMenuChange || (() => {})}
-                                        onPositionChange={onFooterPositionChange || (() => {})}
+                                        onPositionChange={(pos) => onFooterPositionChange ? onFooterPositionChange(pos ?? 0) : undefined}
                                         onGetFinalPosition={(getFinalPositionFn) => {
                                             if (footerMenuGetFinalPosition) {
                                                 footerMenuGetFinalPosition.current = getFinalPositionFn;

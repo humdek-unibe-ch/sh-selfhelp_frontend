@@ -1,8 +1,8 @@
 'use client';
 
-import { 
-    Paper, 
-    Text, 
+import {
+    Paper,
+    Text,
     Stack,
     Alert,
     Modal,
@@ -30,24 +30,22 @@ import { IUpdatePageData, IUpdatePageField } from '../../../../types/requests/ad
 
 // Utils
 import { downloadJsonFile, generateExportFilename } from '../../../../utils/export-import.utils';
-import { isContentField, isPropertyField } from '../../../../utils/field-processing.utils';
-import { 
-    initializeContentFieldValues, 
+import { isContentField, isPropertyField, initializeFieldFormValues } from '../../../../utils/field-processing.utils';
+import {
+    initializeContentFieldValues,
     initializePropertyFieldValues
 } from '../../../../utils/field-value-extraction.utils';
 
 // Constants
 import { PAGE_ACCESS_TYPES } from '../../../../constants/lookups.constants';
 // Components
-import { 
+import {
     InspectorContainer,
     PageInfo,
     generatePageActions,
     PageContentFields,
     PageProperties,
     type IInspectorButton,
-    FieldRenderer,
-    type IFieldData
 } from './index';
 import { CreatePageModal } from '../pages/create-page/CreatePage';
 
@@ -72,9 +70,10 @@ interface IPageFormValues {
     footerMenuEnabled: boolean;
     navPosition: number | null;
     footerPosition: number | null;
-    
+
     // Field values by language (translatable fields)
     // fields[fieldName][languageId] = content
+    fields: Record<string, Record<number, string>>;
 }
 
 export function PageInspector({ page, isConfigurationPage = false, onButtonsChange }: PageInspectorProps) {
@@ -83,19 +82,19 @@ export function PageInspector({ page, isConfigurationPage = false, onButtonsChan
     const [createChildModalOpened, setCreateChildModalOpened] = useState(false);
     // Language tab state for content fields
     const [activeLanguageTab, setActiveLanguageTab] = useState('1');
-    
+
     // References to get final positions from DragDropMenuPositioner components
     const headerMenuGetFinalPosition = useRef<(() => number | null) | null>(null);
     const footerMenuGetFinalPosition = useRef<(() => number | null) | null>(null);
-    
+
     // Get query client for cache invalidation
     const queryClient = useQueryClient();
-    
+
     // Fetch page fields when page is selected
-    const { 
-        data: pageFieldsData, 
-        isLoading: fieldsLoading, 
-        error: fieldsError 
+    const {
+        data: pageFieldsData,
+        isLoading: fieldsLoading,
+        error: fieldsError
     } = usePageFields(page?.id_pages || null, !!page);
 
     // Fetch page access types
@@ -130,9 +129,7 @@ export function PageInspector({ page, isConfigurationPage = false, onButtonsChan
         return languages.length > 1;
     }, [languages]);
 
-    // Form state for content and property fields
-    const [fieldValues, setFieldValues] = useState<Record<string, Record<number, string>>>({});
-    const [propertyValues, setPropertyValues] = useState<Record<string, string | boolean>>({});
+    // Form state managed by Mantine form (like ConfigurationPageEditor)
 
     // Initialize form with page data
     const form = useForm<IPageFormValues>({
@@ -145,7 +142,8 @@ export function PageInspector({ page, isConfigurationPage = false, onButtonsChan
             headerMenuEnabled: page?.nav_position !== null,
             footerMenuEnabled: false,
             navPosition: page?.nav_position || null,
-            footerPosition: null
+            footerPosition: null,
+            fields: {}
         }
     });
 
@@ -158,57 +156,35 @@ export function PageInspector({ page, isConfigurationPage = false, onButtonsChan
         }
     }, [languages, activeLanguageTab]);
 
-    // Initialize field values when fields data loads
+    // Initialize field values when fields data loads (like ConfigurationPageEditor)
     useEffect(() => {
         console.log('🔄 PageInspector field initialization useEffect triggered:', {
             hasFieldsData: !!pageFieldsData?.fields,
             fieldsCount: pageFieldsData?.fields?.length || 0,
-            languagesCount: languages.length,
-            currentFieldValues: fieldValues,
-            currentPropertyValues: propertyValues
+            languagesCount: languages.length
         });
 
         if (pageFieldsData?.fields && languages.length > 0) {
-            // Use utility functions for clean field processing
-            const contentFields = pageFieldsData.fields.filter(field => isContentField(field));
-            const propertyFields = pageFieldsData.fields.filter(field => isPropertyField(field));
-            
-            console.log('🔄 Processing fields for initialization:', {
-                contentFieldsCount: contentFields.length,
-                propertyFieldsCount: propertyFields.length,
-                contentFields: contentFields.map(f => ({ name: f.name, type: f.type })),
-                propertyFields: propertyFields.map(f => ({ name: f.name, type: f.type }))
-            });
-            
-            const newFieldValues = initializeContentFieldValues(contentFields as any, languages);
-            const newPropertyValues = initializePropertyFieldValues(propertyFields as any);
+            // Use the modular field initialization utility that handles content vs property fields correctly
+            const fieldsObject = initializeFieldFormValues(pageFieldsData.fields, languages);
 
-            console.log('🔄 Initialized values:', {
-                newFieldValues,
-                newPropertyValues
+            console.log('🔄 PageInspector: Setting form fields:', {
+                fieldsObject,
+                sampleField: fieldsObject['description'],
+                languages: languages.map(l => ({ id: l.id, language: l.language })),
+                fieldsWithTranslations: pageFieldsData.fields.filter(f => f.translations?.length > 0).map(f => ({
+                    name: f.name,
+                    translations: f.translations
+                }))
             });
 
-            // Only update if we don't have existing values (prevent overwriting user changes)
-            setFieldValues(prev => {
-                const hasExistingValues = Object.keys(prev).length > 0;
-                console.log('🔄 setFieldValues decision:', {
-                    hasExistingValues,
-                    prevKeys: Object.keys(prev),
-                    newKeys: Object.keys(newFieldValues),
-                    willUpdate: !hasExistingValues
-                });
-                return hasExistingValues ? prev : newFieldValues;
-            });
+            // Initialize Mantine form fields structure (single source of truth like ConfigurationPageEditor)
+            form.setFieldValue('fields', fieldsObject);
             
-            setPropertyValues(prev => {
-                const hasExistingValues = Object.keys(prev).length > 0;
-                console.log('🔄 setPropertyValues decision:', {
-                    hasExistingValues,
-                    prevKeys: Object.keys(prev),
-                    newKeys: Object.keys(newPropertyValues),
-                    willUpdate: !hasExistingValues
-                });
-                return hasExistingValues ? prev : newPropertyValues;
+            // Debug: Check what the form has after setting
+            console.log('🔄 PageInspector: Form after setting fields:', {
+                formFields: form.values.fields,
+                descriptionField: form.values.fields?.['description']
             });
         }
     }, [pageFieldsData?.fields, languages]);
@@ -311,14 +287,14 @@ export function PageInspector({ page, isConfigurationPage = false, onButtonsChan
 
             // Prepare field updates
             const fields: IUpdatePageField[] = [];
-            
+
             // Process content fields (translatable)
             const contentFields = pageFieldsData.fields.filter(field => isContentField(field));
             contentFields.forEach(field => {
                 languages.forEach(language => {
-                    const currentValue = fieldValues[field.name]?.[language.id];
+                    const currentValue = form.values.fields?.[field.name]?.[language.id];
                     const originalValue = field.translations?.find(t => t.language_id === language.id)?.content || '';
-                    
+
                     // Only include changed fields
                     if (currentValue !== undefined && currentValue !== originalValue) {
                         fields.push({
@@ -333,9 +309,9 @@ export function PageInspector({ page, isConfigurationPage = false, onButtonsChan
             // Process property fields (non-translatable)
             const propertyFields = pageFieldsData.fields.filter(field => isPropertyField(field));
             propertyFields.forEach(field => {
-                const currentValue = propertyValues[field.name];
+                const currentValue = form.values.fields?.[field.name]?.[1];
                 const originalValue = field.translations?.find(t => t.language_id === 1)?.content || '';
-                
+
                 // Only include changed fields
                 if (currentValue !== undefined && String(currentValue) !== originalValue) {
                     fields.push({
@@ -359,7 +335,7 @@ export function PageInspector({ page, isConfigurationPage = false, onButtonsChan
             // Error handling is done by the mutation hook
             console.error('Failed to save page:', error);
         }
-    }, [page, pageFieldsData?.fields, form.values, fieldValues, propertyValues, languages, updatePageMutation]);
+    }, [page, pageFieldsData?.fields, form.values, languages, updatePageMutation]);
 
     const handleDeletePage = useCallback(async () => {
         if (!page || deleteConfirmText !== page.keyword) return;
@@ -381,37 +357,34 @@ export function PageInspector({ page, isConfigurationPage = false, onButtonsChan
         }
     }, [page]);
 
-    // Handle content field change
+    // Handle content field change - update Mantine form like ConfigurationPageEditor
     const handleContentFieldChange = useCallback((fieldName: string, languageId: number, value: string | boolean) => {
-        setFieldValues(prev => ({
-            ...prev,
-            [fieldName]: {
-                ...prev[fieldName],
-                [languageId]: String(value)
-            }
-        }));
-    }, []);
+        // Ensure the field structure exists before setting the value
+        if (!form.values.fields[fieldName]) {
+            const fieldObj = {} as Record<number, string>;
+            form.setFieldValue(`fields.${fieldName}`, fieldObj);
+        }
+        const fieldKey = `fields.${fieldName}.${languageId}`;
+        form.setFieldValue(fieldKey, String(value));
+    }, [form]);
 
-    // Handle property field change  
+    // Handle property field change - update Mantine form like ConfigurationPageEditor  
     const handlePropertyFieldChange = useCallback((fieldName: string, value: string | boolean) => {
         console.log('🔧 PageInspector handlePropertyFieldChange:', {
             fieldName,
             value,
-            currentPropertyValues: propertyValues
+            formFieldsValue: form.values.fields?.[fieldName]
         });
-        
-        setPropertyValues(prev => {
-            const newValues = {
-                ...prev,
-                [fieldName]: value
-            };
-            console.log('🔧 PageInspector setPropertyValues:', {
-                previous: prev,
-                new: newValues
-            });
-            return newValues;
-        });
-    }, [propertyValues]);
+
+        // Ensure the field structure exists before setting the value
+        if (!form.values.fields[fieldName]) {
+            const fieldObj = {} as Record<number, string>;
+            form.setFieldValue(`fields.${fieldName}`, fieldObj);
+        }
+        // Update the form fields structure for property fields (language ID 1)
+        const fieldKey = `fields.${fieldName}.1`;
+        form.setFieldValue(fieldKey, String(value));
+    }, [form]);
 
     // Note: renderPropertyField function removed - now using InspectorFields through PageProperties
 
@@ -426,9 +399,9 @@ export function PageInspector({ page, isConfigurationPage = false, onButtonsChan
         onCreateChild: () => setCreateChildModalOpened(true),
         onDelete: () => setDeleteModalOpened(true)
     }), [
-        page, 
-        isConfigurationPage, 
-        fieldsLoading, 
+        page,
+        isConfigurationPage,
+        fieldsLoading,
         updatePageMutation.isPending,
         handleSavePage,
         handleExportPage
@@ -486,23 +459,24 @@ export function PageInspector({ page, isConfigurationPage = false, onButtonsChan
                 inspectorButtons={generatePageActions(pageActions)}
             >
                 {/* Page Information Section */}
-                <PageInfo 
+                <PageInfo
                     page={page}
                     pageId={pageDetails?.id || page.id_pages}
                     isConfigurationPage={isConfigurationPage}
                 />
 
                 {/* Content Fields Section */}
-                <PageContentFields 
+                <PageContentFields
                     contentFields={contentFields}
                     languages={languages}
-                    fieldValues={fieldValues}
-                    onFieldChange={(fieldName, languageId, value) => handleContentFieldChange(fieldName, languageId, value)}
+                    fieldValues={form.values.fields}
+                    onFieldChange={handleContentFieldChange}
+                    form={{ values: { fields: form.values.fields }, setFieldValue: (path: string, value: string) => form.setFieldValue(path, value) }}
                     className={styles.fullWidthLabel}
-                />                
+                />
 
                 {/* Properties Section */}
-                <PageProperties 
+                <PageProperties
                     form={form}
                     pageAccessTypes={pageAccessTypes}
                     page={page}
@@ -511,8 +485,9 @@ export function PageInspector({ page, isConfigurationPage = false, onButtonsChan
                     isConfigurationPage={isConfigurationPage}
                     className={styles.compactStack}
                     languages={languages}
-                    propertyValues={propertyValues}
+                    propertyValues={{}} // No longer needed - using form.values.fields
                     onPropertyFieldChange={handlePropertyFieldChange}
+                    fieldsForm={{ values: { fields: form.values.fields }, setFieldValue: (path: string, value: string) => form.setFieldValue(path, value) }}
                     headerMenuGetFinalPosition={headerMenuGetFinalPosition}
                     footerMenuGetFinalPosition={footerMenuGetFinalPosition}
                     onHeaderMenuChange={handleHeaderMenuChange}
@@ -543,20 +518,20 @@ export function PageInspector({ page, isConfigurationPage = false, onButtonsChan
                     <Alert color="red" title="Warning">
                         This action cannot be undone. The page and all its content will be permanently deleted.
                     </Alert>
-                    
+
                     <Text>
                         To confirm deletion, please type the page keyword: <strong>{page.keyword}</strong>
                     </Text>
-                    
+
                     <TextInput
                         placeholder={`Type "${page.keyword}" to confirm`}
                         value={deleteConfirmText}
                         onChange={(e) => setDeleteConfirmText(e.target.value)}
                     />
-                    
+
                     <Group justify="flex-end">
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             onClick={() => {
                                 setDeleteModalOpened(false);
                                 setDeleteConfirmText('');

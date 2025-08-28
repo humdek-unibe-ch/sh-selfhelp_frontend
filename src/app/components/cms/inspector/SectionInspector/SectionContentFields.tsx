@@ -2,7 +2,7 @@
 
 import { memo } from 'react';
 import { CollapsibleInspector } from '../shared/CollapsibleInspector';
-import { InspectorFields } from '../shared/InspectorFields';
+import { InspectorFields, TMinimalForm } from '../shared/InspectorFields';
 import { INSPECTOR_TYPES, INSPECTOR_SECTIONS } from '../../../../../store/inspectorStore';
 import { ILanguage } from '../../../../../types/responses/admin/languages.types';
 import { IFieldData } from '../../shared/field-renderer/FieldRenderer';
@@ -14,6 +14,7 @@ interface ISectionContentFieldsProps {
     fieldValues: Record<string, Record<number, string>>;
     onFieldChange: (fieldName: string, languageId: number | null, value: string | boolean) => void;
     className?: string;
+    form?: TMinimalForm;
 }
 
 export const SectionContentFields = memo<ISectionContentFieldsProps>(
@@ -22,6 +23,7 @@ export const SectionContentFields = memo<ISectionContentFieldsProps>(
         languages,
         fieldValues,
         onFieldChange,
+        form,
         className
     }) {
         // Only show content fields section if there are content fields
@@ -67,6 +69,7 @@ export const SectionContentFields = memo<ISectionContentFieldsProps>(
                     className={className}
                     inspectorType={INSPECTOR_TYPES.SECTION}
                     sectionName={INSPECTOR_SECTIONS.CONTENT}
+                    form={form}
                 />
             </CollapsibleInspector>
         );

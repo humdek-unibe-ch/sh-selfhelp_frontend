@@ -2,16 +2,18 @@
 
 import { memo } from 'react';
 import { CollapsibleInspector } from '../shared/CollapsibleInspector';
-import { InspectorFields } from '../shared/InspectorFields';
+import { InspectorFields, TMinimalForm } from '../shared/InspectorFields';
 import { INSPECTOR_TYPES, INSPECTOR_SECTIONS } from '../../../../../store/inspectorStore';
 import { IPageField } from '../../../../../types/responses/admin/page-details.types';
 import { ILanguage } from '../../../../../types/responses/admin/languages.types';
 
+
 interface IPageContentFieldsProps {
     contentFields: IPageField[];
     languages: ILanguage[];
-    fieldValues: Record<string, Record<number, string>>;
-    onFieldChange: (fieldName: string, languageId: number, value: string) => void;
+    fieldValues?: Record<string, Record<number, string>>;
+    onFieldChange?: (fieldName: string, languageId: number, value: string) => void;
+    form?: TMinimalForm;
     className?: string;
 }
 
@@ -21,6 +23,7 @@ export const PageContentFields = memo<IPageContentFieldsProps>(
         languages,
         fieldValues,
         onFieldChange,
+        form,
         className
     }) {
         // Only show content fields section if there are content fields
@@ -55,11 +58,12 @@ export const PageContentFields = memo<IPageContentFieldsProps>(
                     fields={contentFields.map(convertToFieldData)}
                     languages={languages}
                     fieldValues={fieldValues}
-                    onFieldChange={(name, langId, value) => {
+                    onFieldChange={onFieldChange ? (name, langId, value) => {
                         if (langId !== null) {
-                            onFieldChange(name, langId, value);
+                            onFieldChange(name, langId, String(value));
                         }
-                    }}
+                    } : undefined}
+                    form={form}
                     isMultiLanguage={true}
                     className={className}
                     inspectorType={INSPECTOR_TYPES.PAGE}

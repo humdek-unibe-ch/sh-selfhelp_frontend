@@ -19,17 +19,23 @@ import { useInspectorStore } from '../../../../../store/inspectorStore';
 import { FieldRenderer, IFieldData } from '../../shared/field-renderer/FieldRenderer';
 import { ILanguage } from '../../../../../types/responses/admin/languages.types';
 
+export type TMinimalForm = {
+    values: { fields: Record<string, Record<number, string>> };
+    setFieldValue: (path: string, value: string | Record<number, string>) => void;
+};
+
 interface IInspectorFieldsProps {
     title: string;
     fields: IFieldData[];
     languages: ILanguage[];
-    fieldValues: Record<string, Record<number, string>> | Record<string, string | boolean>;
-    onFieldChange: (fieldName: string, languageId: number | null, value: string | boolean) => void;
+    fieldValues?: Record<string, Record<number, string>> | Record<string, string | boolean>;
+    onFieldChange?: (fieldName: string, languageId: number | null, value: string | boolean) => void;
     isMultiLanguage?: boolean;
     defaultExpanded?: boolean;
     className?: string;
     inspectorType: string; // Required for persistent state
     sectionName: string; // Consistent section name for state management
+    form?: TMinimalForm;
 }
 
 export function InspectorFields({
@@ -42,7 +48,8 @@ export function InspectorFields({
     defaultExpanded = true,
     className,
     inspectorType,
-    sectionName
+    sectionName,
+    form
 }: IInspectorFieldsProps) {
     const { isCollapsed, setCollapsed } = useInspectorStore();
 
@@ -67,16 +74,40 @@ export function InspectorFields({
         const currentLanguage = languageId ? languages.find(lang => lang.id === languageId) : undefined;
         const locale = currentLanguage?.locale;
 
-        // Get the current field value from the fieldValues state
+        // Get the current field value - prioritize form over fieldValues
         let currentValue: string | boolean | undefined;
-        if (isMultiLanguage && languageId) {
-            // Multi-language content fields
-            const multiLangValues = fieldValues as Record<string, Record<number, string>>;
-            currentValue = multiLangValues[field.name]?.[languageId];
-        } else {
-            // Single language or property fields
-            const singleValues = fieldValues as Record<string, string | boolean>;
-            currentValue = singleValues[field.name];
+        
+        const langIdToUse = isMultiLanguage && languageId ? languageId : (languages[0]?.id || 1);
+        
+        if (form) {
+            // Primary: Get value from Mantine form
+            currentValue = form.values.fields?.[field.name]?.[langIdToUse];
+        } else if (fieldValues) {
+            if (isMultiLanguage && languageId) {
+                // Multi-language content fields
+                const multiLangValues = fieldValues as Record<string, Record<number, string>>;
+                currentValue = multiLangValues[field.name]?.[languageId];
+            } else {
+                // Single language or property fields
+                const singleValues = fieldValues as Record<string, string | boolean>;
+                currentValue = singleValues[field.name];
+            }
+        }
+
+        // Fallback: If no value found and field has translations, try to load from translations
+        if ((currentValue === undefined || currentValue === '') && field.translations) {
+            const translation = field.translations.find(t => t.language_id === langIdToUse);
+            if (translation && translation.content) {
+                currentValue = translation.content;
+                console.log('🔧 InspectorFields: Loading value from field translations:', {
+                    fieldName: field.name,
+                    languageId: langIdToUse,
+                    translationContent: translation.content
+                });
+                
+                // NOTE: Don't sync to form during render - this causes React setState during render errors
+                // The form initialization should handle loading from translations properly
+            }
         }
 
         console.log('🔍 InspectorFields renderField:', {
@@ -84,19 +115,22 @@ export function InspectorFields({
             fieldType: field.type,
             isMultiLanguage,
             languageId,
+            langIdToUse,
             currentValue,
-            fieldValues: isMultiLanguage ? fieldValues : Object.keys(fieldValues as Record<string, string | boolean>).reduce((acc, key) => {
-                acc[key] = (fieldValues as Record<string, string | boolean>)[key];
-                return acc;
-            }, {} as Record<string, string | boolean>)
+            formValue: form?.values.fields?.[field.name]?.[langIdToUse],
+            fieldValuesStructure: fieldValues ? Object.keys(fieldValues) : 'none',
+            hasTranslations: !!field.translations,
+            translationsCount: field.translations?.length || 0
         });
+
+        console.log('field', JSON.stringify(field));
 
         return (
             <FieldRenderer
                 key={languageId ? `${field.id}-${languageId}` : field.id}
                 field={field}
                 languageId={languageId}
-                value={currentValue} // Pass the current form state value
+                value={currentValue}
                 onChange={(newValue) => {
                     console.log('🔍 InspectorFields onChange:', {
                         fieldName: field.name,
@@ -104,7 +138,18 @@ export function InspectorFields({
                         oldValue: currentValue,
                         newValue
                     });
-                    onFieldChange(field.name, languageId || null, newValue);
+                    if (form) {
+                        // Ensure the field structure exists before setting the value
+                        if (!form.values.fields[field.name]) {
+                            // Initialize the field object structure
+                            const fieldObj = {} as Record<number, string>;
+                            form.setFieldValue(`fields.${field.name}`, fieldObj);
+                        }
+                        const fieldKey = `fields.${field.name}.${langIdToUse}`;
+                        form.setFieldValue(fieldKey, String(newValue));
+                    } else if (onFieldChange) {
+                        onFieldChange(field.name, languageId || null, newValue);
+                    }
                 }}
                 locale={locale}
                 className={className}

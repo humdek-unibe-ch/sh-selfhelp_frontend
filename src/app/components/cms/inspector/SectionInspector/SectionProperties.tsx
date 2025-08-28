@@ -1,18 +1,21 @@
 'use client';
 
 import { memo } from 'react';
-import { Stack } from '@mantine/core';
 import { CollapsibleInspector } from '../shared/CollapsibleInspector';
+import { InspectorFields } from '../shared/InspectorFields';
 import { INSPECTOR_TYPES, INSPECTOR_SECTIONS } from '../../../../../store/inspectorStore';
-import { FieldRenderer, IFieldData, ILanguage } from '../../shared';
+import { IFieldData } from '../../shared';
+import { ILanguage } from '../../../../../types/responses/admin/languages.types';
 import { ISectionField } from '../../../../../types/responses/admin/admin.types';
+import type { UseFormReturnType } from '@mantine/form';
 
 interface ISectionPropertiesProps {
     propertyFields: (ISectionField | IFieldData)[];
     languages: ILanguage[];
-    fieldValues: Record<string, string | boolean>;
-    onFieldChange: (fieldName: string, value: string | boolean) => void;
+    fieldValues?: Record<string, string | boolean>;
+    onFieldChange?: (fieldName: string, value: string | boolean) => void;
     className?: string;
+    form?: UseFormReturnType<{ fields: Record<string, Record<number, string>> }>;
 }
 
 export const SectionProperties = memo<ISectionPropertiesProps>(
@@ -21,12 +24,10 @@ export const SectionProperties = memo<ISectionPropertiesProps>(
         languages,
         fieldValues,
         onFieldChange,
-        className
+        className,
+        form
     }) {
-        // Only show properties section if there are property fields
-        if (propertyFields.length === 0) {
-            return null;
-        }
+        if (propertyFields.length === 0) return null;
 
         const toFieldData = (field: ISectionField | IFieldData): IFieldData => {
             if ((field as IFieldData).translations !== undefined) {
@@ -55,19 +56,18 @@ export const SectionProperties = memo<ISectionPropertiesProps>(
                 sectionName={INSPECTOR_SECTIONS.PROPERTIES}
                 defaultExpanded={true}
             >
-                <Stack gap="md" className={className}>
-                    {/* Property fields don't have language tabs as they're not translatable */}
-                    {propertyFields.map(field => (
-                        <FieldRenderer
-                            key={field.id}
-                            field={toFieldData(field)}                                    
-                            languageId={1} // Property fields always use language ID 1
-                            value={fieldValues[field.name]} // Pass the current form state value
-                            onChange={(value) => onFieldChange(field.name, value)}
-                            className={className}
-                        />
-                    ))}
-                </Stack>
+                <InspectorFields
+                    title=""
+                    fields={propertyFields.map(toFieldData)}
+                    languages={languages}
+                    fieldValues={fieldValues}
+                    onFieldChange={onFieldChange ? (name, _langId, value) => onFieldChange(name, value) : undefined}
+                    form={form}
+                    isMultiLanguage={false}
+                    className={className}
+                    inspectorType={INSPECTOR_TYPES.SECTION}
+                    sectionName={INSPECTOR_SECTIONS.PROPERTIES}
+                />
             </CollapsibleInspector>
         );
     },
@@ -89,15 +89,17 @@ export const SectionProperties = memo<ISectionPropertiesProps>(
         }
 
         // Check if field values changed
-        const fieldNames = Object.keys(prevProps.fieldValues);
-        const nextFieldNames = Object.keys(nextProps.fieldValues);
+        const prevVals = prevProps.fieldValues || {};
+        const nextVals = nextProps.fieldValues || {};
+        const fieldNames = Object.keys(prevVals);
+        const nextFieldNames = Object.keys(nextVals);
 
         if (fieldNames.length !== nextFieldNames.length) {
             return false;
         }
 
         const valuesChanged = fieldNames.some(fieldName => {
-            return prevProps.fieldValues[fieldName] !== nextProps.fieldValues[fieldName];
+            return prevVals[fieldName] !== nextVals[fieldName];
         });
 
         return !valuesChanged && prevProps.className === nextProps.className;
