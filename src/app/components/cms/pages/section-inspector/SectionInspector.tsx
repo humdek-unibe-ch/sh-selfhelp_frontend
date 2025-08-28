@@ -1,7 +1,7 @@
 'use client';
 
-import { 
-    Paper, 
+import {
+    Paper,
     Box,
     Modal,
     Stack,
@@ -10,6 +10,7 @@ import {
     TextInput,
     Button,
     Alert,
+    Tabs,
 } from '@mantine/core';
 import { 
     IconInfoCircle, 
@@ -34,9 +35,11 @@ import { AdminApi } from '../../../../../api/admin';
 import { validateName, getNameValidationError } from '../../../../../utils/name-validation.utils';
 import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
-import { FieldsSection } from '../../shared/fields-section/FieldsSection';
+import { CollapsibleSection } from '../../shared/collapsible-section/CollapsibleSection';
+import { FieldRenderer } from '../../shared/field-renderer/FieldRenderer';
 import { InspectorLayout } from '../../shared/inspector-layout/InspectorLayout';
 import { InspectorHeader } from '../../shared/inspector-header/InspectorHeader';
+import { INSPECTOR_TYPES } from '../../../../../store/inspectorStore';
 
 interface ISectionInspectorProps {
     pageId: number | null;
@@ -79,6 +82,7 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
     const queryClient = useQueryClient();
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
+    const [activeLanguageTab, setActiveLanguageTab] = useState<string>('');
     const [formValues, setFormValues] = useState<ISectionFormValues>({
         sectionName: '',
         properties: {},
@@ -162,6 +166,14 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
     });
 
     // Note: Field processing is done directly in useEffect to avoid circular dependencies
+
+    // Set default active language tab when languages are loaded
+    useEffect(() => {
+        if (languages.length > 0 && !activeLanguageTab) {
+            const firstLangId = languages[0].id.toString();
+            setActiveLanguageTab(firstLangId);
+        }
+    }, [languages, activeLanguageTab]);
 
     // Update form when section data changes
     useEffect(() => {
@@ -396,10 +408,46 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
         translations: field.translations
     });
 
+    // Render content field based on type and language
+    const renderContentField = (field: ISectionField, languageId: number) => {
+        const currentLanguage = languages.find(lang => lang.id === languageId);
+        const locale = currentLanguage?.locale;
+        const fieldValue = formValues.fields?.[field.name]?.[languageId] ?? '';
+
+        const fieldData: IFieldData = convertToFieldData(field);
+
+        return (
+            <FieldRenderer
+                key={`${field.id}-${languageId}`}
+                field={fieldData}
+                value={fieldValue}
+                onChange={(value) => handleContentFieldChange(field.name, languageId, value)}
+                locale={locale}
+                className={styles.fullWidthLabel}
+            />
+        );
+    };
+
+    // Render property field (single-language, uses first language ID)
+    const renderPropertyField = (field: ISectionField) => {
+        const langId = languages[0]?.id || 1;
+        const fieldValue = formValues.properties?.[field.name] ?? '';
+
+        const fieldData: IFieldData = convertToFieldData(field);
+
+        return (
+            <FieldRenderer
+                key={`${field.id}-${langId}`}
+                field={fieldData}
+                value={fieldValue}
+                onChange={(value) => handlePropertyFieldChange(field.name, null, value)}
+                className={styles.fullWidthLabel}
+            />
+        );
+    };
+
     // Get fields data for processing
     const fields = sectionDetailsData?.fields || [];
-    const contentFields = fields.filter(field => field.display).map(convertToFieldData);
-    const propertyFields = fields.filter(field => !field.display).map(convertToFieldData);
 
     // Check if we have multiple languages for content fields
     const hasMultipleLanguages = useMemo(() => {
@@ -588,26 +636,70 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                 </Paper>
 
                 {/* Content Fields */}
-                <FieldsSection
-                    title="Content Fields"
-                    fields={contentFields}
-                    languages={languages}
-                    fieldValues={formValues.fields}
-                    onFieldChange={handleContentFieldChange}
-                    isMultiLanguage={true}
-                    className={styles.fullWidthLabel}
-                />
+                <CollapsibleSection
+                    title="Content"
+                    inspectorType={INSPECTOR_TYPES.SECTION}
+                    sectionName="content"
+                    defaultExpanded={true}
+                >
+                    {fields.filter(field => field.display).length > 0 ? (
+                        hasMultipleLanguages ? (
+                            <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || (languages[0]?.id.toString() || ''))}>
+                                <Tabs.List>
+                                    {languages.map(lang => {
+                                        const langId = lang.id.toString();
+                                        return (
+                                            <Tabs.Tab key={langId} value={langId}>
+                                                {lang.language}
+                                            </Tabs.Tab>
+                                        );
+                                    })}
+                                </Tabs.List>
+
+                                {languages.map(lang => {
+                                    const langId = lang.id.toString();
+                                    return (
+                                        <Tabs.Panel key={langId} value={langId} pt="md">
+                                            <Stack gap="md">
+                                                {fields.filter(field => field.display).map(field =>
+                                                    renderContentField(field, lang.id)
+                                                )}
+                                            </Stack>
+                                        </Tabs.Panel>
+                                    );
+                                })}
+                            </Tabs>
+                        ) : (
+                            <Stack gap="md">
+                                {fields.filter(field => field.display).map(field =>
+                                    renderContentField(field, languages[0]?.id || 1)
+                                )}
+                            </Stack>
+                        )
+                    ) : (
+                        <Alert icon={<IconInfoCircle size="1rem" />} color="blue">
+                            No content fields available for this section.
+                        </Alert>
+                    )}
+                </CollapsibleSection>
 
                 {/* Property Fields */}
-                <FieldsSection
+                <CollapsibleSection
                     title="Properties"
-                    fields={propertyFields}
-                    languages={languages}
-                    fieldValues={formValues.properties}
-                    onFieldChange={handlePropertyFieldChange}
-                    isMultiLanguage={false}
-                    className={styles.fullWidthLabel}
-                />
+                    inspectorType={INSPECTOR_TYPES.SECTION}
+                    sectionName="properties"
+                    defaultExpanded={true}
+                >
+                    {fields.filter(field => !field.display).length > 0 ? (
+                        <Stack gap="md">
+                            {fields.filter(field => !field.display).map(field => renderPropertyField(field))}
+                        </Stack>
+                    ) : (
+                        <Alert icon={<IconInfoCircle size="1rem" />} color="blue">
+                            No property fields available for this section.
+                        </Alert>
+                    )}
+                </CollapsibleSection>
             </InspectorLayout>
 
             {/* Delete Confirmation Modal */}

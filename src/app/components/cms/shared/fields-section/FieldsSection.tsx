@@ -17,6 +17,7 @@ import {
 import { useState } from 'react';
 import { FieldRenderer, IFieldData } from '../field-renderer/FieldRenderer';
 import { ILanguage } from '../field-form-handler/FieldFormHandler';
+import { useInspectorStore, INSPECTOR_TYPES } from '../../../../../store/inspectorStore';
 
 interface IFieldsSectionProps {
     title: string;
@@ -27,6 +28,8 @@ interface IFieldsSectionProps {
     isMultiLanguage?: boolean;
     defaultExpanded?: boolean;
     className?: string;
+    inspectorType?: string;
+    sectionName?: string;
 }
 
 export function FieldsSection({
@@ -37,10 +40,15 @@ export function FieldsSection({
     onFieldChange,
     isMultiLanguage = false,
     defaultExpanded = true,
-    className
+    className,
+    inspectorType = INSPECTOR_TYPES.SECTION,
+    sectionName = title.toLowerCase().replace(/\s+/g, '-')
 }: IFieldsSectionProps) {
-    const [expanded, setExpanded] = useState(defaultExpanded);
+    const { isCollapsed, setCollapsed } = useInspectorStore();
     const [activeLanguageTab, setActiveLanguageTab] = useState(languages[0]?.id?.toString() || '');
+
+    // Get collapse state from store, default to expanded if not found
+    const collapsed = isCollapsed(inspectorType, sectionName) ?? !defaultExpanded;
 
     if (fields.length === 0) {
         return null;
@@ -75,20 +83,21 @@ export function FieldsSection({
         );
     };
 
+    const handleToggle = () => {
+        setCollapsed(inspectorType, sectionName, !collapsed);
+    };
+
     return (
-        <Paper withBorder>
+        <Paper withBorder className={className}>
             <Box p="md">
-                <Group justify="space-between" mb="md">
+                <Group justify="space-between" mb="md" style={{ cursor: 'pointer' }} onClick={handleToggle}>
                     <Text fw={500}>{title}</Text>
-                    <ActionIcon
-                        variant="subtle"
-                        onClick={() => setExpanded(!expanded)}
-                    >
-                        {expanded ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
+                    <ActionIcon variant="subtle">
+                        {collapsed ? <IconChevronDown size={16} /> : <IconChevronUp size={16} />}
                     </ActionIcon>
                 </Group>
-                
-                <Collapse in={expanded}>
+
+                <Collapse in={!collapsed}>
                     {isMultiLanguage && languages.length > 1 ? (
                         <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || '')}>
                             <Tabs.List>
@@ -98,7 +107,7 @@ export function FieldsSection({
                                     </Tabs.Tab>
                                 ))}
                             </Tabs.List>
-                            
+
                             {languages.map(language => (
                                 <Tabs.Panel key={language.id} value={language.id.toString()} pt="md">
                                     <Stack gap="md">
