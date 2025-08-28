@@ -1,10 +1,8 @@
 'use client';
 
 import {
-    Paper,
     Box,
     Group,
-    Text,
     ActionIcon,
     Collapse,
     Divider,
@@ -17,7 +15,7 @@ import {
 import { useState, useEffect, ReactNode, memo } from 'react';
 import { useInspectorStore } from '../../../../../store/inspectorStore';
 
-interface ICollapsibleInspectorSectionProps {
+interface ICollapsibleInspectorProps {
     title: string;
     children: ReactNode;
     inspectorType: string;
@@ -26,8 +24,8 @@ interface ICollapsibleInspectorSectionProps {
     className?: string;
 }
 
-export const CollapsibleInspectorSection = memo<ICollapsibleInspectorSectionProps>(
-    function CollapsibleInspectorSection({
+export const CollapsibleInspector = memo<ICollapsibleInspectorProps>(
+    function CollapsibleInspector({
         title,
         children,
         inspectorType,

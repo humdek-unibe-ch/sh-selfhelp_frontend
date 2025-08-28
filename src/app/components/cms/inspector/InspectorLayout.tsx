@@ -83,4 +83,4 @@ export function InspectorLayout({
             </ScrollArea>
         </Stack>
     );
-} 
+}

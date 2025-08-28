@@ -15,11 +15,11 @@ import {
     IconChevronUp
 } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
-import { FieldRenderer, IFieldData } from '../field-renderer/FieldRenderer';
-import { ILanguage } from '../field-form-handler/FieldFormHandler';
 import { useInspectorStore } from '../../../../../store/inspectorStore';
+import { FieldRenderer, IFieldData } from '../../shared/field-renderer/FieldRenderer';
+import { ILanguage } from '../../../../../types/responses/admin/languages.types';
 
-interface IFieldsSectionProps {
+interface IInspectorFieldsProps {
     title: string;
     fields: IFieldData[];
     languages: ILanguage[];
@@ -32,7 +32,7 @@ interface IFieldsSectionProps {
     sectionName: string; // Consistent section name for state management
 }
 
-export function FieldsSection({
+export function InspectorFields({
     title,
     fields,
     languages,
@@ -43,17 +43,17 @@ export function FieldsSection({
     className,
     inspectorType,
     sectionName
-}: IFieldsSectionProps) {
+}: IInspectorFieldsProps) {
     const { isCollapsed, setCollapsed } = useInspectorStore();
-    
+
     // Get persistent state, fallback to defaultExpanded if no stored state
     const [expanded, setExpanded] = useState(() => {
         const storedCollapsed = isCollapsed(inspectorType, sectionName);
         return storedCollapsed ? false : defaultExpanded;
     });
-    
+
     const [activeLanguageTab, setActiveLanguageTab] = useState(languages[0]?.id?.toString() || '');
-    
+
     // Update persistent state when expanded changes
     useEffect(() => {
         setCollapsed(inspectorType, sectionName, !expanded);
@@ -64,28 +64,48 @@ export function FieldsSection({
     }
 
     const renderField = (field: IFieldData, languageId?: number) => {
-        const fieldKey = languageId ? `${field.name}.${languageId}` : field.name;
-        
-        let value: string | boolean;
-        if (isMultiLanguage && languageId) {
-            // Multi-language content fields
-            value = (fieldValues as Record<string, Record<number, string>>)[field.name]?.[languageId] ?? '';
-        } else {
-            // Single language or property fields
-            value = (fieldValues as Record<string, string | boolean>)[field.name] ?? '';
-        }
-        
-
-
         const currentLanguage = languageId ? languages.find(lang => lang.id === languageId) : undefined;
         const locale = currentLanguage?.locale;
+
+        // Get the current field value from the fieldValues state
+        let currentValue: string | boolean | undefined;
+        if (isMultiLanguage && languageId) {
+            // Multi-language content fields
+            const multiLangValues = fieldValues as Record<string, Record<number, string>>;
+            currentValue = multiLangValues[field.name]?.[languageId];
+        } else {
+            // Single language or property fields
+            const singleValues = fieldValues as Record<string, string | boolean>;
+            currentValue = singleValues[field.name];
+        }
+
+        console.log('🔍 InspectorFields renderField:', {
+            fieldName: field.name,
+            fieldType: field.type,
+            isMultiLanguage,
+            languageId,
+            currentValue,
+            fieldValues: isMultiLanguage ? fieldValues : Object.keys(fieldValues as Record<string, string | boolean>).reduce((acc, key) => {
+                acc[key] = (fieldValues as Record<string, string | boolean>)[key];
+                return acc;
+            }, {} as Record<string, string | boolean>)
+        });
 
         return (
             <FieldRenderer
                 key={languageId ? `${field.id}-${languageId}` : field.id}
                 field={field}
-                value={value}
-                onChange={(newValue) => onFieldChange(field.name, languageId || null, newValue)}
+                languageId={languageId}
+                value={currentValue} // Pass the current form state value
+                onChange={(newValue) => {
+                    console.log('🔍 InspectorFields onChange:', {
+                        fieldName: field.name,
+                        languageId,
+                        oldValue: currentValue,
+                        newValue
+                    });
+                    onFieldChange(field.name, languageId || null, newValue);
+                }}
                 locale={locale}
                 className={className}
             />
@@ -106,7 +126,7 @@ export function FieldsSection({
                                 {expanded ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
                             </ActionIcon>
                         </Group>
-                        
+
                         <Collapse in={expanded}>
                             {isMultiLanguage && languages.length > 1 ? (
                                 <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || '')}>
@@ -117,7 +137,7 @@ export function FieldsSection({
                                             </Tabs.Tab>
                                         ))}
                                     </Tabs.List>
-                                    
+
                                     {languages.map(language => (
                                         <Tabs.Panel key={language.id} value={language.id.toString()} pt="md">
                                             <Stack gap="md">
@@ -135,7 +155,7 @@ export function FieldsSection({
                     </Box>
                 </Paper>
             )}
-            
+
             {!title && (
                 <Box>
                     {isMultiLanguage && languages.length > 1 ? (
@@ -147,7 +167,7 @@ export function FieldsSection({
                                     </Tabs.Tab>
                                 ))}
                             </Tabs.List>
-                            
+
                             {languages.map(language => (
                                 <Tabs.Panel key={language.id} value={language.id.toString()} pt="md">
                                     <Stack gap="md">
@@ -165,4 +185,4 @@ export function FieldsSection({
             )}
         </Box>
     );
-} 
+}

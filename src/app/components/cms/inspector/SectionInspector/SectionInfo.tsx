@@ -2,9 +2,9 @@
 
 import { memo } from 'react';
 import { Box, Text, TextInput } from '@mantine/core';
-import { InspectorInfoSection } from '../../../shared';
+import { InspectorInfo } from '../InspectorInfo';
 
-interface ISectionInformationProps {
+interface ISectionInfoProps {
     section: {
         id: number;
         name: string;
@@ -18,10 +18,10 @@ interface ISectionInformationProps {
     onSectionNameChange: (value: string) => void;
 }
 
-export const SectionInformation = memo<ISectionInformationProps>(
-    function SectionInformation({ section, sectionName, onSectionNameChange }) {
+export const SectionInfo = memo<ISectionInfoProps>(
+    function SectionInfo({ section, sectionName, onSectionNameChange }) {
         return (
-            <InspectorInfoSection
+            <InspectorInfo
                 title="Section Information"
                 infoItems={[
                     { label: 'Style', value: section.style.name },
@@ -46,7 +46,7 @@ export const SectionInformation = memo<ISectionInformationProps>(
                         <Text size="sm">{section.style.description}</Text>
                     </Box>
                 )}
-            </InspectorInfoSection>
+            </InspectorInfo>
         );
     },
     // Custom comparison - only re-render if section data or name changes

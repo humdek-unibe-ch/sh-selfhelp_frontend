@@ -611,7 +611,8 @@ const PageSectionsComponent = function PageSections({
         onStateChange
     ]);
 
-    if (isLoading) {
+    const hasSections = Boolean((data as any)?.sections);
+    if (isLoading && !hasSections) {
         return (
             <Paper p="md" withBorder>
                 <Group gap="xs" mb="md">

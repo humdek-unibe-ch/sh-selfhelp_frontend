@@ -18,7 +18,7 @@ interface IInfoItem {
     color?: string;
 }
 
-interface IInspectorInfoSectionProps {
+interface IInspectorInfoProps {
     title?: string;
     infoItems: IInfoItem[];
     badges?: Array<{
@@ -30,13 +30,13 @@ interface IInspectorInfoSectionProps {
     className?: string;
 }
 
-export function InspectorInfoSection({
+export function InspectorInfo({
     title = "Information",
     infoItems,
     badges = [],
     children,
     className
-}: IInspectorInfoSectionProps) {
+}: IInspectorInfoProps) {
     return (
         <div className={`aside-section ${className || ''}`}>
             <Paper withBorder={false} style={{ backgroundColor: 'light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-9))' }}>

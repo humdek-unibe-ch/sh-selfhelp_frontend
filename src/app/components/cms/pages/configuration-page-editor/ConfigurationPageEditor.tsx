@@ -234,7 +234,8 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
             default_value: field.default_value,
             help: field.help,
             display: field.display,
-            fieldConfig: field.fieldConfig
+            fieldConfig: field.fieldConfig,
+            translations: field.translations || []
         };
         
         return (
@@ -266,7 +267,8 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
             default_value: field.default_value,
             help: field.help,
             display: field.display,
-            fieldConfig: field.fieldConfig
+            fieldConfig: field.fieldConfig,
+            translations: field.translations || []
         };
         
         return (

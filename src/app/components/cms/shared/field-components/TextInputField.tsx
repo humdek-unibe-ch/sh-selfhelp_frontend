@@ -31,6 +31,12 @@ export function TextInputField({
             onChange={(event) => {
                 const inputValue = event.currentTarget.value;
                 const nextValue = sanitize ? sanitize(inputValue) : inputValue;
+                console.log('📝 TextInputField onChange:', {
+                    fieldId,
+                    currentValue: value,
+                    inputValue,
+                    nextValue
+                });
                 onChange(nextValue);
             }}
             disabled={disabled}

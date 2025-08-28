@@ -16,6 +16,7 @@ import {
 import type { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
 import { sanitizeName, validateName } from '../../../../../utils/name-validation.utils';
 
+// Use the actual field structure from API response
 export interface IFieldData {
     id: number;
     name: string;
@@ -26,12 +27,19 @@ export interface IFieldData {
     disabled?: boolean;
     hidden?: number;
     display?: boolean;
+    translations: Array<{
+        language_id: number;
+        language_code?: string | null;
+        content: string | null;
+        meta?: any;
+    }>;
     fieldConfig?: IFieldConfig;
 }
 
 interface IFieldRendererProps {
     field: IFieldData;
-    value: string | boolean;
+    languageId?: number;
+    value?: string | boolean; // Optional: use this value if provided, otherwise extract from field
     onChange: (value: string | boolean) => void;
     locale?: string;
     className?: string;
@@ -40,13 +48,74 @@ interface IFieldRendererProps {
 
 export function FieldRenderer({
     field,
+    languageId,
     value,
     onChange,
     locale,
     className,
     disabled = false
 }: IFieldRendererProps) {
-    const fieldValue = typeof value === 'string' ? value : String(value);
+    // Use provided value if available, otherwise extract from field translations
+    const getFieldValue = (): string => {
+        // If a value is explicitly provided, use it (this comes from form state)
+        if (value !== undefined) {
+            const stringValue = typeof value === 'string' ? value : String(value);
+            console.log('🎯 FieldRenderer getFieldValue (using provided value):', {
+                fieldName: field.name,
+                providedValue: value,
+                stringValue,
+                languageId
+            });
+            return stringValue;
+        }
+
+        // Otherwise, extract from field translations (fallback for initial load)
+        if (!field.translations || field.translations.length === 0) {
+            const fallbackValue = field.default_value || '';
+            console.log('🎯 FieldRenderer getFieldValue (no translations, using default):', {
+                fieldName: field.name,
+                fallbackValue,
+                languageId
+            });
+            return fallbackValue;
+        }
+
+        // For content fields (display = true), use the specific language
+        if (field.display && languageId) {
+            const translation = field.translations.find(t => t.language_id === languageId);
+            const translationValue = translation?.content || '';
+            console.log('🎯 FieldRenderer getFieldValue (content field from translation):', {
+                fieldName: field.name,
+                languageId,
+                translation,
+                translationValue
+            });
+            return translationValue;
+        }
+
+        // For property fields (display = false), use language_id = 1 or language_code = "property"
+        const propertyTranslation = field.translations.find(t => 
+            t.language_id === 1 || t.language_code === 'property'
+        );
+        const propertyValue = propertyTranslation?.content || '';
+        console.log('🎯 FieldRenderer getFieldValue (property field from translation):', {
+            fieldName: field.name,
+            propertyTranslation,
+            propertyValue
+        });
+        return propertyValue;
+    };
+
+    const fieldValue = getFieldValue();
+    
+    console.log('🎯 FieldRenderer render:', {
+        fieldName: field.name,
+        fieldType: field.type,
+        fieldValue,
+        providedValue: value,
+        languageId,
+        disabled
+    });
     
     // Helper function to get field label (use title when available, fallback to name)
     const getFieldLabel = () => {
@@ -90,12 +159,15 @@ export function FieldRenderer({
     
     // Handle checkbox separately as it has inline label
     if (field.type === 'checkbox') {
+        // Convert string values to boolean for checkbox
+        const checkboxValue = fieldValue === 'true' || fieldValue === '1' || fieldValue === 'on';
+        
         return (
             <CheckboxField
                 fieldId={field.id}
                 fieldName={field.name}
                 fieldTitle={field.title}
-                value={!!value}
+                value={checkboxValue}
                 onChange={onChange}
                 help={field.help || ''}
                 locale={locale}
@@ -291,8 +363,6 @@ export function FieldRenderer({
 
     // Condition field - use Condition Builder
     if (field.type === 'condition') {
-
-        
         return renderFieldWithBadge(
             <ConditionBuilderField
                 fieldId={field.id}

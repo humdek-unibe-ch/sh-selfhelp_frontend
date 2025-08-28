@@ -1,9 +1,9 @@
 'use client';
 
 import { memo } from 'react';
-import { InspectorInfoSection } from '../../../shared';
+import { InspectorInfo } from '../InspectorInfo';
 
-interface IPageInformationProps {
+interface IPageInfoProps {
     page: {
         keyword: string;
         url: string;
@@ -15,10 +15,10 @@ interface IPageInformationProps {
     isConfigurationPage?: boolean;
 }
 
-export const PageInformation = memo<IPageInformationProps>(
-    function PageInformation({ page, pageId, isConfigurationPage }) {
+export const PageInfo = memo<IPageInfoProps>(
+    function PageInfo({ page, pageId, isConfigurationPage }) {
         return (
-            <InspectorInfoSection
+            <InspectorInfo
                 title="Page Information"
                 infoItems={[
                     { label: 'Keyword', value: page.keyword, variant: 'code' },

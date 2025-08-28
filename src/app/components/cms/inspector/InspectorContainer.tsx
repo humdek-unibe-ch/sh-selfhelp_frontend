@@ -5,8 +5,8 @@ import {
     Stack
 } from '@mantine/core';
 import { ReactNode } from 'react';
-import { InspectorHeader, IInspectorButton } from '../inspector-header/InspectorHeader';
 import './InspectorContainer.module.css';
+import { IInspectorButton, InspectorHeader } from './InspectorHeader';
 
 interface IInspectorContainerProps {
     inspectorType: 'page' | 'section';

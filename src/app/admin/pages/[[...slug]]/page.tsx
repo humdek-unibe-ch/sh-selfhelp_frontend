@@ -16,8 +16,8 @@ import {
 } from '@tabler/icons-react';
 import { AdminShell } from '../../../components/cms/admin-shell/AdminShell';
 import { PageSections } from '../../../components/cms/pages/page-sections/PageSections';
-import { PageInspector } from '../../../components/cms/pages/page-inspector/PageInspector';
-import { SectionInspector } from '../../../components/cms/pages/section-inspector';
+import { PageInspector } from '../../../components/cms/inspector/PageInspector';
+import { SectionInspector } from '../../../components/cms/inspector/SectionInspector';
 import { ConfigurationPageEditor } from '../../../components/cms/pages/configuration-page-editor/ConfigurationPageEditor';
 import { useAdminPages } from '../../../../hooks/useAdminPages';
 import { IAdminPage } from '../../../../types/responses/admin/admin.types';

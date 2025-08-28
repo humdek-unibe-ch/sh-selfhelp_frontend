@@ -10,9 +10,11 @@ trigger: always_on
 Start every answer with: ❤️After the heart tell me who you are and what version.
 staleTime: for react query should be allways form the global react query config
 On design never use transform on hover. Never. 
-Never use any, allwasy properly define types and interfaces.
+NEVER USE ANY, ALLWASY PROPERLY DEFINE TYPES AND INTERFACES.
 When you do frontedn UI changes test them with Browser MCP
 Never git commit and push unless i ask you. Never. NEVER GIT COMMIT UNLESS I SPECIFICLY ASK FOR IT
+Always check the import paths to be correct
+Allwasys check if interfaces or types names exist before you create one. Then either use the same or use another name. Try not ot create a loto different very close interfaces. Be clever.
 Apply the changes without asking for confirmation
 First check if files already exists before creating new ones. Do not duplicate logic in different files. lLways check my structure. Whenever changes are made to the structure add the changes to  your memory
 Do not run or build. I am using `npm run dev`

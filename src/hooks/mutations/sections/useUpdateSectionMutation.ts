@@ -5,24 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminSectionApi } from '../../../api/admin/section.api';
-
-interface IUpdateSectionRequest {
-    // Section name (only if changed)
-    sectionName?: string;
-    
-    // Content fields with language and field IDs (only changed fields)
-    contentFields: Array<{
-        fieldId: number;
-        languageId: number;
-        value: string;
-    }>;
-    
-    // Property fields (only changed fields)
-    propertyFields: Array<{
-        fieldId: number;
-        value: string | boolean;
-    }>;
-}
+import { IUpdateSectionRequest, IUpdateSectionMutationVariables } from '../../../types/requests/admin/update-section.types';
 
 interface IUpdateSectionMutationOptions {
     showNotifications?: boolean;
@@ -44,11 +27,7 @@ export function useUpdateSectionMutation({
             pageId: mutationPageId, 
             sectionId, 
             sectionData 
-        }: { 
-            pageId: number; 
-            sectionId: number; 
-            sectionData: IUpdateSectionRequest;
-        }) => {
+        }: IUpdateSectionMutationVariables) => {
 
             const result = await AdminSectionApi.updateSection(mutationPageId, sectionId, sectionData);
             
@@ -87,7 +66,7 @@ export function useUpdateSectionMutation({
 
             onSuccess?.();
         },
-        onError: (error: Error, variables: { pageId: number; sectionId: number; sectionData: IUpdateSectionRequest }) => {
+        onError: (error: Error, variables: IUpdateSectionMutationVariables) => {
 
             if (showNotifications) {
                 notifications.show({

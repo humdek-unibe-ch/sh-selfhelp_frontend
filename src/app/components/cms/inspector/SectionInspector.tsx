@@ -8,39 +8,44 @@ import {
     Text,
     TextInput,
     Button,
-    Alert,
+    Alert
 } from '@mantine/core';
-import { 
-    IconDeviceFloppy, 
-    IconTrash,
-    IconFileExport
-} from '@tabler/icons-react';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSectionDetails } from '../../../../../hooks/useSectionDetails';
-import { useLanguages } from '../../../../../hooks/useLanguages';
-import { useUpdateSectionMutation, useDeleteSectionMutation } from '../../../../../hooks/mutations';
-import { ISectionField } from '../../../../../types/responses/admin/admin.types';
-import { 
-    InspectorLayout, 
-    IFieldData,
-    createFieldChangeHandlers,
-    InspectorContainer,
-    type IInspectorButton
-} from '../../shared';
-import { 
-    SectionInformation, 
-    SectionContentFields, 
-    SectionPropertyFields 
-} from './components';
-import styles from './SectionInspector.module.css';
-import { exportSection } from '../../../../../api/admin/section.api';
-import { downloadJsonFile, generateExportFilename } from '../../../../../utils/export-import.utils';
-import { AdminApi } from '../../../../../api/admin';
-import { validateName, getNameValidationError } from '../../../../../utils/name-validation.utils';
 import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
 
+// API and Hooks
+import { useSectionDetails } from '../../../../hooks/useSectionDetails';
+import { useLanguages } from '../../../../hooks/useLanguages';
+import { useUpdateSectionMutation, useDeleteSectionMutation } from '../../../../hooks/mutations';
+import { exportSection } from '../../../../api/admin/section.api';
+
+// Types
+import { IUpdateSectionRequest } from '../../../../types/requests/admin/update-section.types';
+
+// Utils
+import { downloadJsonFile, generateExportFilename } from '../../../../utils/export-import.utils';
+import { validateName, getNameValidationError } from '../../../../utils/name-validation.utils';
+import { 
+    initializeContentFieldValues, 
+    initializePropertyFieldValues,
+    getContentFields,
+    getPropertyFields
+} from '../../../../utils/field-value-extraction.utils';
+// Components
+import { 
+    InspectorContainer,
+    SectionInfo,
+    generateSectionActions,
+    SectionContentFields,
+    SectionProperties,
+    InspectorLayout,
+    type IInspectorButton
+} from './index';
+
+// Styles
+import styles from './SectionInspector.module.css';
 
 interface ISectionInspectorProps {
     pageId: number | null;
@@ -60,26 +65,6 @@ interface ISectionFormValues {
     fields: Record<string, Record<number, string>>; // fields[fieldName][languageId] = content
 }
 
-interface ISectionSubmitData {
-    // Section name (only if changed)
-    sectionName?: string;
-    
-    // Content fields with language and field IDs (only changed fields)
-    contentFields: Array<{
-        fieldId: number;
-        languageId: number;
-        value: string;
-        fieldName: string; // For debugging
-    }>;
-    
-    // Property fields (only changed fields)
-    propertyFields: Array<{
-        fieldId: number;
-        value: string | boolean;
-        fieldName: string; // For debugging
-    }>;
-}
-
 export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectionInspectorProps) {
     const router = useRouter();
     const queryClient = useQueryClient();
@@ -97,8 +82,6 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
         properties: {},
         fields: {}
     });
-
-
     
     // Fetch section details when section is selected
     const { 
@@ -119,27 +102,17 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
         onSuccess: () => {
             // Update original values after successful save
             setOriginalValues({ ...formValues });
-
             
-            // Invalidate relevant queries to refresh data - using consistent query keys
+            // Invalidate relevant queries to refresh data
             if (pageId) {
-                queryClient.invalidateQueries({ queryKey: ['adminPages'] }); // Admin pages list
-                queryClient.invalidateQueries({ queryKey: ['pageFields', pageId] }); // Page fields
-                queryClient.invalidateQueries({ queryKey: ['pageSections', pageId] }); // Page sections
-                queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'details', pageId, sectionId] }); // Section details (correct key)
-                queryClient.invalidateQueries({ queryKey: ['pages'] }); // Frontend pages
-                queryClient.invalidateQueries({ queryKey: ['page-content'] }); // Frontend page content
-                queryClient.invalidateQueries({ queryKey: ['frontend-pages'] }); // Frontend pages with language
-                
-                // Also invalidate any admin-specific queries that might exist
-                queryClient.invalidateQueries({ queryKey: ['admin', 'pages'] });
-                queryClient.invalidateQueries({ queryKey: ['admin', 'page', pageId] });
-                queryClient.invalidateQueries({ queryKey: ['admin', 'section', pageId, sectionId] });
+                queryClient.invalidateQueries({ queryKey: ['adminPages'] });
+                queryClient.invalidateQueries({ queryKey: ['pageFields', pageId] });
+                queryClient.invalidateQueries({ queryKey: ['pageSections', pageId] });
                 queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'details', pageId, sectionId] });
+                queryClient.invalidateQueries({ queryKey: ['pages'] });
+                queryClient.invalidateQueries({ queryKey: ['page-content'] });
+                queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
             }
-        },
-        onError: (error) => {
-
         }
     });
 
@@ -150,7 +123,6 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
         onSuccess: () => {
             setDeleteModalOpened(false);
             setDeleteConfirmText('');
-
             
             // Navigate to page view after successful deletion
             const currentPath = window.location.pathname;
@@ -163,72 +135,17 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
                 const newPath = `/admin/pages/${pageKeyword}`;
                 router.push(newPath, { scroll: false });
             }
-        },
-        onError: (error) => {
-
         }
     });
-
-    // Note: Field processing is done directly in useEffect to avoid circular dependencies
 
     // Update form when section data changes
     useEffect(() => {
         if (sectionDetailsData && languages.length > 0) {
             const { section, fields } = sectionDetailsData;
             
-            // Process fields for SectionInspector (which has different structure than PageInspector)
-            const contentFields = fields.filter(field => field.display);
-            const propertyFields = fields.filter(field => !field.display);
-            
-            // Process content fields (translatable) - use similar logic to the utility but adapted for ISectionField
-            const contentFieldsObject: Record<string, Record<number, string>> = {};
-            contentFields.forEach(field => {
-                contentFieldsObject[field.name] = {};
-
-                // Initialize all languages with empty strings first
-                languages.forEach(lang => {
-                    contentFieldsObject[field.name][lang.id] = '';
-                });
-
-                if (field.display) {
-                    // Content fields: populate based on actual language_id from translations
-                    field.translations.forEach(translation => {
-                        const language = languages.find(l => l.id === translation.language_id);
-                        if (language) {
-                            contentFieldsObject[field.name][language.id] = translation.content || field.default_value || '';
-                        }
-                    });
-                } else {
-                    // Property fields: find content from language_id = 1 and replicate across all languages
-                    const propertyTranslation = field.translations.find(t => t.language_id === 1);
-                    const propertyContent = propertyTranslation?.content || field.default_value || '';
-                    
-                    // Replicate property field content to all language tabs for editing convenience
-                    languages.forEach(language => {
-                        contentFieldsObject[field.name][language.id] = propertyContent;
-                    });
-                }
-            });
-
-            // Process property fields for the properties object (SectionInspector uses a different structure)
-            const propertyFieldsObject: Record<string, string | boolean> = {};
-            
-            propertyFields.forEach(field => {
-                // Get the property field content from language ID 1 (where it's stored)
-                const propertyTranslation = field.translations.find(t => t.language_id === 1);
-                const value = propertyTranslation?.content || field.default_value || '';
-
-                // Convert to appropriate type based on field type
-                if (field.type === 'checkbox') {
-                    propertyFieldsObject[field.name] = value === '1' || value === 'true' || value === 'on';
-                } else {
-                    propertyFieldsObject[field.name] = value;
-                }
-
-
-                
-
-            });
+            // Use utility functions for clean field processing
+            const contentFieldsObject = initializeContentFieldValues(fields as any, languages);
+            const propertyFieldsObject = initializePropertyFieldValues(fields as any);
             
             const newFormValues = {
                 sectionName: section.name,
@@ -237,9 +154,8 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
             };
             
             setFormValues(newFormValues);
-            setOriginalValues(newFormValues); // Store original values for change detection
+            setOriginalValues(newFormValues);
         } else {
-            
             // Reset form when no section is selected
             const resetValues = {
                 sectionName: '',
@@ -269,21 +185,14 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
         }
         
         const { fields } = sectionDetailsData;
-        const contentFields = fields.filter(field => field.display);
-        const propertyFields = fields.filter(field => !field.display);
+        const contentFields = getContentFields(fields as any);
+        const propertyFields = getPropertyFields(fields as any);
         
-        // Prepare submit data structure (only changed fields)
-        const submitData = {
-            contentFields: [] as Array<{
-                fieldId: number;
-                languageId: number;
-                value: string;
-            }>,
-            propertyFields: [] as Array<{
-                fieldId: number;
-                value: string | boolean;
-            }>
-        } as any;
+        // Prepare submit data structure (only changed fields) matching backend schema
+        const submitData: IUpdateSectionRequest = {
+            contentFields: [],
+            propertyFields: []
+        };
         
         // Check if section name changed
         if (formValues.sectionName !== originalValues.sectionName) {
@@ -291,7 +200,7 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
         }
         
         // Process content fields (translatable) - only changed values
-        contentFields.forEach(field => {
+        contentFields.forEach((field) => {
             const currentFieldValues = formValues.fields[field.name] || {};
             const originalFieldValues = originalValues.fields[field.name] || {};
             
@@ -304,27 +213,23 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
                     submitData.contentFields.push({
                         fieldId: field.id,
                         languageId: language.id,
-                        value: currentValue
+                        value: currentValue || null
                     });
                 }
             });
         });
         
         // Process property fields (non-translatable) - only changed values
-        propertyFields.forEach(field => {
+        propertyFields.forEach((field) => {
             const currentValue = formValues.properties[field.name];
             const originalValue = originalValues.properties[field.name];
             
             // Only include if value has changed
             if (currentValue !== originalValue) {
-                const fieldEntry = {
+                submitData.propertyFields.push({
                     fieldId: field.id,
-                    value: currentValue !== undefined ? currentValue : ''
-                };
-                
-                submitData.propertyFields.push(fieldEntry);
-                
-
+                    value: currentValue !== undefined ? currentValue : null
+                });
             }
         });
         
@@ -334,7 +239,6 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
                           submitData.propertyFields.length > 0;
         
         if (!hasChanges) {
-
             return;
         }
         
@@ -347,7 +251,6 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
             });
         } catch (error) {
             // Error handling is done by the mutation hook
-
         }
     };
 
@@ -355,7 +258,6 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
         if (!sectionId || !sectionDetailsData || !pageId) return;
         
         if (deleteConfirmText === sectionDetailsData.section.name) {
-
             deleteSectionMutation.mutate({
                 pageId,
                 sectionId
@@ -371,96 +273,71 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
             const filename = generateExportFilename(`section_${sectionDetailsData.section.name}_${sectionId}`);
             downloadJsonFile(response.data.sectionsData, filename);
         } catch (error) {
-
             // Error notification is handled by the download function
         }
     };
 
-    // Use shared field change handlers
-    const { handleContentFieldChange, handlePropertyFieldChange: originalHandlePropertyFieldChange } = createFieldChangeHandlers(
-        setFormValues,
-        'SectionInspector'
-    );
+    const handleContentFieldChange = useCallback((fieldName: string, languageId: number | null, value: string | boolean) => {
+        if (!languageId) return;
+        setFormValues(prev => ({
+            ...prev,
+            fields: {
+                ...prev.fields,
+                [fieldName]: {
+                    ...prev.fields[fieldName],
+                    [languageId]: String(value)
+                }
+            }
+        }));
+    }, []);
 
-    // Wrapper for property field change to match expected signature
     const handlePropertyFieldChange = useCallback((fieldName: string, value: string | boolean) => {
-        originalHandlePropertyFieldChange(fieldName, null, value);
-    }, [originalHandlePropertyFieldChange]);
+        setFormValues(prev => ({
+            ...prev,
+            properties: {
+                ...prev.properties,
+                [fieldName]: value
+            }
+        }));
+    }, []);
 
-    const handleSectionNameChange = (value: string) => {
+    const handleSectionNameChange = useCallback((value: string) => {
         setFormValues(prev => ({
             ...prev,
             sectionName: value
         }));
-    };
+    }, []);
 
-    // Expose inspector buttons to parent
-    useEffect(() => {
-        if (onButtonsChange && sectionDetailsData?.section) {
-            const section = sectionDetailsData.section;
-            const buttons: IInspectorButton[] = [
-                {
-                    id: 'save',
-                    label: 'Save',
-                    icon: <IconDeviceFloppy size="1rem" />,
-                    onClick: handleSave,
-                    variant: 'filled',
-                    loading: updateSectionMutation.isPending,
-                    disabled: !sectionId || updateSectionMutation.isPending || deleteSectionMutation.isPending
-                },
-                {
-                    id: 'export',
-                    label: 'Export',
-                    icon: <IconFileExport size="1rem" />,
-                    onClick: handleExportSection,
-                    variant: 'outline',
-                    color: 'blue',
-                    disabled: !sectionId || deleteSectionMutation.isPending
-                },
-                {
-                    id: 'delete',
-                    label: 'Delete',
-                    icon: <IconTrash size="1rem" />,
-                    onClick: () => setDeleteModalOpened(true),
-                    variant: 'outline',
-                    color: 'red',
-                    disabled: !sectionId || deleteSectionMutation.isPending
-                }
-            ];
-
-            onButtonsChange(buttons);
-        }
-    }, [
-        sectionDetailsData?.section,
+    // Generate action props for SectionActions component
+    const sectionActions = useMemo(() => ({
         sectionId,
+        sectionDetailsData,
+        updateMutationPending: updateSectionMutation.isPending,
+        deleteMutationPending: deleteSectionMutation.isPending,
+        onSave: handleSave,
+        onExport: handleExportSection,
+        onDelete: () => setDeleteModalOpened(true)
+    }), [
+        sectionId,
+        sectionDetailsData,
         updateSectionMutation.isPending,
         deleteSectionMutation.isPending,
-        onButtonsChange
+        handleSave,
+        handleExportSection
     ]);
 
-    // Convert ISectionField to IFieldData
-    const convertToFieldData = (field: ISectionField): IFieldData => ({
-        id: field.id,
-        name: field.name,
-        title: field.title,
-        type: field.type,
-        default_value: field.default_value,
-        help: field.help,
-        disabled: field.disabled,
-        hidden: field.hidden,
-        display: field.display,
-        fieldConfig: field.fieldConfig
-    });
+    // Generate inspector buttons for parent callback
+    useEffect(() => {
+        if (onButtonsChange && sectionDetailsData?.section) {
+            const actions = generateSectionActions(sectionActions);
+            onButtonsChange(actions);
+        }
+    }, [onButtonsChange, sectionDetailsData?.section, sectionActions]);
 
-    // Get fields data for processing
+    // Get fields data for processing using utility functions
     const fields = sectionDetailsData?.fields || [];
-    const contentFields = fields.filter(field => field.display).map(convertToFieldData);
-    const propertyFields = fields.filter(field => !field.display).map(convertToFieldData);
-
-    // Check if we have multiple languages for content fields
-    const hasMultipleLanguages = useMemo(() => {
-        return languages.length > 1;
-    }, [languages]);
+    const contentFields = getContentFields(fields as any);
+    const propertyFields = getPropertyFields(fields as any);
 
     if (!sectionId) {
         return (
@@ -480,11 +357,6 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
         );
     }
 
-    console.log('Section Inspector Rendered', sectionLoading, languagesLoading);
-
-    // Don't show full loading screen - it breaks UI experience
-    // Instead, show loading state within the inspector container
-
     if (sectionError) {
         return (
             <InspectorLayout
@@ -496,19 +368,6 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
                     <Text size="xs" c="dimmed">Page ID: {pageId || 'null'}</Text>
                     <Text size="xs" c="dimmed">Section ID: {sectionId || 'null'}</Text>
                     <Text size="xs" c="dimmed">Error: {sectionError.message}</Text>
-                    <Button 
-                        size="xs" 
-                        mt="sm" 
-                        onClick={async () => {
-                            try {
-                                await AdminApi.getSectionDetails(pageId!, sectionId!);
-                            } catch (error) {
-                                // Error handled by API layer
-                            }
-                        }}
-                    >
-                        Test API Call
-                    </Button>
                 </Box>
             </InspectorLayout>
         );
@@ -527,19 +386,6 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
                     <Text size="xs" c="dimmed">Loading: {sectionLoading.toString()}</Text>
                     <Text size="xs" c="dimmed">Fetching: {isFetching.toString()}</Text>
                     <Text size="xs" c="dimmed">Stale: {isStale.toString()}</Text>
-                    <Button 
-                        size="xs" 
-                        mt="sm" 
-                        onClick={async () => {
-                            try {
-                                await AdminApi.getSectionDetails(pageId!, sectionId!);
-                            } catch (error) {
-                                // Error handled by API layer
-                            }
-                        }}
-                    >
-                        Test API Call
-                    </Button>
                 </Box>
             </InspectorLayout>
         );
@@ -547,53 +393,13 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
 
     const { section } = sectionDetailsData;
 
-    const headerBadges = [
-        { label: `ID: ${section.id}`, color: 'blue' },
-        { label: section.style.name, color: 'green' },
-        ...(section.style.canHaveChildren ? [{ label: 'Can Have Children', color: 'green' }] : []),
-        { label: `Type ID: ${section.style.typeId}`, color: 'gray' }
-    ];
-
-
-
-    // Prepare inspector buttons
-    const inspectorButtons = [
-        {
-            id: 'save',
-            label: 'Save',
-            icon: <IconDeviceFloppy size="1rem" />,
-            onClick: handleSave,
-            variant: 'filled' as const,
-            loading: updateSectionMutation.isPending,
-            disabled: !sectionId || !sectionDetailsData
-        },
-        {
-            id: 'export',
-            label: 'Export',
-            icon: <IconFileExport size="1rem" />,
-            onClick: handleExportSection,
-            variant: 'outline' as const,
-            color: 'blue',
-            disabled: !sectionId || !sectionDetailsData
-        },
-        {
-            id: 'delete',
-            label: 'Delete Section',
-            icon: <IconTrash size="1rem" />,
-            onClick: () => setDeleteModalOpened(true),
-            variant: 'outline' as const,
-            color: 'red',
-            disabled: !sectionId || !sectionDetailsData
-        }
-    ];
-
     return (
         <>
             <InspectorContainer
                 inspectorType="section"
-                inspectorTitle={sectionDetailsData ? `Section: ${section.name}` : 'Loading...'}
-                inspectorId={sectionDetailsData ? section.id : ''}
-                inspectorButtons={sectionDetailsData ? inspectorButtons : []}
+                inspectorTitle={`Section: ${section.name}`}
+                inspectorId={section.id}
+                inspectorButtons={generateSectionActions(sectionActions)}
             >
                 {(sectionLoading || languagesLoading) && (
                     <Box p="md">
@@ -603,25 +409,25 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
 
                 {sectionDetailsData && !sectionLoading && !languagesLoading && (
                     <>
-                        {/* Section Information - Using modular component */}
-                        <SectionInformation 
+                        {/* Section Information */}
+                        <SectionInfo 
                             section={section}
                             sectionName={formValues.sectionName}
                             onSectionNameChange={handleSectionNameChange}
                         />
 
-                        {/* Content Fields - Using modular component */}
+                        {/* Content Fields */}
                         <SectionContentFields 
-                            contentFields={contentFields}
+                            contentFields={contentFields as any}
                             languages={languages}
                             fieldValues={formValues.fields}
                             onFieldChange={handleContentFieldChange}
                             className={styles.fullWidthLabel}
                         />
 
-                        {/* Property Fields - Using modular component */}
-                        <SectionPropertyFields 
-                            propertyFields={propertyFields}
+                        {/* Property Fields */}
+                        <SectionProperties 
+                            propertyFields={propertyFields as any}
                             languages={languages}
                             fieldValues={formValues.properties}
                             onFieldChange={handlePropertyFieldChange}
@@ -679,4 +485,4 @@ export function SectionInspector({ pageId, sectionId, onButtonsChange }: ISectio
             </Modal>
         </>
     );
-} 
+}
