@@ -10,7 +10,6 @@ import {
     TextInput,
     Button,
     Alert,
-    Badge
 } from '@mantine/core';
 import { 
     IconInfoCircle, 
@@ -26,9 +25,7 @@ import { useUpdateSectionMutation, useDeleteSectionMutation } from '../../../../
 import { ISectionField } from '../../../../../types/responses/admin/admin.types';
 import { 
     IFieldData,
-    useFieldFormHandler,
     createFieldChangeHandlers,
-    type ILanguage
 } from '../../shared';
 import styles from './SectionInspector.module.css';
 import { exportSection } from '../../../../../api/admin/section.api';
@@ -37,11 +34,6 @@ import { AdminApi } from '../../../../../api/admin';
 import { validateName, getNameValidationError } from '../../../../../utils/name-validation.utils';
 import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
-import { 
-    initializeFieldFormValues,
-    isContentField,
-    isPropertyField
-} from '../../../../../utils/field-processing.utils';
 import { FieldsSection } from '../../shared/fields-section/FieldsSection';
 import { InspectorLayout } from '../../shared/inspector-layout/InspectorLayout';
 import { InspectorHeader } from '../../shared/inspector-header/InspectorHeader';

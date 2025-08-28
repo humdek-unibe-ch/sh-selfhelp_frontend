@@ -13,7 +13,6 @@ import {
     ScrollArea,
     Button,
     TextInput,
-    Textarea,
     Checkbox,
     ActionIcon,
     Tooltip,
@@ -45,7 +44,7 @@ import { LockedField } from '../../ui/locked-field/LockedField';
 import { DragDropMenuPositioner } from '../../ui/drag-drop-menu-positioner/DragDropMenuPositioner';
 import { FieldLabelWithTooltip } from '../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
 import { IPageField } from '../../../../../types/responses/admin/page-details.types';
-import { IUpdatePageField, IUpdatePageData, IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
+import { IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
 import { FieldRenderer, IFieldData } from '../../shared/field-renderer/FieldRenderer';
 import { PAGE_ACCESS_TYPES } from '../../../../../constants/lookups.constants';
 import styles from './PageInspector.module.css';
@@ -53,14 +52,11 @@ import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { CreatePageModal } from '../create-page/CreatePage';
 import { exportPageSections } from '../../../../../api/admin/section.api';
 import { downloadJsonFile, generateExportFilename } from '../../../../../utils/export-import.utils';
-import { validateName, getNameValidationError } from '../../../../../utils/name-validation.utils';
-import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
 import { 
     processAllFields, 
     isContentField, 
     isPropertyField, 
-    getFieldTypeDisplayName,
     validateFieldProcessing,
     initializeFieldFormValues
 } from '../../../../../utils/field-processing.utils';
