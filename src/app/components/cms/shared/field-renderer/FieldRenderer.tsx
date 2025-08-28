@@ -60,23 +60,12 @@ export function FieldRenderer({
         // If a value is explicitly provided, use it (this comes from form state)
         if (value !== undefined) {
             const stringValue = typeof value === 'string' ? value : String(value);
-            console.log('🎯 FieldRenderer getFieldValue (using provided value):', {
-                fieldName: field.name,
-                providedValue: value,
-                stringValue,
-                languageId
-            });
             return stringValue;
         }
 
         // Otherwise, extract from field translations (fallback for initial load)
         if (!field.translations || field.translations.length === 0) {
             const fallbackValue = field.default_value || '';
-            console.log('🎯 FieldRenderer getFieldValue (no translations, using default):', {
-                fieldName: field.name,
-                fallbackValue,
-                languageId
-            });
             return fallbackValue;
         }
 
@@ -84,12 +73,6 @@ export function FieldRenderer({
         if (field.display && languageId) {
             const translation = field.translations.find(t => t.language_id === languageId);
             const translationValue = translation?.content || '';
-            console.log('🎯 FieldRenderer getFieldValue (content field from translation):', {
-                fieldName: field.name,
-                languageId,
-                translation,
-                translationValue
-            });
             return translationValue;
         }
 
@@ -98,24 +81,11 @@ export function FieldRenderer({
             t.language_id === 1 || t.language_code === 'property'
         );
         const propertyValue = propertyTranslation?.content || '';
-        console.log('🎯 FieldRenderer getFieldValue (property field from translation):', {
-            fieldName: field.name,
-            propertyTranslation,
-            propertyValue
-        });
         return propertyValue;
     };
 
     const fieldValue = getFieldValue();
-    
-    console.log('🎯 FieldRenderer render:', {
-        fieldName: field.name,
-        fieldType: field.type,
-        fieldValue,
-        providedValue: value,
-        languageId,
-        disabled
-    });
+
     
     // Helper function to get field label (use title when available, fallback to name)
     const getFieldLabel = () => {

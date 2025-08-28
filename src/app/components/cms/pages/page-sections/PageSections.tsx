@@ -1,23 +1,33 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, memo } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useCallback, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
     Paper,
+    Title,
     Text,
     Loader,
     Alert,
     Group,
-    Box,
-    ScrollArea
+    Badge,
+    Button,
+    TextInput,
+    ActionIcon,
+    Tooltip,
+    Box
 } from '@mantine/core';
 import {
     IconInfoCircle,
     IconAlertCircle,
+    IconFile,
+    IconPlus,
+    IconSearch,
+    IconChevronUp,
+    IconChevronDown,
+    IconX,
+    IconArrowLeft,
+    IconArrowRight
 } from '@tabler/icons-react';
-import { useSectionsStore } from '../../../../../store/sectionsStore';
-import { smartScrollToElement } from '../../../../../utils/viewport.utils';
 import { usePageSections } from '../../../../../hooks/usePageDetails';
 import {
     useAddSectionToPageMutation,
@@ -28,34 +38,13 @@ import {
 import { IPageField } from '../../../../../types/common/pages.type';
 import { SectionsList } from './SectionsList';
 import { AddSectionModal } from './AddSectionModal';
-import { PageSectionsHeader } from './PageSectionsHeader';
 import { calculateSiblingBelowPosition } from '../../../../../utils/position-calculator';
 import styles from './PageSections.module.css';
-
-export interface IPageSectionsState {
-    searchQuery: string;
-    searchResults: number[];
-    currentSearchIndex: number;
-    sectionsCount: number;
-    isProcessing: boolean;
-}
-
-export interface IPageSectionsHandlers {
-    onSearchChange: (query: string) => void;
-    onSearchNext: () => void;
-    onSearchPrevious: () => void;
-    onSearchClear: () => void;
-    onExpandAll: () => void;
-    onCollapseAll: () => void;
-    onAddSection: () => void;
-}
 
 interface IPageSectionsProps {
     pageId: number | null;
     pageName?: string;
     initialSelectedSectionId?: number | null;
-    // Callback to expose internal state and handlers to parent
-    onStateChange?: (state: IPageSectionsState, handlers: IPageSectionsHandlers) => void;
 }
 
 interface IMoveData {
@@ -72,29 +61,11 @@ interface IMoveData {
     oldParentSectionId: number | null; // Section ID if section was inside another section
 }
 
-const PageSectionsComponent = function PageSections({
-    pageId,
-    pageName,
-    initialSelectedSectionId,
-    onStateChange
-}: IPageSectionsProps) {
-    const queryClient = useQueryClient();
+function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSectionsProps) {
     const { data, isLoading, error } = usePageSections(pageId);
-    
-    // Memoize sections data to prevent unnecessary re-renders
-    const memoizedSections = useMemo(() => data?.sections || [], [data?.sections]);
     const router = useRouter();
 
-    // Use sections store for expanded sections state for better persistence
-    const { getExpandedSections, setExpandedSections: setStoreExpandedSections, toggleSection, expandAll, collapseAll } = useSectionsStore();
-    const storedExpandedSections = useMemo(() => {
-        if (!pageId) return [];
-        return getExpandedSections(pageId);
-    }, [pageId, getExpandedSections]);
-    
-    const [expandedSections, setExpandedSections] = useState<Set<number>>(() => 
-        new Set(storedExpandedSections)
-    );
+    const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
     const [addSectionModalOpened, setAddSectionModalOpened] = useState(false);
     const [selectedParentSectionId, setSelectedParentSectionId] = useState<number | null>(null);
     const [selectedSectionId, setSelectedSectionId] = useState<number | null>(null);
@@ -134,7 +105,7 @@ const PageSectionsComponent = function PageSections({
             items.forEach(item => {
                 if (item.name.toLowerCase().includes(searchLower) ||
                     item.style_name.toLowerCase().includes(searchLower) ||
-                    item.id.toString().includes(query)) {
+                    item.id.toString().includes(searchLower)) {
                     results.push(item.id);
                 }
                 if (item.children) {
@@ -147,9 +118,9 @@ const PageSectionsComponent = function PageSections({
         return results;
     }, []);
 
-    // Helper function to expand all parent sections of a given section - use memoized sections
+    // Helper function to expand all parent sections of a given section
     const expandParentsOfSection = useCallback((sectionId: number) => {
-        if (!memoizedSections.length) return;
+        if (!data?.sections) return;
 
         const parentsToExpand = new Set<number>();
 
@@ -170,34 +141,32 @@ const PageSectionsComponent = function PageSections({
             return false;
         };
 
-        findParents(memoizedSections);
+        findParents(data.sections);
 
         if (parentsToExpand.size > 0) {
             setExpandedSections(prev => new Set([...Array.from(prev), ...Array.from(parentsToExpand)]));
         }
-    }, [memoizedSections]);
+    }, [data?.sections]);
 
-    // Smart scroll function that only scrolls if element is not already visible
+    // Helper function to scroll to a section element
     const scrollToSection = useCallback((sectionId: number) => {
         // Use setTimeout to ensure the DOM has updated after expansion
         setTimeout(() => {
             const sectionElement = document.querySelector(`[data-section-id="${sectionId}"]`);
             if (sectionElement) {
-                const didScroll = smartScrollToElement(sectionElement, {
+                sectionElement.scrollIntoView({
                     behavior: 'smooth',
                     block: 'center',
-                    inline: 'nearest',
-                    threshold: 0.7 // Only scroll if less than 70% visible
+                    inline: 'nearest'
                 });
-                
             }
         }, 100); // Small delay to allow for DOM updates
     }, []);
 
-    // Update search results when query changes - use memoized sections
+    // Update search results when query changes
     useEffect(() => {
-        if (searchQuery.trim() && memoizedSections.length > 0) {
-            const results = searchInSections(memoizedSections, searchQuery.trim());
+        if (searchQuery.trim() && data?.sections) {
+            const results = searchInSections(data.sections, searchQuery.trim());
             setSearchResults(results);
             if (results.length > 0) {
                 const firstResultId = results[0];
@@ -217,12 +186,11 @@ const PageSectionsComponent = function PageSections({
             setCurrentSearchIndex(-1);
             setFocusedSectionId(null);
         }
+    }, [searchQuery, data?.sections, searchInSections, expandParentsOfSection, scrollToSection]);
 
-    }, [searchQuery, memoizedSections, searchInSections, expandParentsOfSection, scrollToSection]);
-
-    // Expand all sections that contain search results - use memoized sections
+    // Expand all sections that contain search results
     useEffect(() => {
-        if (searchResults.length > 0 && memoizedSections.length > 0) {
+        if (searchResults.length > 0 && data?.sections) {
             const sectionsToExpand = new Set<number>();
 
             const findParentsOfResults = (sections: IPageField[], parentId: number | null = null) => {
@@ -250,10 +218,10 @@ const PageSectionsComponent = function PageSections({
                 return false;
             };
 
-            findParentsOfResults(memoizedSections);
+            findParentsOfResults(data.sections);
             setExpandedSections(prev => new Set([...Array.from(prev), ...Array.from(sectionsToExpand)]));
         }
-    }, [searchResults, memoizedSections]);
+    }, [searchResults, data?.sections]);
 
     // Helper function to find a section by ID
     const findSectionById = useCallback((sectionId: number, sections: IPageField[]): IPageField | null => {
@@ -275,24 +243,31 @@ const PageSectionsComponent = function PageSections({
             } else {
                 newSet.add(sectionId);
             }
-            
-            // Persist to store for better UX
-            if (pageId) {
-                setStoreExpandedSections(pageId, Array.from(newSet));
-            }
-            
             return newSet;
         });
     };
 
     const handleSectionSelect = (sectionId: number) => {
-        // Just update the selected section ID - navigation is handled by SectionLink
         setSelectedSectionId(sectionId);
+
+        // Update URL with section ID as path parameter
+        const currentPath = window.location.pathname;
+        const pathParts = currentPath.split('/');
+
+        // Find the admin pages path and reconstruct with section ID
+        const adminIndex = pathParts.indexOf('admin');
+        const pagesIndex = pathParts.indexOf('pages', adminIndex);
+
+        if (pagesIndex !== -1 && pathParts[pagesIndex + 1]) {
+            const pageKeyword = pathParts[pagesIndex + 1];
+            const newPath = `/admin/pages/${pageKeyword}/${sectionId}`;
+            router.push(newPath, { scroll: false });
+        }
     };
 
-    // Collapse/Expand all functionality - use memoized sections
-    const handleExpandAll = useCallback(() => {
-        if (!memoizedSections.length || !pageId) return;
+    // Collapse/Expand all functionality
+    const handleExpandAll = () => {
+        if (!data?.sections) return;
 
         const allSectionIds = new Set<number>();
         const collectAllIds = (sections: IPageField[]) => {
@@ -304,21 +279,13 @@ const PageSectionsComponent = function PageSections({
             });
         };
 
-        collectAllIds(memoizedSections);
+        collectAllIds(data.sections);
         setExpandedSections(allSectionIds);
-        
-        // Use store method for consistency
-        expandAll(pageId, Array.from(allSectionIds));
-    }, [memoizedSections, pageId, expandAll]);
+    };
 
-    const handleCollapseAll = useCallback(() => {
-        if (!pageId) return;
-        
+    const handleCollapseAll = () => {
         setExpandedSections(new Set());
-        
-        // Use store method for consistency
-        collapseAll(pageId);
-    }, [pageId, collapseAll]);
+    };
 
     // Search navigation
     const handleSearchNext = () => {
@@ -336,6 +303,8 @@ const PageSectionsComponent = function PageSections({
 
         // Auto-scroll to the focused element
         scrollToSection(nextSectionId);
+
+
     };
 
     const handleSearchPrevious = () => {
@@ -353,6 +322,8 @@ const PageSectionsComponent = function PageSections({
 
         // Auto-scroll to the focused element
         scrollToSection(prevSectionId);
+
+
     };
 
     const handleSearchClear = () => {
@@ -362,7 +333,7 @@ const PageSectionsComponent = function PageSections({
         setFocusedSectionId(null);
     };
 
-    const handleSectionMove = async (moveData: IMoveData) => {
+        const handleSectionMove = async (moveData: IMoveData) => {
 
         try {
             const { draggedSectionId, newParentId, newPosition, pageId, oldParentPageId, oldParentSectionId } = moveData;
@@ -491,10 +462,6 @@ const PageSectionsComponent = function PageSections({
         setSpecificPosition(undefined);
     };
 
-    const handleAddSectionClick = () => {
-        setAddSectionModalOpened(true);
-    };
-
     // Handle auto-selection of newly created sections
     const handleSectionCreated = (sectionId: number) => {
         setSelectedSectionId(sectionId);
@@ -534,85 +501,26 @@ const PageSectionsComponent = function PageSections({
         }
     }, [initialSelectedSectionId, expandParentsOfSection, scrollToSection]);
 
-    // Silently refresh sections on section selection changes to keep left list fresh
+    // Auto-expand sections with children on initial load
     useEffect(() => {
-        if (!pageId) return;
-        queryClient.prefetchQuery({
-            queryKey: ['pageSections', pageId],
-            staleTime: 0
-        });
-    }, [initialSelectedSectionId, pageId, queryClient]);
+        if (data?.sections && data.sections.length > 0) {
+            const sectionsWithChildren = new Set<number>();
 
-    // Auto-expand sections with children on initial load - use stored state or default
-    useEffect(() => {
-        if (memoizedSections.length > 0 && pageId) {
-            const storedExpanded = getExpandedSections(pageId);
-            
-            if (storedExpanded.length > 0) {
-                // Use stored expanded state
-                setExpandedSections(new Set(storedExpanded));
-            } else {
-                // First time loading - auto-expand sections with children
-                const sectionsWithChildren = new Set<number>();
-
-                const findSectionsWithChildren = (items: IPageField[]) => {
-                    items.forEach(item => {
-                        if (item.children && item.children.length > 0) {
-                            sectionsWithChildren.add(item.id);
-                            findSectionsWithChildren(item.children);
-                        }
-                    });
-                };
-
-                findSectionsWithChildren(memoizedSections);
-                setExpandedSections(sectionsWithChildren);
-                
-                // Store the initial expanded state
-                setStoreExpandedSections(pageId, Array.from(sectionsWithChildren));
-            }
-        }
-    }, [memoizedSections, pageId, getExpandedSections, setStoreExpandedSections]);
-
-    // Expose state and handlers to parent component
-    useEffect(() => {
-        if (onStateChange) {
-            const isProcessingMove = addSectionToPageMutation.isPending || addSectionToSectionMutation.isPending;
-            const isProcessingRemove = removeSectionFromPageMutation.isPending || removeSectionFromSectionMutation.isPending;
-
-            const state: IPageSectionsState = {
-                searchQuery,
-                searchResults,
-                currentSearchIndex,
-                sectionsCount: data?.sections?.length || 0,
-                isProcessing: isProcessingMove || isProcessingRemove
+            const findSectionsWithChildren = (items: IPageField[]) => {
+                items.forEach(item => {
+                    if (item.children && item.children.length > 0) {
+                        sectionsWithChildren.add(item.id);
+                        findSectionsWithChildren(item.children);
+                    }
+                });
             };
 
-            const handlers: IPageSectionsHandlers = {
-                onSearchChange: setSearchQuery,
-                onSearchNext: handleSearchNext,
-                onSearchPrevious: handleSearchPrevious,
-                onSearchClear: handleSearchClear,
-                onExpandAll: handleExpandAll,
-                onCollapseAll: handleCollapseAll,
-                onAddSection: handleAddSectionClick
-            };
-
-            onStateChange(state, handlers);
+            findSectionsWithChildren(data.sections);
+            setExpandedSections(sectionsWithChildren);
         }
-    }, [
-        searchQuery,
-        searchResults,
-        currentSearchIndex,
-        memoizedSections.length,
-        addSectionToPageMutation.isPending,
-        addSectionToSectionMutation.isPending,
-        removeSectionFromPageMutation.isPending,
-        removeSectionFromSectionMutation.isPending,
-        onStateChange
-    ]);
+    }, [data?.sections]);
 
-    const hasSections = Boolean((data as any)?.sections);
-    if (isLoading && !hasSections) {
+    if (isLoading) {
         return (
             <Paper p="md" withBorder>
                 <Group gap="xs" mb="md">
@@ -633,48 +541,26 @@ const PageSectionsComponent = function PageSections({
         );
     }
 
-    // Prepare current state and handlers for header
-    const isProcessingMove = addSectionToPageMutation.isPending || addSectionToSectionMutation.isPending;
-    const isProcessingRemove = removeSectionFromPageMutation.isPending || removeSectionFromSectionMutation.isPending;
-
-    const currentState: IPageSectionsState = {
-        searchQuery,
-        searchResults,
-        currentSearchIndex,
-        sectionsCount: data?.sections?.length || 0,
-        isProcessing: isProcessingMove || isProcessingRemove
-    };
-
-    const currentHandlers: IPageSectionsHandlers = {
-        onSearchChange: setSearchQuery,
-        onSearchNext: handleSearchNext,
-        onSearchPrevious: handleSearchPrevious,
-        onSearchClear: handleSearchClear,
-        onExpandAll: handleExpandAll,
-        onCollapseAll: handleCollapseAll,
-        onAddSection: handleAddSectionClick
-    };
-
-    if (!memoizedSections.length) {
+    if (!data?.sections || data.sections.length === 0) {
         return (
             <>
-                <Box className={styles.pageSectionsContainer}>
-                    {/* Header - Always show when we have a page */}
-                    <PageSectionsHeader
-                        pageName={pageName}
-                        state={currentState}
-                        handlers={currentHandlers}
-                    />
-
-                    {/* Empty State Content */}
-                    <Box className={styles.scrollableContent}>
-                        <Alert icon={<IconInfoCircle size={16} />} color="blue" title="No sections found" className={styles.emptyStateAlert}>
-                            <Text size="sm">
-                                This page doesn&apos;t have any sections yet. Click the &quot;Add Section&quot; button in the header to get started.
-                            </Text>
-                        </Alert>
-                    </Box>
-                </Box>
+                <Paper p="md" withBorder>
+                    <Alert icon={<IconInfoCircle size={16} />} color="blue" title="No sections found">
+                        <Text size="sm" mb="md">
+                            This page doesn&apos;t have any sections yet.
+                        </Text>
+                        <Button
+                            leftSection={<IconPlus size={16} />}
+                            size="sm"
+                            variant="light"
+                            onClick={() => {
+                                setAddSectionModalOpened(true);
+                            }}
+                        >
+                            Add First Section
+                        </Button>
+                    </Alert>
+                </Paper>
 
                 {/* Add Section Modal - Now available even when no sections exist */}
                 <AddSectionModal
@@ -689,20 +575,128 @@ const PageSectionsComponent = function PageSections({
         );
     }
 
-    return (
-        <Box className={styles.pageSectionsContainer}>
-            {/* Header - Always show when we have sections */}
-            <PageSectionsHeader
-                pageName={pageName}
-                state={currentState}
-                handlers={currentHandlers}
-            />
+    const isProcessingMove = addSectionToPageMutation.isPending || addSectionToSectionMutation.isPending;
+    const isProcessingRemove = removeSectionFromPageMutation.isPending || removeSectionFromSectionMutation.isPending;
 
-            {/* Scrollable Content Area - Now full height */}
-            <ScrollArea h="calc(100vh - 106px)">
+    return (
+        <Paper p="xs" withBorder className={styles.paperContainer}>
+            {/* Header with Search */}
+            <Group justify="space-between" mb="xs" px="xs" wrap="nowrap">
+                <Group gap="xs" wrap="nowrap">
+                    <IconFile size={16} />
+                    <Title order={6} size="sm" className={styles.titleNoWrap}>
+                        {pageName ? `${pageName} - Sections` : 'Page Sections'}
+                    </Title>
+                    <Badge size="xs" variant="light" color="blue">
+                        {data.sections.length}
+                    </Badge>
+                    {(isProcessingMove || isProcessingRemove) && (
+                        <Badge size="xs" variant="light" color="orange">
+                            Processing...
+                        </Badge>
+                    )}
+                </Group>
+
+                {/* Search Bar - Flexible width */}
+                <Group gap="xs" className={styles.searchGroup} wrap="nowrap">
+                    <TextInput
+                        placeholder="Search sections..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.currentTarget.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && searchResults.length > 0) {
+                                e.preventDefault();
+                                handleSearchNext();
+                            }
+                            if (e.key === 'Escape') {
+                                e.preventDefault();
+                                handleSearchClear();
+                            }
+                        }}
+                        leftSection={<IconSearch size={14} />}
+                        rightSection={
+                            searchQuery && (
+                                <ActionIcon
+                                    size="xs"
+                                    variant="subtle"
+                                    onClick={handleSearchClear}
+                                >
+                                    <IconX size={12} />
+                                </ActionIcon>
+                            )
+                        }
+                        size="xs"
+                        className={styles.contentContainer}
+                    />
+                    {searchResults.length > 0 && (
+                        <>
+                            <Text size="xs" c="dimmed" className={styles.infoText}>
+                                {currentSearchIndex + 1}/{searchResults.length}
+                            </Text>
+                            <Group gap={2}>
+                                <Tooltip label="Previous">
+                                    <ActionIcon
+                                        size="xs"
+                                        variant="subtle"
+                                        onClick={handleSearchPrevious}
+                                        disabled={searchResults.length === 0}
+                                    >
+                                        <IconArrowLeft size={12} />
+                                    </ActionIcon>
+                                </Tooltip>
+                                <Tooltip label="Next">
+                                    <ActionIcon
+                                        size="xs"
+                                        variant="subtle"
+                                        onClick={handleSearchNext}
+                                        disabled={searchResults.length === 0}
+                                    >
+                                        <IconArrowRight size={12} />
+                                    </ActionIcon>
+                                </Tooltip>
+                            </Group>
+                        </>
+                    )}
+                </Group>
+
+                <Group gap="xs" wrap="nowrap">
+                    <Tooltip label="Expand All">
+                        <ActionIcon
+                            size="xs"
+                            variant="subtle"
+                            color="blue"
+                            onClick={handleExpandAll}
+                        >
+                            <IconChevronDown size={12} />
+                        </ActionIcon>
+                    </Tooltip>
+                    <Tooltip label="Collapse All">
+                        <ActionIcon
+                            size="xs"
+                            variant="subtle"
+                            color="blue"
+                            onClick={handleCollapseAll}
+                        >
+                            <IconChevronUp size={12} />
+                        </ActionIcon>
+                    </Tooltip>
+                    <Button
+                        leftSection={<IconPlus size={14} />}
+                        size="xs"
+                        variant="light"
+                        onClick={() => {
+                            setAddSectionModalOpened(true);
+                        }}
+                    >
+                        Add Section
+                    </Button>
+                </Group>
+            </Group>
+
+            {/* Sections List - Scrollable Content Area */}
+            <Box className={styles.contentContainer}>
                 <SectionsList
-                    key={`sections-${pageId}`} // Stable key based on pageId
-                    sections={memoizedSections}
+                    sections={data.sections}
                     expandedSections={expandedSections}
                     onToggleExpand={handleToggleExpand}
                     onSectionMove={handleSectionMove}
@@ -714,9 +708,9 @@ const PageSectionsComponent = function PageSections({
                     selectedSectionId={selectedSectionId}
                     focusedSectionId={focusedSectionId}
                     pageId={pageId || undefined}
-                    isProcessing={currentState.isProcessing}
+                    isProcessing={isProcessingMove || isProcessingRemove}
                 />
-            </ScrollArea>
+            </Box>
 
             {/* Add Section Modal */}
             <AddSectionModal
@@ -729,15 +723,18 @@ const PageSectionsComponent = function PageSections({
                 onSectionCreated={handleSectionCreated}
                 onSectionsImported={handleSectionsImported}
             />
-        </Box>
+        </Paper>
     );
 };
 
 // Export memoized component to prevent unnecessary re-renders
-export const PageSections = memo(PageSectionsComponent, (prevProps, nextProps) => {
+const PageSectionsMemo = memo(PageSections, (prevProps: IPageSectionsProps, nextProps: IPageSectionsProps) => {
     return (
         prevProps.pageId === nextProps.pageId &&
         prevProps.pageName === nextProps.pageName &&
         prevProps.initialSelectedSectionId === nextProps.initialSelectedSectionId
     );
-}); 
+});
+
+// Export the memoized version as the main export
+export { PageSectionsMemo as PageSections }; 
