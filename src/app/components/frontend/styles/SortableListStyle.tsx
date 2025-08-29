@@ -100,7 +100,7 @@ const SortableListStyle: React.FC<ISortableListStyleProps> = ({ style }) => {
                                     <ActionIcon
                                         size="sm"
                                         variant="subtle"
-                                        style={{ cursor: 'grab' }}
+                                        className="cursor-grab"
                                     >
                                         <IconGripVertical size={14} />
                                     </ActionIcon>

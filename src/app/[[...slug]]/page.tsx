@@ -115,9 +115,8 @@ const DynamicPageContentOptimized = React.memo(function DynamicPageContentOptimi
     // For headless pages, render without standard container and let content fill the viewport
     if (isHeadless) {
         return (
-            <div 
-                style={{ minHeight: '100vh', width: '100%' }}
-                className={`page-content-transition ${isContentUpdating ? 'page-content-loading' : ''}`}
+            <div
+                className={`min-h-screen w-full page-content-transition ${isContentUpdating ? 'page-content-loading' : ''}`}
                 data-language-changing={isUpdatingLanguage}
             >
                 <PageContentRenderer sections={sections} />

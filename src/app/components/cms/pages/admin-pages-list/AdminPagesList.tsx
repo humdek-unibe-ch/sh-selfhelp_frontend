@@ -157,13 +157,13 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
                             togglePageExpanded(page.id_pages);
                         }
                     }}
-                    style={{ 
-                        paddingLeft: `${(page.level * 20) + 12}px`,
-                        width: '100%'
+                    className="w-full"
+                    style={{
+                        paddingLeft: `${(page.level * 20) + 12}px`
                     }}
                 >
                     <Group justify="space-between" gap="xs" wrap="nowrap">
-                        <Group gap="xs" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
+                        <Group gap="xs" wrap="nowrap" className="flex-1 min-w-0">
                             <ThemeIcon 
                                 variant="light" 
                                 size="sm"
@@ -171,7 +171,7 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
                             >
                                 {hasChildren ? <IconFile size="0.8rem" /> : <IconFileText size="0.8rem" />}
                             </ThemeIcon>
-                            <Box style={{ flex: 1, minWidth: 0 }}>
+                            <Box className="flex-1 min-w-0">
                                 <Text size="sm" fw={500} truncate>
                                     {page.keyword}
                                 </Text>

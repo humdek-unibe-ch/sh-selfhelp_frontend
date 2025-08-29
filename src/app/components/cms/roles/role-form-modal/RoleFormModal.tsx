@@ -163,7 +163,7 @@ export function RoleFormModal({ opened, onClose, roleId, mode }: IRoleFormModalP
                 Role Information
               </Text>
               <Group>
-                <Text size="sm" fw={500} c="dimmed" style={{ minWidth: '80px' }}>
+                <Text size="sm" fw={500} c="dimmed" className="min-w-[80px]">
                   Name:
                 </Text>
                 <Text size="sm">

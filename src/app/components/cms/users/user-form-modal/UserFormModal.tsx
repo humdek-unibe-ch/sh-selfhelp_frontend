@@ -206,7 +206,7 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
                             </Text>
                             <Stack gap="xs">
                                 <Group>
-                                    <Text size="sm" fw={500} c="dimmed" style={{ minWidth: '80px' }}>
+                                    <Text size="sm" fw={500} c="dimmed" className="min-w-[80px]">
                                         Email:
                                     </Text>
                                     <Text size="sm">
@@ -214,7 +214,7 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
                                     </Text>
                                 </Group>
                                 <Group>
-                                    <Text size="sm" fw={500} c="dimmed" style={{ minWidth: '80px' }}>
+                                    <Text size="sm" fw={500} c="dimmed" className="min-w-[80px]">
                                         Username:
                                     </Text>
                                     <Text size="sm">

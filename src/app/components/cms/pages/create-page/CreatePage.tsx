@@ -262,7 +262,7 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
                                                             variant={form.values.customUrlEdit ? "filled" : "subtle"}
                                                             color={form.values.customUrlEdit ? "blue" : "gray"}
                                                             onClick={() => form.setFieldValue('customUrlEdit', !form.values.customUrlEdit)}
-                                                            style={{ cursor: 'pointer' }}
+                                                            className="cursor-pointer"
                                                         >
                                                             {form.values.customUrlEdit ? (
                                                                 <IconEdit size="1rem" />

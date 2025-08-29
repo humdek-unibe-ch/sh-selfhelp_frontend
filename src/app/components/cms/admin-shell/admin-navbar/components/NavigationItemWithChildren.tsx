@@ -80,11 +80,9 @@ export function NavigationItemWithChildren({
                     // Allow right-click context menu for "open in new tab"
                     e.stopPropagation();
                 }}
+                className="w-full py-[2px]"
                 style={{
-                    width: '100%',
                     padding: 'var(--mantine-spacing-xs)',
-                    paddingTop: '2px',
-                    paddingBottom: '2px',
                     borderRadius: 'var(--mantine-radius-xs)',
                     transition: 'all 0.15s ease',
                     backgroundColor: isActive ? 'var(--mantine-color-blue-0)' : 'transparent',
@@ -116,12 +114,11 @@ export function NavigationItemWithChildren({
                     {hasChildren && (
                         <div
                             onClick={handleToggleExpand}
-                            style={{ 
+                            className="flex p-[2px]"
+                            style={{
                                 flexShrink: 0,
                                 cursor: 'pointer',
-                                padding: '2px',
                                 borderRadius: '2px',
-                                display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center'
                             }}
@@ -140,7 +137,7 @@ export function NavigationItemWithChildren({
                         </div>
                     )}
                     
-                    <Box style={{ flex: 1, minWidth: 0 }}>
+                    <Box className="flex-1 min-w-0">
                         <Text 
                             size="xs" 
                             fw={isActive ? 600 : 400}

@@ -416,7 +416,7 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
             <Card key={group.type} withBorder>
               <Card.Section
                 p="md"
-                style={{ cursor: 'pointer' }}
+                className="cursor-pointer"
                 onClick={() => toggleGroup(group.type)}
               >
                 <Group justify="space-between">
@@ -456,7 +456,7 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
                         return (
                           <Table.Tr 
                             key={asset.id}
-                            style={{ cursor: onAssetSelect ? 'pointer' : 'default' }}
+                            className={onAssetSelect ? 'cursor-pointer' : 'cursor-default'}
                             onClick={() => onAssetSelect?.(asset)}
                           >
                             <Table.Td>

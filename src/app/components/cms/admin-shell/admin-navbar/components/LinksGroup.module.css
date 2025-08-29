@@ -47,3 +47,66 @@
 .chevron {
   transition: transform 200ms ease;
 }
+
+/* Additional styles for inline style conversion */
+.nestedLink {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0;
+  background-color: transparent;
+  border: none;
+}
+
+.iconContainer {
+  display: flex;
+  align-items: center;
+}
+
+.expandIcon {
+  transition: transform 200ms ease;
+}
+
+.actionIcon {
+  opacity: 0.7;
+  transition: opacity 200ms ease;
+}
+
+.actionIcon:hover {
+  opacity: 1;
+}
+
+.linkContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.linkText {
+  flex: 1;
+}
+
+.linkIcon {
+  margin-left: auto;
+}
+
+.chevronButton {
+  padding: 4px;
+  background-color: transparent;
+  border: none;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 200ms ease;
+}
+
+.chevronButton:hover {
+  background-color: var(--mantine-color-gray-1);
+}
+
+.chevronIcon {
+  transition: transform 200ms ease;
+}

@@ -53,21 +53,15 @@ export function LinksGroup({ icon, label, initiallyOpened, children, link, right
             return (
                 <div className={classes.children} key={item.keyword || item.label}>
                     <div
-                        className={classes.link}
+                        className={`${classes.link} flex items-center cursor-pointer`}
                         data-active={isItemActive || undefined}
-                        style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
                     >
-                        <Group justify="space-between" gap={0} style={{ width: '100%' }}>
-                            <Group gap="xs" style={{ flex: 1 }}>                                
+                        <Group justify="space-between" gap={0} className="w-full">
+                            <Group gap="xs" className="flex-1">                                
                                 {/* Page label - clickable for navigation */}
                                 <Text 
                                     size="xs" 
-                                    style={{
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap',
-                                        flex: 1
-                                    }}
+                                    className="overflow-hidden text-ellipsis whitespace-nowrap flex-1"
                                     title={item.label}
                                     onClick={(event) => {
                                         event.preventDefault();
@@ -148,7 +142,7 @@ export function LinksGroup({ icon, label, initiallyOpened, children, link, right
                 data-active={isActive || undefined}
             >
                 <Group justify="space-between" gap={0}>
-                    <Box style={{ display: 'flex', alignItems: 'center' }}>
+                    <Box className="flex items-center">
                         <ThemeIcon variant="light" size={30}>
                             {icon}
                         </ThemeIcon>

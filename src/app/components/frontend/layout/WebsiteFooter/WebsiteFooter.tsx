@@ -1,10 +1,11 @@
 'use client';
 
 import { Box, Container, Divider, Group, Stack, Text } from '@mantine/core';
-import { InternalLink } from '../../shared/ui/InternalLink';
-import { useAppNavigation } from '../../../../hooks/useAppNavigation';
-import { usePagePrefetch } from '../../../../hooks/usePagePrefetch';
-import { IPageItem } from '../../../../types/responses/frontend/frontend.types';
+import { InternalLink } from '../../../shared/ui/InternalLink';
+import { useAppNavigation } from '../../../../../hooks/useAppNavigation';
+import { usePagePrefetch } from '../../../../../hooks/usePagePrefetch';
+import { IPageItem } from '../../../../../types/responses/frontend/frontend.types';
+import styles from './WebsiteFooter.module.css';
 
 // Helper function to get page title
 const getPageTitle = (item: IPageItem): string => {
@@ -27,14 +28,11 @@ export function WebsiteFooter() {
     }
 
     return (
-        <Box 
-            component="footer" 
-            w="100%" 
-            py="xl" 
-            style={{ 
-                backgroundColor: 'var(--mantine-color-gray-0)',
-                borderTop: '1px solid var(--mantine-color-gray-3)'
-            }}
+        <Box
+            component="footer"
+            w="100%"
+            py="xl"
+            className={styles.footer}
         >
             <Container size="xl">
                 <Stack gap="lg">
@@ -50,9 +48,9 @@ export function WebsiteFooter() {
                             </InternalLink>
                         ))}
                     </Group>
-                    
-                    <Text 
-                        size="sm" 
+
+                    <Text
+                        size="sm"
                         c="dimmed"
                         ta="center"
                     >

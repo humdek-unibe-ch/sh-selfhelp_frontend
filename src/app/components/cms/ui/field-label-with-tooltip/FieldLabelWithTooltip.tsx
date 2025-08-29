@@ -45,7 +45,7 @@ export function FieldLabelWithTooltip({
                             variant="subtle" 
                             size="xs" 
                             color="gray"
-                            style={{ cursor: 'help' }}
+                            className="cursor-help"
                         >
                             <IconInfoCircle size="0.75rem" />
                         </ActionIcon>

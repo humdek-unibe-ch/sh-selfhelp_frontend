@@ -45,7 +45,7 @@ export function CollapsibleSection({
     return (
         <Paper withBorder className={className}>
             <Box p="md">
-                <Group justify="space-between" mb="md" style={{ cursor: 'pointer' }} onClick={handleToggle}>
+                <Group justify="space-between" mb="md" className="cursor-pointer" onClick={handleToggle}>
                     <Text fw={500}>{title}</Text>
                     <ActionIcon variant="subtle">
                         {collapsed ? <IconChevronDown size={16} /> : <IconChevronUp size={16} />}

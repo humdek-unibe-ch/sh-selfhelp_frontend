@@ -225,7 +225,7 @@ function MenuPageItem({
                     ref={dragHandleRef}
                     variant="subtle"
                     size="sm"
-                    style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+                    className={isDragging ? 'cursor-grabbing' : 'cursor-grab'}
                 >
                     <IconGripVertical size="0.8rem" />
                 </ActionIcon>

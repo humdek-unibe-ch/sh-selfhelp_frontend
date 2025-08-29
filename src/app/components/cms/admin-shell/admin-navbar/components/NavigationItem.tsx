@@ -65,19 +65,13 @@ export function NavigationItem({
                 // Allow right-click context menu for "open in new tab"
                 e.stopPropagation();
             }}
-            w="100%"
+            className="w-full rounded-[var(--mantine-radius-xs)] transition-all duration-150 ease-in-out border border-transparent relative ml-3 min-h-[20px]"
             px="xs"
             py={2}
             style={{
-                borderRadius: 'var(--mantine-radius-xs)',
-                transition: 'all 0.15s ease',
                 backgroundColor: isActive ? 'var(--mantine-color-blue-0)' : 'transparent',
-                border: '1px solid transparent',
                 borderColor: isActive ? 'var(--mantine-color-blue-4)' : 'transparent',
                 borderLeft: isActive ? '3px solid var(--mantine-color-blue-6)' : '3px solid var(--mantine-color-gray-3)',
-                position: 'relative',
-                marginLeft: '12px', // Space for tree line
-                minHeight: '20px'
             }}
             styles={{
                 root: {
@@ -116,7 +110,7 @@ export function NavigationItem({
             data-active={isActive || undefined}
         >
             <Group gap="xs" wrap="nowrap">
-                <Box style={{ flex: 1, minWidth: 0 }}>
+                <Box className="flex-1 min-w-0">
                     <Text 
                         size="xs" 
                         fw={isActive ? 600 : 400}

@@ -194,17 +194,9 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, selectab
                 e.stopPropagation();
               }
             }}
-            style={{ 
-              flex: 1, 
-              display: 'flex', 
-              alignItems: 'center',
-              justifyContent: 'flex-start',
-              padding: 0,
-              backgroundColor: 'transparent',
-              border: 'none'
-            }}
+            className={classes.nestedLink}
           >
-            <Box style={{ display: 'flex', alignItems: 'center' }}>
+            <Box className={classes.iconContainer}>
               <Box mr="md">{icon}</Box>
               <Box>{label}</Box>
             </Box>
@@ -217,25 +209,10 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, selectab
                 e.stopPropagation();
                 setOpened((o: boolean) => !o);
               }}
-              style={{
-                padding: '4px',
-                backgroundColor: 'transparent',
-                border: 'none',
-                borderRadius: '4px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-              styles={{
-                root: {
-                  '&:hover': {
-                    backgroundColor: 'light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-5))'
-                  }
-                }
-              }}
+              className={classes.chevronButton}
             >
               <IconChevronRight
-                className={classes.chevron}
+                className={`${classes.chevron} ${classes.chevronIcon}`}
                 size="1rem"
                 stroke={1.5}
                 style={{

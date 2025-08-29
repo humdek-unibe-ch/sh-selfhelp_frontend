@@ -1,0 +1,1 @@
+export { WebsiteFooter } from './WebsiteFooter';

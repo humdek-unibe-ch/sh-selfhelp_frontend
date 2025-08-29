@@ -378,23 +378,11 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                                         }}
                                         px="xs"
                                         py={4}
-                                        style={{
-                                            borderRadius: 'var(--mantine-radius-xs)',
-                                            border: '1px solid var(--mantine-color-gray-3)',
-                                            transition: 'all 0.15s ease'
-                                        }}
-                                        styles={{
-                                            root: {
-                                                '&:hover': {
-                                                    backgroundColor: 'var(--mantine-color-gray-0)',
-                                                    borderColor: 'var(--mantine-color-blue-4)'
-                                                }
-                                            }
-                                        }}
+                                        className="rounded-[var(--mantine-radius-xs)] border border-gray-3 transition-all duration-150 ease-in-out hover:bg-[var(--mantine-color-gray-0)] hover:border-blue-4"
                                     >
                                         <Group gap="xs" wrap="nowrap">
                                             {item.icon}
-                                            <Box style={{ flex: 1, minWidth: 0 }}>
+                                            <Box className="flex-1 min-w-0">
                                                 <Text size="xs" fw={500} truncate>
                                                     <Highlight highlight={searchQuery} component="span">
                                                         {item.label}

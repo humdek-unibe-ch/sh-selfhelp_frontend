@@ -47,7 +47,7 @@ export function LockedField({
                         variant={isLocked ? "subtle" : "filled"}
                         color={isLocked ? "gray" : "blue"}
                         onClick={handleToggleLock}
-                        style={{ cursor: 'pointer' }}
+                        className="cursor-pointer"
                     >
                         {isLocked ? (
                             <IconLock size="1rem" />

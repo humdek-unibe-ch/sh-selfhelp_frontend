@@ -19,7 +19,7 @@ export function SelfHelpLogo({ size = 30 }: SelfHelpLogoProps) {
         alt="SelfHelp Logo" 
         width={size} 
         height={size}
-        style={{ objectFit: 'contain' }}
+        className="object-contain"
       />
       <Text 
         fw={700} 

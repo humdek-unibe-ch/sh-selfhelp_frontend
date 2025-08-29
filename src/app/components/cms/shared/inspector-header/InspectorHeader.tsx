@@ -34,7 +34,7 @@ export function InspectorHeader({
     actions = []
 }: IInspectorHeaderProps) {
     return (
-        <Paper p="md" withBorder style={{ borderBottom: 'none' }}>
+        <Paper p="md" withBorder className="border-b-0">
             <Group justify="space-between" align="center">
                 <Group gap="xs">
                     <Title order={2}>{title}</Title>

@@ -228,7 +228,7 @@ export function AdminNavbar() {
     return (
         <nav className={classes.navbar}>
             {/* Navigation Header */}
-            <Box p="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
+            <Box p="md" className="border-b border-gray-3">
                 <Group gap="md" align="center" mb="md">
                     <SelfHelpLogo size={30} />
                     <Code fw={700}>v3.1.2</Code>

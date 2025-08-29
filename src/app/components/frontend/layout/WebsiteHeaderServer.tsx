@@ -17,7 +17,7 @@ export function WebsiteHeaderServer() {
                     size="xl"
                     fw={700}
                     c="blue"
-                    style={{ cursor: 'pointer' }}
+                    className="cursor-pointer"
                 >
                     Your Logo
                 </Text>

@@ -23,22 +23,9 @@ export function UserButton() {
     return (
         <Box p="sm">
             <Group justify="space-between" wrap="nowrap" gap="xs">
-                <UnstyledButton 
+                <UnstyledButton
                     onClick={handleProfileClick}
-                    style={{ 
-                        flex: 1,
-                        borderRadius: 'var(--mantine-radius-sm)',
-                        padding: 'var(--mantine-spacing-xs)',
-                        transition: 'background-color 0.15s ease',
-                        minWidth: 0
-                    }}
-                    styles={{
-                        root: {
-                            '&:hover': {
-                                backgroundColor: 'light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6))'
-                            }
-                        }
-                    }}
+                    className="flex-1 rounded-[var(--mantine-radius-sm)] p-[var(--mantine-spacing-xs)] transition-colors duration-150 ease-in-out min-w-0 hover:bg-[light-dark(var(--mantine-color-gray-0),var(--mantine-color-dark-6))]"
                 >
                     <Group wrap="nowrap" gap="xs">
                         <Avatar
@@ -50,7 +37,7 @@ export function UserButton() {
                             {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                         </Avatar>
 
-                        <Box style={{ flex: 1, minWidth: 0 }}>
+                        <Box className="flex-1 min-w-0">
                             <Text size="sm" fw={500} truncate>
                                 {user?.name || 'User'}
                             </Text>
