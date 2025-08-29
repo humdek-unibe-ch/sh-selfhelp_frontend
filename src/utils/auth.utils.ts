@@ -30,12 +30,12 @@ export const removeTokens = (): void => {
 };
 
 /**
- * Remove the access token from localStorage
+ * Set the access token to INVALID
  */
 export const removeAccessToken = (): void => {
     if (typeof window === 'undefined') return;
 
-    localStorage.removeItem(TOKEN_KEYS.ACCESS_TOKEN);
+    localStorage.setItem(TOKEN_KEYS.ACCESS_TOKEN, 'INVALID');
 
 };
 

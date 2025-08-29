@@ -34,11 +34,13 @@ export function AdminShell({ children, aside, asideWidth = 400 }: AdminShellProp
     // Sync server auth state when it changes
     useEffect(() => {
         if (typeof authenticated !== 'undefined') {
-            setLocalAuth(authenticated);
-            if (!authenticated) {
-                // Use replace instead of push to prevent back button issues
-                router.replace(ROUTES.LOGIN);
-            }
+            // THIS IS HANDLED IN THE AXIOS BASE API INTERCEPTOR
+            // setLocalAuth(authenticated);
+            // if (!authenticated) {
+            //     // Use replace instead of push to prevent back button issues
+            //     router.replace(ROUTES.LOGIN);
+            // }
+            // THIS IS HANDLED IN THE AXIOS BASE API INTERCEPTOR
         }
     }, [authenticated, router]);
 

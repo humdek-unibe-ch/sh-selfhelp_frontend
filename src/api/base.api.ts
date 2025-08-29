@@ -51,10 +51,10 @@ const handleTokenRefreshSuccess = (accessToken: string, refreshToken?: string) =
         // Update cookie for middleware
         document.cookie = `access_token=${accessToken}; path=/; max-age=${60 * 60}; SameSite=Strict`;
     }
-    
+
     // Update axios default headers
     apiClient.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
-    
+
     // Notify Refine auth provider about successful refresh
     authProvider.check().catch(() => {
         // If check fails after refresh, something is wrong
@@ -73,7 +73,7 @@ const handleTokenRefreshFailure = () => {
             // Fallback for edge cases
             window.location.href = ROUTES.LOGIN;
         });
-    }   
+    }
 };
 
 const processQueue = (error: any, token: string | null = null) => {
@@ -98,7 +98,7 @@ const performTokenRefresh = async (): Promise<string> => {
     isRefreshing = true;
     refreshPromise = new Promise(async (resolve, reject) => {
         try {
-            
+
             const response = await AuthApi.refreshToken();
 
             if (response.data.access_token) {
@@ -108,7 +108,7 @@ const performTokenRefresh = async (): Promise<string> => {
                 } else {
                     handleTokenRefreshSuccess(response.data.access_token);
                 }
-                
+
                 resolve(response.data.access_token);
             } else {
                 throw new Error('Token refresh failed - no access token received');
@@ -168,7 +168,7 @@ apiClient.interceptors.request.use(
     (config) => {
         // Add client type header for all requests
         config.headers['X-Client-Type'] = 'web';
-        
+
         // Add authorization header if token exists
         const token = getAccessToken();
         if (token) {
@@ -220,7 +220,7 @@ apiClient.interceptors.response.use(
                 originalRequest._loggedInRetry = true;
 
                 try {
-                    
+
                     // Use centralized refresh with queue management
                     const newToken = await handleRefreshWithQueue(originalRequest);
 
@@ -231,14 +231,14 @@ apiClient.interceptors.response.use(
                     return await apiClient(originalRequest);
                 } catch (refreshError) {
                     warn('Token refresh failed for logged_in check', 'BaseApi', refreshError);
-                    
+
                     // For frontend requests, return the original response
                     // For admin requests, this should trigger a redirect
                     if (isAdminRequest(originalRequest)) {
                         // Admin requests need strict auth
                         return Promise.reject(new Error('Authentication required for admin access'));
                     }
-                    
+
                     // Return the original response with logged_in: false for frontend
                     return response;
                 }
@@ -249,15 +249,9 @@ apiClient.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
 
-        // Don't retry if it's not a 401 or if we've already retried
-        if (error.response?.status !== 401 || originalRequest._retry) {
+        if (originalRequest._retry) {
             // Handle 403 Forbidden errors (permission issues)
-            if (error.response?.status === 403 && getAccessToken()) {
-                error('Permission denied for resource', 'BaseApi', {
-                    url: error.config.url,
-                    status: error.response.status
-                });
-                
+            if (getAccessToken()) {
                 // Check if the response indicates the user is logged in but doesn't have permission
                 const responseData = error.response.data;
                 if (responseData?.logged_in === true) {
@@ -270,6 +264,40 @@ apiClient.interceptors.response.use(
                             // Fallback for edge cases
                             window.location.href = ROUTES.NO_ACCESS;
                         });
+                    }
+                } else if (!responseData.logged_in && getRefreshToken() && getAccessToken()) {
+
+                    // Prevent infinite loops
+                    if (originalRequest._loggedInRetry) {
+                        handleTokenRefreshFailure();
+                        return error;
+                    }
+
+                    // Mark this request for retry
+                    originalRequest._loggedInRetry = true;
+
+                    try {
+
+                        // Use centralized refresh with queue management
+                        const newToken = await handleRefreshWithQueue(originalRequest);
+
+                        // Update the original request with the new token
+                        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+
+                        // Retry the original request
+                        return await apiClient(originalRequest);
+                    } catch (refreshError) {
+                        warn('Token refresh failed for logged_in check', 'BaseApi', refreshError);
+
+                        // For frontend requests, return the original response
+                        // For admin requests, this should trigger a redirect
+                        if (isAdminRequest(originalRequest)) {
+                            // Admin requests need strict auth
+                            return Promise.reject(new Error('Authentication required for admin access'));
+                        }
+
+                        // Return the original response with logged_in: false for frontend
+                        return error;
                     }
                 }
             }
@@ -285,7 +313,7 @@ apiClient.interceptors.response.use(
         originalRequest._retry = true;
 
         try {
-            
+
             // Use centralized refresh with queue management
             const newToken = await handleRefreshWithQueue(originalRequest);
 
@@ -296,7 +324,7 @@ apiClient.interceptors.response.use(
             return apiClient(originalRequest);
         } catch (refreshError) {
             error('Token refresh failed for 401 error', 'BaseApi', refreshError);
-            
+
             // Use Refine's logout method which handles navigation properly
             authProvider.logout({ redirectPath: ROUTES.LOGIN }).catch(() => {
                 // Fallback if Refine logout fails

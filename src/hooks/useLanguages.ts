@@ -24,67 +24,135 @@ interface IUseLanguagesOptions {
 }
 
 /**
- * Hook for fetching languages data with auth-aware endpoint selection
- * @param options Configuration options for language fetching
- * @returns Object containing languages data and query state
+ * Hook for fetching admin languages from /admin/languages endpoint
+ * Requires authentication and admin permissions
+ * @returns Object containing admin languages data and query state
  */
-export function useLanguages(options: IUseLanguagesOptions = {}) {
-    const { publicOnly = false, adminOnly = false } = options;
-    const { isAuthenticated, user } = useAuth();
-
-    // Determine if we should use authenticated endpoints
-    const shouldUseAdmin = !publicOnly && (adminOnly || (isAuthenticated && user && getAccessToken()));
+export function useAdminLanguages() {
+    const { isAuthenticated } = useAuth();
 
     const { data, isLoading, error } = useQuery({
-        queryKey: shouldUseAdmin
-            ? REACT_QUERY_CONFIG.QUERY_KEYS.LANGUAGES
-            : REACT_QUERY_CONFIG.QUERY_KEYS.PUBLIC_LANGUAGES,
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.LANGUAGES,
         queryFn: async (): Promise<ILanguage[]> => {
-            if (shouldUseAdmin) {
-                return await AdminApi.getLanguages();
-            } else {
-                // Use direct API call for public languages (same as original usePublicLanguages)
-                const response = await apiClient.get<IBaseApiResponse<ILanguage[]>>(API_CONFIG.ENDPOINTS.LANGUAGES);
-                return response.data.data;
-            }
+            return await AdminApi.getLanguages();
         },
-        enabled: !adminOnly || shouldUseAdmin, // Only fetch admin if user is authenticated
+        enabled: !!isAuthenticated && !!getAccessToken(),
         staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
         retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
-        select: (data: ILanguage[]) => {
-            return data;
-        }
     });
 
     return {
         languages: data || [],
         isLoading,
         error,
-        isUsingAdminEndpoint: shouldUseAdmin
     };
 }
 
 /**
- * Legacy hook for fetching admin languages (requires authentication)
- * @deprecated Use useLanguages({ adminOnly: true }) instead
- * @returns Object containing languages data and query state
- */
-export function useLanguagesAdmin() {
-    return useLanguages({ adminOnly: true });
-}
-
-/**
- * Legacy hook for fetching public languages (no authentication required)
- * @deprecated Use useLanguages({ publicOnly: true }) instead
- * @returns Object containing languages data and query state
+ * Hook for fetching public languages from /languages endpoint
+ * No authentication required
+ * @returns Object containing public languages data and query state
  */
 export function usePublicLanguages() {
-    const result = useLanguages({ publicOnly: true });
+    const { data, isLoading, error } = useQuery({
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PUBLIC_LANGUAGES,
+        queryFn: async (): Promise<ILanguage[]> => {
+            const response = await apiClient.get<IBaseApiResponse<ILanguage[]>>(API_CONFIG.ENDPOINTS.LANGUAGES);
+            return response.data.data;
+        },
+        enabled: true, // Always enabled for public languages
+        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
+    });
+
     return {
-        languages: result.languages,
-        isLoading: result.isLoading,
-        error: result.error,
-        defaultLanguage: result.languages[0] || null // First language as default
+        languages: data || [],
+        isLoading,
+        error,
+        defaultLanguage: data?.[0] || null // First language as default
     };
-} 
+}
+
+/**
+ * Hook for fetching languages data with auth-aware endpoint selection
+ * @param options Configuration options for language fetching
+ * @returns Object containing languages data and query state
+ * @deprecated Use useAdminLanguages() or usePublicLanguages() for better separation
+ */
+export function useLanguages(options: IUseLanguagesOptions = {}) {
+    const { publicOnly = false, adminOnly = false } = options;
+
+    if (publicOnly) {
+        return usePublicLanguages();
+    }
+
+    if (adminOnly) {
+        return useAdminLanguages();
+    }
+
+    // Default behavior: use admin if authenticated, otherwise public
+    const { isAuthenticated } = useAuth();
+
+    if (isAuthenticated && getAccessToken()) {
+        return useAdminLanguages();
+    } else {
+        return usePublicLanguages();
+    }
+}
+
+/**
+ * Debug hook to test authentication state and token refresh
+ * This is for debugging purposes only
+ */
+export function useAuthDebug() {
+    const { isAuthenticated } = useAuth();
+    const { languages: adminLanguages, isLoading: adminLoading, error: adminError } = useAdminLanguages();
+    const { languages: publicLanguages, isLoading: publicLoading, error: publicError } = usePublicLanguages();
+
+    return {
+        isAuthenticated,
+        adminLanguages: {
+            data: adminLanguages,
+            loading: adminLoading,
+            error: adminError,
+            count: adminLanguages.length
+        },
+        publicLanguages: {
+            data: publicLanguages,
+            loading: publicLoading,
+            error: publicError,
+            count: publicLanguages.length
+        }
+    };
+}
+
+/**
+ * Hook to test admin pages authentication requirements
+ * This helps verify that admin pages properly check logged_in status and permissions
+ */
+export function useAdminAuthTest() {
+    const { isAuthenticated } = useAuth();
+    const { languages: adminLanguages, isLoading, error } = useAdminLanguages();
+
+    // Test admin authentication
+    const isAdminAccessGranted = isAuthenticated && !!adminLanguages.length;
+    const hasAdminPermission = isAuthenticated; // Simplified for testing
+
+    return {
+        isAuthenticated,
+        isAdminAccessGranted,
+        hasAdminPermission,
+        adminLanguagesCount: adminLanguages.length,
+        isLoading,
+        error,
+        authStatus: {
+            loggedIn: isAuthenticated,
+            hasAdminData: !!adminLanguages.length,
+            canAccessAdmin: isAuthenticated && !!adminLanguages.length
+        }
+    };
+}
+
+ 
