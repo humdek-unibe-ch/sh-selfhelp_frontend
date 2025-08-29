@@ -3,12 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useForm } from '@mantine/form';
 import {
-  Modal,
   Stack,
   TextInput,
   Textarea,
   Switch,
-  Button,
   Group,
   Text,
   Divider,
@@ -20,6 +18,7 @@ import { AclManagement, type IAclPage } from '../advanced-acl-modal/AdvancedAclM
 import type { ICreateGroupRequest, IUpdateGroupRequest } from '../../../../../types/requests/admin/groups.types';
 import { validateName } from '../../../../../utils/name-validation.utils';
 import { convertAclsToApiFormat, convertApiAclsToUiFormat } from '../../../../../utils/acl-conversion.utils';
+import { ModalWrapper } from '../../../shared';
 
 interface IGroupFormModalProps {
   opened: boolean;
@@ -133,20 +132,25 @@ export function GroupFormModal({ opened, onClose, groupId, mode, onAdvancedAcls 
   const isLoading = isLoadingGroup;
   const isSubmitting = createGroupMutation.isPending || updateGroupMutation.isPending;
 
+  const handleSave = () => {
+    form.onSubmit(handleSubmit)();
+  };
+
   return (
-    <Modal
+    <ModalWrapper
       opened={opened}
       onClose={onClose}
-      title={
-        <Text size="lg" fw={600}>
-          {mode === 'create' ? 'Create New Group' : 'Edit Group'}
-        </Text>
-      }
+      title={mode === 'create' ? 'Create New Group' : 'Edit Group'}
       size="xl"
-      centered
+      onSave={handleSave}
+      onCancel={onClose}
+      isLoading={isSubmitting}
+      saveLabel={mode === 'create' ? 'Create Group' : 'Update Group'}
+      cancelLabel="Cancel"
+      scrollAreaHeight={500}
     >
       <LoadingOverlay visible={isLoading} />
-      
+
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="md">
           {/* Group Information Display for Edit Mode */}
@@ -228,17 +232,8 @@ export function GroupFormModal({ opened, onClose, groupId, mode, onAdvancedAcls 
             </Text>
           </div>
 
-          {/* Actions */}
-          <Group justify="flex-end" gap="sm">
-            <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Button type="submit" loading={isSubmitting}>
-              {mode === 'create' ? 'Create Group' : 'Update Group'}
-            </Button>
-          </Group>
         </Stack>
       </form>
-    </Modal>
+    </ModalWrapper>
   );
 } 

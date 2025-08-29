@@ -3,12 +3,10 @@
 import { useEffect } from 'react';
 import { useForm } from '@mantine/form';
 import {
-    Modal,
     Stack,
     TextInput,
     Select,
     Switch,
-    Button,
     Group,
     MultiSelect,
     Text,
@@ -23,6 +21,7 @@ import { useGroups } from '../../../../../hooks/useGroups';
 import { useRoles } from '../../../../../hooks/useRoles';
 import { useGenders } from '../../../../../hooks/useGenders';
 import { validateName, validateValidationCode } from '../../../../../utils/name-validation.utils';
+import { ModalWrapper } from '../../../shared';
 
 interface IUserFormModalProps {
     opened: boolean;
@@ -178,17 +177,22 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
         label: role.name,
     })) || [];
 
+    const handleSave = () => {
+        form.onSubmit(handleSubmit)();
+    };
+
     return (
-        <Modal
+        <ModalWrapper
             opened={opened}
             onClose={onClose}
-            title={
-                <Text size="lg" fw={600}>
-                    {mode === 'create' ? 'Create New User' : 'Edit User'}
-                </Text>
-            }
+            title={mode === 'create' ? 'Create New User' : 'Edit User'}
             size="xl"
-            centered
+            onSave={handleSave}
+            onCancel={onClose}
+            isLoading={isSubmitting}
+            saveLabel={mode === 'create' ? 'Create User' : 'Update User'}
+            cancelLabel="Cancel"
+            scrollAreaHeight={500}
         >
             <LoadingOverlay visible={isLoading} />
 
@@ -327,17 +331,8 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
                         />
                     </div>
 
-                    {/* Actions */}
-                    <Group justify="flex-end" gap="sm">
-                        <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
-                            Cancel
-                        </Button>
-                        <Button type="submit" loading={isSubmitting}>
-                            {mode === 'create' ? 'Create User' : 'Update User'}
-                        </Button>
-                    </Group>
                 </Stack>
             </form>
-        </Modal>
+        </ModalWrapper>
     );
 } 

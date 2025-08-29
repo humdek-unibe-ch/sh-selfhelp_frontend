@@ -3,11 +3,9 @@
 import { useEffect, useMemo } from 'react';
 import { useForm } from '@mantine/form';
 import {
-  Modal,
   Stack,
   TextInput,
   Textarea,
-  Button,
   Group,
   Text,
   Divider,
@@ -18,6 +16,7 @@ import { notifications } from '@mantine/notifications';
 import { useCreateRole, useUpdateRole, useRoleDetails } from '../../../../../hooks/useRoles';
 import { usePermissions } from '../../../../../hooks/usePermissions';
 import type { ICreateRoleRequest, IUpdateRoleRequest } from '../../../../../types/requests/admin/roles.types';
+import { ModalWrapper } from '../../../shared';
 
 interface IRoleFormModalProps {
   opened: boolean;
@@ -136,17 +135,22 @@ export function RoleFormModal({ opened, onClose, roleId, mode }: IRoleFormModalP
   const isLoading = isLoadingRole || isLoadingPermissions;
   const isSubmitting = createRoleMutation.isPending || updateRoleMutation.isPending;
 
+  const handleSave = () => {
+    form.onSubmit(handleSubmit)();
+  };
+
   return (
-    <Modal
+    <ModalWrapper
       opened={opened}
       onClose={onClose}
-      title={
-        <Text size="lg" fw={600}>
-          {mode === 'create' ? 'Create New Role' : 'Edit Role'}
-        </Text>
-      }
+      title={mode === 'create' ? 'Create New Role' : 'Edit Role'}
       size="xl"
-      centered
+      onSave={handleSave}
+      onCancel={onClose}
+      isLoading={isSubmitting}
+      saveLabel={mode === 'create' ? 'Create Role' : 'Update Role'}
+      cancelLabel="Cancel"
+      scrollAreaHeight={500}
     >
       <LoadingOverlay visible={isLoading} />
       
@@ -220,17 +224,8 @@ export function RoleFormModal({ opened, onClose, roleId, mode }: IRoleFormModalP
             </Text>
           </div>
 
-          {/* Actions */}
-          <Group justify="flex-end" gap="sm">
-            <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Button type="submit" loading={isSubmitting}>
-              {mode === 'create' ? 'Create Role' : 'Update Role'}
-            </Button>
-          </Group>
         </Stack>
       </form>
-    </Modal>
+    </ModalWrapper>
   );
 } 
