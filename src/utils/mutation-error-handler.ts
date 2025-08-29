@@ -144,4 +144,104 @@ export function getOperationErrorMessage(
         title: defaultError.title,
         message: customMessage || defaultError.message,
     };
+}
+
+/**
+ * Standardized notification helper for showing errors
+ * @param error - The error object to parse and display
+ * @param customTitle - Optional custom title to override parsed title
+ * @param customMessage - Optional custom message to override parsed message
+ * @param position - Notification position (default: 'top-center')
+ * @param autoClose - Auto close delay in ms (default: 8000)
+ */
+export function showErrorNotification(
+    error: any,
+    customTitle?: string,
+    customMessage?: string,
+    position: 'top-center' | 'top-right' | 'bottom-center' = 'top-center',
+    autoClose: number = 8000
+) {
+    const { errorMessage, errorTitle } = parseApiError(error);
+
+    // Import notifications dynamically to avoid circular dependencies
+    import('@mantine/notifications').then(({ notifications }) => {
+        import('@tabler/icons-react').then(({ IconX }) => {
+            import('react').then((React) => {
+                notifications.show({
+                    title: customTitle || errorTitle,
+                    message: customMessage || errorMessage,
+                    icon: React.createElement(IconX, { size: '1rem' }),
+                    color: 'red',
+                    autoClose,
+                    position,
+                });
+            });
+        });
+    });
+}
+
+/**
+ * Standardized notification helper for showing success messages
+ * @param title - Success title
+ * @param message - Success message
+ * @param position - Notification position (default: 'top-center')
+ * @param autoClose - Auto close delay in ms (default: 5000)
+ */
+export function showSuccessNotification(
+    title: string,
+    message: string,
+    position: 'top-center' | 'top-right' | 'bottom-center' = 'top-center',
+    autoClose: number = 5000
+) {
+    // Import notifications dynamically to avoid circular dependencies
+    import('@mantine/notifications').then(({ notifications }) => {
+        import('@tabler/icons-react').then(({ IconCheck }) => {
+            import('react').then((React) => {
+                notifications.show({
+                    title,
+                    message,
+                    icon: React.createElement(IconCheck, { size: '1rem' }),
+                    color: 'green',
+                    autoClose,
+                    position,
+                });
+            });
+        });
+    });
+}
+
+/**
+ * Standardized error handling wrapper for async operations
+ * @param operation - The async operation to wrap
+ * @param options - Configuration options
+ * @returns Promise that resolves with operation result or rejects with parsed error
+ */
+export async function withErrorHandling<T>(
+    operation: () => Promise<T>,
+    options: {
+        operationType?: keyof typeof ERROR_MESSAGES;
+        customTitle?: string;
+        customMessage?: string;
+        showNotification?: boolean;
+        position?: 'top-center' | 'top-right' | 'bottom-center';
+        autoClose?: number;
+    } = {}
+): Promise<T> {
+    const {
+        operationType,
+        customTitle,
+        customMessage,
+        showNotification = true,
+        position = 'top-center',
+        autoClose = 8000
+    } = options;
+
+    try {
+        return await operation();
+    } catch (error) {
+        if (showNotification) {
+            showErrorNotification(error, customTitle, customMessage, position, autoClose);
+        }
+        throw error; // Re-throw for component-level error handling
+    }
 } 

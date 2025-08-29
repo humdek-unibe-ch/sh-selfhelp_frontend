@@ -1,7 +1,6 @@
 export { BurgerMenuClient } from './BurgerMenuClient';
 export { CustomModal } from './CustomModal';
 export { LanguageSelector } from './LanguageSelector';
-export { LanguageSelectorClient } from './LanguageSelectorClient';
 export { LoadingScreen } from './LoadingScreen';
 export { SelfHelpLogo } from './SelfHelpLogo';
 export { ThemeToggle } from './ThemeToggle';

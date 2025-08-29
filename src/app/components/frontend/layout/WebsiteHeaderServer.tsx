@@ -1,6 +1,6 @@
 import { Container, Group, Text, Flex } from '@mantine/core';
 import { WebsiteHeaderMenuServer } from './WebsiteHeaderMenuServer';
-import { LanguageSelectorClient } from '../../shared/common/LanguageSelectorClient';
+import { LanguageSelector } from '../../shared/common/LanguageSelector';
 import { ThemeToggleClient } from '../../shared/common/ThemeToggleClient';
 import { AuthButtonClient } from '../../shared/auth/AuthButtonClient';
 import { BurgerMenuClient } from '../../shared/common/BurgerMenuClient';
@@ -25,7 +25,7 @@ export function WebsiteHeaderServer() {
                 <WebsiteHeaderMenuServer />
                 
                 <Group gap="sm">
-                    <LanguageSelectorClient />
+                    <LanguageSelector />
                     <ThemeToggleClient />
                     <AuthButtonClient />
                     <BurgerMenuClient />

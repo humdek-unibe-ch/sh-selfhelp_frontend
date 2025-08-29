@@ -7,7 +7,7 @@ import { AppShell } from "@mantine/core";
 import { DebugMenu } from "../components/shared/common/debug";
 import { useParams } from 'next/navigation';
 import { useMemo } from 'react';
-import { usePageContentForLayout } from "../../hooks/usePageContentForLayout";
+import { usePageContent } from "../../hooks/usePageContent";
 import { useAppNavigation } from "../../hooks/useAppNavigation";
 import { WebsiteHeader } from "../components/frontend/layout/WebsiteHeader";
 import { WebsiteFooter } from "../components/frontend/layout/WebsiteFooter";
@@ -25,7 +25,7 @@ export default function SlugLayout({ children }: { children: any }) {
     }, [keyword, routes]);
     
     // Fetch page content to check if it's headless (with optimized caching)
-    const { content: pageContent } = usePageContentForLayout(pageId);
+    const { content: pageContent } = usePageContent(pageId, { forLayout: true });
     const isHeadless = Boolean(pageContent?.is_headless);
 
     return (

@@ -21,8 +21,8 @@ export function useUserData() {
             return AuthApi.getUserData();
         },
         enabled: !!getAccessToken(), // Only fetch when user is authenticated
-        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime, // 30 seconds
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime, // 60 seconds
+        staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.USER_DATA.staleTime,
+        gcTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.USER_DATA.gcTime,
         retry: (failureCount, error: any) => {
             // Don't retry on 401 (unauthorized) errors
             if (error?.response?.status === 401) {

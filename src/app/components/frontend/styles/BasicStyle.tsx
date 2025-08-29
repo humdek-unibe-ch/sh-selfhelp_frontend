@@ -1,17 +1,64 @@
-import React from 'react';
-import {
-    AlertStyle, ButtonStyle, CardStyle, CarouselStyle, ContainerStyle,
-    DivStyle, FormUserInputStyle, HeadingStyle, ImageStyle, InputStyle,
-    JumbotronStyle, LinkStyle, LoginStyle, MarkdownStyle, RegisterStyle, 
-    SelectStyle, TabsStyle, TextareaStyle, UnknownStyle, VideoStyle,
-    AudioStyle, FigureStyle, PlaintextStyle, RawTextStyle, RadioStyle,
-    CheckboxStyle, SliderStyle, FormStyle, ProgressBarStyle, ModalStyle,
-    HtmlTagStyle, JsonStyle, QuizStyle, NavigationContainerStyle,
-    AccordionListStyle, NestedListStyle, SortableListStyle, ValidateStyle,
-    ResetPasswordStyle, TwoFactorAuthStyle, TableStyle, TableRowStyle,
-    TableCellStyle, ShowUserInputStyle
-} from './SelfHelpStyles';
+import React, { lazy, Suspense } from 'react';
 import { TStyle } from '../../../../types/common/styles.types';
+
+// Lazy load style components to reduce initial bundle size
+const AlertStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.AlertStyle })));
+const ButtonStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.ButtonStyle })));
+const CardStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.CardStyle })));
+const CarouselStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.CarouselStyle })));
+const ContainerStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.ContainerStyle })));
+const DivStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.DivStyle })));
+const FormUserInputStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.FormUserInputStyle })));
+const HeadingStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.HeadingStyle })));
+const ImageStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.ImageStyle })));
+const InputStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.InputStyle })));
+const JumbotronStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.JumbotronStyle })));
+const LinkStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.LinkStyle })));
+const LoginStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.LoginStyle })));
+const MarkdownStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.MarkdownStyle })));
+const RegisterStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.RegisterStyle })));
+const SelectStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.SelectStyle })));
+const TabsStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.TabsStyle })));
+const TextareaStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.TextareaStyle })));
+const VideoStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.VideoStyle })));
+const AudioStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.AudioStyle })));
+const FigureStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.FigureStyle })));
+const PlaintextStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.PlaintextStyle })));
+const RawTextStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.RawTextStyle })));
+const RadioStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.RadioStyle })));
+const CheckboxStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.CheckboxStyle })));
+const SliderStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.SliderStyle })));
+const FormStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.FormStyle })));
+const ProgressBarStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.ProgressBarStyle })));
+const ModalStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.ModalStyle })));
+const HtmlTagStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.HtmlTagStyle })));
+const JsonStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.JsonStyle })));
+const QuizStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.QuizStyle })));
+const NavigationContainerStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.NavigationContainerStyle })));
+const AccordionListStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.AccordionListStyle })));
+const NestedListStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.NestedListStyle })));
+const SortableListStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.SortableListStyle })));
+const ValidateStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.ValidateStyle })));
+const ResetPasswordStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.ResetPasswordStyle })));
+const TwoFactorAuthStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.TwoFactorAuthStyle })));
+const TableStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.TableStyle })));
+const TableRowStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.TableRowStyle })));
+const TableCellStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.TableCellStyle })));
+const ShowUserInputStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.ShowUserInputStyle })));
+const UnknownStyle = lazy(() => import('./SelfHelpStyles').then(module => ({ default: module.UnknownStyle })));
+
+// Loading fallback for lazy-loaded components
+const StyleLoadingFallback = () => (
+    <div style={{ minHeight: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: '16px', height: '16px', border: '2px solid #e0e0e0', borderTop: '2px solid #007acc', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+        <style jsx>{`
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        `}</style>
+    </div>
+);
 
 /**
  * Props interface for BasicStyle component
@@ -42,124 +89,133 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
     };
 
     /**
+     * Helper function to wrap lazy-loaded components with Suspense
+     */
+    const renderWithSuspense = (Component: React.LazyExoticComponent<any>, props: any) => (
+        <Suspense fallback={<StyleLoadingFallback />}>
+            <Component {...props} />
+        </Suspense>
+    );
+
+    /**
      * Renders the appropriate style component based on style_name
      */
     switch (style.style_name) {
         // Authentication Styles
         case 'login':
-            return <LoginStyle style={style} />;
+            return renderWithSuspense(LoginStyle, { style });
         case 'register':
-            return <RegisterStyle style={style} />;
+            return renderWithSuspense(RegisterStyle, { style });
         case 'validate':
-            return <ValidateStyle style={style} />;
+            return renderWithSuspense(ValidateStyle, { style });
         case 'resetPassword':
-            return <ResetPasswordStyle style={style} />;
+            return renderWithSuspense(ResetPasswordStyle, { style });
         case 'twoFactorAuth':
-            return <TwoFactorAuthStyle style={style} />;
+            return renderWithSuspense(TwoFactorAuthStyle, { style });
 
         // Container & Layout Styles
         case 'container':
-            return <ContainerStyle style={style} />;
+            return renderWithSuspense(ContainerStyle, { style });
         case 'jumbotron':
-            return <JumbotronStyle style={style} />;
+            return renderWithSuspense(JumbotronStyle, { style });
         case 'card':
-            return <CardStyle style={style} />;
+            return renderWithSuspense(CardStyle, { style });
         case 'div':
-            return <DivStyle style={style} />;
+            return renderWithSuspense(DivStyle, { style });
         case 'alert':
-            return <AlertStyle style={style} />;
+            return renderWithSuspense(AlertStyle, { style });
 
         // Text & Content Styles
         case 'heading':
-            return <HeadingStyle style={style} />;
+            return renderWithSuspense(HeadingStyle, { style });
         case 'markdown':
         case 'markdownInline':
-            return <MarkdownStyle style={style} />;
+            return renderWithSuspense(MarkdownStyle, { style });
         case 'plaintext':
-            return <PlaintextStyle style={style} />;
+            return renderWithSuspense(PlaintextStyle, { style });
         case 'rawText':
-            return <RawTextStyle style={style} />;
+            return renderWithSuspense(RawTextStyle, { style });
         case 'htmlTag':
-            return <HtmlTagStyle style={style} />;
+            return renderWithSuspense(HtmlTagStyle, { style });
 
         // Media Styles
         case 'image':
-            return <ImageStyle style={style} />;
+            return renderWithSuspense(ImageStyle, { style });
         case 'carousel':
-            return <CarouselStyle style={style} />;
+            return renderWithSuspense(CarouselStyle, { style });
         case 'video':
-            return <VideoStyle style={style} />;
+            return renderWithSuspense(VideoStyle, { style });
         case 'audio':
-            return <AudioStyle style={style} />;
+            return renderWithSuspense(AudioStyle, { style });
         case 'figure':
-            return <FigureStyle style={style} />;
+            return renderWithSuspense(FigureStyle, { style });
 
         // Navigation & Links Styles
         case 'button':
-            return <ButtonStyle style={style} />;
+            return renderWithSuspense(ButtonStyle, { style });
         case 'link':
-            return <LinkStyle style={style} />;
+            return renderWithSuspense(LinkStyle, { style });
 
         // Form & Input Styles
         case 'form':
-            return <FormStyle style={style} />;
+            return renderWithSuspense(FormStyle, { style });
         case 'formUserInput':
         case 'formUserInputLog':
         case 'formUserInputRecord':
-            return <FormUserInputStyle style={style as any} />;
+            return renderWithSuspense(FormUserInputStyle, { style: style as any });
         case 'textarea':
-            return <TextareaStyle style={style} />;
+            return renderWithSuspense(TextareaStyle, { style });
         case 'input':
-            return <InputStyle style={style} />;
+            return renderWithSuspense(InputStyle, { style });
         case 'select':
-            return <SelectStyle style={style} />;
+            return renderWithSuspense(SelectStyle, { style });
         case 'radio':
-            return <RadioStyle style={style} />;
+            return renderWithSuspense(RadioStyle, { style });
         case 'checkbox':
-            return <CheckboxStyle style={style} />;
+            return renderWithSuspense(CheckboxStyle, { style });
         case 'slider':
-            return <SliderStyle style={style} />;
+            return renderWithSuspense(SliderStyle, { style });
 
         // Tab Styles
         case 'tabs':
-            return <TabsStyle style={style} />;
+            return renderWithSuspense(TabsStyle, { style });
         case 'tab':
             // Tab components are handled within TabsStyle
             return null;
 
         // Table Styles
         case 'table':
-            return <TableStyle style={style} />;
+            return renderWithSuspense(TableStyle, { style });
         case 'tableRow':
-            return <TableRowStyle style={style} />;
+            return renderWithSuspense(TableRowStyle, { style });
         case 'tableCell':
-            return <TableCellStyle style={style} />;
+            return renderWithSuspense(TableCellStyle, { style });
 
         // Navigation & Container Styles
         case 'navigationContainer':
-            return <NavigationContainerStyle style={style} />;
+            return renderWithSuspense(NavigationContainerStyle, { style });
 
         // List & Navigation Styles
         case 'accordionList':
-            return <AccordionListStyle style={style} />;
+            return renderWithSuspense(AccordionListStyle, { style });
         case 'nestedList':
-            return <NestedListStyle style={style} />;
+            return renderWithSuspense(NestedListStyle, { style });
         case 'sortableList':
-            return <SortableListStyle style={style} />;
+            return renderWithSuspense(SortableListStyle, { style });
 
         // Progress & UI Elements
         case 'progressBar':
-            return <ProgressBarStyle style={style} />;
+            return renderWithSuspense(ProgressBarStyle, { style });
         case 'quiz':
-            return <QuizStyle style={style} />;
+            return renderWithSuspense(QuizStyle, { style });
         case 'json':
-            return <JsonStyle style={style} />;
+            return renderWithSuspense(JsonStyle, { style });
         case 'showUserInput':
-            return <ShowUserInputStyle style={style} />;
+            return renderWithSuspense(ShowUserInputStyle, { style });
 
         // Unknown/Unsupported styles
         default:
-            return <UnknownStyle style={style} />;
+            return renderWithSuspense(UnknownStyle, { style });
     }
 };
 

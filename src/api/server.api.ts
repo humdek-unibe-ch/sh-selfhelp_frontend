@@ -3,9 +3,9 @@
  * These functions run on the server and don't use React Query
  */
 
-import { cookies, headers } from 'next/headers';
+import { headers } from 'next/headers';
 import { API_CONFIG } from '../config/api.config';
-import { IPageContent, IPageItem } from '../types/responses/frontend/frontend.types';
+import { IPageItem } from '../types/responses/frontend/frontend.types';
 import { ILanguage } from '../types/responses/admin/languages.types';
 import { IUserDataResponse } from '../types/auth/jwt-payload.types';
 
@@ -151,19 +151,6 @@ export const ServerApi = {
         if (!isAuth || !isAdmin) return null;
         
         return await serverApi.get<any>(API_CONFIG.ENDPOINTS.ADMIN_CMS_PREFERENCES_GET);
-    },
-
-    /**
-     * Fetch page content on server side
-     */
-    async getPageContent(pageId: number, languageId: number): Promise<IPageContent | null> {
-        // Don't fetch if pageId is invalid
-        if (!pageId || pageId <= 0) {
-            return null;
-        }
-        
-        const response = await serverApi.get<{ page: IPageContent }>(API_CONFIG.ENDPOINTS.PAGES_GET_ONE_WITH_LANGUAGE(pageId, languageId));
-        return response?.page || null;
     },
 
     /**

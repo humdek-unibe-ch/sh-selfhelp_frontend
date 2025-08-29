@@ -3,7 +3,6 @@
 import { useEffect, useRef } from 'react';
 import { useLanguageContext } from './LanguageContext';
 import { useAuthUser } from '../../../hooks/useUserData';
-import { usePublicLanguages } from '../../../hooks/usePublicLanguages';
 import { useLanguages } from '../../../hooks/useLanguages';
 
 interface IEnhancedLanguageProviderProps {
@@ -24,10 +23,10 @@ export function EnhancedLanguageProvider({ children }: IEnhancedLanguageProvider
     const hasInitializedFromUserData = useRef(false);
     const lastUserId = useRef<number | null>(null);
     
-    // Use different language hooks based on authentication status
-    const { languages: publicLanguages, isLoading: publicLanguagesLoading } = usePublicLanguages();
-    const { languages: adminLanguages, isLoading: adminLanguagesLoading } = useLanguages();
-    
+    // Use consolidated language hook with auth-aware behavior
+    const { languages: publicLanguages, isLoading: publicLanguagesLoading } = useLanguages({ publicOnly: true });
+    const { languages: adminLanguages, isLoading: adminLanguagesLoading } = useLanguages({ adminOnly: true });
+
     // Determine which language data to use
     const languages = user ? adminLanguages : publicLanguages;
     const languagesLoading = user ? adminLanguagesLoading : publicLanguagesLoading;
