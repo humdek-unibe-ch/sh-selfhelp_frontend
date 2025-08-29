@@ -3,15 +3,13 @@
 import { useEffect, useRef} from 'react';
 import { useRouter } from 'next/navigation';
 
-import { 
-    Modal, 
-    Stack, 
-    TextInput, 
-    Checkbox, 
-    Radio, 
-    Group, 
-    Text, 
-    Button, 
+import {
+    Stack,
+    TextInput,
+    Checkbox,
+    Radio,
+    Group,
+    Text,
     Box,
     Alert,
     LoadingOverlay,
@@ -24,6 +22,7 @@ import {
 import { useForm } from '@mantine/form';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCreatePageMutation } from '../../../../../hooks/mutations/useCreatePageMutation';
+import { ModalWrapper } from '../../../shared';
 
 import { IconInfoCircle, IconEdit, IconLock } from '@tabler/icons-react';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
@@ -33,7 +32,6 @@ import { ICreatePageFormValues, ICreatePageModalProps, IMenuPageItem } from '../
 import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { DragDropMenuPositioner } from '../../ui/drag-drop-menu-positioner/DragDropMenuPositioner';
 import { ICreatePageRequest } from '../../../../../types/requests/admin/create-page.types';
-import styles from './CreatePage.module.css';
 
 
 export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreatePageModalProps) => {
@@ -150,11 +148,6 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
         createPageMutation.mutate(submitData);
     };
 
-    // Handle create button click
-    const handleCreateClick = () => {
-        form.onSubmit(handleSubmit)();
-    };
-
     // Handle modal close
     const handleClose = () => {
         form.reset();
@@ -165,23 +158,28 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
 
 
 
+    // Handle create button click
+    const handleCreateClick = () => {
+        form.onSubmit(handleSubmit)();
+    };
+
     return (
-        <Modal
+        <ModalWrapper
             opened={opened}
             onClose={handleClose}
-            title={<Title order={3} component="div">{parentPage ? `Create Child Page under "${parentPage.keyword}"` : "Create New Page"}</Title>}
+            title={parentPage ? `Create Child Page under "${parentPage.keyword}"` : "Create New Page"}
             size="xl"
-            centered
-            className={styles.modalContainer}
+            onSave={handleCreateClick}
+            onCancel={handleClose}
+            isLoading={createPageMutation.isPending}
+            saveLabel="Create Page"
+            cancelLabel="Cancel"
+            scrollAreaHeight={600}
         >
-            <Box pos="relative" className={styles.modalContent}>
-                <LoadingOverlay visible={pagesLoading} />
-                
+            <LoadingOverlay visible={pagesLoading} />
 
-                    {/* Scrollable Content Area */}
-                    <Box className={styles.scrollableContent}>
-                        <form onSubmit={form.onSubmit(handleSubmit)}>
-                            <Stack gap="lg" p="lg">
+            <form onSubmit={form.onSubmit(handleSubmit)}>
+                <Stack gap="lg">
                                 {/* Context Information */}
                                 {parentPage && (
                                     <Alert icon={<IconInfoCircle size="1rem" />} color="blue" mb="md">
@@ -210,7 +208,7 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
                                                 value={form.values.pageAccessType}
                                                 onChange={(value) => form.setFieldValue('pageAccessType', value)}
                                             >
-                                                <Group gap="xl" className={styles.pageAccessRadioGroup}>
+                                                <Group gap="xl">
                                                     {pageAccessTypes.map((type) => (
                                                         <Radio
                                                             key={type.lookupCode}
@@ -321,24 +319,6 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
                                 </Paper>
                             </Stack>
                         </form>
-                    </Box>
-
-                    {/* Fixed Action Buttons */}
-                    <Box className={styles.actionButtons}>
-                        <Group justify="flex-end" gap="md">
-                            <Button variant="outline" onClick={handleClose}>
-                                Cancel
-                            </Button>
-                            <Button 
-                                onClick={handleCreateClick}
-                                loading={createPageMutation.isPending}
-                                disabled={createPageMutation.isPending}
-                            >
-                                Create Page
-                            </Button>
-                        </Group>
-                    </Box>
-            </Box>
-        </Modal>
+        </ModalWrapper>
     );
 };
