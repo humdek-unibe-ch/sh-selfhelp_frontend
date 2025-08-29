@@ -1,5 +1,6 @@
-import { Modal, ModalProps, Group, Button, Stack, ScrollArea, Text, CloseButton } from '@mantine/core';
+import { Modal, ModalProps, Group, Button, ScrollArea, Text, CloseButton } from '@mantine/core';
 import { ReactNode } from 'react';
+import styles from './CustomModal.module.css';
 
 interface CustomModalProps extends Omit<ModalProps, 'opened'> {
     isOpen: boolean;
@@ -101,19 +102,9 @@ export const ModalWrapper = ({
             closeOnClickOutside={closeOnClickOutside}
             closeOnEscape={closeOnEscape}
             withCloseButton={false} // We'll handle this in the header
-            styles={{
-                content: {
-                    display: 'flex',
-                    flexDirection: 'column',
-                    maxHeight: '90vh',
-                },
-                body: {
-                    display: 'flex',
-                    flexDirection: 'column',
-                    flex: 1,
-                    padding: 0,
-                    minHeight: 0,
-                },
+            classNames={{
+                content: styles.modalContent,
+                body: styles.modalBody,
             }}
         >
             {/* Header */}
@@ -121,10 +112,7 @@ export const ModalWrapper = ({
                 justify="space-between"
                 align="center"
                 p="md"
-                style={{
-                    borderBottom: '1px solid var(--mantine-color-default-border)',
-                    backgroundColor: 'var(--mantine-color-default-hover)',
-                }}
+                className={styles.modalHeader}
             >
                 <Text size="lg" fw={600}>
                     {title}
@@ -136,9 +124,11 @@ export const ModalWrapper = ({
 
             {/* Scrollable Content */}
             <ScrollArea
-                h={scrollAreaHeight}
+                className={styles.scrollArea}
+                style={{
+                    maxHeight: typeof scrollAreaHeight === 'number' ? `${scrollAreaHeight}px` : scrollAreaHeight,
+                }}
                 p="md"
-                style={{ flex: 1 }}
             >
                 {children}
             </ScrollArea>
@@ -149,10 +139,7 @@ export const ModalWrapper = ({
                     justify="space-between"
                     align="center"
                     p="md"
-                    style={{
-                        borderTop: '1px solid var(--mantine-color-default-border)',
-                        backgroundColor: 'var(--mantine-color-default-hover)',
-                    }}
+                    className={styles.modalFooter}
                 >
                     {/* Left side - Delete action */}
                     <Group>

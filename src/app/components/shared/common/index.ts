@@ -1,5 +1,5 @@
 export { BurgerMenuClient } from './BurgerMenuClient';
-export { CustomModal, ModalWrapper } from './CustomModal';
+export { CustomModal, ModalWrapper } from './CustomModal/CustomModal';
 export { LanguageSelector } from './LanguageSelector';
 export { LoadingScreen } from './LoadingScreen';
 export { SelfHelpLogo } from './SelfHelpLogo';
