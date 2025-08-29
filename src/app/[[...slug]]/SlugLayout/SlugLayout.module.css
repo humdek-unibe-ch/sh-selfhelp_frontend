@@ -1,0 +1,16 @@
+/* Main layout container with sticky footer pattern */
+.mainLayout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Content area that takes up available space */
+.contentArea {
+  flex: 1;
+}
+
+/* Footer wrapper with auto margin for sticky footer effect */
+.footerWrapper {
+  margin-top: auto;
+}
