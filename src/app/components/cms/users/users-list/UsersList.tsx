@@ -470,7 +470,7 @@ export function UsersList({
             }
             value={params.search}
             onChange={(e) => handleSearch(e.currentTarget.value)}
-            style={{ flex: 1 }}
+            className={classes.searchInput}
           />
           <Select
             placeholder="Per page"
@@ -487,10 +487,10 @@ export function UsersList({
         </Group>
 
         {/* Table */}
-        <div style={{ position: 'relative' }}>
+        <div className={classes.tableWrapper}>
           <LoadingOverlay visible={isLoading} />
-          
-          <Box style={{ overflowX: 'auto' }}>
+
+          <Box className={classes.tableScrollContainer}>
             <Table striped highlightOnHover className={classes.table}>
               <TableThead>
                 {table.getHeaderGroups().map((headerGroup) => (

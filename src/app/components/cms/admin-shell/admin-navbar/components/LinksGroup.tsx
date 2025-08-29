@@ -111,13 +111,23 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, selectab
     }
   };
 
+  const getNestedLinkClass = (level: number): string => {
+    switch (level) {
+      case 0: return classes.nestedLinkLevel1;
+      case 1: return classes.nestedLinkLevel2;
+      case 2: return classes.nestedLinkLevel3;
+      case 3: return classes.nestedLinkLevel4;
+      default: return classes.nestedLinkLevel1;
+    }
+  };
+
   const renderNestedLinks = (linkItems: any[], level: number = 0): React.ReactNode => {
     if (level >= 4) return null; // Limit to 4 levels as requested
 
     return linkItems?.map((item) => {
       const hasNestedLinks = Array.isArray(item.links) && item.links.length > 0;
       const isItemActive = item.link === pathname;
-      
+
       if (hasNestedLinks) {
         return (
           <NestedLinksGroup
@@ -136,7 +146,7 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, selectab
       return (
         <Text<'a'>
           component="a"
-          className={classes.link}
+          className={`${classes.link} ${getNestedLinkClass(level)}`}
           href={item.link}
           key={item.label}
           data-active={isItemActive}
@@ -154,9 +164,6 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, selectab
           onContextMenu={(e: React.MouseEvent) => {
             // Allow right-click context menu for "open in new tab"
             e.stopPropagation();
-          }}
-          style={{
-            paddingLeft: `calc(${rem((level + 1) * 16)} + var(--mantine-spacing-md))`,
           }}
         >
           {item.label}
@@ -212,12 +219,9 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, selectab
               className={classes.chevronButton}
             >
               <IconChevronRight
-                className={`${classes.chevron} ${classes.chevronIcon}`}
+                className={`${classes.chevron} ${classes.chevronIcon} ${opened ? classes.chevronRotated : classes.chevronNormal}`}
                 size="1rem"
                 stroke={1.5}
-                style={{
-                  transform: opened ? `rotate(${rem(90)})` : 'none',
-                }}
               />
             </UnstyledButton>
           )}
@@ -304,13 +308,23 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
     }
   };
 
+  const getNestedLinkClass = (currentLevel: number): string => {
+    switch (currentLevel) {
+      case 0: return classes.nestedLinkLevel1;
+      case 1: return classes.nestedLinkLevel2;
+      case 2: return classes.nestedLinkLevel3;
+      case 3: return classes.nestedLinkLevel4;
+      default: return classes.nestedLinkLevel1;
+    }
+  };
+
   const renderNestedLinks = (linkItems: any[], currentLevel: number): React.ReactNode => {
     if (currentLevel >= 4) return null; // Limit to 4 levels
 
     return linkItems?.map((item) => {
       const hasNestedLinks = Array.isArray(item.links) && item.links.length > 0;
       const isItemActive = item.link === pathname;
-      
+
       if (hasNestedLinks) {
         return (
           <NestedLinksGroup
@@ -329,7 +343,7 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
       return (
         <Text<'a'>
           component="a"
-          className={classes.link}
+          className={`${classes.link} ${getNestedLinkClass(currentLevel)}`}
           href={item.link}
           key={item.label}
           data-active={isItemActive}
@@ -349,9 +363,6 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
             // Allow right-click context menu for "open in new tab"
             e.stopPropagation();
           }}
-          style={{
-            paddingLeft: `calc(${rem((currentLevel + 1) * 16)} + var(--mantine-spacing-md))`,
-          }}
         >
           {item.label}
         </Text>
@@ -361,69 +372,49 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
 
   const items = renderNestedLinks(links, level + 1);
 
+  const getNestedParentLinkClass = (currentLevel: number): string => {
+    switch (currentLevel) {
+      case 0: return classes.nestedParentLink;
+      case 1: return classes.nestedParentLinkLevel2;
+      case 2: return classes.nestedParentLinkLevel3;
+      case 3: return classes.nestedParentLinkLevel4;
+      default: return classes.nestedParentLink;
+    }
+  };
+
   return (
     <>
-      <Box 
-        className={classes.link}
-        style={{
-          paddingLeft: `calc(${rem((level + 1) * 16)} + var(--mantine-spacing-md))`,
-          fontWeight: 500,
-        }}
+      <Box
+        className={`${classes.link} ${getNestedParentLinkClass(level)}`}
       >
         <Group justify="space-between" gap={0}>
           {/* Main clickable area for navigation */}
           <UnstyledButton
             onClick={() => {
-              // Always handle navigation/selection for main area  
+              // Always handle navigation/selection for main area
               if (selectable && link && link !== '#') {
                 handleItemClick(link, onClick, undefined);
               } else if (onClick) {
                 onClick();
               }
             }}
-            style={{ 
-              flex: 1, 
-              display: 'flex', 
-              alignItems: 'center',
-              justifyContent: 'flex-start',
-              padding: 0,
-              backgroundColor: 'transparent',
-              border: 'none'
-            }}
+            className={classes.nestedLink}
           >
             <Box>{label}</Box>
           </UnstyledButton>
-          
+
           {/* Separate clickable area for expand/collapse */}
           <UnstyledButton
             onClick={(e) => {
               e.stopPropagation();
               setOpened((o: boolean) => !o);
             }}
-            style={{
-              padding: '4px',
-              backgroundColor: 'transparent',
-              border: 'none',
-              borderRadius: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-            styles={{
-              root: {
-                '&:hover': {
-                  backgroundColor: 'light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-5))'
-                }
-              }
-            }}
+            className={classes.chevronButton}
           >
             <IconChevronRight
-              className={classes.chevron}
+              className={`${classes.chevron} ${classes.chevronIcon} ${opened ? classes.chevronRotated : classes.chevronNormal}`}
               size="1rem"
               stroke={1.5}
-              style={{
-                transform: opened ? `rotate(${rem(90)})` : 'none',
-              }}
             />
           </UnstyledButton>
         </Group>

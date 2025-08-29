@@ -138,6 +138,18 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
         router.push(pageUrl);
     };
 
+    const getPageLevelClass = (level: number): string => {
+        switch (level) {
+            case 0: return classes.pageLevel0;
+            case 1: return classes.pageLevel1;
+            case 2: return classes.pageLevel2;
+            case 3: return classes.pageLevel3;
+            case 4: return classes.pageLevel4;
+            case 5: return classes.pageLevel5;
+            default: return classes.pageLevel0;
+        }
+    };
+
     const renderPageItem = (page: PageTreeItem) => {
         const hasChildren = page.children.length > 0;
         const isOpen = expandedPageIds.has(page.id_pages);
@@ -146,26 +158,22 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
         return (
             <Box key={page.id_pages}>
                 <UnstyledButton
-                    className={classes.pageItem + ' w-full'}
+                    className={`${classes.pageItem} ${getPageLevelClass(page.level)} w-full`}
                     data-selected={isSelected || undefined}
                     onClick={() => {
                         // Always handle page click for navigation
                         handlePageClick(page);
-                        
+
                         // Toggle expansion if has children
                         if (hasChildren) {
                             togglePageExpanded(page.id_pages);
                         }
                     }}
-                    
-                    style={{
-                        paddingLeft: `${(page.level * 20) + 12}px`
-                    }}
                 >
                     <Group justify="space-between" gap="xs" wrap="nowrap">
                         <Group gap="xs" wrap="nowrap" className="flex-1 min-w-0">
-                            <ThemeIcon 
-                                variant="light" 
+                            <ThemeIcon
+                                variant="light"
                                 size="sm"
                                 color={hasChildren ? 'blue' : 'gray'}
                             >
@@ -183,10 +191,7 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
                         {hasChildren && (
                             <IconChevronRight
                                 size="1rem"
-                                style={{
-                                    transform: isOpen ? 'rotate(90deg)' : 'none',
-                                    transition: 'transform 0.2s ease'
-                                }}
+                                className={isOpen ? classes.chevronRotated : classes.chevronNormal}
                             />
                         )}
                     </Group>
@@ -235,12 +240,11 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
                 size="sm"
             />
 
-            <ScrollArea 
-                style={{ height: 'calc(100vh - 200px)' }}
+            <ScrollArea
+                className={classes.scrollContainer}
                 scrollbarSize={6}
                 scrollHideDelay={1000}
             >
-                test
                 <Stack gap={2} pb="md">
                     {filteredPages.length > 0 ? (
                         filteredPages.map(page => renderPageItem(page))

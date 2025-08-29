@@ -56,6 +56,7 @@ import { useScheduledJobs } from '../../../../../hooks/useScheduledJobs';
 import { useLookups } from '../../../../../hooks/useLookups';
 import { getScheduledJobStatuses, getScheduledJobTypes, getScheduledJobSearchDateTypes } from '../../../../../utils/lookup-filters.utils';
 import { IScheduledJobFilters, IScheduledJob, IScheduledJobTransaction } from '../../../../../types/responses/admin/scheduled-jobs.types';
+import classes from './ScheduledJobsList.module.css';
 
 interface IScheduledJobsListProps {
     onViewJob?: (jobId: number) => void;
@@ -449,7 +450,7 @@ export function ScheduledJobsList({
                     </Group>
                 ),
                 cell: ({ row }) => (
-                    <Text size="sm" style={{ maxWidth: 200 }} truncate>
+                    <Text size="sm" className={classes.descriptionText} truncate>
                         {row.original.description}
                     </Text>
                 ),
@@ -459,7 +460,7 @@ export function ScheduledJobsList({
                 accessorKey: 'recipient',
                 header: 'Recipient',
                 cell: ({ row }) => (
-                    <Text size="sm" style={{ maxWidth: 150 }} truncate>
+                    <Text size="sm" className={classes.recipientText} truncate>
                         {row.original.recipient || '-'}
                     </Text>
                 ),
@@ -468,7 +469,7 @@ export function ScheduledJobsList({
                 accessorKey: 'title',
                 header: 'Title',
                 cell: ({ row }) => (
-                    <Text size="sm" style={{ maxWidth: 150 }} truncate>
+                    <Text size="sm" className={classes.titleText} truncate>
                         {row.original.title || '-'}
                     </Text>
                 ),
@@ -477,7 +478,7 @@ export function ScheduledJobsList({
                 accessorKey: 'message',
                 header: 'Message',
                 cell: ({ row }) => (
-                    <Text size="sm" style={{ maxWidth: 150 }} truncate>
+                    <Text size="sm" className={classes.messageText} truncate>
                         {row.original.message || '-'}
                     </Text>
                 ),
@@ -590,7 +591,7 @@ export function ScheduledJobsList({
                         }
                         value={params.search || ''}
                         onChange={(event) => handleSearch(event.currentTarget.value)}
-                        style={{ flex: 1 }}
+                        className={classes.searchInput}
                     />
                     
                     <Button
@@ -618,7 +619,7 @@ export function ScheduledJobsList({
                             { value: '50', label: '50 per page' },
                             { value: '100', label: '100 per page' },
                         ]}
-                        style={{ width: 150 }}
+                        className={classes.pageSizeSelect}
                     />
                 </Group>
 
@@ -633,7 +634,7 @@ export function ScheduledJobsList({
                                     value={params.status || ''}
                                     onChange={(value) => setParams(prev => ({ ...prev, status: value || undefined, page: 1 }))}
                                     clearable
-                                    style={{ flex: 1 }}
+                                    className={classes.filterSelect}
                                 />
                                 <Select
                                     placeholder="Type"
@@ -641,42 +642,42 @@ export function ScheduledJobsList({
                                     value={params.jobType || ''}
                                     onChange={(value) => setParams(prev => ({ ...prev, jobType: value || undefined, page: 1 }))}
                                     clearable
-                                    style={{ flex: 1 }}
+                                    className={classes.filterSelect}
                                 />
                                 <Select
                                     placeholder="Date Type"
                                     data={dateTypeOptions}
                                     value={params.dateType || ''}
-                                    onChange={(value) => setParams(prev => ({ 
-                                        ...prev, 
+                                    onChange={(value) => setParams(prev => ({
+                                        ...prev,
                                         dateType: value as IScheduledJobFilters['dateType'] || 'date_to_be_executed',
-                                        page: 1 
+                                        page: 1
                                     }))}
-                                    style={{ flex: 1 }}
+                                    className={classes.filterSelect}
                                 />
                             </Group>
                             <Group gap="md" wrap="nowrap">
                                 <DateInput
                                     placeholder="Date From"
                                     value={params.dateFrom ? new Date(params.dateFrom) : null}
-                                    onChange={(date) => setParams(prev => ({ 
-                                        ...prev, 
+                                    onChange={(date) => setParams(prev => ({
+                                        ...prev,
                                         dateFrom: date ? (date as unknown as Date).toISOString().split('T')[0] : undefined,
-                                        page: 1 
+                                        page: 1
                                     }))}
                                     clearable
-                                    style={{ flex: 1 }}
+                                    className={classes.dateFilterInput}
                                 />
                                 <DateInput
                                     placeholder="Date To"
                                     value={params.dateTo ? new Date(params.dateTo) : null}
-                                    onChange={(date) => setParams(prev => ({ 
-                                        ...prev, 
+                                    onChange={(date) => setParams(prev => ({
+                                        ...prev,
                                         dateTo: date ? (date as unknown as Date).toISOString().split('T')[0] : undefined,
-                                        page: 1 
+                                        page: 1
                                     }))}
                                     clearable
-                                    style={{ flex: 1 }}
+                                    className={classes.dateFilterInput}
                                 />
                             </Group>
                         </Stack>
@@ -684,10 +685,10 @@ export function ScheduledJobsList({
                 )}
 
                 {/* Table */}
-                <div style={{ position: 'relative' }}>
+                <div className={classes.tableWrapper}>
                     <LoadingOverlay visible={isLoading} />
-                    
-                    <Box style={{ overflowX: 'auto' }}>
+
+                    <Box className={classes.tableScrollContainer}>
                         <Table striped highlightOnHover>
                             <TableThead>
                                 {table.getHeaderGroups().map((headerGroup) => (
@@ -828,7 +829,7 @@ function TransactionsTable({ transactions }: ITransactionsTableProps) {
                                     </Text>
                                 </TableTd>
                                 <TableTd>
-                                    <Text size="xs" style={{ maxWidth: 300 }} truncate>
+                                    <Text size="xs" className={classes.transactionLogText} truncate>
                                         {transaction.transaction_verbal_log}
                                     </Text>
                                 </TableTd>

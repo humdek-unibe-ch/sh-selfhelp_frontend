@@ -110,3 +110,50 @@
 .chevronIcon {
   transition: transform 200ms ease;
 }
+
+/* Dynamic styles for nested links */
+.nestedLinkLevel1 {
+  padding-left: calc(16px + var(--mantine-spacing-md));
+}
+
+.nestedLinkLevel2 {
+  padding-left: calc(32px + var(--mantine-spacing-md));
+}
+
+.nestedLinkLevel3 {
+  padding-left: calc(48px + var(--mantine-spacing-md));
+}
+
+.nestedLinkLevel4 {
+  padding-left: calc(64px + var(--mantine-spacing-md));
+}
+
+/* Chevron rotation states */
+.chevronRotated {
+  transform: rotate(90deg);
+}
+
+.chevronNormal {
+  transform: none;
+}
+
+/* Nested parent link styles */
+.nestedParentLink {
+  padding-left: calc(16px + var(--mantine-spacing-md));
+  font-weight: 500;
+}
+
+.nestedParentLinkLevel2 {
+  padding-left: calc(32px + var(--mantine-spacing-md));
+  font-weight: 500;
+}
+
+.nestedParentLinkLevel3 {
+  padding-left: calc(48px + var(--mantine-spacing-md));
+  font-weight: 500;
+}
+
+.nestedParentLinkLevel4 {
+  padding-left: calc(64px + var(--mantine-spacing-md));
+  font-weight: 500;
+}

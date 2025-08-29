@@ -21,4 +21,45 @@
 [data-mantine-color-scheme="dark"] .pageItem[data-selected] {
     background-color: var(--mantine-color-blue-9);
     border: 1px solid var(--mantine-color-blue-7);
+}
+
+/* Dynamic indentation for nested pages */
+.pageLevel0 {
+    padding-left: 12px;
+}
+
+.pageLevel1 {
+    padding-left: 32px;
+}
+
+.pageLevel2 {
+    padding-left: 52px;
+}
+
+.pageLevel3 {
+    padding-left: 72px;
+}
+
+.pageLevel4 {
+    padding-left: 92px;
+}
+
+.pageLevel5 {
+    padding-left: 112px;
+}
+
+/* Chevron rotation states */
+.chevronNormal {
+    transform: none;
+    transition: transform 0.2s ease;
+}
+
+.chevronRotated {
+    transform: rotate(90deg);
+    transition: transform 0.2s ease;
+}
+
+/* Scroll area height */
+.scrollContainer {
+    height: calc(100vh - 200px);
 } 

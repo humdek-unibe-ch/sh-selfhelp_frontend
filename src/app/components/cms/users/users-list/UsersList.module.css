@@ -36,6 +36,20 @@
   background: var(--mantine-color-dark-7);
 }
 
+/* Search input styles */
+.searchInput {
+  flex: 1;
+}
+
+/* Table wrapper styles */
+.tableWrapper {
+  position: relative;
+}
+
+.tableScrollContainer {
+  overflow-x: auto;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .container {

@@ -1,0 +1,63 @@
+/* ScheduledJobsList Styles */
+.searchInput {
+  flex: 1;
+}
+
+.pageSizeSelect {
+  width: 150px;
+}
+
+.filterSelect {
+  flex: 1;
+}
+
+.dateFilterInput {
+  flex: 1;
+}
+
+.descriptionText {
+  max-width: 200px;
+}
+
+.recipientText {
+  max-width: 150px;
+}
+
+.titleText {
+  max-width: 150px;
+}
+
+.messageText {
+  max-width: 150px;
+}
+
+.tableWrapper {
+  position: relative;
+}
+
+.tableScrollContainer {
+  overflow-x: auto;
+}
+
+.transactionLogText {
+  max-width: 300px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .searchInput {
+    min-width: 200px;
+  }
+
+  .pageSizeSelect {
+    width: 120px;
+  }
+
+  .filterSelect {
+    min-width: 120px;
+  }
+
+  .dateFilterInput {
+    min-width: 120px;
+  }
+}
