@@ -1,12 +1,12 @@
 /* NavigationSearch Styles */
 .searchItem {
-  border-radius: 4px;
+  border-radius: var(--mantine-radius-xs);
   transition: all 0.15s ease;
 }
 
 .searchItem:hover {
-  background-color: #f8f9fa;
-  border-color: #228be6;
+  background-color: var(--mantine-color-gray-0);
+  border-color: var(--mantine-color-blue-4);
 }
 
 .searchItemText {

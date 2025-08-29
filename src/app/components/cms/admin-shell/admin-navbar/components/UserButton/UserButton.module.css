@@ -2,12 +2,12 @@
 .userButton {
   flex: 1;
   min-width: 0;
-  border-radius: 4px;
+  border-radius: var(--mantine-radius-sm);
   transition: background-color 0.15s ease;
 }
 
 .userButton:hover {
-  background-color: #f8f9fa;
+  background-color: var(--mantine-color-gray-0);
 }
 
 .userInfo {

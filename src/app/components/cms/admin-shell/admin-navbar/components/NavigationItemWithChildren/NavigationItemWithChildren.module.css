@@ -1,7 +1,7 @@
 /* NavigationItemWithChildren Styles */
 .navItem {
   width: 100%;
-  border-radius: 4px;
+  border-radius: var(--mantine-radius-xs);
   transition: all 0.15s ease;
   border: 1px solid transparent;
   position: relative;
@@ -11,21 +11,21 @@
 }
 
 .navItem:hover {
-  background-color: #f8f9fa;
-  border-color: #dee2e6;
-  border-left-color: #adb5bd;
+  background-color: var(--mantine-color-gray-0);
+  border-color: var(--mantine-color-gray-3);
+  border-left-color: var(--mantine-color-gray-4);
 }
 
 .navItem[data-active="true"] {
-  background-color: #e7f3ff;
-  border-color: #228be6;
-  border-left-color: #1971c2;
+  background-color: var(--mantine-color-blue-light);
+  border-color: var(--mantine-color-blue-4);
+  border-left-color: var(--mantine-color-blue-6);
 }
 
 .navItem[data-active="true"]:hover {
-  background-color: #e7f3ff;
-  border-color: #228be6;
-  border-left-color: #1971c2;
+  background-color: var(--mantine-color-blue-light);
+  border-color: var(--mantine-color-blue-4);
+  border-left-color: var(--mantine-color-blue-6);
 }
 
 .chevronButton {
@@ -39,7 +39,7 @@
 }
 
 .chevronButton:hover {
-  background-color: #e9ecef;
+  background-color: var(--mantine-color-gray-1);
 }
 
 .navItemText {
