@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Button, TextInput, Text, Paper, Stack, Group, Badge, Alert } from '@mantine/core';
+import { Button, TextInput, Text, Paper, Stack, Group, Badge, Alert, Card, Title, SimpleGrid } from '@mantine/core';
 import { isCssClassSafe, getAllCssClasses } from '../../../../../utils/css-safelist';
 
 interface ICssClassValidatorProps {
@@ -101,18 +101,21 @@ export function CssClassValidator({ testClasses = '' }: ICssClassValidatorProps)
         {/* Test rendering of common classes */}
         <Stack gap="xs">
           <Text fw={500}>Visual Test:</Text>
-          <div className="rounded-t-lg bg-white shadow-md p-4 max-w-md">
-            <div className="text-xl font-bold mb-2">Test Card</div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-blue-100 p-2 rounded">Item 1</div>
-              <div className="bg-green-100 p-2 rounded">Item 2</div>
-            </div>
-            <div 
-              className="w-full h-24 bg-gray-200 rounded mt-4 flex items-center justify-center text-gray-500 text-sm"
+          <Card withBorder p="md" maw={400}>
+            <Title order={4} mb="sm">Test Card</Title>
+            <SimpleGrid cols={2} spacing="sm">
+              <Paper bg="blue.1" p="sm" radius="sm">Item 1</Paper>
+              <Paper bg="green.1" p="sm" radius="sm">Item 2</Paper>
+            </SimpleGrid>
+            <Paper
+              bg="gray.2"
+              h={96}
+              mt="md"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
-              Test Image Area
-            </div>
-          </div>
+              <Text size="sm" c="gray.6">Test Image Area</Text>
+            </Paper>
+          </Card>
         </Stack>
       </Stack>
     </Paper>

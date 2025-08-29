@@ -1,16 +1,17 @@
 'use client';
 
-import { 
-    UnstyledButton, 
-    Group, 
-    Avatar, 
-    Text, 
+import {
+    UnstyledButton,
+    Group,
+    Avatar,
+    Text,
     Box
 } from '@mantine/core';
 import { IconChevronRight } from '@tabler/icons-react';
-import { useAuthUser } from '../../../../../../hooks/useUserData';
 import { useRouter } from 'next/navigation';
-import { ThemeToggle } from '../../../../shared';
+import { useAuthUser } from '../../../../../../../hooks/useUserData';
+import { ThemeToggle } from '../../../../../shared';
+import styles from './UserButton.module.css';
 
 export function UserButton() {
     const { user } = useAuthUser();
@@ -25,7 +26,8 @@ export function UserButton() {
             <Group justify="space-between" wrap="nowrap" gap="xs">
                 <UnstyledButton
                     onClick={handleProfileClick}
-                    className="flex-1 rounded-[var(--mantine-radius-sm)] p-[var(--mantine-spacing-xs)] transition-colors duration-150 ease-in-out min-w-0 hover:bg-[light-dark(var(--mantine-color-gray-0),var(--mantine-color-dark-6))]"
+                    className={styles.userButton}
+                    p="xs"
                 >
                     <Group wrap="nowrap" gap="xs">
                         <Avatar
@@ -37,7 +39,7 @@ export function UserButton() {
                             {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                         </Avatar>
 
-                        <Box className="flex-1 min-w-0">
+                        <Box className={styles.userInfo}>
                             <Text size="sm" fw={500} truncate>
                                 {user?.name || 'User'}
                             </Text>
@@ -49,7 +51,7 @@ export function UserButton() {
                         <IconChevronRight size={12} color="var(--mantine-color-gray-6)" />
                     </Group>
                 </UnstyledButton>
-                
+
                 <ThemeToggle />
             </Group>
         </Box>

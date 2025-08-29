@@ -146,7 +146,7 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
         return (
             <Box key={page.id_pages}>
                 <UnstyledButton
-                    className={classes.pageItem}
+                    className={classes.pageItem + ' w-full'}
                     data-selected={isSelected || undefined}
                     onClick={() => {
                         // Always handle page click for navigation
@@ -157,7 +157,7 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
                             togglePageExpanded(page.id_pages);
                         }
                     }}
-                    className="w-full"
+                    
                     style={{
                         paddingLeft: `${(page.level * 20) + 12}px`
                     }}

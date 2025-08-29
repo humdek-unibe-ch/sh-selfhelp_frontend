@@ -1,0 +1,28 @@
+/* NavigationItem Styles */
+.navItem {
+  width: 100%;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+  position: relative;
+  margin-left: 12px;
+  min-height: 20px;
+  cursor: pointer;
+}
+
+.navItem:hover {
+  background-color: #f8f9fa;
+  border-color: #dee2e6;
+  border-left-color: #adb5bd;
+}
+
+.navItem[data-active="true"] {
+  background-color: #e7f3ff;
+  border-color: #228be6;
+  border-left-color: #1971c2;
+}
+
+.navItemText {
+  flex: 1;
+  min-width: 0;
+}

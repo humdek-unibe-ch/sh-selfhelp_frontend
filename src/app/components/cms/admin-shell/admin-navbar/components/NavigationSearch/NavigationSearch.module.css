@@ -1,0 +1,15 @@
+/* NavigationSearch Styles */
+.searchItem {
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.searchItem:hover {
+  background-color: #f8f9fa;
+  border-color: #228be6;
+}
+
+.searchItemText {
+  flex: 1;
+  min-width: 0;
+}

@@ -1,0 +1,16 @@
+/* UserButton Styles */
+.userButton {
+  flex: 1;
+  min-width: 0;
+  border-radius: 4px;
+  transition: background-color 0.15s ease;
+}
+
+.userButton:hover {
+  background-color: #f8f9fa;
+}
+
+.userInfo {
+  flex: 1;
+  min-width: 0;
+}

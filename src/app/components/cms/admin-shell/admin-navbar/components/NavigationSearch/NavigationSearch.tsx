@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { 
-    TextInput, 
-    Stack, 
-    Text, 
-    Group, 
-    ActionIcon, 
+import {
+    TextInput,
+    Stack,
+    Text,
+    Group,
+    ActionIcon,
     Box,
     ScrollArea,
     Highlight,
@@ -15,7 +15,8 @@ import {
 } from '@mantine/core';
 import { IconSearch, IconX, IconFile, IconSettings, IconUsers, IconDatabase, IconPhoto, IconPlayerPlay, IconFileText } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
-import { useNavigationStore } from '../../../../../store/navigation.store';
+import styles from './NavigationSearch.module.css';
+import { useNavigationStore } from '../../../../../../store/navigation.store';
 
 interface ISearchableItem {
     id: string;
@@ -41,8 +42,8 @@ interface IAdminPageData {
     };
     categorizedRegularPages?: {
         menu: Array<{ keyword: string; label: string; title?: string; children?: Array<{ keyword: string; label: string; title?: string; children?: unknown[]; }>; }>;
-        footer: Array<{ keyword: string; label: string; title?: string; children?: Array<{ keyword: string; label: string; title?: string; children?: unknown[]; }>; }>;
-        other: Array<{ keyword: string; label: string; title?: string; children?: Array<{ keyword: string; label: string; title?: string; children?: unknown[]; }>; }>;
+        footer: Array<{ keyword: string; label: string; title?: string; children?: Array<{ keyword: string; label: string; title?: string; children?: Array<{ keyword: string; label: string; title?: string; children?: unknown[]; }>; }>; }>;
+        other: Array<{ keyword: string; label: string; title?: string; children?: Array<{ keyword: string; label: string; title?: string; children?: Array<{ keyword: string; label: string; title?: string; children?: unknown[]; }>; }>; }>;
     };
     allPages?: Array<{
         keyword: string;
@@ -60,7 +61,7 @@ interface IAdminPageData {
 
 interface INavigationSearchProps {
     adminPagesData: IAdminPageData;
-    onItemSelect?: () => void;
+    onItemSelect: () => void;
 }
 
 export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSearchProps) {
@@ -94,7 +95,7 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
             // Configuration pages
             adminPagesData.configurationPageLinks?.forEach((page) => {
                 items.push({
-                    id: `config-${page.keyword}`,
+                    id: `config-page-${page.keyword}`,
                     label: page.label,
                     href: `/admin/pages/${page.keyword}`,
                     icon: <IconSettings size={16} />,
@@ -108,7 +109,7 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                 pages.forEach((page) => {
                     const displayName = page.title || page.label || page.keyword;
                     items.push({
-                        id: `system-${page.keyword}`,
+                        id: `system-${categoryName.toLowerCase()}-${page.keyword}`,
                         label: displayName,
                         href: `/admin/pages/${page.keyword}`,
                         icon: <IconFile size={16} />,
@@ -158,21 +159,21 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                         page.label.toLowerCase(),
                         categoryName.toLowerCase()
                     ];
-                    
+
                     // Only add level-specific keywords for actual submenus (level > 0)
                     if (level > 0) {
                         specificKeywords.push('nested', 'sub');
                     }
-                    
+
                     items.push({
-                        id: `page-${page.keyword}-${level}`,
+                        id: `page-${categoryName.toLowerCase()}-${page.keyword}-${level}`,
                         label: `${prefix}${displayName}`,
                         href: `/admin/pages/${page.keyword}`,
                         icon: <IconFileText size={16} />,
                         category: `Pages - ${categoryName}`,
                         keywords: specificKeywords.filter(Boolean)
                     });
-                    
+
                     // Recursively add children
                     if (page.children && page.children.length > 0) {
                         page.children.forEach((child) => {
@@ -192,7 +193,7 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                         });
                     }
                 };
-                
+
                 pages.forEach((page) => {
                     addPageAndChildren(page);
                 });
@@ -223,23 +224,23 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
 
                 // Filter menu pages from raw data (preserves hierarchy)
                 const menuPages = convertAllPagesToRegularFormat(
-                    adminPagesData.allPages.filter((page) => 
+                    adminPagesData.allPages.filter((page) =>
                         page.nav_position !== null && page.nav_position !== undefined && !page.is_system
                     )
                 );
                 const footerPages = convertAllPagesToRegularFormat(
-                    adminPagesData.allPages.filter((page) => 
+                    adminPagesData.allPages.filter((page) =>
                         page.footer_position !== null && page.footer_position !== undefined && !page.is_system
                     )
                 );
                 const otherPages = convertAllPagesToRegularFormat(
-                    adminPagesData.allPages.filter((page) => 
+                    adminPagesData.allPages.filter((page) =>
                         (page.nav_position === null || page.nav_position === undefined) &&
                         (page.footer_position === null || page.footer_position === undefined) &&
                         !page.is_system
                     )
                 );
-                
+
                 if (menuPages.length > 0) addRegularPages(menuPages, 'Menu');
                 if (footerPages.length > 0) addRegularPages(footerPages, 'Footer');
                 if (otherPages.length > 0) addRegularPages(otherPages, 'Other');
@@ -265,42 +266,42 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
         if (!searchQuery.trim()) return [];
 
         const query = searchQuery.toLowerCase().trim();
-        
+
         // Score items based on match quality
         const scoredItems = searchableItems.map(item => {
             let score = 0;
             const label = item.label.toLowerCase();
             const category = item.category.toLowerCase();
-            
+
             // Exact label match gets highest score
             if (label === query) score += 100;
             // Label starts with query gets high score
             else if (label.startsWith(query)) score += 50;
             // Label contains query gets medium score
             else if (label.includes(query)) score += 25;
-            
+
             // Category match gets lower score
             if (category.includes(query)) score += 10;
-            
+
             // Keyword matches get varying scores
             item.keywords.forEach(keyword => {
                 if (keyword && typeof keyword === 'string') {
                     const keywordLower = keyword.toLowerCase();
-                    
+
                     // Special handling for generic terms - only match if they're specific
                     if (['sub', 'nested'].includes(keywordLower) && !query.startsWith(keywordLower)) {
                         return; // Skip generic level keywords unless specifically searched
                     }
-                    
+
                     if (keywordLower === query) score += 30;
                     else if (keywordLower.startsWith(query)) score += 15;
                     else if (keywordLower.includes(query)) score += 5;
                 }
             });
-            
+
             return { item, score };
         }).filter(({ score }) => score > 0);
-        
+
         // Sort by score (highest first) and limit results
         return scoredItems
             .sort((a, b) => b.score - a.score)
@@ -316,7 +317,7 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
             onItemSelect?.();
             return;
         }
-        
+
         setActiveItem(item.href);
         router.push(item.href);
         setSearchQuery('');
@@ -376,13 +377,13 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                                             // Allow right-click context menu for "open in new tab"
                                             e.stopPropagation();
                                         }}
+                                        className={styles.searchItem}
                                         px="xs"
                                         py={4}
-                                        className="rounded-[var(--mantine-radius-xs)] border border-gray-3 transition-all duration-150 ease-in-out hover:bg-[var(--mantine-color-gray-0)] hover:border-blue-4"
                                     >
                                         <Group gap="xs" wrap="nowrap">
                                             {item.icon}
-                                            <Box className="flex-1 min-w-0">
+                                            <Box className={styles.searchItemText}>
                                                 <Text size="xs" fw={500} truncate>
                                                     <Highlight highlight={searchQuery} component="span">
                                                         {item.label}
@@ -408,4 +409,28 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
             )}
         </Box>
     );
+}
+
+// Helper functions
+function capitalizeFirst(str: string): string {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function getCategoryIcon(category: string): React.ReactNode {
+    switch (category.toLowerCase()) {
+        case 'authentication':
+        case 'profile':
+            return <IconUsers size={16} />;
+        case 'menu':
+        case 'footer':
+            return <IconFileText size={16} />;
+        case 'errors':
+        case 'legal':
+        case 'other':
+            return <IconFile size={16} />;
+        case 'configuration':
+            return <IconSettings size={16} />;
+        default:
+            return <IconFile size={16} />;
+    }
 }

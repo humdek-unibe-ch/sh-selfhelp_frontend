@@ -10,8 +10,8 @@ import { useMemo } from 'react';
 import { usePageContent } from "../../../hooks/usePageContent";
 import { useAppNavigation } from "../../../hooks/useAppNavigation";
 import { WebsiteHeader } from "../../components/frontend/layout/WebsiteHeader";
-import { WebsiteFooter } from "../../components/frontend/layout/WebsiteFooter";
 import styles from './SlugLayout.module.css';
+import { WebsiteFooter } from "../../components";
 
 export default function SlugLayout({ children }: { children: any }) {
     const { slug } = useParams();

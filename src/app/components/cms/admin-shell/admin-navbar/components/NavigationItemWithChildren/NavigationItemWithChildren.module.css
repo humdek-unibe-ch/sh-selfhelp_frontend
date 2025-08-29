@@ -1,0 +1,48 @@
+/* NavigationItemWithChildren Styles */
+.navItem {
+  width: 100%;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+  position: relative;
+  min-height: 20px;
+  cursor: pointer;
+  margin-left: 12px;
+}
+
+.navItem:hover {
+  background-color: #f8f9fa;
+  border-color: #dee2e6;
+  border-left-color: #adb5bd;
+}
+
+.navItem[data-active="true"] {
+  background-color: #e7f3ff;
+  border-color: #228be6;
+  border-left-color: #1971c2;
+}
+
+.navItem[data-active="true"]:hover {
+  background-color: #e7f3ff;
+  border-color: #228be6;
+  border-left-color: #1971c2;
+}
+
+.chevronButton {
+  padding: 2px;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background-color 200ms ease;
+}
+
+.chevronButton:hover {
+  background-color: #e9ecef;
+}
+
+.navItemText {
+  flex: 1;
+  min-width: 0;
+}
