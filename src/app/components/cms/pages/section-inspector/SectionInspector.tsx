@@ -24,8 +24,10 @@ import { useSectionDetails } from '../../../../../hooks/useSectionDetails';
 import { useLanguages } from '../../../../../hooks/useLanguages';
 import { useUpdateSectionMutation, useDeleteSectionMutation } from '../../../../../hooks/mutations';
 import { ISectionField } from '../../../../../types/responses/admin/admin.types';
-import { 
+import {
     IFieldData,
+    GlobalFieldRenderer,
+    GlobalFieldType,
     createFieldChangeHandlers,
 } from '../../shared';
 import styles from './SectionInspector.module.css';
@@ -49,12 +51,21 @@ interface ISectionInspectorProps {
 interface ISectionFormValues {
     // Section name (editable)
     sectionName: string;
-    
+
     // Section properties (non-translatable fields)
     properties: Record<string, string | boolean>;
-    
+
     // Field values by language (translatable fields)
     fields: Record<string, Record<number, string>>; // fields[fieldName][languageId] = content
+
+    // Global section-level properties
+    globalFields: {
+        condition: string;
+        data_config: string;
+        css: string;
+        css_mobile: string;
+        debug: boolean;
+    };
 }
 
 interface ISectionSubmitData {
@@ -86,14 +97,28 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
     const [formValues, setFormValues] = useState<ISectionFormValues>({
         sectionName: '',
         properties: {},
-        fields: {}
+        fields: {},
+        globalFields: {
+            condition: '',
+            data_config: '',
+            css: '',
+            css_mobile: '',
+            debug: false
+        }
     });
-    
+
     // Track original values to detect changes
     const [originalValues, setOriginalValues] = useState<ISectionFormValues>({
         sectionName: '',
         properties: {},
-        fields: {}
+        fields: {},
+        globalFields: {
+            condition: '',
+            data_config: '',
+            css: '',
+            css_mobile: '',
+            debug: false
+        }
     });
     
     // Fetch section details when section is selected
@@ -179,6 +204,13 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
     useEffect(() => {
         if (sectionDetailsData && languages.length > 0) {
             const { section, fields } = sectionDetailsData;
+            const globalFields = section.global_fields || {
+                condition: null,
+                data_config: null,
+                css: null,
+                css_mobile: null,
+                debug: false
+            };
             
             // Process fields for SectionInspector (which has different structure than PageInspector)
             const contentFields = fields.filter(field => field.display);
@@ -237,7 +269,14 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
             const newFormValues = {
                 sectionName: section.name,
                 properties: propertyFieldsObject,
-                fields: contentFieldsObject
+                fields: contentFieldsObject,
+                globalFields: {
+                    condition: globalFields.condition || '',
+                    data_config: globalFields.data_config || '',
+                    css: globalFields.css || '',
+                    css_mobile: globalFields.css_mobile || '',
+                    debug: globalFields.debug || false
+                }
             };
             
             setFormValues(newFormValues);
@@ -248,9 +287,16 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
             const resetValues = {
                 sectionName: '',
                 properties: {},
-                fields: {}
+                fields: {},
+                globalFields: {
+                    condition: '',
+                    data_config: '',
+                    css: '',
+                    css_mobile: '',
+                    debug: false
+                }
             };
-            
+
             setFormValues(resetValues);
             setOriginalValues(resetValues);
         }
@@ -286,7 +332,8 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
             propertyFields: [] as Array<{
                 fieldId: number;
                 value: string | boolean;
-            }>
+            }>,
+            globalFields: {} as any
         } as any;
         
         // Check if section name changed
@@ -331,11 +378,29 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
 
             }
         });
-        
+
+        // Process global fields - only changed values
+        const globalFieldsChanged = Object.keys(formValues.globalFields).some(key => {
+            const currentValue = formValues.globalFields[key as keyof typeof formValues.globalFields];
+            const originalValue = originalValues.globalFields[key as keyof typeof originalValues.globalFields];
+            return currentValue !== originalValue;
+        });
+
+        if (globalFieldsChanged) {
+            // Clean up global fields - convert empty strings to null for API
+            const cleanGlobalFields: any = {};
+            Object.keys(formValues.globalFields).forEach(key => {
+                const value = formValues.globalFields[key as keyof typeof formValues.globalFields];
+                cleanGlobalFields[key] = (value === '' || value === null) ? null : value;
+            });
+            submitData.globalFields = cleanGlobalFields;
+        }
+
         // Check if there are any changes to submit
-        const hasChanges = submitData.sectionName !== undefined || 
-                          submitData.contentFields.length > 0 || 
-                          submitData.propertyFields.length > 0;
+        const hasChanges = submitData.sectionName !== undefined ||
+                          submitData.contentFields.length > 0 ||
+                          submitData.propertyFields.length > 0 ||
+                          globalFieldsChanged;
         
         if (!hasChanges) {
 
@@ -407,6 +472,9 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
         fieldConfig: field.fieldConfig,
         translations: field.translations
     });
+
+    // Define the fixed global field types
+    const globalFieldTypes: GlobalFieldType[] = ['condition', 'data_config', 'css', 'css_mobile', 'debug'];
 
     // Render content field based on type and language
     const renderContentField = (field: ISectionField, languageId: number) => {
@@ -681,6 +749,32 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                             No content fields available for this section.
                         </Alert>
                     )}
+                </CollapsibleSection>
+
+                {/* Global Fields */}
+                <CollapsibleSection
+                    title="Global Fields"
+                    inspectorType={INSPECTOR_TYPES.SECTION}
+                    sectionName="global-fields"
+                    defaultExpanded={false}
+                >
+                    <Stack gap="md">
+                        {globalFieldTypes.map(fieldType => (
+                            <GlobalFieldRenderer
+                                key={fieldType}
+                                fieldType={fieldType}
+                                value={formValues.globalFields[fieldType]}
+                                onChange={(value) => setFormValues(prev => ({
+                                    ...prev,
+                                    globalFields: {
+                                        ...prev.globalFields,
+                                        [fieldType]: value
+                                    }
+                                }))}
+                                className={styles.fullWidthLabel}
+                            />
+                        ))}
+                    </Stack>
                 </CollapsibleSection>
 
                 {/* Property Fields */}

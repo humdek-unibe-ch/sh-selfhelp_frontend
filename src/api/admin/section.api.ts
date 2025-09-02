@@ -199,6 +199,13 @@ export interface ISectionExportData {
         content: string;
         meta: any;
     }>>;
+    global_fields?: {
+        condition: string | null;
+        data_config: string | null;
+        css: string | null;
+        css_mobile: string | null;
+        debug: boolean;
+    };
 }
 
 export interface IPageSectionsExportResponse {

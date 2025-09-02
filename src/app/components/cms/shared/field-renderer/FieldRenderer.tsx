@@ -14,6 +14,17 @@ import {
     DataConfigField
 } from '../field-components';
 import type { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
+
+// Global field types for section-level properties
+export type GlobalFieldType = 'condition' | 'data_config' | 'css' | 'css_mobile' | 'debug';
+
+export interface IGlobalFieldRendererProps {
+    fieldType: GlobalFieldType;
+    value: string | boolean;
+    onChange: (value: string | boolean) => void;
+    className?: string;
+    disabled?: boolean;
+}
 import { sanitizeName, validateName } from '../../../../../utils/name-validation.utils';
 
 // Use the actual field structure from API response
@@ -95,7 +106,6 @@ export function FieldRenderer({
     // Helper function to get field type badge color
     const getFieldTypeBadgeColor = (type: string | null) => {
         switch (type) {
-            case 'css': return 'blue';
             case 'json': return 'orange';
             case 'markdown': return 'green';
             case 'markdown-inline': return 'teal';
@@ -106,8 +116,6 @@ export function FieldRenderer({
             case 'select-group': return 'cyan';
             case 'select-data_table': return 'grape';
             case 'select-page-keyword': return 'lime';
-            case 'condition': return 'yellow';
-            case 'data-config': return 'orange';
             default: return 'red';
         }
     };
@@ -146,19 +154,7 @@ export function FieldRenderer({
         );
     }
     
-    // CSS field - use Monaco Editor
-    if (field.type === 'css') {
-        return renderFieldWithBadge(
-            <MonacoEditorField
-                fieldId={field.id}
-                value={fieldValue}
-                onChange={onChange}
-                language="css"
-                height={250}
-                disabled={disabled}
-            />
-        );
-    }
+
     
     // JSON field - use Monaco Editor
     if (field.type === 'json') {
@@ -331,33 +327,9 @@ export function FieldRenderer({
         );
     }
 
-    // Condition field - use Condition Builder
-    if (field.type === 'condition') {
-        return renderFieldWithBadge(
-            <ConditionBuilderField
-                fieldId={field.id}
-                fieldName={field.name}
-                value={fieldValue}
-                onChange={(value) => onChange(value)}
-                disabled={disabled}
-                placeholder={field.default_value || ''}
-            />
-        );
-    }
 
-    // Data Config field - use Data Config Builder
-    if (field.type === 'data-config') {
-        return renderFieldWithBadge(
-            <DataConfigField
-                fieldId={field.id}
-                fieldName={field.name}
-                value={fieldValue}
-                onChange={(value) => onChange(value)}
-                disabled={disabled}
-                placeholder={field.default_value || ''}
-            />
-        );
-    }
+
+
     
     // Unknown field type
     return renderFieldWithBadge(
@@ -368,5 +340,126 @@ export function FieldRenderer({
             onChange={onChange}
             placeholder={field.default_value || ''}
         />
+    );
+}
+
+/**
+ * Global Field Renderer for section-level properties
+ * These fields are fixed and handled directly based on fieldType
+ */
+export function GlobalFieldRenderer({
+    fieldType,
+    value,
+    onChange,
+    className,
+    disabled = false
+}: IGlobalFieldRendererProps) {
+    const fieldValue = typeof value === 'string' ? value : String(value);
+
+    // Handle debug field - checkbox
+    if (fieldType === 'debug') {
+        const checkboxValue = fieldValue === 'true' || fieldValue === '1' || fieldValue === 'on' || value === true;
+
+        return (
+            <Box className={className}>
+                <CheckboxField
+                    fieldId={0}
+                    fieldName={fieldType}
+                    fieldTitle="Debug Mode"
+                    value={checkboxValue}
+                    onChange={onChange}
+                    help="Enable debug mode for this section"
+                    disabled={disabled}
+                />
+            </Box>
+        );
+    }
+
+    // Handle condition field - condition builder
+    if (fieldType === 'condition') {
+        return (
+            <Stack gap="xs" className={className}>
+                <FieldLabelWithTooltip
+                    label="Condition"
+                    tooltip="JavaScript expression that determines section visibility. Leave empty for always visible."
+                />
+                <ConditionBuilderField
+                    fieldId={0}
+                    fieldName={fieldType}
+                    value={fieldValue}
+                    onChange={onChange}
+                    disabled={disabled}
+                    placeholder='Enter JavaScript condition (e.g., field.value > 0 && field.status === "active")'
+                />
+            </Stack>
+        );
+    }
+
+    // Handle data_config field - data config builder
+    if (fieldType === 'data_config') {
+        return (
+            <Stack gap="xs" className={className}>
+                <FieldLabelWithTooltip
+                    label="Data Config"
+                    tooltip="JSON configuration for section data handling and validation."
+                />
+                <DataConfigField
+                    fieldId={0}
+                    fieldName={fieldType}
+                    value={fieldValue}
+                    onChange={onChange}
+                    disabled={disabled}
+                    placeholder='Enter JSON configuration (e.g., {"type": "array", "items": {"type": "string"}})'
+                />
+            </Stack>
+        );
+    }
+
+    // Handle CSS fields - custom CSS field selector
+    if (fieldType === 'css' || fieldType === 'css_mobile') {
+        const fieldConfig: IFieldConfig = {
+            multiSelect: true,
+            creatable: true,
+            separator: ' ',
+            options: []
+        };
+
+        const title = fieldType === 'css' ? 'Custom CSS' : 'Mobile CSS';
+        const tooltip = fieldType === 'css'
+            ? 'Select CSS classes to apply to the section container.'
+            : 'Select CSS classes for mobile-specific styling.';
+
+        return (
+            <Stack gap="xs" className={className}>
+                <FieldLabelWithTooltip
+                    label={title}
+                    tooltip={tooltip}
+                />
+                <CustomCssField
+                    fieldId={0}
+                    fieldConfig={fieldConfig}
+                    value={fieldValue}
+                    onChange={onChange}
+                    disabled={disabled}
+                />
+            </Stack>
+        );
+    }
+
+    // Fallback for unknown field types
+    return (
+        <Stack gap="xs" className={className}>
+            <FieldLabelWithTooltip
+                label={fieldType}
+                tooltip={`Configuration for ${fieldType}`}
+            />
+            <TextInputField
+                fieldId={0}
+                value={fieldValue}
+                onChange={onChange}
+                placeholder={`Enter ${fieldType} value`}
+                disabled={disabled}
+            />
+        </Stack>
     );
 } 

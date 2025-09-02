@@ -54,10 +54,19 @@ export interface ISectionStyle {
     canHaveChildren: boolean;
 }
 
+export interface ISectionGlobalFields {
+    condition: string | null;
+    data_config: string | null;
+    css: string | null;
+    css_mobile: string | null;
+    debug: boolean;
+}
+
 export interface ISectionDetails {
     id: number;
     name: string;
     style: ISectionStyle;
+    global_fields: ISectionGlobalFields;
 }
 
 export interface ISectionDetailsData {

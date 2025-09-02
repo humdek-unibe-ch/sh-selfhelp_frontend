@@ -10,6 +10,13 @@ export interface IPageSection {
     level: number;
     path: string;
     children: IPageSection[];
+    global_fields?: {
+        condition: string | null;
+        data_config: string | null;
+        css: string | null;
+        css_mobile: string | null;
+        debug: boolean;
+    };
 }
 
 export interface IPageFieldTranslation {

@@ -29,18 +29,41 @@ export interface IUpdateSectionPropertyField {
 }
 
 /**
+ * Global fields structure for section-level properties
+ */
+export interface IUpdateSectionGlobalFields {
+    /** JavaScript/logic condition for section visibility */
+    condition?: string | null;
+
+    /** JSON configuration for section data handling */
+    data_config?: string | null;
+
+    /** Custom CSS styles for the section */
+    css?: string | null;
+
+    /** Mobile-specific CSS styles */
+    css_mobile?: string | null;
+
+    /** Debug mode flag */
+    debug?: boolean;
+}
+
+/**
  * Main update section request structure
  * Matches backend JSON schema exactly
  */
 export interface IUpdateSectionRequest {
     /** Optional section name update */
     sectionName?: string;
-    
+
     /** List of content field translations to update (display=1 fields) */
     contentFields: IUpdateSectionContentField[];
-    
+
     /** List of property field values to update (display=0 fields) */
     propertyFields: IUpdateSectionPropertyField[];
+
+    /** Global section-level properties */
+    globalFields?: IUpdateSectionGlobalFields;
 }
 
 /**

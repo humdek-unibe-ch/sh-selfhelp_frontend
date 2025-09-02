@@ -159,6 +159,27 @@ const isRefreshTokenRequest = (config: any) =>
 const isAdminRequest = (config: any) =>
     config.url?.includes('/admin/');
 
+// Helper function to identify admin data operations (CRUD operations on data)
+// These should not trigger redirects to no-access page on 403 errors
+const isAdminDataOperation = (config: any) => {
+    if (!config.url?.includes('/admin/')) return false;
+
+    // Data operations that should show errors instead of redirecting
+    const dataOperationPatterns = [
+        '/admin/pages/',      // Page operations
+        '/admin/sections/',   // Section operations
+        '/admin/roles/',      // Role operations
+        '/admin/users/',      // User operations
+        '/admin/groups/',     // Group operations
+        '/admin/assets/',     // Asset operations
+        '/admin/actions/',    // Action operations
+        '/admin/data/',       // Data operations
+        '/admin/scheduled-jobs/' // Scheduled job operations
+    ];
+
+    return dataOperationPatterns.some(pattern => config.url?.includes(pattern));
+};
+
 /**
  * Request interceptor to add authentication token to outgoing requests.
  * Retrieves the access token and appends it to the Authorization header if available.
@@ -254,8 +275,13 @@ apiClient.interceptors.response.use(
             if (getAccessToken()) {
                 // Check if the response indicates the user is logged in but doesn't have permission
                 const responseData = error.response.data;
-                if (responseData?.logged_in === true) {
-                    // User is logged in but doesn't have permission
+
+                // Only redirect to no-access for specific permission-related errors
+                // Don't redirect for general API errors during data operations (like section saves)
+                if (responseData?.logged_in === true &&
+                    responseData?.error_type === 'permission_denied' &&
+                    !isAdminDataOperation(originalRequest)) {
+                    // User is logged in but doesn't have permission for non-data operations
                     // Use Next.js router for client-side navigation
                     if (typeof window !== 'undefined' && !window.location.pathname.startsWith(ROUTES.NO_ACCESS)) {
                         import('next/navigation').then(({ redirect }) => {

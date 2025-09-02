@@ -1,4 +1,10 @@
-export { FieldRenderer, type IFieldData } from './field-renderer/FieldRenderer';
+export {
+    FieldRenderer,
+    GlobalFieldRenderer,
+    type IFieldData,
+    type IGlobalFieldRendererProps,
+    type GlobalFieldType
+} from './field-renderer/FieldRenderer';
 export {
     useFieldFormHandler,
     createFieldChangeHandlers,
