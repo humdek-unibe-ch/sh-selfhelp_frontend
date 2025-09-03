@@ -1,8 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { 
-    IFormUserInputStyle, 
-    IFormUserInputLogStyle, 
-    IFormUserInputRecordStyle 
+import {
+    IFormUserInputLogStyle,
+    IFormUserInputRecordStyle
 } from '../../../../types/common/styles.types';
 import BasicStyle from './BasicStyle';
 import { Button, Alert, LoadingOverlay } from '@mantine/core';
@@ -12,7 +11,7 @@ import { useSubmitFormMutation, useUpdateFormMutation } from '../../../../hooks/
 import { getFieldContent } from '../../../../utils/style-field-extractor';
 
 interface FormUserInputStyleProps {
-    style: IFormUserInputStyle | IFormUserInputLogStyle | IFormUserInputRecordStyle;
+    style: IFormUserInputLogStyle | IFormUserInputRecordStyle;
 }
 
 const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {

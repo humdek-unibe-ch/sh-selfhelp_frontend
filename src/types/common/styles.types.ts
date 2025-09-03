@@ -114,9 +114,6 @@ export interface IContainerStyle extends IBaseStyle {
     export_pdf?: IContentField<string>;
 }
 
-export interface IJumbotronStyle extends IBaseStyle {
-    style_name: 'jumbotron';
-}
 
 export interface IAlertStyle extends IBaseStyle {
     style_name: 'alert';
@@ -124,14 +121,6 @@ export interface IAlertStyle extends IBaseStyle {
     is_dismissable?: IContentField<string>;
 }
 
-export interface ICardStyle extends IBaseStyle {
-    style_name: 'card';
-    title?: IContentField<string>;
-    type?: IContentField<string>;
-    is_expanded?: IContentField<string>;
-    is_collapsible?: IContentField<string>;
-    url_edit?: IContentField<string>;
-}
 
 export interface IDivStyle extends IBaseStyle {
     style_name: 'div';
@@ -140,9 +129,6 @@ export interface IDivStyle extends IBaseStyle {
     color_text?: IContentField<string>;
 }
 
-export interface IConditionalContainerStyle extends IBaseStyle {
-    style_name: 'conditionalContainer';
-}
 
 export interface IRefContainerStyle extends IBaseStyle {
     style_name: 'refContainer';
@@ -169,10 +155,6 @@ export interface IMarkdownStyle extends IBaseStyle {
     text_md?: IContentField<string>;
 }
 
-export interface IMarkdownInlineStyle extends IBaseStyle {
-    style_name: 'markdownInline';
-    text_md_inline?: IContentField<string>;
-}
 
 export interface IPlaintextStyle extends IBaseStyle {
     style_name: 'plaintext';
@@ -180,34 +162,8 @@ export interface IPlaintextStyle extends IBaseStyle {
     is_paragraph?: IContentField<string>;
 }
 
-export interface IRawTextStyle extends IBaseStyle {
-    style_name: 'rawText';
-    text?: IContentField<string>;
-}
 
 // Form & Input Styles
-export interface IFormStyle extends IBaseStyle {
-    style_name: 'form';
-    label?: IContentField<string>;
-    url?: IContentField<string>;
-    type?: IContentField<string>;
-    label_cancel?: IContentField<string>;
-    url_cancel?: IContentField<string>;
-}
-
-export interface IFormUserInputStyle extends IBaseStyle {
-    style_name: 'formUserInput';
-    label?: IContentField<string>;
-    type?: IContentField<string>;
-    alert_success?: IContentField<string>;
-    name?: IContentField<string>;
-    is_log?: IContentField<string>;
-    anchor?: IContentField<string>;
-    ajax?: IContentField<string>;
-    redirect_at_end?: IContentField<string>;
-    own_entries_only?: IContentField<string>;
-    internal?: IContentField<string>;
-}
 
 export interface IFormUserInputLogStyle extends IBaseStyle {
     style_name: 'formUserInputLog';
@@ -369,71 +325,7 @@ export interface ILinkStyle extends IBaseStyle {
     open_in_new_tab?: IContentField<string>;
 }
 
-export interface INavigationContainerStyle extends IBaseStyle {
-    style_name: 'navigationContainer';
-    title?: IContentField<string>;
-    text_md?: IContentField<string>;
-}
-
-export interface INavigationAccordionStyle extends IBaseStyle {
-    style_name: 'navigationAccordion';
-    is_fluid?: IContentField<string>;
-    title_prefix?: IContentField<string>;
-    label_root?: IContentField<string>;
-    label_back?: IContentField<string>;
-    label_next?: IContentField<string>;
-    has_navigation_menu?: IContentField<string>;
-}
-
-export interface INavigationNestedStyle extends IBaseStyle {
-    style_name: 'navigationNested';
-    is_fluid?: IContentField<string>;
-    title_prefix?: IContentField<string>;
-    is_expanded?: IContentField<string>;
-    is_collapsible?: IContentField<string>;
-    label_back?: IContentField<string>;
-    label_next?: IContentField<string>;
-    has_navigation_buttons?: IContentField<string>;
-    search_text?: IContentField<string>;
-    css_nav?: IContentField<string>;
-    has_navigation_menu?: IContentField<string>;
-}
-
-export interface INavigationBarStyle extends IBaseStyle {
-    style_name: 'navigationBar';
-}
-
 // List Styles
-export interface IAccordionListStyle extends IBaseStyle {
-    style_name: 'accordionList';
-    title_prefix?: IContentField<string>;
-    items?: IContentField<any[]>;
-    label_root?: IContentField<string>;
-    id_prefix?: IContentField<string>;
-    id_active?: IContentField<string>;
-}
-
-export interface INestedListStyle extends IBaseStyle {
-    style_name: 'nestedList';
-    title_prefix?: IContentField<string>;
-    is_expanded?: IContentField<string>;
-    is_collapsible?: IContentField<string>;
-    items?: IContentField<any[]>;
-    search_text?: IContentField<string>;
-    id_prefix?: IContentField<string>;
-    id_active?: IContentField<string>;
-}
-
-export interface ISortableListStyle extends IBaseStyle {
-    style_name: 'sortableList';
-    items?: IContentField<any[]>;
-    is_sortable?: IContentField<string>;
-    is_editable?: IContentField<string>;
-    url_delete?: IContentField<string>;
-    label_add?: IContentField<string>;
-    url_add?: IContentField<string>;
-}
-
 export interface IEntryListStyle extends IBaseStyle {
     style_name: 'entryList';
 }
@@ -482,31 +374,6 @@ export interface IProgressBarStyle extends IBaseStyle {
     has_label?: IContentField<string>;
 }
 
-export interface IQuizStyle extends IBaseStyle {
-    style_name: 'quiz';
-    type?: IContentField<string>;
-    caption?: IContentField<string>;
-    label_right?: IContentField<string>;
-    label_wrong?: IContentField<string>;
-    right_content?: IContentField<string>;
-    wrong_content?: IContentField<string>;
-}
-
-export interface IChatStyle extends IBaseStyle {
-    style_name: 'chat';
-    alert_fail?: IContentField<string>;
-    alt?: IContentField<string>;
-    title_prefix?: IContentField<string>;
-    experimenter?: IContentField<string>;
-    subjects?: IContentField<string>;
-    label_submit?: IContentField<string>;
-    label_lobby?: IContentField<string>;
-    label_new?: IContentField<string>;
-    email_user?: IContentField<string>;
-    subject_user?: IContentField<string>;
-    is_html?: IContentField<string>;
-}
-
 export interface IShowUserInputStyle extends IBaseStyle {
     style_name: 'showUserInput';
     delete_title?: IContentField<string>;
@@ -520,41 +387,8 @@ export interface IShowUserInputStyle extends IBaseStyle {
     load_as_table?: IContentField<string>;
 }
 
-export interface IJsonStyle extends IBaseStyle {
-    style_name: 'json';
-    json?: IContentField<any>;
-}
-
-export interface IUserProgressStyle extends IBaseStyle {
-    style_name: 'userProgress';
-}
-
-export interface IAutocompleteStyle extends IBaseStyle {
-    style_name: 'autocomplete';
-}
-
 export interface IVersionStyle extends IBaseStyle {
     style_name: 'version';
-}
-
-export interface ITriggerStyle extends IBaseStyle {
-    style_name: 'trigger';
-}
-
-export interface IConditionFailedStyle extends IBaseStyle {
-    style_name: 'conditionFailed';
-}
-
-export interface IConditionBuilderStyle extends IBaseStyle {
-    style_name: 'conditionBuilder';
-}
-
-export interface IDataConfigBuilderStyle extends IBaseStyle {
-    style_name: 'dataConfigBuilder';
-}
-
-export interface IActionConfigBuilderStyle extends IBaseStyle {
-    style_name: 'actionConfigBuilder';
 }
 
 export interface ILoopStyle extends IBaseStyle {
@@ -563,7 +397,7 @@ export interface ILoopStyle extends IBaseStyle {
 }
 
 // Union type for all styles
-export type TStyle = 
+export type TStyle =
     | ILoginStyle
     | IProfileStyle
     | IValidateStyle
@@ -571,21 +405,14 @@ export type TStyle =
     | IResetPasswordStyle
     | ITwoFactorAuthStyle
     | IContainerStyle
-    | IJumbotronStyle
     | IAlertStyle
-    | ICardStyle
     | IDivStyle
-    | IConditionalContainerStyle
     | IRefContainerStyle
     | IDataContainerStyle
     | IHtmlTagStyle
     | IHeadingStyle
     | IMarkdownStyle
-    | IMarkdownInlineStyle
     | IPlaintextStyle
-    | IRawTextStyle
-    | IFormStyle
-    | IFormUserInputStyle
     | IFormUserInputLogStyle
     | IFormUserInputRecordStyle
     | IInputStyle
@@ -601,13 +428,6 @@ export type TStyle =
     | ICarouselStyle
     | IButtonStyle
     | ILinkStyle
-    | INavigationContainerStyle
-    | INavigationAccordionStyle
-    | INavigationNestedStyle
-    | INavigationBarStyle
-    | IAccordionListStyle
-    | INestedListStyle
-    | ISortableListStyle
     | IEntryListStyle
     | IEntryRecordStyle
     | IEntryRecordDeleteStyle
@@ -617,16 +437,6 @@ export type TStyle =
     | ITableRowStyle
     | ITableCellStyle
     | IProgressBarStyle
-    | IQuizStyle
-    | IChatStyle
     | IShowUserInputStyle
-    | IJsonStyle
-    | IUserProgressStyle
-    | IAutocompleteStyle
     | IVersionStyle
-    | ITriggerStyle
-    | IConditionFailedStyle
-    | IConditionBuilderStyle
-    | IDataConfigBuilderStyle
-    | IActionConfigBuilderStyle
     | ILoopStyle; 

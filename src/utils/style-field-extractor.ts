@@ -37,17 +37,6 @@ export const getFieldContent = (style: any, fieldName: string): string => {
 };
 
 /**
- * Helper function to get CSS class string from style object
- * Specifically handles the css field extraction
- * 
- * @param style - The style object containing fields
- * @returns The CSS class string, or empty string if not found
- */
-export const getCssClass = (style: any): string => {
-    return getFieldContent(style, 'css');
-};
-
-/**
  * Helper function to check if a field has a specific value (useful for boolean-like fields)
  * 
  * @param style - The style object containing fields

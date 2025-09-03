@@ -32,140 +32,97 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
         return null;
     }
 
-    // Extract common field values from the generic fields object and global fields
-    const getFieldContent = (fieldName: string): any => {
-        // Check for global fields first (css, cssmobile, debug_condition, dataconfig)
-        const globalFields = ['css', 'cssmobile', 'debug_condition', 'dataconfig'];
-        if (globalFields.includes(fieldName) && fieldName in style) {
-            return (style as any)[fieldName]?.content;
-        }
-
-        // Check for direct properties (like title, text, etc.)
-        if (fieldName in style) {
-            return (style as any)[fieldName]?.content;
-        }
-
-        // Finally check the fields object
-        return style.fields?.[fieldName]?.content;
-    };
-
-    // Helper to get global field values specifically
-    const getGlobalField = (fieldName: string): any => {
-        const globalFields = ['css', 'cssmobile', 'debug_condition', 'dataconfig'];
-        if (globalFields.includes(fieldName) && fieldName in style) {
-            return (style as any)[fieldName];
-        }
-        return null;
-    };
-
-    // Extract global fields for easier access
-    const globalCss = getGlobalField('css');
-    const globalCssMobile = getGlobalField('cssmobile');
-    const debugCondition = getGlobalField('debug_condition');
-    const dataConfig = getGlobalField('dataconfig');
-
-    // Create enhanced style object with global fields
-    const enhancedStyle = {
-        ...style,
-        globalCss,
-        globalCssMobile,
-        debugCondition,
-        dataConfig,
-        getFieldContent,
-        getGlobalField
-    };
-
     /**
      * Renders the appropriate style component based on style_name
      */
     switch (style.style_name) {
         // Authentication Styles
         case 'login':
-            return <LoginStyle style={enhancedStyle as any} />;
+            return <LoginStyle style={style} />;
         case 'register':
-            return <RegisterStyle style={enhancedStyle as any} />;
+            return <RegisterStyle style={style} />;
         case 'validate':
-            return <ValidateStyle style={enhancedStyle as any} />;
+            return <ValidateStyle style={style} />;
         case 'resetPassword':
-            return <ResetPasswordStyle style={enhancedStyle as any} />;
+            return <ResetPasswordStyle style={style} />;
         case 'twoFactorAuth':
-            return <TwoFactorAuthStyle style={enhancedStyle as any} />;
+            return <TwoFactorAuthStyle style={style} />;
 
         // Container & Layout Styles
         case 'container':
-            return <ContainerStyle style={enhancedStyle as any} />;
+            return <ContainerStyle style={style} />;
         case 'div':
-            return <DivStyle style={enhancedStyle as any} />;
+            return <DivStyle style={style} />;
         case 'alert':
-            return <AlertStyle style={enhancedStyle as any} />;
+            return <AlertStyle style={style} />;
 
         // Text & Content Styles
         case 'heading':
-            return <HeadingStyle style={enhancedStyle as any} />;
+            return <HeadingStyle style={style} />;
         case 'markdown':
         case 'markdownInline':
-            return <MarkdownStyle style={enhancedStyle as any} />;
+            return <MarkdownStyle style={style} />;
         case 'plaintext':
-            return <PlaintextStyle style={enhancedStyle as any} />;
+            return <PlaintextStyle style={style} />;
         case 'htmlTag':
-            return <HtmlTagStyle style={enhancedStyle as any} />;
+            return <HtmlTagStyle style={style} />;
 
         // Media Styles
         case 'image':
-            return <ImageStyle style={enhancedStyle as any} />;
+            return <ImageStyle style={style} />;
         case 'carousel':
-            return <CarouselStyle style={enhancedStyle as any} />;
+            return <CarouselStyle style={style} />;
         case 'video':
-            return <VideoStyle style={enhancedStyle as any} />;
+            return <VideoStyle style={style} />;
         case 'audio':
-            return <AudioStyle style={enhancedStyle as any} />;
+            return <AudioStyle style={style} />;
         case 'figure':
-            return <FigureStyle style={enhancedStyle as any} />;
+            return <FigureStyle style={style} />;
 
         // Navigation & Links Styles
         case 'button':
-            return <ButtonStyle style={enhancedStyle as any} />;
+            return <ButtonStyle style={style} />;
         case 'link':
-            return <LinkStyle style={enhancedStyle as any} />;
+            return <LinkStyle style={style} />;
 
         // Form & Input Styles
         case 'formUserInput':
         case 'formUserInputLog':
         case 'formUserInputRecord':
-            return <FormUserInputStyle style={enhancedStyle as any} />;
+            return <FormUserInputStyle style={style} />;
         case 'textarea':
-            return <TextareaStyle style={enhancedStyle as any} />;
+            return <TextareaStyle style={style} />;
         case 'input':
-            return <InputStyle style={enhancedStyle as any} />;
+            return <InputStyle style={style} />;
         case 'select':
-            return <SelectStyle style={enhancedStyle as any} />;
+            return <SelectStyle style={style} />;
         case 'radio':
-            return <RadioStyle style={enhancedStyle as any} />;
+            return <RadioStyle style={style} />;
         case 'checkbox':
-            return <CheckboxStyle style={enhancedStyle as any} />;
+            return <CheckboxStyle style={style} />;
         case 'slider':
-            return <SliderStyle style={enhancedStyle as any} />;
+            return <SliderStyle style={style} />;
 
         // Tab Styles
         case 'tabs':
-            return <TabsStyle style={enhancedStyle as any} />;
+            return <TabsStyle style={style} />;
         case 'tab':
             // Tab components are handled within TabsStyle
             return null;
 
         // Table Styles
         case 'table':
-            return <TableStyle style={enhancedStyle as any} />;
+            return <TableStyle style={style} />;
         case 'tableRow':
-            return <TableRowStyle style={enhancedStyle as any} />;
+            return <TableRowStyle style={style} />;
         case 'tableCell':
-            return <TableCellStyle style={enhancedStyle as any} />;
+            return <TableCellStyle style={style} />;
 
         // Progress & UI Elements
         case 'progressBar':
-            return <ProgressBarStyle style={enhancedStyle as any} />;
+            return <ProgressBarStyle style={style} />;
         case 'showUserInput':
-            return <ShowUserInputStyle style={enhancedStyle as any} />;
+            return <ShowUserInputStyle style={style} />;
 
         // Unknown/Unsupported styles
         default:

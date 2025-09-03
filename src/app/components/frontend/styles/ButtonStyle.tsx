@@ -26,7 +26,6 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
     const label = getFieldContent(style, 'label');
     const url = getFieldContent(style, 'url');
     const type = getFieldContent(style, 'type') || 'primary';
-    const cssClass = getFieldContent(style, 'css');
 
     const handleClick = () => {
         if (url && url !== '#') {
@@ -45,12 +44,14 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
         }
     };
 
+    console.log('style', style);
+
     return (
         <Button 
             variant="filled"
             color={type}
             onClick={handleClick}
-            className={cssClass}
+            className={style.css}
         >
             {label}
         </Button>
