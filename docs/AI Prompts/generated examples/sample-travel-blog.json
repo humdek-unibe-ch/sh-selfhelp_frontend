@@ -9,7 +9,7 @@
         "children": [
           {
             "name": "norway-article-card",
-            "style_name": "card",
+            "style_name": "div",
             "children": [
               {
                 "name": "norway-image",
@@ -26,14 +26,19 @@
                     "en-GB": {
                       "content": "Beautiful Norwegian landscape with red houses by the sea",
                       "meta": null
-                    }
-                  },
-                  "css": {
-                    "all": {
-                      "content": "w-full h-48 object-cover rounded-t-lg",
+                    },
+                    "de-CH": {
+                      "content": "DE: Beautiful Norwegian landscape with red houses by the sea",
                       "meta": null
                     }
                   }
+                },
+                "global_fields": {
+                  "condition": null,
+                  "data_config": null,
+                  "css": "w-full h-48 object-cover rounded-t-lg",
+                  "css_mobile": null,
+                  "debug": false
                 }
               },
               {
@@ -51,29 +56,34 @@
                     "en-GB": {
                       "content": "Top 10 places to visit in Norway this summer",
                       "meta": null
-                    }
-                  },
-                  "css": {
-                    "all": {
-                      "content": "text-xl font-semibold p-4 pb-2",
+                    },
+                    "de-CH": {
+                      "content": "DE: Top 10 places to visit in Norway this summer",
                       "meta": null
                     }
                   }
+                },
+                "global_fields": {
+                  "condition": null,
+                  "data_config": null,
+                  "css": "text-xl font-semibold p-4 pb-2",
+                  "css_mobile": null,
+                  "debug": false
                 }
               }
             ],
-            "fields": {
-              "css": {
-                "all": {
-                  "content": "bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300",
-                  "meta": null
-                }
-              }
+            "fields": {},
+            "global_fields": {
+              "condition": null,
+              "data_config": null,
+              "css": "bg-white dark:bg-gray-900 rounded-lg shadow-md dark:shadow-xl overflow-hidden hover:shadow-lg dark:shadow-2xl transition-shadow duration-300",
+              "css_mobile": null,
+              "debug": false
             }
           },
           {
             "name": "forest-article-card",
-            "style_name": "card",
+            "style_name": "div",
             "children": [
               {
                 "name": "forest-image",
@@ -90,14 +100,19 @@
                     "en-GB": {
                       "content": "Misty forest with sunlight streaming through trees",
                       "meta": null
-                    }
-                  },
-                  "css": {
-                    "all": {
-                      "content": "w-full h-48 object-cover rounded-t-lg",
+                    },
+                    "de-CH": {
+                      "content": "DE: Misty forest with sunlight streaming through trees",
                       "meta": null
                     }
                   }
+                },
+                "global_fields": {
+                  "condition": null,
+                  "data_config": null,
+                  "css": "w-full h-48 object-cover rounded-t-lg",
+                  "css_mobile": null,
+                  "debug": false
                 }
               },
               {
@@ -115,29 +130,34 @@
                     "en-GB": {
                       "content": "Best forests to visit in North America",
                       "meta": null
-                    }
-                  },
-                  "css": {
-                    "all": {
-                      "content": "text-xl font-semibold p-4 pb-2",
+                    },
+                    "de-CH": {
+                      "content": "DE: Best forests to visit in North America",
                       "meta": null
                     }
                   }
+                },
+                "global_fields": {
+                  "condition": null,
+                  "data_config": null,
+                  "css": "text-xl font-semibold p-4 pb-2",
+                  "css_mobile": null,
+                  "debug": false
                 }
               }
             ],
-            "fields": {
-              "css": {
-                "all": {
-                  "content": "bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300",
-                  "meta": null
-                }
-              }
+            "fields": {},
+            "global_fields": {
+              "condition": null,
+              "data_config": null,
+              "css": "bg-white dark:bg-gray-900 rounded-lg shadow-md dark:shadow-xl overflow-hidden hover:shadow-lg dark:shadow-2xl transition-shadow duration-300",
+              "css_mobile": null,
+              "debug": false
             }
           },
           {
             "name": "hawaii-article-card",
-            "style_name": "card",
+            "style_name": "div",
             "children": [
               {
                 "name": "hawaii-beach-image",
@@ -154,14 +174,19 @@
                     "en-GB": {
                       "content": "Pristine Hawaiian beach with turquoise water",
                       "meta": null
-                    }
-                  },
-                  "css": {
-                    "all": {
-                      "content": "w-full h-48 object-cover rounded-t-lg",
+                    },
+                    "de-CH": {
+                      "content": "DE: Pristine Hawaiian beach with turquoise water",
                       "meta": null
                     }
                   }
+                },
+                "global_fields": {
+                  "condition": null,
+                  "data_config": null,
+                  "css": "w-full h-48 object-cover rounded-t-lg",
+                  "css_mobile": null,
+                  "debug": false
                 }
               },
               {
@@ -179,29 +204,34 @@
                     "en-GB": {
                       "content": "Hawaii beaches review: better than you think",
                       "meta": null
-                    }
-                  },
-                  "css": {
-                    "all": {
-                      "content": "text-xl font-semibold p-4 pb-2",
+                    },
+                    "de-CH": {
+                      "content": "DE: Hawaii beaches review: better than you think",
                       "meta": null
                     }
                   }
+                },
+                "global_fields": {
+                  "condition": null,
+                  "data_config": null,
+                  "css": "text-xl font-semibold p-4 pb-2",
+                  "css_mobile": null,
+                  "debug": false
                 }
               }
             ],
-            "fields": {
-              "css": {
-                "all": {
-                  "content": "bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300",
-                  "meta": null
-                }
-              }
+            "fields": {},
+            "global_fields": {
+              "condition": null,
+              "data_config": null,
+              "css": "bg-white dark:bg-gray-900 rounded-lg shadow-md dark:shadow-xl overflow-hidden hover:shadow-lg dark:shadow-2xl transition-shadow duration-300",
+              "css_mobile": null,
+              "debug": false
             }
           },
           {
             "name": "mountains-article-card",
-            "style_name": "card",
+            "style_name": "div",
             "children": [
               {
                 "name": "mountains-night-image",
@@ -218,14 +248,19 @@
                     "en-GB": {
                       "content": "Mountain landscape at night with starry sky",
                       "meta": null
-                    }
-                  },
-                  "css": {
-                    "all": {
-                      "content": "w-full h-48 object-cover rounded-t-lg",
+                    },
+                    "de-CH": {
+                      "content": "DE: Mountain landscape at night with starry sky",
                       "meta": null
                     }
                   }
+                },
+                "global_fields": {
+                  "condition": null,
+                  "data_config": null,
+                  "css": "w-full h-48 object-cover rounded-t-lg",
+                  "css_mobile": null,
+                  "debug": false
                 }
               },
               {
@@ -243,44 +278,49 @@
                     "en-GB": {
                       "content": "Mountains at night: 12 best locations to enjoy the view",
                       "meta": null
-                    }
-                  },
-                  "css": {
-                    "all": {
-                      "content": "text-xl font-semibold p-4 pb-2",
+                    },
+                    "de-CH": {
+                      "content": "DE: Mountains at night: 12 best locations to enjoy the view",
                       "meta": null
                     }
                   }
+                },
+                "global_fields": {
+                  "condition": null,
+                  "data_config": null,
+                  "css": "text-xl font-semibold p-4 pb-2",
+                  "css_mobile": null,
+                  "debug": false
                 }
               }
             ],
-            "fields": {
-              "css": {
-                "all": {
-                  "content": "bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300",
-                  "meta": null
-                }
-              }
+            "fields": {},
+            "global_fields": {
+              "condition": null,
+              "data_config": null,
+              "css": "bg-white dark:bg-gray-900 rounded-lg shadow-md dark:shadow-xl overflow-hidden hover:shadow-lg dark:shadow-2xl transition-shadow duration-300",
+              "css_mobile": null,
+              "debug": false
             }
           }
         ],
-        "fields": {
-          "css": {
-            "all": {
-              "content": "grid grid-cols-1 md:grid-cols-2 gap-6",
-              "meta": null
-            }
-          }
+        "fields": {},
+        "global_fields": {
+          "condition": null,
+          "data_config": null,
+          "css": "grid grid-cols-1 md:grid-cols-2 gap-6",
+          "css_mobile": null,
+          "debug": false
         }
       }
     ],
-    "fields": {
-      "css": {
-        "all": {
-          "content": "container mx-auto px-4 py-8 max-w-6xl",
-          "meta": null
-        }
-      }
+    "fields": {},
+    "global_fields": {
+      "condition": null,
+      "data_config": null,
+      "css": "container mx-auto px-4 py-8 max-w-6xl",
+      "css_mobile": null,
+      "debug": false
     }
   }
-] 
+]
