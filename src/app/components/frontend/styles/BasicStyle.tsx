@@ -1,13 +1,12 @@
 import React from 'react';
 import {
-    AlertStyle, ButtonStyle, CardStyle, CarouselStyle, ContainerStyle,
+    AlertStyle, ButtonStyle, CarouselStyle, ContainerStyle,
     DivStyle, FormUserInputStyle, HeadingStyle, ImageStyle, InputStyle,
-    JumbotronStyle, LinkStyle, LoginStyle, MarkdownStyle, RegisterStyle,
-    SelectStyle, TabsStyle, TextareaStyle, UnknownStyle, VideoStyle,
-    AudioStyle, FigureStyle, PlaintextStyle, RawTextStyle, RadioStyle,
-    CheckboxStyle, SliderStyle, FormStyle, ProgressBarStyle, ModalStyle,
-    HtmlTagStyle, JsonStyle, QuizStyle, NavigationContainerStyle,
-    AccordionListStyle, NestedListStyle, SortableListStyle, ValidateStyle,
+    LinkStyle, LoginStyle, MarkdownStyle, RegisterStyle,
+    SelectStyle, TabsStyle, TextareaStyle, VideoStyle,
+    AudioStyle, FigureStyle, PlaintextStyle, RadioStyle,
+    CheckboxStyle, SliderStyle, ProgressBarStyle,
+    HtmlTagStyle, ValidateStyle,
     ResetPasswordStyle, TwoFactorAuthStyle, TableStyle, TableRowStyle,
     TableCellStyle, ShowUserInputStyle
 } from './SelfHelpStyles';
@@ -33,12 +32,47 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
         return null;
     }
 
-    // Extract common field values from the generic fields object
+    // Extract common field values from the generic fields object and global fields
     const getFieldContent = (fieldName: string): any => {
+        // Check for global fields first (css, cssmobile, debug_condition, dataconfig)
+        const globalFields = ['css', 'cssmobile', 'debug_condition', 'dataconfig'];
+        if (globalFields.includes(fieldName) && fieldName in style) {
+            return (style as any)[fieldName]?.content;
+        }
+
+        // Check for direct properties (like title, text, etc.)
         if (fieldName in style) {
             return (style as any)[fieldName]?.content;
         }
+
+        // Finally check the fields object
         return style.fields?.[fieldName]?.content;
+    };
+
+    // Helper to get global field values specifically
+    const getGlobalField = (fieldName: string): any => {
+        const globalFields = ['css', 'cssmobile', 'debug_condition', 'dataconfig'];
+        if (globalFields.includes(fieldName) && fieldName in style) {
+            return (style as any)[fieldName];
+        }
+        return null;
+    };
+
+    // Extract global fields for easier access
+    const globalCss = getGlobalField('css');
+    const globalCssMobile = getGlobalField('cssmobile');
+    const debugCondition = getGlobalField('debug_condition');
+    const dataConfig = getGlobalField('dataconfig');
+
+    // Create enhanced style object with global fields
+    const enhancedStyle = {
+        ...style,
+        globalCss,
+        globalCssMobile,
+        debugCondition,
+        dataConfig,
+        getFieldContent,
+        getGlobalField
     };
 
     /**
@@ -47,119 +81,95 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
     switch (style.style_name) {
         // Authentication Styles
         case 'login':
-            return <LoginStyle style={style} />;
+            return <LoginStyle style={enhancedStyle as any} />;
         case 'register':
-            return <RegisterStyle style={style} />;
+            return <RegisterStyle style={enhancedStyle as any} />;
         case 'validate':
-            return <ValidateStyle style={style} />;
+            return <ValidateStyle style={enhancedStyle as any} />;
         case 'resetPassword':
-            return <ResetPasswordStyle style={style} />;
+            return <ResetPasswordStyle style={enhancedStyle as any} />;
         case 'twoFactorAuth':
-            return <TwoFactorAuthStyle style={style} />;
+            return <TwoFactorAuthStyle style={enhancedStyle as any} />;
 
         // Container & Layout Styles
         case 'container':
-            return <ContainerStyle style={style} />;
-        case 'jumbotron':
-            return <JumbotronStyle style={style} />;
-        case 'card':
-            return <CardStyle style={style} />;
+            return <ContainerStyle style={enhancedStyle as any} />;
         case 'div':
-            return <DivStyle style={style} />;
+            return <DivStyle style={enhancedStyle as any} />;
         case 'alert':
-            return <AlertStyle style={style} />;
+            return <AlertStyle style={enhancedStyle as any} />;
 
         // Text & Content Styles
         case 'heading':
-            return <HeadingStyle style={style} />;
+            return <HeadingStyle style={enhancedStyle as any} />;
         case 'markdown':
         case 'markdownInline':
-            return <MarkdownStyle style={style} />;
+            return <MarkdownStyle style={enhancedStyle as any} />;
         case 'plaintext':
-            return <PlaintextStyle style={style} />;
-        case 'rawText':
-            return <RawTextStyle style={style} />;
+            return <PlaintextStyle style={enhancedStyle as any} />;
         case 'htmlTag':
-            return <HtmlTagStyle style={style} />;
+            return <HtmlTagStyle style={enhancedStyle as any} />;
 
         // Media Styles
         case 'image':
-            return <ImageStyle style={style} />;
+            return <ImageStyle style={enhancedStyle as any} />;
         case 'carousel':
-            return <CarouselStyle style={style} />;
+            return <CarouselStyle style={enhancedStyle as any} />;
         case 'video':
-            return <VideoStyle style={style} />;
+            return <VideoStyle style={enhancedStyle as any} />;
         case 'audio':
-            return <AudioStyle style={style} />;
+            return <AudioStyle style={enhancedStyle as any} />;
         case 'figure':
-            return <FigureStyle style={style} />;
+            return <FigureStyle style={enhancedStyle as any} />;
 
         // Navigation & Links Styles
         case 'button':
-            return <ButtonStyle style={style} />;
+            return <ButtonStyle style={enhancedStyle as any} />;
         case 'link':
-            return <LinkStyle style={style} />;
+            return <LinkStyle style={enhancedStyle as any} />;
 
         // Form & Input Styles
-        case 'form':
-            return <FormStyle style={style} />;
         case 'formUserInput':
         case 'formUserInputLog':
         case 'formUserInputRecord':
-            return <FormUserInputStyle style={style as any} />;
+            return <FormUserInputStyle style={enhancedStyle as any} />;
         case 'textarea':
-            return <TextareaStyle style={style} />;
+            return <TextareaStyle style={enhancedStyle as any} />;
         case 'input':
-            return <InputStyle style={style} />;
+            return <InputStyle style={enhancedStyle as any} />;
         case 'select':
-            return <SelectStyle style={style} />;
+            return <SelectStyle style={enhancedStyle as any} />;
         case 'radio':
-            return <RadioStyle style={style} />;
+            return <RadioStyle style={enhancedStyle as any} />;
         case 'checkbox':
-            return <CheckboxStyle style={style} />;
+            return <CheckboxStyle style={enhancedStyle as any} />;
         case 'slider':
-            return <SliderStyle style={style} />;
+            return <SliderStyle style={enhancedStyle as any} />;
 
         // Tab Styles
         case 'tabs':
-            return <TabsStyle style={style} />;
+            return <TabsStyle style={enhancedStyle as any} />;
         case 'tab':
             // Tab components are handled within TabsStyle
             return null;
 
         // Table Styles
         case 'table':
-            return <TableStyle style={style} />;
+            return <TableStyle style={enhancedStyle as any} />;
         case 'tableRow':
-            return <TableRowStyle style={style} />;
+            return <TableRowStyle style={enhancedStyle as any} />;
         case 'tableCell':
-            return <TableCellStyle style={style} />;
-
-        // Navigation & Container Styles
-        case 'navigationContainer':
-            return <NavigationContainerStyle style={style} />;
-
-        // List & Navigation Styles
-        case 'accordionList':
-            return <AccordionListStyle style={style} />;
-        case 'nestedList':
-            return <NestedListStyle style={style} />;
-        case 'sortableList':
-            return <SortableListStyle style={style} />;
+            return <TableCellStyle style={enhancedStyle as any} />;
 
         // Progress & UI Elements
         case 'progressBar':
-            return <ProgressBarStyle style={style} />;
-        case 'quiz':
-            return <QuizStyle style={style} />;
-        case 'json':
-            return <JsonStyle style={style} />;
+            return <ProgressBarStyle style={enhancedStyle as any} />;
         case 'showUserInput':
-            return <ShowUserInputStyle style={style} />;
+            return <ShowUserInputStyle style={enhancedStyle as any} />;
 
         // Unknown/Unsupported styles
         default:
-            return <UnknownStyle style={style} />;
+            return null;
     }
 };
 
