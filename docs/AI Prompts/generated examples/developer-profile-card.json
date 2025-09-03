@@ -5,7 +5,7 @@
     "children": [
       {
         "name": "profile-card",
-        "style_name": "card",
+        "style_name": "div",
         "children": [
           {
             "name": "background-header",
@@ -31,23 +31,24 @@
                       "content": "Code-Editor-Hintergrund mit Programmiersyntax",
                       "meta": null
                     }
-                  },
-                  "css": {
-                    "all": {
-                      "content": "w-full h-32 object-cover rounded-t-lg opacity-80",
-                      "meta": null
-                    }
                   }
+                },
+                "global_fields": {
+                  "condition": null,
+                  "data_config": null,
+                  "css": "w-full h-32 object-cover rounded-t-lg opacity-80",
+                  "css_mobile": null,
+                  "debug": false
                 }
               }
             ],
-            "fields": {
-              "css": {
-                "all": {
-                  "content": "relative bg-gradient-to-r from-indigo-900 via-purple-900 to-pink-900 rounded-t-lg",
-                  "meta": null
-                }
-              }
+            "fields": {},
+            "global_fields": {
+              "condition": null,
+              "data_config": null,
+              "css": "relative bg-gradient-to-r from-indigo-900 via-purple-900 to-pink-900 rounded-t-lg",
+              "css_mobile": null,
+              "debug": false
             }
           },
           {
@@ -74,23 +75,24 @@
                       "content": "Bill Headbanger Profilbild",
                       "meta": null
                     }
-                  },
-                  "css": {
-                    "all": {
-                      "content": "w-20 h-20 rounded-full border-4 border-white shadow-lg mx-auto -mt-10 relative z-10",
-                      "meta": null
-                    }
                   }
+                },
+                "global_fields": {
+                  "condition": null,
+                  "data_config": null,
+                  "css": "w-20 h-20 rounded-full border-4 border-white shadow-lg mx-auto -mt-10 relative z-10",
+                  "css_mobile": null,
+                  "debug": false
                 }
               }
             ],
-            "fields": {
-              "css": {
-                "all": {
-                  "content": "flex justify-center",
-                  "meta": null
-                }
-              }
+            "fields": {},
+            "global_fields": {
+              "condition": null,
+              "data_config": null,
+              "css": "flex justify-center",
+              "css_mobile": null,
+              "debug": false
             }
           },
           {
@@ -117,13 +119,14 @@
                       "content": "Bill Headbanger",
                       "meta": null
                     }
-                  },
-                  "css": {
-                    "all": {
-                      "content": "text-2xl font-bold text-gray-900 text-center mt-4 mb-2",
-                      "meta": null
-                    }
                   }
+                },
+                "global_fields": {
+                  "condition": null,
+                  "data_config": null,
+                  "css": "text-2xl font-bold text-gray-900 text-center mt-4 mb-2",
+                  "css_mobile": null,
+                  "debug": false
                 }
               },
               {
@@ -140,23 +143,24 @@
                       "content": "Fullstack-Entwickler",
                       "meta": null
                     }
-                  },
-                  "css": {
-                    "all": {
-                      "content": "text-gray-600 text-center mb-6",
-                      "meta": null
-                    }
                   }
+                },
+                "global_fields": {
+                  "condition": null,
+                  "data_config": null,
+                  "css": "text-gray-600 text-center mb-6",
+                  "css_mobile": null,
+                  "debug": false
                 }
               }
             ],
-            "fields": {
-              "css": {
-                "all": {
-                  "content": "px-6",
-                  "meta": null
-                }
-              }
+            "fields": {},
+            "global_fields": {
+              "condition": null,
+              "data_config": null,
+              "css": "px-6",
+              "css_mobile": null,
+              "debug": false
             }
           },
           {
@@ -187,13 +191,14 @@
                           "content": "34K",
                           "meta": null
                         }
-                      },
-                      "css": {
-                        "all": {
-                          "content": "text-xl font-bold text-gray-900 text-center",
-                          "meta": null
-                        }
                       }
+                    },
+                    "global_fields": {
+                      "condition": null,
+                      "data_config": null,
+                      "css": "text-xl font-bold text-gray-900 text-center",
+                      "css_mobile": null,
+                      "debug": false
                     }
                   },
                   {
@@ -210,23 +215,24 @@
                           "content": "Follower",
                           "meta": null
                         }
-                      },
-                      "css": {
-                        "all": {
-                          "content": "text-gray-600 text-center text-sm",
-                          "meta": null
-                        }
                       }
+                    },
+                    "global_fields": {
+                      "condition": null,
+                      "data_config": null,
+                      "css": "text-gray-600 text-center text-sm",
+                      "css_mobile": null,
+                      "debug": false
                     }
                   }
                 ],
-                "fields": {
-                  "css": {
-                    "all": {
-                      "content": "flex flex-col",
-                      "meta": null
-                    }
-                  }
+                "fields": {},
+                "global_fields": {
+                  "condition": null,
+                  "data_config": null,
+                  "css": "flex flex-col",
+                  "css_mobile": null,
+                  "debug": false
                 }
               },
               {
@@ -253,13 +259,14 @@
                           "content": "187",
                           "meta": null
                         }
-                      },
-                      "css": {
-                        "all": {
-                          "content": "text-xl font-bold text-gray-900 text-center",
-                          "meta": null
-                        }
                       }
+                    },
+                    "global_fields": {
+                      "condition": null,
+                      "data_config": null,
+                      "css": "text-xl font-bold text-gray-900 text-center",
+                      "css_mobile": null,
+                      "debug": false
                     }
                   },
                   {
@@ -276,23 +283,24 @@
                           "content": "Folgt",
                           "meta": null
                         }
-                      },
-                      "css": {
-                        "all": {
-                          "content": "text-gray-600 text-center text-sm",
-                          "meta": null
-                        }
                       }
+                    },
+                    "global_fields": {
+                      "condition": null,
+                      "data_config": null,
+                      "css": "text-gray-600 text-center text-sm",
+                      "css_mobile": null,
+                      "debug": false
                     }
                   }
                 ],
-                "fields": {
-                  "css": {
-                    "all": {
-                      "content": "flex flex-col",
-                      "meta": null
-                    }
-                  }
+                "fields": {},
+                "global_fields": {
+                  "condition": null,
+                  "data_config": null,
+                  "css": "flex flex-col",
+                  "css_mobile": null,
+                  "debug": false
                 }
               },
               {
@@ -319,13 +327,14 @@
                           "content": "1.6K",
                           "meta": null
                         }
-                      },
-                      "css": {
-                        "all": {
-                          "content": "text-xl font-bold text-gray-900 text-center",
-                          "meta": null
-                        }
                       }
+                    },
+                    "global_fields": {
+                      "condition": null,
+                      "data_config": null,
+                      "css": "text-xl font-bold text-gray-900 text-center",
+                      "css_mobile": null,
+                      "debug": false
                     }
                   },
                   {
@@ -342,33 +351,34 @@
                           "content": "Beiträge",
                           "meta": null
                         }
-                      },
-                      "css": {
-                        "all": {
-                          "content": "text-gray-600 text-center text-sm",
-                          "meta": null
-                        }
                       }
+                    },
+                    "global_fields": {
+                      "condition": null,
+                      "data_config": null,
+                      "css": "text-gray-600 text-center text-sm",
+                      "css_mobile": null,
+                      "debug": false
                     }
                   }
                 ],
-                "fields": {
-                  "css": {
-                    "all": {
-                      "content": "flex flex-col",
-                      "meta": null
-                    }
-                  }
+                "fields": {},
+                "global_fields": {
+                  "condition": null,
+                  "data_config": null,
+                  "css": "flex flex-col",
+                  "css_mobile": null,
+                  "debug": false
                 }
               }
             ],
-            "fields": {
-              "css": {
-                "all": {
-                  "content": "flex justify-around py-4 border-t border-gray-200 mx-6",
-                  "meta": null
-                }
-              }
+            "fields": {},
+            "global_fields": {
+              "condition": null,
+              "data_config": null,
+              "css": "flex justify-around py-4 border-t border-gray-200 mx-6",
+              "css_mobile": null,
+              "debug": false
             }
           },
           {
@@ -401,43 +411,44 @@
                       "content": "#",
                       "meta": null
                     }
-                  },
-                  "css": {
-                    "all": {
-                      "content": "w-full mx-6 mb-6 py-2 px-4 bg-white border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors duration-200",
-                      "meta": null
-                    }
                   }
+                },
+                "global_fields": {
+                  "condition": null,
+                  "data_config": null,
+                  "css": "w-full mx-6 mb-6 py-2 px-4 bg-white border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors duration-200",
+                  "css_mobile": null,
+                  "debug": false
                 }
               }
             ],
-            "fields": {
-              "css": {
-                "all": {
-                  "content": "flex justify-center",
-                  "meta": null
-                }
-              }
+            "fields": {},
+            "global_fields": {
+              "condition": null,
+              "data_config": null,
+              "css": "flex justify-center",
+              "css_mobile": null,
+              "debug": false
             }
           }
         ],
-        "fields": {
-          "css": {
-            "all": {
-              "content": "bg-white rounded-lg shadow-xl max-w-sm mx-auto overflow-hidden",
-              "meta": null
-            }
-          }
+        "fields": {},
+        "global_fields": {
+          "condition": null,
+          "data_config": null,
+          "css": "bg-white rounded-lg shadow-xl max-w-sm mx-auto overflow-hidden",
+          "css_mobile": null,
+          "debug": false
         }
       }
     ],
-    "fields": {
-      "css": {
-        "all": {
-          "content": "container mx-auto px-4 py-8 flex justify-center items-center min-h-screen bg-gray-100",
-          "meta": null
-        }
-      }
+    "fields": {},
+    "global_fields": {
+      "condition": null,
+      "data_config": null,
+      "css": "container mx-auto px-4 py-8 flex justify-center items-center min-h-screen bg-gray-100",
+      "css_mobile": null,
+      "debug": false
     }
   }
-] 
+]

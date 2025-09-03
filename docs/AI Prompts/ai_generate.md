@@ -19,6 +19,13 @@ Every section in the system follows this base structure:
         "meta": null
       }
     }
+  },
+  "global_fields": {
+    "condition": null,
+    "data_config": null,
+    "css": null,
+    "css_mobile": null,
+    "debug": false
   }
 }
 ```
@@ -28,23 +35,26 @@ Every section in the system follows this base structure:
 2. **Style-Based Rendering**: Each section has a `style_name` that determines how it renders
 3. **Multi-Language Support**: All field values are organized by language code (e.g., "en-GB", "de-CH")
 4. **Field-Based Configuration**: Section behavior is controlled through configurable fields
-5. **CSS Classes**: Styling is applied using Tailwind CSS classes through the `css` field
+5. **Global Fields**: Every section includes global_fields for system-wide configuration (condition, data_config, css, css_mobile, debug)
+6. **CSS Classes**: Styling is applied using Tailwind CSS classes through the `css` field in global_fields
 
 ## Available Style Types
+
+### Authentication Styles
+- **login**: User login form with email/password fields
+- **register**: User registration form
+- **resetPassword**: Password reset form
+- **twoFactorAuth**: Two-factor authentication form
+- **profile**: User profile management form
 
 ### Container & Layout Styles
 - **container**: Main container with optional fluid layout
 - **div**: Generic div container with background, border, and text colors
-- **card**: Collapsible card with title, type (primary/secondary/success/danger/warning/info/light/dark)
-- **jumbotron**: Hero section container
-- **alert**: Alert boxes with types (primary/secondary/success/danger/warning/info/light/dark)
 
-### Text & Content Styles  
+### Text & Content Styles
 - **heading**: Headings h1-h6 with configurable level and title
 - **markdown**: Full markdown content with GitHub Flavored Markdown support
-- **markdownInline**: Inline markdown for simple formatting
 - **plaintext**: Plain text with optional paragraph wrapping
-- **rawText**: Raw text without any processing
 
 ### Media Styles
 - **image**: Images with src, alt, title, width, height
@@ -65,14 +75,11 @@ Every section in the system follows this base structure:
 - **radio**: Radio button groups with options
 - **checkbox**: Checkboxes with values and validation
 - **slider**: Range sliders with labels and min/max values
+- **validate**: Form validation component
 
 ### Navigation & Lists
 - **tabs**: Tab containers for organizing content (requires tab children)
 - **tab**: Individual tab component (used within tabs)
-- **accordionList**: Collapsible list items
-- **nestedList**: Hierarchical navigation lists
-- **sortableList**: Drag-and-drop sortable lists
-- **navigationContainer**: Navigation wrapper with title
 
 ### Tables
 - **table**: Table container
@@ -81,24 +88,59 @@ Every section in the system follows this base structure:
 
 ### Advanced Elements
 - **progressBar**: Progress indicators with counts and styling
-- **quiz**: Interactive quiz components
-- **json**: JSON data display (content must be JSON string)
 - **showUserInput**: Display user input data
-- **htmlTag**: Custom HTML tag wrapper
-
-### Special Styles (Available but not commonly used)
-- **profile**: User profile management (authentication style)
-- **formUserInput**: User input form handler
+- **alert**: Alert boxes with types (primary/secondary/success/danger/warning/info/light/dark)
+- **version**: Version information display
+- **entryList**: List of data entries
+- **entryRecord**: Individual data record display
+- **entryRecordDelete**: Delete confirmation for data records
+- **refContainer**: Reference container for data relationships
 - **formUserInputLog**: User input logging form
 - **formUserInputRecord**: User input record form
+- **loop**: Loop container for repeating content
+- **dataContainer**: Generic data container
+- **htmlTag**: Custom HTML tag wrapper
 
 ## Field Reference by Style Type
 
-### Common Fields (Available for all styles)
-- `css`: Tailwind CSS classes for styling
-- `css_mobile`: Mobile-specific CSS classes
-- `condition`: Conditional display logic
-- `debug`: Debug information
+### Global Fields (Available for all styles)
+All sections include these global_fields:
+- `css`: Tailwind CSS classes for styling (moved to global_fields)
+- `css_mobile`: Mobile-specific CSS classes (moved to global_fields)
+- `condition`: Conditional display logic (moved to global_fields)
+- `data_config`: Data configuration for dynamic content
+- `debug`: Debug information (boolean, moved to global_fields)
+
+### Authentication Styles Fields
+**login**:
+- `email_label`: Email field label
+- `password_label`: Password field label
+- `submit_label`: Submit button text
+- `forgot_password_url`: Forgot password link URL
+- `remember_me`: "1" to show remember me checkbox
+
+**register**:
+- `email_label`: Email field label
+- `password_label`: Password field label
+- `confirm_password_label`: Confirm password field label
+- `submit_label`: Submit button text
+- `login_url`: Login page URL
+
+**resetPassword**:
+- `email_label`: Email field label
+- `submit_label`: Submit button text
+- `back_to_login_url`: Back to login URL
+
+**twoFactorAuth**:
+- `code_label`: Authentication code label
+- `submit_label`: Submit button text
+- `resend_label`: Resend code button text
+
+**profile**:
+- `first_name_label`: First name field label
+- `last_name_label`: Last name field label
+- `email_label`: Email field label
+- `submit_label`: Submit button text
 
 ### Container Styles Fields
 **container**:
@@ -106,19 +148,8 @@ Every section in the system follows this base structure:
 
 **div**:
 - `color_background`: Background color
-- `color_border`: Border color  
+- `color_border`: Border color
 - `color_text`: Text color
-
-**card**:
-- `title`: Card title
-- `type`: Card type (primary/secondary/success/danger/warning/info/light/dark)
-- `is_expanded`: "1" if expanded by default
-- `is_collapsible`: "1" if collapsible
-- `url_edit`: Edit URL for admin functionality
-
-**alert**:
-- `type`: Alert type (primary/secondary/success/danger/warning/info/light/dark)
-- `is_dismissable`: "1" if dismissable
 
 ### Text Styles Fields
 **heading**:
@@ -128,15 +159,9 @@ Every section in the system follows this base structure:
 **markdown**:
 - `text_md`: Markdown content
 
-**markdownInline**:
-- `text_md_inline`: Inline markdown content
-
 **plaintext**:
 - `text`: Plain text content
 - `is_paragraph`: "1" to wrap in paragraph tags
-
-**rawText**:
-- `text`: Raw text content
 
 ### Media Styles Fields
 **image**:
@@ -259,17 +284,6 @@ Every section in the system follows this base structure:
 - `is_striped`: "1" for striped appearance
 - `has_label`: "1" to show label
 
-**quiz**:
-- `type`: Quiz type
-- `caption`: Quiz question text
-- `label_right`: Text for correct answer
-- `label_wrong`: Text for wrong answer
-- `right_content`: Content shown for correct answer
-- `wrong_content`: Content shown for wrong answer
-
-**json**:
-- `json`: JSON data as string (e.g., "{\"key\": \"value\", \"number\": 42}")
-
 **showUserInput**:
 - `form_name`: Name of form to display data from
 - `delete_title`: Delete confirmation title
@@ -281,6 +295,61 @@ Every section in the system follows this base structure:
 - `column_names`: Column names to display
 - `load_as_table`: "1" to display as table
 
+**alert**:
+- `type`: Alert type (primary/secondary/success/danger/warning/info/light/dark)
+- `is_dismissable`: "1" if dismissable
+
+**version**:
+- `version_number`: Version number to display
+- `build_date`: Build date
+- `changelog_url`: URL to changelog
+
+**entryList**:
+- `data_source`: Data source configuration
+- `items_per_page`: Number of items per page
+- `sort_field`: Default sort field
+- `sort_direction`: Sort direction (asc/desc)
+
+**entryRecord**:
+- `record_id`: Record ID to display
+- `display_fields`: JSON array of fields to show
+- `edit_url`: Edit URL for the record
+
+**entryRecordDelete**:
+- `record_id`: Record ID to delete
+- `confirmation_title`: Delete confirmation title
+- `confirmation_message`: Delete confirmation message
+
+**refContainer**:
+- `reference_type`: Type of reference
+- `reference_id`: Reference ID
+- `display_mode`: Display mode (inline/block)
+
+**formUserInputLog**:
+- `form_id`: Form ID for logging
+- `log_level`: Log level (info/warn/error)
+- `max_entries`: Maximum log entries
+
+**formUserInputRecord**:
+- `record_id`: Record ID for form input
+- `form_fields`: JSON array of form fields
+- `submit_url`: Form submission URL
+
+**loop**:
+- `data_source`: Data source for looping
+- `item_template`: Template for each item
+- `max_iterations`: Maximum loop iterations
+
+**dataContainer**:
+- `data_type`: Type of data to contain
+- `data_source`: Data source configuration
+- `render_mode`: Render mode (list/grid/table)
+
+**htmlTag**:
+- `tag_name`: HTML tag name
+- `attributes`: JSON object of tag attributes
+- `content`: Tag content
+
 ### Navigation & List Fields
 **tabs**:
 - No specific fields (uses child tab components)
@@ -291,29 +360,7 @@ Every section in the system follows this base structure:
 - `is_active`: "1" if this tab is active by default
 - `icon`: Icon class for tab
 
-**accordionList**:
-- `items`: JSON string array of accordion items (e.g., "[{\"title\": \"Item 1\", \"content\": \"Content 1\"}]")
-- `title_prefix`: Prefix for accordion titles
-- `label_root`: Root label text
-- `id_prefix`: ID prefix for accordion items
-- `id_active`: ID of active accordion item
 
-**nestedList**:
-- `items`: JSON string array of nested list items (e.g., "[{\"title\": \"Parent\", \"children\": [{\"title\": \"Child\"}]}]")
-- `title_prefix`: Prefix for list titles
-- `is_expanded`: "1" if expanded by default
-- `is_collapsible`: "1" if collapsible
-- `search_text`: Search functionality text
-- `id_prefix`: ID prefix for list items
-- `id_active`: ID of active list item
-
-**sortableList**:
-- `items`: JSON string array of sortable items
-- `is_sortable`: "1" if items can be sorted
-- `is_editable`: "1" if items can be edited
-- `url_delete`: URL for delete action
-- `label_add`: Add button label
-- `url_add`: URL for add action
 
 ## CSS Styling Guidelines
 
@@ -387,13 +434,14 @@ All content fields must be wrapped in language objects. The structure is field n
       "content": "Ihr Titel hier",
       "meta": null
     }
-  },
-  "css": {
-    "all": {
-      "content": "text-center font-bold",
-      "meta": null
-    }
   }
+},
+"global_fields": {
+  "condition": null,
+  "data_config": null,
+  "css": "text-center font-bold",
+  "css_mobile": null,
+  "debug": false
 }
 ```
 
@@ -421,15 +469,19 @@ All content fields must be wrapped in language objects. The structure is field n
     "en-GB": { "content": "Follow", "meta": null },
     "de-CH": { "content": "Folgen", "meta": null }
   },
-  "css": {
-    "all": { "content": "text-center font-bold", "meta": null }
-  },
   "level": {
     "all": { "content": "2", "meta": null }
   },
   "img_src": {
     "all": { "content": "http://127.0.0.1/selfhelp/assets/image-holder.png", "meta": null }
   }
+},
+"global_fields": {
+  "condition": null,
+  "data_config": null,
+  "css": "text-center font-bold",
+  "css_mobile": null,
+  "debug": false
 }
 ```
 
@@ -438,17 +490,18 @@ All content fields must be wrapped in language objects. The structure is field n
 When generating JSON structures based on an image:
 
 1. **Analyze the Layout**: Identify the main sections, their hierarchy, and relationships
-2. **Choose Appropriate Styles**: Select the most suitable style types for each element
+2. **Choose Appropriate Styles**: Select the most suitable style types for each element from the supported list
 3. **Structure Hierarchically**: Create parent-child relationships using the `children` array
 4. **Configure Fields**: Set appropriate field values based on the visual content
-5. **Apply Styling**: Use Tailwind CSS classes to match the visual appearance
-6. **Dark Mode Support**: **CRITICAL** - Always include dark mode variants (dark:) for all colors, backgrounds, borders, and shadows
-7. **Use Placeholder Images**: Always use `http://127.0.0.1/selfhelp/assets/image-holder.png` for image sources
-8. **Multi-Language Structure**: Use field name first, then language code (field_name -> language_code -> content)
-9. **Required Languages**: Always include both "en-GB" (English) and "de-CH" (German) for all translatable text content
-10. **Language Codes**: Use "en-GB" and "de-CH" for translatable content, "all" for CSS and technical fields
-11. **Semantic Naming**: Give meaningful names to sections for admin interface
-12. **Naming Rules**: Section names can ONLY contain letters, numbers, hyphens (-), and underscores (_). No spaces, special characters, or other symbols are allowed.
+5. **Apply Global Fields**: **CRITICAL** - Always include `global_fields` with condition, data_config, css, css_mobile, and debug for each section
+6. **Apply Styling**: Use Tailwind CSS classes in `global_fields.css` to match the visual appearance
+7. **Dark Mode Support**: **CRITICAL** - Always include dark mode variants (dark:) for all colors, backgrounds, borders, and shadows in global_fields.css
+8. **Use Placeholder Images**: Always use `http://127.0.0.1/selfhelp/assets/image-holder.png` for image sources
+9. **Multi-Language Structure**: Use field name first, then language code (field_name -> language_code -> content)
+10. **Required Languages**: Always include both "en-GB" (English) and "de-CH" (German) for all translatable text content
+11. **Language Codes**: Use "en-GB" and "de-CH" for translatable content, "all" for technical fields
+12. **Semantic Naming**: Give meaningful names to sections for admin interface
+13. **Naming Rules**: Section names can ONLY contain letters, numbers, hyphens (-), and underscores (_). No spaces, special characters, or other symbols are allowed.
 
 ### Naming Convention Examples:
 - ✅ **Correct**: "travel-blog-container", "norway_article_card", "hero-section", "main-heading"
@@ -489,13 +542,14 @@ Here's a complete example of a simple page section:
             "content": "Welcome to Our Service",
             "meta": null
           }
-        },
-        "css": {
-          "all": {
-            "content": "text-4xl font-bold text-center mb-6",
-            "meta": null
-          }
         }
+      },
+      "global_fields": {
+        "condition": null,
+        "data_config": null,
+        "css": "text-4xl font-bold text-center mb-6",
+        "css_mobile": null,
+        "debug": false
       }
     },
     {
@@ -514,13 +568,14 @@ Here's a complete example of a simple page section:
             "content": "Hero image showing our main service",
             "meta": null
           }
-        },
-        "css": {
-          "all": {
-            "content": "w-full h-64 object-cover rounded-lg mb-6",
-            "meta": null
-          }
         }
+      },
+      "global_fields": {
+        "condition": null,
+        "data_config": null,
+        "css": "w-full h-64 object-cover rounded-lg mb-6",
+        "css_mobile": null,
+        "debug": false
       }
     },
     {
@@ -533,23 +588,24 @@ Here's a complete example of a simple page section:
             "content": "This is a comprehensive description of our service. We provide **excellent solutions** for your needs with modern technology and professional support.\n\n- Feature 1: Advanced functionality\n- Feature 2: User-friendly interface\n- Feature 3: 24/7 support",
             "meta": null
           }
-        },
-        "css": {
-          "all": {
-            "content": "prose max-w-none text-gray-700",
-            "meta": null
-          }
         }
+      },
+      "global_fields": {
+        "condition": null,
+        "data_config": null,
+        "css": "prose max-w-none text-gray-700",
+        "css_mobile": null,
+        "debug": false
       }
     }
   ],
-  "fields": {
-    "css": {
-      "all": {
-        "content": "container mx-auto px-4 py-8",
-        "meta": null
-      }
-    }
+  "fields": {},
+  "global_fields": {
+    "condition": null,
+    "data_config": null,
+    "css": "container mx-auto px-4 py-8",
+    "css_mobile": null,
+    "debug": false
   }
 }
 ```
