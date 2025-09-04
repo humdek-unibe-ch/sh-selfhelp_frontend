@@ -38,7 +38,7 @@ const SliderStyle: React.FC<ISliderStyleProps> = ({ style }) => {
     })) : [];
 
     return (
-        <Box className={style.css}>
+        <Box className={style.css ?? ""}>
             {label && (
                 <Text size="sm" fw={500} mb="xs">
                     {label}

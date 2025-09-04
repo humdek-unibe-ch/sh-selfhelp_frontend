@@ -16,7 +16,7 @@ const HtmlTagStyle: React.FC<IHtmlTagStyleProps> = ({ style }) => {
     const TagComponent = htmlTag as keyof JSX.IntrinsicElements;
 
     return (
-        <TagComponent className={style.css}>
+        <TagComponent className={style.css ?? ""}>
             {children.map((childStyle, index) => (
                 childStyle ? <BasicStyle key={`${childStyle.id}-${index}`} style={childStyle} /> : null
             ))}

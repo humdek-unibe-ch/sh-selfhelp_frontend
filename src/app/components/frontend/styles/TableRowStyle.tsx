@@ -12,7 +12,7 @@ const TableRowStyle: React.FC<ITableRowStyleProps> = ({ style }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
     return (
-        <Table.Tr className={style.css}>
+        <Table.Tr className={style.css ?? ""}>
             {children.map((childStyle, index) => (
                 childStyle ? <BasicStyle key={`${childStyle.id}-${index}`} style={childStyle} /> : null
             ))}

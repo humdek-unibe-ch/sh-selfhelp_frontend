@@ -45,7 +45,7 @@ export function usePagePrefetch() {
             queryKey,
             queryFn: () => PageApi.getPageContent(pageId, currentLanguageId),
             staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-            gcTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.gcTime,
+            gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
         });
     }, [queryClient, currentLanguageId]);
     

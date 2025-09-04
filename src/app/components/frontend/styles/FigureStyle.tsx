@@ -15,7 +15,7 @@ const FigureStyle: React.FC<IFigureStyleProps> = ({ style }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
     return (
-        <Box component="figure" className={style.css}>
+        <Box component="figure" className={style.css ?? ""}>
             {children.map((childStyle, index) => (
                 childStyle ? <BasicStyle key={`${childStyle.id}-${index}`} style={childStyle} /> : null
             ))}

@@ -12,7 +12,7 @@ import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useEffect, useRef } from 'react';
 import { usePageContentContext } from '../app/components/contexts/PageContentContext';
 import { useLanguageContext } from '../app/components/contexts/LanguageContext';
-import type { IPageContent } from '../types/responses/frontend/frontend.types';
+import { IPageContent } from '../types/common/pages.type';
 
 interface IUsePageContentOptions {
   /** Whether to enable the query */
@@ -66,7 +66,7 @@ export function usePageContent(pageId: number | null, options: IUsePageContentOp
         queryFn: () => PageApi.getPageContent(pageId!, currentLanguageId),
         enabled: !!pageId && !!currentLanguageId && enabled,
         staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-        gcTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
         retry: 2,
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
         placeholderData: forLayout ? undefined : keepPreviousData, // Only use for main content, not layout

@@ -7,7 +7,8 @@
     "dev:fast": "NODE_ENV=development next dev --turbo --port 3000",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "tsc":"tsc"
   },
   "dependencies": {
     "@atlaskit/pragmatic-drag-and-drop": "^1.7.2",

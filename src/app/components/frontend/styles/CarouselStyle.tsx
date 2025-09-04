@@ -22,7 +22,7 @@ interface ICarouselStyleProps {
  */
 const CarouselStyle: React.FC<ICarouselStyleProps> = ({ style }) => {
     return (
-        <div className={style.css}>
+        <div className={style.css ?? ''}>
             {style.children?.map((child, index) => (
                 child ? <BasicStyle key={index} style={child} /> : null
             ))}

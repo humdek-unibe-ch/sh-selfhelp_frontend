@@ -25,7 +25,7 @@ const AudioStyle: React.FC<IAudioStyleProps> = ({ style }) => {
     }
 
     return (
-        <Box className={style.css}>
+        <Box className={style.css ?? ""}>
             <audio 
                 controls
                 className="w-full"

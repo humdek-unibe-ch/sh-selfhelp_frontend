@@ -47,7 +47,7 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style }) => {
 
     if (isSubmitted) {
         return (
-            <Box className={style.css}>
+            <Box className={style.css ?? ""}>
                 <Card shadow="sm" padding="lg" radius="md" withBorder>
                     <Alert icon={<IconCheck size={16} />} color="green" title="Email Sent">
                         {alertSuccess}
@@ -68,7 +68,7 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style }) => {
     }
 
     return (
-        <Box className={style.css}>
+        <Box className={style.css ?? ""}>
             <Card shadow="sm" padding="lg" radius="md" withBorder>
                 {textMd && (
                     <Box mb="lg">

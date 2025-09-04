@@ -10,15 +10,11 @@ import {
     Box,
     Alert,
     Button,
-    TextInput,
-    Textarea,
     ActionIcon,
-    Tooltip,
     Collapse,
     Tabs,
     Container,
     Card,
-    Divider
 } from '@mantine/core';
 import {
     IconInfoCircle,
@@ -35,9 +31,7 @@ import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { usePageFields } from '../../../../../hooks/usePageDetails';
 import { useUpdatePageMutation } from '../../../../../hooks/mutations/useUpdatePageMutation';
 import { useLanguages } from '../../../../../hooks/useLanguages';
-import { FieldLabelWithTooltip } from '../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
-import { IPageField } from '../../../../../types/responses/admin/page-details.types';
-import { IUpdatePageField, IUpdatePageData, IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
+import { IUpdatePageData, IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
 import { notifications } from '@mantine/notifications';
 import styles from './ConfigurationPageEditor.module.css';
 import { FieldRenderer, IFieldData } from '../../shared/field-renderer/FieldRenderer';
@@ -46,10 +40,10 @@ import {
     processAllFields, 
     isContentField, 
     isPropertyField, 
-    getFieldTypeDisplayName,
     validateFieldProcessing,
     initializeFieldFormValues
 } from '../../../../../utils/field-processing.utils';
+import { IPageField } from '../../../../../types/common/pages.type';
 
 interface ConfigurationPageEditorProps {
     page: IAdminPage;

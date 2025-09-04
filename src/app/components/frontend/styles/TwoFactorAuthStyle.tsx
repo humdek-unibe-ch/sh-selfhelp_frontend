@@ -68,7 +68,7 @@ const TwoFactorAuthStyle: React.FC<ITwoFactorAuthStyleProps> = ({ style }) => {
     };
 
     return (
-        <Box className={style.css}>
+        <Box className={style.css ?? ""}>
             <Card shadow="sm" padding="lg" radius="md" withBorder>
                 <Title order={2} ta="center" mb="md">
                     {title}

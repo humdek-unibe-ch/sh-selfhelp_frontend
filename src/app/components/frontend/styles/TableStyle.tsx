@@ -12,7 +12,7 @@ const TableStyle: React.FC<ITableStyleProps> = ({ style }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
     return (
-        <Box className={style.css}>
+        <Box className={style.css ?? ""}>
             <Table striped highlightOnHover withTableBorder withColumnBorders>
                 <Table.Tbody>
                     {children.map((childStyle, index) => (

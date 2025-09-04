@@ -28,7 +28,7 @@ const VideoStyle: React.FC<IVideoStyleProps> = ({ style }) => {
     const isFluid = style.is_fluid?.content === '1';
 
     return (
-        <Box className={style.css}>
+        <Box className={style.css ?? ""}>
             <video 
                 controls
                 className={isFluid ? 'w-full h-auto' : ''}

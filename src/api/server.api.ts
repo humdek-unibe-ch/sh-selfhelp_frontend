@@ -5,9 +5,9 @@
 
 import { headers } from 'next/headers';
 import { API_CONFIG } from '../config/api.config';
-import { IPageItem } from '../types/responses/frontend/frontend.types';
 import { ILanguage } from '../types/responses/admin/languages.types';
 import { IUserDataResponse } from '../types/auth/jwt-payload.types';
+import { IPageItem } from '../types/common/pages.type';
 
 /**
  * Server-side API client for making requests from Server Components

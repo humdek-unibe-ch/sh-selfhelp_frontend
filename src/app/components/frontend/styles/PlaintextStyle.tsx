@@ -15,7 +15,7 @@ const PlaintextStyle: React.FC<IPlaintextStyleProps> = ({ style }) => {
     }
 
     return (
-        <Box className={style.css}>
+        <Box className={style.css ?? ""}>
             {isParagraph ? (
                 <Text component="p">{text}</Text>
             ) : (

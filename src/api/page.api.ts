@@ -5,11 +5,11 @@
  * @module api/page.api
  */
 
-import { IPageContent } from '../types/responses/frontend/frontend.types';
 import { ILanguage } from '../types/responses/admin/languages.types';
 import { apiClient } from './base.api';
 import { API_CONFIG } from '../config/api.config';
 import { IBaseApiResponse } from '../types/responses/common/response-envelope.types';
+import { IPageContent } from '../types/common/pages.type';
 
 export const PageApi = {
     /**
@@ -19,6 +19,7 @@ export const PageApi = {
      * @returns {Promise<IPageContent>} Page content data
      * @throws {Error} When API request fails
      */
+    // TODO: execued twice and more when executed in the beegigng, maybe add loading state
     async getPageContent(pageId: number, languageId?: number): Promise<IPageContent> {
         let url = API_CONFIG.ENDPOINTS.PAGES_GET_ONE(pageId);
         
@@ -26,6 +27,8 @@ export const PageApi = {
         if (languageId) {
             url += `?language_id=${languageId}`;
         }
+
+        console.log('url', url);
         
         const response = await apiClient.get<IBaseApiResponse<{ page: IPageContent }>>(url);
         return response.data.data.page;

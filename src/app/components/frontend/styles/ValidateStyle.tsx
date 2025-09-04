@@ -68,7 +68,7 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style }) => {
     };
 
     return (
-        <Box className={style.css}>
+        <Box className={style.css ?? ""}>
             <Card shadow="sm" padding="lg" radius="md" withBorder>
                 {title && (
                     <Title order={2} mb="md">

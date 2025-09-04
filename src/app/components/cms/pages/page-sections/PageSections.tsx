@@ -35,7 +35,7 @@ import {
     useRemoveSectionFromSectionMutation,
     useAddSectionToSectionMutation
 } from '../../../../../hooks/mutations';
-import { IPageField } from '../../../../../types/common/pages.type';
+import { IPageSection, IPageSectionWithFields } from '../../../../../types/common/pages.type';
 import { SectionsList } from './SectionsList';
 import { AddSectionModal } from './AddSectionModal';
 import { calculateSiblingBelowPosition } from '../../../../../utils/position-calculator';
@@ -52,8 +52,8 @@ interface IMoveData {
     newParentId: number | null;
     pageId?: number;
     newPosition: number;
-    draggedSection: IPageField;
-    newParent: IPageField | null;
+    draggedSection: IPageSectionWithFields;
+    newParent: IPageSectionWithFields | null;
     descendantIds: number[];
     totalMovingItems: number;
     // Old parent tracking for backend
@@ -97,13 +97,13 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
     });
 
     // Search functionality
-    const searchInSections = useCallback((sections: IPageField[], query: string): number[] => {
+    const searchInSections = useCallback((sections: IPageSectionWithFields[], query: string): number[] => {
         const results: number[] = [];
         const searchLower = query.toLowerCase();
 
-        const searchRecursive = (items: IPageField[]) => {
+        const searchRecursive = (items: IPageSectionWithFields[]) => {
             items.forEach(item => {
-                if (item.name.toLowerCase().includes(searchLower) ||
+                if ((typeof item.name === 'string' ? item.name : item.name?.content || '').toLowerCase().includes(searchLower) ||
                     item.style_name.toLowerCase().includes(searchLower) ||
                     item.id.toString().includes(searchLower)) {
                     results.push(item.id);
@@ -124,7 +124,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
 
         const parentsToExpand = new Set<number>();
 
-        const findParents = (sections: IPageField[], parentId: number | null = null): boolean => {
+        const findParents = (sections: IPageSectionWithFields[], parentId: number | null = null): boolean => {
             for (const section of sections) {
                 if (section.id === sectionId) {
                     return true; // Found the target section
@@ -193,7 +193,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
         if (searchResults.length > 0 && data?.sections) {
             const sectionsToExpand = new Set<number>();
 
-            const findParentsOfResults = (sections: IPageField[], parentId: number | null = null) => {
+            const findParentsOfResults = (sections: IPageSectionWithFields[], parentId: number | null = null) => {
                 sections.forEach(section => {
                     if (section.children) {
                         const hasResultInChildren = section.children.some(child =>
@@ -210,7 +210,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                 });
             };
 
-            const hasDeepResult = (section: IPageField, results: number[]): boolean => {
+            const hasDeepResult = (section: IPageSectionWithFields, results: number[]): boolean => {
                 if (results.includes(section.id)) return true;
                 if (section.children) {
                     return section.children.some(child => hasDeepResult(child, results));
@@ -224,7 +224,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
     }, [searchResults, data?.sections]);
 
     // Helper function to find a section by ID
-    const findSectionById = useCallback((sectionId: number, sections: IPageField[]): IPageField | null => {
+    const findSectionById = useCallback((sectionId: number, sections: IPageSectionWithFields[]): IPageSectionWithFields | null => {
         for (const section of sections) {
             if (section.id === sectionId) return section;
             if (section.children) {
@@ -270,7 +270,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
         if (!data?.sections) return;
 
         const allSectionIds = new Set<number>();
-        const collectAllIds = (sections: IPageField[]) => {
+        const collectAllIds = (sections: IPageSectionWithFields[]) => {
             sections.forEach(section => {
                 if (section.children && section.children.length > 0) {
                     allSectionIds.add(section.id);
@@ -506,7 +506,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
         if (data?.sections && data.sections.length > 0) {
             const sectionsWithChildren = new Set<number>();
 
-            const findSectionsWithChildren = (items: IPageField[]) => {
+            const findSectionsWithChildren = (items: IPageSectionWithFields[]) => {
                 items.forEach(item => {
                     if (item.children && item.children.length > 0) {
                         sectionsWithChildren.add(item.id);

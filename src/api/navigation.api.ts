@@ -8,7 +8,7 @@
 import { apiClient } from './base.api';
 import { API_CONFIG } from '../config/api.config';
 import { IBaseApiResponse } from '../types/responses/common/response-envelope.types';
-import { IPageItem } from '../types/responses/frontend/frontend.types';
+import { IPageItem } from '../types/common/pages.type';
 
 export const NavigationApi = {
     /**

@@ -27,6 +27,9 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
     const url = getFieldContent(style, 'url');
     const type = getFieldContent(style, 'type') || 'primary';
 
+    // Handle CSS field - use direct property from API response
+    const cssClass = style.css ?? '';
+
     const handleClick = () => {
         if (url && url !== '#') {
             // Check if URL is internal (relative or same origin)
@@ -44,14 +47,12 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
         }
     };
 
-    console.log('style', style);
-
     return (
-        <Button 
+        <Button
             variant="filled"
             color={type}
             onClick={handleClick}
-            className={style.css}
+            className={cssClass}
         >
             {label}
         </Button>

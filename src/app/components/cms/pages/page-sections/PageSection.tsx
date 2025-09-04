@@ -12,13 +12,13 @@ import {
     IconFolderOpen,
     IconFile
 } from '@tabler/icons-react';
-import { IPageField } from '../../../../../types/common/pages.type';
+import { IPageSectionWithFields } from '../../../../../types/common/pages.type';
 import { RemoveSectionModal } from './RemoveSectionModal';
 import { SectionLink } from './SectionLink';
 import styles from './PageSection.module.css';
 
 interface IPageSectionProps {
-    section: IPageField;
+    section: IPageSectionWithFields;
     level: number;
     parentId: number | null;
     pageId: number;
@@ -199,13 +199,13 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                         {/* Section Info - Ultra Compact */}
                         <Box className={styles.sectionInfo}>
                             <Group gap={3} wrap="nowrap" align="center">
-                                <Text 
-                                    size="xs" 
-                                    fw={500} 
+                                <Text
+                                    size="xs"
+                                    fw={500}
                                     className={styles.sectionName}
-                                    title={section.name}
+                                    title={typeof section.name === 'string' ? section.name : section.name?.content || ''}
                                 >
-                                    {section.name}
+                                    {typeof section.name === 'string' ? section.name : section.name?.content || ''}
                                 </Text>
                                 <Badge 
                                     size="xs" 

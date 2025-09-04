@@ -110,7 +110,7 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style }) => {
     // Show message if no form_name is provided
     if (!formName) {
         return (
-            <Box className={style.css}>
+            <Box className={style.css ?? ""}>
                 <Center py="xl">
                     <Text c="orange" ta="center">
                         Please configure the form_name field to display user input data.
@@ -122,7 +122,7 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style }) => {
 
     if (loadAsTable) {
         return (
-            <Box className={style.css}>
+            <Box className={style.css ?? ""}>
                 <Table striped highlightOnHover withTableBorder>
                     <Table.Thead>
                         <Table.Tr>
@@ -189,7 +189,7 @@ const ShowUserInputStyle: React.FC<IShowUserInputStyleProps> = ({ style }) => {
     }
 
     return (
-        <Box className={style.css}>
+        <Box className={style.css ?? ""}>
             {entries.length === 0 ? (
                 <Center py="xl">
                     <Text c="dimmed" ta="center">

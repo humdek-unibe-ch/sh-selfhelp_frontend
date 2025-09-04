@@ -1,3 +1,16 @@
+// Style name literal types for type safety
+export type TStyleName =
+    | 'login' | 'profile' | 'validate' | 'register' | 'resetPassword' | 'twoFactorAuth'
+    | 'container' | 'alert' | 'div' | 'refContainer' | 'dataContainer' | 'htmlTag'
+    | 'heading' | 'markdown' | 'plaintext'
+    | 'formUserInputLog' | 'formUserInputRecord' | 'input' | 'textarea' | 'select' | 'radio' | 'slider' | 'checkbox'
+    | 'image' | 'video' | 'audio' | 'figure' | 'carousel'
+    | 'button' | 'link'
+    | 'entryList' | 'entryRecord' | 'entryRecordDelete'
+    | 'tabs' | 'tab'
+    | 'table' | 'tableRow' | 'tableCell'
+    | 'progressBar' | 'showUserInput' | 'version' | 'loop';
+
 // Base interfaces
 export interface IContentField<T> {
     content: T;
@@ -11,21 +24,22 @@ export interface IContentField<T> {
 interface IBaseStyle {
     id: number;
     id_styles: number;
-    style_name: string;
-    can_have_children: number;
+    style_name: TStyleName;
+    can_have_children: number | null;
     position: number;
     path: string;
     children?: TStyle[];
     name?: IContentField<string>;
     label?: IContentField<string>;
     label_cancel?: IContentField<string>;
+    section_data: any[];
     fields: Record<string, IContentField<any>>;
-    // Common fields that appear in most styles
-    css?: string;
-    condition?: IContentField<any> | null;
-    debug?: IContentField<string>;
-    data_config?: IContentField<any>;
-    css_mobile?: IContentField<string>;
+    // Direct fields from API response (not nested in global_fields)
+    condition: string | null;
+    css: string | null;
+    css_mobile: string | null;
+    debug: number | null;
+    data_config: string | number | null;
 }
 
 // Authentication & User Management Styles

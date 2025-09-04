@@ -119,7 +119,7 @@ const DynamicPageContentOptimized = React.memo(function DynamicPageContentOptimi
                 className={`min-h-screen w-full page-content-transition ${isContentUpdating ? 'page-content-loading' : ''}`}
                 data-language-changing={isUpdatingLanguage}
             >
-                <PageContentRenderer sections={sections} />
+                <PageContentRenderer sections={sections as any} />
             </div>
         );
     }
@@ -132,7 +132,7 @@ const DynamicPageContentOptimized = React.memo(function DynamicPageContentOptimi
             className={`page-content-transition ${isContentUpdating ? 'page-content-loading' : ''}`}
             data-language-changing={isUpdatingLanguage}
         >
-            <PageContentRenderer sections={sections} />
+            <PageContentRenderer sections={sections as any} />
         </Container>
     );
 });

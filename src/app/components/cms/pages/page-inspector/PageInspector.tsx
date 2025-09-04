@@ -40,12 +40,11 @@ import { useLanguages } from '../../../../../hooks/useLanguages';
 import { LockedField } from '../../ui/locked-field/LockedField';
 import { DragDropMenuPositioner } from '../../ui/drag-drop-menu-positioner/DragDropMenuPositioner';
 import { FieldLabelWithTooltip } from '../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
-import { IPageField } from '../../../../../types/responses/admin/page-details.types';
 import { IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
 import { FieldRenderer, IFieldData } from '../../shared/field-renderer/FieldRenderer';
 import { CollapsibleSection } from '../../shared/collapsible-section/CollapsibleSection';
 import { PAGE_ACCESS_TYPES } from '../../../../../constants/lookups.constants';
-import { useInspectorStore, INSPECTOR_TYPES } from '../../../../../store/inspectorStore';
+import { INSPECTOR_TYPES } from '../../../../../store/inspectorStore';
 import styles from './PageInspector.module.css';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { CreatePageModal } from '../create-page/CreatePage';
@@ -59,6 +58,7 @@ import {
     validateFieldProcessing,
     initializeFieldFormValues
 } from '../../../../../utils/field-processing.utils';
+import { IPageField } from '../../../../../types/common/pages.type';
 
 interface PageInspectorProps {
     page: IAdminPage | null;
@@ -187,12 +187,12 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                 keyword: page.keyword,
                 url: pageDetails.url || '',
                 headless: pageDetails.headless || false,
-                navPosition: pageDetails.navPosition,
-                footerPosition: pageDetails.footerPosition,
+                navPosition: pageDetails.nav_position,
+                footerPosition: pageDetails.footer_position,
                 openAccess: pageDetails.openAccess || false,
                 pageAccessType: pageDetails.pageAccessType?.lookupCode || '',
-                headerMenuEnabled: pageDetails.navPosition !== null,
-                footerMenuEnabled: pageDetails.footerPosition !== null,
+                headerMenuEnabled: pageDetails.nav_position !== null,
+                footerMenuEnabled: pageDetails.footer_position !== null,
                 fields: fieldsObject
             });
         } else if (!page) {

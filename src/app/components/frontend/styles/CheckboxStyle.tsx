@@ -22,7 +22,7 @@ const CheckboxStyle: React.FC<ICheckboxStyleProps> = ({ style }) => {
     };
 
     return (
-        <Box className={style.css}>
+        <Box className={style.css ?? ''}>
             <Checkbox
                 name={name}
                 label={label}

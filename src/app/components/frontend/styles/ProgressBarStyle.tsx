@@ -32,7 +32,7 @@ const ProgressBarStyle: React.FC<IProgressBarStyleProps> = ({ style }) => {
     };
 
     return (
-        <Box className={style.css}>
+        <Box className={style.css ?? ""}>
             {hasLabel && (
                 <Group justify="space-between" mb="xs">
                     <Text size="sm">Progress</Text>

@@ -341,71 +341,44 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
             submitData.sectionName = formValues.sectionName;
         }
         
-        // Process content fields (translatable) - only changed values
+        // Process content fields (translatable) - send all values
         contentFields.forEach(field => {
             const currentFieldValues = formValues.fields[field.name] || {};
-            const originalFieldValues = originalValues.fields[field.name] || {};
-            
+
             languages.forEach(language => {
                 const currentValue = currentFieldValues[language.id] || '';
-                const originalValue = originalFieldValues[language.id] || '';
-                
-                // Only include if value has changed
-                if (currentValue !== originalValue) {
-                    submitData.contentFields.push({
-                        fieldId: field.id,
-                        languageId: language.id,
-                        value: currentValue
-                    });
-                }
+
+                submitData.contentFields.push({
+                    fieldId: field.id,
+                    languageId: language.id,
+                    value: currentValue
+                });
             });
         });
         
-        // Process property fields (non-translatable) - only changed values
+        // Process property fields (non-translatable) - send all values
         propertyFields.forEach(field => {
             const currentValue = formValues.properties[field.name];
-            const originalValue = originalValues.properties[field.name];
-            
-            // Only include if value has changed
-            if (currentValue !== originalValue) {
-                const fieldEntry = {
-                    fieldId: field.id,
-                    value: currentValue !== undefined ? currentValue : ''
-                };
-                
-                submitData.propertyFields.push(fieldEntry);
-                
 
-            }
+            const fieldEntry = {
+                fieldId: field.id,
+                value: currentValue !== undefined ? currentValue : ''
+            };
+
+            submitData.propertyFields.push(fieldEntry);
         });
 
-        // Process global fields - only changed values
-        const globalFieldsChanged = Object.keys(formValues.globalFields).some(key => {
-            const currentValue = formValues.globalFields[key as keyof typeof formValues.globalFields];
-            const originalValue = originalValues.globalFields[key as keyof typeof originalValues.globalFields];
-            return currentValue !== originalValue;
+        // Process global fields - send all values
+        // Clean up global fields - convert empty strings to null for API
+        const cleanGlobalFields: any = {};
+        Object.keys(formValues.globalFields).forEach(key => {
+            const value = formValues.globalFields[key as keyof typeof formValues.globalFields];
+            cleanGlobalFields[key] = (value === '' || value === null) ? null : value;
         });
+        submitData.globalFields = cleanGlobalFields;
 
-        if (globalFieldsChanged) {
-            // Clean up global fields - convert empty strings to null for API
-            const cleanGlobalFields: any = {};
-            Object.keys(formValues.globalFields).forEach(key => {
-                const value = formValues.globalFields[key as keyof typeof formValues.globalFields];
-                cleanGlobalFields[key] = (value === '' || value === null) ? null : value;
-            });
-            submitData.globalFields = cleanGlobalFields;
-        }
-
-        // Check if there are any changes to submit
-        const hasChanges = submitData.sectionName !== undefined ||
-                          submitData.contentFields.length > 0 ||
-                          submitData.propertyFields.length > 0 ||
-                          globalFieldsChanged;
-        
-        if (!hasChanges) {
-
-            return;
-        }
+        // Always submit since we're sending all field values
+        // (no need to check for changes since we send all values)
         
         // Execute the mutation
         try {

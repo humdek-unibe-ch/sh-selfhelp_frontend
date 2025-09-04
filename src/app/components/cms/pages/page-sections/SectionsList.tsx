@@ -27,14 +27,14 @@ import { pointerOutsideOfPreview } from '@atlaskit/pragmatic-drag-and-drop/eleme
 import { setCustomNativeDragPreview } from '@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview';
 import { DropIndicator } from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box';
 
-import { IPageField } from '../../../../../types/common/pages.type';
+import { IPageSectionWithFields } from '../../../../../types/common/pages.type';
 import { PageSection } from './PageSection';
 import { calculateDragDropPosition, calculateContainerDropPosition } from '../../../../../utils/position-calculator';
 import styles from './SectionsList.module.css';
 
 // Types
 interface ISectionsListProps {
-    sections: IPageField[];
+    sections: IPageSectionWithFields[];
     expandedSections: Set<number>;
     onToggleExpand: (sectionId: number) => void;
     onSectionMove: (moveData: any) => void;
