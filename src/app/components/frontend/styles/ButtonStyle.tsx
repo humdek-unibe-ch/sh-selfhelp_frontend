@@ -47,16 +47,20 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
         }
     };
 
+    console.log(style);
+
     return (
         <Button
-            variant="filled"
-            color={type}
+            // variant="filled"
+            // color={type}
             onClick={handleClick}
             className={cssClass}
+            
         >
             {label}
         </Button>
     );
+
 };
 
 export default ButtonStyle;

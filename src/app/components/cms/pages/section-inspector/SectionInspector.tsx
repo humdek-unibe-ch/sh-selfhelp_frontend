@@ -221,24 +221,33 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
             contentFields.forEach(field => {
                 contentFieldsObject[field.name] = {};
 
-                // Initialize all languages with empty strings first
+                // Initialize all languages with default values first
                 languages.forEach(lang => {
-                    contentFieldsObject[field.name][lang.id] = '';
+                    contentFieldsObject[field.name][lang.id] = field.default_value || '';
                 });
 
                 if (field.display) {
-                    // Content fields: populate based on actual language_id from translations
-                    field.translations.forEach(translation => {
-                        const language = languages.find(l => l.id === translation.language_id);
-                        if (language) {
-                            contentFieldsObject[field.name][language.id] = translation.content || field.default_value || '';
-                        }
-                    });
+                    // Content fields: populate based on actual language_id from translations if available
+                    if (field.translations && field.translations.length > 0) {
+                        field.translations.forEach(translation => {
+                            const language = languages.find(l => l.id === translation.language_id);
+                            if (language) {
+                                contentFieldsObject[field.name][language.id] = translation.content || field.default_value || '';
+                            }
+                        });
+                    }
+                    // If no translations, keep the default values set above
                 } else {
-                    // Property fields: find content from language_id = 1 and replicate across all languages
-                    const propertyTranslation = field.translations.find(t => t.language_id === 1);
-                    const propertyContent = propertyTranslation?.content || field.default_value || '';
-                    
+                    // Property fields: find content from language_id = 1 or use default value
+                    let propertyContent = field.default_value || '';
+
+                    if (field.translations && field.translations.length > 0) {
+                        const propertyTranslation = field.translations.find(t => t.language_id === 1);
+                        if (propertyTranslation?.content !== undefined && propertyTranslation?.content !== null) {
+                            propertyContent = propertyTranslation.content;
+                        }
+                    }
+
                     // Replicate property field content to all language tabs for editing convenience
                     languages.forEach(language => {
                         contentFieldsObject[field.name][language.id] = propertyContent;
@@ -250,9 +259,15 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
             const propertyFieldsObject: Record<string, string | boolean> = {};
             
             propertyFields.forEach(field => {
-                // Get the property field content from language ID 1 (where it's stored)
-                const propertyTranslation = field.translations.find(t => t.language_id === 1);
-                const value = propertyTranslation?.content || field.default_value || '';
+                // Get the property field content from language ID 1 or use default value
+                let value = field.default_value || '';
+
+                if (field.translations && field.translations.length > 0) {
+                    const propertyTranslation = field.translations.find(t => t.language_id === 1);
+                    if (propertyTranslation?.content !== undefined && propertyTranslation?.content !== null) {
+                        value = propertyTranslation.content;
+                    }
+                }
 
                 // Convert to appropriate type based on field type
                 if (field.type === 'checkbox') {
@@ -260,10 +275,6 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                 } else {
                     propertyFieldsObject[field.name] = value;
                 }
-
-
-                
-
             });
             
             const newFormValues = {
