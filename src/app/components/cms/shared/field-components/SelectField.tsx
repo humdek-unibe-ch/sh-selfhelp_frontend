@@ -23,7 +23,8 @@ export function SelectField({
 }: ISelectFieldProps) {
     const options = (config.options || []).map(option => ({
         value: option.value,
-        label: option.text
+        label: option.text,
+        disabled: option.disabled
     }));
     const separator = config.separator || ',';
 
@@ -33,8 +34,8 @@ export function SelectField({
             <Text>
                 {option.label}
             </Text>
-            {(config.multiSelect ? 
-                value.split(separator).includes(option.value) : 
+            {(config.multiSelect ?
+                value.split(separator).includes(option.value) :
                 value === option.value
             ) && <IconCheck size={16} color="var(--mantine-color-blue-6)" />}
         </Group>
@@ -43,25 +44,38 @@ export function SelectField({
     // Handle multi-select
     if (config.multiSelect) {
         const currentValues = value ? value.split(separator).filter(Boolean) : [];
-        
+
         return (
             <MultiSelect
                 key={fieldId}
                 data={options}
                 value={currentValues}
                 onChange={(values) => onChange(values.join(separator))}
-                placeholder={placeholder}
-                disabled={disabled}
-                searchable
-                clearable
-                limit={20}
-                maxDropdownHeight={280}
+                placeholder={config.placeholder || placeholder}
+                description={config.description}
+                error={config.error}
+                required={config.required}
+                withAsterisk={config.withAsterisk}
+                disabled={config.disabled ?? disabled}
+                searchable={config.searchable !== false}
+                clearable={config.clearable !== false}
+                limit={config.limit ?? 20}
+                maxDropdownHeight={config.maxDropdownHeight ?? 280}
+                maxValues={config.maxValues}
+                hidePickedOptions={config.hidePickedOptions}
+                checkIconPosition={config.checkIconPosition}
+                leftSection={config.leftSection}
+                rightSection={config.rightSection}
                 comboboxProps={{
                     dropdownPadding: 4,
-                    shadow: 'md'
+                    shadow: 'md',
+                    ...config.comboboxProps
                 }}
-                nothingFoundMessage="No options found..."
+                nothingFoundMessage={config.nothingFoundMessage || "No options found..."}
                 renderOption={renderOption}
+                dropdownOpened={config.dropdownOpened}
+                onDropdownOpen={config.onDropdownOpen}
+                onDropdownClose={config.onDropdownClose}
             />
         );
     }
@@ -73,18 +87,30 @@ export function SelectField({
             data={options}
             value={value || ''}
             onChange={(selectedValue) => onChange(selectedValue || '')}
-            placeholder={placeholder}
-            disabled={disabled}
-            searchable
-            clearable
-            limit={20}
-            maxDropdownHeight={280}
+            placeholder={config.placeholder || placeholder}
+            description={config.description}
+            error={config.error}
+            required={config.required}
+            withAsterisk={config.withAsterisk}
+            disabled={config.disabled ?? disabled}
+            searchable={config.searchable !== false}
+            clearable={config.clearable !== false}
+            allowDeselect={config.allowDeselect}
+            limit={config.limit ?? 20}
+            maxDropdownHeight={config.maxDropdownHeight ?? 280}
+            checkIconPosition={config.checkIconPosition}
+            leftSection={config.leftSection}
+            rightSection={config.rightSection}
             comboboxProps={{
                 dropdownPadding: 4,
-                shadow: 'md'
+                shadow: 'md',
+                ...config.comboboxProps
             }}
-            nothingFoundMessage="No options found..."
+            nothingFoundMessage={config.nothingFoundMessage || "No options found..."}
             renderOption={renderOption}
+            dropdownOpened={config.dropdownOpened}
+            onDropdownOpen={config.onDropdownOpen}
+            onDropdownClose={config.onDropdownClose}
         />
     );
 }
