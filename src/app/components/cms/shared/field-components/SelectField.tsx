@@ -6,7 +6,7 @@ import type { IFieldConfig } from '../../../../../types/requests/admin/fields.ty
 
 interface ISelectFieldProps {
     fieldId: number;
-    fieldConfig: IFieldConfig;
+    config: IFieldConfig;
     value: string;
     onChange: (value: string) => void;
     placeholder?: string;
@@ -15,17 +15,17 @@ interface ISelectFieldProps {
 
 export function SelectField({
     fieldId,
-    fieldConfig,
+    config: config,
     value,
     onChange,
     placeholder = 'Search and select...',
     disabled = false
 }: ISelectFieldProps) {
-    const options = (fieldConfig.options || []).map(option => ({
+    const options = (config.options || []).map(option => ({
         value: option.value,
         label: option.text
     }));
-    const separator = fieldConfig.separator || ',';
+    const separator = config.separator || ',';
 
     // Custom render option function with selection indicator
     const renderOption = ({ option, ...others }: any) => (
@@ -33,7 +33,7 @@ export function SelectField({
             <Text>
                 {option.label}
             </Text>
-            {(fieldConfig.multiSelect ? 
+            {(config.multiSelect ? 
                 value.split(separator).includes(option.value) : 
                 value === option.value
             ) && <IconCheck size={16} color="var(--mantine-color-blue-6)" />}
@@ -41,7 +41,7 @@ export function SelectField({
     );
 
     // Handle multi-select
-    if (fieldConfig.multiSelect) {
+    if (config.multiSelect) {
         const currentValues = value ? value.split(separator).filter(Boolean) : [];
         
         return (

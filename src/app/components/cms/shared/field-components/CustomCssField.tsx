@@ -23,7 +23,7 @@ import { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
 
 interface ICustomCssFieldProps {
     fieldId: number;
-    fieldConfig: IFieldConfig;
+    config: IFieldConfig;
     value: string;
     onChange: (value: string) => void;
     disabled?: boolean;
@@ -32,7 +32,7 @@ interface ICustomCssFieldProps {
 
 export function CustomCssField({
     fieldId,
-    fieldConfig,
+    config: config,
     value,
     onChange,
     disabled = false,
@@ -55,7 +55,7 @@ export function CustomCssField({
     });
 
     // For CSS, prioritize API data over fieldConfig.options
-    const predefinedOptions = (cssClasses || fieldConfig.options || []).map(option => ({
+    const predefinedOptions = (cssClasses || config.options || []).map(option => ({
         value: option.value,
         label: option.text
     }));
@@ -63,7 +63,7 @@ export function CustomCssField({
     // Create a set of predefined values for quick lookup
     const predefinedValues = new Set(predefinedOptions.map(option => option.value));
     
-    const separator = fieldConfig.separator || ' ';
+    const separator = config.separator || ' ';
     const currentValues = value ? value.split(separator).filter(Boolean) : [];
 
     // Validation function for creatable CSS classes
@@ -117,7 +117,7 @@ export function CustomCssField({
     );
 
     // Handle single select
-    if (!fieldConfig.multiSelect) {
+    if (!config.multiSelect) {
         const selectedOption = allOptions.find(opt => opt.value === value);
         
         return (
@@ -202,7 +202,7 @@ export function CustomCssField({
                     </Combobox.Dropdown>
                 </Combobox>
 
-                {fieldConfig.creatable && (
+                {config.creatable && (
                     <>
                         {!showCreateInput ? (
                             <Button
@@ -351,7 +351,7 @@ export function CustomCssField({
                 </Combobox.Dropdown>
             </Combobox>
 
-            {fieldConfig.creatable && (
+            {config.creatable && (
                 <>
                     {!showCreateInput ? (
                         <Button

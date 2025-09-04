@@ -133,7 +133,7 @@ export interface IPageField {
     help: string;
     display: boolean;
     translations: IPageFieldTranslation[];
-    fieldConfig?: IFieldConfig;
+    config?: IFieldConfig;
 }
 
 // ==================== PAGE CONTENT TYPES ====================

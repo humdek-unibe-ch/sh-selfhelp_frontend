@@ -44,7 +44,7 @@ export interface IFieldData {
         content: string | null;
         meta?: any;
     }>;
-    fieldConfig?: IFieldConfig;
+    config?: IFieldConfig;
 }
 
 interface IFieldRendererProps {
@@ -214,7 +214,7 @@ export function FieldRenderer({
 
     // Select CSS field - dynamic select with API options
     if (field.type === 'select-css') {
-        if (!field.fieldConfig) {
+        if (!field.config) {
             return renderFieldWithBadge(
                 <Box>
                     <Text size="sm" c="dimmed">No field configuration found</Text>
@@ -232,7 +232,7 @@ export function FieldRenderer({
         return renderFieldWithBadge(
             <CustomCssField
                 fieldId={field.id}
-                fieldConfig={field.fieldConfig}
+                config={field.config}
                 value={fieldValue}
                 onChange={onChange}
                 disabled={disabled}
@@ -242,7 +242,7 @@ export function FieldRenderer({
 
     // Select Group field
     if (field.type === 'select-group') {
-        if (!field.fieldConfig) {
+        if (!field.config) {
             return renderFieldWithBadge(
                 <Box>
                     <Text size="sm" c="dimmed">No field configuration found</Text>
@@ -260,7 +260,7 @@ export function FieldRenderer({
         return renderFieldWithBadge(
             <SelectField
                 fieldId={field.id}
-                fieldConfig={field.fieldConfig}
+                config={field.config}
                 value={fieldValue}
                 onChange={onChange}
                 placeholder="Search and select group..."
@@ -271,7 +271,7 @@ export function FieldRenderer({
 
     // Select Data Table field
     if (field.type === 'select-data_table') {
-        if (!field.fieldConfig) {
+        if (!field.config) {
             return renderFieldWithBadge(
                 <Box>
                     <Text size="sm" c="dimmed">No field configuration found</Text>
@@ -289,7 +289,7 @@ export function FieldRenderer({
         return renderFieldWithBadge(
             <SelectField
                 fieldId={field.id}
-                fieldConfig={field.fieldConfig}
+                config={field.config}
                 value={fieldValue}
                 onChange={onChange}
                 placeholder="Search and select data table..."
@@ -300,7 +300,7 @@ export function FieldRenderer({
 
     // Select Page Keyword field
     if (field.type === 'select-page-keyword') {
-        if (!field.fieldConfig) {
+        if (!field.config) {
             return renderFieldWithBadge(
                 <Box>
                     <Text size="sm" c="dimmed">No field configuration found</Text>
@@ -318,7 +318,7 @@ export function FieldRenderer({
         return renderFieldWithBadge(
             <SelectField
                 fieldId={field.id}
-                fieldConfig={field.fieldConfig}
+                config={field.config}
                 value={fieldValue}
                 onChange={onChange}
                 placeholder="Search and select page keyword..."
@@ -417,7 +417,7 @@ export function GlobalFieldRenderer({
 
     // Handle CSS fields - custom CSS field selector
     if (fieldType === 'css' || fieldType === 'css_mobile') {
-        const fieldConfig: IFieldConfig = {
+        const config: IFieldConfig = {
             multiSelect: true,
             creatable: true,
             separator: ' ',
@@ -437,7 +437,7 @@ export function GlobalFieldRenderer({
                 />
                 <CustomCssField
                     fieldId={0}
-                    fieldConfig={fieldConfig}
+                    config={config}
                     value={fieldValue}
                     onChange={onChange}
                     disabled={disabled}

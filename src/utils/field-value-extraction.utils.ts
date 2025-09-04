@@ -24,7 +24,7 @@ interface IFieldWithTranslations {
     hidden?: number;
     display: boolean;
     translations: IFieldTranslation[];
-    fieldConfig?: any;
+    config?: any;
 }
 
 /**
