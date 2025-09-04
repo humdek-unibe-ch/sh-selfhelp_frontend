@@ -34,7 +34,7 @@ export interface ISectionField {
     hidden: number;
     display: boolean;
     translations: ISectionFieldTranslation[];
-    fieldConfig?: IFieldConfig;
+    config?: IFieldConfig;
 }
 
 export interface ISectionFieldTranslation {

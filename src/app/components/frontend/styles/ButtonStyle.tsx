@@ -25,7 +25,7 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
     const router = useRouter();
     const label = getFieldContent(style, 'label');
     const url = getFieldContent(style, 'url');
-    const type = getFieldContent(style, 'type') || 'primary';
+    const variant = getFieldContent(style, 'mantine_variant');
 
     // Handle CSS field - use direct property from API response
     const cssClass = style.css ?? '';
@@ -51,7 +51,7 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
 
     return (
         <Button
-            variant="filled"
+            variant={variant}
             // color={type}
             onClick={handleClick}
             className={cssClass}

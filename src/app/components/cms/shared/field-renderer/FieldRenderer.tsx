@@ -112,6 +112,7 @@ export function FieldRenderer({
             case 'text': return 'gray';
             case 'textarea': return 'indigo';
             case 'checkbox': return 'pink';
+            case 'select': return 'blue';
             case 'select-css': return 'violet';
             case 'select-group': return 'cyan';
             case 'select-data_table': return 'grape';
@@ -322,6 +323,35 @@ export function FieldRenderer({
                 value={fieldValue}
                 onChange={onChange}
                 placeholder="Search and select page keyword..."
+                disabled={disabled}
+            />
+        );
+    }
+
+    // Generic Select field - uses options from config
+    if (field.type === 'select') {
+        if (!field.config) {
+            return renderFieldWithBadge(
+                <Box>
+                    <Text size="sm" c="dimmed">No field configuration found</Text>
+                    <TextInputField
+                        fieldId={field.id}
+                        value={fieldValue}
+                        onChange={onChange}
+                        placeholder={field.default_value || ''}
+                        disabled={true}
+                    />
+                </Box>
+            );
+        }
+
+        return renderFieldWithBadge(
+            <SelectField
+                fieldId={field.id}
+                config={field.config}
+                value={fieldValue}
+                onChange={onChange}
+                placeholder="Select an option..."
                 disabled={disabled}
             />
         );
