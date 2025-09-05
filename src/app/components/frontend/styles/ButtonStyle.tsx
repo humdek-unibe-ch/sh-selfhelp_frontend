@@ -3,6 +3,7 @@ import { Button } from '@mantine/core';
 import { useRouter } from 'next/navigation';
 import { getFieldContent } from '../../../../utils/style-field-extractor';
 import { IButtonStyle } from '../../../../types/common/styles.types';
+import IconComponent from '../../shared/common/IconComponent';
 
 /**
  * Props interface for ButtonStyle component
@@ -25,21 +26,30 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
     const router = useRouter();
     const label = getFieldContent(style, 'label');
     const url = getFieldContent(style, 'url');
-    const variant = getFieldContent(style, 'mantine-variant');
-    const color = getFieldContent(style, 'mantine-color');
-    const size = getFieldContent(style, 'mantine-slider-size');
-    const radius = getFieldContent(style, 'mantine-slider-radius');
-    const fullWidth = getFieldContent(style, 'mantine-fullwidth');
+    const variant = getFieldContent(style, 'mantine_variant');
+    const color = getFieldContent(style, 'mantine_color');
+    const size = getFieldContent(style, 'mantine_slider_size');
+    const radius = getFieldContent(style, 'mantine_slider_radius');
+    const fullWidth = getFieldContent(style, 'mantine_fullwidth');
+    const leftIconName = getFieldContent(style, 'mantine_btn_left_icon');
+    const rightIconName = getFieldContent(style, 'mantine_btn_right_icon');
+    const compact = getFieldContent(style, 'mantine_compact');
+    const disabled = getFieldContent(style, 'disabled');
+    const is_link = getFieldContent(style, 'is_link');
+    const auto_contrast = getFieldContent(style, 'mantine_auto_contrast');
 
     // Handle CSS field - use direct property from API response
     const cssClass = style.css ?? '';
 
+    const leftSection = leftIconName ? <IconComponent iconName={leftIconName} size={16} /> : null;
+    const rightSection = rightIconName ? <IconComponent iconName={rightIconName} size={16} /> : null;
+
     const handleClick = () => {
         if (url && url !== '#') {
             // Check if URL is internal (relative or same origin)
-            const isInternal = url.startsWith('/') || 
-                              (typeof window !== 'undefined' && url.startsWith(window.location.origin));
-            
+            const isInternal = url.startsWith('/') ||
+                (typeof window !== 'undefined' && url.startsWith(window.location.origin));
+
             if (isInternal) {
                 // Use Next.js router for internal navigation
                 const path = url.replace(window.location.origin, '');
@@ -57,11 +67,17 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
         <Button
             variant={variant}
             color={color}
-            size={size}
+            size={compact === '1' ? 'compact-' + size : size}
             radius={radius}
-            onClick={handleClick}
+            onClick={is_link === '1' ? handleClick : undefined}
             className={cssClass}
             fullWidth={fullWidth === '1'}
+            leftSection={leftSection}
+            rightSection={rightSection}
+            disabled={disabled === '1'}
+            autoContrast={auto_contrast === '1'}
+            component={is_link === '1' ? 'a' : 'button'}
+            href={is_link === '1' ? url : undefined}
         >
             {label}
         </Button>

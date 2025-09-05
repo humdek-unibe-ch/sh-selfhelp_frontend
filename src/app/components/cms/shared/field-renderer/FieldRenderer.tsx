@@ -9,6 +9,7 @@ import {
     CheckboxField,
     MonacoEditorField,
     SelectField,
+    SelectIconField,
     SliderField,
     UnknownField,
     ConditionBuilderField,
@@ -115,6 +116,7 @@ export function FieldRenderer({
             case 'textarea': return 'indigo';
             case 'checkbox': return 'pink';
             case 'select': return 'blue';
+            case 'select-icon': return 'violet';
             case 'select-css': return 'violet';
             case 'select-group': return 'cyan';
             case 'select-data_table': return 'grape';
@@ -356,6 +358,20 @@ export function FieldRenderer({
                 value={fieldValue}
                 onChange={onChange}
                 placeholder="Select an option..."
+                disabled={disabled}
+            />
+        );
+    }
+
+    // Select Icon field - dynamic Tabler icons
+    if (field.type === 'select-icon') {
+        return renderFieldWithBadge(
+            <SelectIconField
+                fieldId={field.id}
+                config={field.config || {}}
+                value={fieldValue}
+                onChange={onChange}
+                placeholder="Search and select icon..."
                 disabled={disabled}
             />
         );

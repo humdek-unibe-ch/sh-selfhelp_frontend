@@ -4,6 +4,7 @@ export { TextareaField } from './TextareaField';
 export { CheckboxField } from './CheckboxField';
 export { MonacoEditorField } from './MonacoEditorField';
 export { SelectField } from './SelectField';
+export { SelectIconField } from '../../../shared/common/SelectIconField';
 export { SliderField } from './SliderField';
 export { UnknownField } from './UnknownField';
 export { ConditionBuilderField } from './ConditionBuilderField';
