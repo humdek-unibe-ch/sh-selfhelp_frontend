@@ -768,9 +768,9 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                     sectionName="properties"
                     defaultExpanded={true}
                 >
-                    {fields.filter(field => !field.display).length > 0 ? (
+                    {fields.filter(field => !field.display && !field.name.startsWith('mantine_')).length > 0 ? (
                         <Stack gap="md">
-                            {fields.filter(field => !field.display).map(field => renderPropertyField(field))}
+                            {fields.filter(field => !field.display && !field.name.startsWith('mantine_')).map(field => renderPropertyField(field))}
                         </Stack>
                     ) : (
                         <Alert icon={<IconInfoCircle size="1rem" />} color="blue">
@@ -778,6 +778,26 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                         </Alert>
                     )}
                 </CollapsibleSection>
+
+                {/* Mantine Properties - Only show if use_mantine_style is enabled */}
+                {formValues.properties?.use_mantine_style === true && (
+                    <CollapsibleSection
+                        title="Mantine Properties"
+                        inspectorType={INSPECTOR_TYPES.SECTION}
+                        sectionName="mantine-properties"
+                        defaultExpanded={false}
+                    >
+                        {fields.filter(field => !field.display && field.name.startsWith('mantine_')).length > 0 ? (
+                            <Stack gap="md">
+                                {fields.filter(field => !field.display && field.name.startsWith('mantine_')).map(field => renderPropertyField(field))}
+                            </Stack>
+                        ) : (
+                            <Alert icon={<IconInfoCircle size="1rem" />} color="blue">
+                                No Mantine property fields available for this section.
+                            </Alert>
+                        )}
+                    </CollapsibleSection>
+                )}
             </InspectorLayout>
 
             {/* Delete Confirmation Modal */}

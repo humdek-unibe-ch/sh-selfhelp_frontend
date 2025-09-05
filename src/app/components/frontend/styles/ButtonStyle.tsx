@@ -38,6 +38,7 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
     const is_link = getFieldContent(style, 'is_link');
     const auto_contrast = getFieldContent(style, 'mantine_auto_contrast');
     const open_in_new_tab = getFieldContent(style, 'open_in_new_tab');
+    const use_mantine_style = getFieldContent(style, 'use_mantine_style');
 
     // Handle CSS field - use direct property from API response
     const cssClass = style.css ?? '';
@@ -70,25 +71,45 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
     console.log(style);
 
     return (
-        <Button
-            variant={variant}
-            color={color}
-            size={compact === '1' ? 'compact-' + size : size}
-            radius={radius}
-            onClick={is_link === '1' ? undefined : handleClick}
-            className={cssClass}
-            fullWidth={fullWidth === '1'}
-            leftSection={leftSection}
-            rightSection={rightSection}
-            disabled={disabled === '1'}
-            autoContrast={auto_contrast === '1'}
-            component={is_link === '1' ? 'a' : 'button'}
-            href={is_link === '1' ? url : undefined}
-            target={open_in_new_tab === '1' ? '_blank' : '_self'}
-        >
-            {label}
-        </Button>
-    );
+        use_mantine_style === '1' ? (
+            <Button
+                variant={variant}
+                color={color}
+                size={compact === '1' ? 'compact-' + size : size}
+                radius={radius}
+                onClick={is_link === '1' ? undefined : handleClick}
+                className={cssClass}
+                fullWidth={fullWidth === '1'}
+                leftSection={leftSection}
+                rightSection={rightSection}
+                disabled={disabled === '1'}
+                autoContrast={auto_contrast === '1'}
+                component={is_link === '1' ? 'a' : 'button'}
+                href={is_link === '1' ? url : undefined}
+                target={open_in_new_tab === '1' ? '_blank' : '_self'}
+            >
+                {label}
+            </Button>
+        ) : (
+            // Regular React button/link when Mantine is disabled
+            is_link === '1' ? (
+                <a
+                    href={url && url !== '#' ? url : '#'}
+                    className={cssClass}
+                    target={open_in_new_tab === '1' ? '_blank' : '_self'}
+                >
+                    {label}
+                </a>
+            ) : (
+                <button
+                    onClick={handleClick}
+                    className={cssClass}
+                    disabled={disabled === '1'}
+                >
+                    {label}
+                </button>
+            )
+        ));
 };
 
 export default ButtonStyle;
