@@ -7,3 +7,4 @@ export { SelectField } from './SelectField';
 export { UnknownField } from './UnknownField';
 export { ConditionBuilderField } from './ConditionBuilderField';
 export { DataConfigField } from './DataConfigField';
+export { ColorPickerField } from './ColorPickerField';

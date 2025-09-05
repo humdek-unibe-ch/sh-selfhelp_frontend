@@ -11,7 +11,8 @@ import {
     SelectField,
     UnknownField,
     ConditionBuilderField,
-    DataConfigField
+    DataConfigField,
+    ColorPickerField
 } from '../field-components';
 import type { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
 
@@ -87,11 +88,11 @@ export function FieldRenderer({
             return translationValue;
         }
 
-        // For property fields (display = false), use language_id = 1 or language_code = "property"
-        const propertyTranslation = field.translations.find(t => 
-            t.language_id === 1 || t.language_code === 'property'
+        // For property fields (display = false), use language_id = 1 or language_code = "all"
+        const propertyTranslation = field.translations.find(t =>
+            t.language_id === 1 || t.language_code === 'all'
         );
-        const propertyValue = propertyTranslation?.content || '';
+        const propertyValue = propertyTranslation?.content || field.default_value || '';
         return propertyValue;
     };
 
@@ -117,6 +118,7 @@ export function FieldRenderer({
             case 'select-group': return 'cyan';
             case 'select-data_table': return 'grape';
             case 'select-page-keyword': return 'lime';
+            case 'color-picker': return 'pink';
             default: return 'red';
         }
     };
@@ -357,10 +359,22 @@ export function FieldRenderer({
         );
     }
 
+    // Color Picker field
+    if (field.type === 'color-picker') {
+        return renderFieldWithBadge(
+            <ColorPickerField
+                fieldId={field.id}
+                fieldName={field.name}
+                fieldTitle={field.title || undefined}
+                value={fieldValue}
+                onChange={onChange}
+                help={field.help || undefined}
+                config={field.config}
+                disabled={disabled}
+            />
+        );
+    }
 
-
-
-    
     // Unknown field type
     return renderFieldWithBadge(
         <UnknownField
