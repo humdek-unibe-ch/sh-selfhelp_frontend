@@ -9,6 +9,7 @@ import {
     CheckboxField,
     MonacoEditorField,
     SelectField,
+    SliderField,
     UnknownField,
     ConditionBuilderField,
     DataConfigField,
@@ -119,6 +120,7 @@ export function FieldRenderer({
             case 'select-data_table': return 'grape';
             case 'select-page-keyword': return 'lime';
             case 'color-picker': return 'pink';
+            case 'slider': return 'yellow';
             default: return 'red';
         }
     };
@@ -129,9 +131,9 @@ export function FieldRenderer({
             <Stack gap="xs" className={className}>
                 <Group gap="xs" align="center">
                     <FieldLabelWithTooltip label={getFieldLabel()} tooltip={field.help || ''} locale={locale} />
-                    <Badge size="xs" variant="light" color={getFieldTypeBadgeColor(field.type)}>
+                    {/* <Badge size="xs" variant="light" color={getFieldTypeBadgeColor(field.type)}>
                         {field.type || 'unknown'}
-                    </Badge>
+                    </Badge> */}
                 </Group>
                 {children}
             </Stack>
@@ -369,6 +371,21 @@ export function FieldRenderer({
                 value={fieldValue}
                 onChange={onChange}
                 help={field.help || undefined}
+                config={field.config}
+                disabled={disabled}
+            />
+        );
+    }
+
+    // Slider field (for size/radius controls)
+    if (field.type === 'slider') {
+        return renderFieldWithBadge(
+            <SliderField
+                fieldId={field.id}
+                fieldName={field.name}
+                fieldTitle={field.title}
+                value={fieldValue}
+                onChange={onChange}
                 config={field.config}
                 disabled={disabled}
             />
