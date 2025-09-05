@@ -13,13 +13,14 @@ import {
     Loader,
     Input,
     Combobox,
-    useCombobox
+    useCombobox,
+    Textarea
 } from '@mantine/core';
 import classes from './CustomCssField.module.css';
 import { IconPlus, IconX, IconCheck, IconChevronDown } from '@tabler/icons-react';
 import { useState, useCallback } from 'react';
-import { useCssClasses } from '../../../../../hooks/useCssClasses';
-import { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
+import { useCssClasses } from '../../../../../../hooks/useCssClasses';
+import { IFieldConfig } from '../../../../../../types/requests/admin/fields.types';
 
 interface ICustomCssFieldProps {
     fieldId: number;
@@ -40,9 +41,11 @@ export function CustomCssField({
 }: ICustomCssFieldProps) {
     const { data: cssClasses, isLoading: cssLoading } = useCssClasses();
     const [showCreateInput, setShowCreateInput] = useState(false);
+    const [showMultiInput, setShowMultiInput] = useState(false);
     const [newCssClass, setNewCssClass] = useState('');
+    const [multiCssClasses, setMultiCssClasses] = useState('');
     const [search, setSearch] = useState('');
-    
+
     const combobox = useCombobox({
         onDropdownClose: () => {
             combobox.resetSelectedOption();
@@ -59,17 +62,28 @@ export function CustomCssField({
         value: option.value,
         label: option.text
     }));
-    
+
     // Create a set of predefined values for quick lookup
     const predefinedValues = new Set(predefinedOptions.map(option => option.value));
-    
+
     const separator = config.separator || ' ';
     const currentValues = value ? value.split(separator).filter(Boolean) : [];
 
-    // Validation function for creatable CSS classes
+    // Validation function for single CSS class
     const validateCssClass = (input: string): boolean => {
-        // Only allow letters, numbers, hyphens, and underscores
+        // Only allow letters, numbers, hyphens, underscores, and colons
         return /^[a-zA-Z0-9:_-]+$/.test(input);
+    };
+
+    // Validation function for multiple CSS classes
+    const validateMultipleCssClasses = (input: string): boolean => {
+        if (!input.trim()) return false;
+
+        // Split by whitespace, newlines, and filter out empty strings
+        const classes = input.split(/[\s\n]+/).filter(Boolean);
+
+        // Validate each class
+        return classes.every(cls => validateCssClass(cls));
     };
 
     // Helper function to determine if a value is predefined
@@ -77,7 +91,7 @@ export function CustomCssField({
         return predefinedValues.has(optionValue);
     };
 
-    // Handle creating new CSS class
+    // Handle creating single CSS class
     const handleCreateCssClass = useCallback(() => {
         if (validateCssClass(newCssClass) && !currentValues.includes(newCssClass)) {
             const updatedValues = [...currentValues, newCssClass];
@@ -86,6 +100,20 @@ export function CustomCssField({
             setShowCreateInput(false);
         }
     }, [newCssClass, currentValues, onChange, separator]);
+
+    // Handle creating multiple CSS classes
+    const handleCreateMultipleCssClasses = useCallback(() => {
+        if (validateMultipleCssClasses(multiCssClasses)) {
+            // Split input by whitespace and newlines, filter empty strings
+            const newClasses = multiCssClasses.split(/[\s\n]+/).filter(Boolean);
+            // Filter out classes that are already in current values
+            const uniqueNewClasses = newClasses.filter(cls => !currentValues.includes(cls));
+            const updatedValues = [...currentValues, ...uniqueNewClasses];
+            onChange(updatedValues.join(separator));
+            setMultiCssClasses('');
+            setShowMultiInput(false);
+        }
+    }, [multiCssClasses, currentValues, onChange, separator]);
 
     // Handle adding/removing values
     const handleToggleValue = useCallback((toggleValue: string) => {
@@ -119,7 +147,7 @@ export function CustomCssField({
     // Handle single select
     if (!config.multiSelect) {
         const selectedOption = allOptions.find(opt => opt.value === value);
-        
+
         return (
             <Stack gap="xs">
                 <Combobox
@@ -204,17 +232,28 @@ export function CustomCssField({
 
                 {config.creatable && (
                     <>
-                        {!showCreateInput ? (
-                            <Button
-                                variant="light"
-                                size="xs"
-                                leftSection={<IconPlus size={14} />}
-                                onClick={() => setShowCreateInput(true)}
-                                disabled={disabled}
-                            >
-                                Add custom CSS class
-                            </Button>
-                        ) : (
+                        {!showCreateInput && !showMultiInput ? (
+                            <Group gap="xs">
+                                <Button
+                                    variant="light"
+                                    size="xs"
+                                    leftSection={<IconPlus size={14} />}
+                                    onClick={() => setShowCreateInput(true)}
+                                    disabled={disabled}
+                                >
+                                    Add custom CSS class
+                                </Button>
+                                <Button
+                                    variant="light"
+                                    size="xs"
+                                    leftSection={<IconPlus size={14} />}
+                                    onClick={() => setShowMultiInput(true)}
+                                    disabled={disabled}
+                                >
+                                    Add multiple classes
+                                </Button>
+                            </Group>
+                        ) : showCreateInput ? (
                             <Group gap="xs">
                                 <TextInput
                                     placeholder="Enter CSS class name (letters, numbers, hyphens, underscores only)"
@@ -251,7 +290,45 @@ export function CustomCssField({
                                     <IconX size={14} />
                                 </ActionIcon>
                             </Group>
-                        )}
+                        ) : showMultiInput ? (
+                            <Stack gap="xs">
+                                <Textarea
+                                    placeholder={`Enter multiple CSS classes (one per line or space-separated):\npx-4 py-2\nrounded-lg\nfont-medium\ntext-white\nbg-blue-600\nhover:bg-blue-700`}
+                                    value={multiCssClasses}
+                                    onChange={(event) => setMultiCssClasses(event.currentTarget.value)}
+                                    size="xs"
+                                    minRows={3}
+                                    maxRows={6}
+                                    error={multiCssClasses && !validateMultipleCssClasses(multiCssClasses) ? 'Invalid CSS class names' : null}
+                                    onKeyDown={(event) => {
+                                        if (event.key === 'Enter' && event.ctrlKey) {
+                                            handleCreateMultipleCssClasses();
+                                        }
+                                    }}
+                                />
+                                <Group gap="xs">
+                                    <Button
+                                        variant="light"
+                                        size="xs"
+                                        leftSection={<IconPlus size={14} />}
+                                        onClick={handleCreateMultipleCssClasses}
+                                        disabled={!multiCssClasses || !validateMultipleCssClasses(multiCssClasses)}
+                                    >
+                                        Add Classes
+                                    </Button>
+                                    <Button
+                                        variant="subtle"
+                                        size="xs"
+                                        onClick={() => {
+                                            setShowMultiInput(false);
+                                            setMultiCssClasses('');
+                                        }}
+                                    >
+                                        Cancel
+                                    </Button>
+                                </Group>
+                            </Stack>
+                        ) : null}
                     </>
                 )}
             </Stack>
@@ -290,6 +367,7 @@ export function CustomCssField({
                                 height: 'auto',
                                 padding: '0',
                                 display: 'flex',
+                                flexDirection: 'column',
                                 alignItems: 'flex-start',
                                 cursor: 'pointer'
                             }
@@ -326,23 +404,23 @@ export function CustomCssField({
                     <Combobox.Options>
                         <ScrollArea.Autosize type="scroll" mah={280}>
                             {filteredOptions.length > 0 ? (
-                                                                    filteredOptions.map((option) => (
-                                        <Combobox.Option
-                                            value={option.value}
-                                            key={option.value}
-                                            active={currentValues.includes(option.value)}
-                                            className={classes.dropdownOption}
-                                        >
-                                            <Group justify="space-between">
-                                                <Text
-                                                    className={isPredefinedValue(option.value) ? classes.predefinedOption : classes.customOption}
-                                                >
-                                                    {option.label}
-                                                </Text>
-                                                {currentValues.includes(option.value) && <IconCheck size={16} />}
-                                            </Group>
-                                        </Combobox.Option>
-                                    ))
+                                filteredOptions.map((option) => (
+                                    <Combobox.Option
+                                        value={option.value}
+                                        key={option.value}
+                                        active={currentValues.includes(option.value)}
+                                        className={classes.dropdownOption}
+                                    >
+                                        <Group justify="space-between">
+                                            <Text
+                                                className={isPredefinedValue(option.value) ? classes.predefinedOption : classes.customOption}
+                                            >
+                                                {option.label}
+                                            </Text>
+                                            {currentValues.includes(option.value) && <IconCheck size={16} />}
+                                        </Group>
+                                    </Combobox.Option>
+                                ))
                             ) : (
                                 <Combobox.Empty>No CSS classes found</Combobox.Empty>
                             )}
@@ -353,17 +431,28 @@ export function CustomCssField({
 
             {config.creatable && (
                 <>
-                    {!showCreateInput ? (
-                        <Button
-                            variant="light"
-                            size="xs"
-                            leftSection={<IconPlus size={14} />}
-                            onClick={() => setShowCreateInput(true)}
-                            disabled={disabled}
-                        >
-                            Add custom CSS class
-                        </Button>
-                    ) : (
+                    {!showCreateInput && !showMultiInput ? (
+                        <Group gap="xs">
+                            <Button
+                                variant="light"
+                                size="xs"
+                                leftSection={<IconPlus size={14} />}
+                                onClick={() => setShowCreateInput(true)}
+                                disabled={disabled}
+                            >
+                                Add custom CSS class
+                            </Button>
+                            <Button
+                                variant="light"
+                                size="xs"
+                                leftSection={<IconPlus size={14} />}
+                                onClick={() => setShowMultiInput(true)}
+                                disabled={disabled}
+                            >
+                                Add multiple classes
+                            </Button>
+                        </Group>
+                    ) : showCreateInput ? (
                         <Group gap="xs">
                             <TextInput
                                 placeholder="Enter CSS class name (letters, numbers, hyphens, underscores only)"
@@ -399,7 +488,45 @@ export function CustomCssField({
                                 <IconX size={14} />
                             </ActionIcon>
                         </Group>
-                    )}
+                    ) : showMultiInput ? (
+                        <Stack gap="xs">
+                            <Textarea
+                                placeholder={`Enter multiple CSS classes (one per line or space-separated):\npx-4 py-2\nrounded-lg\nfont-medium\ntext-white\nbg-blue-600\nhover:bg-blue-700`}
+                                value={multiCssClasses}
+                                onChange={(event) => setMultiCssClasses(event.currentTarget.value)}
+                                size="xs"
+                                minRows={3}
+                                maxRows={6}
+                                error={multiCssClasses && !validateMultipleCssClasses(multiCssClasses) ? 'Invalid CSS class names' : null}
+                                onKeyDown={(event) => {
+                                    if (event.key === 'Enter' && event.ctrlKey) {
+                                        handleCreateMultipleCssClasses();
+                                    }
+                                }}
+                            />
+                            <Group gap="xs">
+                                <Button
+                                    variant="light"
+                                    size="xs"
+                                    leftSection={<IconPlus size={14} />}
+                                    onClick={handleCreateMultipleCssClasses}
+                                    disabled={!multiCssClasses || !validateMultipleCssClasses(multiCssClasses)}
+                                >
+                                    Add Classes
+                                </Button>
+                                <Button
+                                    variant="subtle"
+                                    size="xs"
+                                    onClick={() => {
+                                        setShowMultiInput(false);
+                                        setMultiCssClasses('');
+                                    }}
+                                >
+                                    Cancel
+                                    </Button>
+                            </Group>
+                        </Stack>
+                    ) : null}
                 </>
             )}
         </Stack>

@@ -1,4 +1,4 @@
-export { CustomCssField } from './CustomCssField';
+export { CustomCssField } from './CustomCssField/CustomCssField';
 export { TextInputField } from './TextInputField';
 export { TextareaField } from './TextareaField';
 export { CheckboxField } from './CheckboxField';
