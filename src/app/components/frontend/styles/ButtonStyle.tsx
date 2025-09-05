@@ -37,6 +37,7 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
     const disabled = getFieldContent(style, 'disabled');
     const is_link = getFieldContent(style, 'is_link');
     const auto_contrast = getFieldContent(style, 'mantine_auto_contrast');
+    const open_in_new_tab = getFieldContent(style, 'open_in_new_tab');
 
     // Handle CSS field - use direct property from API response
     const cssClass = style.css ?? '';
@@ -46,7 +47,12 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
 
     const handleClick = () => {
         if (url && url !== '#') {
+            console.log('url', url);
             // Check if URL is internal (relative or same origin)
+            if (open_in_new_tab === '1') {
+                window.open(url, '_blank');
+                return;
+            }
             const isInternal = url.startsWith('/') ||
                 (typeof window !== 'undefined' && url.startsWith(window.location.origin));
 
@@ -69,7 +75,7 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
             color={color}
             size={compact === '1' ? 'compact-' + size : size}
             radius={radius}
-            onClick={is_link === '1' ? handleClick : undefined}
+            onClick={is_link === '1' ? undefined : handleClick}
             className={cssClass}
             fullWidth={fullWidth === '1'}
             leftSection={leftSection}
@@ -78,6 +84,7 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
             autoContrast={auto_contrast === '1'}
             component={is_link === '1' ? 'a' : 'button'}
             href={is_link === '1' ? url : undefined}
+            target={open_in_new_tab === '1' ? '_blank' : '_self'}
         >
             {label}
         </Button>
