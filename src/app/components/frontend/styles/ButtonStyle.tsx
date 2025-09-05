@@ -29,6 +29,7 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
     const color = getFieldContent(style, 'mantine-color');
     const size = getFieldContent(style, 'mantine-slider-size');
     const radius = getFieldContent(style, 'mantine-slider-radius');
+    const fullWidth = getFieldContent(style, 'mantine-fullwidth');
 
     // Handle CSS field - use direct property from API response
     const cssClass = style.css ?? '';
@@ -60,12 +61,11 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
             radius={radius}
             onClick={handleClick}
             className={cssClass}
-            
+            fullWidth={fullWidth === '1'}
         >
             {label}
         </Button>
     );
-
 };
 
 export default ButtonStyle;
