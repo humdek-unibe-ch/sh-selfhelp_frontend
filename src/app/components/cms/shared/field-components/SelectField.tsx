@@ -3,6 +3,7 @@
 import { Select, MultiSelect, Group, Text } from '@mantine/core';
 import { IconCheck } from '@tabler/icons-react';
 import type { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
+import { CreatableSelectField } from './CreatableSelectField/CreatableSelectField';
 
 interface ISelectFieldProps {
     fieldId: number;
@@ -11,6 +12,22 @@ interface ISelectFieldProps {
     onChange: (value: string) => void;
     placeholder?: string;
     disabled?: boolean;
+    isLoading?: boolean;
+
+    // Creatable props
+    creatable?: boolean;
+    clearable?: boolean;
+    searchPlaceholder?: string;
+    noOptionsMessage?: string;
+    singleCreatePlaceholder?: string;
+    multiCreatePlaceholder?: string;
+    addSingleButtonText?: string;
+    addMultipleButtonText?: string;
+    addClassesButtonText?: string;
+    cancelButtonText?: string;
+    validateSingle?: (input: string) => boolean;
+    validateMultiple?: (input: string) => boolean;
+    validationErrorMessage?: string;
 }
 
 export function SelectField({
@@ -19,8 +36,49 @@ export function SelectField({
     value,
     onChange,
     placeholder = 'Search and select...',
-    disabled = false
+    disabled = false,
+    isLoading = false,
+    creatable = false,
+    clearable = false,
+    searchPlaceholder,
+    noOptionsMessage,
+    singleCreatePlaceholder,
+    multiCreatePlaceholder,
+    addSingleButtonText,
+    addMultipleButtonText,
+    addClassesButtonText,
+    cancelButtonText,
+    validateSingle,
+    validateMultiple,
+    validationErrorMessage
 }: ISelectFieldProps) {
+
+    // Use CreatableSelectField if creatable is enabled
+    if (creatable) {
+        return (
+            <CreatableSelectField
+                fieldId={fieldId}
+                config={config}
+                value={value}
+                onChange={onChange}
+                disabled={disabled}
+                isLoading={isLoading}
+                clearable={clearable}
+                placeholder={placeholder}
+                searchPlaceholder={searchPlaceholder}
+                noOptionsMessage={noOptionsMessage}
+                singleCreatePlaceholder={singleCreatePlaceholder}
+                multiCreatePlaceholder={multiCreatePlaceholder}
+                addSingleButtonText={addSingleButtonText}
+                addMultipleButtonText={addMultipleButtonText}
+                addClassesButtonText={addClassesButtonText}
+                cancelButtonText={cancelButtonText}
+                validateSingle={validateSingle}
+                validateMultiple={validateMultiple}
+                validationErrorMessage={validationErrorMessage}
+            />
+        );
+    }
     const options = (config.options || []).map(option => ({
         value: option.value,
         label: option.text,

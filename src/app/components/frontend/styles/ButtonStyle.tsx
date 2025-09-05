@@ -25,7 +25,7 @@ interface IButtonStyleProps {
 const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
     const router = useRouter();
     const label = getFieldContent(style, 'label');
-    const url = getFieldContent(style, 'url');
+    const url = getFieldContent(style, 'page_keyword');
     const variant = getFieldContent(style, 'mantine_variant');
     const color = getFieldContent(style, 'mantine_color');
     const size = getFieldContent(style, 'mantine_slider_size');
@@ -46,9 +46,8 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
     const leftSection = leftIconName ? <IconComponent iconName={leftIconName} size={16} /> : null;
     const rightSection = rightIconName ? <IconComponent iconName={rightIconName} size={16} /> : null;
 
-    const handleClick = () => {
+    const handleClick = (e?: React.MouseEvent) => {
         if (url && url !== '#') {
-            console.log('url', url);
             // Check if URL is internal (relative or same origin)
             if (open_in_new_tab === '1') {
                 window.open(url, '_blank');
@@ -58,13 +57,32 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
                 (typeof window !== 'undefined' && url.startsWith(window.location.origin));
 
             if (isInternal) {
+                // Prevent default anchor behavior if this is called from an anchor tag
+                if (e) {
+                    e.preventDefault();
+                }
                 // Use Next.js router for internal navigation
-                const path = url.replace(window.location.origin, '');
+                const path = url.startsWith('/') ? url : url.replace(window.location.origin, '');
+                console.log('Internal navigation to:', path);
                 router.push(path);
             } else {
                 // Use window.location for external URLs
                 window.location.href = url;
             }
+        }
+    };
+
+    // Handle anchor click for internal links
+    const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        if (url && url !== '#') {
+            const isInternal = url.startsWith('/') ||
+                (typeof window !== 'undefined' && url.startsWith(window.location.origin));
+
+            if (isInternal && open_in_new_tab !== '1') {
+                e.preventDefault();
+                handleClick();
+            }
+            // For external URLs or new tab, let the anchor handle it normally
         }
     };
 
@@ -77,7 +95,6 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
                 color={color}
                 size={compact === '1' ? 'compact-' + size : size}
                 radius={radius}
-                onClick={is_link === '1' ? undefined : handleClick}
                 className={cssClass}
                 fullWidth={fullWidth === '1'}
                 leftSection={leftSection}
@@ -86,6 +103,7 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
                 autoContrast={auto_contrast === '1'}
                 component={is_link === '1' ? 'a' : 'button'}
                 href={is_link === '1' ? url : undefined}
+                onClick={handleClick}
                 target={open_in_new_tab === '1' ? '_blank' : '_self'}
             >
                 {label}
@@ -97,6 +115,7 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
                     href={url && url !== '#' ? url : '#'}
                     className={cssClass}
                     target={open_in_new_tab === '1' ? '_blank' : '_self'}
+                    onClick={handleAnchorClick}
                 >
                     {label}
                 </a>

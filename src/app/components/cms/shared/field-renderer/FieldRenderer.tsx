@@ -3,7 +3,7 @@
 import { Box, Text, Stack, Badge, Group } from '@mantine/core';
 import { FieldLabelWithTooltip } from '../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
 import {
-    CustomCssField,
+    GlobalCreatableSelectField,
     TextInputField,
     TextareaField,
     CheckboxField,
@@ -237,7 +237,7 @@ export function FieldRenderer({
         }
 
         return renderFieldWithBadge(
-            <CustomCssField
+            <GlobalCreatableSelectField
                 fieldId={field.id}
                 config={field.config}
                 value={fieldValue}
@@ -326,6 +326,8 @@ export function FieldRenderer({
             <SelectField
                 fieldId={field.id}
                 config={field.config}
+                creatable={field.config.creatable}
+                clearable={true}
                 value={fieldValue}
                 onChange={onChange}
                 placeholder="Search and select page keyword..."
@@ -355,6 +357,8 @@ export function FieldRenderer({
             <SelectField
                 fieldId={field.id}
                 config={field.config}
+                creatable={field.config.creatable}
+                clearable={field.config.clearable}
                 value={fieldValue}
                 onChange={onChange}
                 placeholder="Select an option..."
@@ -512,7 +516,7 @@ export function GlobalFieldRenderer({
                     label={title}
                     tooltip={tooltip}
                 />
-                <CustomCssField
+                <GlobalCreatableSelectField
                     fieldId={0}
                     config={config}
                     value={fieldValue}
