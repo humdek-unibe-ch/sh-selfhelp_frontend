@@ -1,5 +1,40 @@
 # Memory Updates
 
+## Loading States Rule - No isLoading for Main Page Content
+
+**Date**: Current Session
+
+**Rule**: `isLoading` states should NOT be used for main page content loading. Remove all loading spinners and "Loading..." messages from primary page content.
+
+**When to Use isLoading**:
+- ✅ **Buttons** - Show loading state on action buttons (Save, Delete, Submit, etc.)
+- ✅ **Modals/Dialogs** - Show loading state in modal dialogs
+- ✅ **Specific Components** - When explicitly requested for specific UI elements
+- ❌ **Main Page Content** - Never show loading spinners for main page content
+- ❌ **Section Lists** - Never show "Loading sections..." messages
+- ❌ **Page Content** - Never show "Loading page..." messages
+
+**Implementation Pattern**:
+```typescript
+// ❌ BAD - Don't do this for main page content
+if (isLoading) {
+  return <Loader />;
+}
+
+// ✅ GOOD - Show content immediately, handle empty states gracefully
+if (error) {
+  return <ErrorMessage />;
+}
+
+if (!data || data.length === 0) {
+  return <EmptyState />;
+}
+
+return <Content />;
+```
+
+**Rationale**: Users should see content immediately without loading interruptions. React Query's `keepPreviousData` and proper caching should handle smooth transitions. Loading states should only be used for specific actions or when explicitly requested.
+
 ## Centralized Lookups Pattern for Scheduled Jobs Filters
 
 **Date**: Current Session

@@ -6,7 +6,6 @@ import {
     Paper,
     Title,
     Text,
-    Loader,
     Alert,
     Group,
     Badge,
@@ -432,6 +431,21 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
     // Handle auto-selection of newly created sections
     const handleSectionCreated = (sectionId: number) => {
         setSelectedSectionId(sectionId);
+
+        // Navigate to the section using router.push for inspector loading
+        const currentPath = window.location.pathname;
+        const pathParts = currentPath.split('/');
+
+        // Find the admin pages path and reconstruct with section ID
+        const adminIndex = pathParts.indexOf('admin');
+        const pagesIndex = pathParts.indexOf('pages', adminIndex);
+
+        if (pagesIndex !== -1 && pathParts[pagesIndex + 1]) {
+            const pageKeyword = pathParts[pagesIndex + 1];
+            const newPath = `/admin/pages/${pageKeyword}/${sectionId}`;
+            router.push(newPath, { scroll: false });
+        }
+
         // Auto-expand parents and scroll to the new section
         setTimeout(() => {
             expandParentsOfSection(sectionId);
@@ -445,6 +459,21 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
         if (sectionIds.length > 0) {
             const firstSectionId = sectionIds[0];
             setSelectedSectionId(firstSectionId);
+
+            // Navigate to the first imported section using router.push for inspector loading
+            const currentPath = window.location.pathname;
+            const pathParts = currentPath.split('/');
+
+            // Find the admin pages path and reconstruct with section ID
+            const adminIndex = pathParts.indexOf('admin');
+            const pagesIndex = pathParts.indexOf('pages', adminIndex);
+
+            if (pagesIndex !== -1 && pathParts[pagesIndex + 1]) {
+                const pageKeyword = pathParts[pagesIndex + 1];
+                const newPath = `/admin/pages/${pageKeyword}/${firstSectionId}`;
+                router.push(newPath, { scroll: false });
+            }
+
             // Auto-expand parents and scroll to the first imported section
             setTimeout(() => {
                 expandParentsOfSection(firstSectionId);
@@ -486,17 +515,6 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
             setExpandedSections(sectionsWithChildren);
         }
     }, [data?.sections]);
-
-    if (isLoading) {
-        return (
-            <Paper p="md" withBorder>
-                <Group gap="xs" mb="md">
-                    <Loader size="sm" />
-                    <Text size="sm">Loading page sections...</Text>
-                </Group>
-            </Paper>
-        );
-    }
 
     if (error) {
         return (
