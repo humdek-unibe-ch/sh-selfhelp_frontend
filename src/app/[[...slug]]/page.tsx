@@ -126,13 +126,10 @@ const DynamicPageContentOptimized = React.memo(function DynamicPageContentOptimi
 
     // For regular pages, use standard container layout
     return (
-        <Container 
-            size="xl" 
-            py="md"
-            className={`page-content-transition ${isContentUpdating ? 'page-content-loading' : ''}`}
+        <div
             data-language-changing={isUpdatingLanguage}
         >
             <PageContentRenderer sections={sections as any} />
-        </Container>
+        </div>
     );
 });

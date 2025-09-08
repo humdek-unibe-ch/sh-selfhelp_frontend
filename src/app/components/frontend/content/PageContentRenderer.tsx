@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Stack } from '@mantine/core';
+import { Stack } from '@mantine/core';
 import type { TStyle } from '../../../../types/common/styles.types';
 import BasicStyle from '../styles/BasicStyle';
 
@@ -22,16 +22,16 @@ export function PageContentRenderer({ sections }: IPageContentRendererProps) {
     }
 
     return (
-        <Container size="xl" px={0}>
+        <div>
             <Stack gap={0}>
                 {sections.map((section, index) => {
                     if (!section) return null;
-                    
+
                     const key = `section-${section.id || `index-${index}`}`;
                     return <BasicStyle key={key} style={section} />;
                 })}
             </Stack>
-        </Container>
+        </div>
     );
 }
 
