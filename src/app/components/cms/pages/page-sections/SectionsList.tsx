@@ -613,7 +613,9 @@ const SectionsListComponent = function SectionsList({
 }: ISectionsListProps) {
 
     // Memoize sections to prevent unnecessary re-renders
-    const memoizedSections = useMemo(() => sections, [sections]);
+    const memoizedSections = useMemo(() => {
+        return sections;
+    }, [sections]);
     const containerRef = useRef<HTMLDivElement>(null);
     const [dragState, setDragState] = useState<IDragState>({
         isDragActive: false,
@@ -845,35 +847,5 @@ const SectionsListComponent = function SectionsList({
     );
 };
 
-// Export memoized component
-export const SectionsList = memo(SectionsListComponent, (prevProps, nextProps) => {
-    // If sections changed from/to undefined, always re-render
-    if ((prevProps.sections === undefined) !== (nextProps.sections === undefined)) {
-        return false;
-    }
-
-    // If either sections is undefined, don't check length/content
-    if (prevProps.sections === undefined || nextProps.sections === undefined) {
-        return (
-            prevProps.selectedSectionId === nextProps.selectedSectionId &&
-            prevProps.focusedSectionId === nextProps.focusedSectionId &&
-            prevProps.pageId === nextProps.pageId &&
-            prevProps.expandedSections.size === nextProps.expandedSections.size &&
-            Array.from(prevProps.expandedSections).every(id => nextProps.expandedSections.has(id))
-        );
-    }
-
-    // Both sections are defined, check length and content
-    return (
-        prevProps.sections!.length === nextProps.sections!.length &&
-        prevProps.sections!.every((section, index) =>
-            section.id === nextProps.sections![index]?.id &&
-            section.position === nextProps.sections![index]?.position
-        ) &&
-        prevProps.selectedSectionId === nextProps.selectedSectionId &&
-        prevProps.focusedSectionId === nextProps.focusedSectionId &&
-        prevProps.pageId === nextProps.pageId &&
-        prevProps.expandedSections.size === nextProps.expandedSections.size &&
-        Array.from(prevProps.expandedSections).every(id => nextProps.expandedSections.has(id))
-    );
-}); 
+// Temporarily export without memoization for debugging
+export const SectionsList = SectionsListComponent; 

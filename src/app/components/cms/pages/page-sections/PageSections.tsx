@@ -35,6 +35,17 @@ import { AddSectionModal } from './AddSectionModal';
 import { calculateSiblingBelowPosition } from '../../../../../utils/position-calculator';
 import styles from './PageSections.module.css';
 
+// Helper function to recursively sort sections and their children by position
+const sortSectionsByPosition = (sections: IPageSectionWithFields[]): IPageSectionWithFields[] => {
+    return sections
+        .slice()
+        .sort((a, b) => a.position - b.position)
+        .map(section => ({
+            ...section,
+            children: section.children ? sortSectionsByPosition(section.children) : []
+        }));
+};
+
 interface IPageSectionsProps {
     pageId: number | null;
     pageName?: string;
@@ -57,6 +68,7 @@ interface IMoveData {
 
 function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSectionsProps) {
     const { data, isLoading, error } = usePageSections(pageId);
+
     const router = useRouter();
 
     const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
@@ -639,7 +651,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
             {/* Sections List - Scrollable Content Area */}
             <Box className={styles.contentContainer}>
                 <SectionsList
-                    sections={isLoading ? undefined : data?.sections}
+                    sections={isLoading ? undefined : data?.sections ? sortSectionsByPosition(data.sections) : undefined}
                     expandedSections={expandedSections}
                     onToggleExpand={handleToggleExpand}
                     onSectionMove={handleSectionMove}
