@@ -84,7 +84,8 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
 
         const searchRecursive = (items: IPageSectionWithFields[]) => {
             items.forEach(item => {
-                if ((typeof item.name === 'string' ? item.name : item.name?.content || '').toLowerCase().includes(searchLower) ||
+                const nameValue = item.name;
+                if (nameValue.toLowerCase().includes(searchLower) ||
                     item.style_name.toLowerCase().includes(searchLower) ||
                     item.id.toString().includes(searchLower)) {
                     results.push(item.id);

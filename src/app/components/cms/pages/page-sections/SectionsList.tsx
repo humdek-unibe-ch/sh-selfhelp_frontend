@@ -34,7 +34,7 @@ import styles from './SectionsList.module.css';
 
 // Types
 interface ISectionsListProps {
-    sections: IPageSectionWithFields[];
+    sections: IPageSectionWithFields[] | undefined;
     expandedSections: Set<number>;
     onToggleExpand: (sectionId: number) => void;
     onSectionMove: (moveData: any) => void;
@@ -683,8 +683,8 @@ const SectionsListComponent = function SectionsList({
 
         // Get siblings in the target container
         const siblings = targetParentId
-            ? (findSectionById(targetParentId, sections)?.children || [])
-            : sections;
+            ? (findSectionById(targetParentId, sections || [])?.children || [])
+            : (sections || []);
 
         const result = calculateDragDropPosition(targetSection, edge, siblings, targetParentId);
         return {
@@ -738,6 +738,8 @@ const SectionsListComponent = function SectionsList({
                 const draggedSectionId = source.data.sectionId as number;
                 const target = location.current.dropTargets[0];
                 const targetSectionId = target.data.sectionId as number;
+
+                if (!sections) return;
 
                 const draggedSection = findSectionById(draggedSectionId, sections);
                 const targetSection = findSectionById(targetSectionId, sections);
@@ -814,7 +816,7 @@ const SectionsListComponent = function SectionsList({
                             </Paper>
                         ) : (
                             <div className={styles.sectionsList}>
-                                {memoizedSections.map((section, index) => (
+                                {memoizedSections?.map((section, index) => (
                                     <SectionItem
                                         key={`section-${section.id}-${section.position || index}`}
                                         section={section}
@@ -861,10 +863,10 @@ export const SectionsList = memo(SectionsListComponent, (prevProps, nextProps) =
 
     // Both sections are defined, check length and content
     return (
-        prevProps.sections.length === nextProps.sections.length &&
-        prevProps.sections.every((section, index) =>
-            section.id === nextProps.sections[index]?.id &&
-            section.position === nextProps.sections[index]?.position
+        prevProps.sections!.length === nextProps.sections!.length &&
+        prevProps.sections!.every((section, index) =>
+            section.id === nextProps.sections![index]?.id &&
+            section.position === nextProps.sections![index]?.position
         ) &&
         prevProps.selectedSectionId === nextProps.selectedSectionId &&
         prevProps.focusedSectionId === nextProps.focusedSectionId &&
