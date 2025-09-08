@@ -27,6 +27,8 @@ export const REACT_QUERY_CONFIG = {
             refetchOnWindowFocus: false, // Don't refetch on window focus
             refetchOnMount: false, // Don't refetch when component mounts - use cache first
             refetchOnReconnect: true, // Refetch when network reconnects
+            // Enable network mode for better deduplication
+            networkMode: 'online', // Only fetch when online
         },
         mutations: {
             retry: 1, // Only retry mutations once

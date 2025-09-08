@@ -41,12 +41,8 @@ export function useRemoveSectionFromPageMutation(options: IRemoveSectionFromPage
             // Invalidate relevant queries to update the UI
             await Promise.all([
                 queryClient.invalidateQueries({ queryKey: ['pageSections', variables.pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['pageFields', variables.pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+                queryClient.refetchQueries({ queryKey: ['pageSections', variables.pageId] }),
             ]);
-
-            // Also directly refetch the page sections query as a backup
-            await queryClient.refetchQueries({ queryKey: ['pageSections', variables.pageId] });
             
             if (showNotifications) {
                 notifications.show({

@@ -29,7 +29,7 @@ import {
 } from '@tabler/icons-react';
 import { usePageSections } from '../../../../../hooks/usePageDetails';
 import { useSectionOperations } from '../../../../../hooks/useSectionOperations';
-import { IPageSection, IPageSectionWithFields } from '../../../../../types/common/pages.type';
+import { IPageSectionWithFields } from '../../../../../types/common/pages.type';
 import { SectionsList } from './SectionsList';
 import { AddSectionModal } from './AddSectionModal';
 import { calculateSiblingBelowPosition } from '../../../../../utils/position-calculator';

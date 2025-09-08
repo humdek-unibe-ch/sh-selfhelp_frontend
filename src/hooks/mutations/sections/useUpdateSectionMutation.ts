@@ -37,22 +37,7 @@ export function useUpdateSectionMutation({
             // Invalidate relevant queries to refresh data with consistent query keys
             const queryKey = pageId || variables.pageId;
             
-            // Main admin pages list
-            queryClient.invalidateQueries({ queryKey: ['adminPages'] });
-            
-            // Page-specific data
-            queryClient.invalidateQueries({ queryKey: ['pageFields', queryKey] });
             queryClient.invalidateQueries({ queryKey: ['pageSections', queryKey] });
-            
-            // Section-specific data (using the correct query key pattern)
-            queryClient.invalidateQueries({ 
-                queryKey: ['admin', 'sections', 'details', queryKey, variables.sectionId] 
-            });
-            
-            // Frontend navigation pages
-            queryClient.invalidateQueries({ queryKey: ['pages'] });
-            queryClient.invalidateQueries({ queryKey: ['page-content'] });
-            queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
 
             if (showNotifications) {
                 notifications.show({

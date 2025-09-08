@@ -41,20 +41,12 @@ export function useAddSectionToSectionMutation(options: IAddSectionToSectionMuta
             AdminApi.addSectionToSection(pageId, parentSectionId, sectionId, sectionData),
         
         onSuccess: async (createdSection: any, variables: IAddSectionToSectionVariables) => {
-            
+
             // Invalidate relevant queries to update the UI
             const invalidationPromises = [
-                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+                queryClient.invalidateQueries({ queryKey: ['pageSections', variables.pageId] }),
             ];
-            
-            // If pageId is provided, also invalidate page-specific queries
-            if (cachePageId) {
-                invalidationPromises.push(
-                    queryClient.invalidateQueries({ queryKey: ['pageSections', cachePageId] }),
-                    queryClient.invalidateQueries({ queryKey: ['pageFields', cachePageId] })
-                );
-            }
-            
+
             await Promise.all(invalidationPromises);
             
             if (showNotifications) {

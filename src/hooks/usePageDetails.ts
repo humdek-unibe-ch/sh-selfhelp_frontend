@@ -27,8 +27,9 @@ export function usePageSections(pageId: number | null, enabled: boolean = true) 
         staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
         placeholderData: keepPreviousData, // Keep previous data for smooth transitions
-        refetchOnMount: false, // Use cached data first
-        refetchOnWindowFocus: true, // Ensure refetch when window is focused
+        // Use global defaults for consistency and deduplication
+        // refetchOnMount: false, // Use cached data first
+        // refetchOnWindowFocus: false, // Respect global default (false)
     });
 }
 

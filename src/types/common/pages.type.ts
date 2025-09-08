@@ -27,14 +27,6 @@ export interface IBasePageSection {
 }
 
 /**
- * Extended section interface with children capability
- * Replaces IPageField from pages.type.ts
- */
-export interface IPageSection extends IBasePageSection {
-    can_have_children: number | boolean;
-}
-
-/**
  * Extended section interface with direct fields from API response
  * Matches the actual API response structure where fields are direct properties
  * Extends IBaseStyle for compatibility with TStyle union type
@@ -214,7 +206,7 @@ export interface IPageFieldsResponse {
         timestamp: string;
     };
     data: {
-        sections: IPageSection[];
+        sections: IPageSectionWithFields[];
         page_keyword: string;
     }
 }

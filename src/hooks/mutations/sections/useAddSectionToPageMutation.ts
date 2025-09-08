@@ -43,12 +43,6 @@ export function useAddSectionToPageMutation(options: IAddSectionToPageMutationOp
             // Invalidate relevant queries to update the UI with consistent query keys
             await Promise.all([
                 queryClient.invalidateQueries({ queryKey: ['pageSections', variables.pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['pageFields', variables.pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
-                // Frontend navigation pages
-                queryClient.invalidateQueries({ queryKey: ['pages'] }),
-                queryClient.invalidateQueries({ queryKey: ['frontend-pages'] }),
-                queryClient.invalidateQueries({ queryKey: ['page-content'] }),
             ]);
             
             if (showNotifications) {

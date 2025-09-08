@@ -54,7 +54,7 @@ export function useCreateSectionInSectionMutation(options: ICreateSectionInSecti
             if (cachePageId) {
                 invalidationPromises.push(
                     queryClient.invalidateQueries({ queryKey: ['pageSections', cachePageId] }),
-                    queryClient.invalidateQueries({ queryKey: ['pageFields', cachePageId] })
+                    queryClient.refetchQueries({ queryKey: ['pageSections', cachePageId] }),
                 );
             }
             

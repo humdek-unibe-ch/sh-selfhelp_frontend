@@ -41,26 +41,8 @@ export function useDeleteSectionMutation(options: IDeleteSectionMutationOptions 
 
             // Invalidate relevant queries to update the UI with consistent query keys
             const invalidationPromises = [
-                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
-                // Frontend navigation pages
-                queryClient.invalidateQueries({ queryKey: ['pages'] }),
-                queryClient.invalidateQueries({ queryKey: ['frontend-pages'] }),
-                queryClient.invalidateQueries({ queryKey: ['page-content'] }),
+                queryClient.invalidateQueries({ queryKey: ['pageSections', cachePageId] }),
             ];
-            
-            // If pageId is provided, also invalidate page-specific queries
-            if (cachePageId) {
-                invalidationPromises.push(
-                    queryClient.invalidateQueries({ queryKey: ['pageSections', cachePageId] }),
-                    queryClient.invalidateQueries({ queryKey: ['pageFields', cachePageId] })
-                );
-            } else {
-                // Use the pageId from variables if cachePageId not provided
-                invalidationPromises.push(
-                    queryClient.invalidateQueries({ queryKey: ['pageSections', variables.pageId] }),
-                    queryClient.invalidateQueries({ queryKey: ['pageFields', variables.pageId] })
-                );
-            }
             
             // Remove specific section details from cache
             queryClient.removeQueries({ 

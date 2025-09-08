@@ -11,7 +11,7 @@ import { IBaseApiResponse } from '../../types/responses/common/response-envelope
 import { IAdminPage } from '../../types/responses/admin/admin.types';
 import { ICreatePageRequest } from '../../types/requests/admin/create-page.types';
 import { IUpdatePageRequest } from '../../types/requests/admin/update-page.types';
-import { IPageFieldsResponse, IPageField, IPageFieldsData, TPageFieldsResponse, IPageSection, IPageSectionWithFields } from '../../types/common/pages.type';
+import { IPageFieldsResponse, IPageFieldsData, TPageFieldsResponse, IPageSectionWithFields } from '../../types/common/pages.type';
 
 export const AdminPageApi = {
     /**
@@ -41,14 +41,14 @@ export const AdminPageApi = {
     /**
      * Fetches page sections for a specific page by ID.
      * @param {number} pageId - The page ID to fetch sections for
-     * @returns {Promise<IPageSection[]>} Array of page sections with nested structure
+     * @returns {Promise<IPageSectionWithFields[]>} Array of page sections with nested structure
      * @throws {Error} When API request fails
      */
     async getPageSections(pageId: number): Promise<IPageSectionWithFields[]> {
         const response = await apiClient.get<IPageFieldsResponse>(
             API_CONFIG.ENDPOINTS.ADMIN_PAGES_SECTIONS_GET(pageId)
         );
-        return response.data.data.sections;
+        return response.data.data.sections as IPageSectionWithFields[];
     },
 
     /**

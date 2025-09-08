@@ -43,6 +43,7 @@ export function useRemoveSectionFromSectionMutation(options: IRemoveSectionFromS
             // Invalidate relevant queries to update the UI
             const invalidationPromises = [
                 queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+                queryClient.refetchQueries({ queryKey: ['pageSections', cachePageId] }),
             ];
 
             // If pageId is provided, also invalidate page-specific queries
