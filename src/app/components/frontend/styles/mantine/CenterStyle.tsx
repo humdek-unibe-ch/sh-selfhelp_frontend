@@ -35,7 +35,7 @@ const CenterStyle: React.FC<ICenterStyleProps> = ({ style }) => {
     const maxHeight = getFieldContent(style, 'mantine_mah');
 
     // Handle CSS field - use direct property from API response
-    const cssClass = style.css ?? '';
+    const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
     // Build style object for sizing properties
     const styleObj: React.CSSProperties = {};

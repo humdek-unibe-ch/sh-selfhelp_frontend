@@ -41,7 +41,7 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
     const use_mantine_style = getFieldContent(style, 'use_mantine_style');
 
     // Handle CSS field - use direct property from API response
-    const cssClass = style.css ?? '';
+    const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
     const leftSection = leftIconName ? <IconComponent iconName={leftIconName} size={16} /> : null;
     const rightSection = rightIconName ? <IconComponent iconName={rightIconName} size={16} /> : null;
@@ -63,7 +63,6 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
                 }
                 // Use Next.js router for internal navigation
                 const path = url.startsWith('/') ? url : url.replace(window.location.origin, '');
-                console.log('Internal navigation to:', path);
                 router.push(path);
             } else {
                 // Use window.location for external URLs
@@ -85,8 +84,6 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
             // For external URLs or new tab, let the anchor handle it normally
         }
     };
-
-    console.log(style);
 
     return (
         use_mantine_style === '1' ? (

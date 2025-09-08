@@ -124,16 +124,11 @@ export interface ITwoFactorAuthStyle extends IBaseStyle {
 // Container & Layout Styles
 export interface IContainerStyle extends IBaseStyle {
     style_name: 'container';
-    mantine_slider_size?: IContentField<string>;
-    mantine_container_fluid?: IContentField<string>;
-    mantine_padding_x?: IContentField<string>;
-    mantine_padding_y?: IContentField<string>;
-    mantine_width?: IContentField<string>;
-    mantine_height?: IContentField<string>;
-    mantine_miw?: IContentField<string>;
-    mantine_mih?: IContentField<string>;
-    mantine_maw?: IContentField<string>;
-    mantine_mah?: IContentField<string>;
+    mantine_slider_size?: IContentField<string>;     // Maps to Mantine 'size' prop
+    mantine_fluid?: IContentField<string>;           // Maps to Mantine 'fluid' prop
+    mantine_px?: IContentField<string>;              // Maps to Mantine 'px' prop
+    mantine_py?: IContentField<string>;              // Maps to Mantine 'py' prop
+    use_mantine_style?: IContentField<string>;       // Controls Mantine vs custom styling
 }
 
 export interface ICenterStyle extends IBaseStyle {

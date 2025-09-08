@@ -27,34 +27,29 @@ const ContainerStyle: React.FC<IContainerStyleProps> = ({ style }) => {
 
     // Extract field values for Mantine Container props
     const size = getFieldContent(style, 'mantine_slider_size');
-    const fluid = getFieldContent(style, 'mantine_container_fluid') === '1';
-    const px = getFieldContent(style, 'mantine_padding_x');
-    const py = getFieldContent(style, 'mantine_padding_y');
-    const width = getFieldContent(style, 'mantine_width');
-    const height = getFieldContent(style, 'mantine_height');
-    const minWidth = getFieldContent(style, 'mantine_miw');
-    const minHeight = getFieldContent(style, 'mantine_mih');
-    const maxWidth = getFieldContent(style, 'mantine_maw');
-    const maxHeight = getFieldContent(style, 'mantine_mah');
+    const fluid = getFieldContent(style, 'mantine_fluid') === '1';
+    const px = getFieldContent(style, 'mantine_px');
+    const py = getFieldContent(style, 'mantine_py');
 
     // Handle CSS field - use direct property from API response
-    const cssClass = style.css ?? '';
+    const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
-    // Build style object for sizing properties
+    // Mantine Container doesn't support direct width/height props
+    // Size prop handles max-width responsively, fluid makes it 100%
     const styleObj: React.CSSProperties = {};
-    if (width) styleObj.width = width;
-    if (height) styleObj.height = height;
-    if (minWidth) styleObj.minWidth = minWidth;
-    if (minHeight) styleObj.minHeight = minHeight;
-    if (maxWidth) styleObj.maxWidth = maxWidth;
-    if (maxHeight) styleObj.maxHeight = maxHeight;
 
+    // Handle default values for better UX
+    const containerSize = size || 'md'; // Default to 'md' if no size is set
+    const containerPx = px || undefined; // Mantine handles undefined gracefully
+    const containerPy = py || undefined; // Mantine handles undefined gracefully
+
+    // Conditional rendering based on use_mantine_style
     return (
         <Container
-            size={size || undefined}  // Mantine size prop (xs, sm, md, lg, xl)
+            size={containerSize}  // Mantine size prop (xs, sm, md, lg, xl)
             fluid={fluid}
-            px={px || undefined}
-            py={py || undefined}
+            px={containerPx}
+            py={containerPy}
             className={cssClass}
             style={styleObj}
         >
