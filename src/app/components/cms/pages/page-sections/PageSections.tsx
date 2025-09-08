@@ -320,29 +320,28 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
         try {
             const { draggedSectionId, newParentId, newPosition, pageId, oldParentPageId, oldParentSectionId } = moveData;
 
-            // Prepare section data with new position and old parent information
-            const sectionData = {
-                position: newPosition,
-                oldParentPageId,
-                oldParentSectionId
-            };
-
             if (newParentId === null) {
                 // Moving to page level - use page mutation
                 if (!pageId) {
                     throw new Error('Page ID is required for page-level moves');
                 }
 
-                await sectionOperations.addSectionToPage(draggedSectionId, { specificPosition: newPosition });
+                await sectionOperations.addSectionToPage(draggedSectionId, {
+                    specificPosition: newPosition,
+                    oldParentPageId,
+                    oldParentSectionId
+                } as any);
             } else {
                 // Moving to another section - use section mutation
                 if (!pageId) {
                     throw new Error('Page ID is required for section operations');
                 }
-                await sectionOperations.addSectionToSection(newParentId, draggedSectionId, { specificPosition: newPosition });
+                await sectionOperations.addSectionToSection(newParentId, draggedSectionId, {
+                    specificPosition: newPosition,
+                    oldParentPageId,
+                    oldParentSectionId
+                } as any);
             }
-
-
 
         } catch (error) {
             // Error handling is done by the mutation hooks

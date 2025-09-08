@@ -11,16 +11,13 @@ import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin.api';
 import { parseApiError } from '../../../utils/mutation-error-handler';
+import { IAddSectionToSectionData } from '../../../types/requests/admin/create-section.types';
 
 interface IAddSectionToSectionMutationOptions {
     onSuccess?: (data: any, variables: { pageId: number; parentSectionId: number; sectionId: number; sectionData: IAddSectionToSectionData }) => void;
     onError?: (error: any, variables: { pageId: number; parentSectionId: number; sectionId: number; sectionData: IAddSectionToSectionData }) => void;
     showNotifications?: boolean;
     pageId?: number; // Optional page ID for cache invalidation
-}
-
-interface IAddSectionToSectionData {
-    position: number;
 }
 
 interface IAddSectionToSectionVariables {

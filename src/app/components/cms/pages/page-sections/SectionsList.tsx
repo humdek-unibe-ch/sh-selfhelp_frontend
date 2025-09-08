@@ -763,16 +763,18 @@ const SectionsListComponent = function SectionsList({
 
                 // Find the old parent information
                 const oldParentId = findParentId(draggedSectionId, sections);
-                const oldParentSectionId = oldParentId;
 
-                // Determine if we need to send oldParentPageId
-                // Only send it when moving FROM root TO section or FROM section TO root
-                // Don't send it when reordering within the same parent (root or section)
-                const isMovingFromRootToSection = oldParentId === null && newParentId !== null;
-                const isMovingFromSectionToRoot = oldParentId !== null && newParentId === null;
-                const isChangingParent = isMovingFromRootToSection || isMovingFromSectionToRoot;
+                // Determine old parent information based on current location
+                let oldParentPageId: number | null = null;
+                let oldParentSectionId: number | null = null;
 
-                const oldParentPageId = isChangingParent && oldParentId === null ? pageId : null;
+                if (oldParentId === null) {
+                    // Section was at page level, send the page ID
+                    oldParentPageId = pageId || null;
+                } else {
+                    // Section was inside another section, send the section ID
+                    oldParentSectionId = oldParentId;
+                }
 
                 // Execute the section move with API call
                 onSectionMove({
@@ -784,7 +786,7 @@ const SectionsListComponent = function SectionsList({
                     newParent: newParentId ? findSectionById(newParentId, sections) : null,
                     descendantIds: getAllDescendantIds(draggedSection),
                     totalMovingItems: 1 + getAllDescendantIds(draggedSection).length,
-                    ...(oldParentPageId && { oldParentPageId }),
+                    oldParentPageId,
                     oldParentSectionId
                 });
             },

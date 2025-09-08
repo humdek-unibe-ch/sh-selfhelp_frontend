@@ -11,15 +11,12 @@ import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin.api';
 import { parseApiError } from '../../../utils/mutation-error-handler';
+import { IAddSectionToPageData } from '../../../types/requests/admin/create-section.types';
 
 interface IAddSectionToPageMutationOptions {
     onSuccess?: (data: any, variables: { pageId: number; sectionId: number; sectionData: IAddSectionToPageData }) => void;
     onError?: (error: any, variables: { pageId: number; sectionId: number; sectionData: IAddSectionToPageData }) => void;
     showNotifications?: boolean;
-}
-
-interface IAddSectionToPageData {
-    position: number;
 }
 
 interface IAddSectionToPageVariables {

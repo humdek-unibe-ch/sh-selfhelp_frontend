@@ -5,13 +5,13 @@
 // Base interfaces for section operations
 export interface IAddSectionToPageData {
     position: number;
-    oldParentPageId?: string | null; // Page keyword where section was previously located
+    oldParentPageId?: number | null; // Page ID where section was previously located
     oldParentSectionId?: number | null; // Section ID where section was previously located
 }
 
 export interface IAddSectionToSectionData {
     position: number;
-    oldParentPageId?: string | null; // Page keyword where section was previously located
+    oldParentPageId?: number | null; // Page ID where section was previously located
     oldParentSectionId?: number | null; // Section ID where section was previously located
 }
 

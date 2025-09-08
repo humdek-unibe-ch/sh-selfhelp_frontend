@@ -28,6 +28,7 @@ export const AdminSectionApi = {
      * @throws {Error} When API request fails
      */
     async addSectionToPage(pageId: number, sectionId: number, sectionData: IAddSectionToPageData): Promise<any> {
+        console.log('sectionData', sectionData);
         const requestBody = {
             sectionId: sectionId,
             position: sectionData.position,

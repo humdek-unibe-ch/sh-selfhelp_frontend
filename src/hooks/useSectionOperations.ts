@@ -175,8 +175,11 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
 
     // Add existing section to page
     const addSectionToPage = useCallback(async (
-        sectionId: number, 
-        options: ISectionOperationOptions = {}
+        sectionId: number,
+        options: ISectionOperationOptions & {
+            oldParentPageId?: number | null;
+            oldParentSectionId?: number | null;
+        } = {}
     ) => {
         if (!pageId) {
             throw new Error('Page ID is required for section operations');
@@ -187,15 +190,22 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
         await addSectionToPageMutation.mutateAsync({
             pageId: pageId,
             sectionId,
-            sectionData: { position }
+            sectionData: {
+                position,
+                ...(options.oldParentPageId !== undefined && { oldParentPageId: options.oldParentPageId }),
+                ...(options.oldParentSectionId !== undefined && { oldParentSectionId: options.oldParentSectionId })
+            }
         });
     }, [pageId, addSectionToPageMutation]);
 
     // Add existing section to section
     const addSectionToSection = useCallback(async (
         parentSectionId: number,
-        sectionId: number, 
-        options: ISectionOperationOptions = {}
+        sectionId: number,
+        options: ISectionOperationOptions & {
+            oldParentPageId?: number | null;
+            oldParentSectionId?: number | null;
+        } = {}
     ) => {
         if (!pageId) {
             throw new Error('Page ID is required for section operations');
@@ -207,7 +217,11 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
             pageId: pageId,
             parentSectionId,
             sectionId,
-            sectionData: { position }
+            sectionData: {
+                position,
+                ...(options.oldParentPageId !== undefined && { oldParentPageId: options.oldParentPageId }),
+                ...(options.oldParentSectionId !== undefined && { oldParentSectionId: options.oldParentSectionId })
+            }
         });
     }, [pageId, addSectionToSectionMutation]);
 
