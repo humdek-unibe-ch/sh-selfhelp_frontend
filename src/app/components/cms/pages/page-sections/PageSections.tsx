@@ -526,41 +526,6 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
         );
     }
 
-    if (!data?.sections || data.sections.length === 0) {
-        return (
-            <>
-                <Paper p="md" withBorder>
-                    <Alert icon={<IconInfoCircle size={16} />} color="blue" title="No sections found">
-                        <Text size="sm" mb="md">
-                            This page doesn&apos;t have any sections yet.
-                        </Text>
-                        <Button
-                            leftSection={<IconPlus size={16} />}
-                            size="sm"
-                            variant="light"
-                            onClick={() => {
-                                setAddSectionModalOpened(true);
-                            }}
-                        >
-                            Add First Section
-                        </Button>
-                    </Alert>
-                </Paper>
-
-                {/* Add Section Modal - Now available even when no sections exist */}
-                <AddSectionModal
-                    opened={addSectionModalOpened}
-                    onClose={handleCloseAddSectionModal}
-                    pageId={pageId || undefined}
-                    parentSectionId={selectedParentSectionId}
-                    title={selectedParentSectionId ? "Add Child Section" : "Add Section to Page"}
-                    specificPosition={specificPosition}
-                />
-            </>
-        );
-    }
-
-
     return (
         <Paper p="xs" withBorder className={styles.paperContainer}>
             {/* Header with Search */}
@@ -571,7 +536,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                         {pageName ? `${pageName} - Sections` : 'Page Sections'}
                     </Title>
                     <Badge size="xs" variant="light" color="blue">
-                        {data.sections.length}
+                        {data?.sections?.length || 0}
                     </Badge>
                 </Group>
 
@@ -674,7 +639,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
             {/* Sections List - Scrollable Content Area */}
             <Box className={styles.contentContainer}>
                 <SectionsList
-                    sections={data.sections}
+                    sections={data?.sections || []}
                     expandedSections={expandedSections}
                     onToggleExpand={handleToggleExpand}
                     onSectionMove={handleSectionMove}

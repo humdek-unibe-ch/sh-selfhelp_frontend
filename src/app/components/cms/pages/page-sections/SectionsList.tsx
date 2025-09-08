@@ -140,21 +140,21 @@ const SectionItem = memo(function SectionItem({
         const isNearBottomEdge = relativeY >= (1 - edgeThreshold);
 
         // Get siblings for position calculation - fix the root level filtering
-        const siblings = parentId 
+        const siblings = parentId
             ? (allSections.find(s => s.id === parentId)?.children || [])
             : allSections.filter(s => {
                 // Find root level sections (sections that are not children of any other section)
-                return !allSections.some(parent => 
+                return !allSections.some(parent =>
                     parent.children && parent.children.some(child => child.id === s.id)
                 );
             });
-        
+
         const sortedSiblings = [...siblings].sort((a, b) => a.position - b.position);
         const currentIndex = sortedSiblings.findIndex(s => s.id === section.id);
 
         if (isNearTopEdge) {
             // Dropping above this section
-            const newPosition = currentIndex === 0 ? -1 : 
+            const newPosition = currentIndex === 0 ? -1 :
                 (sortedSiblings[currentIndex - 1]?.position ?? 0) + 5;
             return {
                 isHovering: true,
@@ -236,13 +236,13 @@ const SectionItem = memo(function SectionItem({
         const rect = element.getBoundingClientRect();
         const relativeY = (e.clientY - rect.top) / rect.height;
         const dragPreview = calculateDragPreview(relativeY);
-        
+
         hoverPreviewContext.setHoverState(dragPreview);
     }, [hoverPreviewContext, dragContext.isDragActive, calculateDragPreview]);
 
     const handleMouseLeave = useCallback(() => {
         if (!hoverPreviewContext || !dragContext.isDragActive) return;
-        
+
         hoverPreviewContext.setHoverState({
             isHovering: false,
             targetSectionId: null,
@@ -492,7 +492,7 @@ const SectionItem = memo(function SectionItem({
                 section={section}
                 level={level}
                 parentId={parentId}
-                                                    pageId={pageId}
+                pageId={pageId}
                 expandedSections={expandedSections}
                 onToggleExpand={onToggleExpand}
                 onRemoveSection={onRemoveSection}
@@ -611,7 +611,7 @@ const SectionsListComponent = function SectionsList({
     focusedSectionId,
     pageId,
 }: ISectionsListProps) {
-    
+
     // Memoize sections to prevent unnecessary re-renders
     const memoizedSections = useMemo(() => sections, [sections]);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -769,7 +769,7 @@ const SectionsListComponent = function SectionsList({
                 const isMovingFromRootToSection = oldParentId === null && newParentId !== null;
                 const isMovingFromSectionToRoot = oldParentId !== null && newParentId === null;
                 const isChangingParent = isMovingFromRootToSection || isMovingFromSectionToRoot;
-                
+
                 const oldParentPageId = isChangingParent && oldParentId === null ? pageId : null;
 
                 // Execute the section move with API call
@@ -783,7 +783,7 @@ const SectionsListComponent = function SectionsList({
                     descendantIds: getAllDescendantIds(draggedSection),
                     totalMovingItems: 1 + getAllDescendantIds(draggedSection).length,
                     ...(oldParentPageId && { oldParentPageId }),
-                    oldParentSectionId      
+                    oldParentSectionId
                 });
             },
         });
@@ -801,48 +801,48 @@ const SectionsListComponent = function SectionsList({
                         data-scroll-container
                         className={styles.sectionsContainer}
                     >
-                    {sections.length === 0 ? (
-                        <Paper className={styles.emptyState}>
-                            <Text className={styles.emptyStateIcon}>📄</Text>
-                            <Text className={styles.emptyStateTitle}>No sections yet</Text>
-                            <Text className={styles.emptyStateSubtitle}>
-                                Add your first section to get started
-                            </Text>
-                        </Paper>
-                    ) : (
-                        <div className={styles.sectionsList}>
-                            {memoizedSections.map((section, index) => (
-                                <SectionItem
-                                    key={`section-${section.id}-${section.position || index}`}
-                                    section={section}
-                                    level={0}
-                                    index={index}
-                                    parentId={null}
-                                    allSections={memoizedSections}
-                                    pageId={pageId || 0}
-                                    onRemoveSection={onRemoveSection}
-                                    onAddChildSection={onAddChildSection}
-                                    onAddSiblingAbove={onAddSiblingAbove}
-                                    onAddSiblingBelow={onAddSiblingBelow}
-                                    onSectionSelect={onSectionSelect}
-                                    selectedSectionId={selectedSectionId}
-                                    focusedSectionId={focusedSectionId}
-                                />
-                            ))}
-                        </div>
-                    )}
-                </Box>
-            </SectionsContext.Provider>
-        </HoverPreviewContext.Provider>
-    </DragContext.Provider>
-);
+                        {!sections || sections.length === 0 ? (
+                            <Paper className={styles.emptyState}>
+                                <Text className={styles.emptyStateIcon}>📄</Text>
+                                <Text className={styles.emptyStateTitle}>No sections yet</Text>
+                                <Text className={styles.emptyStateSubtitle}>
+                                    Add your first section to get started
+                                </Text>
+                            </Paper>
+                        ) : (
+                            <div className={styles.sectionsList}>
+                                {memoizedSections.map((section, index) => (
+                                    <SectionItem
+                                        key={`section-${section.id}-${section.position || index}`}
+                                        section={section}
+                                        level={0}
+                                        index={index}
+                                        parentId={null}
+                                        allSections={memoizedSections}
+                                        pageId={pageId || 0}
+                                        onRemoveSection={onRemoveSection}
+                                        onAddChildSection={onAddChildSection}
+                                        onAddSiblingAbove={onAddSiblingAbove}
+                                        onAddSiblingBelow={onAddSiblingBelow}
+                                        onSectionSelect={onSectionSelect}
+                                        selectedSectionId={selectedSectionId}
+                                        focusedSectionId={focusedSectionId}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </Box>
+                </SectionsContext.Provider>
+            </HoverPreviewContext.Provider>
+        </DragContext.Provider>
+    );
 };
 
 // Export memoized component
 export const SectionsList = memo(SectionsListComponent, (prevProps, nextProps) => {
     return (
         prevProps.sections.length === nextProps.sections.length &&
-        prevProps.sections.every((section, index) => 
+        prevProps.sections.every((section, index) =>
             section.id === nextProps.sections[index]?.id &&
             section.position === nextProps.sections[index]?.position
         ) &&
