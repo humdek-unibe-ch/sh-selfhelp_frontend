@@ -29,12 +29,7 @@ import {
     IconArrowRight
 } from '@tabler/icons-react';
 import { usePageSections } from '../../../../../hooks/usePageDetails';
-import {
-    useAddSectionToPageMutation,
-    useRemoveSectionFromPageMutation,
-    useRemoveSectionFromSectionMutation,
-    useAddSectionToSectionMutation
-} from '../../../../../hooks/mutations';
+import { useSectionOperations } from '../../../../../hooks/useSectionOperations';
 import { IPageSection, IPageSectionWithFields } from '../../../../../types/common/pages.type';
 import { SectionsList } from './SectionsList';
 import { AddSectionModal } from './AddSectionModal';
@@ -77,23 +72,10 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
     const [currentSearchIndex, setCurrentSearchIndex] = useState(-1);
     const [focusedSectionId, setFocusedSectionId] = useState<number | null>(null);
 
-    // Section mutations
-    const addSectionToPageMutation = useAddSectionToPageMutation({
+    // Section operations hook
+    const sectionOperations = useSectionOperations({
+        pageId: pageId ? pageId : undefined,
         showNotifications: true
-    });
-
-    const addSectionToSectionMutation = useAddSectionToSectionMutation({
-        showNotifications: true,
-        pageId: pageId || undefined
-    });
-
-    const removeSectionFromPageMutation = useRemoveSectionFromPageMutation({
-        showNotifications: true
-    });
-
-    const removeSectionFromSectionMutation = useRemoveSectionFromSectionMutation({
-        showNotifications: true,
-        pageId: pageId || undefined
     });
 
     // Search functionality
@@ -351,22 +333,13 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                     throw new Error('Page ID is required for page-level moves');
                 }
 
-                await addSectionToPageMutation.mutateAsync({
-                    pageId: pageId,
-                    sectionId: draggedSectionId,
-                    sectionData: sectionData
-                });
+                await sectionOperations.addSectionToPage(draggedSectionId, { specificPosition: newPosition });
             } else {
                 // Moving to another section - use section mutation
                 if (!pageId) {
                     throw new Error('Page ID is required for section operations');
                 }
-                await addSectionToSectionMutation.mutateAsync({
-                    pageId,
-                    parentSectionId: newParentId,
-                    sectionId: draggedSectionId,
-                    sectionData: sectionData
-                });
+                await sectionOperations.addSectionToSection(newParentId, draggedSectionId, { specificPosition: newPosition });
             }
 
 
@@ -380,6 +353,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
         // Check if we're removing the currently selected section
         const isRemovingSelectedSection = selectedSectionId === sectionId;
 
+
         try {
             if (parentId === null) {
                 // Remove from page
@@ -387,20 +361,13 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                     throw new Error('Page ID is required for removing sections from page');
                 }
 
-                await removeSectionFromPageMutation.mutateAsync({
-                    pageId,
-                    sectionId
-                });
+                await sectionOperations.removeSectionFromPage(sectionId);
             } else {
                 // Remove from parent section
                 if (!pageId) {
                     throw new Error('Page ID is required for section operations');
                 }
-                await removeSectionFromSectionMutation.mutateAsync({
-                    pageId,
-                    parentSectionId: parentId,
-                    childSectionId: sectionId
-                });
+                await sectionOperations.removeSectionFromSection(parentId, sectionId);
             }
 
             // If we removed the currently selected section, navigate to page
@@ -575,8 +542,6 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
         );
     }
 
-    const isProcessingMove = addSectionToPageMutation.isPending || addSectionToSectionMutation.isPending;
-    const isProcessingRemove = removeSectionFromPageMutation.isPending || removeSectionFromSectionMutation.isPending;
 
     return (
         <Paper p="xs" withBorder className={styles.paperContainer}>
@@ -590,11 +555,6 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                     <Badge size="xs" variant="light" color="blue">
                         {data.sections.length}
                     </Badge>
-                    {(isProcessingMove || isProcessingRemove) && (
-                        <Badge size="xs" variant="light" color="orange">
-                            Processing...
-                        </Badge>
-                    )}
                 </Group>
 
                 {/* Search Bar - Flexible width */}
@@ -708,7 +668,6 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                     selectedSectionId={selectedSectionId}
                     focusedSectionId={focusedSectionId}
                     pageId={pageId || undefined}
-                    isProcessing={isProcessingMove || isProcessingRemove}
                 />
             </Box>
 

@@ -14,11 +14,13 @@ import {
     prepareSectionCreateData, 
     ISectionOperationOptions 
 } from '../utils/section-operations.utils';
-import { 
-    useCreateSectionInPageMutation, 
+import {
+    useCreateSectionInPageMutation,
     useCreateSectionInSectionMutation,
     useAddSectionToPageMutation,
-    useAddSectionToSectionMutation
+    useAddSectionToSectionMutation,
+    useRemoveSectionFromPageMutation,
+    useRemoveSectionFromSectionMutation
 } from './mutations';
 import { importSectionsToPage, importSectionsToSection } from '../api/admin/section.api';
 import { notifications } from '@mantine/notifications';
@@ -36,15 +38,19 @@ export interface ISectionOperationsResult {
     // Create operations
     createSectionInPage: (styleId: number, options?: ISectionOperationOptions & { name?: string }) => Promise<void>;
     createSectionInSection: (parentSectionId: number, styleId: number, options?: ISectionOperationOptions & { name?: string }) => Promise<void>;
-    
+
     // Add operations (for existing sections)
     addSectionToPage: (sectionId: number, options?: ISectionOperationOptions) => Promise<void>;
     addSectionToSection: (parentSectionId: number, sectionId: number, options?: ISectionOperationOptions) => Promise<void>;
-    
+
+    // Remove operations
+    removeSectionFromPage: (sectionId: number) => Promise<void>;
+    removeSectionFromSection: (parentSectionId: number, childSectionId: number) => Promise<void>;
+
     // Import operations
     importSectionsToPage: (sections: ISectionExportData[], options?: ISectionOperationOptions) => Promise<void>;
     importSectionsToSection: (parentSectionId: number, sections: ISectionExportData[], options?: ISectionOperationOptions) => Promise<void>;
-    
+
     // Status
     isLoading: boolean;
 }
@@ -104,6 +110,19 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
             }
             onSuccess?.(result);
         },
+        onError: (error) => onError?.(error)
+    });
+
+    const removeSectionFromPageMutation = useRemoveSectionFromPageMutation({
+        showNotifications,
+        onSuccess: (result, variables) => onSuccess?.(result),
+        onError: (error) => onError?.(error)
+    });
+
+    const removeSectionFromSectionMutation = useRemoveSectionFromSectionMutation({
+        showNotifications,
+        pageId,
+        onSuccess: (result, variables) => onSuccess?.(result),
         onError: (error) => onError?.(error)
     });
 
@@ -191,6 +210,31 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
             sectionData: { position }
         });
     }, [pageId, addSectionToSectionMutation]);
+
+    // Remove section from page
+    const removeSectionFromPage = useCallback(async (sectionId: number) => {
+        if (!pageId) {
+            throw new Error('Page ID is required for section operations');
+        }
+
+        await removeSectionFromPageMutation.mutateAsync({
+            pageId: pageId,
+            sectionId
+        });
+    }, [pageId, removeSectionFromPageMutation]);
+
+    // Remove section from section
+    const removeSectionFromSection = useCallback(async (parentSectionId: number, childSectionId: number) => {
+        if (!pageId) {
+            throw new Error('Page ID is required for section operations');
+        }
+
+        await removeSectionFromSectionMutation.mutateAsync({
+            pageId: pageId,
+            parentSectionId,
+            childSectionId
+        });
+    }, [pageId, removeSectionFromSectionMutation]);
 
     // Import sections to page
     const importSectionsToPageHandler = useCallback(async (
@@ -335,11 +379,15 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
         createSectionInSection,
         addSectionToPage,
         addSectionToSection,
+        removeSectionFromPage,
+        removeSectionFromSection,
         importSectionsToPage: importSectionsToPageHandler,
         importSectionsToSection: importSectionsToSectionHandler,
-        isLoading: createSectionInPageMutation.isPending || 
+        isLoading: createSectionInPageMutation.isPending ||
                    createSectionInSectionMutation.isPending ||
                    addSectionToPageMutation.isPending ||
-                   addSectionToSectionMutation.isPending
+                   addSectionToSectionMutation.isPending ||
+                   removeSectionFromPageMutation.isPending ||
+                   removeSectionFromSectionMutation.isPending
     };
 } 

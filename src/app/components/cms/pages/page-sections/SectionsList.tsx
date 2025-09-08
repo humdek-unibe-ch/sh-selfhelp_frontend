@@ -46,15 +46,14 @@ interface ISectionsListProps {
     selectedSectionId?: number | null;
     focusedSectionId?: number | null;
     pageId?: number;
-    isProcessing?: boolean;
 }
 
 interface ISectionItemProps {
-    section: IPageField;
+    section: IPageSectionWithFields;
     level: number;
     index: number;
     parentId: number | null;
-    allSections: IPageField[];
+    allSections: IPageSectionWithFields[];
     pageId: number;
     onRemoveSection: (sectionId: number, parentId: number | null) => void;
     onAddChildSection?: (parentSectionId: number) => void;
@@ -204,7 +203,7 @@ const SectionItem = memo(function SectionItem({
     const isDescendantOfDragged = useCallback((): boolean => {
         if (!dragContext.draggedSectionId) return false;
 
-        const findInTree = (sections: IPageField[], targetId: number, currentId: number): boolean => {
+        const findInTree = (sections: IPageSectionWithFields[], targetId: number, currentId: number): boolean => {
             for (const sec of sections) {
                 if (sec.id === targetId) {
                     return checkInChildren(sec.children || [], currentId);
@@ -216,7 +215,7 @@ const SectionItem = memo(function SectionItem({
             return false;
         };
 
-        const checkInChildren = (children: IPageField[], targetId: number): boolean => {
+        const checkInChildren = (children: IPageSectionWithFields[], targetId: number): boolean => {
             for (const child of children) {
                 if (child.id === targetId) return true;
                 if (child.children && checkInChildren(child.children, targetId)) return true;
@@ -611,7 +610,6 @@ const SectionsListComponent = function SectionsList({
     selectedSectionId,
     focusedSectionId,
     pageId,
-    isProcessing = false
 }: ISectionsListProps) {
     
     // Memoize sections to prevent unnecessary re-renders
@@ -632,7 +630,7 @@ const SectionsListComponent = function SectionsList({
     });
 
     // Helper functions
-    const findSectionById = useCallback((id: number, items: IPageField[]): IPageField | null => {
+    const findSectionById = useCallback((id: number, items: IPageSectionWithFields[]): IPageSectionWithFields | null => {
         for (const item of items) {
             if (item.id === id) return item;
             if (item.children) {
@@ -643,7 +641,7 @@ const SectionsListComponent = function SectionsList({
         return null;
     }, []);
 
-    const getAllDescendantIds = useCallback((section: IPageField): number[] => {
+    const getAllDescendantIds = useCallback((section: IPageSectionWithFields): number[] => {
         const ids: number[] = [];
         if (section.children) {
             section.children.forEach(child => {
@@ -654,7 +652,7 @@ const SectionsListComponent = function SectionsList({
         return ids;
     }, []);
 
-    const findParentId = useCallback((sectionId: number, items: IPageField[], parentId: number | null = null): number | null => {
+    const findParentId = useCallback((sectionId: number, items: IPageSectionWithFields[], parentId: number | null = null): number | null => {
         for (const item of items) {
             if (item.id === sectionId) return parentId;
             if (item.children) {
@@ -669,7 +667,7 @@ const SectionsListComponent = function SectionsList({
      * Calculates the new position for a dropped section using centralized positioning logic
      */
     const calculateNewPosition = useCallback((
-        targetSection: IPageField,
+        targetSection: IPageSectionWithFields,
         edge: Edge | null,
         targetParentId: number | null,
         isContainerDrop: boolean = false
@@ -791,13 +789,6 @@ const SectionsListComponent = function SectionsList({
         });
     }, [sections, findSectionById, getAllDescendantIds, calculateNewPosition, pageId, findParentId]);
 
-    if (isProcessing) {
-        return (
-            <Box className={styles.processingState}>
-                <Text className={styles.processingText}>Processing sections...</Text>
-            </Box>
-        );
-    }
 
     return (
         <DragContext.Provider value={dragState}>
@@ -858,7 +849,6 @@ export const SectionsList = memo(SectionsListComponent, (prevProps, nextProps) =
         prevProps.selectedSectionId === nextProps.selectedSectionId &&
         prevProps.focusedSectionId === nextProps.focusedSectionId &&
         prevProps.pageId === nextProps.pageId &&
-        prevProps.isProcessing === nextProps.isProcessing &&
         prevProps.expandedSections.size === nextProps.expandedSections.size &&
         Array.from(prevProps.expandedSections).every(id => nextProps.expandedSections.has(id))
     );

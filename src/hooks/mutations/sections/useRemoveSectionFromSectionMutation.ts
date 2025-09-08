@@ -39,12 +39,12 @@ export function useRemoveSectionFromSectionMutation(options: IRemoveSectionFromS
             AdminApi.removeSectionFromSection(pageId, parentSectionId, childSectionId),
         
         onSuccess: async (result: any, variables: IRemoveSectionFromSectionVariables) => {
-            
+
             // Invalidate relevant queries to update the UI
             const invalidationPromises = [
                 queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
             ];
-            
+
             // If pageId is provided, also invalidate page-specific queries
             if (cachePageId) {
                 invalidationPromises.push(
@@ -52,8 +52,13 @@ export function useRemoveSectionFromSectionMutation(options: IRemoveSectionFromS
                     queryClient.invalidateQueries({ queryKey: ['pageFields', cachePageId] })
                 );
             }
-            
+
             await Promise.all(invalidationPromises);
+
+            // Also directly refetch the page sections query as a backup
+            if (cachePageId) {
+                await queryClient.refetchQueries({ queryKey: ['pageSections', cachePageId] });
+            }
             
             if (showNotifications) {
                 notifications.show({
