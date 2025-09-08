@@ -639,7 +639,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
             {/* Sections List - Scrollable Content Area */}
             <Box className={styles.contentContainer}>
                 <SectionsList
-                    sections={data?.sections || []}
+                    sections={isLoading ? undefined : data?.sections}
                     expandedSections={expandedSections}
                     onToggleExpand={handleToggleExpand}
                     onSectionMove={handleSectionMove}

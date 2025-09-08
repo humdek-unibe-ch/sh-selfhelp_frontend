@@ -801,7 +801,10 @@ const SectionsListComponent = function SectionsList({
                         data-scroll-container
                         className={styles.sectionsContainer}
                     >
-                        {!sections || sections.length === 0 ? (
+                        {sections === undefined || sections === null ? (
+                            // Loading state - show nothing until data is loaded
+                            null
+                        ) : sections.length === 0 ? (
                             <Paper className={styles.emptyState}>
                                 <Text className={styles.emptyStateIcon}>📄</Text>
                                 <Text className={styles.emptyStateTitle}>No sections yet</Text>
@@ -840,6 +843,23 @@ const SectionsListComponent = function SectionsList({
 
 // Export memoized component
 export const SectionsList = memo(SectionsListComponent, (prevProps, nextProps) => {
+    // If sections changed from/to undefined, always re-render
+    if ((prevProps.sections === undefined) !== (nextProps.sections === undefined)) {
+        return false;
+    }
+
+    // If either sections is undefined, don't check length/content
+    if (prevProps.sections === undefined || nextProps.sections === undefined) {
+        return (
+            prevProps.selectedSectionId === nextProps.selectedSectionId &&
+            prevProps.focusedSectionId === nextProps.focusedSectionId &&
+            prevProps.pageId === nextProps.pageId &&
+            prevProps.expandedSections.size === nextProps.expandedSections.size &&
+            Array.from(prevProps.expandedSections).every(id => nextProps.expandedSections.has(id))
+        );
+    }
+
+    // Both sections are defined, check length and content
     return (
         prevProps.sections.length === nextProps.sections.length &&
         prevProps.sections.every((section, index) =>
