@@ -1,9 +1,9 @@
 // Style name literal types for type safety
 export type TStyleName =
     | 'login' | 'profile' | 'validate' | 'register' | 'resetPassword' | 'twoFactorAuth'
-    | 'container' | 'alert' | 'div' | 'refContainer' | 'dataContainer' | 'htmlTag'
-    | 'heading' | 'markdown' | 'plaintext'
-    | 'formUserInputLog' | 'formUserInputRecord' | 'input' | 'textarea' | 'select' | 'radio' | 'slider' | 'checkbox'
+    | 'container' | 'alert' | 'div' | 'refContainer' | 'dataContainer' | 'htmlTag' | 'center'
+    | 'heading' | 'markdown' | 'markdownInline' | 'plaintext'
+    | 'formUserInput' | 'formUserInputLog' | 'formUserInputRecord' | 'input' | 'textarea' | 'select' | 'radio' | 'slider' | 'checkbox'
     | 'image' | 'video' | 'audio' | 'figure' | 'carousel'
     | 'button' | 'link'
     | 'entryList' | 'entryRecord' | 'entryRecordDelete'
@@ -128,6 +128,16 @@ export interface IContainerStyle extends IBaseStyle {
     export_pdf?: IContentField<string>;
 }
 
+export interface ICenterStyle extends IBaseStyle {
+    style_name: 'center';
+    mantine_center_inline?: IContentField<string>;
+    mantine_width?: IContentField<string>;
+    mantine_height?: IContentField<string>;
+    mantine_miw?: IContentField<string>;
+    mantine_mih?: IContentField<string>;
+    mantine_maw?: IContentField<string>;
+    mantine_mah?: IContentField<string>;
+}
 
 export interface IAlertStyle extends IBaseStyle {
     style_name: 'alert';
@@ -419,6 +429,7 @@ export type TStyle =
     | IResetPasswordStyle
     | ITwoFactorAuthStyle
     | IContainerStyle
+    | ICenterStyle
     | IAlertStyle
     | IDivStyle
     | IRefContainerStyle

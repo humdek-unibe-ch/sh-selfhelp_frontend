@@ -8,7 +8,7 @@ import {
     CheckboxStyle, SliderStyle, ProgressBarStyle,
     HtmlTagStyle, ValidateStyle,
     ResetPasswordStyle, TwoFactorAuthStyle, TableStyle, TableRowStyle,
-    TableCellStyle, ShowUserInputStyle
+    TableCellStyle, ShowUserInputStyle, CenterStyle
 } from './SelfHelpStyles';
 import { TStyle } from '../../../../types/common/styles.types';
 
@@ -55,12 +55,13 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <DivStyle style={style} />;
         case 'alert':
             return <AlertStyle style={style} />;
+        case 'center':
+            return <CenterStyle style={style} />;
 
         // Text & Content Styles
         case 'heading':
             return <HeadingStyle style={style} />;
         case 'markdown':
-        case 'markdownInline':
             return <MarkdownStyle style={style} />;
         case 'plaintext':
             return <PlaintextStyle style={style} />;
@@ -86,7 +87,6 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <LinkStyle style={style} />;
 
         // Form & Input Styles
-        case 'formUserInput':
         case 'formUserInputLog':
         case 'formUserInputRecord':
             return <FormUserInputStyle style={style} />;

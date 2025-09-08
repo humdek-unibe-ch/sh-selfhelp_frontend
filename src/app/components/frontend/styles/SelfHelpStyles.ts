@@ -14,6 +14,7 @@ export { default as TwoFactorAuthStyle } from './TwoFactorAuthStyle';
 export { default as ContainerStyle } from './ContainerStyle';
 export { default as DivStyle } from './DivStyle';
 export { default as AlertStyle } from './AlertStyle';
+export { default as CenterStyle } from './mantine/CenterStyle';
 
 // Text & Content Styles
 export { default as HeadingStyle } from './HeadingStyle';
