@@ -11,7 +11,7 @@ export { default as ResetPasswordStyle } from './ResetPasswordStyle';
 export { default as TwoFactorAuthStyle } from './TwoFactorAuthStyle';
 
 // Layout & Container Styles
-export { default as ContainerStyle } from './ContainerStyle';
+export { default as ContainerStyle } from './mantine/ContainerStyle';
 export { default as DivStyle } from './DivStyle';
 export { default as AlertStyle } from './AlertStyle';
 export { default as CenterStyle } from './mantine/CenterStyle';

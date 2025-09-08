@@ -124,8 +124,16 @@ export interface ITwoFactorAuthStyle extends IBaseStyle {
 // Container & Layout Styles
 export interface IContainerStyle extends IBaseStyle {
     style_name: 'container';
-    is_fluid?: IContentField<string>;
-    export_pdf?: IContentField<string>;
+    mantine_slider_size?: IContentField<string>;
+    mantine_container_fluid?: IContentField<string>;
+    mantine_padding_x?: IContentField<string>;
+    mantine_padding_y?: IContentField<string>;
+    mantine_width?: IContentField<string>;
+    mantine_height?: IContentField<string>;
+    mantine_miw?: IContentField<string>;
+    mantine_mih?: IContentField<string>;
+    mantine_maw?: IContentField<string>;
+    mantine_mah?: IContentField<string>;
 }
 
 export interface ICenterStyle extends IBaseStyle {
