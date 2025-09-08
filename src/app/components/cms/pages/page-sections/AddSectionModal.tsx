@@ -2,38 +2,33 @@
 
 import { useState, useMemo } from 'react';
 import {
-    Modal,
     Tabs,
     Text,
     Button,
     Group,
     Stack,
-    ScrollArea,
     Card,
     Badge,
     TextInput,
     Loader,
     Alert,
     ActionIcon,
-    Box,
     FileInput,
-    Select
+    Select,
 } from '@mantine/core';
 import {
-    IconX,
     IconPlus,
     IconSearch,
     IconInfoCircle,
     IconAlertCircle,
-    IconUpload
+    IconUpload,
+    IconX
 } from '@tabler/icons-react';
+import { ModalWrapper } from '../../../shared';
 import { useStyleGroups } from '../../../../../hooks/useStyleGroups';
 import { useSectionOperations } from '../../../../../hooks/useSectionOperations';
 import { useUnusedSections, useRefContainerSections } from '../../../../../hooks/useSectionUtility';
 import { IStyle, IStyleGroup } from '../../../../../types/responses/admin/styles.types';
-import { IUnusedSection, IRefContainerSection } from '../../../../../types/responses/admin/section-utility.types';
-import styles from './AddSectionModal.module.css';
-import { ISectionExportData } from '../../../../../api/admin/section.api';
 import { readJsonFile, isValidJsonFile } from '../../../../../utils/export-import.utils';
 import { ISectionOperationOptions } from '../../../../../utils/section-operations.utils';
 
@@ -249,100 +244,153 @@ export function AddSectionModal({
 
     const isProcessing = sectionOperations.isLoading || isImporting;
 
+    // Custom actions for the footer based on active tab
+    const getCustomActions = () => (
+        <Group justify="space-between" align="center" w="100%">
+            <Text size="sm" c="dimmed">
+                {activeTab === 'import-section'
+                    ? (selectedFile ? `Ready to import from "${selectedFile.name}"` : 'Select a JSON file to import')
+                    : activeTab === 'unassigned-section'
+                    ? (selectedUnusedSection ? `Ready to add unused section` : 'Select an unused section to continue')
+                    : activeTab === 'reference-section'
+                    ? (selectedRefContainerSection ? `Ready to add reference container` : 'Select a reference container to continue')
+                    : (selectedStyle ? `Ready to add "${selectedStyle.name}" section` : 'Select a style to continue')
+                }
+            </Text>
+            <Group gap="sm">
+                <Button variant="outline" onClick={handleClose} disabled={isProcessing} size="sm">
+                    Cancel
+                </Button>
+                {activeTab === 'import-section' ? (
+                    <Button
+                        leftSection={<IconUpload size={16} />}
+                        onClick={handleImportSections}
+                        disabled={!selectedFile || !isValidJsonFile(selectedFile!) || isProcessing}
+                        loading={isImporting}
+                        size="sm"
+                        color="green"
+                    >
+                        Import Sections
+                    </Button>
+                ) : activeTab === 'unassigned-section' ? (
+                    <Button
+                        leftSection={<IconPlus size={16} />}
+                        onClick={handleAddUnusedSection}
+                        disabled={!selectedUnusedSection || isProcessing}
+                        loading={sectionOperations.isLoading}
+                        size="sm"
+                        color="orange"
+                    >
+                        Add Unused Section
+                    </Button>
+                ) : activeTab === 'reference-section' ? (
+                    <Button
+                        leftSection={<IconPlus size={16} />}
+                        onClick={handleAddRefContainerSection}
+                        disabled={!selectedRefContainerSection || isProcessing}
+                        loading={sectionOperations.isLoading}
+                        size="sm"
+                        color="violet"
+                    >
+                        Add Reference Section
+                    </Button>
+                ) : (
+                    <Button
+                        leftSection={<IconPlus size={16} />}
+                        onClick={handleAddSection}
+                        disabled={!selectedStyle || isProcessing}
+                        loading={sectionOperations.isLoading}
+                        size="sm"
+                    >
+                        Add Section
+                    </Button>
+                )}
+            </Group>
+        </Group>
+    );
+
     return (
-        <Modal
-                opened={opened}
-                onClose={handleClose}
-                title={title}
-                size="lg"
-                centered
-                closeButtonProps={{
-                    icon: <IconX size={16} />
-                }}
-                styles={{
-                    body: { padding: 0 },
-                    header: { paddingBottom: 0 }
-                }}
-                overlayProps={{
-                    backgroundOpacity: 0.5,
-                    blur: 3,
-                }}
-                zIndex={1000}
-            >
-            <Box className={styles.modalContainer}>
-                <Tabs value={activeTab} onChange={handleTabChange} className={styles.tabsContainer}>
-                    {/* Header Section */}
-                    <Box p="md" pb="sm" className={styles.headerSection}>
-                        <Tabs.List>
-                            <Tabs.Tab value="new-section">New Section</Tabs.Tab>
-                            <Tabs.Tab value="unassigned-section">
-                                Unused Section
-                            </Tabs.Tab>
-                            <Tabs.Tab value="reference-section">
-                                Reference Section
-                            </Tabs.Tab>
-                            <Tabs.Tab value="import-section">
-                                Import Section
-                            </Tabs.Tab>
-                        </Tabs.List>
+        <ModalWrapper
+            opened={opened}
+            onClose={handleClose}
+            title={title}
+            size="xl"
+            scrollAreaHeight="70vh"
+            customActions={getCustomActions()}
+            isLoading={isProcessing}
+        >
+            <Tabs value={activeTab} onChange={handleTabChange}>
+                {/* Header Section */}
+                <Group justify="space-between" align="center" mb="md">
+                    <Tabs.List>
+                        <Tabs.Tab value="new-section">New Section</Tabs.Tab>
+                        <Tabs.Tab value="unassigned-section">
+                            Unused Section
+                        </Tabs.Tab>
+                        <Tabs.Tab value="reference-section">
+                            Reference Section
+                        </Tabs.Tab>
+                        <Tabs.Tab value="import-section">
+                            Import Section
+                        </Tabs.Tab>
+                    </Tabs.List>
+                </Group>
 
-                        {/* Search Input - only for new-section tab */}
-                        {activeTab === 'new-section' && (
-                            <TextInput
-                                placeholder="Search styles..."
-                                leftSection={<IconSearch size={16} />}
-                                value={searchQuery}
-                                onChange={(event) => setSearchQuery(event.currentTarget.value)}
-                                mt="sm"
+                {/* Search Input - only for new-section tab */}
+                {activeTab === 'new-section' && (
+                    <TextInput
+                        placeholder="Search styles..."
+                        leftSection={<IconSearch size={16} />}
+                        value={searchQuery}
+                        onChange={(event) => setSearchQuery(event.currentTarget.value)}
+                        mb="sm"
+                        size="sm"
+                    />
+                )}
+
+                {/* Section Name Input - only for new-section tab */}
+                {activeTab === 'new-section' && (
+                    <TextInput
+                        label="Section Name (Optional)"
+                        placeholder="Enter custom section name..."
+                        value={sectionName}
+                        onChange={(event) => setSectionName(event.currentTarget.value)}
+                        description="Leave empty to use the style name"
+                        mb="sm"
+                        size="sm"
+                    />
+                )}
+
+                {/* Selected Style Display - only for new-section tab */}
+                {activeTab === 'new-section' && selectedStyle && (
+                    <Card withBorder p="xs" bg="blue.0" mb="sm">
+                        <Group justify="space-between" gap="xs">
+                            <Group gap="xs" flex={1} style={{ minWidth: 0 }}>
+                                <Text fw={500} size="sm">Selected:</Text>
+                                <Text size="sm" truncate>{selectedStyle.name}</Text>
+                                <Badge size="xs" variant="light" color="blue">
+                                    {selectedStyle.type}
+                                </Badge>
+                            </Group>
+                            <ActionIcon
+                                variant="subtle"
                                 size="sm"
-                            />
-                        )}
+                                onClick={() => setSelectedStyle(null)}
+                            >
+                                <IconX size={14} />
+                            </ActionIcon>
+                        </Group>
+                    </Card>
+                )}
 
-                        {/* Section Name Input - only for new-section tab */}
-                        {activeTab === 'new-section' && (
-                            <TextInput
-                                label="Section Name (Optional)"
-                                placeholder="Enter custom section name..."
-                                value={sectionName}
-                                onChange={(event) => setSectionName(event.currentTarget.value)}
-                                description="Leave empty to use the style name"
-                                mt="sm"
-                                size="sm"
-                            />
-                        )}
+                {/* Instructions - only for new-section tab */}
+                {activeTab === 'new-section' && (
+                    <Text size="xs" c="dimmed" mb="sm">
+                        Click on a style below to select it for your new section
+                    </Text>
+                )}
 
-                        {/* Selected Style Display - only for new-section tab */}
-                        {activeTab === 'new-section' && selectedStyle && (
-                            <Card withBorder p="xs" bg="blue.0" mt="sm">
-                                <Group justify="space-between" gap="xs">
-                                    <Group gap="xs" className={styles.selectedStyleGroup}>
-                                        <Text fw={500} size="sm">Selected:</Text>
-                                        <Text size="sm" truncate>{selectedStyle.name}</Text>
-                                        <Badge size="xs" variant="light" color="blue">
-                                            {selectedStyle.type}
-                                        </Badge>
-                                    </Group>
-                                    <ActionIcon
-                                        variant="subtle"
-                                        size="sm"
-                                        onClick={() => setSelectedStyle(null)}
-                                    >
-                                        <IconX size={14} />
-                                    </ActionIcon>
-                                </Group>
-                            </Card>
-                        )}
-
-                        {/* Instructions - only for new-section tab */}
-                        {activeTab === 'new-section' && (
-                            <Text size="xs" c="dimmed" mt="sm">
-                                Click on a style below to select it for your new section
-                            </Text>
-                        )}
-                    </Box>
-
-                    {/* Scrollable Content */}
-                    <ScrollArea className={styles.scrollableContent} p="md">
+                {/* Tab Content */}
                         <Tabs.Panel value="new-section">
                             {isLoadingStyles ? (
                                 <Group justify="center" p="xl">
@@ -380,11 +428,17 @@ export function AddSectionModal({
                                                         key={style.id}
                                                         withBorder
                                                         p="xs"
-                                                        className={`${styles.styleCard} ${selectedStyle?.id === style.id ? styles.selected : ''}`}
+                                                        style={{
+                                                            cursor: 'pointer',
+                                                            transition: 'all 0.2s ease',
+                                                            backgroundColor: selectedStyle?.id === style.id ? 'var(--mantine-color-blue-1)' : undefined,
+                                                            borderColor: selectedStyle?.id === style.id ? 'var(--mantine-color-blue-6)' : undefined,
+                                                            borderWidth: selectedStyle?.id === style.id ? '2px' : undefined
+                                                        }}
                                                         onClick={() => handleStyleSelect(style)}
                                                     >
                                                         <Group justify="space-between" wrap="nowrap" gap="xs">
-                                                            <div className={styles.styleInfo}>
+                                                            <div style={{ flex: 1, minWidth: 0 }}>
                                                                 <Group gap="xs" mb={style.description ? "xs" : 0}>
                                                                     <Text fw={500} size="sm">
                                                                         {style.name}
@@ -532,78 +586,7 @@ export function AddSectionModal({
                                 )}
                             </Stack>
                         </Tabs.Panel>
-                    </ScrollArea>
-                </Tabs>
-
-                {/* Fixed Footer */}
-                <Box 
-                    p="md" 
-                    pt="sm"
-                    className={styles.footerSection}
-                >
-                    <Group justify="space-between" align="center">
-                        <Text size="sm" c="dimmed">
-                            {activeTab === 'import-section' 
-                                ? (selectedFile ? `Ready to import from "${selectedFile.name}"` : 'Select a JSON file to import')
-                                : activeTab === 'unassigned-section'
-                                ? (selectedUnusedSection ? `Ready to add unused section` : 'Select an unused section to continue')
-                                : activeTab === 'reference-section'
-                                ? (selectedRefContainerSection ? `Ready to add reference container` : 'Select a reference container to continue')
-                                : (selectedStyle ? `Ready to add "${selectedStyle.name}" section` : 'Select a style to continue')
-                            }
-                        </Text>
-                        <Group gap="sm">
-                            <Button variant="subtle" onClick={handleClose} disabled={isProcessing} size="sm">
-                                Cancel
-                            </Button>
-                            {activeTab === 'import-section' ? (
-                                <Button
-                                    leftSection={<IconUpload size={16} />}
-                                    onClick={handleImportSections}
-                                    disabled={!selectedFile || !isValidJsonFile(selectedFile!) || isProcessing}
-                                    loading={isImporting}
-                                    size="sm"
-                                    color="green"
-                                >
-                                    Import Sections
-                                </Button>
-                            ) : activeTab === 'unassigned-section' ? (
-                                <Button
-                                    leftSection={<IconPlus size={16} />}
-                                    onClick={handleAddUnusedSection}
-                                    disabled={!selectedUnusedSection || isProcessing}
-                                    loading={sectionOperations.isLoading}
-                                    size="sm"
-                                    color="orange"
-                                >
-                                    Add Unused Section
-                                </Button>
-                            ) : activeTab === 'reference-section' ? (
-                                <Button
-                                    leftSection={<IconPlus size={16} />}
-                                    onClick={handleAddRefContainerSection}
-                                    disabled={!selectedRefContainerSection || isProcessing}
-                                    loading={sectionOperations.isLoading}
-                                    size="sm"
-                                    color="violet"
-                                >
-                                    Add Reference Section
-                                </Button>
-                            ) : (
-                                <Button
-                                    leftSection={<IconPlus size={16} />}
-                                    onClick={handleAddSection}
-                                    disabled={!selectedStyle || isProcessing}
-                                    loading={sectionOperations.isLoading}
-                                    size="sm"
-                                >
-                                    Add Section
-                                </Button>
-                            )}
-                        </Group>
-                    </Group>
-                </Box>
-            </Box>
-        </Modal>
+            </Tabs>
+        </ModalWrapper>
     );
 } 
