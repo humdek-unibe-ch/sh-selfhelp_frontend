@@ -26,6 +26,7 @@ const SimpleGridStyle: React.FC<ISimpleGridStyleProps> = ({ style }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values for Mantine SimpleGrid props
+    const cols = getFieldContent(style, 'mantine_cols');
     const spacing = getFieldContent(style, 'mantine_spacing');
     const breakpoints = getFieldContent(style, 'mantine_breakpoints');
     const verticalSpacing = getFieldContent(style, 'mantine_vertical_spacing');
@@ -40,12 +41,18 @@ const SimpleGridStyle: React.FC<ISimpleGridStyleProps> = ({ style }) => {
     if (width) styleObj.width = width;
     if (height) styleObj.height = height;
 
-    // Parse breakpoints - SimpleGrid expects number of columns or responsive object
-    let cols: number | Record<string, number> = 1; // Default to 1 column
-    if (breakpoints) {
+    // Determine number of columns - use mantine_cols field first, fallback to breakpoints
+    let gridCols: number | Record<string, number> = 1; // Default to 1 column
+
+    // Primary: Use mantine_cols field if available
+    if (cols) {
+        gridCols = parseInt(cols) || 1;
+    }
+    // Fallback: Use breakpoints for responsive behavior if no cols specified
+    else if (breakpoints) {
         // If breakpoints is a single value, use it as cols
         if (!breakpoints.includes(',')) {
-            cols = parseInt(breakpoints) || 1;
+            gridCols = parseInt(breakpoints) || 1;
         } else {
             // Parse responsive breakpoints format: "xs:1,sm:2,md:3,lg:4"
             const breakpointPairs = breakpoints.split(',');
@@ -56,13 +63,13 @@ const SimpleGridStyle: React.FC<ISimpleGridStyleProps> = ({ style }) => {
                     responsiveCols[size.trim()] = parseInt(count.trim()) || 1;
                 }
             });
-            cols = responsiveCols;
+            gridCols = responsiveCols;
         }
     }
 
     return (
         <SimpleGrid
-            cols={cols}
+            cols={gridCols}
             spacing={spacing || 'md'}
             verticalSpacing={verticalSpacing || spacing || 'md'}
             className={cssClass}

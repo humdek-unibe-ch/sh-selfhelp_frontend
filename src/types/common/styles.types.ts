@@ -452,6 +452,7 @@ export interface IGroupStyle extends IBaseStyle {
 export interface ISimpleGridStyle extends IBaseStyle {
     style_name: 'simpleGrid';
     // SimpleGrid-specific fields
+    mantine_cols?: IContentField<string>;             // Slider field for number of columns
     mantine_spacing?: IContentField<string>;          // Slider field for spacing
     mantine_breakpoints?: IContentField<string>;      // Slider field for breakpoints
     mantine_vertical_spacing?: IContentField<string>; // Slider field for vertical spacing
