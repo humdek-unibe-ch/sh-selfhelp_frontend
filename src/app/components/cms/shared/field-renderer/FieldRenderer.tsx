@@ -70,6 +70,11 @@ export function FieldRenderer({
     className,
     disabled = false
 }: IFieldRendererProps) {
+    // Skip rendering hidden fields - they should not be visible to users
+    if (field.hidden === 1) {
+        return null;
+    }
+
     // Use provided value if available, otherwise extract from field translations
     const getFieldValue = (): string => {
         // If a value is explicitly provided, use it (this comes from form state)
