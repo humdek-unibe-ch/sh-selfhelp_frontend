@@ -1,6 +1,6 @@
 'use client';
 
-import { BoxProps, ElementProps, Input, Slider } from '@mantine/core';
+import { Input, Slider } from '@mantine/core';
 
 interface ISliderFieldProps {
     fieldId: number;
@@ -17,14 +17,6 @@ interface ISliderFieldProps {
     disabled?: boolean;
 }
 
-const MARKS = [
-    { value: 0, label: 'xs' },
-    { value: 25, label: 'sm' },
-    { value: 50, label: 'md' },
-    { value: 75, label: 'lg' },
-    { value: 100, label: 'xl' },
-];
-
 export function SliderField({
     fieldId,
     fieldName,
@@ -40,65 +32,70 @@ export function SliderField({
             // Create marks from config options
             const optionCount = config.options.length;
             return config.options.map((option, index) => ({
-                value: (index / (optionCount - 1)) * 100,
-                label: option.value
+                value: optionCount > 1 ? (index / (optionCount - 1)) * 100 : 50,
+                label: option.text, // Display the text as label
+                saveValue: option.value // Save the value as the actual value
             }));
         }
-        return MARKS;
+        // Default fallback marks
+        return [
+            { value: 0, label: 'xs', saveValue: 'xs' },
+            { value: 25, label: 'sm', saveValue: 'sm' },
+            { value: 50, label: 'md', saveValue: 'md' },
+            { value: 75, label: 'lg', saveValue: 'lg' },
+            { value: 100, label: 'xl', saveValue: 'xl' },
+        ];
     };
 
     const marks = getMarks();
-    const currentMark = marks.find((mark) => mark.label === value);
+    const currentMark = marks.find((mark) => mark.saveValue === value);
+
+    // Helper function to find closest mark
+    const findClosestMark = (sliderValue: number) => {
+        return marks.reduce((prev, curr) =>
+            Math.abs(curr.value - sliderValue) < Math.abs(prev.value - sliderValue) ? curr : prev
+        );
+    };
 
     if (!currentMark) {
-        // Fallback if value doesn't match any mark
+        // Fallback if value doesn't match any mark - use first mark or middle position
+        const defaultValue = marks.length > 0 ? marks[0].value : 50;
         return (
-            <Input.Wrapper labelElement="div" label={fieldTitle || fieldName}>
-                <Slider
-                    value={50} // Default to middle
-                    onChange={(val) => {
-                        const closestMark = marks.reduce((prev, curr) =>
-                            Math.abs(curr.value - val) < Math.abs(prev.value - val) ? curr : prev
-                        );
-                        onChange(closestMark.label);
-                    }}
-                    label={(val) => {
-                        const closestMark = marks.reduce((prev, curr) =>
-                            Math.abs(curr.value - val) < Math.abs(prev.value - val) ? curr : prev
-                        );
-                        return closestMark.label;
-                    }}
-                    step={25}
-                    marks={marks}
-                    styles={{ markLabel: { display: 'none' } }}
-                    thumbLabel="Size"
-                    disabled={disabled}
-                />
-            </Input.Wrapper>
+            <Slider
+                value={defaultValue}
+                onChange={(val) => {
+                    const closestMark = findClosestMark(val);
+                    onChange(closestMark.saveValue);
+                }}
+                label={(val) => {
+                    const closestMark = findClosestMark(val);
+                    return closestMark.label;
+                }}
+                step={marks.length > 1 ? 100 / (marks.length - 1) : 25}
+                marks={marks}
+                styles={{ markLabel: { display: 'none' } }}
+                thumbLabel={fieldTitle || fieldName}
+                disabled={disabled}
+            />
         );
     }
 
-    const _value = currentMark.value;
     const handleChange = (val: number) => {
-        const closestMark = marks.reduce((prev, curr) =>
-            Math.abs(curr.value - val) < Math.abs(prev.value - val) ? curr : prev
-        );
-        onChange(closestMark.label);
+        const closestMark = findClosestMark(val);
+        onChange(closestMark.saveValue);
     };
 
     return (
         <Input.Wrapper labelElement="div">
             <Slider
                 key={fieldId}
-                value={_value}
+                value={currentMark.value}
                 onChange={handleChange}
                 label={(val) => {
-                    const closestMark = marks.reduce((prev, curr) =>
-                        Math.abs(curr.value - val) < Math.abs(prev.value - val) ? curr : prev
-                    );
+                    const closestMark = findClosestMark(val);
                     return closestMark.label;
                 }}
-                step={25}
+                step={marks.length > 1 ? 100 / (marks.length - 1) : 25}
                 marks={marks}
                 styles={{ markLabel: { display: 'none' } }}
                 thumbLabel={fieldTitle || fieldName}

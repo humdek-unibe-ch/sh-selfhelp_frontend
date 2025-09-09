@@ -11,6 +11,7 @@ import {
     SelectField,
     SelectIconField,
     SliderField,
+    SegmentedControlField,
     UnknownField,
     ConditionBuilderField,
     DataConfigField,
@@ -407,6 +408,20 @@ export function FieldRenderer({
                 value={fieldValue}
                 onChange={onChange}
                 config={field.config}
+                disabled={disabled}
+            />
+        );
+    }
+
+    // Segment field (for segmented control options)
+    if (field.type === 'segment') {
+        return renderFieldWithBadge(
+            <SegmentedControlField
+                fieldId={field.id}
+                config={field.config || {}}
+                value={fieldValue}
+                onChange={onChange}
+                placeholder={field.title || field.name}
                 disabled={disabled}
             />
         );

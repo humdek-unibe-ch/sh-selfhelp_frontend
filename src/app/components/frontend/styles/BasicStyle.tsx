@@ -8,7 +8,8 @@ import {
     CheckboxStyle, SliderStyle, ProgressBarStyle,
     HtmlTagStyle, ValidateStyle,
     ResetPasswordStyle, TwoFactorAuthStyle, TableStyle, TableRowStyle,
-    TableCellStyle, ShowUserInputStyle, CenterStyle
+    TableCellStyle, ShowUserInputStyle, CenterStyle,
+    FlexStyle, GroupStyle, StackStyle, SimpleGridStyle, SpaceStyle
 } from './SelfHelpStyles';
 import { TStyle } from '../../../../types/common/styles.types';
 
@@ -57,6 +58,16 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <AlertStyle style={style} />;
         case 'center':
             return <CenterStyle style={style} />;
+        case 'flex':
+            return <FlexStyle style={style} />;
+        case 'group':
+            return <GroupStyle style={style} />;
+        case 'stack':
+            return <StackStyle style={style} />;
+        case 'simpleGrid':
+            return <SimpleGridStyle style={style} />;
+        case 'space':
+            return <SpaceStyle style={style} />;
 
         // Text & Content Styles
         case 'heading':

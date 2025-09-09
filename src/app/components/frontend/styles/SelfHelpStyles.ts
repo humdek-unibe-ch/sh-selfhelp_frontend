@@ -15,6 +15,11 @@ export { default as ContainerStyle } from './mantine/ContainerStyle';
 export { default as DivStyle } from './DivStyle';
 export { default as AlertStyle } from './AlertStyle';
 export { default as CenterStyle } from './mantine/CenterStyle';
+export { default as FlexStyle } from './mantine/FlexStyle';
+export { default as GroupStyle } from './mantine/GroupStyle';
+export { default as StackStyle } from './mantine/StackStyle';
+export { default as SimpleGridStyle } from './mantine/SimpleGridStyle';
+export { default as SpaceStyle } from './mantine/SpaceStyle';
 
 // Text & Content Styles
 export { default as HeadingStyle } from './HeadingStyle';

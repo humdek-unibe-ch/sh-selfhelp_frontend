@@ -2,6 +2,7 @@
 export type TStyleName =
     | 'login' | 'profile' | 'validate' | 'register' | 'resetPassword' | 'twoFactorAuth'
     | 'container' | 'alert' | 'div' | 'refContainer' | 'dataContainer' | 'htmlTag' | 'center'
+    | 'flex' | 'group' | 'stack' | 'simpleGrid' | 'space'
     | 'heading' | 'markdown' | 'markdownInline' | 'plaintext'
     | 'formUserInput' | 'formUserInputLog' | 'formUserInputRecord' | 'input' | 'textarea' | 'select' | 'radio' | 'slider' | 'checkbox'
     | 'image' | 'video' | 'audio' | 'figure' | 'carousel'
@@ -423,6 +424,60 @@ export interface ILoopStyle extends IBaseStyle {
     loop?: IContentField<any[]>;
 }
 
+// Mantine Layout Components
+export interface IFlexStyle extends IBaseStyle {
+    style_name: 'flex';
+    // Flex-specific fields
+    mantine_gap?: IContentField<string>;              // Slider field for gap spacing
+    mantine_justify?: IContentField<string>;          // Select field for justify-content
+    mantine_align?: IContentField<string>;            // Select field for align-items
+    mantine_direction?: IContentField<string>;        // Segment field for flex-direction
+    mantine_wrap?: IContentField<string>;             // Segment field for flex-wrap
+    mantine_width?: IContentField<string>;            // Select field for width
+    mantine_height?: IContentField<string>;           // Select field for height
+}
+
+export interface IGroupStyle extends IBaseStyle {
+    style_name: 'group';
+    // Group-specific fields
+    mantine_gap?: IContentField<string>;              // Slider field for gap spacing
+    mantine_justify?: IContentField<string>;          // Select field for justify-content
+    mantine_align?: IContentField<string>;            // Select field for align-items
+    mantine_group_wrap?: IContentField<string>;       // Segment field for wrap
+    mantine_group_grow?: IContentField<string>;       // Checkbox field for grow
+    mantine_width?: IContentField<string>;            // Select field for width
+    mantine_height?: IContentField<string>;           // Select field for height
+}
+
+export interface ISimpleGridStyle extends IBaseStyle {
+    style_name: 'simpleGrid';
+    // SimpleGrid-specific fields
+    mantine_spacing?: IContentField<string>;          // Slider field for spacing
+    mantine_breakpoints?: IContentField<string>;      // Slider field for breakpoints
+    mantine_vertical_spacing?: IContentField<string>; // Slider field for vertical spacing
+    mantine_width?: IContentField<string>;            // Select field for width
+    mantine_height?: IContentField<string>;           // Select field for height
+}
+
+export interface ISpaceStyle extends IBaseStyle {
+    style_name: 'space';
+    // Space-specific fields
+    mantine_slider_size?: IContentField<string>;      // Slider field for size
+    mantine_space_h?: IContentField<string>;          // Segment field for direction
+    mantine_width?: IContentField<string>;            // Select field for width
+    mantine_height?: IContentField<string>;           // Select field for height
+}
+
+export interface IStackStyle extends IBaseStyle {
+    style_name: 'stack';
+    // Stack-specific fields
+    mantine_gap?: IContentField<string>;              // Slider field for gap spacing
+    mantine_justify?: IContentField<string>;          // Select field for justify-content
+    mantine_align?: IContentField<string>;            // Select field for align-items
+    mantine_width?: IContentField<string>;            // Select field for width
+    mantine_height?: IContentField<string>;           // Select field for height
+}
+
 // Union type for all styles
 export type TStyle =
     | ILoginStyle
@@ -467,4 +522,9 @@ export type TStyle =
     | IProgressBarStyle
     | IShowUserInputStyle
     | IVersionStyle
-    | ILoopStyle; 
+    | ILoopStyle
+    | IFlexStyle
+    | IGroupStyle
+    | ISimpleGridStyle
+    | ISpaceStyle
+    | IStackStyle; 

@@ -7,6 +7,7 @@ export { MonacoEditorField } from './MonacoEditorField';
 export { SelectField } from './SelectField';
 export { SelectIconField } from '../../../shared/common/SelectIconField';
 export { SliderField } from './SliderField';
+export { SegmentedControlField } from './SegmentedControlField';
 export { UnknownField } from './UnknownField';
 export { ConditionBuilderField } from './ConditionBuilderField';
 export { DataConfigField } from './DataConfigField';
