@@ -137,23 +137,19 @@ const SectionItem = memo(function SectionItem({
     // Helper function to check if style relationship is valid for drop
     const isValidDropTarget = useCallback((draggedStyleId: number, targetParentId: number | null): boolean => {
         if (!styleGroups || styleGroups.length === 0) {
-            console.log(`⚠️ No style groups available (${styleGroups?.length || 0} groups), allowing drop`);
             return true; // If no style groups available, allow all drops
         }
 
         const draggedStyle = findStyleById(draggedStyleId, styleGroups);
         if (!draggedStyle) {
-            console.log(`⚠️ Dragged style ${draggedStyleId} not found in style groups, allowing drop`);
             return true; // If dragged style not found, allow drop
         }
 
         // If dropping to page level (no parent)
         if (targetParentId === null) {
-            console.log(`📄 Page-level drop: ${draggedStyle.name} (has ${draggedStyle.relationships?.allowedParents?.length || 0} parent restrictions)`);
             // Check if dragged style has parent restrictions
             if (draggedStyle.relationships && draggedStyle.relationships.allowedParents.length > 0) {
                 // If dragged style has allowedParents restrictions, don't allow page-level drops
-                console.log(`🚫 Blocked page-level drop for ${draggedStyle.name} - has parent restrictions`);
                 return false;
             }
             return true; // Allow dropping to page level if no parent restrictions
@@ -165,33 +161,23 @@ const SectionItem = memo(function SectionItem({
 
         // First try to find in allSections (which is now flattened)
         targetSection = allSections.find(s => s.id === targetParentId);
-        console.log(`🔍 Looking for target section ${targetParentId} in ${allSections.length} sections:`, allSections.map(s => s.id));
 
         // If not found in allSections, it might be the current section
         if (!targetSection && targetParentId === section.id) {
             targetSection = section;
-            console.log(`✅ Using current section ${section.id} (${section.name}) as target`);
         }
 
         if (!targetSection) {
-            console.log(`⚠️ Target section ${targetParentId} not found in allSections and not current section (${section.id})`);
             return true;
         }
 
         targetStyle = findStyleById(targetSection.id_styles, styleGroups);
         if (!targetStyle) {
-            console.log(`⚠️ Target style ${targetSection.id_styles} not found for section ${targetSection.name}`);
             return true; // If target style not found, allow drop
         }
 
-        console.log(`🔍 Style check: ${draggedStyle.name} (id:${draggedStyle.id}) -> ${targetStyle.name} (id:${targetStyle.id})`);
-        console.log(`📋 Dragged allowedParents:`, draggedStyle.relationships?.allowedParents || []);
-        console.log(`📋 Target allowedChildren:`, targetStyle.relationships?.allowedChildren || []);
-
         // Check if the relationship is valid
-        const isValid = isStyleRelationshipValid(draggedStyle, targetStyle);
-        console.log(`🔍 Relationship result: ${isValid}`);
-        return isValid;
+        return isStyleRelationshipValid(draggedStyle, targetStyle);
     }, [styleGroups, allSections, section]);
 
     // Helper function to check if current drag target is invalid (for visual feedback)
@@ -202,7 +188,6 @@ const SectionItem = memo(function SectionItem({
         if (!draggedSection) return false;
 
         const isInvalid = !isValidDropTarget(draggedSection.id_styles, section.id);
-        console.log(`🎨 Visual feedback check for section ${section.id} (${section.name}): dragged ${draggedSection.id_styles} (${draggedSection.name}), targetParentId: ${section.id}, isInvalid: ${isInvalid}`);
         return isInvalid;
     }, [dragContext.isDragActive, dragContext.draggedSectionId, allSections, section.id, isValidDropTarget]);
 
@@ -422,11 +407,8 @@ const SectionItem = memo(function SectionItem({
                     dropType = 'sibling';
                 }
 
-                console.log(`🎯 Drop check: section ${section.id} (${section.name}), parentId: ${parentId}, targetParentId: ${targetParentId}, dropType: ${dropType}`);
-
                 // Check style relationship validity
                 if (!isValidDropTarget(draggedStyleId, targetParentId)) {
-                    console.log(`🚫 Invalid ${dropType} drop: ${draggedStyleId} cannot be dropped with parent ${targetParentId}`);
                     return false;
                 }
 
@@ -552,11 +534,8 @@ const SectionItem = memo(function SectionItem({
                 const targetParentId = section.id;
                 const dropType = 'drop-zone';
 
-                console.log(`🎯 Drop zone check: section ${section.id} (${section.name}), parentId: ${parentId}, targetParentId: ${targetParentId}, dropType: ${dropType}`);
-
                 // Check style relationship validity
                 if (!isValidDropTarget(draggedStyleId, targetParentId)) {
-                    console.log(`🚫 Invalid ${dropType} drop: ${draggedStyleId} cannot be dropped with parent ${targetParentId}`);
                     return false;
                 }
 
@@ -784,9 +763,7 @@ const SectionsListComponent = function SectionsList({
 
     // Create flattened version of all sections for validation
     const allFlattenedSections = useMemo(() => {
-        const flattened = flattenSections(sections || []);
-        console.log(`📊 Created flattened sections array with ${flattened.length} sections:`, flattened.map(s => `${s.id} (${s.name})`));
-        return flattened;
+        return flattenSections(sections || []);
     }, [sections, flattenSections]);
     const containerRef = useRef<HTMLDivElement>(null);
     const [dragState, setDragState] = useState<IDragState>({

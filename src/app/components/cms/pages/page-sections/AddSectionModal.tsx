@@ -91,20 +91,6 @@ export function AddSectionModal({
     const unusedSections = useMemo(() => unusedSectionsData || [], [unusedSectionsData]);
     const refContainerSections = useMemo(() => refContainerSectionsData || [], [refContainerSectionsData]);
 
-    const unusedSectionsSelectData = useMemo(() => {
-        return unusedSections.map((section) => ({
-          value: String(section.id),
-          label: `${section.name} (ID: ${section.id}) - ${section.styleName || 'No style'}`
-        }));
-      }, [unusedSections]);
-
-      const refContainerSectionsSelectData = useMemo(() => {
-        return refContainerSections.map((section) => ({
-          value: String(section.id),
-          label: `${section.name} (ID: ${section.id}) - ${section.styleName}`
-        }));
-      }, [refContainerSections]);
-
     // Get the parent style with relationships from the full styles list
     const parentStyleWithRelationships = useMemo(() => {
         if (!parentSectionDetails?.section?.style || !styleGroups) {
@@ -114,6 +100,44 @@ export function AddSectionModal({
         const parentStyleId = parentSectionDetails.section.style.id;
         return findStyleById(parentStyleId, styleGroups);
     }, [parentSectionDetails, styleGroups]);
+
+    const unusedSectionsSelectData = useMemo(() => {
+        return unusedSections
+          .filter((section) => {
+            // If no parent or no style groups, allow all unused sections
+            if (!parentStyleWithRelationships || !styleGroups) return true;
+
+            // Find the style of this unused section
+            const sectionStyle = findStyleById(section.idStyles, styleGroups);
+            if (!sectionStyle) return true; // If style not found, allow it
+
+            // Check if this section's style is allowed as a child of the parent
+            return isStyleRelationshipValid(sectionStyle, parentStyleWithRelationships);
+          })
+          .map((section) => ({
+            value: String(section.id),
+            label: `${section.name} (ID: ${section.id}) - ${section.styleName || 'No style'}`
+          }));
+      }, [unusedSections, parentStyleWithRelationships, styleGroups]);
+
+      const refContainerSectionsSelectData = useMemo(() => {
+        return refContainerSections
+          .filter((section) => {
+            // If no parent or no style groups, allow all ref container sections
+            if (!parentStyleWithRelationships || !styleGroups) return true;
+
+            // Find the style of this ref container section
+            const sectionStyle = findStyleById(section.idStyles, styleGroups);
+            if (!sectionStyle) return true; // If style not found, allow it
+
+            // Check if this section's style is allowed as a child of the parent
+            return isStyleRelationshipValid(sectionStyle, parentStyleWithRelationships);
+          })
+          .map((section) => ({
+            value: String(section.id),
+            label: `${section.name} (ID: ${section.id}) - ${section.styleName}`
+          }));
+      }, [refContainerSections, parentStyleWithRelationships, styleGroups]);
 
 
     // Function to check if a style is allowed as a child of the parent section
@@ -199,6 +223,18 @@ export function AddSectionModal({
         }
 
         const sectionId = parseInt(selectedUnusedSection);
+
+        // Additional safety check: validate relationship before adding
+        if (parentStyleWithRelationships && styleGroups) {
+            const unusedSection = unusedSections.find(s => s.id === sectionId);
+            if (unusedSection) {
+                const sectionStyle = findStyleById(unusedSection.idStyles, styleGroups);
+                if (sectionStyle && !isStyleRelationshipValid(sectionStyle, parentStyleWithRelationships)) {
+                    return;
+                }
+            }
+        }
+
         const operationOptions: ISectionOperationOptions = {
             specificPosition,
         };
@@ -222,6 +258,18 @@ export function AddSectionModal({
         }
 
         const sectionId = parseInt(selectedRefContainerSection);
+
+        // Additional safety check: validate relationship before adding
+        if (parentStyleWithRelationships && styleGroups) {
+            const refContainerSection = refContainerSections.find(s => s.id === sectionId);
+            if (refContainerSection) {
+                const sectionStyle = findStyleById(refContainerSection.idStyles, styleGroups);
+                if (sectionStyle && !isStyleRelationshipValid(sectionStyle, parentStyleWithRelationships)) {
+                    return;
+                }
+            }
+        }
+
         const operationOptions: ISectionOperationOptions = {
             specificPosition,
         };
