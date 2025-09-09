@@ -32,6 +32,7 @@ import { useSectionDetails } from '../../../../../hooks/useSectionDetails';
 import { IStyle, IStyleGroup } from '../../../../../types/responses/admin/styles.types';
 import { readJsonFile, isValidJsonFile } from '../../../../../utils/export-import.utils';
 import { ISectionOperationOptions } from '../../../../../utils/section-operations.utils';
+import { isStyleRelationshipValid, findStyleById } from '../../../../../utils/style-relationship.utils';
 
 interface IAddSectionModalProps {
     opened: boolean;
@@ -111,41 +112,14 @@ export function AddSectionModal({
         }
 
         const parentStyleId = parentSectionDetails.section.style.id;
-
-        // Find the full style information with relationships from the styles API
-        for (const group of styleGroups) {
-            const foundStyle = group.styles.find(style => style.id === parentStyleId);
-            if (foundStyle) {
-                return foundStyle;
-            }
-        }
-
-        return null;
+        return findStyleById(parentStyleId, styleGroups);
     }, [parentSectionDetails, styleGroups]);
 
 
     // Function to check if a style is allowed as a child of the parent section
     const isStyleAllowedAsChild = useMemo(() => {
         return (style: IStyle): boolean => {
-            // If no parent section, allow all styles
-            if (!parentStyleWithRelationships) {
-                return true;
-            }
-
-            // If parent has no relationships defined, allow all styles (backward compatibility)
-            if (!parentStyleWithRelationships.relationships) {
-                return true;
-            }
-
-            // If parent's allowedChildren is empty, allow all styles
-            if (parentStyleWithRelationships.relationships.allowedChildren.length === 0) {
-                return true;
-            }
-
-            // Check if current style is in the parent's allowedChildren
-            return parentStyleWithRelationships.relationships.allowedChildren.some(allowedChild =>
-                allowedChild.id === style.id
-            );
+            return isStyleRelationshipValid(style, parentStyleWithRelationships);
         };
     }, [parentStyleWithRelationships]);
 
