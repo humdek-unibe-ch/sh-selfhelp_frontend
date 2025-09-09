@@ -55,6 +55,14 @@
     box-shadow: 0 0 0 1px light-dark(var(--mantine-color-green-2), var(--mantine-color-green-7));
 }
 
+.sectionItemWrapper.isInvalidDropTarget {
+    background: light-dark(var(--mantine-color-red-0), var(--mantine-color-red-9));
+    border: 1px solid var(--mantine-color-red-4);
+    border-radius: 6px;
+    transition: all 200ms ease;
+    box-shadow: 0 0 0 1px light-dark(var(--mantine-color-red-2), var(--mantine-color-red-7));
+}
+
 .sectionItemWrapper.isBeingDragged {
     background-color: light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-9));
     border-color: var(--mantine-color-blue-4);
@@ -101,6 +109,13 @@
     transform: scale(1.02);
 }
 
+.dropZoneArea.invalid {
+    background: light-dark(var(--mantine-color-red-2), var(--mantine-color-red-9));
+    border-color: var(--mantine-color-red-6);
+    border-style: solid;
+    box-shadow: 0 0 12px light-dark(var(--mantine-color-red-3), var(--mantine-color-red-6));
+}
+
 .dropZoneIcon {
     color: var(--mantine-color-green-6);
     font-size: 14px;
@@ -123,6 +138,14 @@
 
 .dropZoneArea.active .dropZoneText {
     color: light-dark(var(--mantine-color-green-8), var(--mantine-color-green-3));
+}
+
+.dropZoneArea.invalid .dropZoneIcon {
+    color: light-dark(var(--mantine-color-red-7), var(--mantine-color-red-4));
+}
+
+.dropZoneArea.invalid .dropZoneText {
+    color: light-dark(var(--mantine-color-red-8), var(--mantine-color-red-3));
 }
 
 /* Children container */

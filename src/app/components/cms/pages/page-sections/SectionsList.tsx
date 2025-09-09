@@ -30,6 +30,8 @@ import { DropIndicator } from '@atlaskit/pragmatic-drag-and-drop-react-drop-indi
 import { IPageSectionWithFields } from '../../../../../types/common/pages.type';
 import { PageSection } from './PageSection';
 import { calculateDragDropPosition, calculateContainerDropPosition } from '../../../../../utils/position-calculator';
+import { IStyleGroup } from '../../../../../types/responses/admin/styles.types';
+import { isStyleRelationshipValid, findStyleById } from '../../../../../utils/style-relationship.utils';
 import styles from './SectionsList.module.css';
 
 // Types
@@ -46,6 +48,7 @@ interface ISectionsListProps {
     selectedSectionId?: number | null;
     focusedSectionId?: number | null;
     pageId?: number;
+    styleGroups?: IStyleGroup[];
 }
 
 interface ISectionItemProps {
@@ -62,6 +65,7 @@ interface ISectionItemProps {
     onSectionSelect?: (sectionId: number) => void;
     selectedSectionId?: number | null;
     focusedSectionId?: number | null;
+    styleGroups?: IStyleGroup[];
 }
 
 interface IDragState {
@@ -74,6 +78,7 @@ interface IDropState {
     isDropTarget: boolean;
     isContainerTarget: boolean;
     isDropZoneHover: boolean;
+    isInvalidDropTarget: boolean;
 }
 
 interface IHoverPreviewState {
@@ -111,7 +116,8 @@ const SectionItem = memo(function SectionItem({
     onAddSiblingBelow,
     onSectionSelect,
     selectedSectionId,
-    focusedSectionId
+    focusedSectionId,
+    styleGroups
 }: ISectionItemProps) {
     const dragContext = useContext(DragContext);
     const hoverPreviewContext = useContext(HoverPreviewContext);
@@ -124,8 +130,81 @@ const SectionItem = memo(function SectionItem({
         closestEdge: null,
         isDropTarget: false,
         isContainerTarget: false,
-        isDropZoneHover: false
+        isDropZoneHover: false,
+        isInvalidDropTarget: false
     });
+
+    // Helper function to check if style relationship is valid for drop
+    const isValidDropTarget = useCallback((draggedStyleId: number, targetParentId: number | null): boolean => {
+        if (!styleGroups || styleGroups.length === 0) {
+            console.log(`⚠️ No style groups available (${styleGroups?.length || 0} groups), allowing drop`);
+            return true; // If no style groups available, allow all drops
+        }
+
+        const draggedStyle = findStyleById(draggedStyleId, styleGroups);
+        if (!draggedStyle) {
+            console.log(`⚠️ Dragged style ${draggedStyleId} not found in style groups, allowing drop`);
+            return true; // If dragged style not found, allow drop
+        }
+
+        // If dropping to page level (no parent)
+        if (targetParentId === null) {
+            console.log(`📄 Page-level drop: ${draggedStyle.name} (has ${draggedStyle.relationships?.allowedParents?.length || 0} parent restrictions)`);
+            // Check if dragged style has parent restrictions
+            if (draggedStyle.relationships && draggedStyle.relationships.allowedParents.length > 0) {
+                // If dragged style has allowedParents restrictions, don't allow page-level drops
+                console.log(`🚫 Blocked page-level drop for ${draggedStyle.name} - has parent restrictions`);
+                return false;
+            }
+            return true; // Allow dropping to page level if no parent restrictions
+        }
+
+        // If dropping to another section
+        let targetSection;
+        let targetStyle;
+
+        // First try to find in allSections (which is now flattened)
+        targetSection = allSections.find(s => s.id === targetParentId);
+        console.log(`🔍 Looking for target section ${targetParentId} in ${allSections.length} sections:`, allSections.map(s => s.id));
+
+        // If not found in allSections, it might be the current section
+        if (!targetSection && targetParentId === section.id) {
+            targetSection = section;
+            console.log(`✅ Using current section ${section.id} (${section.name}) as target`);
+        }
+
+        if (!targetSection) {
+            console.log(`⚠️ Target section ${targetParentId} not found in allSections and not current section (${section.id})`);
+            return true;
+        }
+
+        targetStyle = findStyleById(targetSection.id_styles, styleGroups);
+        if (!targetStyle) {
+            console.log(`⚠️ Target style ${targetSection.id_styles} not found for section ${targetSection.name}`);
+            return true; // If target style not found, allow drop
+        }
+
+        console.log(`🔍 Style check: ${draggedStyle.name} (id:${draggedStyle.id}) -> ${targetStyle.name} (id:${targetStyle.id})`);
+        console.log(`📋 Dragged allowedParents:`, draggedStyle.relationships?.allowedParents || []);
+        console.log(`📋 Target allowedChildren:`, targetStyle.relationships?.allowedChildren || []);
+
+        // Check if the relationship is valid
+        const isValid = isStyleRelationshipValid(draggedStyle, targetStyle);
+        console.log(`🔍 Relationship result: ${isValid}`);
+        return isValid;
+    }, [styleGroups, allSections, section]);
+
+    // Helper function to check if current drag target is invalid (for visual feedback)
+    const isCurrentDropTargetInvalid = useCallback((): boolean => {
+        if (!dragContext.isDragActive || !dragContext.draggedSectionId) return false;
+
+        const draggedSection = allSections.find(s => s.id === dragContext.draggedSectionId);
+        if (!draggedSection) return false;
+
+        const isInvalid = !isValidDropTarget(draggedSection.id_styles, section.id);
+        console.log(`🎨 Visual feedback check for section ${section.id} (${section.name}): dragged ${draggedSection.id_styles} (${draggedSection.name}), targetParentId: ${section.id}, isInvalid: ${isInvalid}`);
+        return isInvalid;
+    }, [dragContext.isDragActive, dragContext.draggedSectionId, allSections, section.id, isValidDropTarget]);
 
     const { expandedSections, onToggleExpand } = useSectionsContext();
     const isExpanded = expandedSections.has(section.id);
@@ -269,7 +348,9 @@ const SectionItem = memo(function SectionItem({
                 level,
                 parentId,
                 index,
-                canHaveChildren
+                canHaveChildren,
+                styleId: section.id_styles,
+                styleName: section.style_name
             }),
             onGenerateDragPreview: ({ nativeSetDragImage }) => {
                 setCustomNativeDragPreview({
@@ -302,14 +383,52 @@ const SectionItem = memo(function SectionItem({
 
         return dropTargetForElements({
             element,
-            canDrop: ({ source }) => {
+            canDrop: ({ source, input, element }) => {
                 const draggedId = source.data.sectionId as number;
+                const draggedStyleId = source.data.styleId as number;
 
                 // Can't drop on itself
                 if (draggedId === section.id) return false;
 
                 // Can't drop parent on its own child
                 if (isDescendantOfDragged()) return false;
+
+                // Determine drop type based on mouse position (same logic as getData)
+                const rect = element.getBoundingClientRect();
+                const relativeY = (input.clientY - rect.top) / rect.height;
+                const edgeThreshold = 0.50; // 50% from top/bottom edges
+                const isNearTopEdge = relativeY <= edgeThreshold;
+                const isNearBottomEdge = relativeY >= (1 - edgeThreshold);
+                const isNearEdge = isNearTopEdge || isNearBottomEdge;
+
+                let targetParentId: number | null;
+                let dropType: string;
+
+                if (isNearEdge) {
+                    // Sibling drop - target parent is the parent of current section
+                    targetParentId = parentId;
+                    dropType = 'sibling';
+                } else if (hasChildren && canHaveChildren) {
+                    // Container drop - target parent is the current section itself
+                    targetParentId = section.id;
+                    dropType = 'container';
+                } else if (!hasChildren && canHaveChildren) {
+                    // Empty container drop - target parent is the current section itself
+                    targetParentId = section.id;
+                    dropType = 'empty-container';
+                } else {
+                    // Default to sibling drop
+                    targetParentId = parentId;
+                    dropType = 'sibling';
+                }
+
+                console.log(`🎯 Drop check: section ${section.id} (${section.name}), parentId: ${parentId}, targetParentId: ${targetParentId}, dropType: ${dropType}`);
+
+                // Check style relationship validity
+                if (!isValidDropTarget(draggedStyleId, targetParentId)) {
+                    console.log(`🚫 Invalid ${dropType} drop: ${draggedStyleId} cannot be dropped with parent ${targetParentId}`);
+                    return false;
+                }
 
                 return source.data.type === 'section-item';
             },
@@ -371,12 +490,14 @@ const SectionItem = memo(function SectionItem({
                 });
             },
             onDragEnter: ({ self }) => {
+                const isInvalid = isCurrentDropTargetInvalid();
                 if (self.data.type === 'container-drop-target') {
                     setDropState({
                         closestEdge: null,
                         isDropTarget: false,
                         isContainerTarget: true,
-                        isDropZoneHover: false
+                        isDropZoneHover: false,
+                        isInvalidDropTarget: isInvalid
                     });
                 } else {
                     const edge = extractClosestEdge(self.data);
@@ -384,7 +505,8 @@ const SectionItem = memo(function SectionItem({
                         closestEdge: edge,
                         isDropTarget: true,
                         isContainerTarget: false,
-                        isDropZoneHover: false
+                        isDropZoneHover: false,
+                        isInvalidDropTarget: isInvalid
                     });
                 }
             },
@@ -393,7 +515,8 @@ const SectionItem = memo(function SectionItem({
                     closestEdge: null,
                     isDropTarget: false,
                     isContainerTarget: false,
-                    isDropZoneHover: false
+                    isDropZoneHover: false,
+                    isInvalidDropTarget: false
                 });
             },
             onDrop: () => {
@@ -401,11 +524,12 @@ const SectionItem = memo(function SectionItem({
                     closestEdge: null,
                     isDropTarget: false,
                     isContainerTarget: false,
-                    isDropZoneHover: false
+                    isDropZoneHover: false,
+                    isInvalidDropTarget: false
                 });
             }
         });
-    }, [section, level, parentId, index, isDescendantOfDragged, canHaveChildren, hasChildren]);
+    }, [section, level, parentId, index, isDescendantOfDragged, canHaveChildren, hasChildren, isCurrentDropTargetInvalid]);
 
     // Setup separate drop target for the drop zone area
     useEffect(() => {
@@ -416,12 +540,25 @@ const SectionItem = memo(function SectionItem({
             element: dropZoneElement,
             canDrop: ({ source }) => {
                 const draggedId = source.data.sectionId as number;
+                const draggedStyleId = source.data.styleId as number;
 
                 // Can't drop on itself
                 if (draggedId === section.id) return false;
 
                 // Can't drop parent on its own child
                 if (isDescendantOfDragged()) return false;
+
+                // For drop zone, this is always a container drop - target parent is the current section
+                const targetParentId = section.id;
+                const dropType = 'drop-zone';
+
+                console.log(`🎯 Drop zone check: section ${section.id} (${section.name}), parentId: ${parentId}, targetParentId: ${targetParentId}, dropType: ${dropType}`);
+
+                // Check style relationship validity
+                if (!isValidDropTarget(draggedStyleId, targetParentId)) {
+                    console.log(`🚫 Invalid ${dropType} drop: ${draggedStyleId} cannot be dropped with parent ${targetParentId}`);
+                    return false;
+                }
 
                 return source.data.type === 'section-item';
             },
@@ -434,11 +571,13 @@ const SectionItem = memo(function SectionItem({
                 canHaveChildren: true
             }),
             onDragEnter: () => {
+                const isInvalid = isCurrentDropTargetInvalid();
                 setDropState({
                     closestEdge: null,
                     isDropTarget: false,
                     isContainerTarget: false,
-                    isDropZoneHover: true
+                    isDropZoneHover: true,
+                    isInvalidDropTarget: isInvalid
                 });
             },
             onDragLeave: () => {
@@ -446,7 +585,8 @@ const SectionItem = memo(function SectionItem({
                     closestEdge: null,
                     isDropTarget: false,
                     isContainerTarget: false,
-                    isDropZoneHover: false
+                    isDropZoneHover: false,
+                    isInvalidDropTarget: false
                 });
             },
             onDrop: () => {
@@ -454,11 +594,12 @@ const SectionItem = memo(function SectionItem({
                     closestEdge: null,
                     isDropTarget: false,
                     isContainerTarget: false,
-                    isDropZoneHover: false
+                    isDropZoneHover: false,
+                    isInvalidDropTarget: false
                 });
             }
         });
-    }, [section, level, parentId, isDescendantOfDragged, canHaveChildren, hasChildren]);
+    }, [section, level, parentId, isDescendantOfDragged, canHaveChildren, hasChildren, isCurrentDropTargetInvalid]);
 
     // Get wrapper classes based on states
     const getWrapperClasses = () => {
@@ -467,6 +608,8 @@ const SectionItem = memo(function SectionItem({
         if (isDragging) classes.push(styles.isDragging);
         if (dropState.isDropTarget) classes.push(styles.isDropTarget);
         if (dropState.isContainerTarget) classes.push(styles.isContainerDropTarget);
+        if (dropState.isDropZoneHover) classes.push(styles.isContainerDropTarget); // Show container styling for drop zone hover
+        if (dropState.isInvalidDropTarget) classes.push(styles.isInvalidDropTarget);
         if (isBeingDragged) classes.push(styles.isBeingDragged);
         if (dragContext.isDragActive && (isBeingDragged || isDescendantOfDragged())) {
             classes.push(styles.isDraggedOrChild);
@@ -519,7 +662,7 @@ const SectionItem = memo(function SectionItem({
             {dragContext.isDragActive && canHaveChildren && !hasChildren && !isBeingDragged && (
                 <Box
                     ref={dropZoneRef}
-                    className={`${styles.dropZoneArea} ${styles.visible} ${dropState.isDropZoneHover ? styles.active : ''}`}
+                    className={`${styles.dropZoneArea} ${styles.visible} ${dropState.isDropZoneHover ? (dropState.isInvalidDropTarget ? styles.invalid : styles.active) : ''}`}
                 >
                     <IconPlus size={16} className={styles.dropZoneIcon} />
                     <Text className={styles.dropZoneText}>
@@ -552,6 +695,7 @@ const SectionItem = memo(function SectionItem({
                             onSectionSelect={onSectionSelect}
                             selectedSectionId={selectedSectionId}
                             focusedSectionId={focusedSectionId}
+                            styleGroups={styleGroups}
                         />
                     ))}
                 </Box>
@@ -610,12 +754,40 @@ const SectionsListComponent = function SectionsList({
     selectedSectionId,
     focusedSectionId,
     pageId,
+    styleGroups,
 }: ISectionsListProps) {
+
+    // Helper function to flatten all sections including nested children
+    const flattenSections = useCallback((sections: IPageSectionWithFields[]): IPageSectionWithFields[] => {
+        const result: IPageSectionWithFields[] = [];
+
+        const flatten = (items: IPageSectionWithFields[]) => {
+            items.forEach(section => {
+                result.push(section);
+                if (section.children && section.children.length > 0) {
+                    flatten(section.children);
+                }
+            });
+        };
+
+        if (sections) {
+            flatten(sections);
+        }
+
+        return result;
+    }, []);
 
     // Memoize sections to prevent unnecessary re-renders
     const memoizedSections = useMemo(() => {
         return sections;
     }, [sections]);
+
+    // Create flattened version of all sections for validation
+    const allFlattenedSections = useMemo(() => {
+        const flattened = flattenSections(sections || []);
+        console.log(`📊 Created flattened sections array with ${flattened.length} sections:`, flattened.map(s => `${s.id} (${s.name})`));
+        return flattened;
+    }, [sections, flattenSections]);
     const containerRef = useRef<HTMLDivElement>(null);
     const [dragState, setDragState] = useState<IDragState>({
         isDragActive: false,
@@ -827,7 +999,7 @@ const SectionsListComponent = function SectionsList({
                                         level={0}
                                         index={index}
                                         parentId={null}
-                                        allSections={memoizedSections}
+                                        allSections={allFlattenedSections}
                                         pageId={pageId || 0}
                                         onRemoveSection={onRemoveSection}
                                         onAddChildSection={onAddChildSection}
@@ -836,6 +1008,7 @@ const SectionsListComponent = function SectionsList({
                                         onSectionSelect={onSectionSelect}
                                         selectedSectionId={selectedSectionId}
                                         focusedSectionId={focusedSectionId}
+                                        styleGroups={styleGroups}
                                     />
                                 ))}
                             </div>

@@ -29,6 +29,7 @@ import {
 } from '@tabler/icons-react';
 import { usePageSections } from '../../../../../hooks/usePageDetails';
 import { useSectionOperations } from '../../../../../hooks/useSectionOperations';
+import { useStyleGroups } from '../../../../../hooks/useStyleGroups';
 import { IPageSectionWithFields } from '../../../../../types/common/pages.type';
 import { SectionsList } from './SectionsList';
 import { AddSectionModal } from './AddSectionModal';
@@ -68,6 +69,7 @@ interface IMoveData {
 
 function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSectionsProps) {
     const { data, isLoading, error } = usePageSections(pageId);
+    const { data: styleGroups } = useStyleGroups();
 
     const router = useRouter();
 
@@ -663,6 +665,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                     selectedSectionId={selectedSectionId}
                     focusedSectionId={focusedSectionId}
                     pageId={pageId || undefined}
+                    styleGroups={styleGroups}
                 />
             </Box>
 
