@@ -2,7 +2,7 @@
 export type TStyleName =
     | 'login' | 'profile' | 'validate' | 'register' | 'resetPassword' | 'twoFactorAuth'
     | 'container' | 'alert' | 'div' | 'refContainer' | 'dataContainer' | 'htmlTag' | 'center'
-    | 'flex' | 'group' | 'stack' | 'simpleGrid' | 'space'
+    | 'flex' | 'group' | 'stack' | 'simpleGrid' | 'space' | 'grid' | 'grid-column'
     | 'heading' | 'markdown' | 'markdownInline' | 'plaintext'
     | 'formUserInput' | 'formUserInputLog' | 'formUserInputRecord' | 'input' | 'textarea' | 'select' | 'radio' | 'slider' | 'checkbox'
     | 'image' | 'video' | 'audio' | 'figure' | 'carousel'
@@ -369,11 +369,27 @@ export interface IEntryRecordDeleteStyle extends IBaseStyle {
 // Tab Styles
 export interface ITabsStyle extends IBaseStyle {
     style_name: 'tabs';
+    // Tabs-specific fields
+    mantine_tabs_variant?: IContentField<string>;      // Select field for variant (default, outline, pills)
+    mantine_tabs_orientation?: IContentField<string>;  // Segment field for orientation (horizontal, vertical)
+    mantine_tabs_radius?: IContentField<string>;       // Slider field for radius (xs, sm, md, lg, xl)
+    mantine_color?: IContentField<string>;        // Select field for color (blue, gray, red, etc.)
+    mantine_width?: IContentField<string>;             // Select field for width
+    mantine_height?: IContentField<string>;            // Select field for height
+    use_mantine_style?: IContentField<string>;         // Checkbox for Mantine vs custom styling
 }
 
 export interface ITabStyle extends IBaseStyle {
     style_name: 'tab';
-    label?: IContentField<string>;
+    // Tab-specific fields (mantine_tab_value removed - using section ID instead)
+    label?: IContentField<string>;                     // Content field for tab label
+    mantine_tab_left_section?: IContentField<string>;  // Select-icon field for left icon
+    mantine_tab_right_section?: IContentField<string>; // Select-icon field for right icon
+    mantine_tab_disabled?: IContentField<string>;      // Checkbox field for disabled state
+    mantine_width?: IContentField<string>;             // Select field for width
+    mantine_height?: IContentField<string>;            // Select field for height
+    use_mantine_style?: IContentField<string>;         // Checkbox for Mantine vs custom styling
+    // Legacy fields for backward compatibility
     type?: IContentField<string>;
     is_active?: IContentField<string>;
     icon?: IContentField<string>;
@@ -469,6 +485,31 @@ export interface ISpaceStyle extends IBaseStyle {
     mantine_height?: IContentField<string>;           // Select field for height
 }
 
+export interface IGridStyle extends IBaseStyle {
+    style_name: 'grid';
+    // Grid-specific fields
+    mantine_cols?: IContentField<string>;             // Slider field for number of columns
+    mantine_gap?: IContentField<string>;              // Slider field for gap/spacing
+    mantine_justify?: IContentField<string>;          // Select field for justify-content
+    mantine_align?: IContentField<string>;            // Select field for align-items
+    mantine_grid_overflow?: IContentField<string>;    // Segment field for overflow
+    mantine_width?: IContentField<string>;            // Select field for width
+    mantine_height?: IContentField<string>;           // Select field for height
+    use_mantine_style?: IContentField<string>;        // Checkbox for Mantine vs custom styling
+}
+
+export interface IGridColumnStyle extends IBaseStyle {
+    style_name: 'grid-column';
+    // GridColumn-specific fields
+    mantine_grid_span?: IContentField<string>;        // Slider field for span (1-12, auto, content)
+    mantine_grid_offset?: IContentField<string>;      // Slider field for offset (0-11)
+    mantine_grid_order?: IContentField<string>;       // Slider field for order (1-12)
+    mantine_grid_grow?: IContentField<string>;        // Checkbox field for grow
+    mantine_width?: IContentField<string>;            // Select field for width
+    mantine_height?: IContentField<string>;           // Select field for height
+    use_mantine_style?: IContentField<string>;        // Checkbox for Mantine vs custom styling
+}
+
 export interface IStackStyle extends IBaseStyle {
     style_name: 'stack';
     // Stack-specific fields
@@ -527,5 +568,7 @@ export type TStyle =
     | IFlexStyle
     | IGroupStyle
     | ISimpleGridStyle
+    | IGridStyle
+    | IGridColumnStyle
     | ISpaceStyle
     | IStackStyle; 

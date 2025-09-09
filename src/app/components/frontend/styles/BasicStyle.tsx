@@ -3,13 +3,14 @@ import {
     AlertStyle, ButtonStyle, CarouselStyle, ContainerStyle,
     DivStyle, FormUserInputStyle, HeadingStyle, ImageStyle, InputStyle,
     LinkStyle, LoginStyle, MarkdownStyle, RegisterStyle,
-    SelectStyle, TabsStyle, TextareaStyle, VideoStyle,
+    SelectStyle, TabsStyle, TabStyle, TextareaStyle, VideoStyle,
     AudioStyle, FigureStyle, PlaintextStyle, RadioStyle,
     CheckboxStyle, SliderStyle, ProgressBarStyle,
     HtmlTagStyle, ValidateStyle,
     ResetPasswordStyle, TwoFactorAuthStyle, TableStyle, TableRowStyle,
     TableCellStyle, ShowUserInputStyle, CenterStyle,
-    FlexStyle, GroupStyle, StackStyle, SimpleGridStyle, SpaceStyle
+    FlexStyle, GroupStyle, StackStyle, SimpleGridStyle, GridStyle,
+    GridColumnStyle, SpaceStyle
 } from './SelfHelpStyles';
 import { TStyle } from '../../../../types/common/styles.types';
 
@@ -66,6 +67,10 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <StackStyle style={style} />;
         case 'simpleGrid':
             return <SimpleGridStyle style={style} />;
+        case 'grid':
+            return <GridStyle style={style} />;
+        case 'grid-column':
+            return <GridColumnStyle style={style} />;
         case 'space':
             return <SpaceStyle style={style} />;
 
@@ -118,8 +123,7 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
         case 'tabs':
             return <TabsStyle style={style} />;
         case 'tab':
-            // Tab components are handled within TabsStyle
-            return null;
+            return <TabStyle style={style} />;
 
         // Table Styles
         case 'table':

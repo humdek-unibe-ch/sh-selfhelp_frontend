@@ -19,6 +19,8 @@ export { default as FlexStyle } from './mantine/FlexStyle';
 export { default as GroupStyle } from './mantine/GroupStyle';
 export { default as StackStyle } from './mantine/StackStyle';
 export { default as SimpleGridStyle } from './mantine/SimpleGridStyle';
+export { default as GridStyle } from './mantine/GridStyle';
+export { default as GridColumnStyle } from './mantine/GridColumnStyle';
 export { default as SpaceStyle } from './mantine/SpaceStyle';
 
 // Text & Content Styles
@@ -40,7 +42,8 @@ export { default as InputStyle } from './InputStyle';
 export { default as SelectStyle } from './SelectStyle';
 
 // Tab Styles
-export { default as TabsStyle } from './TabsStyle';
+export { default as TabsStyle } from './mantine/TabsStyle';
+export { default as TabStyle } from './mantine/TabStyle';
 
 // Media & Content Styles
 export { default as VideoStyle } from './VideoStyle';
