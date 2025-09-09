@@ -10,19 +10,19 @@ import {
     Button
 } from '@mantine/core';
 import { IconInfoCircle } from '@tabler/icons-react';
-import { IPageField } from '../../../../../types/common/pages.type';
+import { IPageSectionWithFields } from '../../../../../types/common/pages.type';
 
 interface IRemoveSectionModalProps {
     opened: boolean;
     onClose: () => void;
     onConfirm: () => void;
-    section: IPageField | null;
+    section: IPageSectionWithFields;
     isLoading?: boolean;
 }
 
 export function RemoveSectionModal({ opened, onClose, onConfirm, section, isLoading = false }: IRemoveSectionModalProps) {
 
-    const getSectionTitle = (section: IPageField) => {
+    const getSectionTitle = (section: IPageSectionWithFields) => {
         const nameParts = section.name.split('-');
         return nameParts.length > 1 ? nameParts[1] : section.name;
     };

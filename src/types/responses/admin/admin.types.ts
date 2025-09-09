@@ -52,6 +52,16 @@ export interface ISectionStyle {
     typeId: number;
     type: string;
     canHaveChildren: boolean;
+    relationships?: {
+        allowedChildren: Array<{
+            id: number;
+            name: string;
+        }>;
+        allowedParents: Array<{
+            id: number;
+            name: string;
+        }>;
+    };
 }
 
 export interface ISectionGlobalFields {

@@ -1,7 +1,7 @@
 'use client';
 
-import { forwardRef, RefObject, useState } from 'react';
-import { Box, Text, Paper, Group, Badge, ActionIcon, Tooltip, Stack } from '@mantine/core';
+import { forwardRef, useState } from 'react';
+import { Box, Text, Paper, Group, Badge, ActionIcon, Tooltip } from '@mantine/core';
 import { 
     IconChevronRight, 
     IconChevronDown, 
@@ -203,9 +203,9 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                                     size="xs"
                                     fw={500}
                                     className={styles.sectionName}
-                                    title={typeof section.name === 'string' ? section.name : section.name?.content || ''}
+                                    title={section.name}
                                 >
-                                    {typeof section.name === 'string' ? section.name : section.name?.content || ''}
+                                    {section.name}
                                 </Text>
                                 <Badge 
                                     size="xs" 

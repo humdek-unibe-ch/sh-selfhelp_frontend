@@ -28,6 +28,7 @@ import { ModalWrapper } from '../../../shared';
 import { useStyleGroups } from '../../../../../hooks/useStyleGroups';
 import { useSectionOperations } from '../../../../../hooks/useSectionOperations';
 import { useUnusedSections, useRefContainerSections } from '../../../../../hooks/useSectionUtility';
+import { useSectionDetails } from '../../../../../hooks/useSectionDetails';
 import { IStyle, IStyleGroup } from '../../../../../types/responses/admin/styles.types';
 import { readJsonFile, isValidJsonFile } from '../../../../../utils/export-import.utils';
 import { ISectionOperationOptions } from '../../../../../utils/section-operations.utils';
@@ -63,18 +64,25 @@ export function AddSectionModal({
     const [selectedRefContainerSection, setSelectedRefContainerSection] = useState<string | null>(null);
 
     const { data: styleGroups, isLoading: isLoadingStyles, error: stylesError } = useStyleGroups();
-    
+
+    // Fetch parent section details when we have a parent section ID
+    const {
+        data: parentSectionDetails,
+        isLoading: isLoadingParentDetails,
+        error: parentDetailsError
+    } = useSectionDetails(pageId || null, parentSectionId, opened && !!parentSectionId);
+
     // Prefetch unused sections and ref containers when modal is opened
-    const { 
-        data: unusedSectionsData, 
-        isLoading: isLoadingUnused, 
+    const {
+        data: unusedSectionsData,
+        isLoading: isLoadingUnused,
         error: unusedError,
         isFetching: isFetchingUnused
     } = useUnusedSections(opened);
 
-    const { 
-        data: refContainerSectionsData, 
-        isLoading: isLoadingRefContainers, 
+    const {
+        data: refContainerSectionsData,
+        isLoading: isLoadingRefContainers,
         error: refContainersError,
         isFetching: isFetchingRefContainers
     } = useRefContainerSections(opened);
@@ -88,13 +96,90 @@ export function AddSectionModal({
           label: `${section.name} (ID: ${section.id}) - ${section.styleName || 'No style'}`
         }));
       }, [unusedSections]);
-      
+
       const refContainerSectionsSelectData = useMemo(() => {
         return refContainerSections.map((section) => ({
           value: String(section.id),
           label: `${section.name} (ID: ${section.id}) - ${section.styleName}`
         }));
       }, [refContainerSections]);
+
+    // Get the parent style with relationships from the full styles list
+    const parentStyleWithRelationships = useMemo(() => {
+        if (!parentSectionDetails?.section?.style || !styleGroups) {
+            return null;
+        }
+
+        const parentStyleId = parentSectionDetails.section.style.id;
+
+        // Find the full style information with relationships from the styles API
+        for (const group of styleGroups) {
+            const foundStyle = group.styles.find(style => style.id === parentStyleId);
+            if (foundStyle) {
+                return foundStyle;
+            }
+        }
+
+        return null;
+    }, [parentSectionDetails, styleGroups]);
+
+
+    // Function to check if a style is allowed as a child of the parent section
+    const isStyleAllowedAsChild = useMemo(() => {
+        return (style: IStyle): boolean => {
+            // If no parent section, allow all styles
+            if (!parentStyleWithRelationships) {
+                return true;
+            }
+
+            // If parent has no relationships defined, allow all styles (backward compatibility)
+            if (!parentStyleWithRelationships.relationships) {
+                return true;
+            }
+
+            // If parent's allowedChildren is empty, allow all styles
+            if (parentStyleWithRelationships.relationships.allowedChildren.length === 0) {
+                return true;
+            }
+
+            // Check if current style is in the parent's allowedChildren
+            return parentStyleWithRelationships.relationships.allowedChildren.some(allowedChild =>
+                allowedChild.id === style.id
+            );
+        };
+    }, [parentStyleWithRelationships]);
+
+    // Filter styles based on parent relationships and search query
+    const filteredStyleGroups = useMemo(() => {
+        if (!styleGroups) return [];
+
+        // If we have a parent section but the parent details or relationships aren't loaded yet, show loading state
+        if (parentSectionId && (!parentSectionDetails || !parentStyleWithRelationships)) {
+            return [];
+        }
+
+        let filteredGroups = styleGroups.map(group => {
+            const filteredStyles = group.styles.filter(style => {
+                // First apply relationship filtering
+                const isAllowed = isStyleAllowedAsChild(style);
+
+                // Then apply search filtering (search is an additional layer)
+                const matchesSearch = !searchQuery ||
+                    style.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    style.description?.toLowerCase().includes(searchQuery.toLowerCase());
+
+                return isAllowed && matchesSearch;
+            });
+
+            return {
+                ...group,
+                styles: filteredStyles
+            };
+        });
+
+        // Remove groups that have no styles after filtering
+        return filteredGroups.filter(group => group.styles.length > 0);
+    }, [styleGroups, searchQuery, isStyleAllowedAsChild, parentSectionId]);
 
 
 
@@ -233,14 +318,6 @@ export function AddSectionModal({
         }
     };
 
-    // Filter styles based on search query
-    const filteredStyleGroups = styleGroups?.map(group => ({
-        ...group,
-        styles: group.styles.filter(style =>
-            style.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            style.description?.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-    })).filter(group => group.styles.length > 0) || [];
 
     const isProcessing = sectionOperations.isLoading || isImporting;
 
@@ -392,10 +469,12 @@ export function AddSectionModal({
 
                 {/* Tab Content */}
                         <Tabs.Panel value="new-section">
-                            {isLoadingStyles ? (
+                            {(isLoadingStyles || (parentSectionId && isLoadingParentDetails)) ? (
                                 <Group justify="center" p="xl">
                                     <Loader size="sm" />
-                                    <Text size="sm">Loading styles...</Text>
+                                    <Text size="sm">
+                                        {isLoadingStyles ? 'Loading styles...' : 'Loading parent section details...'}
+                                    </Text>
                                 </Group>
                             ) : stylesError ? (
                                 <Alert icon={<IconAlertCircle size={16} />} color="red">
@@ -403,7 +482,12 @@ export function AddSectionModal({
                                 </Alert>
                             ) : filteredStyleGroups.length === 0 ? (
                                 <Alert icon={<IconInfoCircle size={16} />} color="blue">
-                                    {searchQuery ? 'No styles found matching your search.' : 'No styles available.'}
+                                    {searchQuery
+                                        ? 'No styles found matching your search criteria.'
+                                        : parentSectionId
+                                            ? 'No styles are allowed as children of the selected parent section.'
+                                            : 'No styles available.'
+                                    }
                                 </Alert>
                             ) : (
                                 <Stack gap="sm">
