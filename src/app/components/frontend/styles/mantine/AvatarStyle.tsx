@@ -67,9 +67,6 @@ const AvatarStyle: React.FC<IAvatarStyleProps> = ({ style }) => {
         avatarContent = customInitials ? customInitials.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
     }
 
-    console.log(avatarSrc, avatarIcon, avatarContent);
-
-
     if (use_mantine_style) {
         return (
             <Avatar

@@ -26,7 +26,7 @@ export type TStyleName =
     // Mantine typography components
     | 'title' | 'code' | 'highlight' | 'blockquote'
     // Mantine utility components
-    | 'aspectRatio' | 'backgroundImage' | 'fieldset' | 'spoiler'
+    | 'aspectRatio' | 'background-image' | 'fieldset' | 'spoiler'
     // Card components
     | 'card' | 'card-segment'
     // List components
@@ -936,7 +936,7 @@ export interface IListItemStyle extends IBaseStyle {
 }
 
 export interface IBackgroundImageStyle extends IBaseStyle {
-    style_name: 'backgroundImage';
+    style_name: 'background-image';
     src?: IContentField<string>;                      // Background image source
     mantine_radius?: IContentField<string>;           // Select field for radius
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling

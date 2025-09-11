@@ -2255,26 +2255,26 @@ VALUES (get_style_id('avatar'), get_field_id('use_mantine_style'), 1, 'If `useMa
 -- BACKGROUND IMAGE COMPONENT
 -- ===========================================
 
--- Add new style 'backgroundImage' based on Mantine BackgroundImage component
+-- Add new style 'background-image' based on Mantine background-image component
 INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
-    'backgroundImage',
+    'background-image',
     (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
     get_style_group_id('mantine'),
-    'Mantine BackgroundImage component for background images',
+    'Mantine background-image component for background images',
     1
 );
 
--- Add BackgroundImage-specific fields
+-- Add background-image-specific fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('backgroundImage'), get_field_id('image_src'), NULL, 'Sets the background image source. For more information check https://mantine.dev/core/background-image', 0, 0, 'Image Source');
+VALUES (get_style_id('background-image'), get_field_id('img_src'), NULL, 'Sets the background image source. For more information check https://mantine.dev/core/background-image', 0, 0, 'Image Source');
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('backgroundImage'), get_field_id('mantine_slider_radius'), 'sm', 'Sets the border radius of the background image container. For more information check https://mantine.dev/core/background-image', 0, 0, 'Radius');
+VALUES (get_style_id('background-image'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the background image container. For more information check https://mantine.dev/core/background-image', 0, 0, 'Radius');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('backgroundImage'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set BackgroundImage will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/background-image', 0, 1, 'Use Mantine Style');
+VALUES (get_style_id('background-image'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set background-image will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/background-image', 0, 1, 'Use Mantine Style');
 
 -- ===========================================
 -- BADGE COMPONENT

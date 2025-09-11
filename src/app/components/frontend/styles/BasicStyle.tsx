@@ -11,7 +11,16 @@ import {
     TableCellStyle, ShowUserInputStyle, CenterStyle,
     FlexStyle, GroupStyle, StackStyle, SimpleGridStyle, GridStyle,
     GridColumnStyle, SpaceStyle, AccordionStyle, AccordionItemStyle,
-    ActionIconStyle, AspectRatioStyle, AvatarStyle
+    ActionIconStyle, AspectRatioStyle, AvatarStyle,
+    // Additional Mantine Components
+    BackgroundImageStyle, BadgeStyle, BlockquoteStyle, ChipStyle,
+    CodeStyle, ColorInputStyle, ColorPickerStyle, ComboboxStyle,
+    FieldsetStyle, FileInputStyle, HighlightStyle, IndicatorStyle,
+    KbdStyle, MultiSelectStyle, NotificationStyle, NumberInputStyle,
+    RadioGroupStyle, RangeSliderStyle, RatingStyle, SegmentedControlStyle,
+    SpoilerStyle, StepperStyle, StepperStepStyle, StepperCompleteStyle,
+    SwitchStyle, ThemeIconStyle, TimelineStyle, TimelineItemStyle,
+    TitleStyle, TypographyStyle
 } from './SelfHelpStyles';
 import { TStyle } from '../../../../types/common/styles.types';
 
@@ -74,6 +83,8 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <GridColumnStyle style={style} />;
         case 'space':
             return <SpaceStyle style={style} />;
+        case 'background-image':
+            return <BackgroundImageStyle style={style} />;
 
         // Text & Content Styles
         case 'heading':
@@ -121,6 +132,26 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <CheckboxStyle style={style} />;
         case 'slider':
             return <SliderStyle style={style} />;
+        case 'colorInput':
+            return <ColorInputStyle style={style} />;
+        case 'colorPicker':
+            return <ColorPickerStyle style={style} />;
+        case 'fileInput':
+            return <FileInputStyle style={style} />;
+        case 'numberInput':
+            return <NumberInputStyle style={style} />;
+        case 'radioGroup':
+            return <RadioGroupStyle style={style} />;
+        case 'rangeSlider':
+            return <RangeSliderStyle style={style} />;
+        case 'segmentedControl':
+            return <SegmentedControlStyle style={style} />;
+        case 'switch':
+            return <SwitchStyle style={style} />;
+        case 'combobox':
+            return <ComboboxStyle style={style} />;
+        case 'multiSelect':
+            return <MultiSelectStyle style={style} />;
 
         // Tab Styles
         case 'tabs':
@@ -133,6 +164,12 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <AccordionStyle style={style} />;
         case 'accordion-Item':
             return <AccordionItemStyle style={style} />;
+        case 'stepper':
+            return <StepperStyle style={style} />;
+        case 'stepper-Step':
+            return <StepperStepStyle style={style} />;
+        case 'stepper-Complete':
+            return <StepperCompleteStyle style={style} />;
 
         // Table Styles
         case 'table':
@@ -151,6 +188,38 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <AvatarStyle style={style} />;
         case 'aspectRatio':
             return <AspectRatioStyle style={style} />;
+        case 'badge':
+            return <BadgeStyle style={style} />;
+        case 'chip':
+            return <ChipStyle style={style} />;
+        case 'timeline':
+            return <TimelineStyle style={style} />;
+        case 'timeline-item':
+            return <TimelineItemStyle style={style} />;
+        case 'indicator':
+            return <IndicatorStyle style={style} />;
+        case 'kbd':
+            return <KbdStyle style={style} />;
+        case 'themeIcon':
+            return <ThemeIconStyle style={style} />;
+        case 'rating':
+            return <RatingStyle style={style} />;
+        case 'notification':
+            return <NotificationStyle style={style} />;
+        case 'title':
+            return <TitleStyle style={style} />;
+        case 'code':
+            return <CodeStyle style={style} />;
+        case 'highlight':
+            return <HighlightStyle style={style} />;
+        case 'blockquote':
+            return <BlockquoteStyle style={style} />;
+        case 'fieldset':
+            return <FieldsetStyle style={style} />;
+        case 'spoiler':
+            return <SpoilerStyle style={style} />;
+        case 'typography':
+            return <TypographyStyle style={style} />;
 
         // Unknown/Unsupported styles
         default:

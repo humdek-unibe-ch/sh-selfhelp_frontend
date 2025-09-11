@@ -233,7 +233,7 @@ export const MANTINE_COMPONENT_MAP = {
 
     // Utility Components
     'aspectRatio': 'AspectRatioStyle',
-    'backgroundImage': 'BackgroundImageStyle',
+    'background-image': 'BackgroundImageStyle',
     'fieldset': 'FieldsetStyle',
     'spoiler': 'SpoilerStyle',
     'typography': 'TypographyStyle'

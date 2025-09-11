@@ -1,5 +1,5 @@
 import React from 'react';
-import { Combobox } from '@mantine/core';
+import { Select } from '@mantine/core';
 import { getFieldContent, castMantineSize, castMantineRadius } from '../../../../../utils/style-field-extractor';
 import { IComboboxStyle } from '../../../../../types/common/styles.types';
 
@@ -11,12 +11,12 @@ interface IComboboxStyleProps {
 }
 
 /**
- * ComboboxStyle component renders a Mantine Combobox component for searchable dropdowns.
+ * ComboboxStyle component renders a Mantine Select component for searchable dropdowns.
  * Supports customizable data options and styling configurations.
  *
  * @component
  * @param {IComboboxStyleProps} props - Component props
- * @returns {JSX.Element} Rendered Mantine Combobox with styled configuration
+ * @returns {JSX.Element} Rendered Mantine Select with styled configuration
  */
 const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
@@ -53,7 +53,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style }) => {
 
     if (use_mantine_style) {
         return (
-            <Combobox
+            <Select
                 data={comboboxData}
                 placeholder={placeholder}
                 size={size}
