@@ -239,6 +239,10 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_switch_on_label', get_field_type_id('text'), 1, '{"placeholder": "Enter on label"}');
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_switch_off_label', get_field_type_id('text'), 1, '{"placeholder": "Enter off label"}');
 
+-- Blockquote translatable fields
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'content', get_field_type_id('textarea'), 1, null);
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'cite', get_field_type_id('text'), 1, null);
+
 -- JSON textarea fields (translatable)
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_radio_options', get_field_type_id('textarea'), 1, '{"rows": 5, "placeholder": "Enter JSON array of radio options"}');
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_segmented_control_data', get_field_type_id('textarea'), 1, '{"rows": 3, "placeholder": "Enter JSON array of segmented control options"}');
@@ -1254,6 +1258,16 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 -- Add unified icon fields (reusable across components)
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_left_icon', get_field_type_id('select-icon'), 0, null);
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_right_icon', get_field_type_id('select-icon'), 0, null);
+
+-- Add unified icon size field (reusable across components)
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_icon_size', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "placeholder": "16", "options":[
+{"value":"14","text":"Small (14px)"},
+{"value":"16","text":"Medium (16px)"},
+{"value":"18","text":"Large (18px)"},
+{"value":"20","text":"Extra Large (20px)"},
+{"value":"24","text":"XL (24px)"},
+{"value":"32","text":"XXL (32px)"}
+]}');
 
 -- Add unified orientation field (reusable across components)
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_orientation', get_field_type_id('segment'), 0, '{"options":[
@@ -2545,6 +2559,10 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
     0
 );
 
+-- Add content field for blockquote
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('blockquote'), get_field_id('content'), NULL, 'Sets the content for the blockquote. For more information check https://mantine.dev/core/blockquote', 0, 0, 'Content');
+
 -- Add Blockquote-specific fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('blockquote'), get_field_id('cite'), NULL, 'Sets the citation for the blockquote. For more information check https://mantine.dev/core/blockquote', 0, 0, 'Citation');
@@ -2552,6 +2570,10 @@ VALUES (get_style_id('blockquote'), get_field_id('cite'), NULL, 'Sets the citati
 -- Use unified icon field for blockquote
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('blockquote'), get_field_id('mantine_left_icon'), NULL, 'Sets the icon for the blockquote. For more information check https://mantine.dev/core/blockquote', 0, 0, 'Icon');
+
+-- Add icon size field for blockquote
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('blockquote'), get_field_id('mantine_icon_size'), '20', 'Sets the size of the blockquote icon in pixels. Choose from preset sizes or enter a custom value. For more information check https://mantine.dev/core/blockquote', 0, 0, 'Icon Size');
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)

@@ -21,9 +21,10 @@ interface IBlockquoteStyleProps {
  */
 const BlockquoteStyle: React.FC<IBlockquoteStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
-    const content = getFieldContent(style, 'content') || getFieldContent(style, 'text') || 'This is a blockquote with some quoted text content.';
+    const content = getFieldContent(style, 'content') || 'This is a blockquote with some quoted text content.';
     const cite = getFieldContent(style, 'cite');
     const iconName = getFieldContent(style, 'mantine_left_icon') || 'icon-quote';
+    const iconSize = parseInt(getFieldContent(style, 'mantine_icon_size') || '20');
     const color = getFieldContent(style, 'mantine_color') || 'gray';
     const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
 
@@ -34,7 +35,7 @@ const BlockquoteStyle: React.FC<IBlockquoteStyleProps> = ({ style }) => {
     const styleObj: React.CSSProperties = {};
 
     // Get icon component
-    const icon = <IconComponent iconName={iconName} size={20} />;
+    const icon = <IconComponent iconName={iconName} size={iconSize} />;
 
     if (use_mantine_style) {
         return (
@@ -50,47 +51,8 @@ const BlockquoteStyle: React.FC<IBlockquoteStyleProps> = ({ style }) => {
         );
     }
 
-    // Fallback to basic styled blockquote when Mantine styling is disabled
-    return (
-        <blockquote
-            className={cssClass}
-            style={{
-                ...styleObj,
-                borderLeft: `4px solid ${color}`,
-                paddingLeft: '16px',
-                margin: '16px 0',
-                fontStyle: 'italic',
-                color: '#666',
-                position: 'relative'
-            }}
-        >
-            {icon && (
-                <div style={{
-                    position: 'absolute',
-                    top: '-8px',
-                    left: '-12px',
-                    backgroundColor: 'white',
-                    borderRadius: '50%',
-                    padding: '4px'
-                }}>
-                    {icon}
-                </div>
-            )}
-            <p style={{ margin: '8px 0' }}>
-                {content}
-            </p>
-            {cite && (
-                <footer style={{
-                    fontSize: '0.875rem',
-                    fontWeight: 'bold',
-                    color: '#333',
-                    marginTop: '8px'
-                }}>
-                    — {cite}
-                </footer>
-            )}
-        </blockquote>
-    );
+    // Return null if Mantine styling is disabled (no fallback needed)
+    return null;
 };
 
 export default BlockquoteStyle;

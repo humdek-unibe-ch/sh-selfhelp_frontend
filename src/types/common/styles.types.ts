@@ -884,8 +884,10 @@ export interface IHighlightStyle extends IBaseStyle {
 
 export interface IBlockquoteStyle extends IBaseStyle {
     style_name: 'blockquote';
+    content?: IContentField<string>;                  // Translatable blockquote content
     cite?: IContentField<string>;                     // Translatable citation
     mantine_left_icon?: IContentField<string>;        // Select-icon field for icon
+    mantine_icon_size?: IContentField<string>;        // Select field for icon size
     mantine_color?: IContentField<string>;            // Color picker field
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
