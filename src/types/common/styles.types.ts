@@ -727,6 +727,9 @@ export interface IChipStyle extends IBaseStyle {
     mantine_chip_multiple?: IContentField<string>;    // Checkbox field for multiple selection
     disabled?: IContentField<string>;                 // Checkbox field for disabled state
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    // Icon configuration fields
+    mantine_left_icon?: IContentField<string>;        // Icon selection field
+    mantine_icon_size?: IContentField<string>;        // Icon size field
     // Form configuration fields
     name?: IContentField<string>;                     // Field name for form submission
     value?: IContentField<string>;                    // Default value for the chip field

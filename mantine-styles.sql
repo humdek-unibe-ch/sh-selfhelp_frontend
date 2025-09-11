@@ -79,7 +79,36 @@ INSERT IGNORE INTO `fieldType` (`id`, `name`, `position`) VALUES (NULL, 'text', 
 
 -- ===========================================
 -- 2. FIELDS DEFINITIONS (ALL INSERTED FIRST)
--- ===========================================
+-- ==========================================
+
+-- Add unified icon size field (reusable across components)
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_icon_size', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "placeholder": "16", "options":[
+{"value":"14","text":"Small (14px)"},
+{"value":"16","text":"Medium (16px)"},
+{"value":"18","text":"Large (18px)"},
+{"value":"20","text":"Extra Large (20px)"},
+{"value":"24","text":"XL (24px)"},
+{"value":"32","text":"XXL (32px)"}
+]}');
+
+-- Add global tooltip field (reusable across all components)
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'tooltip', get_field_type_id('textarea'), 1, '{"rows": 2, "placeholder": "Enter tooltip text that appears on hover"}');
+
+-- Add global tooltip position field (reusable across all components)
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_tooltip_position', get_field_type_id('select'), 0, '{"searchable": false, "clearable": true, "options":[
+{"value":"top","text":"Top"},
+{"value":"bottom","text":"Bottom"},
+{"value":"left","text":"Left"},
+{"value":"right","text":"Right"},
+{"value":"top-start","text":"Top Start"},
+{"value":"top-end","text":"Top End"},
+{"value":"bottom-start","text":"Bottom Start"},
+{"value":"bottom-end","text":"Bottom End"},
+{"value":"left-start","text":"Left Start"},
+{"value":"left-end","text":"Left End"},
+{"value":"right-start","text":"Right Start"},
+{"value":"right-end","text":"Right End"}
+]}');
 
 -- Core generic fields (used across multiple components)
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_variant', get_field_type_id('select'), 0, '{"searchable": false, "clearable": false, "options":[
@@ -1183,6 +1212,14 @@ VALUES (get_style_id('chip'), get_field_id('disabled'), '0', 'If `disabled` prop
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('chip'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Chip will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/chip', 0, 1, 'Use Mantine Style');
 
+-- Add Chip-specific icon field
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('chip'), get_field_id('mantine_left_icon'), NULL, 'Sets the icon for the chip. For more information check https://mantine.dev/core/chip', 0, 0, 'Icon');
+
+-- Add Chip-specific icon size field
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('chip'), get_field_id('mantine_icon_size'), '16', 'Sets the size of the chip icon in pixels. Choose from preset sizes or enter a custom value (e.g., 12, 14, 16, 18, 20, 24, 32). For more information check https://mantine.dev/core/chip', 0, 0, 'Icon Size');
+
 -- Form configuration fields for chip (similar to checkbox)
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('chip'), get_field_id('name'), NULL, 'Field name for form submission. Either a custom value or falls back to section-${style.id}', 0, 0, 'Field Name');
@@ -1206,6 +1243,12 @@ VALUES (get_style_id('chip'), get_field_id('is_required'), '0', 'Makes the chip 
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('chip'), get_field_id('label'), NULL, 'If this field is set, a this text will be rendered inside the chip.', 0, 0, 'Label');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('chip'), get_field_id('tooltip'), NULL, 'Optional tooltip text that will be displayed when hovering over the chip. Leave empty to disable tooltip.', 0, 0, 'Tooltip');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('chip'), get_field_id('mantine_tooltip_position'), 'top', 'Sets the position where the tooltip will appear relative to the chip.', 0, 0, 'Tooltip Position');
 
 -- ===========================================
 -- COLOR INPUT COMPONENT
@@ -1270,16 +1313,6 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 -- Add unified icon fields (reusable across components)
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_left_icon', get_field_type_id('select-icon'), 0, null);
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_right_icon', get_field_type_id('select-icon'), 0, null);
-
--- Add unified icon size field (reusable across components)
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_icon_size', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "placeholder": "16", "options":[
-{"value":"14","text":"Small (14px)"},
-{"value":"16","text":"Medium (16px)"},
-{"value":"18","text":"Large (18px)"},
-{"value":"20","text":"Extra Large (20px)"},
-{"value":"24","text":"XL (24px)"},
-{"value":"32","text":"XXL (32px)"}
-]}');
 
 -- Add unified orientation field (reusable across components)
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_orientation', get_field_type_id('segment'), 0, '{"options":[
