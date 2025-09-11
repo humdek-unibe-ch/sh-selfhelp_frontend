@@ -2290,6 +2290,10 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
     0
 );
 
+-- Add label field for badge
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('badge'), get_field_id('label'), NULL, 'Sets the label for the badge. For more information check https://mantine.dev/core/badge', 0, 0, 'Label');
+
 -- Add Badge-specific fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('badge'), get_field_id('mantine_variant'), 'filled', 'Sets the variant of the badge. For more information check https://mantine.dev/core/badge', 0, 0, 'Variant');
@@ -2298,9 +2302,16 @@ VALUES (get_style_id('badge'), get_field_id('mantine_variant'), 'filled', 'Sets 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('badge'), get_field_id('mantine_size'), 'md', 'Sets the size of the badge. For more information check https://mantine.dev/core/badge', 0, 0, 'Size');
 
--- Use unified icon field for badge
+-- Use unified icon fields for badge
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('badge'), get_field_id('mantine_left_icon'), NULL, 'Sets the left section icon for the badge. For more information check https://mantine.dev/core/badge', 0, 0, 'Left Icon');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('badge'), get_field_id('mantine_right_icon'), NULL, 'Sets the right section icon for the badge. For more information check https://mantine.dev/core/badge', 0, 0, 'Right Icon');
+
+-- Add auto contrast field for badge
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('badge'), get_field_id('mantine_auto_contrast'), '0', 'If `autoContrast` prop is set Badge will automatically adjust the contrast of the badge to the background color. For more information check https://mantine.dev/core/badge', 0, 0, 'Auto Contrast');
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
