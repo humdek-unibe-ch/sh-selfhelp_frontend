@@ -48,6 +48,7 @@ import { useAssets, useDeleteAsset } from '../../../../../hooks/useAssets';
 import { DeleteAssetModal } from '../delete-asset-modal';
 import type { IAsset } from '../../../../../api/admin/asset.api';
 import { API_CONFIG } from '../../../../../config/api.config';
+import { getAssetUrl } from '../../../../../utils/asset-url.utils';
 
 interface IAssetsListProps {
   onAssetSelect?: (asset: IAsset) => void;
@@ -183,32 +184,6 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
     return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico'].includes(extension);
   };
 
-  // Fix file path URL - use Symfony backend server
-  const getCorrectFilePath = (filePath: string): string => {
-    // If it's already a full URL, return as-is
-    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
-      return filePath;
-    }
-    
-    // Remove any leading slashes and admin prefixes
-    let cleanPath = filePath;
-    if (cleanPath.startsWith('/')) {
-      cleanPath = cleanPath.substring(1);
-    }
-    if (cleanPath.startsWith('admin/uploads/')) {
-      cleanPath = cleanPath.replace('admin/uploads/', 'uploads/');
-    } else if (cleanPath.startsWith('admin/')) {
-      cleanPath = cleanPath.replace('admin/', '');
-    }
-    
-    // Ensure it starts with uploads/ if it doesn't already
-    if (!cleanPath.startsWith('uploads/')) {
-      cleanPath = `uploads/${cleanPath}`;
-    }
-    
-    // Return full URL pointing to Symfony backend
-    return `${API_CONFIG.BACKEND_URL}/${cleanPath}`;
-  };
 
   // Group assets by type
   const assetGroups = useMemo((): IAssetGroup[] => {
@@ -253,7 +228,7 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
       header: 'File Name',
       cell: ({ row }) => {
         const asset = row.original;
-        const correctedPath = getCorrectFilePath(asset.file_path);
+        const correctedPath = getAssetUrl(asset.file_path);
         return (
           <Group gap="sm">
             {isImageFile(asset.file_name) && (
@@ -301,7 +276,7 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
       size: 120,
       cell: ({ row }) => {
         const asset = row.original;
-        const correctedPath = getCorrectFilePath(asset.file_path);
+        const correctedPath = getAssetUrl(asset.file_path);
         return (
           <Group gap="xs">
             <Tooltip label="View/Download">
@@ -452,7 +427,7 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
                     </Table.Thead>
                     <Table.Tbody>
                       {group.assets.map((asset) => {
-                        const correctedPath = getCorrectFilePath(asset.file_path);
+                        const correctedPath = getAssetUrl(asset.file_path);
                         return (
                           <Table.Tr 
                             key={asset.id}
