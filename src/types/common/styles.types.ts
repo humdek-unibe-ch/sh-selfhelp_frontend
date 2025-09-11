@@ -727,6 +727,13 @@ export interface IChipStyle extends IBaseStyle {
     mantine_chip_multiple?: IContentField<string>;    // Checkbox field for multiple selection
     disabled?: IContentField<string>;                 // Checkbox field for disabled state
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    // Form configuration fields
+    name?: IContentField<string>;                     // Field name for form submission
+    value?: IContentField<string>;                    // Default value for the chip field
+    chip_value?: IContentField<string>;               // Legacy field - value to be submitted when checked
+    mantine_chip_on_value?: IContentField<string>;    // Value when chip is checked
+    mantine_chip_off_value?: IContentField<string>;   // Value when chip is unchecked
+    is_required?: IContentField<string>;              // Makes the chip field required
 }
 
 export interface IAvatarStyle extends IBaseStyle {

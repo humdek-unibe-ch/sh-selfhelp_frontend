@@ -1171,15 +1171,10 @@ VALUES (get_style_id('chip'), get_field_id('mantine_radius'), 'sm', 'Sets the bo
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('chip'), get_field_id('mantine_color'), 'blue', 'Sets the color of the chip. For more information check https://mantine.dev/core/chip', 0, 0, 'Color');
 
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_chip_checked', get_field_type_id('checkbox'), 0, null);
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'chip_checked', get_field_type_id('checkbox'), 0, null);
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('chip'), get_field_id('mantine_chip_checked'), '0', 'If `checked` prop is set, chip will be in checked state. For more information check https://mantine.dev/core/chip', 0, 0, 'Checked');
-
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_chip_multiple', get_field_type_id('checkbox'), 0, null);
-
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('chip'), get_field_id('mantine_chip_multiple'), '0', 'If `multiple` prop is set, multiple chips can be selected. For more information check https://mantine.dev/core/chip', 0, 0, 'Multiple');
+VALUES (get_style_id('chip'), get_field_id('chip_checked'), '0', 'If `checked` prop is set, chip will be in checked state. For more information check https://mantine.dev/core/chip', 0, 0, 'Checked');
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
@@ -1187,6 +1182,30 @@ VALUES (get_style_id('chip'), get_field_id('disabled'), '0', 'If `disabled` prop
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('chip'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Chip will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/chip', 0, 1, 'Use Mantine Style');
+
+-- Form configuration fields for chip (similar to checkbox)
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('chip'), get_field_id('name'), NULL, 'Field name for form submission. Either a custom value or falls back to section-${style.id}', 0, 0, 'Field Name');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('chip'), get_field_id('value'), NULL, 'Default value for the chip field', 0, 0, 'Value');
+
+-- Add chip form value configuration fields (similar to switch)
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'chip_on_value', get_field_type_id('text'), 0, '{"placeholder": "1"}');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('chip'), get_field_id('chip_on_value'), '1', 'Value to submit when chip is checked/selected. For more information check https://mantine.dev/core/chip', 0, 0, 'On Value');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'chip_off_value', get_field_type_id('text'), 0, '{"placeholder": "0"}');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('chip'), get_field_id('chip_off_value'), '0', 'Value to submit when chip is unchecked/unselected. For more information check https://mantine.dev/core/chip', 0, 0, 'Off Value');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('chip'), get_field_id('is_required'), '0', 'Makes the chip field required for form submission', 0, 0, 'Required');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('chip'), get_field_id('label'), NULL, 'If this field is set, a this text will be rendered inside the chip.', 0, 0, 'Label');
 
 -- ===========================================
 -- COLOR INPUT COMPONENT
