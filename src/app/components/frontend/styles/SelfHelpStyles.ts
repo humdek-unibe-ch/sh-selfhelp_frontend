@@ -22,6 +22,7 @@ export { default as SimpleGridStyle } from './mantine/SimpleGridStyle';
 export { default as GridStyle } from './mantine/GridStyle';
 export { default as GridColumnStyle } from './mantine/GridColumnStyle';
 export { default as SpaceStyle } from './mantine/SpaceStyle';
+export { default as AspectRatioStyle } from './mantine/AspectRatioStyle';
 
 // Text & Content Styles
 export { default as HeadingStyle } from './HeadingStyle';

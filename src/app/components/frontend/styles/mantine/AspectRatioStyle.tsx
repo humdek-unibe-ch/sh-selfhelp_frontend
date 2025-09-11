@@ -15,9 +15,15 @@ interface IAspectRatioStyleProps {
  * AspectRatioStyle component renders a Mantine AspectRatio component for maintaining aspect ratios.
  * Commonly used for videos, images, and other media content.
  *
+ * Features:
+ * - Supports custom aspect ratios via creatable select field
+ * - Returns null when Mantine styling is disabled (no fallback)
+ * - Robust ratio parsing with validation
+ * - Default placeholder content with ratio information
+ *
  * @component
  * @param {IAspectRatioStyleProps} props - Component props
- * @returns {JSX.Element} Rendered Mantine AspectRatio with child content
+ * @returns {JSX.Element|null} Rendered Mantine AspectRatio with child content or null
  */
 const AspectRatioStyle: React.FC<IAspectRatioStyleProps> = ({ style }) => {
     // Ensure children is an array before mapping
@@ -30,16 +36,20 @@ const AspectRatioStyle: React.FC<IAspectRatioStyleProps> = ({ style }) => {
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
-    // Build style object
-    const styleObj: React.CSSProperties = {};
-
     // Parse ratio (e.g., "16/9" -> 16/9)
     const parseRatio = (ratioStr: string): number => {
+        if (!ratioStr || typeof ratioStr !== 'string') {
+            return 16/9; // Default aspect ratio
+        }
+
         const parts = ratioStr.split('/');
         if (parts.length === 2) {
             const num = parseFloat(parts[0]);
             const den = parseFloat(parts[1]);
-            return num / den;
+
+            if (!isNaN(num) && !isNaN(den) && den !== 0) {
+                return num / den;
+            }
         }
         return 16/9; // Default aspect ratio
     };
@@ -51,7 +61,6 @@ const AspectRatioStyle: React.FC<IAspectRatioStyleProps> = ({ style }) => {
             <AspectRatio
                 ratio={aspectRatio}
                 className={cssClass}
-                style={styleObj}
             >
                 {children.length > 0 ? (
                     children.map((child: any, index: number) => (
@@ -67,56 +76,27 @@ const AspectRatioStyle: React.FC<IAspectRatioStyleProps> = ({ style }) => {
                         alignItems: 'center',
                         justifyContent: 'center',
                         color: '#666',
-                        fontSize: '1.2rem'
+                        fontSize: '1.2rem',
+                        padding: '1rem',
+                        textAlign: 'center'
                     }}>
-                        {ratio} Aspect Ratio Content
+                        <div>
+                            <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>📐</div>
+                            <div style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
+                                Aspect Ratio: {ratio}
+                            </div>
+                            <div style={{ fontSize: '0.9rem', opacity: 0.8 }}>
+                                Add child components to display content
+                            </div>
+                        </div>
                     </div>
                 )}
             </AspectRatio>
         );
     }
 
-    // Fallback to basic styled div when Mantine styling is disabled
-    return (
-        <div
-            className={cssClass}
-            style={{
-                ...styleObj,
-                position: 'relative',
-                width: '100%',
-                paddingBottom: `${(1 / aspectRatio) * 100}%`,
-                overflow: 'hidden'
-            }}
-        >
-            <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%'
-            }}>
-                {children.length > 0 ? (
-                    children.map((child: any, index: number) => (
-                        child ? <BasicStyle key={index} style={child} /> : null
-                    ))
-                ) : (
-                    // Default content if no children
-                    <div style={{
-                        width: '100%',
-                        height: '100%',
-                        backgroundColor: '#f0f0f0',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#666',
-                        fontSize: '1.2rem'
-                    }}>
-                        {ratio} Aspect Ratio Content
-                    </div>
-                )}
-            </div>
-        </div>
-    );
+    // Return null if Mantine styling is disabled (no fallback needed)
+    return null;
 };
 
 export default AspectRatioStyle;

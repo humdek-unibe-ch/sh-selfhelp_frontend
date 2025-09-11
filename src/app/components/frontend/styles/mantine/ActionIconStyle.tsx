@@ -46,7 +46,6 @@ const ActionIconStyle: React.FC<IActionIconStyleProps> = ({ style }) => {
 
     // Build style object
     const styleObj: React.CSSProperties = {};
-    console.log(style);
 
     const handleClick = (e?: React.MouseEvent) => {
         if (url && url !== '#') {
