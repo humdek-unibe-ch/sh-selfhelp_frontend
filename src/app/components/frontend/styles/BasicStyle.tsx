@@ -10,7 +10,7 @@ import {
     ResetPasswordStyle, TwoFactorAuthStyle, TableStyle, TableRowStyle,
     TableCellStyle, ShowUserInputStyle, CenterStyle,
     FlexStyle, GroupStyle, StackStyle, SimpleGridStyle, GridStyle,
-    GridColumnStyle, SpaceStyle
+    GridColumnStyle, SpaceStyle, AccordionStyle, AccordionItemStyle
 } from './SelfHelpStyles';
 import { TStyle } from '../../../../types/common/styles.types';
 
@@ -124,6 +124,12 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <TabsStyle style={style} />;
         case 'tab':
             return <TabStyle style={style} />;
+
+        // Accordion Styles
+        case 'accordion':
+            return <AccordionStyle style={style} />;
+        case 'accordion-Item':
+            return <AccordionItemStyle style={style} />;
 
         // Table Styles
         case 'table':

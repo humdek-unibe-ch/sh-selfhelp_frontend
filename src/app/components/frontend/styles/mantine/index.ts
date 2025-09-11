@@ -1,0 +1,252 @@
+// ===========================================
+// MANTINE COMPONENTS INDEX FILE
+// ===========================================
+
+// Layout Components
+export { default as CenterStyle } from './CenterStyle';
+export { default as ContainerStyle } from './ContainerStyle';
+export { default as FlexStyle } from './FlexStyle';
+export { default as GroupStyle } from './GroupStyle';
+export { default as SimpleGridStyle } from './SimpleGridStyle';
+export { default as SpaceStyle } from './SpaceStyle';
+export { default as GridStyle } from './GridStyle';
+export { default as GridColumnStyle } from './GridColumnStyle';
+export { default as StackStyle } from './StackStyle';
+
+// Form Components
+export { default as ColorInputStyle } from './ColorInputStyle';
+export { default as ColorPickerStyle } from './ColorPickerStyle';
+export { default as FileInputStyle } from './FileInputStyle';
+export { default as NumberInputStyle } from './NumberInputStyle';
+export { default as RadioGroupStyle } from './RadioGroupStyle';
+export { default as RadioStyle } from './RadioStyle';
+export { default as RangeSliderStyle } from './RangeSliderStyle';
+export { default as SegmentedControlStyle } from './SegmentedControlStyle';
+// export { default as SwitchStyle } from './SwitchStyle';
+// export { default as ComboboxStyle } from './ComboboxStyle';
+// export { default as MultiSelectStyle } from './MultiSelectStyle';
+// export { default as ActionIconStyle } from './ActionIconStyle';
+
+// Data Display Components
+export { default as BadgeStyle } from './BadgeStyle';
+export { default as ChipStyle } from './ChipStyle';
+export { default as AvatarStyle } from './AvatarStyle';
+export { default as TimelineStyle } from './TimelineStyle';
+export { default as TimelineItemStyle } from './TimelineItemStyle';
+export { default as IndicatorStyle } from './IndicatorStyle';
+export { default as KbdStyle } from './KbdStyle';
+export { default as ThemeIconStyle } from './ThemeIconStyle';
+
+// Navigation Components
+export { default as StepperStyle } from './StepperStyle';
+export { default as StepperStepStyle } from './StepperStepStyle';
+export { default as StepperCompleteStyle } from './StepperCompleteStyle';
+export { default as AccordionStyle } from './AccordionStyle';
+export { default as AccordionItemStyle } from './AccordionItemStyle';
+
+// Feedback Components
+export { default as NotificationStyle } from './NotificationStyle';
+
+// Data Display Components (continued)
+export { default as RatingStyle } from './RatingStyle';
+
+// Typography Components
+export { default as TitleStyle } from './TitleStyle';
+// export { default as CodeStyle } from './CodeStyle';
+export { default as HighlightStyle } from './HighlightStyle';
+export { default as BlockquoteStyle } from './BlockquoteStyle';
+
+// Utility Components
+export { default as AspectRatioStyle } from './AspectRatioStyle';
+export { default as BackgroundImageStyle } from './BackgroundImageStyle';
+export { default as FieldsetStyle } from './FieldsetStyle';
+export { default as SpoilerStyle } from './SpoilerStyle';
+export { default as TypographyStyle } from './TypographyStyle';
+
+// Re-export types for convenience
+export type {
+    TMantineSize,
+    TMantineVariant,
+    TMantineColor,
+    TMantineRadius,
+    TMantineOrientation,
+    TMantineDirection,
+    TMantineJustify,
+    TMantineAlign,
+    TMantineColorFormat,
+    TMantineSpacing,
+    TMantineGridSpan,
+    TMantineGridOverflow,
+    TMantineTabsVariant,
+    IMantineSegmentedControlData,
+    IMantineRadioOption,
+    IMantineComboboxData,
+    IMantineMultiSelectData,
+    TMantineFileAccept,
+    TMantineClampBehavior,
+    TMantineChipVariant,
+    TMantineFieldsetVariant,
+    TMantineAccordionVariant,
+    TMantineAvatarVariant,
+    TMantineBadgeVariant,
+    TMantineIndicatorPosition,
+    TMantineKbdSize,
+    TMantineThemeIconVariant,
+    TMantineTimelineLineVariant,
+    TMantineTitleOrder,
+    TMantineCodeBlock,
+    TMantineHighlight,
+    TMantineSpoilerMaxHeight,
+    TMantineRatingCount,
+    TMantineRatingFractions,
+    TMantineStepperActive,
+    TMantineStepperAllowNextClicks,
+    TMantineStepperStepAllowClick,
+    TMantineStepperStepWithIcon,
+    TMantineNotificationWithCloseButton,
+    TMantineAspectRatio,
+    TMantineColorPickerSwatchesPerRow,
+    TMantineActionIconLoading,
+    TMantineGroupWrap,
+    TMantineGroupGrow,
+    TMantineGridGrow,
+    TMantineTabDisabled,
+    TMantineColorInputSwatches,
+    TMantineColorPickerSwatches,
+    TMantineFileInputMultiple,
+    TMantineNumberInputDecimalScale,
+    TMantineRangeSliderMarks,
+    TMantineChipChecked,
+    TMantineChipMultiple,
+    TMantineRatingReadonly,
+    TMantineSpaceHorizontal,
+    TMantineCenterInline,
+    TMantineContainerFluid,
+    TMantineFullWidth,
+    TMantineCompact,
+    TMantineAutoContrast,
+    TMantineIsLink,
+    TMantineUseMantineStyle,
+    TMantineDisabled,
+    TMantineOpenInNewTab,
+    TMantineLoading,
+    TMantineMultiple,
+    TMantineChecked,
+    TMantineReadonly,
+    TMantineWithCloseButton,
+    TMantineProcessing,
+    TMantineBlock,
+    TMantineWithIcon,
+    TMantineAllowStepClick,
+    TMantineAllowNextClicks,
+    TMantineSwatches,
+    TMantineWrap,
+    TMantineGrow,
+    TMantineInline,
+    TMantineFluid,
+    TMantineFullWidthAlias,
+    TMantineCompactAlias,
+    TMantineAutoContrastAlias,
+    TMantineIsLinkAlias,
+    TMantineUseMantineStyleAlias,
+    TMantineDisabledAlias,
+    TMantineOpenInNewTabAlias,
+    TMantineLoadingAlias,
+    TMantineMultipleAlias,
+    TMantineCheckedAlias,
+    TMantineReadonlyAlias,
+    TMantineWithCloseButtonAlias,
+    TMantineProcessingAlias,
+    TMantineBlockAlias,
+    TMantineWithIconAlias,
+    TMantineAllowStepClickAlias,
+    TMantineAllowNextClicksAlias,
+    TMantineSwatchesAlias,
+    TMantineWrapAlias,
+    TMantineGrowAlias,
+    TMantineInlineAlias,
+    TMantineFluidAlias
+} from '../../../../../types/mantine/common.types';
+
+// ===========================================
+// COMPONENT MAPPING UTILITY
+// ===========================================
+
+/**
+ * Mapping of style names to their corresponding component implementations
+ */
+export const MANTINE_COMPONENT_MAP = {
+    // Layout Components
+    'center': 'CenterStyle',
+    'container': 'ContainerStyle',
+    'flex': 'FlexStyle',
+    'group': 'GroupStyle',
+    'simpleGrid': 'SimpleGridStyle',
+    'space': 'SpaceStyle',
+    'grid': 'GridStyle',
+    'grid-column': 'GridColumnStyle',
+    'stack': 'StackStyle',
+
+    // Form Components
+    'button': 'ButtonStyle',
+    'colorInput': 'ColorInputStyle',
+    'colorPicker': 'ColorPickerStyle',
+    'fileInput': 'FileInputStyle',
+    'numberInput': 'NumberInputStyle',
+    'radioGroup': 'RadioGroupStyle',
+    'radio': 'RadioStyle',
+    'rangeSlider': 'RangeSliderStyle',
+    'segmentedControl': 'SegmentedControlStyle',
+    'switch': 'SwitchStyle',
+    'combobox': 'ComboboxStyle',
+    'multiSelect': 'MultiSelectStyle',
+    'actionIcon': 'ActionIconStyle',
+
+    // Data Display Components
+    'badge': 'BadgeStyle',
+    'chip': 'ChipStyle',
+    'avatar': 'AvatarStyle',
+    'timeline': 'TimelineStyle',
+    'timeline-item': 'TimelineItemStyle',
+    'indicator': 'IndicatorStyle',
+    'kbd': 'KbdStyle',
+    'themeIcon': 'ThemeIconStyle',
+    'rating': 'RatingStyle',
+
+    // Navigation Components
+    'stepper': 'StepperStyle',
+    'stepper-Step': 'StepperStepStyle',
+    'stepper-Complete': 'StepperCompleteStyle',
+    'accordion': 'AccordionStyle',
+    'accordion-Item': 'AccordionItemStyle',
+
+    // Feedback Components
+    'notification': 'NotificationStyle',
+
+    // Typography Components
+    'title': 'TitleStyle',
+    'code': 'CodeStyle',
+    'highlight': 'HighlightStyle',
+    'blockquote': 'BlockquoteStyle',
+
+    // Utility Components
+    'aspectRatio': 'AspectRatioStyle',
+    'backgroundImage': 'BackgroundImageStyle',
+    'fieldset': 'FieldsetStyle',
+    'spoiler': 'SpoilerStyle',
+    'typography': 'TypographyStyle'
+} as const;
+
+/**
+ * Get the component name for a given style name
+ */
+export const getMantineComponentName = (styleName: string): string | undefined => {
+    return MANTINE_COMPONENT_MAP[styleName as keyof typeof MANTINE_COMPONENT_MAP];
+};
+
+/**
+ * Check if a style name is a Mantine component
+ */
+export const isMantineComponent = (styleName: string): boolean => {
+    return styleName in MANTINE_COMPONENT_MAP;
+};

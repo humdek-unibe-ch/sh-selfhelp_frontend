@@ -1,6 +1,7 @@
 import React from 'react';
 import { Select, MultiSelect } from '@mantine/core';
 import { ISelectStyle } from '../../../../types/common/styles.types';
+import { getFieldContent, castMantineSize, castMantineRadius } from '../../../../utils/style-field-extractor';
 
 /**
  * Props interface for SelectStyle component
@@ -15,40 +16,43 @@ interface ISelectStyleProps {
  * Uses Mantine UI components for consistency
  */
 const SelectStyle: React.FC<ISelectStyleProps> = ({ style }) => {
-    const label = style.label?.content;
-    const placeholder = style.alt?.content || 'Select an option';
-    const name = style.name?.content;
-    const value = style.value?.content;
-    const required = style.is_required?.content === '1';
-    const isMultiple = style.is_multiple?.content === '1';
-    const searchable = style.live_search?.content === '1';
-    const disabled = style.disabled?.content === '1';
-    const clearable = style.allow_clear?.content === '1';
-    const locked = style.locked_after_submit?.content === '1';
-    const maxValues = style.max?.content ? parseInt(style.max.content) : undefined;
+    // Extract field values using the new unified field structure
+    const label = getFieldContent(style, 'label');
+    const placeholder = getFieldContent(style, 'placeholder') || 'Select an option';
+    const name = getFieldContent(style, 'name');
+    const value = getFieldContent(style, 'value');
+    const required = getFieldContent(style, 'is_required') === '1';
+    const isMultiple = getFieldContent(style, 'is_multiple') === '1';
+    const searchable = getFieldContent(style, 'mantine_select_searchable') === '1' || getFieldContent(style, 'live_search') === '1';
+    const clearable = getFieldContent(style, 'mantine_select_clearable') === '1' || getFieldContent(style, 'allow_clear') === '1';
+    const locked = getFieldContent(style, 'locked_after_submit') === '1';
+    const disabled = getFieldContent(style, 'disabled') === '1';
+    const size = castMantineSize(getFieldContent(style, 'mantine_size'));
+    const radius = castMantineRadius(getFieldContent(style, 'mantine_radius'));
+    const maxValues = getFieldContent(style, 'max') ? parseInt(getFieldContent(style, 'max')!) : undefined;
+    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
+
+    // Handle CSS field - use direct property from API response
+    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+
+    // Build style object
+    const styleObj: React.CSSProperties = {};
 
     // Parse items - handle both array and JSON string formats
     let itemsArray: any[] = [];
     try {
-        const itemsContent = style.items?.content;
-        if (Array.isArray(itemsContent)) {
-            itemsArray = itemsContent;
-        } else if (itemsContent && typeof itemsContent === 'string') {
-            const stringContent = itemsContent as string;
-            if (stringContent.trim()) {
-                itemsArray = JSON.parse(stringContent);
-            }
+        const itemsContent = getFieldContent(style, 'mantine_multi_select_data') || getFieldContent(style, 'items');
+        if (itemsContent) {
+            itemsArray = JSON.parse(itemsContent);
         }
     } catch (error) {
-
         itemsArray = [];
     }
 
     // Transform items from the database format to Mantine format
     const items = itemsArray.map((item: any) => ({
         value: item.value,
-        label: item.text,
-        image: style.image_selector?.content === '1' ? item.text : undefined,
+        label: item.label || item.text,
     }));
 
     const commonProps = {
@@ -59,26 +63,68 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style }) => {
         disabled: disabled || locked,
         searchable,
         clearable,
-        className: style.css || '',
-        size: 'md' as const,
+        size,
+        radius,
+        className: cssClass,
+        style: styleObj,
         data: items,
     };
 
-    if (isMultiple) {
+    if (use_mantine_style) {
+        if (isMultiple) {
+            return (
+                <MultiSelect
+                    {...commonProps}
+                    defaultValue={value ? value.split(',') : undefined}
+                    maxValues={maxValues}
+                />
+            );
+        }
+
         return (
-            <MultiSelect
+            <Select
                 {...commonProps}
-                defaultValue={value ? value.split(',') : undefined}
-                maxValues={maxValues}
+                defaultValue={value}
             />
         );
     }
 
+    // Fallback to basic select when Mantine styling is disabled
     return (
-        <Select
-            {...commonProps}
-            defaultValue={value}
-        />
+        <div className={cssClass} style={styleObj}>
+            {label && (
+                <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    marginBottom: '8px'
+                }}>
+                    {label}
+                    {required && <span style={{ color: 'red' }}> *</span>}
+                </label>
+            )}
+            <select
+                name={name}
+                defaultValue={isMultiple ? undefined : value}
+                multiple={isMultiple}
+                required={required}
+                disabled={disabled || locked}
+                style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid #ccc',
+                    borderRadius: '4px',
+                    fontSize: '14px'
+                }}
+            >
+                {!isMultiple && <option value="">{placeholder}</option>}
+                {items.map((item, index) => (
+                    <option key={index} value={item.value}>
+                        {item.label}
+                    </option>
+                ))}
+            </select>
+        </div>
     );
 };
 

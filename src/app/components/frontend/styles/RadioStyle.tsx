@@ -1,5 +1,6 @@
 import React from 'react';
-import { Box, Radio, Group, Text } from '@mantine/core';
+import { Radio, Group, Text } from '@mantine/core';
+import { getFieldContent, castMantineSize } from '../../../../utils/style-field-extractor';
 import { IRadioStyle } from '../../../../types/common/styles.types';
 
 interface IRadioStyleProps {
@@ -7,55 +8,103 @@ interface IRadioStyleProps {
 }
 
 const RadioStyle: React.FC<IRadioStyleProps> = ({ style }) => {
-    const label = style.label?.content;
-    const name = style.name?.content;
-    const value = style.value?.content;
-    const isRequired = style.is_required?.content === '1';
-    const isInline = style.is_inline?.content === '1';
-    const isLocked = style.locked_after_submit?.content === '1';
+    // Extract field values using the new unified field structure
+    const label = getFieldContent(style, 'label');
+    const name = getFieldContent(style, 'name');
+    const value = getFieldContent(style, 'value');
+    const isRequired = getFieldContent(style, 'is_required') === '1';
+    const isInline = getFieldContent(style, 'is_inline') === '1';
+    const isLocked = getFieldContent(style, 'locked_after_submit') === '1';
+    const size = castMantineSize(getFieldContent(style, 'mantine_size'));
+    const color = getFieldContent(style, 'mantine_color') || 'blue';
+    const disabled = getFieldContent(style, 'disabled') === '1';
+    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
 
-    // Parse items - handle both array and JSON string formats
-    let items: any[] = [];
+    // Handle CSS field - use direct property from API response
+    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+
+    // Build style object
+    const styleObj: React.CSSProperties = {};
+
+    // Parse radio options from JSON textarea
+    let radioOptions: Array<{ value: string; label: string }> = [];
     try {
-        const itemsContent = style.items?.content;
-        if (Array.isArray(itemsContent)) {
-            items = itemsContent;
-        } else if (itemsContent && typeof itemsContent === 'string') {
-            const stringContent = itemsContent as string;
-            if (stringContent.trim()) {
-                items = JSON.parse(stringContent);
+        const optionsJson = getFieldContent(style, 'mantine_radio_options');
+        if (optionsJson) {
+            radioOptions = JSON.parse(optionsJson);
+        } else {
+            // Fallback to legacy items field
+            const itemsContent = getFieldContent(style, 'items');
+            if (itemsContent) {
+                radioOptions = JSON.parse(itemsContent);
             }
         }
     } catch (error) {
-
-        items = [];
+        console.warn('Invalid JSON in radio options:', error);
+        radioOptions = [];
     }
 
+    if (use_mantine_style) {
+        return (
+            <div className={cssClass} style={styleObj}>
+                {label && (
+                    <Text size="sm" fw={500} mb="xs">
+                        {label}
+                        {isRequired && <Text component="span" c="red"> *</Text>}
+                    </Text>
+                )}
+                <Radio.Group
+                    name={name}
+                    value={value}
+                    required={isRequired}
+                >
+                    <Group mt="xs" gap={isInline ? 'md' : 'xs'} align={isInline ? 'flex-start' : 'stretch'} style={{ flexDirection: isInline ? 'row' : 'column' }}>
+                        {radioOptions.map((option, index) => (
+                            <Radio
+                                key={index}
+                                value={option.value}
+                                label={option.label}
+                                size={size}
+                                color={color}
+                                disabled={disabled || isLocked}
+                            />
+                        ))}
+                    </Group>
+                </Radio.Group>
+            </div>
+        );
+    }
+
+    // Fallback to basic radio buttons when Mantine styling is disabled
     return (
-        <Box className={style.css ?? ""}>
+        <div className={cssClass} style={styleObj}>
             {label && (
-                <Text size="sm" fw={500} mb="xs">
+                <div style={{ fontSize: '14px', fontWeight: '500', marginBottom: '8px' }}>
                     {label}
-                    {isRequired && <Text component="span" c="red"> *</Text>}
-                </Text>
+                    {isRequired && <span style={{ color: 'red' }}> *</span>}
+                </div>
             )}
-            <Radio.Group
-                name={name}
-                value={value}
-                required={isRequired}
-            >
-                <Group mt="xs" gap={isInline ? 'md' : 'xs'} align={isInline ? 'flex-start' : 'stretch'} style={{ flexDirection: isInline ? 'row' : 'column' }}>
-                    {items.map((item: any, index: number) => (
-                        <Radio
-                            key={index}
-                            value={item.value}
-                            label={item.text || item.label}
-                            disabled={isLocked}
+            <div style={{
+                display: 'flex',
+                flexDirection: isInline ? 'row' : 'column',
+                gap: isInline ? '16px' : '8px',
+                marginTop: '8px'
+            }}>
+                {radioOptions.map((option, index) => (
+                    <label key={index} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <input
+                            type="radio"
+                            name={name}
+                            value={option.value}
+                            defaultChecked={value === option.value}
+                            required={isRequired}
+                            disabled={disabled || isLocked}
                         />
-                    ))}
-                </Group>
-            </Radio.Group>
-        </Box>
+                        {option.label}
+                    </label>
+                ))}
+            </div>
+        </div>
     );
 };
 

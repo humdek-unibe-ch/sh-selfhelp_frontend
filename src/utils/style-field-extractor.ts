@@ -38,7 +38,7 @@ export const getFieldContent = (style: any, fieldName: string): string => {
 
 /**
  * Helper function to check if a field has a specific value (useful for boolean-like fields)
- * 
+ *
  * @param style - The style object containing fields
  * @param fieldName - The name of the field to check
  * @param value - The value to check against (default: '1')
@@ -46,4 +46,26 @@ export const getFieldContent = (style: any, fieldName: string): string => {
  */
 export const hasFieldValue = (style: any, fieldName: string, value: string = '1'): boolean => {
     return getFieldContent(style, fieldName) === value;
-}; 
+};
+
+/**
+ * Safely casts size values for Mantine components
+ * @param sizeString - The size string from the style field
+ * @returns A properly typed Mantine size value
+ */
+export function castMantineSize(sizeString: string | undefined): 'xs' | 'sm' | 'md' | 'lg' | 'xl' {
+    const validSizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const;
+    const size = sizeString || 'sm';
+    return validSizes.includes(size as any) ? size as 'xs' | 'sm' | 'md' | 'lg' | 'xl' : 'sm';
+}
+
+/**
+ * Safely casts radius values for Mantine components
+ * @param radiusString - The radius string from the style field
+ * @returns A properly typed Mantine radius value
+ */
+export function castMantineRadius(radiusString: string | undefined): 'xs' | 'sm' | 'md' | 'lg' | 'xl' {
+    const validRadii = ['xs', 'sm', 'md', 'lg', 'xl'] as const;
+    const radius = radiusString || 'sm';
+    return validRadii.includes(radius as any) ? radius as 'xs' | 'sm' | 'md' | 'lg' | 'xl' : 'sm';
+} 
