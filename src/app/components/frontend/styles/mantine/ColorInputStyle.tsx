@@ -41,7 +41,7 @@ const ColorInputStyle: React.FC<IColorInputStyleProps> = ({ style }) => {
                 format={format as 'hex' | 'rgba' | 'hsla'}
                 withPicker={withSwatches}
                 size={size as any}
-                radius={radius}
+                radius={radius === 'none' ? 0 : radius}
                 disabled={disabled}
                 className={cssClass}
                 style={styleObj}

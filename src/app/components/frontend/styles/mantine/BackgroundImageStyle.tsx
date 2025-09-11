@@ -37,7 +37,7 @@ const BackgroundImageStyle: React.FC<IBackgroundImageStyleProps> = ({ style }) =
     return (
         <BackgroundImage
             src={ getAssetUrl(src)}
-            radius={radius}
+            radius={radius === 'none' ? 0 : radius}
             className={cssClass}
             style={styleObj}
         >

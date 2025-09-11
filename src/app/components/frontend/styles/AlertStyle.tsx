@@ -47,7 +47,7 @@ const AlertStyle: React.FC<IAlertStyleProps> = ({ style }) => {
                 color={color}
                 title={title}
                 icon={icon}
-                radius={radius}
+                radius={radius === 'none' ? 0 : radius}
                 withCloseButton={withCloseButton}
                 className={cssClass}
                 style={styleObj}

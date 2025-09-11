@@ -13,7 +13,7 @@ export { default as SliderStyle } from './SliderStyle';
 export { default as TextareaStyle } from './TextareaStyle';
 
 // New components
-export { default as CardStyle } from './CardStyle';
-export { default as CardSegmentStyle } from './CardSegmentStyle';
+export { default as CardStyle } from './mantine/card/CardStyle';
+export { default as CardSegmentStyle } from './mantine/card/CardSegmentStyle';
 export { default as ListStyle } from './ListStyle';
 export { default as ListItemStyle } from './ListItemStyle';

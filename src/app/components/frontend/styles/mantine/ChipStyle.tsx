@@ -42,7 +42,7 @@ const ChipStyle: React.FC<IChipStyleProps> = ({ style }) => {
                 checked={checked}
                 variant={variant as any}
                 size={size as any}
-                radius={radius as any}
+                radius={radius === 'none' ? 0 : radius}
                 color={color}
                 disabled={disabled}
                 className={cssClass}

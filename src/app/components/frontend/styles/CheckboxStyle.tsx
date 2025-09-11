@@ -37,7 +37,7 @@ const CheckboxStyle: React.FC<ICheckboxStyleProps> = ({ style }) => {
                 indeterminate={indeterminate}
                 required={isRequired}
                 size={size}
-                radius={radius}
+                radius={radius === 'none' ? 0 : radius}
                 disabled={disabled}
                 className={cssClass}
                 style={styleObj}

@@ -910,6 +910,7 @@ export interface ICardStyle extends IBaseStyle {
     style_name: 'card';
     mantine_card_shadow?: IContentField<string>;      // Select field for shadow
     mantine_card_padding?: IContentField<string>;     // Select field for padding
+    mantine_card_with_border?: IContentField<string>; // Checkbox field for border
     mantine_radius?: IContentField<string>;           // Select field for radius
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }

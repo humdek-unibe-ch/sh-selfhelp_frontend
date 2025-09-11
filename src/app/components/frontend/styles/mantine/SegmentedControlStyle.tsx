@@ -59,7 +59,7 @@ const SegmentedControlStyle: React.FC<ISegmentedControlStyleProps> = ({ style })
                 data={controlData}
                 orientation={orientation as 'horizontal' | 'vertical'}
                 size={size as any}
-                radius={radius}
+                radius={radius === 'none' ? 0 : radius}
                 color={color}
                 fullWidth={fullWidth}
                 disabled={disabled}

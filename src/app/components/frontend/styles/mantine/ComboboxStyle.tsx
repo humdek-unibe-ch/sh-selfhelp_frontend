@@ -57,7 +57,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style }) => {
                 data={comboboxData}
                 placeholder={placeholder}
                 size={size}
-                radius={radius}
+                radius={radius === 'none' ? 0 : radius}
                 disabled={disabled}
                 className={cssClass}
                 style={styleObj}

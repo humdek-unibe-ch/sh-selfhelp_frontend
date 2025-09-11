@@ -40,6 +40,8 @@ const ImageStyle: React.FC<IImageStyleProps> = ({ style }) => {
 
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
+    console.log('radius', radius);
+
     if (use_mantine_style) {
         return (
             <Image
@@ -48,7 +50,7 @@ const ImageStyle: React.FC<IImageStyleProps> = ({ style }) => {
                 width={width}
                 height={height}
                 fit={fit as 'contain' | 'cover' | 'fill' | 'none' | 'scale-down'}
-                radius={radius}
+                radius={radius === 'none' ? 0 : radius}
                 className={cssClass}
                 title={title}
             />

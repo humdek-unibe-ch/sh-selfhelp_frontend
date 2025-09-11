@@ -40,7 +40,7 @@ const FieldsetStyle: React.FC<IFieldsetStyleProps> = ({ style }) => {
             <Fieldset
                 legend={legend}
                 variant={variant as 'default' | 'filled'}
-                radius={radius}
+                radius={radius === 'none' ? 0 : radius}
                 className={cssClass}
                 style={styleObj}
             >

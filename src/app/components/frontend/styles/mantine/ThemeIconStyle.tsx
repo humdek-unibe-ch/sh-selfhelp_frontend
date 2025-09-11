@@ -42,7 +42,7 @@ const ThemeIconStyle: React.FC<IThemeIconStyleProps> = ({ style }) => {
             <ThemeIcon
                 variant={variant as any}
                 size={size as any}
-                radius={radius}
+                radius={radius === 'none' ? 0 : radius}
                 color={color}
                 className={cssClass}
                 style={styleObj}

@@ -39,7 +39,7 @@ const ProgressBarStyle: React.FC<IProgressBarStyleProps> = ({ style }) => {
                     value={progressValue}
                     color={color}
                     size={size}
-                    radius={radius}
+                    radius={radius === 'none' ? 0 : radius}
                     striped={striped}
                     animated={animated}
                 />

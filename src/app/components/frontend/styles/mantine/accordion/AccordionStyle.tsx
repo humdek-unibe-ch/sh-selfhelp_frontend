@@ -60,7 +60,7 @@ const AccordionStyle: React.FC<IAccordionStyleProps> = ({ style }) => {
                 loop={loop}
                 transitionDuration={transitionDuration}
                 defaultValue={parsedDefaultValue}
-                radius={radius}
+                radius={radius === 'none' ? 0 : radius}
                 className={cssClass}
                 style={styleObj}
             >

@@ -46,7 +46,7 @@ const BadgeStyle: React.FC<IBadgeStyleProps> = ({ style }) => {
             <Badge
                 variant={variant as any}
                 size={size}
-                radius={radius}
+                radius={radius === 'none' ? 0 : radius}
                 color={color}
                 leftSection={leftSection}
                 rightSection={rightSection}

@@ -41,7 +41,7 @@ const FileInputStyle: React.FC<IFileInputStyleProps> = ({ style }) => {
                 multiple={multiple}
                 accept={accept}
                 size={size as any}
-                radius={radius}
+                radius={radius === 'none' ? 0 : radius}
                 disabled={disabled}
                 className={cssClass}
                 style={styleObj}

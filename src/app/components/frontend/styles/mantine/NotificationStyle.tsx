@@ -55,7 +55,7 @@ const NotificationStyle: React.FC<INotificationStyleProps> = ({ style }) => {
                 color={color}
                 loading={loading}
                 withCloseButton={withCloseButton}
-                radius={radius}
+                radius={radius === 'none' ? 0 : radius}
                 className={cssClass}
                 style={styleObj}
                 icon={icon}

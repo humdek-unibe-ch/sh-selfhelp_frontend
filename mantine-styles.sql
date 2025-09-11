@@ -119,7 +119,7 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_radius', get_field_type_id('slider'), 0, '{
 "options": [
-{"value": "0", "text": "None"},
+{"value": "none", "text": "None"},
 {"value": "xs", "text": "xs"},
 {"value": "sm", "text": "sm"},
 {"value": "md", "text": "md"},
@@ -1246,14 +1246,7 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 {"value":"xl","text":"Extra Large"}
 ]}');
 
--- Add unified radius field (reusable across components)
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_radius', get_field_type_id('select'), 0, '{"searchable": false, "clearable": true, "options":[
-{"value":"xs","text":"Extra Small"},
-{"value":"sm","text":"Small"},
-{"value":"md","text":"Medium"},
-{"value":"lg","text":"Large"},
-{"value":"xl","text":"Extra Large"}
-]}');
+-- Unified radius field already defined at the top of the file
 
 -- Add unified icon fields (reusable across components)
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_left_icon', get_field_type_id('select-icon'), 0, null);
@@ -1318,7 +1311,7 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 VALUES (get_style_id('colorInput'), get_field_id('mantine_size'), 'sm', 'Sets the size of the color input. For more information check https://mantine.dev/core/color-input', 0, 0, 'Size');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('colorInput'), get_field_id('mantine_slider_radius'), 'sm', 'Sets the border radius of the color input. For more information check https://mantine.dev/core/color-input', 0, 0, 'Radius');
+VALUES (get_style_id('colorInput'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the color input. For more information check https://mantine.dev/core/color-input', 0, 0, 'Radius');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('colorInput'), get_field_id('placeholder'), 'Pick a color', 'Sets the placeholder text for the color input. For more information check https://mantine.dev/core/color-input', 0, 0, 'Placeholder');
@@ -1399,7 +1392,7 @@ VALUES (get_style_id('fieldset'), get_field_id('mantine_fieldset_variant'), 'def
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('fieldset'), get_field_id('mantine_slider_radius'), 'sm', 'Sets the border radius of the fieldset. For more information check https://mantine.dev/core/fieldset', 0, 0, 'Radius');
+VALUES (get_style_id('fieldset'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the fieldset. For more information check https://mantine.dev/core/fieldset', 0, 0, 'Radius');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('fieldset'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Fieldset will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/fieldset', 0, 1, 'Use Mantine Style');
@@ -1441,7 +1434,7 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 VALUES (get_style_id('fileInput'), get_field_id('mantine_size'), 'sm', 'Sets the size of the file input. For more information check https://mantine.dev/core/file-input', 0, 0, 'Size');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('fileInput'), get_field_id('mantine_slider_radius'), 'sm', 'Sets the border radius of the file input. For more information check https://mantine.dev/core/file-input', 0, 0, 'Radius');
+VALUES (get_style_id('fileInput'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the file input. For more information check https://mantine.dev/core/file-input', 0, 0, 'Radius');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('fileInput'), get_field_id('placeholder'), 'Select files', 'Sets the placeholder text for the file input. For more information check https://mantine.dev/core/file-input', 0, 0, 'Placeholder');
@@ -1525,7 +1518,7 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 VALUES (get_style_id('numberInput'), get_field_id('mantine_size'), 'sm', 'Sets the size of the number input. For more information check https://mantine.dev/core/number-input', 0, 0, 'Size');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('numberInput'), get_field_id('mantine_slider_radius'), 'sm', 'Sets the border radius of the number input. For more information check https://mantine.dev/core/number-input', 0, 0, 'Radius');
+VALUES (get_style_id('numberInput'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the number input. For more information check https://mantine.dev/core/number-input', 0, 0, 'Radius');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('numberInput'), get_field_id('placeholder'), 'Enter number', 'Sets the placeholder text for the number input. For more information check https://mantine.dev/core/number-input', 0, 0, 'Placeholder');
@@ -1740,7 +1733,7 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 VALUES (get_style_id('segmentedControl'), get_field_id('mantine_size'), 'sm', 'Sets the size of the segmented control. For more information check https://mantine.dev/core/segmented-control', 0, 0, 'Size');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('segmentedControl'), get_field_id('mantine_slider_radius'), 'sm', 'Sets the border radius of the segmented control. For more information check https://mantine.dev/core/segmented-control', 0, 0, 'Radius');
+VALUES (get_style_id('segmentedControl'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the segmented control. For more information check https://mantine.dev/core/segmented-control', 0, 0, 'Radius');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('segmentedControl'), get_field_id('mantine_color'), 'blue', 'Sets the color of the segmented control. For more information check https://mantine.dev/core/segmented-control', 0, 0, 'Color');
@@ -1827,7 +1820,7 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 VALUES (get_style_id('combobox'), get_field_id('mantine_size'), 'sm', 'Sets the size of the combobox. For more information check https://mantine.dev/core/combobox', 0, 0, 'Size');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('combobox'), get_field_id('mantine_slider_radius'), 'sm', 'Sets the border radius of the combobox. For more information check https://mantine.dev/core/combobox', 0, 0, 'Radius');
+VALUES (get_style_id('combobox'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the combobox. For more information check https://mantine.dev/core/combobox', 0, 0, 'Radius');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('combobox'), get_field_id('disabled'), '0', 'If `disabled` prop is set Combobox will be disabled. For more information check https://mantine.dev/core/combobox', 0, 0, 'Disabled');
@@ -1873,7 +1866,7 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 VALUES (get_style_id('multiSelect'), get_field_id('mantine_size'), 'sm', 'Sets the size of the multi-select. For more information check https://mantine.dev/core/multi-select', 0, 0, 'Size');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('multiSelect'), get_field_id('mantine_slider_radius'), 'sm', 'Sets the border radius of the multi-select. For more information check https://mantine.dev/core/multi-select', 0, 0, 'Radius');
+VALUES (get_style_id('multiSelect'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the multi-select. For more information check https://mantine.dev/core/multi-select', 0, 0, 'Radius');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('multiSelect'), get_field_id('disabled'), '0', 'If `disabled` prop is set MultiSelect will be disabled. For more information check https://mantine.dev/core/multi-select', 0, 0, 'Disabled');
@@ -1909,7 +1902,7 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 VALUES (get_style_id('actionIcon'), get_field_id('mantine_size'), 'md', 'Sets the size of the action icon. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Size');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('actionIcon'), get_field_id('mantine_slider_radius'), 'sm', 'Sets the border radius of the action icon. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Radius');
+VALUES (get_style_id('actionIcon'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the action icon. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Radius');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('actionIcon'), get_field_id('mantine_color'), 'blue', 'Sets the color of the action icon. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Color');
@@ -2072,7 +2065,7 @@ VALUES (get_style_id('notification'), get_field_id('mantine_notification_with_cl
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('notification'), get_field_id('mantine_slider_radius'), 'sm', 'Sets the border radius of the notification. For more information check https://mantine.dev/core/notification', 0, 0, 'Radius');
+VALUES (get_style_id('notification'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the notification. For more information check https://mantine.dev/core/notification', 0, 0, 'Radius');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('notification'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Notification will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/notification', 0, 1, 'Use Mantine Style');
@@ -2462,7 +2455,7 @@ VALUES (get_style_id('themeIcon'), get_field_id('mantine_size'), 'md', 'Sets the
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('themeIcon'), get_field_id('mantine_slider_radius'), 'sm', 'Sets the border radius of the theme icon. For more information check https://mantine.dev/core/theme-icon', 0, 0, 'Radius');
+VALUES (get_style_id('themeIcon'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the theme icon. For more information check https://mantine.dev/core/theme-icon', 0, 0, 'Radius');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('themeIcon'), get_field_id('mantine_color'), 'blue', 'Sets the color of the theme icon. For more information check https://mantine.dev/core/theme-icon', 0, 0, 'Color');
@@ -2848,6 +2841,76 @@ VALUES (get_style_id('scrollArea'), get_field_id('mantine_height'), NULL, 'Sets 
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('scrollArea'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set ScrollArea will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/scroll-area', 0, 0, 'Use Mantine Style');
+
+-- ===========================================
+-- CARD STYLE
+-- ===========================================
+
+-- Add card style
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+    NULL,
+    'card',
+    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    get_style_group_id('mantine'),
+    'Card container component with Mantine styling',
+    1
+);
+
+-- Create card-specific fields if they don't exist
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_card_shadow', get_field_type_id('slider'), 0, '{
+"options": [
+{"value": "none", "text": "None"},
+{"value": "xs", "text": "Extra Small"},
+{"value": "sm", "text": "Small"},
+{"value": "md", "text": "Medium"},
+{"value": "lg", "text": "Large"},
+{"value": "xl", "text": "Extra Large"}
+]
+}');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_card_padding', get_field_type_id('slider'), 0, '{
+"options": [
+{"value": "none", "text": "None"},
+{"value": "xs", "text": "Extra Small"},
+{"value": "sm", "text": "Small"},
+{"value": "md", "text": "Medium"},
+{"value": "lg", "text": "Large"},
+{"value": "xl", "text": "Extra Large"}
+]
+}');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_card_with_border', get_field_type_id('checkbox'), 0, null);
+
+-- Add card-segment style for child components
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+    NULL,
+    'card-segment',
+    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    get_style_group_id('mantine'),
+    'Card segment component for organizing card content',
+    1
+);
+
+-- Link fields to card style
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('card'), get_field_id('use_mantine_style'), '1', 'If `useMantineStyle` prop is set Card will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/card', 0, 1, 'Use Mantine Style');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('card'), get_field_id('mantine_card_shadow'), 'sm', 'Sets the shadow of the card. For more information check https://mantine.dev/core/card', 0, 0, 'Shadow');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('card'), get_field_id('mantine_card_padding'), 'md', 'Sets the padding of the card. For more information check https://mantine.dev/core/card', 0, 0, 'Padding');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('card'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the card. For more information check https://mantine.dev/core/card', 0, 0, 'Radius');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('card'), get_field_id('mantine_card_with_border'), '0', 'If set, the card will have a border. For more information check https://mantine.dev/core/card', 0, 0, 'With Border');
+
+-- Card can contain Card-Segment
+INSERT IGNORE INTO styles_allowed_relationships (id_parent_style, id_child_style)
+SELECT s1.id, s2.id FROM styles s1, styles s2
+WHERE s1.name = 'card' AND s2.name = 'card-segment';
 
 -- ===========================================
 -- FIELD OPTIMIZATION SUMMARY AND FINAL CLEANUP

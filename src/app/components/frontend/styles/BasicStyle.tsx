@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    AlertStyle, ButtonStyle, CarouselStyle, ContainerStyle,
+    AlertStyle, ButtonStyle, CarouselStyle, CardStyle, CardSegmentStyle, ContainerStyle,
     DivStyle, FormUserInputStyle, HeadingStyle, ImageStyle, InputStyle,
     LinkStyle, LoginStyle, MarkdownStyle, RegisterStyle,
     SelectStyle, TabsStyle, TabStyle, TextareaStyle, VideoStyle,
@@ -63,6 +63,10 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
         // Container & Layout Styles
         case 'container':
             return <ContainerStyle style={style} />;
+        case 'card':
+            return <CardStyle style={style} />;
+        case 'card-segment':
+            return <CardSegmentStyle style={style} />;
         case 'div':
             return <DivStyle style={style} />;
         case 'alert':

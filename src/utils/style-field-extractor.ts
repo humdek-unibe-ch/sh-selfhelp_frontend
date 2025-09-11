@@ -64,8 +64,8 @@ export function castMantineSize(sizeString: string | undefined): 'xs' | 'sm' | '
  * @param radiusString - The radius string from the style field
  * @returns A properly typed Mantine radius value
  */
-export function castMantineRadius(radiusString: string | undefined): 'xs' | 'sm' | 'md' | 'lg' | 'xl' {
-    const validRadii = ['xs', 'sm', 'md', 'lg', 'xl'] as const;
+export function castMantineRadius(radiusString: string | undefined): 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' {
+    const validRadii = ['none', 'xs', 'sm', 'md', 'lg', 'xl'] as const;
     const radius = radiusString || 'sm';
-    return validRadii.includes(radius as any) ? radius as 'xs' | 'sm' | 'md' | 'lg' | 'xl' : 'sm';
+    return validRadii.includes(radius as any) ? radius as 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' : 'sm';
 } 

@@ -47,7 +47,7 @@ const NumberInputStyle: React.FC<INumberInputStyleProps> = ({ style }) => {
                 decimalScale={decimalScale}
                 clampBehavior={clampBehavior as 'strict' | 'blur'}
                 size={size as any}
-                radius={radius}
+                radius={radius === 'none' ? 0 : radius}
                 disabled={disabled}
                 className={cssClass}
                 style={styleObj}

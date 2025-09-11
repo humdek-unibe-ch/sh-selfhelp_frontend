@@ -60,7 +60,7 @@ const MultiSelectStyle: React.FC<IMultiSelectStyleProps> = ({ style }) => {
                 placeholder={placeholder}
                 maxValues={maxValues}
                 size={size}
-                radius={radius}
+                radius={radius === 'none' ? 0 : radius}
                 disabled={disabled}
                 className={cssClass}
                 style={styleObj}

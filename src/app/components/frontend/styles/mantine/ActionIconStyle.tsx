@@ -92,7 +92,7 @@ const ActionIconStyle: React.FC<IActionIconStyleProps> = ({ style }) => {
                 variant={variant as any}
                 loading={loading}
                 size={size}
-                radius={radius}
+                radius={radius === 'none' ? 0 : radius}
                 color={color}
                 disabled={disabled || loading}
                 className={cssClass}

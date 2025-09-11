@@ -91,7 +91,7 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
                 variant={variant}
                 color={color}
                 size={compact === '1' ? 'compact-' + size : size}
-                radius={radius}
+                radius={radius === 'none' ? 0 : radius}
                 className={cssClass}
                 fullWidth={fullWidth === '1'}
                 leftSection={leftSection}

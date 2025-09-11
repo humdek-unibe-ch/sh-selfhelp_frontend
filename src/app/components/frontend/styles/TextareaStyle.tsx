@@ -43,7 +43,7 @@ const TextareaStyle: React.FC<TextareaStyleProps> = ({ style }) => {
                 rows={rows}
                 resize={resize as 'none' | 'vertical' | 'horizontal' | 'both'}
                 size={size}
-                radius={radius}
+                radius={radius === 'none' ? 0 : radius}
                 variant={variant as any}
                 className={cssClass}
                 style={styleObj}

@@ -74,7 +74,7 @@ const AvatarStyle: React.FC<IAvatarStyleProps> = ({ style }) => {
                 alt={alt}
                 variant={variant as TMantineAvatarVariant}
                 size={size as TMantineSize}
-                radius={radius}
+                radius={radius === 'none' ? 0 : radius}
                 color={color}
                 className={cssClass}
                 style={styleObj}
