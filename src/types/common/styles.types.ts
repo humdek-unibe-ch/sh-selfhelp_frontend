@@ -357,16 +357,6 @@ export interface ICarouselStyle extends IBaseStyle {
 }
 
 // Navigation & Links Styles
-export interface IButtonStyle extends IBaseStyle {
-    style_name: 'button';
-    label?: IContentField<string>;
-    url?: IContentField<string>;
-    type?: IContentField<string>;
-    label_cancel?: IContentField<string>;
-    confirmation_title?: IContentField<string>;
-    confirmation_continue?: IContentField<string>;
-    confirmation_message?: IContentField<string>;
-}
 
 export interface ILinkStyle extends IBaseStyle {
     style_name: 'link';
@@ -566,6 +556,10 @@ export interface IButtonStyle extends IBaseStyle {
     url?: IContentField<string>;                      // Text input for URL
     // Translatable content fields
     label?: IContentField<string>;                    // Translatable button label
+    label_cancel?: IContentField<string>;             // Cancel button label
+    confirmation_title?: IContentField<string>;       // Confirmation dialog title
+    confirmation_continue?: IContentField<string>;    // Continue button text
+    confirmation_message?: IContentField<string>;     // Confirmation message
 }
 
 export interface IColorInputStyle extends IBaseStyle {

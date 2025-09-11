@@ -28,11 +28,11 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
     const url = getFieldContent(style, 'page_keyword');
     const variant = getFieldContent(style, 'mantine_variant');
     const color = getFieldContent(style, 'mantine_color');
-    const size = getFieldContent(style, 'mantine_slider_size');
-    const radius = getFieldContent(style, 'mantine_slider_radius');
+    const size = getFieldContent(style, 'mantine_size');
+    const radius = getFieldContent(style, 'mantine_radius');
     const fullWidth = getFieldContent(style, 'mantine_fullwidth');
-    const leftIconName = getFieldContent(style, 'mantine_btn_left_icon');
-    const rightIconName = getFieldContent(style, 'mantine_btn_right_icon');
+    const leftIconName = getFieldContent(style, 'mantine_left_icon');
+    const rightIconName = getFieldContent(style, 'mantine_right_icon');
     const compact = getFieldContent(style, 'mantine_compact');
     const disabled = getFieldContent(style, 'disabled');
     const is_link = getFieldContent(style, 'is_link');
