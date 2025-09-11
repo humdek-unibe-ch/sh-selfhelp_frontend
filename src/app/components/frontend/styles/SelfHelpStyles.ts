@@ -73,6 +73,7 @@ export { default as TableCellStyle } from './TableCellStyle';
 
 // Data Display Styles
 export { default as ShowUserInputStyle } from './ShowUserInputStyle';
+export { default as AvatarStyle } from './mantine/AvatarStyle';
 
 // Utility Styles
 export { default as BasicStyle } from './BasicStyle';

@@ -2,6 +2,9 @@ import React from 'react';
 import { Avatar } from '@mantine/core';
 import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { IAvatarStyle } from '../../../../../types/common/styles.types';
+import { TMantineAvatarVariant, TMantineSize } from '../../../../../types/mantine/common.types';
+import { getAssetUrl } from '../../../../../utils/asset-url.utils';
+import IconComponent from '../../../shared/common/IconComponent';
 
 /**
  * Props interface for AvatarStyle component
@@ -20,8 +23,10 @@ interface IAvatarStyleProps {
  */
 const AvatarStyle: React.FC<IAvatarStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
-    const src = getFieldContent(style, 'src');
+    const src = getFieldContent(style, 'img_src');
     const alt = getFieldContent(style, 'alt') || 'Avatar';
+    const iconName = getFieldContent(style, 'mantine_left_icon');
+    const customInitials = getFieldContent(style, 'mantine_avatar_initials') || 'U';
     const variant = getFieldContent(style, 'mantine_avatar_variant') || 'light';
     const size = getFieldContent(style, 'mantine_size') || 'md';
     const radius = getFieldContent(style, 'mantine_radius') || '50%';
@@ -34,66 +39,56 @@ const AvatarStyle: React.FC<IAvatarStyleProps> = ({ style }) => {
     // Build style object
     const styleObj: React.CSSProperties = {};
 
-    // Get initials from name or use fallback
+    // Get initials from name, label, or src (if src is text-based)
     const name = getFieldContent(style, 'name') || getFieldContent(style, 'label');
-    const initials = name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
+
+    // Check if src is a text name (not a URL)
+    const isUrl = src && (src.startsWith('http') || src.startsWith('https') || src.includes('.'));
+    const textSource = !isUrl && src ? src : name;
+
+    const initials = textSource ? textSource.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
+
+    // Determine avatar content with priority: URL > text initials > icon > custom initials
+    const avatarSrc = src ? getAssetUrl(src) : null;
+    const avatarIcon = !src && iconName ? <IconComponent iconName={iconName} size={16} /> : undefined;
+
+    let avatarContent;
+    if (avatarSrc) {
+        // src is a URL - image will be shown, no content needed
+        avatarContent = null;
+    } else if (src && !isUrl) {
+        // src is text (not URL) - show generated initials from text
+        avatarContent = initials;
+    } else if (avatarIcon) {
+        // no src but icon is set - show icon
+        avatarContent = avatarIcon;
+    } else {
+        // no src, no icon - generate initials from custom initials field
+        avatarContent = customInitials ? customInitials.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
+    }
+
+    console.log(avatarSrc, avatarIcon, avatarContent);
+
 
     if (use_mantine_style) {
         return (
             <Avatar
-                src={src}
+                src={avatarSrc}
                 alt={alt}
-                variant={variant as any}
-                size={size as any}
+                variant={variant as TMantineAvatarVariant}
+                size={size as TMantineSize}
                 radius={radius}
                 color={color}
                 className={cssClass}
                 style={styleObj}
             >
-                {initials}
+                {avatarContent}
             </Avatar>
         );
     }
 
-    // Fallback to basic img/div when Mantine styling is disabled
-    if (src) {
-        return (
-            <img
-                src={src}
-                alt={alt}
-                className={cssClass}
-                style={{
-                    ...styleObj,
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    objectFit: 'cover'
-                }}
-            />
-        );
-    }
-
-    // Text-based fallback
-    return (
-        <div
-            className={cssClass}
-            style={{
-                ...styleObj,
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                backgroundColor: '#e3f2fd',
-                color: '#1976d2',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 'bold',
-                fontSize: '1rem'
-            }}
-        >
-            {initials}
-        </div>
-    );
+    // Return null if Mantine styling is disabled (no fallback needed)
+    return null;
 };
 
 export default AvatarStyle;

@@ -11,7 +11,7 @@ import {
     TableCellStyle, ShowUserInputStyle, CenterStyle,
     FlexStyle, GroupStyle, StackStyle, SimpleGridStyle, GridStyle,
     GridColumnStyle, SpaceStyle, AccordionStyle, AccordionItemStyle,
-    ActionIconStyle, AspectRatioStyle
+    ActionIconStyle, AspectRatioStyle, AvatarStyle
 } from './SelfHelpStyles';
 import { TStyle } from '../../../../types/common/styles.types';
 
@@ -147,6 +147,8 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <ProgressBarStyle style={style} />;
         case 'showUserInput':
             return <ShowUserInputStyle style={style} />;
+        case 'avatar':
+            return <AvatarStyle style={style} />;
         case 'aspectRatio':
             return <AspectRatioStyle style={style} />;
 

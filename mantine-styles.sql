@@ -2221,22 +2221,21 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
 
 -- Add Avatar-specific fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('avatar'), get_field_id('src'), NULL, 'Sets the image source for the avatar. For more information check https://mantine.dev/core/avatar', 0, 0, 'Source');
+VALUES (get_style_id('avatar'), get_field_id('img_src'), NULL, 'Sets the image source for the avatar. Has priority over icon and initials fields. Either img_src, icon, or initials can be used. If img_src contains a URL, it will be used as the avatar image. If img_src contains text, it will generate initials. For more information check https://mantine.dev/core/avatar', 0, 0, 'Image Source');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('avatar'), get_field_id('alt'), 'Avatar', 'Sets the alt text for the avatar image. For more information check https://mantine.dev/core/avatar', 0, 0, 'Alt Text');
 
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_avatar_variant', get_field_type_id('select'), 0, '{"searchable": false, "clearable": false, "options":[
-{"value":"filled","text":"Filled"},
-{"value":"light","text":"Light"},
-{"value":"outline","text":"Outline"},
-{"value":"transparent","text":"Transparent"},
-{"value":"white","text":"White"},
-{"value":"default","text":"Default"}
-]}');
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('avatar'), get_field_id('mantine_left_icon'), NULL, 'Sets the icon for the avatar. Used only when img_src is empty. Either img_src, icon, or initials can be used. Icon will be displayed as the avatar content. For more information check https://mantine.dev/core/avatar', 0, 0, 'Icon');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_avatar_initials', get_field_type_id('text'), 0, '{"placeholder": "Enter name to generate initials (e.g., Stefan Kod → SK)"}');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('avatar'), get_field_id('mantine_avatar_variant'), 'light', 'Sets the variant of the avatar. For more information check https://mantine.dev/core/avatar', 0, 0, 'Variant');
+VALUES (get_style_id('avatar'), get_field_id('mantine_avatar_initials'), 'U', 'Sets custom text to generate initials for the avatar. Used only when neither img_src nor icon is set. Enter full names (e.g., "Stefan Kod" shows "SK", "John Doe" shows "JD", "test" shows "T"). Either img_src, icon, or initials can be used. For more information check https://mantine.dev/core/avatar', 0, 0, 'Initials');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('avatar'), get_field_id('mantine_variant'), 'light', 'Sets the variant of the avatar. For more information check https://mantine.dev/core/avatar', 0, 0, 'Variant');
 
 -- Use unified size field for avatar
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
@@ -2244,7 +2243,7 @@ VALUES (get_style_id('avatar'), get_field_id('mantine_size'), 'md', 'Sets the si
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('avatar'), get_field_id('mantine_slider_radius'), '50%', 'Sets the border radius of the avatar. For more information check https://mantine.dev/core/avatar', 0, 0, 'Radius');
+VALUES (get_style_id('avatar'), get_field_id('mantine_radius'), '50%', 'Sets the border radius of the avatar. For more information check https://mantine.dev/core/avatar', 0, 0, 'Radius');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('avatar'), get_field_id('mantine_color'), 'blue', 'Sets the color of the avatar. For more information check https://mantine.dev/core/avatar', 0, 0, 'Color');
@@ -2268,7 +2267,7 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
 
 -- Add BackgroundImage-specific fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('backgroundImage'), get_field_id('src'), NULL, 'Sets the background image source. For more information check https://mantine.dev/core/background-image', 0, 0, 'Source');
+VALUES (get_style_id('backgroundImage'), get_field_id('image_src'), NULL, 'Sets the background image source. For more information check https://mantine.dev/core/background-image', 0, 0, 'Image Source');
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)

@@ -40,8 +40,6 @@ const ImageStyle: React.FC<IImageStyleProps> = ({ style }) => {
 
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
-    console.log(width, height, fit, radius, cssClass, title);
-
     if (use_mantine_style) {
         return (
             <Image

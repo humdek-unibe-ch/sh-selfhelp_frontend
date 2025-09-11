@@ -24,7 +24,7 @@ const BackgroundImageStyle: React.FC<IBackgroundImageStyleProps> = ({ style }) =
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values using the new unified field structure
-    const src = getFieldContent(style, 'src');
+    const src = getFieldContent(style, 'image_src');
     const radius = getFieldContent(style, 'mantine_radius') || 'sm';
     const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
 
