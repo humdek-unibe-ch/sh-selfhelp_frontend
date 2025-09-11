@@ -1,3 +1,6 @@
+delete from fields
+where id > 233;
+
 -- ===========================================
 -- STYLES.SQL - MANTINE COMPONENTS DEFINITION
 -- ===========================================
@@ -1874,6 +1877,20 @@ VALUES (get_style_id('actionIcon'), get_field_id('disabled'), '0', 'If `disabled
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('actionIcon'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set ActionIcon will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/action-icon', 0, 1, 'Use Mantine Style');
+
+-- Add icon field for ActionIcon
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('actionIcon'), get_field_id('mantine_left_icon'), NULL, 'Sets the icon for the action icon. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Icon');
+
+-- Add link-related fields for ActionIcon
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('actionIcon'), get_field_id('is_link'), '0', 'If `isLink` prop is set ActionIcon will be a link. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Is Link');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('actionIcon'), get_field_id('page_keyword'), '#', 'Select a page keyword to link to. For more information check https://mantine.dev/core/action-icon', 0, 0, 'URL');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('actionIcon'), get_field_id('open_in_new_tab'), '0', 'If `openInNewTab` prop is set ActionIcon will open in a new tab. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Open in New Tab');
 
 -- ===========================================
 -- STEPPER COMPONENT

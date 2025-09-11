@@ -34,6 +34,7 @@ export { default as CarouselStyle } from './CarouselStyle';
 // Navigation & Link Styles
 export { default as ButtonStyle } from './ButtonStyle';
 export { default as LinkStyle } from './LinkStyle';
+export { default as ActionIconStyle } from './mantine/ActionIconStyle';
 
 // Form & Input Styles
 export { default as FormUserInputStyle } from './FormUserInputStyle';

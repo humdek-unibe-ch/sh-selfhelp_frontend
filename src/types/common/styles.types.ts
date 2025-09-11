@@ -689,6 +689,10 @@ export interface IActionIconStyle extends IBaseStyle {
     mantine_size?: IContentField<string>;             // Select field for size
     mantine_radius?: IContentField<string>;           // Select field for radius
     mantine_color?: IContentField<string>;            // Color picker field
+    mantine_left_icon?: IContentField<string>;        // Select-icon field for icon
+    is_link?: IContentField<string>;                  // Checkbox field for link behavior
+    page_keyword?: IContentField<string>;             // Select field for page link
+    open_in_new_tab?: IContentField<string>;          // Checkbox field for opening in new tab
     disabled?: IContentField<string>;                 // Checkbox field for disabled state
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }

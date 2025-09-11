@@ -330,6 +330,50 @@ const getFieldValue = (style: any, fieldName: string, defaultValue?: any) => {
 - [ ] Check for console errors or warnings
 - [ ] Validate TypeScript compilation
 - [ ] Test with sample data
+- [ ] **CRITICAL**: Add style case to BasicStyle.tsx component (see detailed instructions below)
+
+### Adding Style to BasicStyle.tsx Component
+
+**CRITICAL STEP**: After implementing the component, you must add it to the BasicStyle.tsx component so it can be loaded by the system.
+
+#### 1. Add Import Statement
+Add the component import to the imports section at the top of `src/app/components/frontend/styles/BasicStyle.tsx`:
+
+```typescript
+import {
+    // ... existing imports ...
+    ActionIconStyle  // Add this line
+} from './SelfHelpStyles';
+```
+
+#### 2. Add Case Statement
+Add a case for your component in the switch statement within the BasicStyle component:
+
+```typescript
+switch (style.style_name) {
+    // ... existing cases ...
+    case 'actionIcon':          // Use the exact style_name from your SQL
+        return <ActionIconStyle style={style} />;
+    // ... other cases ...
+}
+```
+
+#### 3. Export the Component
+Ensure your component is exported from `src/app/components/frontend/styles/mantine/index.ts`:
+
+```typescript
+export { default as ActionIconStyle } from './ActionIconStyle';
+```
+
+**Why This Step is Critical:**
+- BasicStyle.tsx is the main component router that determines which style component to render
+- Without this step, your component will never be loaded, even if the SQL and TypeScript are correct
+- The system uses the `style_name` field to route to the appropriate component
+
+**Common Issues:**
+- Case sensitivity: Ensure `style_name` matches exactly (e.g., 'actionIcon', not 'ActionIcon')
+- Import path: Make sure the import path is correct
+- Export: Ensure the component is properly exported from the index file
 
 ## Quality Assurance
 
@@ -360,7 +404,8 @@ To use this process for a new component:
 3. **Follow the checklists** in order, checking off completed items
 4. **Execute SQL changes** in the correct order (style group → styles → fields → styles_fields → relationships)
 5. **Implement the frontend component** using the provided templates
-6. **Test thoroughly** before marking as complete
+6. **CRITICAL**: Add the component to BasicStyle.tsx (see detailed instructions in Post-Implementation section)
+7. **Test thoroughly** before marking as complete
 
 ## Common Patterns and Best Practices
 

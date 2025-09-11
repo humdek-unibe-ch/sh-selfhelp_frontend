@@ -10,7 +10,8 @@ import {
     ResetPasswordStyle, TwoFactorAuthStyle, TableStyle, TableRowStyle,
     TableCellStyle, ShowUserInputStyle, CenterStyle,
     FlexStyle, GroupStyle, StackStyle, SimpleGridStyle, GridStyle,
-    GridColumnStyle, SpaceStyle, AccordionStyle, AccordionItemStyle
+    GridColumnStyle, SpaceStyle, AccordionStyle, AccordionItemStyle,
+    ActionIconStyle
 } from './SelfHelpStyles';
 import { TStyle } from '../../../../types/common/styles.types';
 
@@ -101,6 +102,8 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <ButtonStyle style={style} />;
         case 'link':
             return <LinkStyle style={style} />;
+        case 'actionIcon':
+            return <ActionIconStyle style={style} />;
 
         // Form & Input Styles
         case 'formUserInputLog':

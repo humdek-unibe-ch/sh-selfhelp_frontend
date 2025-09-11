@@ -25,7 +25,7 @@ export { default as SegmentedControlStyle } from './SegmentedControlStyle';
 // export { default as SwitchStyle } from './SwitchStyle';
 // export { default as ComboboxStyle } from './ComboboxStyle';
 // export { default as MultiSelectStyle } from './MultiSelectStyle';
-// export { default as ActionIconStyle } from './ActionIconStyle';
+export { default as ActionIconStyle } from './ActionIconStyle';
 
 // Data Display Components
 export { default as BadgeStyle } from './BadgeStyle';
