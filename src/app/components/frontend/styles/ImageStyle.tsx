@@ -24,8 +24,12 @@ interface IImageStyleProps {
  */
 const ImageStyle: React.FC<IImageStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
+    // Support multiple field names for compatibility with different data structures
     const rawSrc = getFieldContent(style, 'img_src');
+
+    // Use getAssetUrl which now properly handles external URLs
     const src = rawSrc ? getAssetUrl(rawSrc) : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
+
     const alt = getFieldContent(style, 'alt');
     const title = getFieldContent(style, 'title');
     const width = getFieldContent(style, 'mantine_width');
@@ -34,13 +38,9 @@ const ImageStyle: React.FC<IImageStyleProps> = ({ style }) => {
     const radius = castMantineRadius(getFieldContent(style, 'mantine_radius'));
     const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
 
-    // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
-    // Build style object
-    const styleObj: React.CSSProperties = {};
-    if (width) styleObj.width = width;
-    if (height) styleObj.height = height;
+    console.log(width, height, fit, radius, cssClass, title);
 
     if (use_mantine_style) {
         return (
@@ -52,7 +52,6 @@ const ImageStyle: React.FC<IImageStyleProps> = ({ style }) => {
                 fit={fit as 'contain' | 'cover' | 'fill' | 'none' | 'scale-down'}
                 radius={radius}
                 className={cssClass}
-                style={styleObj}
                 title={title}
             />
         );
@@ -66,8 +65,7 @@ const ImageStyle: React.FC<IImageStyleProps> = ({ style }) => {
             title={title}
             className={cssClass}
             style={{
-                ...styleObj,
-                objectFit: fit as any,
+                objectFit: (fit as any) || 'contain',
                 borderRadius: radius === 'xs' ? '2px' :
                            radius === 'sm' ? '4px' :
                            radius === 'md' ? '8px' :

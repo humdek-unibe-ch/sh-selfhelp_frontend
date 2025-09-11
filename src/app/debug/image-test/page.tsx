@@ -11,59 +11,39 @@ import ImageStyle from '../../components/frontend/styles/ImageStyle';
  */
 export default function ImageTestPage() {
     // Mock image style data for testing
-    const createImageStyle = (useMantine: boolean): IImageStyle => ({
+    const createImageStyle = (useMantine: boolean, useExternalUrl?: boolean): IImageStyle => ({
         id: 1,
-        name: 'Test Image',
-        style_name: 'image',
-        can_have_children: false,
-        fields: [
-            {
-                id: 1,
-                name: 'mantine_image_src',
-                value: 'https://placekitten.com/400/300',
-                display: 0
-            },
-            {
-                id: 2,
-                name: 'mantine_image_alt',
-                value: 'Sample kitten image for testing',
-                display: 1
-            },
-            {
-                id: 3,
-                name: 'mantine_image_fit',
-                value: 'cover',
-                display: 0
-            },
-            {
-                id: 4,
-                name: 'mantine_width',
-                value: '400px',
-                display: 0
-            },
-            {
-                id: 5,
-                name: 'mantine_height',
-                value: '300px',
-                display: 0
-            },
-            {
-                id: 6,
-                name: 'mantine_radius',
-                value: 'md',
-                display: 0
-            },
-            {
-                id: 7,
-                name: 'use_mantine_style',
-                value: useMantine ? '1' : '0',
-                display: 0
-            }
-        ]
+        id_styles: 1,
+        style_name: 'image' as const,
+        can_have_children: 0,
+        position: 1,
+        path: '1',
+        children: [],
+        name: { content: 'Test Image' },
+        section_data: [],
+        fields: {
+            img_src: { content: useExternalUrl
+                ? 'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/images/bg-7.png'
+                : 'uploads/assets/general/Buch.jpg' },
+            alt: { content: useExternalUrl
+                ? 'Mantine demo background image from GitHub'
+                : 'Sample image for testing' },
+            mantine_image_fit: { content: 'cover' },
+            mantine_width: { content: '400px' },
+            mantine_height: { content: '300px' },
+            mantine_radius: { content: 'md' },
+            use_mantine_style: { content: useMantine ? '1' : '0' }
+        },
+        condition: null,
+        css: null,
+        css_mobile: null,
+        debug: null,
+        data_config: null
     });
 
     const [useMantine, setUseMantine] = React.useState(true);
-    const imageStyle = createImageStyle(useMantine);
+    const [useExternalUrl, setUseExternalUrl] = React.useState(false);
+    const imageStyle = createImageStyle(useMantine, useExternalUrl);
 
     return (
         <Container size="lg" py="xl">
@@ -89,6 +69,15 @@ export default function ImageTestPage() {
                         label={useMantine ? 'Mantine Mode' : 'Fallback Mode'}
                     />
                 </Group>
+
+                <Group mb="md">
+                    <Text size="sm">Toggle between Local and External URLs:</Text>
+                    <Switch
+                        checked={useExternalUrl}
+                        onChange={(event) => setUseExternalUrl(event.currentTarget.checked)}
+                        label={useExternalUrl ? 'External URL' : 'Local Path'}
+                    />
+                </Group>
             </Paper>
 
             <Divider my="lg" />
@@ -111,10 +100,17 @@ export default function ImageTestPage() {
 
             <Paper shadow="sm" p="md">
                 <Text size="sm" mb="xs">
-                    <strong>Image Source:</strong> https://placekitten.com/400/300
+                    <strong>Image Source:</strong> {useExternalUrl
+                        ? 'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/images/bg-7.png'
+                        : 'uploads/assets/general/Buch.jpg'}
                 </Text>
                 <Text size="sm" mb="xs">
-                    <strong>Alt Text:</strong> Sample kitten image for testing
+                    <strong>Source Type:</strong> {useExternalUrl ? 'External URL' : 'Local Asset'}
+                </Text>
+                <Text size="sm" mb="xs">
+                    <strong>Alt Text:</strong> {useExternalUrl
+                        ? 'Mantine demo background image from GitHub'
+                        : 'Sample image for testing'}
                 </Text>
                 <Text size="sm" mb="xs">
                     <strong>Object Fit:</strong> cover
