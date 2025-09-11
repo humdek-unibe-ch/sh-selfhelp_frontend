@@ -327,6 +327,12 @@ export interface IImageStyle extends IBaseStyle {
     img_src?: IContentField<string>;
     height?: IContentField<string>;
     width?: IContentField<string>;
+    // Mantine-specific fields
+    mantine_image_fit?: IContentField<string>;
+    mantine_width?: IContentField<string>;
+    mantine_height?: IContentField<string>;
+    mantine_radius?: IContentField<string>;
+    use_mantine_style?: IContentField<string>;
 }
 
 export interface IVideoStyle extends IBaseStyle {

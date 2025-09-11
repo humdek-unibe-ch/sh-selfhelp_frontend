@@ -1198,6 +1198,34 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
     0
 );
 
+-- Add new style 'image' based on Mantine Image component
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+    NULL,
+    'image',
+    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    get_style_group_id('mantine'),
+    'Mantine Image component for displaying images with various fit options and fallback support',
+    0
+);
+
+-- Create image-specific fields
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'mantine_image_fit', get_field_type_id('select'), 0, '{"searchable": false, "clearable": false, "options":[
+{"value":"contain","text":"Contain (fit entire image)"},
+{"value":"cover","text":"Cover (fill container)"},
+{"value":"fill","text":"Fill (stretch to fill)"},
+{"value":"none","text":"None (original size)"},
+{"value":"scale-down","text":"Scale Down (smaller of none/contain)"}
+]}');
+
+-- Link fields to image style
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
+(get_style_id('image'), get_field_id('mantine_image_fit'), 'contain', 'Sets how the image should fit within its container. For more information check https://mantine.dev/core/image', 0, 0, 'Object Fit'),
+(get_style_id('image'), get_field_id('mantine_width'), NULL, 'Sets the width of the image. Either a custom value or falls back to section-${style.id}', 0, 0, 'Width'),
+(get_style_id('image'), get_field_id('mantine_height'), NULL, 'Sets the height of the image. Either a custom value or falls back to section-${style.id}', 0, 0, 'Height'),
+(get_style_id('image'), get_field_id('mantine_radius'), '0', 'Sets the border radius of the image. For more information check https://mantine.dev/core/image', 0, 0, 'Radius'),
+(get_style_id('image'), get_field_id('use_mantine_style'), '1', 'If enabled, uses Mantine Image component with advanced features. If disabled, falls back to standard HTML img element that can be styled with CSS.', 0, 0, 'Use Mantine Style');
+
 -- Add unified color format field (reusable across components)
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_color_format', get_field_type_id('segment'), 0, '{"options":[
 {"value":"hex","text":"Hex"},

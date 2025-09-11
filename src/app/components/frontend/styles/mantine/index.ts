@@ -49,6 +49,7 @@ export { default as NotificationStyle } from './NotificationStyle';
 
 // Data Display Components (continued)
 export { default as RatingStyle } from './RatingStyle';
+export { default as ImageStyle } from '../ImageStyle';
 
 // Typography Components
 export { default as TitleStyle } from './TitleStyle';
@@ -212,6 +213,7 @@ export const MANTINE_COMPONENT_MAP = {
     'kbd': 'KbdStyle',
     'themeIcon': 'ThemeIconStyle',
     'rating': 'RatingStyle',
+    'image': 'ImageStyle',
 
     // Navigation Components
     'stepper': 'StepperStyle',

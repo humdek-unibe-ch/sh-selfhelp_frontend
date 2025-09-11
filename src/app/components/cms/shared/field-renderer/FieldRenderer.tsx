@@ -127,6 +127,8 @@ export function FieldRenderer({
             case 'select-group': return 'cyan';
             case 'select-data_table': return 'grape';
             case 'select-page-keyword': return 'lime';
+            case 'select-image': return 'lime';
+            case 'select-video': return 'orange';
             case 'color-picker': return 'pink';
             case 'slider': return 'yellow';
             default: return 'red';
@@ -337,6 +339,70 @@ export function FieldRenderer({
                 value={fieldValue}
                 onChange={onChange}
                 placeholder="Search and select page keyword..."
+                disabled={disabled}
+            />
+        );
+    }
+
+    // Select Image field - for selecting image assets
+    if (field.type === 'select-image') {
+        if (!field.config) {
+            return renderFieldWithBadge(
+                <Box>
+                    <Text size="sm" c="dimmed">No field configuration found</Text>
+                    <TextInputField
+                        fieldId={field.id}
+                        value={fieldValue}
+                        onChange={onChange}
+                        placeholder={field.default_value || ''}
+                        disabled={true}
+                    />
+                </Box>
+            );
+        }
+
+        return renderFieldWithBadge(
+            <SelectField
+                fieldId={field.id}
+                config={field.config}
+                creatable={field.config.creatable}
+                clearable={true}
+                searchable={true}
+                value={fieldValue}
+                onChange={onChange}
+                placeholder="Search and select image..."
+                disabled={disabled}
+            />
+        );
+    }
+
+    // Select Video field - for selecting video assets
+    if (field.type === 'select-video') {
+        if (!field.config) {
+            return renderFieldWithBadge(
+                <Box>
+                    <Text size="sm" c="dimmed">No field configuration found</Text>
+                    <TextInputField
+                        fieldId={field.id}
+                        value={fieldValue}
+                        onChange={onChange}
+                        placeholder={field.default_value || ''}
+                        disabled={true}
+                    />
+                </Box>
+            );
+        }
+
+        return renderFieldWithBadge(
+            <SelectField
+                fieldId={field.id}
+                config={field.config}
+                creatable={field.config.creatable}
+                clearable={true}
+                searchable={true}
+                value={fieldValue}
+                onChange={onChange}
+                placeholder="Search and select video..."
                 disabled={disabled}
             />
         );
