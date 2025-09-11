@@ -820,14 +820,22 @@ export interface IAccordionStyle extends IBaseStyle {
     style_name: 'accordion';
     mantine_accordion_variant?: IContentField<string>; // Select field for variant
     mantine_accordion_multiple?: IContentField<string>; // Checkbox field for multiple
+    mantine_accordion_chevron_position?: IContentField<string>; // Segment field for chevron position
+    mantine_accordion_chevron_size?: IContentField<string>; // Text field for chevron size (creatable)
+    mantine_accordion_disable_chevron_rotation?: IContentField<string>; // Checkbox field for chevron rotation
+    mantine_accordion_loop?: IContentField<string>; // Checkbox field for loop navigation
+    mantine_accordion_transition_duration?: IContentField<string>; // Text field for transition duration (creatable)
+    mantine_accordion_default_value?: IContentField<string>; // Text field for default open items
     mantine_radius?: IContentField<string>;           // Select field for radius
-    mantine_color?: IContentField<string>;            // Color picker field
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling (hidden)
 }
 
 export interface IAccordionItemStyle extends IBaseStyle {
     style_name: 'accordion-Item';
-    label?: IContentField<string>;                    // Translatable label
+    mantine_accordion_item_value?: IContentField<string>; // Text field for item value
+    label?: IContentField<string>;                    // Translatable label text
+    mantine_accordion_item_icon?: IContentField<string>; // Select-icon field for item icon
+    disabled?: IContentField<string>;                 // Checkbox field for disabled state
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
 

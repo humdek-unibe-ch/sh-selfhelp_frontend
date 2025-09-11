@@ -76,12 +76,29 @@ export function CreatableSelectField({
         onDropdownClose: () => {
             combobox.resetSelectedOption();
             combobox.focusTarget();
-            setSearch('');
+            if (config.searchable) {
+                setSearch('');
+            }
         },
         onDropdownOpen: () => {
-            combobox.focusSearchInput();
+            // Only try to focus search input if searchable is enabled
+            if (config.searchable) {
+                try {
+                    combobox.focusSearchInput();
+                } catch (error) {
+                    // Silently ignore focus errors when search input is not available
+                    console.warn('Search input not available for focusing');
+                }
+            }
         },
     });
+
+    // Override the focusSearchInput method to prevent errors when search is disabled
+    if (!config.searchable) {
+        combobox.focusSearchInput = () => {
+            // Do nothing when searchable is false to prevent errors
+        };
+    }
 
     const predefinedOptions = (config.options || []).map(option => ({
         value: option.value,
@@ -146,11 +163,13 @@ export function CreatableSelectField({
             .map(val => ({ value: val, label: val }))
     ];
 
-    // Filter options based on search
-    const filteredOptions = allOptions.filter(option =>
-        option.label.toLowerCase().includes(search.toLowerCase()) ||
-        option.value.toLowerCase().includes(search.toLowerCase())
-    );
+    // Filter options based on search (only if searchable is enabled)
+    const filteredOptions = config.searchable
+        ? allOptions.filter(option =>
+            option.label.toLowerCase().includes(search.toLowerCase()) ||
+            option.value.toLowerCase().includes(search.toLowerCase())
+        )
+        : allOptions;
 
     // Handle single select
     if (!config.multiSelect) {
@@ -205,11 +224,13 @@ export function CreatableSelectField({
                     </Combobox.Target>
 
                     <Combobox.Dropdown>
-                        <Combobox.Search
-                            value={search}
-                            onChange={(event) => setSearch(event.currentTarget.value)}
-                            placeholder={searchPlaceholder}
-                        />
+                        {config.searchable && (
+                            <Combobox.Search
+                                value={search}
+                                onChange={(event) => setSearch(event.currentTarget.value)}
+                                placeholder={searchPlaceholder}
+                            />
+                        )}
                         <Combobox.Options>
                             <ScrollArea.Autosize type="scroll" mah={200}>
                                 {filteredOptions.length > 0 ? (
@@ -404,11 +425,13 @@ export function CreatableSelectField({
                 </Combobox.Target>
 
                 <Combobox.Dropdown>
-                    <Combobox.Search
-                        value={search}
-                        onChange={(event) => setSearch(event.currentTarget.value)}
-                        placeholder={searchPlaceholder}
-                    />
+                    {config.searchable && (
+                        <Combobox.Search
+                            value={search}
+                            onChange={(event) => setSearch(event.currentTarget.value)}
+                            placeholder={searchPlaceholder}
+                        />
+                    )}
                     <Combobox.Options>
                         <ScrollArea.Autosize type="scroll" mah={280}>
                             {filteredOptions.length > 0 ? (

@@ -46,8 +46,8 @@ export { default as TabsStyle } from './mantine/TabsStyle';
 export { default as TabStyle } from './mantine/TabStyle';
 
 // Accordion Styles
-export { default as AccordionStyle } from './mantine/AccordionStyle';
-export { default as AccordionItemStyle } from './mantine/AccordionItemStyle';
+export { default as AccordionStyle } from './mantine/accordion/AccordionStyle';
+export { default as AccordionItemStyle } from './mantine/accordion/AccordionItemStyle';
 
 // Media & Content Styles
 export { default as VideoStyle } from './VideoStyle';

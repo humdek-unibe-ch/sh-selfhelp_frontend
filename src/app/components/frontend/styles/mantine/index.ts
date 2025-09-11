@@ -41,8 +41,8 @@ export { default as ThemeIconStyle } from './ThemeIconStyle';
 export { default as StepperStyle } from './StepperStyle';
 export { default as StepperStepStyle } from './StepperStepStyle';
 export { default as StepperCompleteStyle } from './StepperCompleteStyle';
-export { default as AccordionStyle } from './AccordionStyle';
-export { default as AccordionItemStyle } from './AccordionItemStyle';
+export { default as AccordionStyle } from './accordion/AccordionStyle';
+export { default as AccordionItemStyle } from './accordion/AccordionItemStyle';
 
 // Feedback Components
 export { default as NotificationStyle } from './NotificationStyle';

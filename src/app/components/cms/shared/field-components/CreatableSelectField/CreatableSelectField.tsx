@@ -31,6 +31,7 @@ interface ICreatableSelectFieldProps {
     clearable?: boolean;
 
     // Customizable labels and placeholders
+    searchable?: boolean;
     placeholder?: string;
     searchPlaceholder?: string;
     noOptionsMessage?: string;
@@ -55,6 +56,7 @@ export function CreatableSelectField({
     disabled = false,
     isLoading = false,
     clearable = false,
+    searchable = false,
     placeholder = 'Search and select...',
     searchPlaceholder = 'Search options...',
     noOptionsMessage = 'No options found',
@@ -81,7 +83,15 @@ export function CreatableSelectField({
             setSearch('');
         },
         onDropdownOpen: () => {
-            combobox.focusSearchInput();
+            // Only try to focus search input if searchable is enabled
+            if (config.searchable) {
+                try {
+                    combobox.focusSearchInput();
+                } catch (error) {
+                    // Silently ignore focus errors when search input is not available
+                    console.warn('Search input not available for focusing');
+                }
+            }
         },
     });
 
@@ -209,11 +219,13 @@ export function CreatableSelectField({
                     </Combobox.Target>
 
                     <Combobox.Dropdown>
-                        <Combobox.Search
-                            value={search}
-                            onChange={(event) => setSearch(event.currentTarget.value)}
-                            placeholder={searchPlaceholder}
-                        />
+                        {searchable && (
+                            <Combobox.Search
+                                value={search}
+                                onChange={(event) => setSearch(event.currentTarget.value)}
+                                placeholder={searchPlaceholder}
+                            />
+                        )}
                         <Combobox.Options>
                             <ScrollArea.Autosize type="scroll" mah={200}>
                                 {filteredOptions.length > 0 ? (

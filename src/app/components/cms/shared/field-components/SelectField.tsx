@@ -15,6 +15,7 @@ interface ISelectFieldProps {
     isLoading?: boolean;
 
     // Creatable props
+    searchable?: boolean;
     creatable?: boolean;
     clearable?: boolean;
     searchPlaceholder?: string;
@@ -40,6 +41,7 @@ export function SelectField({
     isLoading = false,
     creatable = false,
     clearable = false,
+    searchable = false,
     searchPlaceholder,
     noOptionsMessage,
     singleCreatePlaceholder,
@@ -64,6 +66,7 @@ export function SelectField({
                 disabled={disabled}
                 isLoading={isLoading}
                 clearable={clearable}
+                searchable={searchable}
                 placeholder={placeholder}
                 searchPlaceholder={searchPlaceholder}
                 noOptionsMessage={noOptionsMessage}

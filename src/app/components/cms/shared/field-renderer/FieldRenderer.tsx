@@ -365,6 +365,7 @@ export function FieldRenderer({
                 config={field.config}
                 creatable={field.config.creatable}
                 clearable={field.config.clearable}
+                searchable={field.config.searchable}
                 value={fieldValue}
                 onChange={onChange}
                 placeholder="Select an option..."
