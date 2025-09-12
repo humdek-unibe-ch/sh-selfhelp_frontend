@@ -691,11 +691,23 @@ export interface ISwitchStyle extends IBaseStyle {
 export interface IComboboxStyle extends IBaseStyle {
     style_name: 'combobox';
     placeholder?: IContentField<string>;              // Translatable placeholder
-    mantine_combobox_data?: IContentField<string>;    // Translatable JSON textarea for data
+    mantine_combobox_options?: IContentField<string>; // Translatable JSON textarea for options
     mantine_size?: IContentField<string>;             // Select field for size
     mantine_radius?: IContentField<string>;           // Select field for radius
     disabled?: IContentField<string>;                 // Checkbox field for disabled state
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    // Form integration fields
+    label?: IContentField<string>;                    // Label for form integration
+    description?: IContentField<string>;              // Description text
+    name?: IContentField<string>;                     // Field name for form submission
+    value?: IContentField<string>;                    // Default value
+    is_required?: IContentField<string>;              // Required field flag
+    // Combobox configuration (similar to CreatableSelectField)
+    mantine_combobox_multi_select?: IContentField<string>; // Multi-select toggle
+    mantine_combobox_searchable?: IContentField<string>;   // Searchable toggle
+    mantine_combobox_creatable?: IContentField<string>;    // Creatable toggle
+    mantine_combobox_clearable?: IContentField<string>;    // Clearable toggle
+    mantine_combobox_separator?: IContentField<string>;     // Separator for multi-select
 }
 
 export interface IMultiSelectStyle extends IBaseStyle {

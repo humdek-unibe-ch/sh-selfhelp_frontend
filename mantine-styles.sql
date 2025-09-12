@@ -1928,23 +1928,37 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('combobox'), get_field_id('placeholder'), 'Select option', 'Sets the placeholder text for the combobox. For more information check https://mantine.dev/core/combobox', 0, 0, 'Placeholder');
 
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_combobox_data', get_field_type_id('textarea'), 1, '{"rows": 3, "placeholder": "Enter JSON array of combobox options"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_combobox_options', get_field_type_id('textarea'), 1, '{"rows": 3, "placeholder": "Enter JSON array of combobox options"}');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('combobox'), get_field_id('mantine_combobox_data'), '[{"value":"option1","text":"Option 1"},{"value":"option2","text":"Option 2"},{"value":"option3","text":"Option 3"}]', 'Sets the data/options for the combobox as JSON array. Format: [{"value":"option1","text":"Option 1"}]. For more information check https://mantine.dev/core/combobox', 0, 0, 'Data');
-
--- Reuse existing fields
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('combobox'), get_field_id('mantine_size'), 'sm', 'Sets the size of the combobox. For more information check https://mantine.dev/core/combobox', 0, 0, 'Size');
-
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('combobox'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the combobox. For more information check https://mantine.dev/core/combobox', 0, 0, 'Radius');
+VALUES (get_style_id('combobox'), get_field_id('mantine_combobox_options'), '[{"value":"option1","text":"Option 1"},{"value":"option2","text":"Option 2"}]', 'Sets the data/options for the combobox as JSON array. Format: [{"value":"option1","text":"Option 1"}]. For more information check https://mantine.dev/core/combobox', 0, 0, 'Options');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('combobox'), get_field_id('disabled'), '0', 'If `disabled` prop is set Combobox will be disabled. For more information check https://mantine.dev/core/combobox', 0, 0, 'Disabled');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('combobox'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Combobox will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/combobox', 0, 1, 'Use Mantine Style');
+
+-- Combobox configuration fields (similar to CreatableSelectField)
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_combobox_multi_select', get_field_type_id('checkbox'), 0, null);
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_combobox_searchable', get_field_type_id('checkbox'), 0, null);
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_combobox_creatable', get_field_type_id('checkbox'), 0, null);
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_combobox_clearable', get_field_type_id('checkbox'), 0, null);
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_combobox_separator', get_field_type_id('text'), 0, '{"placeholder": " "}');
+
+-- Form integration fields for combobox (similar to color-picker)
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
+(get_style_id('combobox'), get_field_id('label'), '', 'Sets the label of the input field. For more information check https://mantine.dev/core/combobox', 0, 0, 'Label'),
+(get_style_id('combobox'), get_field_id('description'), '', 'Description text displayed below the input field', 0, 0, 'Description'),
+(get_style_id('combobox'), get_field_id('name'), '', 'Field name for form submission', 0, 0, 'Name'),
+(get_style_id('combobox'), get_field_id('value'), '', 'Default value for the combobox', 0, 0, 'Value'),
+(get_style_id('combobox'), get_field_id('is_required'), '0', 'If set, the selection becomes required for form submission', 0, 0, 'Required'),
+-- Combobox configuration
+(get_style_id('combobox'), get_field_id('mantine_combobox_multi_select'), '0', 'If set, allows selecting multiple options. Values will be joined with the separator.', 0, 0, 'Multi-Select'),
+(get_style_id('combobox'), get_field_id('mantine_combobox_searchable'), '1', 'If set, enables search functionality in the dropdown.', 0, 0, 'Searchable'),
+(get_style_id('combobox'), get_field_id('mantine_combobox_creatable'), '0', 'If set, allows users to create new options not in the predefined list.', 0, 0, 'Creatable'),
+(get_style_id('combobox'), get_field_id('mantine_combobox_clearable'), '0', 'If set, allows clearing the selection in single-select mode.', 0, 0, 'Clearable'),
+(get_style_id('combobox'), get_field_id('mantine_combobox_separator'), ' ', 'Separator used to join multiple selected values (only applies when multi-select is enabled).', 0, 0, 'Separator');
 
 -- ===========================================
 -- MULTISELECT COMPONENT

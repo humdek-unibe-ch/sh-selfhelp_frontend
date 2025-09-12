@@ -1,6 +1,20 @@
-import React from 'react';
-import { Select } from '@mantine/core';
-import { getFieldContent, castMantineSize, castMantineRadius } from '../../../../../utils/style-field-extractor';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+    Combobox,
+    Input,
+    useCombobox,
+    Pill,
+    Group,
+    Text,
+    Button,
+    ActionIcon,
+    TextInput,
+    Textarea,
+    Stack,
+    ScrollArea
+} from '@mantine/core';
+import { IconPlus, IconX, IconCheck, IconChevronDown } from '@tabler/icons-react';
+import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { IComboboxStyle } from '../../../../../types/common/styles.types';
 
 /**
@@ -11,76 +25,573 @@ interface IComboboxStyleProps {
 }
 
 /**
- * ComboboxStyle component renders a Mantine Select component for searchable dropdowns.
- * Supports customizable data options and styling configurations.
+ * ComboboxStyle component renders a configurable Mantine Combobox component.
+ * Supports single/multi-select, searchable, and creatable functionality similar to CreatableSelectField.
+ *
+ * Form Integration Features:
+ * - Configurable field name for form submission
+ * - Controlled component with state management
+ * - Support for required field validation
+ * - Optional label and description
+ * - Backward compatibility with legacy fields
+ * - Hidden input to ensure form submission captures the value
  *
  * @component
  * @param {IComboboxStyleProps} props - Component props
- * @returns {JSX.Element} Rendered Mantine Select with styled configuration
+ * @returns {JSX.Element} Rendered configurable Combobox with styled configuration
  */
 const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
     const placeholder = getFieldContent(style, 'placeholder') || 'Select option...';
-    const size = castMantineSize(getFieldContent(style, 'mantine_size'));
-    const radius = castMantineRadius(getFieldContent(style, 'mantine_radius'));
     const disabled = getFieldContent(style, 'disabled') === '1';
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
+
+    // Form configuration fields
+    const label = getFieldContent(style, 'label');
+    const description = getFieldContent(style, 'description');
+    const name = getFieldContent(style, 'name') || `section-${style.id}`;
+    const defaultValue = getFieldContent(style, 'value') || '';
+    const isRequired = getFieldContent(style, 'is_required') === '1';
+
+    // Combobox configuration fields
+    const multiSelect = getFieldContent(style, 'mantine_combobox_multi_select') === '1';
+    const searchable = getFieldContent(style, 'mantine_combobox_searchable') !== '0'; // Default to true
+    const creatable = getFieldContent(style, 'mantine_combobox_creatable') === '1';
+    const clearable = getFieldContent(style, 'mantine_combobox_clearable') === '1';
+    const separator = getFieldContent(style, 'mantine_combobox_separator') || ' ';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
-    // Build style object
-    const styleObj: React.CSSProperties = {};
-
-    // Parse combobox data from JSON textarea
-    let comboboxData: Array<{ value: string; label: string }> = [];
+    // Parse combobox options from JSON textarea
+    let predefinedOptions: Array<{ value: string; label: string }> = [];
     try {
-        const dataJson = getFieldContent(style, 'mantine_combobox_data');
-        if (dataJson) {
-            comboboxData = JSON.parse(dataJson);
+        const dataJson = getFieldContent(style, 'mantine_combobox_options');
+
+        if (dataJson && dataJson.trim()) {
+            const parsed = JSON.parse(dataJson);
+            // Handle both formats: {value, label} and {value, text}
+            predefinedOptions = parsed.map((option: any) => ({
+                value: option.value,
+                label: option.label || option.text || option.value
+            }));
         } else {
             // Default data if none provided
-            comboboxData = [
+            predefinedOptions = [
                 { value: 'option1', label: 'Option 1' },
-                { value: 'option2', label: 'Option 2' },
-                { value: 'option3', label: 'Option 3' }
+                { value: 'option2', label: 'Option 2' }
             ];
         }
     } catch (error) {
-        console.warn('Invalid JSON in mantine_combobox_data:', error);
-        comboboxData = [];
+        console.warn('Invalid JSON in mantine_combobox_options:', error);
+        // Fallback to default options
+        predefinedOptions = [
+            { value: 'option1', label: 'Option 1' },
+            { value: 'option2', label: 'Option 2' }
+        ];
     }
 
-    if (use_mantine_style) {
+    // Create a set of predefined values for quick lookup
+    const predefinedValues = new Set(predefinedOptions.map(option => option.value));
+
+    // Helper function to determine if a value is predefined
+    const isPredefinedValue = (optionValue: string): boolean => {
+        return predefinedValues.has(optionValue);
+    };
+
+    // State management
+    const [showCreateInput, setShowCreateInput] = useState(false);
+    const [showMultiInput, setShowMultiInput] = useState(false);
+    const [newValue, setNewValue] = useState('');
+    const [multiValues, setMultiValues] = useState('');
+    const [search, setSearch] = useState('');
+
+    // Initialize selected values state from section_data if available (for record forms)
+    const [selectedValues, setSelectedValues] = useState<string[]>(() => {
+        // Check if we have existing data from section_data (for record forms)
+        const sectionDataArray: any[] | undefined = (style as any).section_data;
+        const firstRecord = Array.isArray(sectionDataArray) && sectionDataArray.length > 0 ? sectionDataArray[0] : null;
+
+        if (firstRecord && firstRecord[name]) {
+            const existingValue = firstRecord[name];
+            if (multiSelect && typeof existingValue === 'string') {
+                return existingValue.split(separator).filter(Boolean);
+            } else if (!multiSelect && typeof existingValue === 'string') {
+                return [existingValue];
+            }
+        }
+
+        // Fallback to style configuration
+        if (multiSelect && defaultValue) {
+            return defaultValue.split(separator).filter(Boolean);
+        } else if (!multiSelect && defaultValue) {
+            return [defaultValue];
+        }
+
+        return [];
+    });
+
+    // Update selected values when section_data changes (for record form pre-population)
+    useEffect(() => {
+        const sectionDataArray: any[] | undefined = (style as any).section_data;
+        const firstRecord = Array.isArray(sectionDataArray) && sectionDataArray.length > 0 ? sectionDataArray[0] : null;
+
+        if (firstRecord && firstRecord[name]) {
+            const existingValue = firstRecord[name];
+            if (multiSelect && typeof existingValue === 'string') {
+                setSelectedValues(existingValue.split(separator).filter(Boolean));
+            } else if (!multiSelect && typeof existingValue === 'string') {
+                setSelectedValues([existingValue]);
+            }
+        }
+    }, [style, name, defaultValue, multiSelect, separator]);
+
+    // Initialize combobox hook
+    const combobox = useCombobox({
+        onDropdownClose: () => {
+            combobox.resetSelectedOption();
+            combobox.focusTarget();
+            if (searchable) {
+                setSearch('');
+            }
+        },
+        onDropdownOpen: () => {
+            // Only try to focus search input if searchable is enabled
+            if (searchable) {
+                try {
+                    combobox.focusSearchInput();
+                } catch (error) {
+                    // Silently ignore focus errors when search input is not available
+                }
+            }
+        },
+    });
+
+    // Override the focusSearchInput method to prevent errors when search is disabled
+    if (!searchable) {
+        combobox.focusSearchInput = () => {
+            // Do nothing when searchable is false to prevent errors
+        };
+    }
+
+    // Current values for multi-select
+    const currentValues = selectedValues;
+
+    // Handle creating single value
+    const handleCreateValue = useCallback(() => {
+        if (newValue.trim()) {
+            if (multiSelect) {
+                // In multi-select mode, add to existing values if not already present
+                if (!currentValues.includes(newValue)) {
+                    const updatedValues = [...currentValues, newValue];
+                    setSelectedValues(updatedValues);
+                }
+            } else {
+                // In single-select mode, replace the current selection
+                setSelectedValues([newValue]);
+            }
+            setNewValue('');
+            setShowCreateInput(false);
+        }
+    }, [newValue, currentValues, multiSelect]);
+
+    // Handle creating multiple values
+    const handleCreateMultipleValues = useCallback(() => {
+        if (multiValues.trim()) {
+            // Split input by whitespace and newlines, filter empty strings
+            const newVals = multiValues.split(/[\s\n]+/).filter(Boolean);
+            // Filter out values that are already in current values
+            const uniqueNewVals = newVals.filter(val => !currentValues.includes(val));
+            const updatedValues = [...currentValues, ...uniqueNewVals];
+            setSelectedValues(updatedValues);
+            setMultiValues('');
+            setShowMultiInput(false);
+        }
+    }, [multiValues, currentValues]);
+
+    // Handle adding/removing values
+    const handleToggleValue = useCallback((toggleValue: string) => {
+        if (multiSelect) {
+            const newValues = currentValues.includes(toggleValue)
+                ? currentValues.filter(v => v !== toggleValue)
+                : [...currentValues, toggleValue];
+            setSelectedValues(newValues);
+        } else {
+            setSelectedValues([toggleValue]);
+            combobox.closeDropdown();
+        }
+    }, [currentValues, multiSelect]);
+
+    // Handle removing a pill
+    const handleRemovePill = useCallback((valueToRemove: string) => {
+        const newValues = currentValues.filter(v => v !== valueToRemove);
+        setSelectedValues(newValues);
+    }, [currentValues]);
+
+    // Create combined options including custom values
+    const allOptions = [
+        ...predefinedOptions,
+        // Add any custom values that aren't in predefined options
+        ...currentValues
+            .filter(val => !isPredefinedValue(val))
+            .map(val => ({ value: val, label: val }))
+    ];
+
+    // Filter options based on search (only if searchable is enabled)
+    const filteredOptions = searchable
+        ? allOptions.filter(option =>
+            option.label.toLowerCase().includes(search.toLowerCase()) ||
+            option.value.toLowerCase().includes(search.toLowerCase())
+        )
+        : allOptions;
+
+    // Shared creatable section
+    const creatableSection = creatable ? (
+        <>
+            {!showCreateInput && !showMultiInput ? (
+                <Group gap="xs">
+                    <Button
+                        variant="light"
+                        size="xs"
+                        leftSection={<IconPlus size={14} />}
+                        onClick={() => setShowCreateInput(true)}
+                        disabled={disabled}
+                    >
+                        Add custom value
+                    </Button>
+                    {multiSelect && (
+                        <Button
+                            variant="light"
+                            size="xs"
+                            leftSection={<IconPlus size={14} />}
+                            onClick={() => setShowMultiInput(true)}
+                            disabled={disabled}
+                        >
+                            Add multiple values
+                        </Button>
+                    )}
+                </Group>
+            ) : showCreateInput ? (
+                <Group gap="xs">
+                    <TextInput
+                        placeholder="Enter custom value"
+                        value={newValue}
+                        onChange={(event) => setNewValue(event.currentTarget.value)}
+                        size="xs"
+                        style={{ flex: 1 }}
+                        error={newValue && !newValue.trim() ? 'Invalid value' : null}
+                        onKeyDown={(event) => {
+                            if (event.key === 'Enter') {
+                                handleCreateValue();
+                            }
+                        }}
+                    />
+                    <ActionIcon
+                        variant="light"
+                        color="green"
+                        size="sm"
+                        onClick={handleCreateValue}
+                        disabled={!newValue.trim() || currentValues.includes(newValue)}
+                    >
+                        <IconPlus size={14} />
+                    </ActionIcon>
+                    <ActionIcon
+                        variant="light"
+                        color="gray"
+                        size="sm"
+                        onClick={() => {
+                            setShowCreateInput(false);
+                            setNewValue('');
+                        }}
+                    >
+                        <IconX size={14} />
+                    </ActionIcon>
+                </Group>
+            ) : showMultiInput && multiSelect ? (
+                <Stack gap="xs">
+                    <Textarea
+                        placeholder="Enter multiple values (one per line or space-separated)"
+                        value={multiValues}
+                        onChange={(event) => setMultiValues(event.currentTarget.value)}
+                        size="xs"
+                        minRows={3}
+                        maxRows={6}
+                        error={multiValues && !multiValues.trim() ? 'Invalid values' : null}
+                        onKeyDown={(event) => {
+                            if (event.key === 'Enter' && event.ctrlKey) {
+                                handleCreateMultipleValues();
+                            }
+                        }}
+                    />
+                    <Group gap="xs">
+                        <Button
+                            variant="light"
+                            size="xs"
+                            leftSection={<IconPlus size={14} />}
+                            onClick={handleCreateMultipleValues}
+                            disabled={!multiValues.trim()}
+                        >
+                            Add Values
+                        </Button>
+                        <Button
+                            variant="subtle"
+                            size="xs"
+                            onClick={() => {
+                                setShowMultiInput(false);
+                                setMultiValues('');
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                    </Group>
+                </Stack>
+            ) : null}
+        </>
+    ) : null;
+
+    // Single select mode
+    if (!multiSelect) {
+        const selectedValue = currentValues[0] || '';
+        const selectedOption = allOptions.find(opt => opt.value === selectedValue);
+
+        const singleSelectComponent = (
+            <Stack gap="xs">
+                <Combobox
+                    store={combobox}
+                    withinPortal={false}
+                    onOptionSubmit={(val) => {
+                        handleToggleValue(val);
+                    }}
+                >
+                    <Combobox.Target>
+                        <Input
+                            component="div"
+                            pointer
+                            rightSection={<IconChevronDown size={18} />}
+                            onClick={() => combobox.toggleDropdown()}
+                            rightSectionPointerEvents="none"
+                            disabled={disabled}
+                            style={{
+                                cursor: 'pointer'
+                            }}
+                            styles={{
+                                input: {
+                                    height: 'auto',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    cursor: 'pointer'
+                                }
+                            }}
+                        >
+                            {selectedOption ? (
+                                <Pill
+                                    size="sm"
+                                    withRemoveButton={clearable}
+                                    onRemove={() => clearable && setSelectedValues([])}
+                                    className={`${isPredefinedValue(selectedValue) ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}
+                                >
+                                    {selectedValue}
+                                </Pill>
+                            ) : (
+                                <div style={{ color: 'var(--mantine-color-placeholder)' }}>
+                                    {placeholder}
+                                </div>
+                            )}
+                        </Input>
+                    </Combobox.Target>
+
+                    <Combobox.Dropdown>
+                        {searchable && (
+                            <Combobox.Search
+                                value={search}
+                                onChange={(event) => setSearch(event.currentTarget.value)}
+                                placeholder="Search options..."
+                            />
+                        )}
+                        <Combobox.Options>
+                            <ScrollArea.Autosize type="scroll" mah={200}>
+                                {filteredOptions.length > 0 ? (
+                                    filteredOptions.map((option) => (
+                                        <Combobox.Option
+                                            value={option.value}
+                                            key={option.value}
+                                            active={option.value === selectedValue}
+                                        >
+                                            <Group justify="space-between">
+                                                <Text
+                                                    className={isPredefinedValue(option.value) ? 'text-gray-900' : 'text-green-700'}
+                                                >
+                                                    {option.label}
+                                                </Text>
+                                                {option.value === selectedValue && <IconCheck size={16} />}
+                                            </Group>
+                                        </Combobox.Option>
+                                    ))
+                                ) : (
+                                    <Combobox.Empty>No options found</Combobox.Empty>
+                                )}
+                            </ScrollArea.Autosize>
+                        </Combobox.Options>
+                    </Combobox.Dropdown>
+                </Combobox>
+            </Stack>
+        );
+
         return (
-            <Select
-                data={comboboxData}
-                placeholder={placeholder}
-                size={size}
-                radius={radius === 'none' ? 0 : radius}
-                disabled={disabled}
-                className={cssClass}
-                style={styleObj}
-            />
+            <>
+                {label || description ? (
+                    <Input.Wrapper
+                        label={label}
+                        description={description}
+                        required={isRequired}
+                        className={cssClass}
+                    >
+                        <Stack gap="xs">
+                            {singleSelectComponent}
+                            {creatableSection}
+                        </Stack>
+                    </Input.Wrapper>
+                ) : (
+                    <Stack gap="xs">
+                        {singleSelectComponent}
+                        {creatableSection}
+                    </Stack>
+                )}
+                {/* Hidden input to ensure form submission captures the value */}
+                <input
+                    type="hidden"
+                    name={name}
+                    value={selectedValue}
+                    required={isRequired}
+                />
+            </>
         );
     }
 
-    // Fallback to basic select when Mantine styling is disabled
-    return (
-        <select
+    // Multi-select mode
+    const multiSelectComponent = (
+        <Stack gap="xs">
+            <Combobox
+                store={combobox}
+                withinPortal={false}
+                onOptionSubmit={handleToggleValue}
+            >
+                <Combobox.Target>
+                    <Input
+                        component="div"
+                        pointer
+                        rightSection={<IconChevronDown size={18} />}
+                        onClick={() => combobox.toggleDropdown()}
+                        rightSectionPointerEvents="none"
+                        disabled={disabled}
+                        style={{
+                            minHeight: '36px',
+                            cursor: 'pointer'
+                        }}
+                        styles={{
+                            input: {
+                                minHeight: '36px',
+                                height: 'auto',
+                                padding: '0',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'flex-start',
+                                cursor: 'pointer'
+                            }
+                        }}
+                    >
+                        {currentValues.length > 0 ? (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', padding: '8px' }}>
+                                {currentValues.map((val) => (
+                                    <Pill
+                                        key={val}
+                                        withRemoveButton
+                                        onRemove={() => handleRemovePill(val)}
+                                        size="sm"
+                                        className={`${isPredefinedValue(val) ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}
+                                    >
+                                        {val}
+                                    </Pill>
+                                ))}
+                            </div>
+                        ) : (
+                            <div style={{ padding: '8px', color: 'var(--mantine-color-placeholder)' }}>
+                                {placeholder}
+                            </div>
+                        )}
+                    </Input>
+                </Combobox.Target>
+
+                <Combobox.Dropdown>
+                    {searchable && (
+                        <Combobox.Search
+                            value={search}
+                            onChange={(event) => setSearch(event.currentTarget.value)}
+                            placeholder="Search options..."
+                        />
+                    )}
+                    <Combobox.Options>
+                        <ScrollArea.Autosize type="scroll" mah={280}>
+                            {filteredOptions.length > 0 ? (
+                                filteredOptions.map((option) => (
+                                    <Combobox.Option
+                                        value={option.value}
+                                        key={option.value}
+                                        active={currentValues.includes(option.value)}
+                                    >
+                                        <Group justify="space-between">
+                                            <Text
+                                                className={isPredefinedValue(option.value) ? 'text-gray-900' : 'text-green-700'}
+                                            >
+                                                {option.label}
+                                            </Text>
+                                            {currentValues.includes(option.value) && <IconCheck size={16} />}
+                                        </Group>
+                                    </Combobox.Option>
+                                ))
+                            ) : (
+                                <Combobox.Empty>No options found</Combobox.Empty>
+                            )}
+                        </ScrollArea.Autosize>
+                    </Combobox.Options>
+                </Combobox.Dropdown>
+            </Combobox>
+        </Stack>
+    );
+
+    // Wrap with Input.Wrapper if label/description present
+    const wrappedMultiSelect = label || description ? (
+        <Input.Wrapper
+            label={label}
+            description={description}
+            required={isRequired}
             className={cssClass}
-            disabled={disabled}
-            style={styleObj}
         >
-            <option value="" disabled>
-                {placeholder}
-            </option>
-            {comboboxData.map((option, index) => (
-                <option key={index} value={option.value}>
-                    {option.label}
-                </option>
-            ))}
-        </select>
+            <Stack gap="xs">
+                {multiSelectComponent}
+                {creatableSection}
+            </Stack>
+        </Input.Wrapper>
+    ) : (
+        <Stack gap="xs">
+            {multiSelectComponent}
+            {creatableSection}
+        </Stack>
+    );
+
+    // Get the final value for form submission
+    const finalValue = multiSelect ? currentValues.join(separator) : currentValues[0] || '';
+
+    return (
+        <>
+            {wrappedMultiSelect}
+            {/* Hidden input to ensure form submission captures the value */}
+            <input
+                type="hidden"
+                name={name}
+                value={finalValue}
+                required={isRequired}
+            />
+        </>
     );
 };
 
