@@ -577,8 +577,8 @@ export interface IColorInputStyle extends IBaseStyle {
     placeholder?: IContentField<string>;              // Translatable placeholder
     name?: IContentField<string>;                     // Text field for form field name
     value?: IContentField<string>;                    // Text field for default value
+    description?: IContentField<string>;              // Textarea field for description
     is_required?: IContentField<string>;              // Checkbox field for required validation
-    locked_after_submit?: IContentField<string>;      // Checkbox field for post-submit locking
     disabled?: IContentField<string>;                 // Checkbox field for disabled state
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
@@ -598,8 +598,8 @@ export interface IColorPickerStyle extends IBaseStyle {
     mantine_fullwidth?: IContentField<string>;        // Checkbox field for full width
     name?: IContentField<string>;                     // Text field for form field name
     value?: IContentField<string>;                    // Text field for default value
+    description?: IContentField<string>;              // Textarea field for description
     is_required?: IContentField<string>;              // Checkbox field for required validation
-    locked_after_submit?: IContentField<string>;      // Checkbox field for post-submit locking
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
 
@@ -624,6 +624,11 @@ export interface INumberInputStyle extends IBaseStyle {
     mantine_size?: IContentField<string>;             // Select field for size
     mantine_radius?: IContentField<string>;           // Select field for radius
     placeholder?: IContentField<string>;              // Translatable placeholder
+    label?: IContentField<string>;                    // Text field for label
+    description?: IContentField<string>;              // Textarea field for description
+    name?: IContentField<string>;                     // Text field for form field name
+    value?: IContentField<string>;                    // Text field for default value
+    is_required?: IContentField<string>;              // Checkbox field for required validation
     disabled?: IContentField<string>;                 // Checkbox field for disabled state
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }

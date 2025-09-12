@@ -42,6 +42,7 @@ const ColorPickerStyle: React.FC<IColorPickerStyleProps> = ({ style }) => {
 
     // Form configuration fields (similar to ChipStyle)
     const label = getFieldContent(style, 'label');
+    const description = getFieldContent(style, 'description');
     const name = getFieldContent(style, 'name') || `section-${style.id}`;
     const defaultValue = getFieldContent(style, 'value') || '';
     const isRequired = getFieldContent(style, 'is_required') === '1';
@@ -57,6 +58,8 @@ const ColorPickerStyle: React.FC<IColorPickerStyleProps> = ({ style }) => {
         // Fallback to default swatches
         swatches = ['#2e2e2e', '#868e96', '#fa5252', '#e64980', '#be4bdb', '#7950f2', '#4c6ef5', '#228be6', '#15aabf', '#12b886', '#40c057', '#82c91e', '#fab005', '#fd7e14'];
     }
+
+    console.log('swatches', swatches,);
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
@@ -110,10 +113,11 @@ const ColorPickerStyle: React.FC<IColorPickerStyleProps> = ({ style }) => {
         />
     );
 
-    // Wrap component with label if present
-    const wrappedColorPicker = label ? (
+    // Wrap component with label or description if present
+    const wrappedColorPicker = label || description ? (
         <Input.Wrapper
             label={label}
+            description={description}
             required={isRequired}
             className={cssClass}
         >

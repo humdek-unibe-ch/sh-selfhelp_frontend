@@ -1,5 +1,5 @@
-import React from 'react';
-import { NumberInput } from '@mantine/core';
+import React, { useState, useEffect } from 'react';
+import { NumberInput, Input } from '@mantine/core';
 import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { INumberInputStyle } from '../../../../../types/common/styles.types';
 
@@ -12,7 +12,14 @@ interface INumberInputStyleProps {
 
 /**
  * NumberInputStyle component renders a Mantine NumberInput component for numeric input.
- * Supports min/max values, step, decimal places, and clamp behavior.
+ * Supports min/max values, step, decimal places, clamp behavior, and form integration.
+ *
+ * Form Integration Features:
+ * - Configurable field name for form submission
+ * - Controlled component with state management
+ * - Support for required field validation
+ * - Label and description support
+ * - Hidden input to ensure form submission captures the value
  *
  * @component
  * @param {INumberInputStyleProps} props - Component props
@@ -21,6 +28,8 @@ interface INumberInputStyleProps {
 const NumberInputStyle: React.FC<INumberInputStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
     const placeholder = getFieldContent(style, 'placeholder');
+    const label = getFieldContent(style, 'label');
+    const description = getFieldContent(style, 'description');
     const min = getFieldContent(style, 'mantine_numeric_min');
     const max = getFieldContent(style, 'mantine_numeric_max');
     const step = getFieldContent(style, 'mantine_numeric_step') || '1';
@@ -28,45 +37,92 @@ const NumberInputStyle: React.FC<INumberInputStyleProps> = ({ style }) => {
     const clampBehavior = getFieldContent(style, 'mantine_number_input_clamp_behavior') || 'strict';
     const size = getFieldContent(style, 'mantine_size') || 'sm';
     const radius = getFieldContent(style, 'mantine_radius') || 'sm';
+
+    // Form configuration fields
+    const name = getFieldContent(style, 'name') || `section-${style.id}`;
+    const defaultValue = getFieldContent(style, 'value');
+    const isRequired = getFieldContent(style, 'is_required') === '1';
     const disabled = getFieldContent(style, 'disabled') === '1';
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
-    // Build style object
-    const styleObj: React.CSSProperties = {};
+    // Initialize selected value state from section_data if available (for record forms)
+    const [selectedValue, setSelectedValue] = useState(() => {
+        // Check if we have existing data from section_data (for record forms)
+        const sectionDataArray: any[] | undefined = (style as any).section_data;
+        const firstRecord = Array.isArray(sectionDataArray) && sectionDataArray.length > 0 ? sectionDataArray[0] : null;
 
-    if (use_mantine_style) {
-        return (
-            <NumberInput
-                placeholder={placeholder || 'Enter number'}
-                min={min ? parseFloat(min) : undefined}
-                max={max ? parseFloat(max) : undefined}
-                step={parseFloat(step)}
-                decimalScale={decimalScale}
-                clampBehavior={clampBehavior as 'strict' | 'blur'}
-                size={size as any}
-                radius={radius === 'none' ? 0 : radius}
-                disabled={disabled}
-                className={cssClass}
-                style={styleObj}
-            />
-        );
-    }
+        if (firstRecord && firstRecord[name]) {
+            // If we have existing data, use it to determine the selected value
+            const existingValue = firstRecord[name];
+            return existingValue || defaultValue;
+        }
 
-    // Fallback to basic input when Mantine styling is disabled
-    return (
-        <input
-            type="number"
+        // Fallback to style configuration
+        return defaultValue;
+    });
+
+    // Update selected value when section_data changes (for record form pre-population)
+    useEffect(() => {
+        const sectionDataArray: any[] | undefined = (style as any).section_data;
+        const firstRecord = Array.isArray(sectionDataArray) && sectionDataArray.length > 0 ? sectionDataArray[0] : null;
+
+        if (firstRecord && firstRecord[name]) {
+            const existingValue = firstRecord[name];
+            setSelectedValue(existingValue || defaultValue);
+        }
+    }, [style, name, defaultValue]);
+
+    // Handle value change
+    const handleValueChange = (value: string | number) => {
+        setSelectedValue(value?.toString() || '');
+    };
+
+    // NumberInput component
+    const numberInputComponent = (
+        <NumberInput
             placeholder={placeholder || 'Enter number'}
-            min={min}
-            max={max}
-            step={step}
-            className={cssClass}
+            value={selectedValue ? parseFloat(selectedValue) : undefined}
+            onChange={handleValueChange}
+            min={min ? parseFloat(min) : undefined}
+            max={max ? parseFloat(max) : undefined}
+            step={parseFloat(step)}
+            decimalScale={decimalScale}
+            clampBehavior={clampBehavior as 'strict' | 'blur'}
+            size={size as 'xs' | 'sm' | 'md' | 'lg' | 'xl'}
+            radius={radius === 'none' ? 0 : radius}
             disabled={disabled}
-            style={styleObj}
+            required={isRequired}
+            className={cssClass}
         />
+    );
+
+    // Wrap component with label or description if present
+    const wrappedComponent = label || description ? (
+        <Input.Wrapper
+            label={label}
+            description={description}
+            required={isRequired}
+            className={cssClass}
+        >
+            {numberInputComponent}
+        </Input.Wrapper>
+    ) : (
+        numberInputComponent
+    );
+
+    return (
+        <>
+            {wrappedComponent}
+            {/* Hidden input to ensure form submission captures the value */}
+            <input
+                type="hidden"
+                name={name}
+                value={selectedValue}
+                required={isRequired}
+            />
+        </>
     );
 };
 

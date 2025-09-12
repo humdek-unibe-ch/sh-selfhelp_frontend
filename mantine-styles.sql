@@ -1382,7 +1382,10 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 VALUES (get_style_id('color-input'), get_field_id('is_required'), '0', 'If set, the color selection becomes required for form submission', 0, 0, 'Required');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('color-input'), get_field_id('label'), '', 'Sets the label of the input field. For more information check https://mantine.dev/core/color-picker', 0, 0, 'Label');
+VALUES (get_style_id('color-input'), get_field_id('label'), '', 'Sets the label of the input field. For more information check https://mantine.dev/core/color-input', 0, 0, 'Label');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('color-input'), get_field_id('description'), '', 'Description text displayed below the input field', 0, 0, 'Description');
 
 -- ===========================================
 -- COLOR PICKER COMPONENT
@@ -1418,6 +1421,9 @@ VALUES (get_style_id('color-picker'), get_field_id('mantine_color_picker_swatche
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('color-picker'), get_field_id('label'), '', 'Sets the label of the input field. For more information check https://mantine.dev/core/color-picker', 0, 0, 'Label');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('color-picker'), get_field_id('description'), '', 'Description text displayed below the input field', 0, 0, 'Description');
 
 -- Add color-picker-specific fields
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_color_picker_swatches', get_field_type_id('textarea'), 0, null);
@@ -1619,6 +1625,21 @@ VALUES (get_style_id('numberInput'), get_field_id('mantine_radius'), 'sm', 'Sets
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('numberInput'), get_field_id('placeholder'), 'Enter number', 'Sets the placeholder text for the number input. For more information check https://mantine.dev/core/number-input', 0, 0, 'Placeholder');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('numberInput'), get_field_id('label'), '', 'Sets the label of the input field. For more information check https://mantine.dev/core/number-input', 0, 0, 'Label');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('numberInput'), get_field_id('description'), '', 'Description text displayed below the input field', 0, 0, 'Description');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('numberInput'), get_field_id('name'), '', 'Field name for form submission', 0, 0, 'Name');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('numberInput'), get_field_id('value'), '', 'Default numeric value for the number input', 0, 0, 'Value');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('numberInput'), get_field_id('is_required'), '0', 'If set, the number input becomes required for form submission', 0, 0, 'Required');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('numberInput'), get_field_id('disabled'), '0', 'If `disabled` prop is set NumberInput will be disabled. For more information check https://mantine.dev/core/number-input', 0, 0, 'Disabled');

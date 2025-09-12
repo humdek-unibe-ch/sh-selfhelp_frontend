@@ -34,6 +34,7 @@ const ColorInputStyle: React.FC<IColorInputStyleProps> = ({ style }) => {
 
     // Form configuration fields (similar to ColorPicker)
     const label = getFieldContent(style, 'label');
+    const description = getFieldContent(style, 'description');
     const name = getFieldContent(style, 'name') || `section-${style.id}`;
     const defaultValue = getFieldContent(style, 'value') || '';
     const isRequired = getFieldContent(style, 'is_required') === '1';
@@ -93,9 +94,10 @@ const ColorInputStyle: React.FC<IColorInputStyleProps> = ({ style }) => {
         />
     );
 
-    const wrappedComponent = label ? (
+    const wrappedComponent = label || description ? (
         <Input.Wrapper
             label={label}
+            description={description}
             required={isRequired}
             className={cssClass}
         >
