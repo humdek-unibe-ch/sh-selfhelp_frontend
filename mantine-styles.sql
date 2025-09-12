@@ -2641,6 +2641,9 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
     0
 );
 
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('code'), get_field_id('content'), NULL, 'Sets the content for the code. For more information check https://mantine.dev/core/code', 0, 0, 'Content');
+
 -- Add Code-specific fields
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_code_block', get_field_type_id('checkbox'), 0, null);
 
