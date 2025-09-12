@@ -136,9 +136,9 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <CheckboxStyle style={style} />;
         case 'slider':
             return <SliderStyle style={style} />;
-        case 'colorInput':
+        case 'color-input':
             return <ColorInputStyle style={style} />;
-        case 'colorPicker':
+        case 'color-picker':
             return <ColorPickerStyle style={style} />;
         case 'fileInput':
             return <FileInputStyle style={style} />;

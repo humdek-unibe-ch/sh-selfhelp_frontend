@@ -12,7 +12,7 @@ export type TStyleName =
     | 'table' | 'tableRow' | 'tableCell'
     | 'progressBar' | 'showUserInput' | 'version' | 'loop'
     // Mantine form components
-    | 'button' | 'colorInput' | 'colorPicker' | 'fileInput' | 'numberInput' | 'radioGroup' | 'rangeSlider'
+    | 'button' | 'color-input' | 'color-picker' | 'fileInput' | 'numberInput' | 'radioGroup' | 'rangeSlider'
     | 'segmentedControl' | 'switch' | 'combobox' | 'multiSelect' | 'actionIcon'
     // Mantine typography components
     | 'code'
@@ -569,21 +569,37 @@ export interface IButtonStyle extends IBaseStyle {
 }
 
 export interface IColorInputStyle extends IBaseStyle {
-    style_name: 'colorInput';
+    style_name: 'color-input';
     mantine_color_format?: IContentField<string>;     // Segment field for color format
     mantine_color_input_swatches?: IContentField<string>; // Checkbox field for swatches
     mantine_size?: IContentField<string>;             // Select field for size
     mantine_radius?: IContentField<string>;           // Select field for radius
     placeholder?: IContentField<string>;              // Translatable placeholder
+    name?: IContentField<string>;                     // Text field for form field name
+    value?: IContentField<string>;                    // Text field for default value
+    is_required?: IContentField<string>;              // Checkbox field for required validation
+    locked_after_submit?: IContentField<string>;      // Checkbox field for post-submit locking
     disabled?: IContentField<string>;                 // Checkbox field for disabled state
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
 
 export interface IColorPickerStyle extends IBaseStyle {
-    style_name: 'colorPicker';
+    style_name: 'color-picker';
     mantine_color_format?: IContentField<string>;     // Segment field for color format
     mantine_color_picker_swatches_per_row?: IContentField<string>; // Slider field for swatches per row
+    mantine_color_picker_swatches?: IContentField<string>; // Textarea field for swatches array
+    mantine_color_picker_with_picker?: IContentField<string>; // Checkbox field for showing picker
+    mantine_color_picker_saturation_label?: IContentField<string>; // Text field for saturation label
+    mantine_color_picker_hue_label?: IContentField<string>; // Text field for hue label
+    mantine_color_picker_alpha_label?: IContentField<string>; // Text field for alpha label
+    mantine_color_picker_as_button?: IContentField<string>; // Checkbox field for button display mode
+    mantine_color_picker_button_label?: IContentField<string>; // Text field for button label
     mantine_size?: IContentField<string>;             // Select field for size
+    mantine_fullwidth?: IContentField<string>;        // Checkbox field for full width
+    name?: IContentField<string>;                     // Text field for form field name
+    value?: IContentField<string>;                    // Text field for default value
+    is_required?: IContentField<string>;              // Checkbox field for required validation
+    locked_after_submit?: IContentField<string>;      // Checkbox field for post-submit locking
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
 

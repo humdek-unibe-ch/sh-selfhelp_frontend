@@ -1254,13 +1254,13 @@ VALUES (get_style_id('chip'), get_field_id('mantine_tooltip_position'), 'top', '
 -- COLOR INPUT COMPONENT
 -- ===========================================
 
--- Add new style 'colorInput' based on Mantine ColorInput component
+-- Add new style 'color-input' based on Mantine color-input component
 INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
-    'colorInput',
+    'color-input',
     (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
     get_style_group_id('mantine'),
-    'Mantine ColorInput component for color selection',
+    'Mantine color-input component for color selection',
     0
 );
 
@@ -1351,49 +1351,56 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 ]}');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('colorInput'), get_field_id('mantine_color_format'), 'hex', 'Sets the format of the color input. For more information check https://mantine.dev/core/color-input', 0, 0, 'Format');
-
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_color_input_swatches', get_field_type_id('checkbox'), 0, null);
-
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('colorInput'), get_field_id('mantine_color_input_swatches'), '0', 'If `swatches` prop is set, color swatches will be displayed. For more information check https://mantine.dev/core/color-input', 0, 0, 'Swatches');
-
+VALUES (get_style_id('color-input'), get_field_id('mantine_color_format'), 'hex', 'Sets the format of the color input. For more information check https://mantine.dev/core/color-input', 0, 0, 'Format');
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('colorInput'), get_field_id('mantine_size'), 'sm', 'Sets the size of the color input. For more information check https://mantine.dev/core/color-input', 0, 0, 'Size');
+VALUES (get_style_id('color-input'), get_field_id('mantine_size'), 'sm', 'Sets the size of the color input. For more information check https://mantine.dev/core/color-input', 0, 0, 'Size');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('colorInput'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the color input. For more information check https://mantine.dev/core/color-input', 0, 0, 'Radius');
+VALUES (get_style_id('color-input'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the color input. For more information check https://mantine.dev/core/color-input', 0, 0, 'Radius');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('colorInput'), get_field_id('placeholder'), 'Pick a color', 'Sets the placeholder text for the color input. For more information check https://mantine.dev/core/color-input', 0, 0, 'Placeholder');
+VALUES (get_style_id('color-input'), get_field_id('placeholder'), 'Pick a color', 'Sets the placeholder text for the color input. For more information check https://mantine.dev/core/color-input', 0, 0, 'Placeholder');
 
 -- Update placeholder field to be translatable
 UPDATE `fields` SET `display` = 1 WHERE `name` = 'placeholder';
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('colorInput'), get_field_id('disabled'), '0', 'If `disabled` prop is set ColorInput will be disabled. For more information check https://mantine.dev/core/color-input', 0, 0, 'Disabled');
+VALUES (get_style_id('color-input'), get_field_id('disabled'), '0', 'If `disabled` prop is set color-input will be disabled. For more information check https://mantine.dev/core/color-input', 0, 0, 'Disabled');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('colorInput'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set ColorInput will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/color-input', 0, 1, 'Use Mantine Style');
+VALUES (get_style_id('color-input'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set color-input will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/color-input', 0, 1, 'Use Mantine Style');
+
+-- Form integration fields for color-input (similar to color-picker)
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('color-input'), get_field_id('name'), '', 'Field name for form submission', 0, 0, 'Name');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('color-input'), get_field_id('value'), '', 'Default color value for the color input. Supports hex, rgba, or hsl formats', 0, 0, 'Value');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('color-input'), get_field_id('is_required'), '0', 'If set, the color selection becomes required for form submission', 0, 0, 'Required');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('color-input'), get_field_id('label'), '', 'Sets the label of the input field. For more information check https://mantine.dev/core/color-picker', 0, 0, 'Label');
 
 -- ===========================================
 -- COLOR PICKER COMPONENT
 -- ===========================================
 
--- Add new style 'colorPicker' based on Mantine ColorPicker component
+-- Add new style 'color-picker' based on Mantine color-picker component
 INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
-    'colorPicker',
+    'color-picker',
     (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
     get_style_group_id('mantine'),
-    'Mantine ColorPicker component for color selection',
+    'Mantine color-picker component for color selection',
     0
 );
 
--- Use unified color format field for ColorPicker
+-- Use unified color format field for color-picker
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('colorPicker'), get_field_id('mantine_color_format'), 'hex', 'Sets the format of the color picker. For more information check https://mantine.dev/core/color-picker', 0, 0, 'Format');
+VALUES (get_style_id('color-picker'), get_field_id('mantine_color_format'), 'hex', 'Sets the format of the color picker. For more information check https://mantine.dev/core/color-picker', 0, 0, 'Format');
 
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_color_picker_swatches_per_row', get_field_type_id('slider'), 0, '{
 	"options": [
@@ -1407,14 +1414,52 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 }');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('colorPicker'), get_field_id('mantine_color_picker_swatches_per_row'), '7', 'Sets the number of swatches per row. For more information check https://mantine.dev/core/color-picker', 0, 0, 'Swatches Per Row');
+VALUES (get_style_id('color-picker'), get_field_id('mantine_color_picker_swatches_per_row'), '7', 'Sets the number of swatches per row. For more information check https://mantine.dev/core/color-picker', 0, 0, 'Swatches Per Row');
 
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('color-picker'), get_field_id('label'), '', 'Sets the label of the input field. For more information check https://mantine.dev/core/color-picker', 0, 0, 'Label');
+
+-- Add color-picker-specific fields
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_color_picker_swatches', get_field_type_id('textarea'), 0, null);
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('color-picker'), get_field_id('mantine_color_picker_swatches'), '["#2e2e2e", "#868e96", "#fa5252", "#e64980", "#be4bdb", "#7950f2", "#4c6ef5", "#228be6"]', 'Array of predefined color swatches. Enter as JSON array of hex color strings. For more information check https://mantine.dev/core/color-picker', 0, 0, 'Color Swatches');
+
+-- Removed mantine_color_picker_value and mantine_color_picker_default_value - using global value field instead
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_color_picker_saturation_label', get_field_type_id('text'), 1, '{"placeholder": "Saturation"}');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('color-picker'), get_field_id('mantine_color_picker_saturation_label'), 'Saturation', 'Accessibility label for the saturation slider. For more information check https://mantine.dev/core/color-picker', 0, 0, 'Saturation Label');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_color_picker_hue_label', get_field_type_id('text'), 1, '{"placeholder": "Hue"}');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('color-picker'), get_field_id('mantine_color_picker_hue_label'), 'Hue', 'Accessibility label for the hue slider. For more information check https://mantine.dev/core/color-picker', 0, 0, 'Hue Label');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_color_picker_alpha_label', get_field_type_id('text'), 1, '{"placeholder": "Alpha"}');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('color-picker'), get_field_id('mantine_color_picker_alpha_label'), 'Alpha', 'Accessibility label for the alpha slider. For more information check https://mantine.dev/core/color-picker', 0, 0, 'Alpha Label');
+
+-- Form integration fields (similar to ChipStyle)
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('color-picker'), get_field_id('name'), '', 'Field name for form submission', 0, 0, 'Name');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('color-picker'), get_field_id('value'), '', 'Default color value for the color picker. Supports hex, rgba, or hsl formats', 0, 0, 'Value');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('color-picker'), get_field_id('is_required'), '0', 'If set, the color selection becomes required for form submission', 0, 0, 'Required');
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('colorPicker'), get_field_id('mantine_size'), 'sm', 'Sets the size of the color picker. For more information check https://mantine.dev/core/color-picker', 0, 0, 'Size');
+VALUES (get_style_id('color-picker'), get_field_id('mantine_size'), 'sm', 'Sets the size of the color picker. For more information check https://mantine.dev/core/color-picker', 0, 0, 'Size');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('colorPicker'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set ColorPicker will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/color-picker', 0, 1, 'Use Mantine Style');
+VALUES (get_style_id('color-picker'), get_field_id('mantine_fullwidth'), '0', 'If set, the color picker will take the full width of its container. For more information check https://mantine.dev/core/color-picker', 0, 0, 'Full Width');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('color-picker'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set color-picker will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/color-picker', 0, 1, 'Use Mantine Style');
 
 -- ===========================================
 -- FIELDSET COMPONENT
@@ -2986,7 +3031,7 @@ WHERE s1.name = 'card' AND s2.name = 'card-segment';
 -- 3. mantine_left_icon - unified left icon field - used by button, tab, badge, blockquote
 -- 4. mantine_right_icon - unified right icon field - used by button, tab
 -- 5. mantine_orientation - unified orientation field (horizontal/vertical) - used by radioGroup, segmentedControl, stepper, tabs
--- 6. mantine_color_format - unified color format field (hex/rgba/hsla) - used by colorInput, colorPicker
+-- 6. mantine_color_format - unified color format field (hex/rgba/hsla) - used by color-input, color-picker
 -- 7. mantine_numeric_min - unified numeric min field - used by numberInput, rangeSlider
 -- 8. mantine_numeric_max - unified numeric max field - used by numberInput, rangeSlider
 -- 9. mantine_numeric_step - unified numeric step field - used by numberInput, rangeSlider
