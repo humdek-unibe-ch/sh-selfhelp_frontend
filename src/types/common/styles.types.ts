@@ -2,7 +2,7 @@
 export type TStyleName =
     | 'login' | 'profile' | 'validate' | 'register' | 'resetPassword' | 'twoFactorAuth'
     | 'container' | 'alert' | 'div' | 'refContainer' | 'dataContainer' | 'htmlTag' | 'center'
-    | 'flex' | 'group' | 'stack' | 'simpleGrid' | 'space' | 'grid' | 'grid-column'
+    | 'flex' | 'group' | 'stack' | 'simpleGrid' | 'space' | 'grid' | 'grid-column' | 'divider'
     | 'heading' | 'markdown' | 'markdownInline' | 'plaintext'
     | 'formUserInput' | 'formUserInputLog' | 'formUserInputRecord' | 'input' | 'textarea' | 'select' | 'radio' | 'slider' | 'checkbox'
     | 'image' | 'video' | 'audio' | 'figure' | 'carousel'
@@ -163,6 +163,17 @@ export interface ICenterStyle extends IBaseStyle {
     mantine_mih?: IContentField<string>;
     mantine_maw?: IContentField<string>;
     mantine_mah?: IContentField<string>;
+}
+
+export interface IDividerStyle extends IBaseStyle {
+    style_name: 'divider';
+    mantine_divider_variant?: IContentField<string>;
+    mantine_divider_size?: IContentField<string>;
+    mantine_divider_label?: IContentField<string>;
+    mantine_divider_label_position?: IContentField<string>;
+    mantine_orientation?: IContentField<string>;
+    mantine_color?: IContentField<string>;
+    use_mantine_style?: IContentField<string>;
 }
 
 export interface IAlertStyle extends IBaseStyle {
@@ -1019,6 +1030,7 @@ export type TStyle =
     | ITwoFactorAuthStyle
     | IContainerStyle
     | ICenterStyle
+    | IDividerStyle
     | IAlertStyle
     | IDivStyle
     | IRefContainerStyle

@@ -15,7 +15,7 @@ import {
     // Additional Mantine Components
     BackgroundImageStyle, BadgeStyle, BlockquoteStyle, ChipStyle,
     CodeStyle, ColorInputStyle, ColorPickerStyle, ComboboxStyle,
-    FieldsetStyle, FileInputStyle, HighlightStyle, IndicatorStyle,
+    DividerStyle, FieldsetStyle, FileInputStyle, HighlightStyle, IndicatorStyle,
     KbdStyle, MultiSelectStyle, NotificationStyle, NumberInputStyle,
     RadioGroupStyle, RangeSliderStyle, RatingStyle, SegmentedControlStyle,
     SpoilerStyle, StepperStyle, StepperStepStyle, StepperCompleteStyle,
@@ -89,6 +89,8 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <SpaceStyle style={style} />;
         case 'background-image':
             return <BackgroundImageStyle style={style} />;
+        case 'divider':
+            return <DividerStyle style={style} />;
 
         // Text & Content Styles
         case 'heading':

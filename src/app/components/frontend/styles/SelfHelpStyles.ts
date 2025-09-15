@@ -26,6 +26,7 @@ export { default as GridColumnStyle } from './mantine/GridColumnStyle';
 export { default as SpaceStyle } from './mantine/SpaceStyle';
 export { default as AspectRatioStyle } from './mantine/AspectRatioStyle';
 export { default as BackgroundImageStyle } from './mantine/BackgroundImageStyle';
+export { default as DividerStyle } from './mantine/DividerStyle';
 
 // Text & Content Styles
 export { default as HeadingStyle } from './HeadingStyle';

@@ -426,7 +426,7 @@ VALUES (get_style_id('button'), get_field_id('open_in_new_tab'), '0', 'If `openI
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'use_mantine_style', get_field_type_id('checkbox'), 0, null);
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) 
-VALUES (get_style_id('button'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Button will use the Mantine style, otherwise it will be a clear element whcih can be styled with CSS and tailwind CSS classes. For more information check https://mantine.dev/core/button', 0, 0, 'Use Mantine Style');
+VALUES (get_style_id('button'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Button will use the Mantine style, otherwise it will be a clear element whcih can be styled with CSS and tailwind CSS classes. For more information check https://mantine.dev/core/button', 0, 1, 'Use Mantine Style');
 
 UPDATE fieldType
 SET position = 0
@@ -605,7 +605,7 @@ VALUES (get_style_id('container'), get_field_id('mantine_py'), NULL, 'Sets the v
 
 -- Add use_mantine_style field for Container (reuse existing generic field)
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('container'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Container will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/container', 0, 0, 'Use Mantine Style');
+VALUES (get_style_id('container'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Container will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/container', 0, 1, 'Use Mantine Style');
 
 -- Add generic gap field (reusable across components) - use slider
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_gap', get_field_type_id('slider'), 0, '{
@@ -2859,16 +2859,9 @@ VALUES (get_style_id('divider'), get_field_id('mantine_divider_variant'), 'solid
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('divider'), get_field_id('mantine_orientation'), 'horizontal', 'Sets the orientation of the divider. For more information check https://mantine.dev/core/divider', 0, 0, 'Orientation');
 
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_divider_size', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "options":[
-{"value":"1","text":"1px"},
-{"value":"2","text":"2px"},
-{"value":"3","text":"3px"},
-{"value":"4","text":"4px"},
-{"value":"5","text":"5px"}
-]}');
-
+-- Use unified mantine_size slider field for divider thickness
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('divider'), get_field_id('mantine_divider_size'), '1', 'Sets the thickness of the divider line. For more information check https://mantine.dev/core/divider', 0, 0, 'Size');
+VALUES (get_style_id('divider'), get_field_id('mantine_size'), 'sm', 'Sets the thickness of the divider line. For more information check https://mantine.dev/core/divider', 0, 0, 'Size');
 
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_divider_label', get_field_type_id('text'), 1, '{"placeholder": "Divider label"}');
 
@@ -2889,7 +2882,7 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 VALUES (get_style_id('divider'), get_field_id('mantine_color'), 'gray', 'Sets the color of the divider. For more information check https://mantine.dev/core/divider', 0, 0, 'Color');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('divider'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Divider will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/divider', 0, 0, 'Use Mantine Style');
+VALUES (get_style_id('divider'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Divider will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/divider', 0, 1, 'Use Mantine Style');
 
 -- ===========================================
 -- PAPER COMPONENT
@@ -2928,7 +2921,7 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 VALUES (get_style_id('paper'), get_field_id('mantine_py'), NULL, 'Sets the vertical padding of the paper. For more information check https://mantine.dev/core/paper', 0, 0, 'Vertical Padding');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('paper'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Paper will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/paper', 0, 0, 'Use Mantine Style');
+VALUES (get_style_id('paper'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Paper will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/paper', 0, 1, 'Use Mantine Style');
 
 -- ===========================================
 -- SCROLLAREA COMPONENT
@@ -2975,7 +2968,7 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 VALUES (get_style_id('scrollArea'), get_field_id('mantine_height'), NULL, 'Sets the height of the scroll area. For more information check https://mantine.dev/core/scroll-area', 0, 0, 'Height');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('scrollArea'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set ScrollArea will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/scroll-area', 0, 0, 'Use Mantine Style');
+VALUES (get_style_id('scrollArea'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set ScrollArea will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/scroll-area', 0, 1, 'Use Mantine Style');
 
 -- ===========================================
 -- CARD STYLE
