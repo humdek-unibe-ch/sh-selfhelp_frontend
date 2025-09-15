@@ -899,9 +899,12 @@ export interface IAccordionItemStyle extends IBaseStyle {
 export interface INotificationStyle extends IBaseStyle {
     style_name: 'notification';
     title?: IContentField<string>;                    // Translatable title
+    content?: IContentField<string>;                  // Translatable content/message
+    mantine_left_icon?: IContentField<string>;        // Select-icon field for icon
     mantine_color?: IContentField<string>;            // Color picker field
     mantine_notification_loading?: IContentField<string>; // Checkbox field for loading
     mantine_notification_with_close_button?: IContentField<string>; // Checkbox field for close button
+    mantine_notification_with_border?: IContentField<string>; // Checkbox field for border
     mantine_radius?: IContentField<string>;           // Select field for radius
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }

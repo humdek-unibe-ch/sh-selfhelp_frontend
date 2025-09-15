@@ -2164,9 +2164,20 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('notification'), get_field_id('mantine_notification_with_close_button'), '1', 'If `withCloseButton` prop is set, notification will have a close button. For more information check https://mantine.dev/core/notification', 0, 0, 'With Close Button');
 
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_notification_with_border', get_field_type_id('checkbox'), 0, null);
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('notification'), get_field_id('mantine_notification_with_border'), '0', 'If `withBorder` prop is set, notification will have a border. For more information check https://mantine.dev/core/notification', 0, 0, 'With Border');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('notification'), get_field_id('mantine_left_icon'), NULL, 'Sets the icon for the notification. If no icon is selected, a default icon matching the color will be used. For more information check https://mantine.dev/core/notification', 0, 0, 'Icon');
+
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('notification'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the notification. For more information check https://mantine.dev/core/notification', 0, 0, 'Radius');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('notification'), get_field_id('content'), NULL, 'Sets the main content/message of the notification. For more information check https://mantine.dev/core/notification', 0, 0, 'Content');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('notification'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Notification will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/notification', 0, 1, 'Use Mantine Style');
