@@ -905,7 +905,7 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
     (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
     get_style_group_id('mantine'),
     'Mantine Grid component for responsive 12 columns grid system',
-    1
+    0
 );
 
 -- Add Grid-specific fields
@@ -2757,14 +2757,14 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
 );
 
 -- Add Highlight-specific fields
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_highlight_highlight', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "options":[
-{"value":"highlight","text":"highlight"},
-{"value":"important","text":"important"},
-{"value":"text","text":"text"}
-]}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_highlight_highlight', get_field_type_id('text'), 1, NULL);
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('highlight'), get_field_id('mantine_highlight_highlight'), 'highlight', 'Sets the text to highlight. For more information check https://mantine.dev/core/highlight', 0, 0, 'Highlight Text');
+VALUES (get_style_id('highlight'), get_field_id('mantine_highlight_highlight'), 'highlight', 'Sets the text to highlight within the content. This is translatable content that can be different in each language.', 0, 0, 'Highlight Text');
+
+-- Add content field for the main text to be highlighted
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('highlight'), get_field_id('text'), 'Highlight some text in this content', 'The main text content where highlighting will be applied. This is translatable content.', 0, 0, 'Content');
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)

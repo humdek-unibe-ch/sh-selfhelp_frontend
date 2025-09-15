@@ -18,6 +18,8 @@ interface IFileInputStyleProps {
  * @param {IFileInputStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine FileInput with styled configuration
  */
+
+//TODO: adjust the styl to handle properly files and how to save them on the server.
 const FileInputStyle: React.FC<IFileInputStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
     const placeholder = getFieldContent(style, 'placeholder');

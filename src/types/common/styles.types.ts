@@ -931,7 +931,8 @@ export interface ICodeStyle extends IBaseStyle {
 
 export interface IHighlightStyle extends IBaseStyle {
     style_name: 'highlight';
-    mantine_highlight_highlight?: IContentField<string>; // Select field for highlight text
+    text?: IContentField<string>;                     // Translatable main content to be highlighted
+    mantine_highlight_highlight?: IContentField<string>; // Translatable text to highlight within content
     mantine_color?: IContentField<string>;            // Color picker field
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
