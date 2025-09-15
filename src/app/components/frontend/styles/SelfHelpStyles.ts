@@ -13,7 +13,7 @@ export { default as TwoFactorAuthStyle } from './TwoFactorAuthStyle';
 // Layout & Container Styles
 export { default as ContainerStyle } from './mantine/ContainerStyle';
 export { default as DivStyle } from './DivStyle';
-export { default as AlertStyle } from './AlertStyle';
+export { default as AlertStyle } from './mantine/AlertStyle';
 export { default as CardStyle } from './mantine/card/CardStyle';
 export { default as CardSegmentStyle } from './mantine/card/CardSegmentStyle';
 export { default as CenterStyle } from './mantine/CenterStyle';

@@ -16,7 +16,7 @@ import {
     BackgroundImageStyle, BadgeStyle, BlockquoteStyle, ChipStyle,
     CodeStyle, ColorInputStyle, ColorPickerStyle, ComboboxStyle,
     DividerStyle, FieldsetStyle, FileInputStyle, HighlightStyle, IndicatorStyle,
-    KbdStyle, ListStyle, ListItemStyle, MultiSelectStyle, NotificationStyle, NumberInputStyle,
+    KbdStyle, ListStyle, ListItemStyle, NotificationStyle, NumberInputStyle,
     RadioGroupStyle, RangeSliderStyle, RatingStyle, SegmentedControlStyle,
     SpoilerStyle, StepperStyle, StepperStepStyle, StepperCompleteStyle,
     SwitchStyle, ThemeIconStyle, TimelineStyle, TimelineItemStyle,

@@ -48,6 +48,7 @@ export { default as AccordionStyle } from './accordion/AccordionStyle';
 export { default as AccordionItemStyle } from './accordion/AccordionItemStyle';
 
 // Feedback Components
+export { default as AlertStyle } from './AlertStyle';
 export { default as NotificationStyle } from './NotificationStyle';
 
 // Data Display Components (continued)
@@ -229,6 +230,7 @@ export const MANTINE_COMPONENT_MAP = {
     'accordion-Item': 'AccordionItemStyle',
 
     // Feedback Components
+    'alert': 'AlertStyle',
     'notification': 'NotificationStyle',
 
     // Typography Components

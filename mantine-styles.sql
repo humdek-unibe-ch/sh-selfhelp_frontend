@@ -2192,6 +2192,50 @@ SELECT s1.id, s2.id FROM styles s1, styles s2
 WHERE s1.name = 'stepper' AND s2.name = 'stepper-Complete';
 
 -- ===========================================
+-- ALERT COMPONENT
+-- ===========================================
+
+-- Add new style 'alert' based on Mantine Alert component
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+    NULL,
+    'alert',
+    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    get_style_group_id('mantine'),
+    'Mantine Alert component for displaying important messages and notifications',
+    1
+);
+
+-- Add Alert-specific fields
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_alert_title', get_field_type_id('text'), 1, null);
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('alert'), get_field_id('mantine_alert_title'), NULL, 'Sets the title of the alert. For more information check https://mantine.dev/core/alert', 0, 0, 'Title');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_with_close_button', get_field_type_id('checkbox'), 0, null);
+
+-- Reuse existing fields
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('alert'), get_field_id('mantine_variant'), 'light', 'Sets the variant of the alert. For more information check https://mantine.dev/core/alert', 0, 0, 'Variant');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('alert'), get_field_id('mantine_color'), 'blue', 'Sets the color of the alert. For more information check https://mantine.dev/core/alert', 0, 0, 'Color');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('alert'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the alert. For more information check https://mantine.dev/core/alert', 0, 0, 'Radius');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('alert'), get_field_id('mantine_left_icon'), NULL, 'Sets the icon for the alert. For more information check https://mantine.dev/core/alert', 0, 0, 'Icon');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('alert'), get_field_id('mantine_with_close_button'), '0', 'If set, the alert will have a close button. For more information check https://mantine.dev/core/alert', 0, 0, 'With Close Button');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('alert'), get_field_id('content'), NULL, 'Sets the main content/message of the alert. For more information check https://mantine.dev/core/alert', 0, 0, 'Content');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('alert'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the alert component', 0, 1, 'Use Mantine Style');
+
+-- ===========================================
 -- ACCORDION COMPONENT
 -- ===========================================
 

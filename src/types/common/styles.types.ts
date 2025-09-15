@@ -178,8 +178,15 @@ export interface IDividerStyle extends IBaseStyle {
 
 export interface IAlertStyle extends IBaseStyle {
     style_name: 'alert';
-    type?: IContentField<string>;
-    is_dismissable?: IContentField<string>;
+    mantine_alert_title?: IContentField<string>;
+    close_button_label?: IContentField<string>;
+    mantine_variant?: IContentField<string>;
+    mantine_color?: IContentField<string>;
+    mantine_radius?: IContentField<string>;
+    mantine_left_icon?: IContentField<string>;
+    mantine_with_close_button?: IContentField<string>;
+    content?: IContentField<string>;
+    use_mantine_style?: IContentField<string>;
 }
 
 
