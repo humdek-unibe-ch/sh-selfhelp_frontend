@@ -1965,29 +1965,6 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 (get_style_id('combobox'), get_field_id('mantine_combobox_clearable'), '0', 'If set, allows clearing the selection in single-select mode.', 0, 0, 'Clearable'),
 (get_style_id('combobox'), get_field_id('mantine_combobox_separator'), ' ', 'Separator used to join multiple selected values (only applies when multi-select is enabled).', 0, 0, 'Separator');
 
--- ===========================================
--- MULTISELECT COMPONENT
--- ===========================================
-
--- Add new style 'multiSelect' based on Mantine MultiSelect component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
-    NULL,
-    'multiSelect',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
-    get_style_group_id('mantine'),
-    'Mantine MultiSelect component for multiple selection',
-    0
-);
-
--- Add MultiSelect-specific fields
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('multiSelect'), get_field_id('placeholder'), 'Select options', 'Sets the placeholder text for the multi-select. For more information check https://mantine.dev/core/multi-select', 0, 0, 'Placeholder');
-
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_multi_select_data', get_field_type_id('textarea'), 1, '{"rows": 3, "placeholder": "Enter JSON array of multi-select options"}');
-
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('multiSelect'), get_field_id('mantine_multi_select_data'), '[{"value":"option1","text":"Option 1"},{"value":"option2","text":"Option 2"},{"value":"option3","text":"Option 3"}]', 'Sets the data/options for the multi-select as JSON array. Format: [{"value":"option1","text":"Option 1"}]. For more information check https://mantine.dev/core/multi-select', 0, 0, 'Data');
-
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_multi_select_max_values', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "options":[
 {"value":"3","text":"3"},
 {"value":"5","text":"5"},
@@ -1996,20 +1973,7 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 ]}');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('multiSelect'), get_field_id('mantine_multi_select_max_values'), NULL, 'Sets the maximum number of values that can be selected. For more information check https://mantine.dev/core/multi-select', 0, 0, 'Max Values');
-
--- Reuse existing fields
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('multiSelect'), get_field_id('mantine_size'), 'sm', 'Sets the size of the multi-select. For more information check https://mantine.dev/core/multi-select', 0, 0, 'Size');
-
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('multiSelect'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the multi-select. For more information check https://mantine.dev/core/multi-select', 0, 0, 'Radius');
-
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('multiSelect'), get_field_id('disabled'), '0', 'If `disabled` prop is set MultiSelect will be disabled. For more information check https://mantine.dev/core/multi-select', 0, 0, 'Disabled');
-
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('multiSelect'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set MultiSelect will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/multi-select', 0, 1, 'Use Mantine Style');
+VALUES (get_style_id('combobox'), get_field_id('mantine_multi_select_max_values'), NULL, 'Sets the maximum number of values that can be selected. For more information check https://mantine.dev/core/multi-select', 0, 0, 'Max Values');
 
 -- ===========================================
 -- ACTION ICON COMPONENT

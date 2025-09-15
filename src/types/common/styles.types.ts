@@ -703,8 +703,6 @@ export interface IComboboxStyle extends IBaseStyle {
     style_name: 'combobox';
     placeholder?: IContentField<string>;              // Translatable placeholder
     mantine_combobox_options?: IContentField<string>; // Translatable JSON textarea for options
-    mantine_size?: IContentField<string>;             // Select field for size
-    mantine_radius?: IContentField<string>;           // Select field for radius
     disabled?: IContentField<string>;                 // Checkbox field for disabled state
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
     // Form integration fields
@@ -719,17 +717,7 @@ export interface IComboboxStyle extends IBaseStyle {
     mantine_combobox_creatable?: IContentField<string>;    // Creatable toggle
     mantine_combobox_clearable?: IContentField<string>;    // Clearable toggle
     mantine_combobox_separator?: IContentField<string>;     // Separator for multi-select
-}
-
-export interface IMultiSelectStyle extends IBaseStyle {
-    style_name: 'multiSelect';
-    placeholder?: IContentField<string>;              // Translatable placeholder
-    mantine_multi_select_data?: IContentField<string>; // Translatable JSON textarea for data
-    mantine_multi_select_max_values?: IContentField<string>; // Select field for max values
-    mantine_size?: IContentField<string>;             // Select field for size
-    mantine_radius?: IContentField<string>;           // Select field for radius
-    disabled?: IContentField<string>;                 // Checkbox field for disabled state
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    mantine_multi_select_max_values?: IContentField<string>; // Max values for multi-select
 }
 
 export interface IActionIconStyle extends IBaseStyle {

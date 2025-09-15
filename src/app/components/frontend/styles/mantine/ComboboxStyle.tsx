@@ -42,6 +42,7 @@ interface IComboboxStyleProps {
  */
 const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
+    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
     const placeholder = getFieldContent(style, 'placeholder') || 'Select option...';
     const disabled = getFieldContent(style, 'disabled') === '1';
 
@@ -58,6 +59,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style }) => {
     const creatable = getFieldContent(style, 'mantine_combobox_creatable') === '1';
     const clearable = getFieldContent(style, 'mantine_combobox_clearable') === '1';
     const separator = getFieldContent(style, 'mantine_combobox_separator') || ' ';
+    const maxValues = getFieldContent(style, 'mantine_multi_select_max_values') ? parseInt(getFieldContent(style, 'mantine_multi_select_max_values')!) : undefined;
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
@@ -97,6 +99,10 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style }) => {
     const isPredefinedValue = (optionValue: string): boolean => {
         return predefinedValues.has(optionValue);
     };
+
+    if (!use_mantine_style) {
+        return null;
+    }
 
     // State management
     const [showCreateInput, setShowCreateInput] = useState(false);
@@ -180,8 +186,8 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style }) => {
     const handleCreateValue = useCallback(() => {
         if (newValue.trim()) {
             if (multiSelect) {
-                // In multi-select mode, add to existing values if not already present
-                if (!currentValues.includes(newValue)) {
+                // In multi-select mode, add to existing values if not already present and under maxValues limit
+                if (!currentValues.includes(newValue) && (!maxValues || currentValues.length < maxValues)) {
                     const updatedValues = [...currentValues, newValue];
                     setSelectedValues(updatedValues);
                 }
@@ -192,7 +198,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style }) => {
             setNewValue('');
             setShowCreateInput(false);
         }
-    }, [newValue, currentValues, multiSelect]);
+    }, [newValue, currentValues, multiSelect, maxValues]);
 
     // Handle creating multiple values
     const handleCreateMultipleValues = useCallback(() => {
@@ -201,25 +207,39 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style }) => {
             const newVals = multiValues.split(/[\s\n]+/).filter(Boolean);
             // Filter out values that are already in current values
             const uniqueNewVals = newVals.filter(val => !currentValues.includes(val));
-            const updatedValues = [...currentValues, ...uniqueNewVals];
+
+            // Respect maxValues limit for multi-select
+            let valuesToAdd = uniqueNewVals;
+            if (maxValues) {
+                const availableSlots = maxValues - currentValues.length;
+                if (availableSlots > 0) {
+                    valuesToAdd = uniqueNewVals.slice(0, availableSlots);
+                } else {
+                    valuesToAdd = [];
+                }
+            }
+
+            const updatedValues = [...currentValues, ...valuesToAdd];
             setSelectedValues(updatedValues);
             setMultiValues('');
             setShowMultiInput(false);
         }
-    }, [multiValues, currentValues]);
+    }, [multiValues, currentValues, maxValues]);
 
     // Handle adding/removing values
     const handleToggleValue = useCallback((toggleValue: string) => {
         if (multiSelect) {
             const newValues = currentValues.includes(toggleValue)
                 ? currentValues.filter(v => v !== toggleValue)
-                : [...currentValues, toggleValue];
+                : maxValues && currentValues.length >= maxValues
+                    ? currentValues // Don't add if maxValues limit is reached
+                    : [...currentValues, toggleValue];
             setSelectedValues(newValues);
         } else {
             setSelectedValues([toggleValue]);
             combobox.closeDropdown();
         }
-    }, [currentValues, multiSelect]);
+    }, [currentValues, multiSelect, maxValues]);
 
     // Handle removing a pill
     const handleRemovePill = useCallback((valueToRemove: string) => {

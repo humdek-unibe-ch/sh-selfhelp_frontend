@@ -156,8 +156,6 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <SwitchStyle style={style} />;
         case 'combobox':
             return <ComboboxStyle style={style} />;
-        case 'multiSelect':
-            return <MultiSelectStyle style={style} />;
 
         // Tab Styles
         case 'tabs':

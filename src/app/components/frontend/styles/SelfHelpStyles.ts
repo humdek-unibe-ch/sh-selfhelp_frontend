@@ -55,7 +55,6 @@ export { default as RangeSliderStyle } from './mantine/RangeSliderStyle';
 export { default as SegmentedControlStyle } from './mantine/SegmentedControlStyle';
 export { default as SwitchStyle } from './mantine/SwitchStyle';
 export { default as ComboboxStyle } from './mantine/ComboboxStyle';
-export { default as MultiSelectStyle } from './mantine/MultiSelectStyle';
 
 // Tab Styles
 export { default as TabsStyle } from './mantine/TabsStyle';
