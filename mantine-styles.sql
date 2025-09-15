@@ -1483,15 +1483,20 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
 
 -- Add Fieldset-specific fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('fieldset'), get_field_id('legend'), NULL, 'Sets the legend/title of the fieldset. For more information check https://mantine.dev/core/fieldset', 0, 0, 'Legend');
+VALUES (get_style_id('fieldset'), get_field_id('label'), NULL, 'Sets the legend/title of the fieldset. For more information check https://mantine.dev/core/fieldset', 0, 0, 'Legend');
 
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_fieldset_variant', get_field_type_id('select'), 0, '{"searchable": false, "clearable": false, "options":[
 {"value":"default","text":"Default"},
-{"value":"filled","text":"Filled"}
+{"value":"filled","text":"Filled"},
+{"value":"unstyled","text":"Unstyled"}
 ]}');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('fieldset'), get_field_id('mantine_fieldset_variant'), 'default', 'Sets the variant of the fieldset. For more information check https://mantine.dev/core/fieldset', 0, 0, 'Variant');
+
+-- Add disabled field for fieldset
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('fieldset'), get_field_id('disabled'), '0', 'If set, disables all inputs and buttons inside the fieldset. For more information check https://mantine.dev/core/fieldset', 0, 0, 'Disabled');
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)

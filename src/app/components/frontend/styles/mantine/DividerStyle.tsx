@@ -26,27 +26,21 @@ const DividerStyle: React.FC<IDividerStyleProps> = ({ style }) => {
     const labelPosition = getFieldContent(style, 'mantine_divider_label_position') || 'center';
     const orientation = getFieldContent(style, 'mantine_orientation') || 'horizontal';
     const color = getFieldContent(style, 'mantine_color') || 'gray';
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
-    if (use_mantine_style) {
-        return (
-            <Divider
-                variant={variant as any}
-                size={size}
-                label={label}
-                labelPosition={labelPosition as any}
-                orientation={orientation as any}
-                color={color}
-                className={cssClass}
-            />
-        );
-    }
-
-    // Return null if Mantine styling is disabled (no fallback needed)
-    return null;
+    return (
+        <Divider
+            variant={variant as any}
+            size={size}
+            label={label}
+            labelPosition={labelPosition as any}
+            orientation={orientation as any}
+            color={color}
+            className={cssClass}
+        />
+    );
 };
 
 export default DividerStyle;
