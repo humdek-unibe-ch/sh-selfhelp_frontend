@@ -20,9 +20,8 @@ interface IKbdStyleProps {
  */
 const KbdStyle: React.FC<IKbdStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
-    const key = getFieldContent(style, 'content') || getFieldContent(style, 'label') || 'A';
+    const key = getFieldContent(style, 'label') || 'A';
     const size = getFieldContent(style, 'mantine_size') || 'sm';
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
@@ -30,34 +29,10 @@ const KbdStyle: React.FC<IKbdStyleProps> = ({ style }) => {
     // Build style object
     const styleObj: React.CSSProperties = {};
 
-    if (use_mantine_style) {
-        return (
-            <Kbd size={size as any} className={cssClass} style={styleObj}>
-                {key}
-            </Kbd>
-        );
-    }
-
-    // Fallback to basic styled span when Mantine styling is disabled
     return (
-        <span
-            className={cssClass}
-            style={{
-                ...styleObj,
-                display: 'inline-block',
-                padding: '2px 6px',
-                backgroundColor: '#f5f5f5',
-                border: '1px solid #ddd',
-                borderRadius: '3px',
-                fontSize: size === 'xs' ? '0.75rem' : size === 'lg' ? '1rem' : '0.875rem',
-                fontFamily: 'monospace',
-                fontWeight: 'bold',
-                color: '#333',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
-            }}
-        >
+        <Kbd size={size as any} className={cssClass} style={styleObj}>
             {key}
-        </span>
+        </Kbd>
     );
 };
 

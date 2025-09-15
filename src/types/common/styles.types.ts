@@ -828,6 +828,7 @@ export interface IIndicatorStyle extends IBaseStyle {
 
 export interface IKbdStyle extends IBaseStyle {
     style_name: 'kbd';
+    label?: IContentField<string>;                    // Translatable label
     mantine_size?: IContentField<string>;             // Select field for size
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }

@@ -2617,6 +2617,9 @@ VALUES (get_style_id('kbd'), get_field_id('mantine_size'), 'sm', 'Sets the size 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('kbd'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Kbd will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/kbd', 0, 1, 'Use Mantine Style');
 
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('kbd'), get_field_id('label'), '', 'Sets the label text displayed in the keyboard key. For more information check https://mantine.dev/core/kbd', 0, 0, 'Label');
+
 -- ===========================================
 -- SPOILER COMPONENT
 -- ===========================================
