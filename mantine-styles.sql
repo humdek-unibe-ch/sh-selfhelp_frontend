@@ -3298,6 +3298,83 @@ WHERE s1.name = 'card' AND s2.name = 'card-segment';
 -- ===========================================
 -- OPTIMIZATION RESULTS:
 -- ===========================================
+-- PROGRESS COMPONENT STYLES
+-- ===========================================
+
+-- Add progress-root style (compound progress component)
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+    NULL,
+    'progress-root',
+    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    get_style_group_id('mantine'),
+    'Mantine Progress.Root component for compound progress bars with multiple sections',
+    0
+);
+
+-- Add progress style (basic progress component)
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+    NULL,
+    'progress',
+    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    get_style_group_id('mantine'),
+    'Mantine Progress component for basic progress bars',
+    0
+);
+
+-- Add progress-section style (section within compound progress)
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+    NULL,
+    'progress-section',
+    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    get_style_group_id('mantine'),
+    'Mantine Progress.Section component for individual progress sections',
+    0
+);
+
+-- Create new fields for Progress components
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'mantine_progress_striped', get_field_type_id('checkbox'), 0, null),
+(NULL, 'mantine_progress_animated', get_field_type_id('checkbox'), 0, null),
+(NULL, 'mantine_progress_auto_contrast', get_field_type_id('checkbox'), 0, null),
+(NULL, 'mantine_progress_transition_duration', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "placeholder": "200", "options": [{"value": "150", "text": "Fast (150ms)"}, {"value": "200", "text": "Normal (200ms)"}, {"value": "300", "text": "Slow (300ms)"}, {"value": "400", "text": "Very Slow (400ms)"}, {"value": "0", "text": "Instant (0ms)"}]}'),
+(NULL, 'mantine_tooltip_label', get_field_type_id('text'), 1, null),
+(NULL, 'mantine_tooltip_position', get_field_type_id('option_select'), 0, '{"options": [{"value": "top", "text": "Top"}, {"value": "bottom", "text": "Bottom"}, {"value": "left", "text": "Left"}, {"value": "right", "text": "Right"}, {"value": "top-start", "text": "Top Start"}, {"value": "top-end", "text": "Top End"}, {"value": "bottom-start", "text": "Bottom Start"}, {"value": "bottom-end", "text": "Bottom End"}, {"value": "left-start", "text": "Left Start"}, {"value": "left-end", "text": "Left End"}, {"value": "right-start", "text": "Right Start"}, {"value": "right-end", "text": "Right End"}]}');
+
+-- Link fields to progress-root style
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
+(get_style_id('progress-root'), get_field_id('mantine_size'), 'md', 'Sets the size of the progress bar. Choose from preset sizes or enter a custom value. For more information check https://mantine.dev/core/progress', 0, 0, 'Size'),
+(get_style_id('progress-root'), get_field_id('mantine_progress_auto_contrast'), '0', 'If set, colors will be adjusted for better contrast. For more information check https://mantine.dev/core/progress', 0, 0, 'Auto Contrast'),
+(get_style_id('progress-root'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the progress component', 0, 1, 'Use Mantine Style');
+
+-- Link fields to progress style
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
+(get_style_id('progress'), get_field_id('value'), '0', 'Sets the progress value (0-100). For more information check https://mantine.dev/core/progress', 0, 0, 'Progress Value'),
+(get_style_id('progress'), get_field_id('mantine_color'), 'blue', 'Sets the color of the progress bar. For more information check https://mantine.dev/core/progress', 0, 0, 'Color'),
+(get_style_id('progress'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the progress bar. For more information check https://mantine.dev/core/progress', 0, 0, 'Radius'),
+(get_style_id('progress'), get_field_id('mantine_size'), 'md', 'Sets the size of the progress bar. Choose from preset sizes or enter a custom value. For more information check https://mantine.dev/core/progress', 0, 0, 'Size'),
+(get_style_id('progress'), get_field_id('mantine_progress_striped'), '0', 'If set, displays stripes on the progress bar. For more information check https://mantine.dev/core/progress', 0, 0, 'Striped'),
+(get_style_id('progress'), get_field_id('mantine_progress_animated'), '0', 'If set, animates the progress bar stripes. For more information check https://mantine.dev/core/progress', 0, 0, 'Animated'),
+(get_style_id('progress'), get_field_id('mantine_progress_transition_duration'), '200', 'Sets the transition duration in milliseconds. Choose from preset durations or enter a custom value. For more information check https://mantine.dev/core/progress', 0, 0, 'Transition Duration'),
+(get_style_id('progress'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the progress component', 0, 1, 'Use Mantine Style');
+
+-- Link fields to progress-section style
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
+(get_style_id('progress-section'), get_field_id('value'), '0', 'Sets the value for this progress section (0-100). For more information check https://mantine.dev/core/progress', 0, 0, 'Section Value'),
+(get_style_id('progress-section'), get_field_id('mantine_color'), 'blue', 'Sets the color of this progress section. For more information check https://mantine.dev/core/progress', 0, 0, 'Color'),
+(get_style_id('progress-section'), get_field_id('mantine_progress_striped'), '0', 'If set, displays stripes on this progress section. For more information check https://mantine.dev/core/progress', 0, 0, 'Striped'),
+(get_style_id('progress-section'), get_field_id('mantine_progress_animated'), '0', 'If set, animates this progress section stripes. For more information check https://mantine.dev/core/progress', 0, 0, 'Animated'),
+(get_style_id('progress-section'), get_field_id('label'), NULL, 'Sets the label text for this progress section. For more information check https://mantine.dev/core/progress', 0, 0, 'Label'),
+(get_style_id('progress-section'), get_field_id('mantine_tooltip_label'), NULL, 'Sets the tooltip text for this progress section. Leave empty to disable tooltip. For more information check https://mantine.dev/core/tooltip', 0, 0, 'Tooltip Label'),
+(get_style_id('progress-section'), get_field_id('mantine_tooltip_position'), 'top', 'Sets the position of the tooltip. For more information check https://mantine.dev/core/tooltip', 0, 0, 'Tooltip Position'),
+(get_style_id('progress-section'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the progress section component', 0, 1, 'Use Mantine Style');
+
+-- Define parent-child relationships for progress components
+-- progress-root can contain progress-section
+INSERT IGNORE INTO styles_allowed_relationships (id_parent_style, id_child_style)
+SELECT s1.id, s2.id FROM styles s1, styles s2
+WHERE s1.name = 'progress-root' AND s2.name = 'progress-section';
+
+-- ===========================================
 -- ✅ Eliminated duplicate field definitions (~97 → ~30 unique fields)
 -- ✅ Unified 9 different field types across 30+ components
 -- ✅ All translatable fields properly marked with display = 1
@@ -3306,6 +3383,7 @@ WHERE s1.name = 'card' AND s2.name = 'card-segment';
 -- ✅ Simplified component structure (accordion-item accepts all children)
 -- ✅ Converted select fields to text/textarea fields for better flexibility
 -- ✅ Added 3 new components: Divider, Paper, ScrollArea
+-- ✅ Added 4 new components: Progress, ProgressRoot, ProgressSection, ProgressLabel
 -- ✅ Reduced code duplication by ~70%
 -- ✅ Improved maintainability and reusability
 -- ✅ Proper SQL script execution order

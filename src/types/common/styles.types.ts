@@ -18,7 +18,7 @@ export type TStyleName =
     | 'code'
     // Mantine data display components
     | 'badge' | 'chip' | 'avatar' | 'timeline' | 'timeline-item' | 'indicator'
-    | 'kbd' | 'rating' | 'themeIcon'
+    | 'kbd' | 'rating' | 'themeIcon' | 'progress' | 'progress-root' | 'progress-section' | 'progress-label'
     // Mantine navigation components
     | 'stepper' | 'stepper-Step' | 'stepper-Complete' | 'accordion' | 'accordion-Item'
     // Mantine feedback components
@@ -454,16 +454,6 @@ export interface ITableCellStyle extends IBaseStyle {
     style_name: 'tableCell';
 }
 
-// Misc Styles
-export interface IProgressBarStyle extends IBaseStyle {
-    style_name: 'progressBar';
-    type?: IContentField<string>;
-    count?: IContentField<string>;
-    count_max?: IContentField<string>;
-    is_striped?: IContentField<string>;
-    has_label?: IContentField<string>;
-}
-
 export interface IShowUserInputStyle extends IBaseStyle {
     style_name: 'showUserInput';
     delete_title?: IContentField<string>;
@@ -848,6 +838,37 @@ export interface IRatingStyle extends IBaseStyle {
     use_mantine_style?: IContentField<string>;          // Checkbox field for Mantine styling
 }
 
+export interface IProgressStyle extends IBaseStyle {
+    style_name: 'progress';
+    value?: IContentField<string>;             // Number field for progress value (0-100)
+    mantine_color?: IContentField<string>;                      // Color picker field
+    mantine_radius?: IContentField<string>;                     // Select field for radius
+    mantine_size?: IContentField<string>;                       // Select field for size
+    mantine_progress_striped?: IContentField<string>;           // Checkbox field for striped pattern
+    mantine_progress_animated?: IContentField<string>;          // Checkbox field for animation
+    mantine_progress_transition_duration?: IContentField<string>; // Select field for transition duration
+    use_mantine_style?: IContentField<string>;                  // Checkbox field for Mantine styling
+}
+
+export interface IProgressRootStyle extends IBaseStyle {
+    style_name: 'progress-root';
+    mantine_size?: IContentField<string>;                       // Select field for size
+    mantine_progress_auto_contrast?: IContentField<string>;     // Checkbox field for auto contrast
+    use_mantine_style?: IContentField<string>;                  // Checkbox field for Mantine styling
+}
+
+export interface IProgressSectionStyle extends IBaseStyle {
+    style_name: 'progress-section';
+    value?: IContentField<string>;             // Number field for section value (0-100)
+    mantine_color?: IContentField<string>;                      // Color picker field
+    mantine_progress_striped?: IContentField<string>;           // Checkbox field for striped pattern
+    mantine_progress_animated?: IContentField<string>;          // Checkbox field for animation
+    label?: IContentField<string>;                              // Text field for section label
+    mantine_tooltip_label?: IContentField<string>;              // Text field for tooltip label (display = 1)
+    mantine_tooltip_position?: IContentField<string>;           // Select field for tooltip position
+    use_mantine_style?: IContentField<string>;                  // Checkbox field for Mantine styling
+}
+
 export interface IThemeIconStyle extends IBaseStyle {
     style_name: 'themeIcon';
     mantine_variant?: IContentField<string>;          // Select field for variant
@@ -1084,7 +1105,6 @@ export type TStyle =
     | ITableStyle
     | ITableRowStyle
     | ITableCellStyle
-    | IProgressBarStyle
     | IShowUserInputStyle
     | IVersionStyle
     | ILoopStyle
@@ -1119,6 +1139,9 @@ export type TStyle =
     | IIndicatorStyle
     | IKbdStyle
     | IRatingStyle
+    | IProgressStyle
+    | IProgressRootStyle
+    | IProgressSectionStyle
     | IThemeIconStyle
     // Mantine Navigation Components
     | IStepperStyle

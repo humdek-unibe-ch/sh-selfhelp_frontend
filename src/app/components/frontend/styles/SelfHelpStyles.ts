@@ -82,7 +82,6 @@ export { default as CheckboxStyle } from './CheckboxStyle';
 export { default as SliderStyle } from './SliderStyle';
 
 // UI Components
-export { default as ProgressBarStyle } from './ProgressBarStyle';
 export { default as HtmlTagStyle } from './HtmlTagStyle';
 
 // Table Styles
@@ -103,6 +102,7 @@ export { default as IndicatorStyle } from './mantine/IndicatorStyle';
 export { default as KbdStyle } from './mantine/KbdStyle';
 export { default as ThemeIconStyle } from './mantine/ThemeIconStyle';
 export { default as RatingStyle } from './mantine/RatingStyle';
+export { ProgressStyle, ProgressRootStyle, ProgressSectionStyle } from './mantine/progress';
 
 // Feedback Components
 export { default as NotificationStyle } from './mantine/NotificationStyle';

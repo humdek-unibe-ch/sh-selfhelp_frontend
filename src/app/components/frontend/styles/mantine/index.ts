@@ -40,6 +40,7 @@ export { default as KbdStyle } from './KbdStyle';
 export { default as ThemeIconStyle } from './ThemeIconStyle';
 export { default as ListStyle } from './ListStyle';
 export { default as ListItemStyle } from './ListItemStyle';
+export { ProgressStyle, ProgressRootStyle, ProgressSectionStyle } from './progress';
 
 // Navigation Components
 export { default as StepperStyle } from './StepperStyle';
@@ -223,6 +224,10 @@ export const MANTINE_COMPONENT_MAP = {
     'listItem': 'ListItemStyle',
     'rating': 'RatingStyle',
     'image': 'ImageStyle',
+    'progress': 'ProgressStyle',
+    'progress-root': 'ProgressRootStyle',
+    'progress-section': 'ProgressSectionStyle',
+    'progress-label': 'ProgressLabelStyle',
 
     // Navigation Components
     'stepper': 'StepperStyle',

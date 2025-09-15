@@ -5,7 +5,7 @@ import {
     LinkStyle, LoginStyle, MarkdownStyle, RegisterStyle,
     SelectStyle, TabsStyle, TabStyle, TextareaStyle, VideoStyle,
     AudioStyle, FigureStyle, PlaintextStyle, RadioStyle,
-    CheckboxStyle, SliderStyle, ProgressBarStyle,
+    CheckboxStyle, SliderStyle,
     HtmlTagStyle, ValidateStyle,
     ResetPasswordStyle, TwoFactorAuthStyle, TableStyle, TableRowStyle,
     TableCellStyle, ShowUserInputStyle, CenterStyle,
@@ -17,7 +17,7 @@ import {
     CodeStyle, ColorInputStyle, ColorPickerStyle, ComboboxStyle,
     DividerStyle, PaperStyle, FieldsetStyle, FileInputStyle, HighlightStyle, IndicatorStyle,
     KbdStyle, ListStyle, ListItemStyle, NotificationStyle, NumberInputStyle,
-    RadioGroupStyle, RangeSliderStyle, RatingStyle, SegmentedControlStyle,
+    ProgressStyle, ProgressRootStyle, ProgressSectionStyle, RadioGroupStyle, RangeSliderStyle, RatingStyle, SegmentedControlStyle,
     SpoilerStyle, StepperStyle, StepperStepStyle, StepperCompleteStyle,
     SwitchStyle, ThemeIconStyle, TimelineStyle, TimelineItemStyle,
     TitleStyle, TypographyStyle
@@ -184,10 +184,7 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <TableRowStyle style={style} />;
         case 'tableCell':
             return <TableCellStyle style={style} />;
-
-        // Progress & UI Elements
-        case 'progressBar':
-            return <ProgressBarStyle style={style} />;
+            
         case 'showUserInput':
             return <ShowUserInputStyle style={style} />;
         case 'avatar':
@@ -214,6 +211,12 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <ThemeIconStyle style={style} />;
         case 'rating':
             return <RatingStyle style={style} />;
+        case 'progress':
+            return <ProgressStyle style={style} />;
+        case 'progress-root':
+            return <ProgressRootStyle style={style} />;
+        case 'progress-section':
+            return <ProgressSectionStyle style={style} />;
         case 'notification':
             return <NotificationStyle style={style} />;
         case 'title':
