@@ -992,12 +992,17 @@ export interface IListStyle extends IBaseStyle {
     mantine_list_spacing?: IContentField<string>;     // Select field for spacing
     mantine_size?: IContentField<string>;             // Select field for size
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    mantine_list_list_style_type?: IContentField<string>; // Select field for list style type
+    mantine_list_with_padding?: IContentField<string>; // Checkbox field for with padding
+    mantine_list_center?: IContentField<string>; // Checkbox field for center
+    mantine_list_icon?: IContentField<string>; // Select-icon field for icon
 }
 
 export interface IListItemStyle extends IBaseStyle {
     style_name: 'list-item';
-    mantine_list_item_icon?: IContentField<string>;   // Select-icon field for icon
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    mantine_list_item_content?: IContentField<string>; // Textarea field for content (display = 1)
+    mantine_list_item_icon?: IContentField<string>;    // Select-icon field for icon
+    use_mantine_style?: IContentField<string>;         // Checkbox field for Mantine styling
 }
 
 export interface IBackgroundImageStyle extends IBaseStyle {

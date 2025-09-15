@@ -16,7 +16,7 @@ import {
     BackgroundImageStyle, BadgeStyle, BlockquoteStyle, ChipStyle,
     CodeStyle, ColorInputStyle, ColorPickerStyle, ComboboxStyle,
     DividerStyle, FieldsetStyle, FileInputStyle, HighlightStyle, IndicatorStyle,
-    KbdStyle, MultiSelectStyle, NotificationStyle, NumberInputStyle,
+    KbdStyle, ListStyle, ListItemStyle, MultiSelectStyle, NotificationStyle, NumberInputStyle,
     RadioGroupStyle, RangeSliderStyle, RatingStyle, SegmentedControlStyle,
     SpoilerStyle, StepperStyle, StepperStepStyle, StepperCompleteStyle,
     SwitchStyle, ThemeIconStyle, TimelineStyle, TimelineItemStyle,
@@ -202,6 +202,10 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <TimelineStyle style={style} />;
         case 'timeline-item':
             return <TimelineItemStyle style={style} />;
+        case 'list':
+            return <ListStyle style={style} />;
+        case 'list-item':
+            return <ListItemStyle style={style} />;
         case 'indicator':
             return <IndicatorStyle style={style} />;
         case 'kbd':

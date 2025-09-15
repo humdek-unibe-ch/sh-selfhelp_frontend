@@ -37,6 +37,8 @@ export { default as TimelineItemStyle } from './TimelineItemStyle';
 export { default as IndicatorStyle } from './IndicatorStyle';
 export { default as KbdStyle } from './KbdStyle';
 export { default as ThemeIconStyle } from './ThemeIconStyle';
+export { default as ListStyle } from './ListStyle';
+export { default as ListItemStyle } from './ListItemStyle';
 
 // Navigation Components
 export { default as StepperStyle } from './StepperStyle';
@@ -214,6 +216,8 @@ export const MANTINE_COMPONENT_MAP = {
     'indicator': 'IndicatorStyle',
     'kbd': 'KbdStyle',
     'themeIcon': 'ThemeIconStyle',
+    'list': 'ListStyle',
+    'listItem': 'ListItemStyle',
     'rating': 'RatingStyle',
     'image': 'ImageStyle',
 

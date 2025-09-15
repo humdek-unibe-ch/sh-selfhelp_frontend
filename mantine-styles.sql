@@ -2902,6 +2902,74 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 VALUES (get_style_id('title'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Title will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/title', 0, 1, 'Use Mantine Style');
 
 -- ===========================================
+-- LIST COMPONENTS
+-- ===========================================
+
+-- Add new style 'list' based on Mantine List component
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+    NULL,
+    'list',
+    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    get_style_group_id('mantine'),
+    'Mantine List component for displaying ordered or unordered lists',
+    0
+);
+
+-- Add new style 'list-item' based on Mantine List.Item component
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+    NULL,
+    'list-item',
+    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    get_style_group_id('mantine'),
+    'Mantine List.Item component for individual list items',
+    1
+);
+
+-- Create list-specific fields if they don't exist
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'mantine_list_list_style_type', get_field_type_id('select'), 0, '{
+  "options": [
+    {"value": "disc", "text": "Disc (●)"},
+    {"value": "circle", "text": "Circle (○)"},
+    {"value": "square", "text": "Square (■)"},
+    {"value": "decimal", "text": "Decimal (1, 2, 3)"},
+    {"value": "decimal-leading-zero", "text": "Decimal Leading Zero (01, 02, 03)"},
+    {"value": "lower-alpha", "text": "Lower Alpha (a, b, c)"},
+    {"value": "upper-alpha", "text": "Upper Alpha (A, B, C)"},
+    {"value": "lower-roman", "text": "Lower Roman (i, ii, iii)"},
+    {"value": "upper-roman", "text": "Upper Roman (I, II, III)"},
+    {"value": "none", "text": "None"}
+  ]
+}'),
+(NULL, 'mantine_list_item_content', get_field_type_id('textarea'), 1, null),
+(NULL, 'mantine_list_with_padding', get_field_type_id('checkbox'), 0, null),
+(NULL, 'mantine_list_center', get_field_type_id('checkbox'), 0, null),
+(NULL, 'mantine_list_icon', get_field_type_id('select-icon'), 0, null),
+(NULL, 'mantine_list_item_icon', get_field_type_id('select-icon'), 0, null);
+
+-- Link fields to list style
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
+(get_style_id('list'), get_field_id('mantine_list_list_style_type'), 'disc', 'Sets custom bullet style for the list (e.g., "disc", "circle", "square", "decimal", "lower-alpha"). For more information check https://mantine.dev/core/list', 0, 0, 'List Style Type'),
+(get_style_id('list'), get_field_id('mantine_list_with_padding'), '0', 'If set, adds padding to nested lists for better hierarchy. For more information check https://mantine.dev/core/list', 0, 0, 'With Padding'),
+(get_style_id('list'), get_field_id('mantine_list_center'), '0', 'If set, centers the list item content with the icon. For more information check https://mantine.dev/core/list', 0, 0, 'Center Content'),
+(get_style_id('list'), get_field_id('mantine_list_icon'), NULL, 'Sets the default icon for all list items. For more information check https://mantine.dev/core/list', 0, 0, 'Default Icon'),
+(get_style_id('list'), get_field_id('mantine_size'), 'md', 'Sets the size of the list. For more information check https://mantine.dev/core/list', 0, 0, 'Size'),
+(get_style_id('list'), get_field_id('mantine_spacing'), 'md', 'Sets the spacing between list items. For more information check https://mantine.dev/core/list', 0, 0, 'Spacing'),
+(get_style_id('list'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the list component', 0, 1, 'Use Mantine Style');
+
+-- Link fields to list-item style
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
+(get_style_id('list-item'), get_field_id('mantine_list_item_content'), NULL, 'The content text for this list item', 0, 0, 'Content'),
+(get_style_id('list-item'), get_field_id('mantine_list_item_icon'), NULL, 'Sets the icon for this list item, overrides the parent list icon. For more information check https://mantine.dev/core/list', 0, 0, 'Item Icon'),
+(get_style_id('list-item'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the list item component', 0, 1, 'Use Mantine Style');
+
+-- Define parent-child relationship: list can contain list-item
+INSERT IGNORE INTO styles_allowed_relationships (id_parent_style, id_child_style)
+SELECT s1.id, s2.id FROM styles s1, styles s2
+WHERE s1.name = 'list' AND s2.name = 'list-item';
+
+
+-- ===========================================
 -- TYPOGRAPHY COMPONENT
 -- ===========================================
 
