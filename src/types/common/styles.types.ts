@@ -2,7 +2,7 @@
 export type TStyleName =
     | 'login' | 'profile' | 'validate' | 'register' | 'resetPassword' | 'twoFactorAuth'
     | 'container' | 'alert' | 'div' | 'refContainer' | 'dataContainer' | 'htmlTag' | 'center'
-    | 'flex' | 'group' | 'stack' | 'simpleGrid' | 'space' | 'grid' | 'grid-column' | 'divider'
+    | 'flex' | 'group' | 'stack' | 'simpleGrid' | 'space' | 'grid' | 'grid-column' | 'divider' | 'paper'
     | 'heading' | 'markdown' | 'markdownInline' | 'plaintext'
     | 'formUserInput' | 'formUserInputLog' | 'formUserInputRecord' | 'input' | 'textarea' | 'select' | 'radio' | 'slider' | 'checkbox'
     | 'image' | 'video' | 'audio' | 'figure' | 'carousel'
@@ -173,6 +173,16 @@ export interface IDividerStyle extends IBaseStyle {
     mantine_divider_label_position?: IContentField<string>;
     mantine_orientation?: IContentField<string>;
     mantine_color?: IContentField<string>;
+    use_mantine_style?: IContentField<string>;
+}
+
+export interface IPaperStyle extends IBaseStyle {
+    style_name: 'paper';
+    mantine_paper_shadow?: IContentField<string>;
+    mantine_radius?: IContentField<string>;
+    mantine_px?: IContentField<string>;
+    mantine_py?: IContentField<string>;
+    mantine_border?: IContentField<string>;
     use_mantine_style?: IContentField<string>;
 }
 
@@ -815,7 +825,7 @@ export interface IIndicatorStyle extends IBaseStyle {
     label?: IContentField<string>;    // Text field for label
     mantine_indicator_inline?: IContentField<string>;   // Checkbox field for inline
     mantine_indicator_offset?: IContentField<string>;   // Select field for offset
-    mantine_indicator_with_border?: IContentField<string>; // Checkbox field for border
+    mantine_border?: IContentField<string>; // Checkbox field for border
     mantine_radius?: IContentField<string>;             // Select field for border radius
     mantine_color?: IContentField<string>;              // Color picker field
     use_mantine_style?: IContentField<string>;          // Checkbox field for Mantine styling
@@ -911,7 +921,7 @@ export interface INotificationStyle extends IBaseStyle {
     mantine_color?: IContentField<string>;            // Color picker field
     mantine_notification_loading?: IContentField<string>; // Checkbox field for loading
     mantine_notification_with_close_button?: IContentField<string>; // Checkbox field for close button
-    mantine_notification_with_border?: IContentField<string>; // Checkbox field for border
+    mantine_border?: IContentField<string>; // Checkbox field for border
     mantine_radius?: IContentField<string>;           // Select field for radius
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
@@ -970,7 +980,7 @@ export interface ICardStyle extends IBaseStyle {
     style_name: 'card';
     mantine_card_shadow?: IContentField<string>;      // Select field for shadow
     mantine_card_padding?: IContentField<string>;     // Select field for padding
-    mantine_card_with_border?: IContentField<string>; // Checkbox field for border
+    mantine_border?: IContentField<string>; // Checkbox field for border
     mantine_radius?: IContentField<string>;           // Select field for radius
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
@@ -1042,6 +1052,7 @@ export type TStyle =
     | IContainerStyle
     | ICenterStyle
     | IDividerStyle
+    | IPaperStyle
     | IAlertStyle
     | IDivStyle
     | IRefContainerStyle
@@ -1096,7 +1107,6 @@ export type TStyle =
     | ISegmentedControlStyle
     | ISwitchStyle
     | IComboboxStyle
-    | IMultiSelectStyle
     | IActionIconStyle
     // Mantine Typography Components
     | ICodeStyle

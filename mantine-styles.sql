@@ -94,6 +94,9 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 -- Add global tooltip field (reusable across all components)
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'tooltip', get_field_type_id('textarea'), 1, '{"rows": 2, "placeholder": "Enter tooltip text that appears on hover"}');
 
+-- Add global border field (reusable across all components that support withBorder prop)
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_border', get_field_type_id('checkbox'), 0, null);
+
 -- Add global tooltip position field (reusable across all components)
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_tooltip_position', get_field_type_id('select'), 0, '{"searchable": false, "clearable": true, "options":[
 {"value":"top","text":"Top"},
@@ -574,27 +577,31 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 VALUES (get_style_id('container'), get_field_id('mantine_fluid'), '0', 'If `fluid` prop is set Container will take 100% of parent width, ignoring size prop. For more information check https://mantine.dev/core/container', 0, 0, 'Fluid');
 
 -- Add horizontal padding field (core Mantine prop)
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_px', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "options":[
-{"value":"xs","text":"Extra Small"},
-{"value":"sm","text":"Small"},
-{"value":"md","text":"Medium"},
-{"value":"lg","text":"Large"},
-{"value":"xl","text":"Extra Large"},
-{"value":"0","text":"None"}
-]}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_px', get_field_type_id('slider'), 0, '{
+"options": [
+{"value": "none", "text": "None"},
+{"value": "xs", "text": "Extra Small"},
+{"value": "sm", "text": "Small"},
+{"value": "md", "text": "Medium"},
+{"value": "lg", "text": "Large"},
+{"value": "xl", "text": "Extra Large"}
+]
+}');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('container'), get_field_id('mantine_px'), NULL, 'Sets the horizontal padding of the Container component. Choose from predefined sizes or enter custom values. For more information check https://mantine.dev/core/container', 0, 0, 'Horizontal Padding');
 
 -- Add vertical padding field (core Mantine prop)
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_py', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "options":[
-{"value":"xs","text":"Extra Small"},
-{"value":"sm","text":"Small"},
-{"value":"md","text":"Medium"},
-{"value":"lg","text":"Large"},
-{"value":"xl","text":"Extra Large"},
-{"value":"0","text":"None"}
-]}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_py', get_field_type_id('slider'), 0, '{
+"options": [
+{"value": "none", "text": "None"},
+{"value": "xs", "text": "Extra Small"},
+{"value": "sm", "text": "Small"},
+{"value": "md", "text": "Medium"},
+{"value": "lg", "text": "Large"},
+{"value": "xl", "text": "Extra Large"}
+]
+}');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('container'), get_field_id('mantine_py'), NULL, 'Sets the vertical padding of the Container component. Choose from predefined sizes or enter custom values. For more information check https://mantine.dev/core/container', 0, 0, 'Vertical Padding');
@@ -2164,10 +2171,10 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('notification'), get_field_id('mantine_notification_with_close_button'), '1', 'If `withCloseButton` prop is set, notification will have a close button. For more information check https://mantine.dev/core/notification', 0, 0, 'With Close Button');
 
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_notification_with_border', get_field_type_id('checkbox'), 0, null);
+-- Removed: mantine_notification_with_border (replaced with global mantine_border field)
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('notification'), get_field_id('mantine_notification_with_border'), '0', 'If `withBorder` prop is set, notification will have a border. For more information check https://mantine.dev/core/notification', 0, 0, 'With Border');
+VALUES (get_style_id('notification'), get_field_id('mantine_border'), '0', 'If `withBorder` prop is set, notification will have a border. For more information check https://mantine.dev/core/notification', 0, 0, 'With Border');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('notification'), get_field_id('mantine_left_icon'), NULL, 'Sets the icon for the notification. If no icon is selected, a default icon matching the color will be used. For more information check https://mantine.dev/core/notification', 0, 0, 'Icon');
@@ -2606,10 +2613,10 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('indicator'), get_field_id('mantine_indicator_offset'), '0', 'Sets the offset distance of the indicator from its position. Choose from preset values or enter a custom value (e.g., 5, 15, 20). For more information check https://mantine.dev/core/indicator', 0, 0, 'Offset');
 
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_indicator_with_border', get_field_type_id('checkbox'), 0, null);
+-- Removed: mantine_indicator_with_border (replaced with global mantine_border field)
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('indicator'), get_field_id('mantine_indicator_with_border'), '0', 'If set, adds a white border around the indicator. For more information check https://mantine.dev/core/indicator', 0, 0, 'With Border');
+VALUES (get_style_id('indicator'), get_field_id('mantine_border'), '0', 'If set, adds a white border around the indicator. For more information check https://mantine.dev/core/indicator', 0, 0, 'With Border');
 
 -- Reuse existing mantine_radius field for indicator radius
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
@@ -3083,13 +3090,15 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
 );
 
 -- Add Paper-specific fields
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_paper_shadow', get_field_type_id('select'), 0, '{"searchable": false, "clearable": true, "options":[
-{"value":"xs","text":"Extra Small"},
-{"value":"sm","text":"Small"},
-{"value":"md","text":"Medium"},
-{"value":"lg","text":"Large"},
-{"value":"xl","text":"Extra Large"}
-]}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_paper_shadow', get_field_type_id('slider'), 0, '{
+"options": [
+{"value": "xs", "text": "Extra Small"},
+{"value": "sm", "text": "Small"},
+{"value": "md", "text": "Medium"},
+{"value": "lg", "text": "Large"},
+{"value": "xl", "text": "Extra Large"}
+]
+}');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('paper'), get_field_id('mantine_paper_shadow'), 'sm', 'Sets the shadow of the paper. For more information check https://mantine.dev/core/paper', 0, 0, 'Shadow');
@@ -3103,6 +3112,9 @@ VALUES (get_style_id('paper'), get_field_id('mantine_px'), NULL, 'Sets the horiz
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('paper'), get_field_id('mantine_py'), NULL, 'Sets the vertical padding of the paper. For more information check https://mantine.dev/core/paper', 0, 0, 'Vertical Padding');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('paper'), get_field_id('mantine_border'), '0', 'If set, the paper will have a border. For more information check https://mantine.dev/core/paper', 0, 0, 'With Border');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('paper'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Paper will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/paper', 0, 1, 'Use Mantine Style');
@@ -3191,7 +3203,7 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 ]
 }');
 
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_card_with_border', get_field_type_id('checkbox'), 0, null);
+-- Removed: mantine_card_with_border (replaced with global mantine_border field)
 
 -- Add card-segment style for child components
 INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
@@ -3217,7 +3229,7 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 VALUES (get_style_id('card'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the card. For more information check https://mantine.dev/core/card', 0, 0, 'Radius');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('card'), get_field_id('mantine_card_with_border'), '0', 'If set, the card will have a border. For more information check https://mantine.dev/core/card', 0, 0, 'With Border');
+VALUES (get_style_id('card'), get_field_id('mantine_border'), '0', 'If set, the card will have a border. For more information check https://mantine.dev/core/card', 0, 0, 'With Border');
 
 -- Card can contain Card-Segment
 INSERT IGNORE INTO styles_allowed_relationships (id_parent_style, id_child_style)

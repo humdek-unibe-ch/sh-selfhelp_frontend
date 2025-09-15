@@ -13,6 +13,7 @@ export { default as GridStyle } from './GridStyle';
 export { default as GridColumnStyle } from './GridColumnStyle';
 export { default as StackStyle } from './StackStyle';
 export { default as DividerStyle } from './DividerStyle';
+export { default as PaperStyle } from './PaperStyle';
 
 // Form Components
 export { default as ColorInputStyle } from './ColorInputStyle';
@@ -192,6 +193,7 @@ export const MANTINE_COMPONENT_MAP = {
     'grid-column': 'GridColumnStyle',
     'stack': 'StackStyle',
     'divider': 'DividerStyle',
+    'paper': 'PaperStyle',
 
     // Form Components
     'button': 'ButtonStyle',

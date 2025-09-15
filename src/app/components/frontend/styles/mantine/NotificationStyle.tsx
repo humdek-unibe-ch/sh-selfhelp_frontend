@@ -29,7 +29,7 @@ const NotificationStyle: React.FC<INotificationStyleProps> = ({ style }) => {
     const color = getFieldContent(style, 'mantine_color') || 'blue';
     const loading = getFieldContent(style, 'mantine_notification_loading') === '1';
     const withCloseButton = getFieldContent(style, 'mantine_notification_with_close_button') === '1';
-    const withBorder = getFieldContent(style, 'mantine_notification_with_border') === '1';
+    const withBorder = getFieldContent(style, 'mantine_border') === '1';
     const radius = getFieldContent(style, 'mantine_radius') || 'sm';
     const selectedIcon = getFieldContent(style, 'mantine_left_icon');
 

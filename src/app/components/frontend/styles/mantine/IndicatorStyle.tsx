@@ -42,7 +42,7 @@ const IndicatorStyle: React.FC<IIndicatorStyleProps> = ({ style }) => {
     const label = getFieldContent(style, 'label') || '';
     const inline = getFieldContent(style, 'mantine_indicator_inline') === '1';
     const offset = parseInt(getFieldContent(style, 'mantine_indicator_offset') || '0');
-    const withBorder = getFieldContent(style, 'mantine_indicator_with_border') === '1';
+    const withBorder = getFieldContent(style, 'mantine_border') === '1';
     const radius = getFieldContent(style, 'mantine_radius') || 'xl';
     const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
 

@@ -24,7 +24,7 @@ const CardStyle: React.FC<ICardStyleProps> = ({ style }) => {
     const shadow = getFieldContent(style, 'mantine_card_shadow') || 'sm';
     const padding = getFieldContent(style, 'mantine_card_padding') || 'md';
     const radius = castMantineRadius(getFieldContent(style, 'mantine_radius'));
-    const withBorder = getFieldContent(style, 'mantine_card_with_border') === '1';
+    const withBorder = getFieldContent(style, 'mantine_border') === '1';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
