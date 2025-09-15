@@ -20,7 +20,6 @@ export { default as ColorInputStyle } from './ColorInputStyle';
 export { default as ColorPickerStyle } from './ColorPickerStyle';
 export { default as FileInputStyle } from './FileInputStyle';
 export { default as NumberInputStyle } from './NumberInputStyle';
-export { default as RadioGroupStyle } from './RadioGroupStyle';
 export { default as RadioStyle } from './RadioStyle';
 export { default as RangeSliderStyle } from './RangeSliderStyle';
 export { default as SegmentedControlStyle } from './SegmentedControlStyle';
@@ -202,7 +201,6 @@ export const MANTINE_COMPONENT_MAP = {
     'color-picker': 'ColorPickerStyle',
     'fileInput': 'FileInputStyle',
     'numberInput': 'NumberInputStyle',
-    'radioGroup': 'RadioGroupStyle',
     'radio': 'RadioStyle',
     'rangeSlider': 'RangeSliderStyle',
     'segmentedControl': 'SegmentedControlStyle',

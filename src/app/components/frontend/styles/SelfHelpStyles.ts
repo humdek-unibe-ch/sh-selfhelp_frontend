@@ -51,7 +51,6 @@ export { default as ColorInputStyle } from './mantine/ColorInputStyle';
 export { default as ColorPickerStyle } from './mantine/ColorPickerStyle';
 export { default as FileInputStyle } from './mantine/FileInputStyle';
 export { default as NumberInputStyle } from './mantine/NumberInputStyle';
-export { default as RadioGroupStyle } from './mantine/RadioGroupStyle';
 export { default as RangeSliderStyle } from './mantine/RangeSliderStyle';
 export { default as SegmentedControlStyle } from './mantine/SegmentedControlStyle';
 export { default as SwitchStyle } from './mantine/SwitchStyle';
@@ -77,7 +76,7 @@ export { default as FigureStyle } from './FigureStyle';
 export { default as PlaintextStyle } from './PlaintextStyle';
 
 // Form Input Styles
-export { default as RadioStyle } from './RadioStyle';
+export { default as RadioStyle } from './mantine/RadioStyle';
 export { default as CheckboxStyle } from './CheckboxStyle';
 export { default as SliderStyle } from './SliderStyle';
 

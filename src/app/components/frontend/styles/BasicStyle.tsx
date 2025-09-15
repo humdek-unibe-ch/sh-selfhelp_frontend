@@ -17,7 +17,7 @@ import {
     CodeStyle, ColorInputStyle, ColorPickerStyle, ComboboxStyle,
     DividerStyle, PaperStyle, FieldsetStyle, FileInputStyle, HighlightStyle, IndicatorStyle,
     KbdStyle, ListStyle, ListItemStyle, NotificationStyle, NumberInputStyle,
-    ProgressStyle, ProgressRootStyle, ProgressSectionStyle, RadioGroupStyle, RangeSliderStyle, RatingStyle, SegmentedControlStyle,
+    ProgressStyle, ProgressRootStyle, ProgressSectionStyle, RangeSliderStyle, RatingStyle, SegmentedControlStyle,
     SpoilerStyle, StepperStyle, StepperStepStyle, StepperCompleteStyle,
     SwitchStyle, ThemeIconStyle, TimelineStyle, TimelineItemStyle,
     TitleStyle, TypographyStyle
@@ -148,8 +148,6 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <FileInputStyle style={style} />;
         case 'numberInput':
             return <NumberInputStyle style={style} />;
-        case 'radioGroup':
-            return <RadioGroupStyle style={style} />;
         case 'rangeSlider':
             return <RangeSliderStyle style={style} />;
         case 'segmentedControl':

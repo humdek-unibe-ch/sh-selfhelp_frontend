@@ -12,7 +12,7 @@ export type TStyleName =
     | 'table' | 'tableRow' | 'tableCell'
     | 'progressBar' | 'showUserInput' | 'version' | 'loop'
     // Mantine form components
-    | 'button' | 'color-input' | 'color-picker' | 'fileInput' | 'numberInput' | 'radioGroup' | 'rangeSlider'
+    | 'button' | 'color-input' | 'color-picker' | 'fileInput' | 'numberInput' | 'radio-group' | 'rangeSlider'
     | 'segmentedControl' | 'switch' | 'combobox' | 'multiSelect' | 'actionIcon'
     // Mantine typography components
     | 'code'
@@ -651,21 +651,23 @@ export interface INumberInputStyle extends IBaseStyle {
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
 
-export interface IRadioGroupStyle extends IBaseStyle {
-    style_name: 'radioGroup';
-    label?: IContentField<string>;                    // Translatable label
-    mantine_orientation?: IContentField<string>;      // Segment field for orientation
-    mantine_size?: IContentField<string>;             // Select field for size
-    mantine_color?: IContentField<string>;            // Color picker field
-    mantine_radio_options?: IContentField<string>;    // Translatable JSON textarea for options
-    disabled?: IContentField<string>;                 // Checkbox field for disabled state
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
-}
 
 export interface IRadioStyle extends IBaseStyle {
     style_name: 'radio';
     label?: IContentField<string>;                    // Translatable label
     description?: IContentField<string>;              // Translatable description
+    name?: IContentField<string>;                     // Form field name
+    value?: IContentField<string>;                    // Form field value
+    is_required?: IContentField<string>;              // Required field flag
+    mantine_orientation?: IContentField<string>;      // Segment field for orientation (when options provided)
+    mantine_size?: IContentField<string>;             // Select field for size
+    mantine_color?: IContentField<string>;            // Color picker field
+    mantine_radio_options?: IContentField<string>;    // Translatable JSON textarea for options (renders as group when provided)
+    mantine_radio_label_position?: IContentField<string>; // Select field for label position (left/right)
+    mantine_radio_variant?: IContentField<string>;    // Select field for radio variant (default/outline)
+    mantine_radio_card?: IContentField<string>;       // Checkbox field for radio card option
+    mantine_tooltip_label?: IContentField<string>;    // Textarea field for tooltip text
+    mantine_tooltip_position?: IContentField<string>; // Select field for tooltip position
     disabled?: IContentField<string>;                 // Checkbox field for disabled state
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
@@ -1121,7 +1123,6 @@ export type TStyle =
     | IColorPickerStyle
     | IFileInputStyle
     | INumberInputStyle
-    | IRadioGroupStyle
     | IRadioStyle
     | IRangeSliderStyle
     | ISegmentedControlStyle

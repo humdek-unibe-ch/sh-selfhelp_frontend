@@ -281,6 +281,15 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_combobox_data', get_field_type_id('textarea'), 1, '{"rows": 3, "placeholder": "Enter JSON array of combobox options"}');
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_multi_select_data', get_field_type_id('textarea'), 1, '{"rows": 3, "placeholder": "Enter JSON array of multi-select options"}');
 
+-- Create new fields for Progress components
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'mantine_progress_striped', get_field_type_id('checkbox'), 0, null),
+(NULL, 'mantine_progress_animated', get_field_type_id('checkbox'), 0, null),
+(NULL, 'mantine_progress_auto_contrast', get_field_type_id('checkbox'), 0, null),
+(NULL, 'mantine_progress_transition_duration', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "placeholder": "200", "options": [{"value": "150", "text": "Fast (150ms)"}, {"value": "200", "text": "Normal (200ms)"}, {"value": "300", "text": "Slow (300ms)"}, {"value": "400", "text": "Very Slow (400ms)"}, {"value": "0", "text": "Instant (0ms)"}]}'),
+(NULL, 'mantine_tooltip_label', get_field_type_id('text'), 1, null),
+(NULL, 'mantine_tooltip_position', get_field_type_id('option_select'), 0, '{"options": [{"value": "top", "text": "Top"}, {"value": "bottom", "text": "Bottom"}, {"value": "left", "text": "Left"}, {"value": "right", "text": "Right"}, {"value": "top-start", "text": "Top Start"}, {"value": "top-end", "text": "Top End"}, {"value": "bottom-start", "text": "Bottom Start"}, {"value": "bottom-end", "text": "Bottom End"}, {"value": "left-start", "text": "Left Start"}, {"value": "left-end", "text": "Left End"}, {"value": "right-start", "text": "Right Start"}, {"value": "right-end", "text": "Right End"}]}');
+
 -- ===========================================
 -- 3. STYLES AND STYLES_FIELDS (EXECUTED LAST)
 -- ===========================================
@@ -1659,43 +1668,9 @@ VALUES (get_style_id('numberInput'), get_field_id('disabled'), '0', 'If `disable
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('numberInput'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set NumberInput will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/number-input', 0, 1, 'Use Mantine Style');
 
--- ===========================================
--- RADIO GROUP COMPONENT
--- ===========================================
-
--- Add new style 'radioGroup' based on Mantine Radio.Group component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
-    NULL,
-    'radioGroup',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
-    get_style_group_id('mantine'),
-    'Mantine Radio.Group component for radio button groups',
-    1
-);
-
--- Add Radio.Group-specific fields
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('radioGroup'), get_field_id('label'), NULL, 'Sets the label for the radio group. For more information check https://mantine.dev/core/radio', 0, 0, 'Label');
-
--- Use unified orientation field for radio group
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('radioGroup'), get_field_id('mantine_orientation'), 'vertical', 'Sets the orientation of the radio group. For more information check https://mantine.dev/core/radio', 0, 0, 'Orientation');
-
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('radioGroup'), get_field_id('mantine_size'), 'sm', 'Sets the size of the radio group. For more information check https://mantine.dev/core/radio', 0, 0, 'Size');
-
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('radioGroup'), get_field_id('mantine_color'), 'blue', 'Sets the color of the radio group. For more information check https://mantine.dev/core/radio', 0, 0, 'Color');
-
--- Reuse existing fields
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('radioGroup'), get_field_id('disabled'), '0', 'If `disabled` prop is set Radio.Group will be disabled. For more information check https://mantine.dev/core/radio', 0, 0, 'Disabled');
-
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('radioGroup'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Radio.Group will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/radio', 0, 1, 'Use Mantine Style');
 
 -- ===========================================
--- RADIO COMPONENT (child of radioGroup)
+-- RADIO COMPONENT
 -- ===========================================
 
 -- Add new style 'radio' based on Mantine Radio component
@@ -1704,26 +1679,64 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
     'radio',
     (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
     get_style_group_id('mantine'),
-    'Mantine Radio component for individual radio buttons',
-    0
+    'Unified Radio component that can render as single radio or radio group based on options',
+    1
 );
 
 -- Add Radio-specific fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('radio'), get_field_id('label'), NULL, 'Sets the label for the radio button. For more information check https://mantine.dev/core/radio', 0, 0, 'Label');
+VALUES (get_style_id('radio'), get_field_id('label'), NULL, 'Sets the label for the radio button or radio group. For more information check https://mantine.dev/core/radio', 0, 0, 'Label');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('radio'), get_field_id('description'), NULL, 'Sets the description for the radio button. For more information check https://mantine.dev/core/radio', 0, 0, 'Description');
 
--- Add Radio Group options field (for parent component)
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES (get_style_id('radio'), get_field_id('name'), NULL, 'Sets the form field name for the radio button or radio group. For more information check https://mantine.dev/core/radio', 0, 0, 'Field Name');
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES (get_style_id('radio'), get_field_id('value'), NULL, 'Sets the initial selected value for the radio button or radio group. For more information check https://mantine.dev/core/radio', 0, 0, 'Value');
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES (get_style_id('radio'), get_field_id('is_required'), '0', 'Makes the radio button or radio group required for form submission. For more information check https://mantine.dev/core/radio', 0, 0, 'Required');
+
+-- Add Radio options field (for group functionality)
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_radio_options', get_field_type_id('textarea'), 1, '{"rows": 5, "placeholder": "Enter JSON array of radio options"}');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('radioGroup'), get_field_id('mantine_radio_options'), '[{"value":"1","text":"Item1"},{"value":"2","text":"Item2"},{"value":"3","text":"Item3"}]', 'Sets the options for the radio group as JSON array. Format: [{"value":"1","text":"Item1"}]. For more information check https://mantine.dev/core/radio', 0, 0, 'Options');
+VALUES (get_style_id('radio'), get_field_id('mantine_radio_options'), '[{"value":"option1","text":"Option 1","description":"First choice description"},{"value":"option2","text":"Option 2","description":"Second choice description"},{"value":"option3","text":"Option 3","description":"Third choice description"}]', 'Sets the options for the radio group as JSON array. If provided, renders as Radio.Group. Format: [{"value":"1","text":"Item1","description":"Optional description"}]. For more information check https://mantine.dev/core/radio', 0, 0, 'Options');
+
+-- Use unified orientation field for radio group
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('radio'), get_field_id('mantine_orientation'), 'vertical', 'Sets the orientation of the radio group (when options are provided). For more information check https://mantine.dev/core/radio', 0, 0, 'Orientation');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('radio'), get_field_id('mantine_size'), 'sm', 'Sets the size of the radio button or radio group. For more information check https://mantine.dev/core/radio', 0, 0, 'Size');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('radio'), get_field_id('mantine_color'), 'blue', 'Sets the color of the radio button or radio group. For more information check https://mantine.dev/core/radio', 0, 0, 'Color');
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('radio'), get_field_id('disabled'), '0', 'If `disabled` prop is set Radio will be disabled. For more information check https://mantine.dev/core/radio', 0, 0, 'Disabled');
+
+-- Add label position field for radio components
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_radio_label_position', get_field_type_id('select'), 0, '{"searchable": false, "clearable": false, "options":[{"value": "right", "text": "Right (default)"}, {"value": "left", "text": "Left"}]}');
+
+-- Add radio card option field
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_radio_card', get_field_type_id('checkbox'), 0, null);
+
+-- Add radio variant field
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_radio_variant', get_field_type_id('select'), 0, '{"searchable": false, "clearable": false, "options":[{"value": "default", "text": "Default"}, {"value": "outline", "text": "Outline"}]}');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('radio'), get_field_id('mantine_radio_label_position'), 'right', 'Sets the position of the label relative to the radio button. For more information check https://mantine.dev/core/radio', 0, 0, 'Label Position');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('radio'), get_field_id('mantine_radio_card'), '0', 'If set, renders radio options as card components instead of standard radio buttons. For more information check https://mantine.dev/core/radio', 0, 0, 'Use Radio Card');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('radio'), get_field_id('mantine_radio_variant'), 'default', 'Sets the visual variant of the radio component. For more information check https://mantine.dev/core/radio', 0, 0, 'Variant');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('radio'), get_field_id('mantine_tooltip_label'), NULL, 'Sets the tooltip text for the radio component. Leave empty to disable tooltip. For more information check https://mantine.dev/core/tooltip', 0, 0, 'Tooltip Label');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('radio'), get_field_id('mantine_tooltip_position'), 'top', 'Sets the position of the tooltip. For more information check https://mantine.dev/core/tooltip', 0, 0, 'Tooltip Position');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('radio'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Radio will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/radio', 0, 1, 'Use Mantine Style');
@@ -1770,10 +1783,6 @@ VALUES (get_style_id('rangeSlider'), get_field_id('disabled'), '0', 'If `disable
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('rangeSlider'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set RangeSlider will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/range-slider', 0, 1, 'Use Mantine Style');
 
--- Define that radio can ONLY be added inside radioGroup
-INSERT IGNORE INTO styles_allowed_relationships (id_parent_style, id_child_style)
-SELECT s1.id, s2.id FROM styles s1, styles s2
-WHERE s1.name = 'radioGroup' AND s2.name = 'radio';
 
 -- ===========================================
 -- RATING COMPONENT
@@ -3254,7 +3263,7 @@ WHERE s1.name = 'card' AND s2.name = 'card-segment';
 -- 2. mantine_radius - unified radius field (xs, sm, md, lg, xl) - used by ALL components
 -- 3. mantine_left_icon - unified left icon field - used by button, tab, badge, blockquote
 -- 4. mantine_right_icon - unified right icon field - used by button, tab
--- 5. mantine_orientation - unified orientation field (horizontal/vertical) - used by radioGroup, segmentedControl, stepper, tabs
+-- 5. mantine_orientation - unified orientation field (horizontal/vertical) - used by radio, segmentedControl, stepper, tabs
 -- 6. mantine_color_format - unified color format field (hex/rgba/hsla) - used by color-input, color-picker
 -- 7. mantine_numeric_min - unified numeric min field - used by numberInput, rangeSlider
 -- 8. mantine_numeric_max - unified numeric max field - used by numberInput, rangeSlider
@@ -3330,15 +3339,6 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
     'Mantine Progress.Section component for individual progress sections',
     0
 );
-
--- Create new fields for Progress components
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
-(NULL, 'mantine_progress_striped', get_field_type_id('checkbox'), 0, null),
-(NULL, 'mantine_progress_animated', get_field_type_id('checkbox'), 0, null),
-(NULL, 'mantine_progress_auto_contrast', get_field_type_id('checkbox'), 0, null),
-(NULL, 'mantine_progress_transition_duration', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "placeholder": "200", "options": [{"value": "150", "text": "Fast (150ms)"}, {"value": "200", "text": "Normal (200ms)"}, {"value": "300", "text": "Slow (300ms)"}, {"value": "400", "text": "Very Slow (400ms)"}, {"value": "0", "text": "Instant (0ms)"}]}'),
-(NULL, 'mantine_tooltip_label', get_field_type_id('text'), 1, null),
-(NULL, 'mantine_tooltip_position', get_field_type_id('option_select'), 0, '{"options": [{"value": "top", "text": "Top"}, {"value": "bottom", "text": "Bottom"}, {"value": "left", "text": "Left"}, {"value": "right", "text": "Right"}, {"value": "top-start", "text": "Top Start"}, {"value": "top-end", "text": "Top End"}, {"value": "bottom-start", "text": "Bottom Start"}, {"value": "bottom-end", "text": "Bottom End"}, {"value": "left-start", "text": "Left Start"}, {"value": "left-end", "text": "Left End"}, {"value": "right-start", "text": "Right Start"}, {"value": "right-end", "text": "Right End"}]}');
 
 -- Link fields to progress-root style
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
