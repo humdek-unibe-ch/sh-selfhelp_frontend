@@ -815,9 +815,15 @@ export interface IIndicatorStyle extends IBaseStyle {
     style_name: 'indicator';
     mantine_indicator_processing?: IContentField<string>; // Checkbox field for processing
     mantine_indicator_disabled?: IContentField<string>; // Checkbox field for disabled
-    mantine_size?: IContentField<string>;             // Select field for size
-    mantine_color?: IContentField<string>;            // Color picker field
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    mantine_indicator_size?: IContentField<string>;     // Slider field for size (6-40px)
+    mantine_indicator_position?: IContentField<string>;  // Select field for position
+    label?: IContentField<string>;    // Text field for label
+    mantine_indicator_inline?: IContentField<string>;   // Checkbox field for inline
+    mantine_indicator_offset?: IContentField<string>;   // Select field for offset
+    mantine_indicator_with_border?: IContentField<string>; // Checkbox field for border
+    mantine_radius?: IContentField<string>;             // Select field for border radius
+    mantine_color?: IContentField<string>;              // Color picker field
+    use_mantine_style?: IContentField<string>;          // Checkbox field for Mantine styling
 }
 
 export interface IKbdStyle extends IBaseStyle {

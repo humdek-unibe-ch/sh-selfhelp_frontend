@@ -2497,15 +2497,104 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('indicator'), get_field_id('mantine_indicator_disabled'), '0', 'If `disabled` prop is set, indicator will be disabled. For more information check https://mantine.dev/core/indicator', 0, 0, 'Disabled');
 
--- Reuse existing fields
+-- Add missing Indicator-specific fields
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_indicator_size', get_field_type_id('slider'), 0, '{
+"options": [
+{"value": "6", "text": "6px"},
+{"value": "7", "text": "7px"},
+{"value": "8", "text": "8px"},
+{"value": "9", "text": "9px"},
+{"value": "10", "text": "10px"},
+{"value": "11", "text": "11px"},
+{"value": "12", "text": "12px"},
+{"value": "13", "text": "13px"},
+{"value": "14", "text": "14px"},
+{"value": "15", "text": "15px"},
+{"value": "16", "text": "16px"},
+{"value": "17", "text": "17px"},
+{"value": "18", "text": "18px"},
+{"value": "19", "text": "19px"},
+{"value": "20", "text": "20px"},
+{"value": "21", "text": "21px"},
+{"value": "22", "text": "22px"},
+{"value": "23", "text": "23px"},
+{"value": "24", "text": "24px"},
+{"value": "25", "text": "25px"},
+{"value": "26", "text": "26px"},
+{"value": "27", "text": "27px"},
+{"value": "28", "text": "28px"},
+{"value": "29", "text": "29px"},
+{"value": "30", "text": "30px"},
+{"value": "31", "text": "31px"},
+{"value": "32", "text": "32px"},
+{"value": "33", "text": "33px"},
+{"value": "34", "text": "34px"},
+{"value": "35", "text": "35px"},
+{"value": "36", "text": "36px"},
+{"value": "37", "text": "37px"},
+{"value": "38", "text": "38px"},
+{"value": "39", "text": "39px"},
+{"value": "40", "text": "40px"}
+]
+}');
+
+-- Add indicator-specific size field
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('indicator'), get_field_id('mantine_size'), 'md', 'Sets the size of the indicator. For more information check https://mantine.dev/core/indicator', 0, 0, 'Size');
+VALUES (get_style_id('indicator'), get_field_id('mantine_indicator_size'), '10', 'Sets the size of the indicator in pixels (6-40px). For more information check https://mantine.dev/core/indicator', 0, 0, 'Size');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('indicator'), get_field_id('mantine_color'), 'red', 'Sets the color of the indicator. For more information check https://mantine.dev/core/indicator', 0, 0, 'Color');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('indicator'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Indicator will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/indicator', 0, 1, 'Use Mantine Style');
+
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_indicator_position', get_field_type_id('select'), 0, '{"searchable": false, "clearable": false, "options":[
+{"value":"top-start","text":"Top Start"},
+{"value":"top-center","text":"Top Center"},
+{"value":"top-end","text":"Top End"},
+{"value":"middle-start","text":"Middle Start"},
+{"value":"middle-center","text":"Middle Center"},
+{"value":"middle-end","text":"Middle End"},
+{"value":"bottom-start","text":"Bottom Start"},
+{"value":"bottom-center","text":"Bottom Center"},
+{"value":"bottom-end","text":"Bottom End"}
+]}');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('indicator'), get_field_id('mantine_indicator_position'), 'top-end', 'Sets the position of the indicator relative to its children. For more information check https://mantine.dev/core/indicator', 0, 0, 'Position');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_indicator_label', get_field_type_id('text'), 0, null);
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('indicator'), get_field_id('label'), '', 'Sets the label text displayed in the indicator. For more information check https://mantine.dev/core/indicator', 0, 0, 'Label');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_indicator_inline', get_field_type_id('checkbox'), 0, null);
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('indicator'), get_field_id('mantine_indicator_inline'), '0', 'If set, the indicator will use inline-block display instead of block. For more information check https://mantine.dev/core/indicator', 0, 0, 'Inline');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_indicator_offset', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": false, "placeholder": "0", "options":[
+{"value": "0", "text": "0px"},
+{"value": "2", "text": "2px"},
+{"value": "4", "text": "4px"},
+{"value": "6", "text": "6px"},
+{"value": "8", "text": "8px"},
+{"value": "10", "text": "10px"},
+{"value": "12", "text": "12px"}
+]}');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('indicator'), get_field_id('mantine_indicator_offset'), '0', 'Sets the offset distance of the indicator from its position. Choose from preset values or enter a custom value (e.g., 5, 15, 20). For more information check https://mantine.dev/core/indicator', 0, 0, 'Offset');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_indicator_with_border', get_field_type_id('checkbox'), 0, null);
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('indicator'), get_field_id('mantine_indicator_with_border'), '0', 'If set, adds a white border around the indicator. For more information check https://mantine.dev/core/indicator', 0, 0, 'With Border');
+
+-- Reuse existing mantine_radius field for indicator radius
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('indicator'), get_field_id('mantine_radius'), 'xl', 'Sets the border radius of the indicator. For more information check https://mantine.dev/core/indicator', 0, 0, 'Radius');
 
 -- ===========================================
 -- KBD COMPONENT
