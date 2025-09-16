@@ -20,7 +20,9 @@ import {
     ProgressStyle, ProgressRootStyle, ProgressSectionStyle, RangeSliderStyle, RatingStyle, SegmentedControlStyle,
     SpoilerStyle, StepperStyle, StepperStepStyle, StepperCompleteStyle,
     SwitchStyle, ThemeIconStyle, TimelineStyle, TimelineItemStyle,
-    TitleStyle, TypographyStyle
+    TitleStyle, TypographyStyle,
+    // Special Components
+    UnknownStyle
 } from './SelfHelpStyles';
 import { TStyle } from '../../../../types/common/styles.types';
 
@@ -234,7 +236,7 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
 
         // Unknown/Unsupported styles
         default:
-            return null;
+            return <UnknownStyle style={style} />;
     }
 };
 

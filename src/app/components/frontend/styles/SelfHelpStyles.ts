@@ -117,5 +117,8 @@ export { default as FieldsetStyle } from './mantine/FieldsetStyle';
 export { default as SpoilerStyle } from './mantine/SpoilerStyle';
 export { default as TypographyStyle } from './mantine/TypographyStyle';
 
+// Special Components
+export { default as UnknownStyle } from './mantine/UnknownStyle';
+
 // Utility Styles
 export { default as BasicStyle } from './BasicStyle';

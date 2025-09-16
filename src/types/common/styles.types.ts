@@ -44,7 +44,7 @@ export interface IContentField<T> {
 }
 
 // Base style interface that all styles extend
-interface IBaseStyle {
+export interface IBaseStyle {
     id: number;
     id_styles: number;
     style_name: TStyleName;
@@ -1083,6 +1083,11 @@ export interface ISpoilerStyle extends IBaseStyle {
 
 export interface ITypographyStyle extends IBaseStyle {
     style_name: 'typography';
+    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+}
+
+export interface IUnknownStyle extends IBaseStyle {
+    style_name: string; // Any style_name that doesn't match known styles
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
 

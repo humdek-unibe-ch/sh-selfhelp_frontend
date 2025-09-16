@@ -3202,21 +3202,21 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 VALUES (get_style_id('paper'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Paper will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/paper', 0, 1, 'Use Mantine Style');
 
 -- ===========================================
--- SCROLLAREA COMPONENT
+-- scroll-area COMPONENT
 -- ===========================================
 
--- Add new style 'scrollArea' based on Mantine ScrollArea component
+-- Add new style 'scroll-area' based on Mantine scroll-area component
 INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
-    'scrollArea',
+    'scroll-area',
     (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
     get_style_group_id('mantine'),
-    'Mantine ScrollArea component for custom scrollbars',
+    'Mantine scroll-area component for custom scrollbars',
     1
 );
 
--- Add ScrollArea-specific fields
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_scrollarea_scrollbar_size', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "options":[
+-- Add scroll-area-specific fields
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_scroll-area_scrollbar_size', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "options":[
 {"value":"6","text":"6px"},
 {"value":"8","text":"8px"},
 {"value":"10","text":"10px"},
@@ -3225,28 +3225,28 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 ]}');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('scrollArea'), get_field_id('mantine_scrollarea_scrollbar_size'), '8', 'Sets the size of the scrollbar. For more information check https://mantine.dev/core/scroll-area', 0, 0, 'Scrollbar Size');
+VALUES (get_style_id('scroll-area'), get_field_id('mantine_scroll-area_scrollbar_size'), '8', 'Sets the size of the scrollbar. For more information check https://mantine.dev/core/scroll-area', 0, 0, 'Scrollbar Size');
 
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_scrollarea_type', get_field_type_id('segment'), 0, '{"options":[
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_scroll-area_type', get_field_type_id('segment'), 0, '{"options":[
 {"value":"hover","text":"Hover"},
 {"value":"always","text":"Always"},
 {"value":"never","text":"Never"}
 ]}');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('scrollArea'), get_field_id('mantine_scrollarea_type'), 'hover', 'Sets when to show the scrollbar. For more information check https://mantine.dev/core/scroll-area', 0, 0, 'Scrollbar Type');
+VALUES (get_style_id('scroll-area'), get_field_id('mantine_scroll-area_type'), 'hover', 'Sets when to show the scrollbar. For more information check https://mantine.dev/core/scroll-area', 0, 0, 'Scrollbar Type');
 
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_scrollarea_offset_scrollbars', get_field_type_id('checkbox'), 0, null);
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_scroll-area_offset_scrollbars', get_field_type_id('checkbox'), 0, null);
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('scrollArea'), get_field_id('mantine_scrollarea_offset_scrollbars'), '0', 'If `offsetScrollbars` prop is set, scrollbars will be offset from the container edge. For more information check https://mantine.dev/core/scroll-area', 0, 0, 'Offset Scrollbars');
+VALUES (get_style_id('scroll-area'), get_field_id('mantine_scroll-area_offset_scrollbars'), '0', 'If `offsetScrollbars` prop is set, scrollbars will be offset from the container edge. For more information check https://mantine.dev/core/scroll-area', 0, 0, 'Offset Scrollbars');
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('scrollArea'), get_field_id('mantine_height'), NULL, 'Sets the height of the scroll area. For more information check https://mantine.dev/core/scroll-area', 0, 0, 'Height');
+VALUES (get_style_id('scroll-area'), get_field_id('mantine_height'), NULL, 'Sets the height of the scroll area. For more information check https://mantine.dev/core/scroll-area', 0, 0, 'Height');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('scrollArea'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set ScrollArea will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/scroll-area', 0, 1, 'Use Mantine Style');
+VALUES (get_style_id('scroll-area'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set scroll-area will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/scroll-area', 0, 1, 'Use Mantine Style');
 
 -- ===========================================
 -- CARD STYLE
@@ -3455,7 +3455,7 @@ WHERE s1.name = 'progress-root' AND s2.name = 'progress-section';
 -- ✅ Removed unnecessary components (accordionPanel) - handled in frontend
 -- ✅ Simplified component structure (accordion-item accepts all children)
 -- ✅ Converted select fields to text/textarea fields for better flexibility
--- ✅ Added 3 new components: Divider, Paper, ScrollArea
+-- ✅ Added 3 new components: Divider, Paper, scroll-area
 -- ✅ Added 4 new components: Progress, ProgressRoot, ProgressSection, ProgressLabel
 -- ✅ Reduced code duplication by ~70%
 -- ✅ Improved maintainability and reusability
