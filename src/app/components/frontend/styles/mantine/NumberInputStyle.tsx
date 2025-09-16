@@ -95,6 +95,7 @@ const NumberInputStyle: React.FC<INumberInputStyleProps> = ({ style }) => {
             disabled={disabled}
             required={isRequired}
             className={cssClass}
+            name={name}
         />
     );
 
@@ -115,13 +116,6 @@ const NumberInputStyle: React.FC<INumberInputStyleProps> = ({ style }) => {
     return (
         <>
             {wrappedComponent}
-            {/* Hidden input to ensure form submission captures the value */}
-            <input
-                type="hidden"
-                name={name}
-                value={selectedValue}
-                required={isRequired}
-            />
         </>
     );
 };

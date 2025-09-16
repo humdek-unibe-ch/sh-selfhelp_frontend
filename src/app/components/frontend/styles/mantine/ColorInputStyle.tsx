@@ -91,6 +91,7 @@ const ColorInputStyle: React.FC<IColorInputStyleProps> = ({ style }) => {
             required={isRequired}
             className={cssClass}
             style={styleObj}
+            name={name}
         />
     );
 
@@ -110,13 +111,6 @@ const ColorInputStyle: React.FC<IColorInputStyleProps> = ({ style }) => {
     return (
         <>
             {wrappedComponent}
-            {/* Hidden input to ensure form submission captures the value */}
-            <input
-                type="hidden"
-                name={name}
-                value={selectedColor}
-                required={isRequired}
-            />
         </>
     );
 };

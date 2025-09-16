@@ -34,8 +34,6 @@ const PaperStyle: React.FC<IPaperStyleProps> = ({ style }) => {
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
 
-    console.log(shadow, radius, px, py, withBorder);
-
     return (
         <Paper
             shadow={shadow === 'none' ? undefined : shadow as 'xs' | 'sm' | 'md' | 'lg' | 'xl'}

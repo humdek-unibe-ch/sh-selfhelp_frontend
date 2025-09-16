@@ -202,7 +202,7 @@ export const MANTINE_COMPONENT_MAP = {
     'fileInput': 'FileInputStyle',
     'numberInput': 'NumberInputStyle',
     'radio': 'RadioStyle',
-    'rangeSlider': 'RangeSliderStyle',
+    'range-slider': 'RangeSliderStyle',
     'segmentedControl': 'SegmentedControlStyle',
     'switch': 'SwitchStyle',
     'combobox': 'ComboboxStyle',

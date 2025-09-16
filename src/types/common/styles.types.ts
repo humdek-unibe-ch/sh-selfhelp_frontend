@@ -12,7 +12,7 @@ export type TStyleName =
     | 'table' | 'tableRow' | 'tableCell'
     | 'progressBar' | 'showUserInput' | 'version' | 'loop'
     // Mantine form components
-    | 'button' | 'color-input' | 'color-picker' | 'fileInput' | 'numberInput' | 'radio-group' | 'rangeSlider'
+    | 'button' | 'color-input' | 'color-picker' | 'fileInput' | 'numberInput' | 'radio-group' | 'range-slider'
     | 'segmentedControl' | 'switch' | 'combobox' | 'multiSelect' | 'actionIcon'
     // Mantine typography components
     | 'code'
@@ -673,13 +673,21 @@ export interface IRadioStyle extends IBaseStyle {
 }
 
 export interface IRangeSliderStyle extends IBaseStyle {
-    style_name: 'rangeSlider';
+    style_name: 'range-slider';
+    label?: IContentField<string>;                     // Translatable label for the input field
+    description?: IContentField<string>;              // Translatable description text
+    name?: IContentField<string>;        
+    value?: IContentField<string>;              // Value attribute for form integration
     mantine_numeric_min?: IContentField<string>;      // Select field for minimum value
     mantine_numeric_max?: IContentField<string>;      // Select field for maximum value
     mantine_numeric_step?: IContentField<string>;     // Select field for step value
     mantine_range_slider_marks?: IContentField<string>; // Checkbox field for marks
+    mantine_range_slider_marks_values?: IContentField<string>; // Translatable textarea for custom marks JSON
+    mantine_range_slider_show_label?: IContentField<string>; // Checkbox field for show label on hover
+    mantine_range_slider_labels_always_on?: IContentField<string>; // Checkbox field for labels always on
     mantine_size?: IContentField<string>;             // Select field for size
     mantine_color?: IContentField<string>;            // Color picker field
+    mantine_radius?: IContentField<string>;           // Select field for border radius
     disabled?: IContentField<string>;                 // Checkbox field for disabled state
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }

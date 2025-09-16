@@ -1745,43 +1745,78 @@ VALUES (get_style_id('radio'), get_field_id('use_mantine_style'), 1, 'If `useMan
 -- RANGE SLIDER COMPONENT
 -- ===========================================
 
--- Add new style 'rangeSlider' based on Mantine RangeSlider component
+-- Add new style 'range-slider' based on Mantine range-slider component
 INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
-    'rangeSlider',
+    'range-slider',
     (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
     get_style_group_id('mantine'),
-    'Mantine RangeSlider component for range selection',
+    'Mantine range-slider component for range selection',
     0
 );
 
--- Use unified numeric fields for RangeSlider
+-- Use unified numeric fields for range-slider
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('rangeSlider'), get_field_id('mantine_numeric_min'), '0', 'Sets the minimum value for the range slider. For more information check https://mantine.dev/core/range-slider', 0, 0, 'Min');
+VALUES (get_style_id('range-slider'), get_field_id('mantine_numeric_min'), '0', 'Sets the minimum value for the range slider. For more information check https://mantine.dev/core/range-slider', 0, 0, 'Min');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('rangeSlider'), get_field_id('mantine_numeric_max'), '100', 'Sets the maximum value for the range slider. For more information check https://mantine.dev/core/range-slider', 0, 0, 'Max');
+VALUES (get_style_id('range-slider'), get_field_id('mantine_numeric_max'), '100', 'Sets the maximum value for the range slider. For more information check https://mantine.dev/core/range-slider', 0, 0, 'Max');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('rangeSlider'), get_field_id('mantine_numeric_step'), '1', 'Sets the step value for the range slider. For more information check https://mantine.dev/core/range-slider', 0, 0, 'Step');
+VALUES (get_style_id('range-slider'), get_field_id('mantine_numeric_step'), '1', 'Sets the step value for the range slider. For more information check https://mantine.dev/core/range-slider', 0, 0, 'Step');
 
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_range_slider_marks', get_field_type_id('checkbox'), 0, null);
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('rangeSlider'), get_field_id('mantine_range_slider_marks'), '0', 'If `marks` prop is set, marks will be displayed on the range slider. For more information check https://mantine.dev/core/range-slider', 0, 0, 'Marks');
+VALUES (get_style_id('range-slider'), get_field_id('mantine_range_slider_marks'), '0', 'If `marks` prop is set, marks will be displayed on the range slider. For more information check https://mantine.dev/core/range-slider', 0, 0, 'Marks');
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('rangeSlider'), get_field_id('mantine_size'), 'sm', 'Sets the size of the range slider. For more information check https://mantine.dev/core/range-slider', 0, 0, 'Size');
+VALUES (get_style_id('range-slider'), get_field_id('mantine_size'), 'sm', 'Sets the size of the range slider. For more information check https://mantine.dev/core/range-slider', 0, 0, 'Size');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('rangeSlider'), get_field_id('mantine_color'), 'blue', 'Sets the color of the range slider. For more information check https://mantine.dev/core/range-slider', 0, 0, 'Color');
+VALUES (get_style_id('range-slider'), get_field_id('mantine_color'), 'blue', 'Sets the color of the range slider. For more information check https://mantine.dev/core/range-slider', 0, 0, 'Color');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('rangeSlider'), get_field_id('disabled'), '0', 'If `disabled` prop is set RangeSlider will be disabled. For more information check https://mantine.dev/core/range-slider', 0, 0, 'Disabled');
+VALUES (get_style_id('range-slider'), get_field_id('disabled'), '0', 'If `disabled` prop is set range-slider will be disabled. For more information check https://mantine.dev/core/range-slider', 0, 0, 'Disabled');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('rangeSlider'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set RangeSlider will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/range-slider', 0, 1, 'Use Mantine Style');
+VALUES (get_style_id('range-slider'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set range-slider will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/range-slider', 0, 1, 'Use Mantine Style');
+
+-- Add mantine_radius field (reuse existing)
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('range-slider'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the range slider. For more information check https://mantine.dev/core/range-slider', 0, 0, 'Radius');
+
+-- Create new field for translatable marks values (display = 1)
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_range_slider_marks_values', get_field_type_id('textarea'), 1, null);
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('range-slider'), get_field_id('mantine_range_slider_marks_values'), '', 'Translatable values for range slider marks in JSON format. Example: [{"value":25,"label":"Low"},{"value":50,"label":"Medium"},{"value":75,"label":"High"}]. For more information check https://mantine.dev/core/range-slider', 0, 0, 'Marks Values');
+
+-- Create field for show label on hover
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_range_slider_show_label', get_field_type_id('checkbox'), 0, null);
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('range-slider'), get_field_id('mantine_range_slider_show_label'), '1', 'If enabled, shows label on hover for range slider. For more information check https://mantine.dev/core/range-slider', 0, 0, 'Show Label on Hover');
+
+-- Create field for labels always on
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_range_slider_labels_always_on', get_field_type_id('checkbox'), 0, null);
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('range-slider'), get_field_id('mantine_range_slider_labels_always_on'), '0', 'If enabled, labels are always visible on the range slider. For more information check https://mantine.dev/core/range-slider', 0, 0, 'Labels Always On');
+
+-- Add standard input fields for range-slider
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('range-slider'), get_field_id('label'), '', 'Sets the label text for the range slider input field', 0, 0, 'Label');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('range-slider'), get_field_id('description'), '', 'Sets the description text displayed below the range slider input field', 0, 0, 'Description');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('range-slider'), get_field_id('name'), '', 'Sets the name attribute for the range slider input field, used for form integration', 0, 0, 'Name');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('range-slider'), get_field_id('value'), '', 'Sets the value attribute for the range slider input field, used for form integration. Example: [20, 40]', 0, 0, 'Value');
 
 
 -- ===========================================
@@ -3265,9 +3300,9 @@ WHERE s1.name = 'card' AND s2.name = 'card-segment';
 -- 4. mantine_right_icon - unified right icon field - used by button, tab
 -- 5. mantine_orientation - unified orientation field (horizontal/vertical) - used by radio, segmentedControl, stepper, tabs
 -- 6. mantine_color_format - unified color format field (hex/rgba/hsla) - used by color-input, color-picker
--- 7. mantine_numeric_min - unified numeric min field - used by numberInput, rangeSlider
--- 8. mantine_numeric_max - unified numeric max field - used by numberInput, rangeSlider
--- 9. mantine_numeric_step - unified numeric step field - used by numberInput, rangeSlider
+-- 7. mantine_numeric_min - unified numeric min field - used by numberInput, range-slider
+-- 8. mantine_numeric_max - unified numeric max field - used by numberInput, range-slider
+-- 9. mantine_numeric_step - unified numeric step field - used by numberInput, range-slider
 
 -- ===========================================
 -- TRANSLATABLE TEXT INPUT FIELDS (display = 1):

@@ -148,7 +148,7 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <FileInputStyle style={style} />;
         case 'numberInput':
             return <NumberInputStyle style={style} />;
-        case 'rangeSlider':
+        case 'range-slider':
             return <RangeSliderStyle style={style} />;
         case 'segmentedControl':
             return <SegmentedControlStyle style={style} />;
