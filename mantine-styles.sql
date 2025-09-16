@@ -2761,20 +2761,11 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
     (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
     get_style_group_id('mantine'),
     'Mantine Spoiler component for collapsible text',
-    0
+    1
 );
 
--- Add Spoiler-specific fields
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_spoiler_max_height', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "options":[
-{"value":"100","text":"100px"},
-{"value":"150","text":"150px"},
-{"value":"200","text":"200px"},
-{"value":"250","text":"250px"},
-{"value":"300","text":"300px"}
-]}');
-
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('spoiler'), get_field_id('mantine_spoiler_max_height'), '100', 'Sets the maximum height before showing the spoiler. For more information check https://mantine.dev/core/spoiler', 0, 0, 'Max Height');
+VALUES (get_style_id('spoiler'), get_field_id('mantine_height'), '200', 'Sets the maximum height before showing the spoiler. For more information check https://mantine.dev/core/spoiler', 0, 0, 'Max Height');
 
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_spoiler_show_label', get_field_type_id('text'), 1, '{"placeholder": "Enter show label"}');
 

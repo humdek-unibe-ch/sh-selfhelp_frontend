@@ -1091,7 +1091,7 @@ export interface IFieldsetStyle extends IBaseStyle {
 
 export interface ISpoilerStyle extends IBaseStyle {
     style_name: 'spoiler';
-    mantine_spoiler_max_height?: IContentField<string>; // Select field for max height
+    mantine_height?: IContentField<string>; // Select field for max height
     mantine_spoiler_show_label?: IContentField<string>; // Translatable show label
     mantine_spoiler_hide_label?: IContentField<string>; // Translatable hide label
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
