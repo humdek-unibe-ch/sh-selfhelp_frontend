@@ -52,7 +52,7 @@ function PageContentRendererInner({ sections, initialPageContent, keyword }: IPa
             className={`page-content-transition ${(isFetching || isUpdatingLanguage) ? 'page-content-loading' : ''}`}
             data-language-changing={isUpdatingLanguage}
         >
-            <PageContentRenderer sections={pageContent?.sections || sections || []} />
+            <PageContentRenderer sections={(pageContent?.sections || sections || []) as TStyle[]} />
         </div>
     );
 }

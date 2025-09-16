@@ -9,6 +9,7 @@ import { ROUTES } from '../../../../config/routes.config';
 import { getAccessToken, getRefreshToken } from '../../../../utils/auth.utils';
 import { IAdminPage } from '../../../../types/responses/admin/admin.types';
 import { useAppNavigation } from '../../../../hooks/useAppNavigation';
+import { IPageItem } from '../../../../types/common/pages.type';
 
 // Helper function to get page title - use actual title from API or fallback to formatted keyword
 const getPageTitle = (page: IAdminPage | { keyword: string; title?: string | null }): string => {
@@ -163,7 +164,7 @@ export function AuthButton() {
 
             <Menu.Dropdown>
                 {profileChildren.length > 0 ? (
-                    profileChildren.map((child) => (
+                    profileChildren.map((child: IPageItem) => (
                         <Menu.Item
                             key={child.keyword}
                             leftSection={getMenuItemIcon(child.keyword)}

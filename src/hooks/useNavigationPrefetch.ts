@@ -9,6 +9,7 @@
 import { useEffect } from 'react';
 import { useAppNavigation } from './useAppNavigation';
 import { usePagePrefetch } from './usePagePrefetch';
+import { IPageItem } from '../types/common/pages.type';
 
 /**
  * Hook that automatically prefetches all navigation pages when they become available.
@@ -26,13 +27,14 @@ export function useNavigationPrefetch() {
         if (!isLoading && (menuPages.length > 0 || footerPages.length > 0)) {
             const allNavigationPageIds = [
                 ...menuPages.map(page => page.id_pages),
-                ...menuPages.flatMap(page => page.children?.map(child => child.id_pages) || []),
+                ...menuPages.flatMap(page => page.children?.map((child: IPageItem) => child.id_pages) || []),
                 ...footerPages.map(page => page.id_pages),
             ].filter(Boolean); // Remove any undefined values
             
             if (allNavigationPageIds.length > 0) {
-                // Prefetch all navigation pages in the background
-                prefetchPages(allNavigationPageIds);
+                // Filter out undefined values and prefetch all navigation pages in the background
+                const validPageIds = allNavigationPageIds.filter((id): id is number => id !== undefined);
+                prefetchPages(validPageIds);
             }
         }
     }, [menuPages, footerPages, isLoading, prefetchPages]);

@@ -71,7 +71,7 @@ export function useAppNavigation(options: { isAdmin?: boolean; forceRefresh?: bo
                     const fixedPage = { ...page };
                     
                     // For child pages (pages with parent), use direct URL based on keyword
-                    if (page.parent && page.keyword) {
+                    if (page.parent_page_id && page.keyword) {
                         fixedPage.url = `/${page.keyword}`;
                     }
                     
@@ -97,7 +97,7 @@ export function useAppNavigation(options: { isAdmin?: boolean; forceRefresh?: bo
                 .sort((a, b) => (a.footer_position ?? 0) - (b.footer_position ?? 0));
 
             const profilePages = fixedPages
-                .filter(page => page.is_system === 1 && page.keyword === 'profile-link')
+                .filter(page => page.is_system === true && page.keyword === 'profile-link')
                 .sort((a, b) => (a.nav_position ?? 0) - (b.nav_position ?? 0));
 
             // Flatten ALL pages (including children) for route checking
@@ -126,13 +126,13 @@ export function useAppNavigation(options: { isAdmin?: boolean; forceRefresh?: bo
                     create: `/admin/pages/create`,
                     meta: {
                         label: page.title || page.keyword, // Use title if available, fallback to keyword
-                        parent: page.parent ? pages.find(p => p.id_pages === page.parent)?.keyword : undefined,
+                        parent: page.parent_page_id ? pages.find(p => p.id_pages === page.parent_page_id)?.keyword : undefined,
                         canDelete: true,
                         nav: page.nav_position !== null,
                         navOrder: page.nav_position,
                         footer: page.footer_position !== null,
                         footerOrder: page.footer_position,
-                        params: page.url.includes('[') ? { nav: { type: 'number' } } : {},
+                        params: page.url?.includes('[') ? { nav: { type: 'number' } } : {},
                         protocol: ['web']
                     }
                 }));

@@ -48,7 +48,7 @@ export async function WebsiteFooterServer() {
                         {footerPages.map((page: IPageItem) => (
                             <InternalLink
                                 key={page.id_pages}
-                                href={page.url}
+                                href={page.url || ''}
                                 className="text-sm font-medium hover:text-blue-600 transition-colors"
                             >
                                 {getPageTitle(page)}

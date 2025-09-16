@@ -1,5 +1,5 @@
+import { IPageField, IPageFieldTranslation } from '../types/common/pages.type';
 import { IUpdatePageField } from '../types/requests/admin/update-page.types';
-import { IPageField } from '../types/responses/admin/page-details.types';
 import { ILanguage } from '../types/responses/admin/languages.types';
 
 export interface IFieldProcessingOptions {
@@ -214,7 +214,7 @@ export function initializeFieldFormValues(
     fields.forEach(field => {
         if (isContentField(field)) {
             // Content fields: populate based on actual language_id from translations
-            field.translations.forEach(translation => {
+            field.translations.forEach((translation: IPageFieldTranslation) => {
                 const language = languages.find(l => l.id === translation.language_id);
                 if (language) {
                     fieldsObject[field.name][language.id] = translation.content || '';
@@ -222,7 +222,7 @@ export function initializeFieldFormValues(
             });
         } else {
             // Property fields: find content from language_id = 1 and replicate across all languages
-            const propertyTranslation = field.translations.find(t => t.language_id === 1);
+            const propertyTranslation = field.translations.find((t: IPageFieldTranslation) => t.language_id === 1);
             const propertyContent = propertyTranslation?.content || '';
             
             // Replicate property field content to all language tabs for editing convenience

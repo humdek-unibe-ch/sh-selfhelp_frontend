@@ -3,6 +3,7 @@
 import React from 'react';
 import { Container, Title, Text, Group, Stack } from '@mantine/core';
 import ActionIconStyle from '../../components/frontend/styles/mantine/ActionIconStyle';
+import { IActionIconStyle } from '../../../types/common/styles.types';
 
 /**
  * Test page for ActionIconStyle component
@@ -10,47 +11,57 @@ import ActionIconStyle from '../../components/frontend/styles/mantine/ActionIcon
  */
 const ActionIconTestPage = () => {
     // Mock style data for testing
-    const mockActionIconStyle = {
+    const mockActionIconStyle: IActionIconStyle = {
         id: 999,
-        name: 'Test ActionIcon',
+        name: { content: 'Test ActionIcon', meta: undefined },
         style_name: 'actionIcon' as const,
         // Basic Mantine fields
-        mantine_variant: { content: 'subtle', meta: null },
-        mantine_size: { content: 'md', meta: null },
-        mantine_color: { content: 'blue', meta: null },
-        mantine_radius: { content: 'sm', meta: null },
-        disabled: { content: '0', meta: null },
-        use_mantine_style: { content: '1', meta: null },
+        mantine_variant: { content: 'subtle', meta: undefined },
+        mantine_size: { content: 'md', meta: undefined },
+        mantine_color: { content: 'blue', meta: undefined },
+        mantine_radius: { content: 'sm', meta: undefined },
+        disabled: { content: '0', meta: undefined },
+        use_mantine_style: { content: '1', meta: undefined },
         // New fields for testing
-        mantine_left_icon: { content: 'IconHome', meta: null }, // Test icon selection
-        is_link: { content: '1', meta: null }, // Test link functionality
-        page_keyword: { content: '/home', meta: null }, // Test internal link
-        open_in_new_tab: { content: '0', meta: null }, // Test same tab
-        // Additional fields
-        css: '',
-        fields: []
+        mantine_left_icon: { content: 'IconHome', meta: undefined }, // Test icon selection
+        is_link: { content: '1', meta: undefined }, // Test link functionality
+        page_keyword: { content: '/home', meta: undefined }, // Test internal link
+        open_in_new_tab: { content: '0', meta: undefined }, // Test same tab
+        // Required IBaseStyle properties
+        id_styles: 999,
+        can_have_children: 0,
+        position: 1,
+        path: '999',
+        // Required properties from IPageSectionWithFields
+        section_data: [],
+        condition: null,
+        css: null,
+        css_mobile: null,
+        debug: null,
+        data_config: null,
+        fields: {}
     };
 
     const mockActionIconWithExternalLink = {
         ...mockActionIconStyle,
         id: 1000,
-        name: 'External Link ActionIcon',
-        mantine_left_icon: { content: 'IconExternalLink', meta: null },
-        page_keyword: { content: 'https://mantine.dev/core/action-icon', meta: null },
-        open_in_new_tab: { content: '1', meta: null }, // Test new tab
+        name: { content: 'External Link ActionIcon', meta: undefined },
+        mantine_left_icon: { content: 'IconExternalLink', meta: undefined },
+        page_keyword: { content: 'https://mantine.dev/core/action-icon', meta: undefined },
+        open_in_new_tab: { content: '1', meta: undefined }, // Test new tab
     };
 
     const mockActionIconWithoutMantine = {
         ...mockActionIconStyle,
         id: 1001,
-        name: 'Fallback ActionIcon',
-        use_mantine_style: { content: '0', meta: null }, // Test fallback
-        mantine_left_icon: { content: 'IconSettings', meta: null },
+        name: { content: 'Fallback ActionIcon', meta: undefined },
+        use_mantine_style: { content: '0', meta: undefined }, // Test fallback
+        mantine_left_icon: { content: 'IconSettings', meta: undefined },
     };
 
     return (
         <Container size="lg" py="xl">
-            <Stack spacing="xl">
+            <Stack gap="xl">
                 <div>
                     <Title order={2} mb="md">ActionIcon Style Testing</Title>
                     <Text c="dimmed" mb="lg">
@@ -92,7 +103,7 @@ const ActionIconTestPage = () => {
                         <ActionIconStyle
                             style={{
                                 ...mockActionIconStyle,
-                                mantine_action_icon_loading: { content: '1', meta: null }
+                                mantine_action_icon_loading: { content: '1', meta: undefined }
                             }}
                         />
                         <Text size="sm">Loading State Test</Text>
@@ -106,7 +117,7 @@ const ActionIconTestPage = () => {
                         <ActionIconStyle
                             style={{
                                 ...mockActionIconStyle,
-                                disabled: { content: '1', meta: null }
+                                disabled: { content: '1', meta: undefined }
                             }}
                         />
                         <Text size="sm">Disabled State Test</Text>

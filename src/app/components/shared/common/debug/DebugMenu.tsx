@@ -42,6 +42,7 @@ import { CssClassValidator } from './CssClassValidator';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { useLanguageContext } from '../../../contexts/LanguageContext';
 import { notifications } from '@mantine/notifications';
+import { IPageItem } from '../../../../../types/common/pages.type';
 
 interface IDebugLogEntry {
     timestamp: string;
@@ -270,7 +271,7 @@ export function DebugMenu() {
                                     {JSON.stringify(pages.map(p => ({ 
                                         keyword: p.keyword, 
                                         url: p.url, 
-                                        parent: p.parent,
+                                        parent: p.parent_page_id,
                                         nav_position: p.nav_position,
                                         children: p.children?.length || 0
                                     })), null, 2)}
@@ -381,7 +382,7 @@ export function DebugMenu() {
                                 <div>
                                     <Text fw={500} mb="xs">Profile Children:</Text>
                                     <Code block>
-                                        {JSON.stringify(profileChildren.map(c => ({
+                                        {JSON.stringify(profileChildren.map((c: IPageItem) => ({
                                             keyword: c.keyword,
                                             title: c.title,
                                             url: c.url,

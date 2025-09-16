@@ -40,9 +40,9 @@ export function WebsiteFooter() {
                         {footerPages.map(page => (
                             <InternalLink
                                 key={page.id_pages}
-                                href={page.url}
+                                href={page.url || ''}
                                 className="text-sm font-medium hover:text-blue-600 transition-colors"
-                                onMouseEnter={createHoverPrefetch(page.id_pages)}
+                                onMouseEnter={page.id_pages ? createHoverPrefetch(page.id_pages) : undefined}
                             >
                                 {getPageTitle(page)}
                             </InternalLink>

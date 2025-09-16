@@ -36,12 +36,12 @@ function MenuItem({ item }: IMenuItemProps) {
                     </UnstyledButton>
                 </Menu.Target>
                 <Menu.Dropdown>
-                    {item.children?.map(child => (
+                    {item.children?.map((child: IPageItem) => (
                         <Menu.Item 
                             key={child.id_pages}
-                            onMouseEnter={createHoverPrefetch(child.id_pages)}
+                            onMouseEnter={child.id_pages ? createHoverPrefetch(child.id_pages) : undefined}
                         >
-                            <InternalLink href={child.url}>
+                            <InternalLink href={child.url || ''}>
                                 <Text size="sm">{getPageTitle(child)}</Text>
                             </InternalLink>
                         </Menu.Item>
@@ -52,8 +52,8 @@ function MenuItem({ item }: IMenuItemProps) {
     }
 
     return (
-        <InternalLink key={item.id_pages} href={item.url}>
-            <UnstyledButton onMouseEnter={createHoverPrefetch(item.id_pages)}>
+        <InternalLink key={item.id_pages} href={item.url || ''}>
+            <UnstyledButton onMouseEnter={item.id_pages ? createHoverPrefetch(item.id_pages) : undefined}>
                 <Text size="sm" fw={500}>{pageTitle}</Text>
             </UnstyledButton>
         </InternalLink>
@@ -73,7 +73,7 @@ export function WebsiteHeaderMenu() {
 
     // Use only top-level items (parent === null) since children are already included
     const menuItems = menuPages
-        .filter(page => page.parent === null)
+        .filter(page => page.parent_page_id === null)
         .map(item => (
             <MenuItem key={item.id_pages} item={item} />
         ));

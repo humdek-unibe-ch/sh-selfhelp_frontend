@@ -53,6 +53,25 @@ interface IPageSectionsProps {
     initialSelectedSectionId?: number | null;
 }
 
+// Interfaces for PageSectionsHeader component
+export interface IPageSectionsState {
+    sectionsCount: number;
+    isProcessing: boolean;
+    searchQuery: string;
+    searchResults: number[];
+    currentSearchIndex: number;
+}
+
+export interface IPageSectionsHandlers {
+    onExpandAll: () => void;
+    onCollapseAll: () => void;
+    onSearchChange: (query: string) => void;
+    onSearchNext: () => void;
+    onSearchPrevious: () => void;
+    onSearchClear: () => void;
+    onAddSection: () => void;
+}
+
 interface IMoveData {
     draggedSectionId: number;
     newParentId: number | null;

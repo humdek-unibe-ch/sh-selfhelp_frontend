@@ -32,9 +32,9 @@ function MenuItem({ item }: IMenuItemProps) {
                     </UnstyledButton>
                 </Menu.Target>
                 <Menu.Dropdown>
-                    {item.children?.map(child => (
+                    {item.children?.map((child: IPageItem) => (
                         <Menu.Item key={child.id_pages}>
-                            <InternalLink href={child.url}>
+                            <InternalLink href={child.url || ''}>
                                 <Text size="sm">{getPageTitle(child)}</Text>
                             </InternalLink>
                         </Menu.Item>
@@ -45,7 +45,7 @@ function MenuItem({ item }: IMenuItemProps) {
     }
 
     return (
-        <InternalLink key={item.id_pages} href={item.url}>
+        <InternalLink key={item.id_pages} href={item.url || ''}>
             <UnstyledButton>
                 <Text size="sm" fw={500}>{pageTitle}</Text>
             </UnstyledButton>
@@ -69,7 +69,7 @@ export async function WebsiteHeaderMenuServer() {
     const menuPages = frontendPages
         .filter((page: IPageItem) => page.nav_position !== null && !page.is_headless)
         .sort((a: IPageItem, b: IPageItem) => (a.nav_position ?? 0) - (b.nav_position ?? 0))
-        .filter((page: IPageItem) => page.parent === null); // Only top-level items
+        .filter((page: IPageItem) => page.parent_page_id === null); // Only top-level items
 
     if (menuPages.length === 0) {
         return null;
