@@ -97,6 +97,8 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 -- Add global border field (reusable across all components that support withBorder prop)
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_border', get_field_type_id('checkbox'), 0, null);
 
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'readonly', get_field_type_id('checkbox'), 0, null);
+
 -- Add global tooltip position field (reusable across all components)
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_tooltip_position', get_field_type_id('select'), 0, '{"searchable": false, "clearable": true, "options":[
 {"value":"top","text":"Top"},
@@ -1851,11 +1853,6 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('rating'), get_field_id('mantine_rating_count'), '5', 'Sets the number of stars in the rating. For more information check https://mantine.dev/core/rating', 0, 0, 'Count');
 
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_rating_readonly', get_field_type_id('checkbox'), 0, null);
-
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('rating'), get_field_id('mantine_rating_readonly'), '0', 'If `readonly` prop is set, rating will be read-only. For more information check https://mantine.dev/core/rating', 0, 0, 'Read Only');
-
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_rating_fractions', get_field_type_id('slider'), 0, '{
 	"options": [
 		{"value": "1", "text": "Whole"},
@@ -1868,6 +1865,46 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('rating'), get_field_id('mantine_rating_fractions'), '1', 'Sets the fraction precision for the rating. For more information check https://mantine.dev/core/rating', 0, 0, 'Fractions');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_rating_use_smiles', get_field_type_id('checkbox'), 0, null);
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('rating'), get_field_id('mantine_rating_use_smiles'), '0', 'If enabled, uses smiley face icons (sad to happy) instead of stars. When enabled, the count is automatically fixed to 5. For more information check https://mantine.dev/core/rating', 0, 0, 'Use Smiles');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_rating_empty_icon', get_field_type_id('select-icon'), 0, null);
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('rating'), get_field_id('mantine_rating_empty_icon'), NULL, 'Sets the icon for unselected rating items. For more information check https://mantine.dev/core/rating', 0, 0, 'Empty Icon');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_rating_full_icon', get_field_type_id('select-icon'), 0, null);
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('rating'), get_field_id('mantine_rating_full_icon'), NULL, 'Sets the icon for selected rating items. For more information check https://mantine.dev/core/rating', 0, 0, 'Full Icon');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_rating_highlight_selected_only', get_field_type_id('checkbox'), 0, null);
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('rating'), get_field_id('mantine_rating_highlight_selected_only'), '0', 'If enabled, only selected items will be highlighted, unselected items will be dimmed. For more information check https://mantine.dev/core/rating', 0, 0, 'Highlight Selected Only');
+
+-- Standard input fields
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('rating'), get_field_id('label'), NULL, 'Label text for the rating input field', 0, 0, 'Label');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('rating'), get_field_id('description'), NULL, 'Description text for the rating input field', 0, 0, 'Description');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('rating'), get_field_id('name'), NULL, 'Name attribute for the rating input field (required for form submission)', 0, 0, 'Name');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('rating'), get_field_id('disabled'), '0', 'If set, the rating will be disabled and cannot be interacted with', 0, 0, 'Disabled');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('rating'), get_field_id('value'), NULL, 'Initial value for the rating (number between 0 and count)', 0, 0, 'Value');
+
+-- Global readonly field (moved from mantine-specific)
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('rating'), get_field_id('readonly'), '0', 'If set, the rating will be read-only and cannot be changed', 0, 0, 'Read Only');
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)

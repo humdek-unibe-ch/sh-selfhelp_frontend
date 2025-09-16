@@ -123,9 +123,7 @@ const RangeSliderStyle: React.FC<IRangeSliderStyleProps> = ({ style }) => {
             {rangeSliderComponent}
         </Input.Wrapper>
     ) : (
-        <div className={cssClass} style={styleObj}>
-            {rangeSliderComponent}
-        </div>
+         rangeSliderComponent 
     );
 
     return wrappedComponent;

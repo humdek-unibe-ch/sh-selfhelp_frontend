@@ -840,9 +840,23 @@ export interface IKbdStyle extends IBaseStyle {
 
 export interface IRatingStyle extends IBaseStyle {
     style_name: 'rating';
+    // Standard input fields
+    label?: IContentField<string>;                       // Label text for the rating input field
+    description?: IContentField<string>;                 // Description text for the rating input field
+    name?: IContentField<string>;                        // Name attribute for the rating input field (required)
+    disabled?: IContentField<string>;                    // Checkbox field for disabled state
+    value?: IContentField<string>;                       // Initial value for the rating
+    readonly?: IContentField<string>;                    // Checkbox field for readonly mode (moved from mantine-specific)
+
+    // Rating-specific fields
     mantine_rating_count?: IContentField<string>;       // Slider field for number of stars
     mantine_rating_fractions?: IContentField<string>;   // Slider field for fractional stars
-    mantine_rating_readonly?: IContentField<string>;    // Checkbox field for readonly mode
+    mantine_rating_use_smiles?: IContentField<string>;  // Checkbox field for using smiley faces
+    mantine_rating_empty_icon?: IContentField<string>;  // Icon selector for unselected rating items
+    mantine_rating_full_icon?: IContentField<string>;   // Icon selector for selected rating items
+    mantine_rating_highlight_selected_only?: IContentField<string>; // Checkbox field for highlighting selected only
+
+    // Mantine styling fields
     mantine_size?: IContentField<string>;               // Select field for size
     mantine_color?: IContentField<string>;              // Color picker field
     use_mantine_style?: IContentField<string>;          // Checkbox field for Mantine styling
