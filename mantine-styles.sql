@@ -1920,44 +1920,72 @@ VALUES (get_style_id('rating'), get_field_id('use_mantine_style'), 1, 'If `useMa
 -- SEGMENTED CONTROL COMPONENT
 -- ===========================================
 
--- Add new style 'segmentedControl' based on Mantine SegmentedControl component
+-- Add new style 'segmented-control' based on Mantine segmented-control component
 INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
-    'segmentedControl',
+    'segmented-control',
     (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
     get_style_group_id('mantine'),
-    'Mantine SegmentedControl component for segmented controls',
+    'Mantine segmented-control component for segmented controls',
     0
 );
 
--- Add SegmentedControl options field (text-based JSON)
+-- Add segmented-control options field (text-based JSON)
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_segmented_control_data', get_field_type_id('textarea'), 1, '{"rows": 3, "placeholder": "Enter JSON array of segmented control options"}');
 
+-- Add item border field for segmented control
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_segmented_control_item_border', get_field_type_id('checkbox'), 0, NULL);
+
+-- Add readonly field for segmented control
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'readonly', get_field_type_id('checkbox'), 0, NULL);
+
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('segmentedControl'), get_field_id('mantine_segmented_control_data'), '[{"value":"option1","text":"Option 1"},{"value":"option2","text":"Option 2"},{"value":"option3","text":"Option 3"}]', 'Sets the data/options for the segmented control as JSON array. Format: [{"value":"option1","text":"Option 1"}]. For more information check https://mantine.dev/core/segmented-control', 0, 0, 'Data');
+VALUES (get_style_id('segmented-control'), get_field_id('mantine_segmented_control_data'), '[{"value":"option1","label":"Option 1"},{"value":"option2","label":"Option 2"},{"value":"option3","label":"Option 3"}]', 'Sets the data/options for the segmented control as JSON array. Format: [{"value":"option1","label":"Option 1"}]. For more information check https://mantine.dev/core/segmented-control', 0, 0, 'Data');
 
 -- Use unified orientation field for segmented control
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('segmentedControl'), get_field_id('mantine_orientation'), 'horizontal', 'Sets the orientation of the segmented control. For more information check https://mantine.dev/core/segmented-control', 0, 0, 'Orientation');
+VALUES (get_style_id('segmented-control'), get_field_id('mantine_orientation'), 'horizontal', 'Sets the orientation of the segmented control. For more information check https://mantine.dev/core/segmented-control', 0, 0, 'Orientation');
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('segmentedControl'), get_field_id('mantine_size'), 'sm', 'Sets the size of the segmented control. For more information check https://mantine.dev/core/segmented-control', 0, 0, 'Size');
+VALUES (get_style_id('segmented-control'), get_field_id('mantine_size'), 'sm', 'Sets the size of the segmented control. For more information check https://mantine.dev/core/segmented-control', 0, 0, 'Size');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('segmentedControl'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the segmented control. For more information check https://mantine.dev/core/segmented-control', 0, 0, 'Radius');
+VALUES (get_style_id('segmented-control'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the segmented control. For more information check https://mantine.dev/core/segmented-control', 0, 0, 'Radius');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('segmentedControl'), get_field_id('mantine_color'), 'blue', 'Sets the color of the segmented control. For more information check https://mantine.dev/core/segmented-control', 0, 0, 'Color');
+VALUES (get_style_id('segmented-control'), get_field_id('mantine_color'), 'blue', 'Sets the color of the segmented control. For more information check https://mantine.dev/core/segmented-control', 0, 0, 'Color');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('segmentedControl'), get_field_id('fullwidth'), '0', 'If `fullWidth` prop is set SegmentedControl will take 100% of parent width. For more information check https://mantine.dev/core/segmented-control', 0, 0, 'Full Width');
+VALUES (get_style_id('segmented-control'), get_field_id('fullwidth'), '0', 'If `fullWidth` prop is set segmented-control will take 100% of parent width. For more information check https://mantine.dev/core/segmented-control', 0, 0, 'Full Width');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('segmentedControl'), get_field_id('disabled'), '0', 'If `disabled` prop is set SegmentedControl will be disabled. For more information check https://mantine.dev/core/segmented-control', 0, 0, 'Disabled');
+VALUES (get_style_id('segmented-control'), get_field_id('disabled'), '0', 'If `disabled` prop is set segmented-control will be disabled. For more information check https://mantine.dev/core/segmented-control', 0, 0, 'Disabled');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('segmentedControl'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set SegmentedControl will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/segmented-control', 0, 1, 'Use Mantine Style');
+VALUES (get_style_id('segmented-control'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set segmented-control will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/segmented-control', 0, 1, 'Use Mantine Style');
+
+-- Add new fields for SegmentedControl
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('segmented-control'), get_field_id('mantine_segmented_control_item_border'), '0', 'If set, adds border around each segmented control item. For more information check https://mantine.dev/core/segmented-control', 0, 0, 'Item Border');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('segmented-control'), get_field_id('label'), NULL, 'Sets the label text for the segmented control input wrapper. For more information check https://mantine.dev/core/segmented-control', 0, 0, 'Label');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('segmented-control'), get_field_id('description'), NULL, 'Sets the description text for the segmented control input wrapper. For more information check https://mantine.dev/core/segmented-control', 0, 0, 'Description');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('segmented-control'), get_field_id('value'), NULL, 'Sets the default selected value for the segmented control. Either a custom value or falls back to section-${style.id}. For more information check https://mantine.dev/core/segmented-control', 0, 0, 'Value');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('segmented-control'), get_field_id('readonly'), '0', 'If set, the segmented control will be readonly. For more information check https://mantine.dev/core/segmented-control', 0, 0, 'Read Only');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('segmented-control'), get_field_id('is_required'), '0', 'If set, the segmented control will be required for form validation. For more information check https://mantine.dev/core/segmented-control', 0, 0, 'Required');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('segmented-control'), get_field_id('name'), NULL, 'Sets the name for the segmented control input wrapper. For more information check https://mantine.dev/core/segmented-control', 0, 0, 'Name');
 
 -- ===========================================
 -- SWITCH COMPONENT
@@ -3350,7 +3378,7 @@ WHERE s1.name = 'card' AND s2.name = 'card-segment';
 -- 2. mantine_radius - unified radius field (xs, sm, md, lg, xl) - used by ALL components
 -- 3. mantine_left_icon - unified left icon field - used by button, tab, badge, blockquote
 -- 4. mantine_right_icon - unified right icon field - used by button, tab
--- 5. mantine_orientation - unified orientation field (horizontal/vertical) - used by radio, segmentedControl, stepper, tabs
+-- 5. mantine_orientation - unified orientation field (horizontal/vertical) - used by radio, segmented-control, stepper, tabs
 -- 6. mantine_color_format - unified color format field (hex/rgba/hsla) - used by color-input, color-picker
 -- 7. mantine_numeric_min - unified numeric min field - used by numberInput, range-slider
 -- 8. mantine_numeric_max - unified numeric max field - used by numberInput, range-slider

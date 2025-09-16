@@ -154,7 +154,7 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <NumberInputStyle style={style} />;
         case 'range-slider':
             return <RangeSliderStyle style={style} />;
-        case 'segmentedControl':
+        case 'segmented-control':
             return <SegmentedControlStyle style={style} />;
         case 'switch':
             return <SwitchStyle style={style} />;

@@ -204,7 +204,7 @@ export const MANTINE_COMPONENT_MAP = {
     'numberInput': 'NumberInputStyle',
     'radio': 'RadioStyle',
     'range-slider': 'RangeSliderStyle',
-    'segmentedControl': 'SegmentedControlStyle',
+    'segmented-control': 'SegmentedControlStyle',
     'switch': 'SwitchStyle',
     'combobox': 'ComboboxStyle',
     'multiSelect': 'MultiSelectStyle',

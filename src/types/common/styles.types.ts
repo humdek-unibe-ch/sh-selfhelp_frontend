@@ -13,7 +13,7 @@ export type TStyleName =
     | 'progressBar' | 'showUserInput' | 'version' | 'loop'
     // Mantine form components
     | 'button' | 'color-input' | 'color-picker' | 'fileInput' | 'numberInput' | 'radio-group' | 'range-slider'
-    | 'segmentedControl' | 'switch' | 'combobox' | 'multiSelect' | 'actionIcon'
+    | 'segmented-control' | 'switch' | 'combobox' | 'multiSelect' | 'actionIcon'
     // Mantine typography components
     | 'code'
     // Mantine data display components
@@ -704,7 +704,7 @@ export interface IRangeSliderStyle extends IBaseStyle {
 }
 
 export interface ISegmentedControlStyle extends IBaseStyle {
-    style_name: 'segmentedControl';
+    style_name: 'segmented-control';
     mantine_segmented_control_data?: IContentField<string>; // Translatable JSON textarea for data
     mantine_orientation?: IContentField<string>;      // Segment field for orientation
     mantine_size?: IContentField<string>;             // Select field for size
@@ -712,7 +712,14 @@ export interface ISegmentedControlStyle extends IBaseStyle {
     mantine_color?: IContentField<string>;            // Color picker field
     fullwidth?: IContentField<string>;                // Checkbox field for full width
     disabled?: IContentField<string>;                 // Checkbox field for disabled state
+    readonly?: IContentField<string>;                 // Checkbox field for readonly state
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    mantine_segmented_control_item_border?: IContentField<string>; // Checkbox field for item border
+    label?: IContentField<string>;                     // Text field for label
+    description?: IContentField<string>;              // Text field for description
+    value?: IContentField<string>;                    // Text field for default value
+    is_required?: IContentField<string>;              // Checkbox field for required validation
+    name?: IContentField<string>;                     // Text field for form field name
 }
 
 export interface ISwitchStyle extends IBaseStyle {
@@ -1097,8 +1104,16 @@ export interface ITypographyStyle extends IBaseStyle {
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
 
-export interface IUnknownStyle extends IBaseStyle {
+export interface IUnknownStyle {
+    id: number;
+    id_styles: number;
     style_name: string; // Any style_name that doesn't match known styles
+    can_have_children: number | null;
+    position: number;
+    path: string;
+    children?: TStyle[];
+    fields: Record<string, IContentField<any>>;
+    css?: string;
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
 

@@ -1,1 +1,1 @@
-Check the cahnges and commit on the current branch with proper comments based on the changes
+Commit to the current branch

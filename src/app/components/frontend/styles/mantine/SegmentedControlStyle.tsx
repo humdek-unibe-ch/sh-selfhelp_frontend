@@ -1,5 +1,5 @@
 import React from 'react';
-import { SegmentedControl } from '@mantine/core';
+import { SegmentedControl, Input } from '@mantine/core';
 import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { ISegmentedControlStyle } from '../../../../../types/common/styles.types';
 
@@ -26,7 +26,13 @@ const SegmentedControlStyle: React.FC<ISegmentedControlStyleProps> = ({ style })
     const color = getFieldContent(style, 'mantine_color') || 'blue';
     const fullWidth = getFieldContent(style, 'fullwidth') === '1';
     const disabled = getFieldContent(style, 'disabled') === '1';
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
+    const readonly = getFieldContent(style, 'readonly') === '1';
+    const name = getFieldContent(style, 'name');
+    const label = getFieldContent(style, 'label');
+    const description = getFieldContent(style, 'description');
+    const defaultValue = getFieldContent(style, 'value');
+    const itemBorder = getFieldContent(style, 'mantine_segmented_control_item_border') === '1';
+    const isRequired = getFieldContent(style, 'is_required') === '1';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
@@ -53,39 +59,40 @@ const SegmentedControlStyle: React.FC<ISegmentedControlStyleProps> = ({ style })
         controlData = [];
     }
 
-    if (use_mantine_style) {
+    // Create SegmentedControl component
+    const segmentedControl = (
+        <SegmentedControl
+            data={controlData}
+            orientation={orientation as 'horizontal' | 'vertical'}
+            size={size as any}
+            radius={radius === 'none' ? 0 : radius}
+            color={color}
+            fullWidth={fullWidth}
+            disabled={disabled}
+            readOnly={readonly}
+            className={cssClass}
+            style={styleObj}
+            name={name}
+            defaultValue={defaultValue}
+            withItemsBorders={itemBorder}
+        />
+    );
+
+    // Wrap with Input.Wrapper if label or description are provided
+    if (label || description) {
         return (
-            <SegmentedControl
-                data={controlData}
-                orientation={orientation as 'horizontal' | 'vertical'}
-                size={size as any}
-                radius={radius === 'none' ? 0 : radius}
-                color={color}
-                fullWidth={fullWidth}
-                disabled={disabled}
+            <Input.Wrapper
+                label={label}
+                description={description}
+                required={isRequired}
                 className={cssClass}
-                style={styleObj}
-            />
+            >
+                {segmentedControl}
+            </Input.Wrapper>
         );
     }
 
-    // Fallback to basic select when Mantine styling is disabled
-    return (
-        <select
-            className={cssClass}
-            disabled={disabled}
-            style={{
-                ...styleObj,
-                width: fullWidth ? '100%' : 'auto'
-            }}
-        >
-            {controlData.map((option, index) => (
-                <option key={index} value={option.value}>
-                    {option.label}
-                </option>
-            ))}
-        </select>
-    );
+    return segmentedControl;
 };
 
 export default SegmentedControlStyle;
