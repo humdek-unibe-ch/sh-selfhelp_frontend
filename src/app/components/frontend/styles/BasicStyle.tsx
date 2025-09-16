@@ -5,7 +5,7 @@ import {
     LinkStyle, LoginStyle, MarkdownStyle, RegisterStyle,
     SelectStyle, TabsStyle, TabStyle, TextareaStyle, VideoStyle,
     AudioStyle, FigureStyle, PlaintextStyle, RadioStyle,
-    CheckboxStyle, SliderStyle,
+    ScrollAreaStyle, CheckboxStyle, SliderStyle,
     HtmlTagStyle, ValidateStyle,
     ResetPasswordStyle, TwoFactorAuthStyle, TableStyle, TableRowStyle,
     TableCellStyle, ShowUserInputStyle, CenterStyle,
@@ -83,6 +83,8 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <StackStyle style={style} />;
         case 'simpleGrid':
             return <SimpleGridStyle style={style} />;
+        case 'scroll-area':
+            return <ScrollAreaStyle style={style} />;
         case 'grid':
             return <GridStyle style={style} />;
         case 'grid-column':

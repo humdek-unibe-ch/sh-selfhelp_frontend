@@ -8,6 +8,7 @@ export { default as ContainerStyle } from './ContainerStyle';
 export { default as FlexStyle } from './FlexStyle';
 export { default as GroupStyle } from './GroupStyle';
 export { default as SimpleGridStyle } from './SimpleGridStyle';
+export { default as ScrollAreaStyle } from './ScrollAreaStyle';
 export { default as SpaceStyle } from './SpaceStyle';
 export { default as GridStyle } from './GridStyle';
 export { default as GridColumnStyle } from './GridColumnStyle';

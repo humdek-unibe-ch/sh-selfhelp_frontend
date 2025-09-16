@@ -3216,7 +3216,7 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
 );
 
 -- Add scroll-area-specific fields
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_scroll-area_scrollbar_size', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "options":[
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_scroll_area_scrollbar_size', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "options":[
 {"value":"6","text":"6px"},
 {"value":"8","text":"8px"},
 {"value":"10","text":"10px"},
@@ -3225,21 +3225,21 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 ]}');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('scroll-area'), get_field_id('mantine_scroll-area_scrollbar_size'), '8', 'Sets the size of the scrollbar. For more information check https://mantine.dev/core/scroll-area', 0, 0, 'Scrollbar Size');
+VALUES (get_style_id('scroll-area'), get_field_id('mantine_scroll_area_scrollbar_size'), '8', 'Sets the size of the scrollbar. For more information check https://mantine.dev/core/scroll-area', 0, 0, 'Scrollbar Size');
 
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_scroll-area_type', get_field_type_id('segment'), 0, '{"options":[
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_scroll_area_type', get_field_type_id('segment'), 0, '{"options":[
 {"value":"hover","text":"Hover"},
 {"value":"always","text":"Always"},
 {"value":"never","text":"Never"}
 ]}');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('scroll-area'), get_field_id('mantine_scroll-area_type'), 'hover', 'Sets when to show the scrollbar. For more information check https://mantine.dev/core/scroll-area', 0, 0, 'Scrollbar Type');
+VALUES (get_style_id('scroll-area'), get_field_id('mantine_scroll_area_type'), 'hover', 'Sets when to show the scrollbar. For more information check https://mantine.dev/core/scroll-area', 0, 0, 'Scrollbar Type');
 
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_scroll-area_offset_scrollbars', get_field_type_id('checkbox'), 0, null);
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_scroll_area_offset_scrollbars', get_field_type_id('checkbox'), 0, null);
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('scroll-area'), get_field_id('mantine_scroll-area_offset_scrollbars'), '0', 'If `offsetScrollbars` prop is set, scrollbars will be offset from the container edge. For more information check https://mantine.dev/core/scroll-area', 0, 0, 'Offset Scrollbars');
+VALUES (get_style_id('scroll-area'), get_field_id('mantine_scroll_area_offset_scrollbars'), '0', 'If `offsetScrollbars` prop is set, scrollbars will be offset from the container edge. For more information check https://mantine.dev/core/scroll-area', 0, 0, 'Offset Scrollbars');
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
@@ -3247,6 +3247,20 @@ VALUES (get_style_id('scroll-area'), get_field_id('mantine_height'), NULL, 'Sets
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('scroll-area'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set scroll-area will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/scroll-area', 0, 1, 'Use Mantine Style');
+
+-- Add scroll hide delay field for scroll-area
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_scroll_area_scroll_hide_delay', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "placeholder": "1000", "options":[
+{"value":"0","text":"Instant (0ms)"},
+{"value":"300","text":"Very Fast (300ms)"},
+{"value":"500","text":"Fast (500ms)"},
+{"value":"1000","text":"Normal (1000ms)"},
+{"value":"1500","text":"Slow (1500ms)"},
+{"value":"2000","text":"Very Slow (2000ms)"},
+{"value":"3000","text":"Extra Slow (3000ms)"}
+]}');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('scroll-area'), get_field_id('mantine_scroll_area_scroll_hide_delay'), '1000', 'Sets the delay in milliseconds before hiding scrollbars after scrolling stops. Only applies when scrollbar type is hover. For more information check https://mantine.dev/core/scroll-area', 0, 0, 'Scroll Hide Delay');
 
 -- ===========================================
 -- CARD STYLE

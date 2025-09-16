@@ -2,7 +2,7 @@
 export type TStyleName =
     | 'login' | 'profile' | 'validate' | 'register' | 'resetPassword' | 'twoFactorAuth'
     | 'container' | 'alert' | 'div' | 'refContainer' | 'dataContainer' | 'htmlTag' | 'center'
-    | 'flex' | 'group' | 'stack' | 'simpleGrid' | 'space' | 'grid' | 'grid-column' | 'divider' | 'paper'
+    | 'flex' | 'group' | 'stack' | 'simpleGrid' | 'scroll-area' | 'space' | 'grid' | 'grid-column' | 'divider' | 'paper'
     | 'heading' | 'markdown' | 'markdownInline' | 'plaintext'
     | 'formUserInput' | 'formUserInputLog' | 'formUserInputRecord' | 'input' | 'textarea' | 'select' | 'radio' | 'slider' | 'checkbox'
     | 'image' | 'video' | 'audio' | 'figure' | 'carousel'
@@ -510,6 +510,17 @@ export interface ISimpleGridStyle extends IBaseStyle {
     mantine_vertical_spacing?: IContentField<string>; // Slider field for vertical spacing
     mantine_width?: IContentField<string>;            // Select field for width
     mantine_height?: IContentField<string>;           // Select field for height
+}
+
+export interface IScrollAreaStyle extends IBaseStyle {
+    style_name: 'scroll-area';
+    // ScrollArea-specific fields
+    mantine_scroll_area_scrollbar_size?: IContentField<string>;        // Select field for scrollbar size
+    mantine_scroll_area_type?: IContentField<string>;                  // Segment field for scrollbar type (hover/always/never)
+    mantine_scroll_area_offset_scrollbars?: IContentField<string>;     // Checkbox field for offset scrollbars
+    mantine_scroll_area_scroll_hide_delay?: IContentField<string>;     // Text field for scroll hide delay
+    mantine_height?: IContentField<string>;                           // Select field for height
+    mantine_width?: IContentField<string>;                            // Select field for width
 }
 
 export interface ISpaceStyle extends IBaseStyle {
@@ -1140,6 +1151,7 @@ export type TStyle =
     | IFlexStyle
     | IGroupStyle
     | ISimpleGridStyle
+    | IScrollAreaStyle
     | IGridStyle
     | IGridColumnStyle
     | ISpaceStyle

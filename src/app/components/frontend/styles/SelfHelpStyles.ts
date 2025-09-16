@@ -21,6 +21,7 @@ export { default as FlexStyle } from './mantine/FlexStyle';
 export { default as GroupStyle } from './mantine/GroupStyle';
 export { default as StackStyle } from './mantine/StackStyle';
 export { default as SimpleGridStyle } from './mantine/SimpleGridStyle';
+export { default as ScrollAreaStyle } from './mantine/ScrollAreaStyle';
 export { default as GridStyle } from './mantine/GridStyle';
 export { default as GridColumnStyle } from './mantine/GridColumnStyle';
 export { default as SpaceStyle } from './mantine/SpaceStyle';
