@@ -188,7 +188,7 @@ export const MANTINE_COMPONENT_MAP = {
     'container': 'ContainerStyle',
     'flex': 'FlexStyle',
     'group': 'GroupStyle',
-    'simpleGrid': 'SimpleGridStyle',
+    'simple-grid': 'SimpleGridStyle',
     'space': 'SpaceStyle',
     'grid': 'GridStyle',
     'grid-column': 'GridColumnStyle',

@@ -795,28 +795,28 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 VALUES (get_style_id('group'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Group will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/group', 0, 1, 'Use Mantine Style');
 
 -- ===========================================
--- SIMPLEGRID COMPONENT
+-- simple-grid COMPONENT
 -- ===========================================
 
--- Add new style 'simpleGrid' based on Mantine SimpleGrid component
+-- Add new style 'simple-grid' based on Mantine simple-grid component
 INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
-    'simpleGrid',
+    'simple-grid',
     (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
     get_style_group_id('mantine'),
-    'Mantine SimpleGrid component for responsive grid layouts',
+    'Mantine simple-grid component for responsive grid layouts',
     1
 );
 
--- Add SimpleGrid-specific fields
+-- Add simple-grid-specific fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('simpleGrid'), get_field_id('mantine_cols'), '3', 'Sets the number of columns in the grid (1-6). For more information check https://mantine.dev/core/simple-grid', 0, 0, 'Columns');
+VALUES (get_style_id('simple-grid'), get_field_id('mantine_cols'), '3', 'Sets the number of columns in the grid (1-6). For more information check https://mantine.dev/core/simple-grid', 0, 0, 'Columns');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('simpleGrid'), get_field_id('mantine_spacing'), 'md', 'Sets the spacing between grid items. For more information check https://mantine.dev/core/simple-grid', 0, 0, 'Spacing');
+VALUES (get_style_id('simple-grid'), get_field_id('mantine_spacing'), 'md', 'Sets the spacing between grid items. For more information check https://mantine.dev/core/simple-grid', 0, 0, 'Spacing');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('simpleGrid'), get_field_id('mantine_breakpoints'), NULL, 'Sets responsive breakpoints for different screen sizes. For more information check https://mantine.dev/core/simple-grid', 0, 0, 'Breakpoints');
+VALUES (get_style_id('simple-grid'), get_field_id('mantine_breakpoints'), NULL, 'Sets responsive breakpoints for different screen sizes. For more information check https://mantine.dev/core/simple-grid', 0, 0, 'Breakpoints');
 
 -- Add vertical spacing field (reusable across components) - use slider
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_vertical_spacing', get_field_type_id('slider'), 0, '{
@@ -831,17 +831,17 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 }');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('simpleGrid'), get_field_id('mantine_vertical_spacing'), NULL, 'Sets the vertical spacing between grid items. For more information check https://mantine.dev/core/simple-grid', 0, 0, 'Vertical Spacing');
+VALUES (get_style_id('simple-grid'), get_field_id('mantine_vertical_spacing'), NULL, 'Sets the vertical spacing between grid items. For more information check https://mantine.dev/core/simple-grid', 0, 0, 'Vertical Spacing');
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('simpleGrid'), get_field_id('mantine_width'), NULL, 'Sets the width of the SimpleGrid component. For more information check https://mantine.dev/core/simple-grid', 0, 0, 'Width');
+VALUES (get_style_id('simple-grid'), get_field_id('mantine_width'), NULL, 'Sets the width of the simple-grid component. For more information check https://mantine.dev/core/simple-grid', 0, 0, 'Width');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('simpleGrid'), get_field_id('mantine_height'), NULL, 'Sets the height of the SimpleGrid component. For more information check https://mantine.dev/core/simple-grid', 0, 0, 'Height');
+VALUES (get_style_id('simple-grid'), get_field_id('mantine_height'), NULL, 'Sets the height of the simple-grid component. For more information check https://mantine.dev/core/simple-grid', 0, 0, 'Height');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('simpleGrid'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set SimpleGrid will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/simple-grid', 0, 1, 'Use Mantine Style');
+VALUES (get_style_id('simple-grid'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set simple-grid will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/simple-grid', 0, 1, 'Use Mantine Style');
 
 -- ===========================================
 -- SPACE COMPONENT
@@ -861,19 +861,13 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('space'), get_field_id('mantine_size'), 'md', 'Sets the size of the space. For more information check https://mantine.dev/core/space', 0, 0, 'Size');
 
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_space_h', get_field_type_id('segment'), 0, '{"options":[
-{"value":"0","text":"Vertical"},
-{"value":"1","text":"Horizontal"}
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_space_direction', get_field_type_id('segment'), 0, '{"options":[
+{"value":"horizontal","text":"Horizontal"},
+{"value":"vertical","text":"Vertical"}
 ]}');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('space'), get_field_id('mantine_space_h'), '0', 'If `h` prop is set Space will add horizontal spacing, otherwise it adds vertical spacing. For more information check https://mantine.dev/core/space', 0, 0, 'Direction');
-
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('space'), get_field_id('mantine_width'), NULL, 'Sets the width of the Space component. For more information check https://mantine.dev/core/space', 0, 0, 'Width');
-
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('space'), get_field_id('mantine_height'), NULL, 'Sets the height of the Space component. For more information check https://mantine.dev/core/space', 0, 0, 'Height');
+VALUES (get_style_id('space'), get_field_id('mantine_space_direction'), 'vertical', 'If `direction` prop is set Space will add horizontal spacing, otherwise it adds vertical spacing. For more information check https://mantine.dev/core/space', 0, 0, 'Direction');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('space'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Space will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/space', 0, 1, 'Use Mantine Style');

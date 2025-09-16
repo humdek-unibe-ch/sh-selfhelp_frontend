@@ -44,8 +44,6 @@ const ScrollAreaStyle: React.FC<IScrollAreaStyleProps> = ({ style }) => {
     // Convert scrollHideDelay to number if provided
     const scrollHideDelayNumber = scrollHideDelay ? parseInt(scrollHideDelay, 10) : undefined;
 
-    console.log(scrollbarType);
-
     return (
         <ScrollArea
             scrollbarSize={scrollbarSize ? parseInt(scrollbarSize, 10) : 8}

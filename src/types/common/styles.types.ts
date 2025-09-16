@@ -2,7 +2,7 @@
 export type TStyleName =
     | 'login' | 'profile' | 'validate' | 'register' | 'resetPassword' | 'twoFactorAuth'
     | 'container' | 'alert' | 'div' | 'refContainer' | 'dataContainer' | 'htmlTag' | 'center'
-    | 'flex' | 'group' | 'stack' | 'simpleGrid' | 'scroll-area' | 'space' | 'grid' | 'grid-column' | 'divider' | 'paper'
+    | 'flex' | 'group' | 'stack' | 'simple-grid' | 'scroll-area' | 'space' | 'grid' | 'grid-column' | 'divider' | 'paper'
     | 'heading' | 'markdown' | 'markdownInline' | 'plaintext'
     | 'formUserInput' | 'formUserInputLog' | 'formUserInputRecord' | 'input' | 'textarea' | 'select' | 'radio' | 'slider' | 'checkbox'
     | 'image' | 'video' | 'audio' | 'figure' | 'carousel'
@@ -502,7 +502,7 @@ export interface IGroupStyle extends IBaseStyle {
 }
 
 export interface ISimpleGridStyle extends IBaseStyle {
-    style_name: 'simpleGrid';
+    style_name: 'simple-grid';
     // SimpleGrid-specific fields
     mantine_cols?: IContentField<string>;             // Slider field for number of columns
     mantine_spacing?: IContentField<string>;          // Slider field for spacing
@@ -526,10 +526,8 @@ export interface IScrollAreaStyle extends IBaseStyle {
 export interface ISpaceStyle extends IBaseStyle {
     style_name: 'space';
     // Space-specific fields
-    mantine_slider_size?: IContentField<string>;      // Slider field for size
-    mantine_space_h?: IContentField<string>;          // Segment field for direction
-    mantine_width?: IContentField<string>;            // Select field for width
-    mantine_height?: IContentField<string>;           // Select field for height
+    mantine_size?: IContentField<string>;      // Slider field for size
+    mantine_space_direction?: IContentField<string>;          // Segment field for direction
 }
 
 export interface IGridStyle extends IBaseStyle {

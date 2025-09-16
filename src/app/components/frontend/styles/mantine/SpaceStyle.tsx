@@ -23,25 +23,17 @@ interface ISpaceStyleProps {
  */
 const SpaceStyle: React.FC<ISpaceStyleProps> = ({ style }) => {
     // Extract field values for Mantine Space props
-    const size = getFieldContent(style, 'mantine_slider_size');
-    const h = getFieldContent(style, 'mantine_space_h') === '1';
-    const width = getFieldContent(style, 'mantine_width');
-    const height = getFieldContent(style, 'mantine_height');
+    const size = getFieldContent(style, 'mantine_size');
+    const direction = getFieldContent(style, 'mantine_space_direction');
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
-    // Build style object for sizing properties
-    const styleObj: React.CSSProperties = {};
-    if (width) styleObj.width = width;
-    if (height) styleObj.height = height;
-
     return (
         <Space
-            h={h ? size || 'md' : undefined}
-            w={h ? undefined : size || 'md'}
+            w={direction === 'horizontal' ? size : undefined}
+            h={direction === 'vertical' ? size : undefined}
             className={cssClass}
-            style={styleObj}
         />
     );
 };

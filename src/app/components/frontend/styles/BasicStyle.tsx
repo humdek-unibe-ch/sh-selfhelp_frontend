@@ -81,7 +81,7 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <GroupStyle style={style} />;
         case 'stack':
             return <StackStyle style={style} />;
-        case 'simpleGrid':
+        case 'simple-grid':
             return <SimpleGridStyle style={style} />;
         case 'scroll-area':
             return <ScrollAreaStyle style={style} />;
