@@ -681,10 +681,10 @@ export interface IRangeSliderStyle extends IBaseStyle {
     mantine_numeric_min?: IContentField<string>;      // Select field for minimum value
     mantine_numeric_max?: IContentField<string>;      // Select field for maximum value
     mantine_numeric_step?: IContentField<string>;     // Select field for step value
-    mantine_range_slider_marks?: IContentField<string>; // Checkbox field for marks
     mantine_range_slider_marks_values?: IContentField<string>; // Translatable textarea for custom marks JSON
     mantine_range_slider_show_label?: IContentField<string>; // Checkbox field for show label on hover
     mantine_range_slider_labels_always_on?: IContentField<string>; // Checkbox field for labels always on
+    mantine_range_slider_inverted?: IContentField<string>; // Checkbox field for inverted slider
     mantine_size?: IContentField<string>;             // Select field for size
     mantine_color?: IContentField<string>;            // Color picker field
     mantine_radius?: IContentField<string>;           // Select field for border radius

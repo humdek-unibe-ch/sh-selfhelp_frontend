@@ -1765,11 +1765,6 @@ VALUES (get_style_id('range-slider'), get_field_id('mantine_numeric_max'), '100'
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('range-slider'), get_field_id('mantine_numeric_step'), '1', 'Sets the step value for the range slider. For more information check https://mantine.dev/core/range-slider', 0, 0, 'Step');
 
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_range_slider_marks', get_field_type_id('checkbox'), 0, null);
-
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('range-slider'), get_field_id('mantine_range_slider_marks'), '0', 'If `marks` prop is set, marks will be displayed on the range slider. For more information check https://mantine.dev/core/range-slider', 0, 0, 'Marks');
-
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('range-slider'), get_field_id('mantine_size'), 'sm', 'Sets the size of the range slider. For more information check https://mantine.dev/core/range-slider', 0, 0, 'Size');
@@ -1804,6 +1799,12 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('range-slider'), get_field_id('mantine_range_slider_labels_always_on'), '0', 'If enabled, labels are always visible on the range slider. For more information check https://mantine.dev/core/range-slider', 0, 0, 'Labels Always On');
+
+-- Create field for inverted slider
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_range_slider_inverted', get_field_type_id('checkbox'), 0, null);
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('range-slider'), get_field_id('mantine_range_slider_inverted'), '0', 'If enabled, inverts the range slider track and thumb colors. For more information check https://mantine.dev/core/range-slider', 0, 0, 'Inverted');
 
 -- Add standard input fields for range-slider
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)

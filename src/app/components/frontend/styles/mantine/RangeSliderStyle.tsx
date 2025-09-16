@@ -1,17 +1,7 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState } from 'react';
 import { RangeSlider, Input } from '@mantine/core';
 import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { IRangeSliderStyle } from '../../../../../types/common/styles.types';
-
-/**
- * Form Context for component data registration
- */
-interface IFormContext {
-    registerField: (fieldName: string, value: any) => void;
-    unregisterField: (fieldName: string) => void;
-}
-
-const FormContext = React.createContext<IFormContext | null>(null);
 
 /**
  * Props interface for RangeSliderStyle component
@@ -25,26 +15,19 @@ interface IRangeSliderStyleProps {
  * Enhanced with controlled input functionality, translatable marks, radius, and standard input fields.
  *
  * Features:
- * - Controlled input with form integration via hidden inputs
+ * - Controlled input with form integration via name attribute
  * - Translatable marks values (display = 1)
  * - Radius configuration
  * - Show label on hover option
  * - Labels always on option
+ * - Inverted slider option
  * - Custom marks from JSON configuration
  * - Label and description support using Input.Wrapper (translatable)
  * - Name attribute for form integration
  *
  * Form Submission Pattern:
- * RangeSlider registers its field values with the FormContext:
- * - `${name}_from`: Contains the minimum value
- * - `${name}_to`: Contains the maximum value
- * No hidden inputs needed - values are registered directly with the form.
- *
- * Name Field Handling:
- * Special handling for name field to prevent "undefined" in form data:
- * - If name field contains "undefined" string, uses fallback `range-slider-${style.id}`
- * - If name field is empty/whitespace, uses fallback `range-slider-${style.id}`
- * - Otherwise uses the provided name value
+ * Uses standard HTML form submission with the name attribute.
+ * The selected range values are submitted as form data with the specified name.
  *
  * Input.Wrapper Pattern:
  * Always use Input.Wrapper for labels and descriptions in input components.
@@ -60,11 +43,9 @@ const RangeSliderStyle: React.FC<IRangeSliderStyleProps> = ({ style }) => {
     const description = getFieldContent(style, 'description');
     const name = getFieldContent(style, 'name');
     // Get form context for field registration
-    const formContext = useContext(FormContext);
     const min = parseFloat(getFieldContent(style, 'mantine_numeric_min') || '0');
     const max = parseFloat(getFieldContent(style, 'mantine_numeric_max') || '100');
     const step = parseFloat(getFieldContent(style, 'mantine_numeric_step') || '1');
-    const withMarks = getFieldContent(style, 'mantine_range_slider_marks') === '1';
     const size = getFieldContent(style, 'mantine_size') || 'sm';
     const color = getFieldContent(style, 'mantine_color') || 'blue';
     const radius = getFieldContent(style, 'mantine_radius') || 'sm';
@@ -74,6 +55,7 @@ const RangeSliderStyle: React.FC<IRangeSliderStyleProps> = ({ style }) => {
     // New fields
     const showLabelOnHover = getFieldContent(style, 'mantine_range_slider_show_label') === '1';
     const labelsAlwaysOn = getFieldContent(style, 'mantine_range_slider_labels_always_on') === '1';
+    const inverted = getFieldContent(style, 'mantine_range_slider_inverted') === '1';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
@@ -103,12 +85,7 @@ const RangeSliderStyle: React.FC<IRangeSliderStyleProps> = ({ style }) => {
     }
 
     // Generate marks - use custom marks if provided, otherwise use default min/max marks
-    const marks = customMarks.length > 0 ? customMarks : (
-        withMarks ? [
-            { value: min, label: min.toString() },
-            { value: max, label: max.toString() }
-        ] : undefined
-    );
+    const marks = customMarks.length > 0 ? customMarks : [];
 
     // Handle value change to update local state and register with form
     const handleChange = (newValue: [number, number]) => {
@@ -129,6 +106,7 @@ const RangeSliderStyle: React.FC<IRangeSliderStyleProps> = ({ style }) => {
             color={color}
             radius={radius}
             disabled={disabled}
+            inverted={inverted}
             showLabelOnHover={showLabelOnHover}
             labelAlwaysOn={labelsAlwaysOn}
         />
@@ -154,6 +132,3 @@ const RangeSliderStyle: React.FC<IRangeSliderStyleProps> = ({ style }) => {
 };
 
 export default RangeSliderStyle;
-export { FormContext };
-export type { IFormContext };
-
