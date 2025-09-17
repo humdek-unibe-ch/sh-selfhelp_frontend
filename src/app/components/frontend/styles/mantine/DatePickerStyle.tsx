@@ -60,6 +60,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
     const hideWeekends = getFieldContent(style, 'mantine_datepicker_hide_weekends') === '1';
     const timeStep = parseInt(getFieldContent(style, 'mantine_datepicker_time_step') || '15');
     const timeFormat = getFieldContent(style, 'mantine_datepicker_time_format') || '24';
+    // Note: timeStep could be used with TimeInput step prop if available in future Mantine versions
     const dateFormat = getFieldContent(style, 'mantine_datepicker_date_format') || 'YYYY-MM-DD';
     const withSeconds = getFieldContent(style, 'mantine_datepicker_with_seconds') === '1';
 
@@ -134,9 +135,38 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
     const handleTimeEventChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.currentTarget.value;
         if (value) {
-            const [hours, minutes] = value.split(':').map(Number);
+            // Parse time considering the configured format (12/24 hour)
+            let hours, minutes, seconds = 0;
+
+            if (timeFormat === '12') {
+                // Handle 12-hour format (e.g., "02:30 PM")
+                const timeMatch = value.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i);
+                if (timeMatch) {
+                    hours = parseInt(timeMatch[1]);
+                    minutes = parseInt(timeMatch[2]);
+                    seconds = timeMatch[3] ? parseInt(timeMatch[3]) : 0;
+                    const ampm = timeMatch[4]?.toUpperCase();
+
+                    // Convert 12-hour to 24-hour format
+                    if (ampm === 'PM' && hours !== 12) {
+                        hours += 12;
+                    } else if (ampm === 'AM' && hours === 12) {
+                        hours = 0;
+                    }
+                } else {
+                    // Fallback for invalid format
+                    [hours, minutes] = value.split(':').map(Number);
+                }
+            } else {
+                // Handle 24-hour format
+                const timeParts = value.split(':').map(Number);
+                hours = timeParts[0] || 0;
+                minutes = timeParts[1] || 0;
+                seconds = timeParts[2] || 0;
+            }
+
             const date = currentValue || new Date();
-            date.setHours(hours, minutes || 0, 0, 0);
+            date.setHours(hours, minutes, seconds, 0);
             setCurrentValue(new Date(date));
         } else {
             setCurrentValue(null);
@@ -151,9 +181,13 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
 
     switch (pickerType) {
         case 'time':
+            // Format time based on timeFormat setting (12/24 hour)
+            const timeFormatPattern = withSeconds
+                ? (timeFormat === '12' ? 'hh:mm:ss A' : 'HH:mm:ss')
+                : (timeFormat === '12' ? 'hh:mm A' : 'HH:mm');
             datePickerElement = (
                 <TimeInput
-                    value={currentValue ? dayjs(currentValue).format(withSeconds ? 'HH:mm:ss' : 'HH:mm') : ''}
+                    value={currentValue ? dayjs(currentValue).format(timeFormatPattern) : ''}
                     onChange={handleTimeEventChange}
                     label={label}
                     placeholder={placeholder}
@@ -197,30 +231,42 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
 
         case 'date':
         default:
-            datePickerElement = (
-                <DatePickerInput
-                    value={currentValue}
-                    onChange={handleDateTimeChange}
-                    label={label}
-                    placeholder={placeholder}
-                    description={description}
-                    error={error}
-                    required={isRequired}
-                    disabled={disabled}
-                    size={size}
-                    radius={radius === 'none' ? 0 : radius}
-                    minDate={minDate}
-                    maxDate={maxDate}
-                    firstDayOfWeek={firstDayOfWeek}
-                    weekendDays={weekendDays}
-                    clearable={clearable}
-                    allowDeselect={allowDeselect}
-                    readOnly={readonly}
-                    valueFormat={format}
-                    className={cssClass}
-                    style={{ width: '100%' }}
-                />
-            );
+            // Create DatePickerInput props with all available options
+            const datePickerProps: any = {
+                value: currentValue,
+                onChange: handleDateTimeChange,
+                label: label,
+                placeholder: placeholder,
+                description: description,
+                error: error,
+                required: isRequired,
+                disabled: disabled,
+                size: size,
+                radius: radius === 'none' ? 0 : radius,
+                minDate: minDate,
+                maxDate: maxDate,
+                firstDayOfWeek: firstDayOfWeek,
+                weekendDays: weekendDays,
+                clearable: clearable,
+                allowDeselect: allowDeselect,
+                readOnly: readonly,
+                valueFormat: format,
+                className: cssClass,
+                style: { width: '100%' }
+            };
+
+            // Add optional props if they are configured
+            if (consistentWeeks) {
+                datePickerProps.consistentWeeks = consistentWeeks;
+            }
+            if (hideOutsideDates) {
+                datePickerProps.hideOutsideDates = hideOutsideDates;
+            }
+            if (hideWeekends) {
+                datePickerProps.hideWeekends = hideWeekends;
+            }
+
+            datePickerElement = <DatePickerInput {...datePickerProps} />;
             break;
     }
 
