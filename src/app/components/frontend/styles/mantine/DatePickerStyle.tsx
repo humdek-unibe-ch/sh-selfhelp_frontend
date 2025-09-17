@@ -1,132 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Checkbox, Input } from '@mantine/core';
-import { getFieldContent, castMantineSize, castMantineRadius } from '../../../../../utils/style-field-extractor';
-import IconComponent from '../../../shared/common/IconComponent';
-import { ICheckboxStyle } from '../../../../../types/common/styles.types';
-
-interface ICheckboxStyleProps {
-    style: ICheckboxStyle;
-}
-
-const CheckboxStyle: React.FC<ICheckboxStyleProps> = ({ style }) => {
-    // Extract field values using the new unified field structure
-    const label = getFieldContent(style, 'label');
-    const name = getFieldContent(style, 'name') || `section-${style.id}`;
-    const value = getFieldContent(style, 'value');
-    const checkboxValue = getFieldContent(style, 'checkbox_value') || '1';
-    const isRequired = getFieldContent(style, 'is_required') === '1';
-    const disabled = getFieldContent(style, 'disabled') === '1';
-    const description = getFieldContent(style, 'description');
-    const error = getFieldContent(style, 'error');
-
-    // Mantine-specific fields
-    const size = castMantineSize(getFieldContent(style, 'mantine_size'));
-    const radius = castMantineRadius(getFieldContent(style, 'mantine_radius'));
-    const color = getFieldContent(style, 'mantine_color');
-    const iconName = getFieldContent(style, 'mantine_checkbox_icon');
-    const labelPosition = getFieldContent(style, 'mantine_checkbox_labelPosition') as 'left' | 'right';
-
-    // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
-
-    // Get icon component if specified
-    const icon = iconName ? ({ indeterminate, className }: { indeterminate: boolean | undefined; className: string }) =>
-        <span className={className}><IconComponent iconName={iconName} size={16} /></span> : undefined;
-
-    // Build style object for wrapper props
-    const styleObj: React.CSSProperties = {};
-
-    // Initialize checked state from section_data if available (for record forms)
-    const [isChecked, setIsChecked] = useState(() => {
-        // Check if we have existing data from section_data (for record forms)
-        const sectionDataArray = style.section_data;
-        const firstRecord = Array.isArray(sectionDataArray) && sectionDataArray.length > 0 ? sectionDataArray[0] : null;
-
-        if (firstRecord && firstRecord[name]) {
-            // If we have existing data, use it to determine checked state
-            const existingValue = firstRecord[name];
-            return existingValue === checkboxValue || (existingValue === '1' && checkboxValue === '1');
-        }
-
-        // Fallback to style configuration
-        return value === checkboxValue;
-    });
-
-    // Update checked state when section_data changes (for record form pre-population)
-    useEffect(() => {
-        const sectionDataArray = style.section_data;
-        const firstRecord = Array.isArray(sectionDataArray) && sectionDataArray.length > 0 ? sectionDataArray[0] : null;
-
-        if (firstRecord && firstRecord[name]) {
-            const existingValue = firstRecord[name];
-            const shouldBeChecked = existingValue === checkboxValue || (existingValue === '1' && checkboxValue === '1');
-            setIsChecked(shouldBeChecked);
-        }
-    }, [style, name, checkboxValue]);
-
-    // Handle checkbox change
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setIsChecked(event.currentTarget.checked);
-    };
-
-    // Determine the current value based on checked state for form submission
-    const currentValue = isChecked ? checkboxValue : '';
-
-    // Create the Checkbox component
-    const checkboxElement = (
-        <Checkbox
-            checked={isChecked}
-            onChange={handleChange}
-            name={name}
-            required={isRequired}
-            disabled={disabled}
-            size={size}
-            radius={radius === 'none' ? 0 : radius}
-            color={color}
-            icon={icon}
-            labelPosition={labelPosition}
-            className={cssClass}
-            style={styleObj}
-        />
-    );
-
-    // Use Input.Wrapper for proper label and description handling (like SwitchStyle)
-    const wrappedElement = label || description || error ? (
-        <Input.Wrapper
-            label={label}
-            description={description}
-            error={error}
-            required={isRequired}
-        >
-            {checkboxElement}
-        </Input.Wrapper>
-    ) : (
-        checkboxElement
-    );
-
-    return (
-        <>
-            {wrappedElement}
-            {/* Hidden input to ensure form submission captures the value */}
-            <input
-                type="hidden"
-                name={name}
-                value={currentValue}
-            />
-        </>
-    );
-
-};
-
-export default CheckboxStyle;
-
 // DatePickerStyle Component
 import React, { useState, useEffect } from 'react';
+import { Input } from '@mantine/core';
 import {
     DatePickerInput,
     TimeInput,
-    DateTimePicker,
-    Input
+    DateTimePicker
 } from '@mantine/dates';
 import dayjs from 'dayjs';
 import { getFieldContent, castMantineSize, castMantineRadius } from '../../../../../utils/style-field-extractor';
@@ -153,7 +31,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
     const placeholder = getFieldContent(style, 'mantine_datepicker_placeholder');
     const minDateStr = getFieldContent(style, 'mantine_datepicker_min_date');
     const maxDateStr = getFieldContent(style, 'mantine_datepicker_max_date');
-    const firstDayOfWeek = parseInt(getFieldContent(style, 'mantine_datepicker_first_day_of_week') || '1');
+    const firstDayOfWeek = parseInt(getFieldContent(style, 'mantine_datepicker_first_day_of_week') || '1') as 0 | 1 | 2 | 3 | 4 | 5 | 6;
     const weekendDaysStr = getFieldContent(style, 'mantine_datepicker_weekend_days') || '[0,6]';
     const clearable = getFieldContent(style, 'mantine_datepicker_clearable') === '1';
     const allowDeselect = getFieldContent(style, 'mantine_datepicker_allow_deselect') === '1';
@@ -180,9 +58,10 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
     const maxDate = maxDateStr ? dayjs(maxDateStr).toDate() : undefined;
 
     // Parse weekend days
-    let weekendDays: number[] = [0, 6];
+    let weekendDays: (0 | 1 | 2 | 3 | 4 | 5 | 6)[] = [0, 6];
     try {
-        weekendDays = JSON.parse(weekendDaysStr);
+        const parsed = JSON.parse(weekendDaysStr);
+        weekendDays = parsed.map((day: number) => day as 0 | 1 | 2 | 3 | 4 | 5 | 6);
     } catch (e) {
         console.warn('Invalid weekend days format:', weekendDaysStr);
     }
@@ -217,9 +96,25 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
         }
     }, [style, name]);
 
-    // Handle value change
-    const handleChange = (newValue: Date | null) => {
-        setCurrentValue(newValue);
+    // Handle value change for different component types
+    const handleDateTimeChange = (value: Date | string | null) => {
+        if (typeof value === 'string') {
+            setCurrentValue(value ? dayjs(value).toDate() : null);
+        } else {
+            setCurrentValue(value);
+        }
+    };
+
+    const handleTimeEventChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = event.currentTarget.value;
+        if (value) {
+            const [hours, minutes] = value.split(':').map(Number);
+            const date = currentValue || new Date();
+            date.setHours(hours, minutes || 0, 0, 0);
+            setCurrentValue(new Date(date));
+        } else {
+            setCurrentValue(null);
+        }
     };
 
     // Determine the current value for form submission
@@ -232,8 +127,8 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
         case 'time':
             datePickerElement = (
                 <TimeInput
-                    value={currentValue}
-                    onChange={handleChange}
+                    value={currentValue ? dayjs(currentValue).format(withSeconds ? 'HH:mm:ss' : 'HH:mm') : ''}
+                    onChange={handleTimeEventChange}
                     label={label}
                     placeholder={placeholder}
                     description={description}
@@ -253,7 +148,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
             datePickerElement = (
                 <DateTimePicker
                     value={currentValue}
-                    onChange={handleChange}
+                    onChange={handleDateTimeChange}
                     label={label}
                     placeholder={placeholder}
                     description={description}
@@ -267,13 +162,6 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
                     firstDayOfWeek={firstDayOfWeek}
                     weekendDays={weekendDays}
                     clearable={clearable}
-                    allowDeselect={allowDeselect}
-                    readonly={readonly}
-                    withTimeGrid={withTimeGrid}
-                    consistentWeeks={consistentWeeks}
-                    hideOutsideDates={hideOutsideDates}
-                    hideWeekends={hideWeekends}
-                    timeStep={timeStep}
                     valueFormat={format}
                     className={cssClass}
                     style={{ width: '100%' }}
@@ -286,7 +174,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
             datePickerElement = (
                 <DatePickerInput
                     value={currentValue}
-                    onChange={handleChange}
+                    onChange={handleDateTimeChange}
                     label={label}
                     placeholder={placeholder}
                     description={description}
@@ -301,10 +189,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
                     weekendDays={weekendDays}
                     clearable={clearable}
                     allowDeselect={allowDeselect}
-                    readonly={readonly}
-                    consistentWeeks={consistentWeeks}
-                    hideOutsideDates={hideOutsideDates}
-                    hideWeekends={hideWeekends}
+                    readOnly={readonly}
                     valueFormat={format}
                     className={cssClass}
                     style={{ width: '100%' }}
@@ -342,4 +227,4 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
     );
 };
 
-export { DatePickerStyle }; 
+export default DatePickerStyle;

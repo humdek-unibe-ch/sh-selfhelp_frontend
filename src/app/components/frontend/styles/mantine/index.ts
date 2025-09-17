@@ -22,6 +22,8 @@ export { default as ColorPickerStyle } from './ColorPickerStyle';
 export { default as FileInputStyle } from './FileInputStyle';
 export { default as NumberInputStyle } from './NumberInputStyle';
 export { default as RadioStyle } from './RadioStyle';
+export { default as CheckboxStyle } from './CheckboxStyle';
+export { default as DatePickerStyle } from './DatePickerStyle';
 export { default as RangeSliderStyle } from './RangeSliderStyle';
 export { default as SliderStyle } from './SliderStyle';
 export { default as SegmentedControlStyle } from './SegmentedControlStyle';

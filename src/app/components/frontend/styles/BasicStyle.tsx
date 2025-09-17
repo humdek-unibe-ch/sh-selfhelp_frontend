@@ -5,7 +5,7 @@ import {
     LinkStyle, LoginStyle, MarkdownStyle, RegisterStyle,
     SelectStyle, TabsStyle, TabStyle, TextareaStyle, VideoStyle,
     AudioStyle, FigureStyle, PlaintextStyle, RadioStyle,
-    ScrollAreaStyle, CheckboxStyle, SliderStyle,
+    ScrollAreaStyle, CheckboxStyle, DatePickerStyle, SliderStyle,
     HtmlTagStyle, ValidateStyle,
     ResetPasswordStyle, TwoFactorAuthStyle, TableStyle, TableRowStyle,
     TableCellStyle, ShowUserInputStyle, CenterStyle,
@@ -148,6 +148,8 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
             return <RadioStyle style={style} />;
         case 'checkbox':
             return <CheckboxStyle style={style} />;
+        case 'datepicker':
+            return <DatePickerStyle style={style} />;
         case 'slider':
             return <SliderStyle style={style} />;
         case 'color-input':

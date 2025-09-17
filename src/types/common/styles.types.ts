@@ -379,6 +379,45 @@ export interface ICheckboxStyle extends IBaseStyle {
     section_data?: any[];
 }
 
+// DatePicker Styles
+export interface IDatePickerStyle extends IBaseStyle {
+    style_name: 'datepicker';
+    label?: IContentField<string>;
+    name?: IContentField<string>;
+    value?: IContentField<string>;
+    is_required?: IContentField<string>;
+    disabled?: IContentField<string>;
+    description?: IContentField<string>;
+    error?: IContentField<string>;
+    // DatePicker-specific fields
+    mantine_datepicker_type?: IContentField<string>;
+    mantine_datepicker_format?: IContentField<string>;
+    mantine_datepicker_locale?: IContentField<string>;
+    mantine_datepicker_placeholder?: IContentField<string>;
+    mantine_datepicker_min_date?: IContentField<string>;
+    mantine_datepicker_max_date?: IContentField<string>;
+    mantine_datepicker_first_day_of_week?: IContentField<string>;
+    mantine_datepicker_weekend_days?: IContentField<string>;
+    mantine_datepicker_clearable?: IContentField<string>;
+    mantine_datepicker_allow_deseselect?: IContentField<string>;
+    mantine_datepicker_readonly?: IContentField<string>;
+    mantine_datepicker_with_time_grid?: IContentField<string>;
+    mantine_datepicker_consistent_weeks?: IContentField<string>;
+    mantine_datepicker_hide_outside_dates?: IContentField<string>;
+    mantine_datepicker_hide_weekends?: IContentField<string>;
+    mantine_datepicker_time_step?: IContentField<string>;
+    mantine_datepicker_time_format?: IContentField<string>;
+    mantine_datepicker_date_format?: IContentField<string>;
+    mantine_datepicker_with_seconds?: IContentField<string>;
+    // Reusable Mantine fields
+    mantine_size?: IContentField<string>;
+    mantine_color?: IContentField<string>;
+    mantine_radius?: IContentField<string>;
+    use_mantine_style?: IContentField<string>;
+    // For form integration
+    section_data?: any[];
+}
+
 // Media Styles
 export interface IImageStyle extends IBaseStyle {
     style_name: 'image';
@@ -1193,6 +1232,7 @@ export type TStyle =
     | IRadioStyle
     | ISliderStyle
     | ICheckboxStyle
+    | IDatePickerStyle
     | IImageStyle
     | IVideoStyle
     | IAudioStyle
