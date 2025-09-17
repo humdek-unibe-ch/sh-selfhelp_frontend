@@ -103,6 +103,7 @@ export { default as NotificationStyle } from './mantine/NotificationStyle';
 
 // Typography Components
 export { default as TitleStyle } from './mantine/TitleStyle';
+export { default as TextStyle } from './mantine/TextStyle';
 export { default as CodeStyle } from './mantine/CodeStyle';
 export { default as HighlightStyle } from './mantine/HighlightStyle';
 export { default as BlockquoteStyle } from './mantine/BlockquoteStyle';

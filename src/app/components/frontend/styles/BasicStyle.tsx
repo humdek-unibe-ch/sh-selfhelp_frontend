@@ -20,7 +20,7 @@ import {
     ProgressStyle, ProgressRootStyle, ProgressSectionStyle, RangeSliderStyle, RatingStyle, SegmentedControlStyle,
     SpoilerStyle,
     SwitchStyle, ThemeIconStyle, TimelineStyle,
-    TitleStyle, TypographyStyle,
+    TitleStyle, TextStyle, TypographyStyle,
     // Special Components
     UnknownStyle
 } from './SelfHelpStyles';
@@ -221,6 +221,8 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
             return <NotificationStyle style={style} />;
         case 'title':
             return <TitleStyle style={style} />;
+        case 'text':
+            return <TextStyle style={style} />;
         case 'code':
             return <CodeStyle style={style} />;
         case 'highlight':

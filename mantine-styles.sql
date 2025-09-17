@@ -3451,3 +3451,49 @@ INSERT IGNORE INTO styles_allowed_relationships (id_parent_style, id_child_style
 SELECT s1.id, s2.id FROM styles s1, styles s2
 WHERE s1.name = 'progress-root' AND s2.name = 'progress-section';
 
+-- ===========================================
+-- TEXT COMPONENT DEFINITION
+-- ===========================================
+
+-- Create Text-specific fields
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'mantine_text_font_weight', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "placeholder": "400", "options": [{"value": "100", "text": "Thin (100)"}, {"value": "200", "text": "Extra Light (200)"}, {"value": "300", "text": "Light (300)"}, {"value": "400", "text": "Regular (400)"}, {"value": "500", "text": "Medium (500)"}, {"value": "600", "text": "Semi Bold (600)"}, {"value": "700", "text": "Bold (700)"}, {"value": "800", "text": "Extra Bold (800)"}, {"value": "900", "text": "Black (900)"}]}'),
+(NULL, 'mantine_text_font_style', get_field_type_id('segment'), 0, '{"options": [{"value": "normal", "text": "Normal"}, {"value": "italic", "text": "Italic"}]}'),
+(NULL, 'mantine_text_text_decoration', get_field_type_id('segment'), 0, '{"options": [{"value": "none", "text": "None"}, {"value": "underline", "text": "Underline"}, {"value": "line-through", "text": "Strikethrough"}]}'),
+(NULL, 'mantine_text_text_transform', get_field_type_id('segment'), 0, '{"options": [{"value": "none", "text": "None"}, {"value": "uppercase", "text": "Uppercase"}, {"value": "capitalize", "text": "Capitalize"}, {"value": "lowercase", "text": "Lowercase"}]}'),
+(NULL, 'mantine_text_align', get_field_type_id('segment'), 0, '{"options": [{"value": "left", "text": "Left"}, {"value": "center", "text": "Center"}, {"value": "right", "text": "Right"}, {"value": "justify", "text": "Justify"}]}'),
+(NULL, 'mantine_text_variant', get_field_type_id('segment'), 0, '{"options": [{"value": "default", "text": "Default"}, {"value": "gradient", "text": "Gradient"}]}'),
+(NULL, 'mantine_text_gradient', get_field_type_id('textarea'), 0, NULL),
+(NULL, 'mantine_text_truncate', get_field_type_id('segment'), 0, '{"options": [{"value": "none", "text": "None"}, {"value": "end", "text": "End"}, {"value": "start", "text": "Start"}]}'),
+(NULL, 'mantine_text_line_clamp', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "placeholder": "3", "options": [{"value": "2", "text": "2 lines"}, {"value": "3", "text": "3 lines"}, {"value": "4", "text": "4 lines"}, {"value": "5", "text": "5 lines"}]}'),
+(NULL, 'mantine_text_inherit', get_field_type_id('checkbox'), 0, null),
+(NULL, 'mantine_text_span', get_field_type_id('checkbox'), 0, null);
+
+-- Add text style
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+    NULL,
+    'text',
+    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    get_style_group_id('mantine'),
+    'Mantine Text component for displaying text with various styling options',
+    0
+);
+
+-- Link fields to text style
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
+(get_style_id('text'), get_field_id('text'), NULL, 'The text content to display. For more information check https://mantine.dev/core/text', 0, 0, 'Text Content'),
+(get_style_id('text'), get_field_id('mantine_size'), 'md', 'Sets the font size of the text. For more information check https://mantine.dev/core/text', 0, 0, 'Size'),
+(get_style_id('text'), get_field_id('mantine_color'), 'dark', 'Sets the color of the text. For more information check https://mantine.dev/core/text', 0, 0, 'Color'),
+(get_style_id('text'), get_field_id('mantine_text_font_weight'), NULL, 'Sets the font weight of the text. Choose from preset weights or enter a custom value (100-900). For more information check https://mantine.dev/core/text', 0, 0, 'Font Weight'),
+(get_style_id('text'), get_field_id('mantine_text_font_style'), 'normal', 'Sets the font style of the text. For more information check https://mantine.dev/core/text', 0, 0, 'Font Style'),
+(get_style_id('text'), get_field_id('mantine_text_text_decoration'), 'none', 'Sets the text decoration of the text. For more information check https://mantine.dev/core/text', 0, 0, 'Text Decoration'),
+(get_style_id('text'), get_field_id('mantine_text_text_transform'), 'none', 'Sets the text transform of the text. For more information check https://mantine.dev/core/text', 0, 0, 'Text Transform'),
+(get_style_id('text'), get_field_id('mantine_text_align'), 'left', 'Sets the text alignment. For more information check https://mantine.dev/core/text', 0, 0, 'Text Align'),
+(get_style_id('text'), get_field_id('mantine_text_variant'), 'default', 'Sets the text variant. Use "gradient" for gradient text. For more information check https://mantine.dev/core/text', 0, 0, 'Variant'),
+(get_style_id('text'), get_field_id('mantine_text_gradient'), NULL, 'Sets the gradient configuration for gradient variant. Only used when variant is "gradient". Format: {"from": "blue", "to": "cyan", "deg": 90}. For more information check https://mantine.dev/core/text', 0, 0, 'Gradient'),
+(get_style_id('text'), get_field_id('mantine_text_truncate'), NULL, 'Truncates the text with ellipsis. For more information check https://mantine.dev/core/text', 0, 0, 'Truncate'),
+(get_style_id('text'), get_field_id('mantine_text_line_clamp'), NULL, 'Limits the number of lines to display. Choose from preset values or enter a custom number. For more information check https://mantine.dev/core/text', 0, 0, 'Line Clamp'),
+(get_style_id('text'), get_field_id('mantine_text_inherit'), '0', 'If set, Text will inherit parent styles (font-size, font-family, line-height). For more information check https://mantine.dev/core/text', 0, 0, 'Inherit'),
+(get_style_id('text'), get_field_id('mantine_text_span'), '0', 'If set, Text will render as a span element instead of p. For more information check https://mantine.dev/core/text', 0, 0, 'Span'),
+(get_style_id('text'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the text component', 0, 1, 'Use Mantine Style');
+

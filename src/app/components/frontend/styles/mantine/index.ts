@@ -55,6 +55,7 @@ export { default as ImageStyle } from '../ImageStyle';
 
 // Typography Components
 export { default as TitleStyle } from './TitleStyle';
+export { default as TextStyle } from './TextStyle';
 // export { default as CodeStyle } from './CodeStyle';
 export { default as HighlightStyle } from './HighlightStyle';
 export { default as BlockquoteStyle } from './BlockquoteStyle';
@@ -229,6 +230,7 @@ export const MANTINE_COMPONENT_MAP = {
 
     // Typography Components
     'title': 'TitleStyle',
+    'text': 'TextStyle',
     'code': 'CodeStyle',
     'highlight': 'HighlightStyle',
     'blockquote': 'BlockquoteStyle',

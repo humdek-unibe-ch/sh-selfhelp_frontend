@@ -24,7 +24,7 @@ export type TStyleName =
     // Mantine feedback components
     | 'notification'
     // Mantine typography components
-    | 'title' | 'code' | 'highlight' | 'blockquote'
+    | 'title' | 'code' | 'highlight' | 'blockquote' | 'text'
     // Mantine utility components
     | 'aspectRatio' | 'background-image' | 'fieldset' | 'spoiler'
     // Card components
@@ -978,6 +978,25 @@ export interface ITitleStyle extends IBaseStyle {
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
 
+export interface ITextStyle extends IBaseStyle {
+    style_name: 'text';
+    text?: IContentField<string>;                     // Translatable text content field
+    mantine_size?: IContentField<string>;             // Select field for size (xs, sm, md, lg, xl)
+    mantine_color?: IContentField<string>;            // Color picker field
+    mantine_text_font_weight?: IContentField<string>; // Select field for font weight (100-900)
+    mantine_text_font_style?: IContentField<string>;  // Segment field for font style (italic, normal)
+    mantine_text_text_decoration?: IContentField<string>; // Segment field for text decoration (underline, line-through, none)
+    mantine_text_text_transform?: IContentField<string>;    // Segment field for text transform (uppercase, capitalize, lowercase, none)
+    mantine_text_align?: IContentField<string>;       // Segment field for text alignment (left, center, right, justify)
+    mantine_text_variant?: IContentField<string>;     // Segment field for variant (default, gradient)
+    mantine_text_gradient?: IContentField<string>;    // Textarea field for gradient configuration
+    mantine_text_truncate?: IContentField<string>;    // Segment field for truncation (end, start)
+    mantine_text_line_clamp?: IContentField<string>;  // Select field for line clamp (2-5 lines)
+    mantine_text_inherit?: IContentField<string>;     // Checkbox field for inherit styles
+    mantine_text_span?: IContentField<string>;        // Checkbox field for span element
+    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+}
+
 export interface ICodeStyle extends IBaseStyle {
     style_name: 'code';
     mantine_code_block?: IContentField<string>;       // Checkbox field for block display
@@ -1182,6 +1201,7 @@ export type TStyle =
     | INotificationStyle
     // Mantine Typography Components
     | ITitleStyle
+    | ITextStyle
     | ICodeStyle
     | IHighlightStyle
     | IBlockquoteStyle
