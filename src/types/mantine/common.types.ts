@@ -244,27 +244,6 @@ export type TMantineRatingCount = 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
  * Mantine rating fractions
  */
 export type TMantineRatingFractions = 1 | 2 | 3 | 4 | 5;
-
-/**
- * Mantine stepper active step
- */
-export type TMantineStepperActive = number;
-
-/**
- * Mantine stepper allow next clicks
- */
-export type TMantineStepperAllowNextClicks = boolean;
-
-/**
- * Mantine stepper step allow click
- */
-export type TMantineStepperStepAllowClick = boolean;
-
-/**
- * Mantine stepper step with icon
- */
-export type TMantineStepperStepWithIcon = boolean;
-
 /**
  * Mantine notification with close button
  */

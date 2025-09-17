@@ -20,7 +20,7 @@ export type TStyleName =
     | 'badge' | 'chip' | 'avatar' | 'timeline' | 'timeline-item' | 'indicator'
     | 'kbd' | 'rating' | 'themeIcon' | 'progress' | 'progress-root' | 'progress-section' | 'progress-label'
     // Mantine navigation components
-    | 'stepper' | 'stepper-step' | 'accordion' | 'accordion-Item'
+    | 'accordion' | 'accordion-Item'
     // Mantine feedback components
     | 'notification'
     // Mantine typography components
@@ -922,30 +922,6 @@ export interface IThemeIconStyle extends IBaseStyle {
 // MANTINE NAVIGATION COMPONENTS
 // ===========================================
 
-export interface IStepperStyle extends IBaseStyle {
-    style_name: 'stepper';
-    mantine_stepper_active?: IContentField<string>;   // Slider field for active step
-    mantine_orientation?: IContentField<string>;      // Segment field for orientation
-    mantine_stepper_allow_next_clicks?: IContentField<string>; // Checkbox field for allow next clicks
-    mantine_size?: IContentField<string>;             // Select field for size
-    mantine_color?: IContentField<string>;            // Color picker field
-    mantine_stepper_next_label?: IContentField<string>; // Text field for next button label
-    mantine_stepper_back_label?: IContentField<string>; // Text field for back button label
-    mantine_stepper_back_enabled?: IContentField<string>; // Checkbox field for back button enable/disable
-    mantine_stepper_form_integration?: IContentField<string>; // Checkbox field for form integration
-    mantine_stepper_show_navigation?: IContentField<string>; // Checkbox field for showing navigation
-    mantine_stepper_use_last_step_as_completed?: IContentField<string>; // Checkbox for using last step as completed
-    mantine_stepper_allow_step_select?: IContentField<string>; // Checkbox for allowing step selection
-    mantine_icon_size?: IContentField<string>;        // Icon size field
-    mantine_stepper_completed_icon?: IContentField<string>; // Icon for completed steps
-    mantine_radius?: IContentField<string>;           // Border radius field
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
-    name?: IContentField<string>;                     // Form field name
-    label?: IContentField<string>;                    // Form field label
-    // Enhanced for Refine integration
-    mantine_stepper_refine_mode?: IContentField<string>; // Checkbox for using Refine useStepsForm
-    mantine_stepper_validation_mode?: IContentField<string>; // Select for validation mode (strict, lenient, custom)
-}
 
 export interface IAccordionStyle extends IBaseStyle {
     style_name: 'accordion';
@@ -1197,7 +1173,6 @@ export type TStyle =
     | IProgressSectionStyle
     | IThemeIconStyle
     // Mantine Navigation Components
-    | IStepperStyle
     | IAccordionStyle
     | IAccordionItemStyle
     // Mantine Feedback Components

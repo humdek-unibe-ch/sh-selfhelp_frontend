@@ -65,9 +65,6 @@ export { default as TabStyle } from './mantine/TabStyle';
 export { default as AccordionStyle } from './mantine/accordion/AccordionStyle';
 export { default as AccordionItemStyle } from './mantine/accordion/AccordionItemStyle';
 
-// Stepper Styles
-export { default as StepperStyle } from './mantine/StepperStyle';
-
 // Media & Content Styles
 export { default as VideoStyle } from './VideoStyle';
 export { default as AudioStyle } from './AudioStyle';

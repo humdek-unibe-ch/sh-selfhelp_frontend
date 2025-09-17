@@ -43,7 +43,6 @@ export { default as ListItemStyle } from './ListItemStyle';
 export { ProgressStyle, ProgressRootStyle, ProgressSectionStyle } from './progress';
 
 // Navigation Components
-export { default as StepperStyle } from './StepperStyle';
 export { default as AccordionStyle } from './accordion/AccordionStyle';
 export { default as AccordionItemStyle } from './accordion/AccordionItemStyle';
 
@@ -104,10 +103,6 @@ export type {
     TMantineSpoilerMaxHeight,
     TMantineRatingCount,
     TMantineRatingFractions,
-    TMantineStepperActive,
-    TMantineStepperAllowNextClicks,
-    TMantineStepperStepAllowClick,
-    TMantineStepperStepWithIcon,
     TMantineNotificationWithCloseButton,
     TMantineAspectRatio,
     TMantineColorPickerSwatchesPerRow,
@@ -227,7 +222,6 @@ export const MANTINE_COMPONENT_MAP = {
     'progress-label': 'ProgressLabelStyle',
 
     // Navigation Components
-    'stepper': 'StepperStyle',
     'accordion': 'AccordionStyle',
     'accordion-Item': 'AccordionItemStyle',
 
