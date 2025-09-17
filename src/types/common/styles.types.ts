@@ -31,6 +31,10 @@ export type TStyleName =
     | 'card' | 'card-segment'
     // List components
     | 'list' | 'list-item'
+    // Mantine checkbox component
+    | 'checkbox'
+    // Mantine datepicker component
+    | 'datepicker'
     // Remove duplicates and ensure proper names
     | 'typography';
 
@@ -55,7 +59,7 @@ export interface IBaseStyle {
     name?: IContentField<string>;
     label?: IContentField<string>;
     label_cancel?: IContentField<string>;
-    section_data: any[];
+    section_data?: any[];
     fields: Record<string, IContentField<any>>;
     // Direct fields from API response (not nested in global_fields)
     condition: string | null;
@@ -375,21 +379,18 @@ export interface ICheckboxStyle extends IBaseStyle {
     mantine_radius?: IContentField<string>;
     mantine_color?: IContentField<string>;
     use_mantine_style?: IContentField<string>;
-    // For form integration
-    section_data?: any[];
 }
 
 // DatePicker Styles
 export interface IDatePickerStyle extends IBaseStyle {
     style_name: 'datepicker';
+    // DatePicker-specific fields
     label?: IContentField<string>;
     name?: IContentField<string>;
     value?: IContentField<string>;
     is_required?: IContentField<string>;
     disabled?: IContentField<string>;
     description?: IContentField<string>;
-    error?: IContentField<string>;
-    // DatePicker-specific fields
     mantine_datepicker_type?: IContentField<string>;
     mantine_datepicker_format?: IContentField<string>;
     mantine_datepicker_locale?: IContentField<string>;
@@ -414,8 +415,6 @@ export interface IDatePickerStyle extends IBaseStyle {
     mantine_size?: IContentField<string>;
     mantine_radius?: IContentField<string>;
     use_mantine_style?: IContentField<string>;
-    // For form integration
-    section_data?: any[];
 }
 
 // Media Styles
