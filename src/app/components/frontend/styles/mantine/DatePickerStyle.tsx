@@ -4,7 +4,9 @@ import { Input } from '@mantine/core';
 import {
     DatePickerInput,
     TimeInput,
-    DateTimePicker
+    DateTimePicker,
+    TimeGrid,
+    getTimeRange
 } from '@mantine/dates';
 import dayjs from 'dayjs';
 import { getFieldContent, castMantineSize, castMantineRadius } from '../../../../../utils/style-field-extractor';
@@ -60,7 +62,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
     const hideWeekends = getFieldContent(style, 'mantine_datepicker_hide_weekends') === '1';
     const timeStep = parseInt(getFieldContent(style, 'mantine_datepicker_time_step') || '15');
     const timeFormat = getFieldContent(style, 'mantine_datepicker_time_format') || '24';
-    // Note: timeStep could be used with TimeInput step prop if available in future Mantine versions
+    // timeStep is used with TimeGrid interval generation when withTimeGrid is enabled
     const dateFormat = getFieldContent(style, 'mantine_datepicker_date_format') || 'YYYY-MM-DD';
     const withSeconds = getFieldContent(style, 'mantine_datepicker_with_seconds') === '1';
 
@@ -181,27 +183,72 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
 
     switch (pickerType) {
         case 'time':
-            // Format time based on timeFormat setting (12/24 hour)
-            const timeFormatPattern = withSeconds
-                ? (timeFormat === '12' ? 'hh:mm:ss A' : 'HH:mm:ss')
-                : (timeFormat === '12' ? 'hh:mm A' : 'HH:mm');
-            datePickerElement = (
-                <TimeInput
-                    value={currentValue ? dayjs(currentValue).format(timeFormatPattern) : ''}
-                    onChange={handleTimeEventChange}
-                    label={label}
-                    placeholder={placeholder}
-                    description={description}
-                    error={error}
-                    required={isRequired}
-                    disabled={disabled}
-                    size={size}
-                    radius={radius === 'none' ? 0 : radius}
-                    withSeconds={withSeconds}
-                    className={cssClass}
-                    style={{ width: '100%' }}
-                />
-            );
+            if (withTimeGrid) {
+                // Use TimeGrid for predefined time slots
+                const startTime = minDate ? dayjs(minDate).format('HH:mm') : '00:00';
+                const endTime = maxDate ? dayjs(maxDate).format('HH:mm') : '23:59';
+
+                // Generate time range based on timeStep
+                const interval = `${Math.floor(timeStep / 60).toString().padStart(2, '0')}:${(timeStep % 60).toString().padStart(2, '0')}`;
+
+                // Generate time data array
+                const timeData = getTimeRange({
+                    startTime,
+                    endTime,
+                    interval
+                });
+
+                // Format current value for TimeGrid (remove seconds if not needed)
+                const gridValue = currentValue
+                    ? dayjs(currentValue).format(withSeconds ? 'HH:mm:ss' : 'HH:mm')
+                    : null;
+
+                datePickerElement = (
+                    <TimeGrid
+                        value={gridValue}
+                        onChange={(value) => {
+                            if (value) {
+                                const [hours, minutes, seconds] = value.split(':').map(Number);
+                                const date = currentValue || new Date();
+                                date.setHours(hours, minutes || 0, seconds || 0, 0);
+                                setCurrentValue(new Date(date));
+                            } else {
+                                setCurrentValue(null);
+                            }
+                        }}
+                        data={timeData}
+                        format={timeFormat === '12' ? '12h' : '24h'}
+                        withSeconds={withSeconds}
+                        allowDeselect={allowDeselect}
+                        disabled={disabled}
+                        className={cssClass}
+                        style={{ width: '100%' }}
+                    />
+                );
+            } else {
+                // Use TimeInput for free-form time entry
+                const timeFormatPattern = withSeconds
+                    ? (timeFormat === '12' ? 'hh:mm:ss A' : 'HH:mm:ss')
+                    : (timeFormat === '12' ? 'hh:mm A' : 'HH:mm');
+
+                datePickerElement = (
+                    <TimeInput
+                        value={currentValue ? dayjs(currentValue).format(timeFormatPattern) : ''}
+                        onChange={handleTimeEventChange}
+                        label={label}
+                        placeholder={placeholder}
+                        description={description}
+                        error={error}
+                        required={isRequired}
+                        disabled={disabled}
+                        size={size}
+                        radius={radius === 'none' ? 0 : radius}
+                        withSeconds={withSeconds}
+                        className={cssClass}
+                        style={{ width: '100%' }}
+                    />
+                );
+            }
             break;
 
         case 'datetime':
