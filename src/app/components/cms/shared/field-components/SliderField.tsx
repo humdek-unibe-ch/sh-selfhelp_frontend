@@ -13,6 +13,15 @@ interface ISliderFieldProps {
             text: string;
             value: string;
         }>;
+        marks?: Array<{
+            value: number;
+            label: string;
+            saveValue?: string;
+        }>;
+        min?: number;
+        max?: number;
+        step?: number;
+        defaultValue?: number;
     };
     disabled?: boolean;
 }
@@ -28,6 +37,16 @@ export function SliderField({
 }: ISliderFieldProps) {
     // Get marks from config or use default
     const getMarks = () => {
+        // First priority: direct marks from config
+        if (config?.marks && config.marks.length > 0) {
+            return config.marks.map(mark => ({
+                value: mark.value,
+                label: mark.label,
+                saveValue: mark.saveValue || mark.value.toString()
+            }));
+        }
+
+        // Second priority: options from config
         if (config?.options && config.options.length > 0) {
             // Create marks from config options
             const optionCount = config.options.length;
@@ -37,6 +56,7 @@ export function SliderField({
                 saveValue: option.value // Save the value as the actual value
             }));
         }
+
         // Default fallback marks
         return [
             { value: 0, label: 'xs', saveValue: 'xs' },
@@ -57,9 +77,20 @@ export function SliderField({
         );
     };
 
+    // Get slider configuration
+    const getSliderConfig = () => {
+        const min = config?.min ?? 0;
+        const max = config?.max ?? 100;
+        const step = config?.step ?? (marks.length > 1 ? (max - min) / (marks.length - 1) : (max - min) / 4);
+
+        return { min, max, step };
+    };
+
+    const { min, max, step } = getSliderConfig();
+
     if (!currentMark) {
         // Fallback if value doesn't match any mark - use first mark or middle position
-        const defaultValue = marks.length > 0 ? marks[0].value : 50;
+        const defaultValue = marks.length > 0 ? marks[0].value : min + (max - min) / 2;
         return (
             <Slider
                 value={defaultValue}
@@ -71,7 +102,9 @@ export function SliderField({
                     const closestMark = findClosestMark(val);
                     return closestMark.label;
                 }}
-                step={marks.length > 1 ? 100 / (marks.length - 1) : 25}
+                min={min}
+                max={max}
+                step={step}
                 marks={marks}
                 styles={{ markLabel: { display: 'none' } }}
                 thumbLabel={fieldTitle || fieldName}
@@ -95,7 +128,9 @@ export function SliderField({
                     const closestMark = findClosestMark(val);
                     return closestMark.label;
                 }}
-                step={marks.length > 1 ? 100 / (marks.length - 1) : 25}
+                min={min}
+                max={max}
+                step={step}
                 marks={marks}
                 styles={{ markLabel: { display: 'none' } }}
                 thumbLabel={fieldTitle || fieldName}

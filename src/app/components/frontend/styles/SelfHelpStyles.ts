@@ -36,7 +36,7 @@ export { default as MarkdownStyle } from './MarkdownStyle';
 
 // Media Styles
 export { default as ImageStyle } from './ImageStyle';
-export { default as CarouselStyle } from './CarouselStyle';
+export { default as CarouselStyle } from './mantine/CarouselStyle';
 
 // Navigation & Link Styles
 export { default as ButtonStyle } from './ButtonStyle';

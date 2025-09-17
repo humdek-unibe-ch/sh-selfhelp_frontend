@@ -91,6 +91,19 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 {"value":"32","text":"XXL (32px)"}
 ]}');
 
+-- Add unified loop field (reusable across components that support looping)
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_loop', get_field_type_id('checkbox'), 0, null);
+
+-- Add unified control size field (reusable across components with controls)
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_control_size', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "placeholder": "16", "options":[
+{"value":"14","text":"Small (14px)"},
+{"value":"16","text":"Medium (16px)"},
+{"value":"18","text":"Large (18px)"},
+{"value":"20","text":"Extra Large (20px)"},
+{"value":"24","text":"XL (24px)"},
+{"value":"32","text":"XXL (32px)"}
+]}');
+
 -- Add global tooltip field (reusable across all components)
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'tooltip', get_field_type_id('textarea'), 1, '{"rows": 2, "placeholder": "Enter tooltip text that appears on hover"}');
 
@@ -3496,4 +3509,61 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 (get_style_id('text'), get_field_id('mantine_text_inherit'), '0', 'If set, Text will inherit parent styles (font-size, font-family, line-height). For more information check https://mantine.dev/core/text', 0, 0, 'Inherit'),
 (get_style_id('text'), get_field_id('mantine_text_span'), '0', 'If set, Text will render as a span element instead of p. For more information check https://mantine.dev/core/text', 0, 0, 'Span'),
 (get_style_id('text'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the text component', 0, 1, 'Use Mantine Style');
+
+-- ===========================================
+-- CAROUSEL COMPONENT DEFINITION
+-- ===========================================
+
+-- Create general fields for carousel and other components
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'loop', get_field_type_id('checkbox'), 0, null),
+(NULL, 'drag_free', get_field_type_id('checkbox'), 0, null),
+(NULL, 'skip_snaps', get_field_type_id('checkbox'), 0, null);
+
+-- Create Carousel-specific fields (using global fields where possible)
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'mantine_carousel_slide_size', get_field_type_id('slider'), 0, '{"min": 10, "max": 100, "step": 5, "defaultValue": 100, "marks": [{"value": 25, "label": "25%", "saveValue": "25"}, {"value": 50, "label": "50%", "saveValue": "50"}, {"value": 75, "label": "75%", "saveValue": "75"}, {"value": 100, "label": "100%", "saveValue": "100"}]}'),
+(NULL, 'mantine_carousel_slide_gap', get_field_type_id('slider'), 0, '{ "options": [{"value": "xs", "text": "xs"}, {"value": "sm", "text": "sm"}, {"value": "md", "text": "md"}, {"value": "lg", "text": "lg"}, {"value": "xl", "text": "xl"}]}'),
+(NULL, 'mantine_carousel_controls_offset', get_field_type_id('slider'), 0, '{ "options": [{"value": "xs", "text": "xs"}, {"value": "sm", "text": "sm"}, {"value": "md", "text": "md"}, {"value": "lg", "text": "lg"}, {"value": "xl", "text": "xl"}]}'),
+(NULL, 'mantine_carousel_next_control_icon', get_field_type_id('select-icon'), 0, null),
+(NULL, 'mantine_carousel_previous_control_icon', get_field_type_id('select-icon'), 0, null),
+(NULL, 'mantine_carousel_align', get_field_type_id('segment'), 0, '{"options": [{"value": "start", "text": "Start"}, {"value": "center", "text": "Center"}, {"value": "end", "text": "End"}]}'),
+(NULL, 'mantine_carousel_contain_scroll', get_field_type_id('segment'), 0, '{"options": [{"value": "auto", "text": "Auto"}, {"value": "trimSnaps", "text": "Trim Snaps"}, {"value": "keepSnaps", "text": "Keep Snaps"}]}'),
+(NULL, 'mantine_carousel_in_view_threshold', get_field_type_id('slider'), 0, '{"min": 0, "max": 1, "step": 0.1, "defaultValue": 0, "marks": [{"value": 0, "label": "0%", "saveValue": "0"}, {"value": 0.5, "label": "50%", "saveValue": "0.5"}, {"value": 1, "label": "100%", "saveValue": "1"}]}'),
+(NULL, 'mantine_carousel_duration', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "placeholder": "25", "options": [{"value": "10", "text": "Fast (10ms)"}, {"value": "25", "text": "Normal (25ms)"}, {"value": "50", "text": "Slow (50ms)"}, {"value": "100", "text": "Very Slow (100ms)"}, {"value": "150", "text": "Extra Slow (150ms)"}, {"value": "200", "text": "Super Slow (200ms)"}, {"value": "0", "text": "Instant (0ms)"}]}'),
+(NULL, 'mantine_carousel_embla_options', get_field_type_id('textarea'), 0, NULL);
+
+-- Add carousel style
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+    NULL,
+    'carousel',
+    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    get_style_group_id('mantine'),
+    'Mantine Carousel component for displaying content in a slideshow format',
+    1
+);
+
+
+-- Link fields to carousel style
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
+(get_style_id('carousel'), get_field_id('mantine_height'), NULL, 'Sets the height of the carousel. Choose from preset values or enter a custom value. For more information check https://mantine.dev/x/carousel', 0, 0, 'Height'),
+(get_style_id('carousel'), get_field_id('mantine_carousel_slide_size'), '100', 'Sets the size of each slide as a percentage. Use the slider to adjust from 10% to 100%. For more information check https://mantine.dev/x/carousel', 0, 0, 'Slide Size'),
+(get_style_id('carousel'), get_field_id('mantine_carousel_slide_gap'), 'md', 'Sets the gap between slides. Choose from preset sizes or enter a custom value. For more information check https://mantine.dev/x/carousel', 0, 0, 'Slide Gap'),
+(get_style_id('carousel'), get_field_id('mantine_orientation'), 'horizontal', 'Sets the orientation of the carousel. For more information check https://mantine.dev/x/carousel', 0, 0, 'Orientation'),
+(get_style_id('carousel'), get_field_id('has_controls'), '1', 'If set, displays navigation controls (previous/next buttons). For more information check https://mantine.dev/x/carousel', 0, 0, 'Show Controls'),
+(get_style_id('carousel'), get_field_id('has_indicators'), '1', 'If set, displays slide indicators at the bottom. For more information check https://mantine.dev/x/carousel', 0, 0, 'Show Indicators'),
+(get_style_id('carousel'), get_field_id('mantine_control_size'), '26', 'Sets the size of the navigation controls in pixels. Use the slider to adjust from 14px to 40px. For more information check https://mantine.dev/x/carousel', 0, 0, 'Control Size'),
+(get_style_id('carousel'), get_field_id('mantine_carousel_controls_offset'), 'sm', 'Sets the offset of the navigation controls from the carousel edges. Choose from preset sizes or enter a custom value. For more information check https://mantine.dev/x/carousel', 0, 0, 'Controls Offset'),
+(get_style_id('carousel'), get_field_id('mantine_carousel_next_control_icon'), NULL, 'Sets the icon for the next control button. For more information check https://mantine.dev/x/carousel', 0, 0, 'Next Control Icon'),
+(get_style_id('carousel'), get_field_id('mantine_carousel_previous_control_icon'), NULL, 'Sets the icon for the previous control button. For more information check https://mantine.dev/x/carousel', 0, 0, 'Previous Control Icon'),
+(get_style_id('carousel'), get_field_id('mantine_loop'), '0', 'If set, enables infinite loop navigation. For more information check https://mantine.dev/x/carousel', 0, 0, 'Loop'),
+(get_style_id('carousel'), get_field_id('drag_free'), '0', 'If set, disables slide snap points allowing free dragging. For more information check https://mantine.dev/x/carousel', 0, 0, 'Drag Free'),
+(get_style_id('carousel'), get_field_id('mantine_carousel_align'), 'start', 'Sets the alignment of slides. For more information check https://mantine.dev/x/carousel', 0, 0, 'Align'),
+(get_style_id('carousel'), get_field_id('mantine_carousel_contain_scroll'), 'trimSnaps', 'Sets the contain scroll behavior. For more information check https://mantine.dev/x/carousel', 0, 0, 'Contain Scroll'),
+(get_style_id('carousel'), get_field_id('skip_snaps'), '0', 'If set, allows skipping slides without snapping to them. For more information check https://mantine.dev/x/carousel', 0, 0, 'Skip Snaps'),
+(get_style_id('carousel'), get_field_id('mantine_carousel_in_view_threshold'), '0', 'Sets the threshold for slide visibility detection (0-1). Use the slider to adjust the percentage. For more information check https://mantine.dev/x/carousel', 0, 0, 'In View Threshold'),
+(get_style_id('carousel'), get_field_id('mantine_carousel_duration'), '25', 'Sets the transition duration in milliseconds. Choose from preset durations or enter a custom value. For more information check https://mantine.dev/x/carousel', 0, 0, 'Duration'),
+(get_style_id('carousel'), get_field_id('mantine_carousel_embla_options'), NULL, 'Sets advanced Embla carousel options as JSON. For more information check https://www.embla-carousel.com/api/options/', 0, 0, 'Embla Options'),
+(get_style_id('carousel'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the carousel component', 0, 1, 'Use Mantine Style');
+
 

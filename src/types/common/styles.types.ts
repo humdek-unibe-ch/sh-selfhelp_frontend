@@ -388,7 +388,25 @@ export interface ICarouselStyle extends IBaseStyle {
     has_indicators?: IContentField<string>;
     has_crossfade?: IContentField<string>;
     sources?: IContentField<any[]>;
+    mantine_height?: IContentField<string>;
+    mantine_carousel_slide_size?: IContentField<string>;
+    mantine_carousel_slide_gap?: IContentField<string>;
+    mantine_orientation?: IContentField<string>;
+    mantine_control_size?: IContentField<string>;
+    mantine_carousel_controls_offset?: IContentField<string>;
+    mantine_carousel_next_control_icon?: IContentField<string>;
+    mantine_carousel_previous_control_icon?: IContentField<string>;
+    mantine_loop?: IContentField<string>;
+    drag_free?: IContentField<string>;
+    mantine_carousel_align?: IContentField<string>;
+    mantine_carousel_contain_scroll?: IContentField<string>;
+    skip_snaps?: IContentField<string>;
+    mantine_carousel_in_view_threshold?: IContentField<string>;
+    mantine_carousel_duration?: IContentField<string>;
+    mantine_carousel_embla_options?: IContentField<string>;
+    use_mantine_style?: IContentField<string>;
 }
+
 
 // Navigation & Links Styles
 
