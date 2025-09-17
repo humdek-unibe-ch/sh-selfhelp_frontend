@@ -1,9 +1,9 @@
 import React from 'react';
 import { List } from '@mantine/core';
-import BasicStyle from '../BasicStyle';
-import { IListStyle } from '../../../../../types/common/styles.types';
-import { getFieldContent, castMantineSize } from '../../../../../utils/style-field-extractor';
-import IconComponent from '../../../shared/common/IconComponent';
+import BasicStyle from '../../BasicStyle';
+import { IListStyle } from '../../../../../../types/common/styles.types';
+import { getFieldContent, castMantineSize } from '../../../../../../utils/style-field-extractor';
+import IconComponent from '../../../../shared/common/IconComponent';
 
 /**
  * Props interface for ListStyle component

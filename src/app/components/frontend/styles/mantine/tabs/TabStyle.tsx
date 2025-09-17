@@ -1,8 +1,8 @@
 import React from 'react';
 import { Tabs } from '@mantine/core';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
-import { ITabStyle } from '../../../../../types/common/styles.types';
-import { IconComponent } from '../../../shared';
+import { getFieldContent } from '../../../../../../utils/style-field-extractor';
+import { ITabStyle } from '../../../../../../types/common/styles.types';
+import { IconComponent } from '../../../../shared';
 
 /**
  * Props interface for TabStyle component

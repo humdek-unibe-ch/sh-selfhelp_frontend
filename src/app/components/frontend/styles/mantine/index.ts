@@ -37,8 +37,8 @@ export { default as TimelineStyle } from './TimelineStyle';
 export { default as IndicatorStyle } from './IndicatorStyle';
 export { default as KbdStyle } from './KbdStyle';
 export { default as ThemeIconStyle } from './ThemeIconStyle';
-export { default as ListStyle } from './ListStyle';
-export { default as ListItemStyle } from './ListItemStyle';
+export { default as ListStyle } from './list/ListStyle';
+export { default as ListItemStyle } from './list/ListItemStyle';
 export { ProgressStyle, ProgressRootStyle, ProgressSectionStyle } from './progress';
 
 // Navigation Components

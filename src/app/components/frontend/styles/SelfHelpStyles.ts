@@ -58,8 +58,8 @@ export { default as SwitchStyle } from './mantine/SwitchStyle';
 export { default as ComboboxStyle } from './mantine/ComboboxStyle';
 
 // Tab Styles
-export { default as TabsStyle } from './mantine/TabsStyle';
-export { default as TabStyle } from './mantine/TabStyle';
+export { default as TabsStyle } from './mantine/tabs/TabsStyle';
+export { default as TabStyle } from './mantine/tabs/TabStyle';
 
 // Accordion Styles
 export { default as AccordionStyle } from './mantine/accordion/AccordionStyle';
@@ -90,8 +90,8 @@ export { default as AvatarStyle } from './mantine/AvatarStyle';
 export { default as BadgeStyle } from './mantine/BadgeStyle';
 export { default as ChipStyle } from './mantine/ChipStyle';
 export { default as TimelineStyle } from './mantine/TimelineStyle';
-export { default as ListStyle } from './mantine/ListStyle';
-export { default as ListItemStyle } from './mantine/ListItemStyle';
+export { default as ListStyle } from './mantine/list/ListStyle';
+export { default as ListItemStyle } from './mantine/list/ListItemStyle';
 export { default as IndicatorStyle } from './mantine/IndicatorStyle';
 export { default as KbdStyle } from './mantine/KbdStyle';
 export { default as ThemeIconStyle } from './mantine/ThemeIconStyle';
