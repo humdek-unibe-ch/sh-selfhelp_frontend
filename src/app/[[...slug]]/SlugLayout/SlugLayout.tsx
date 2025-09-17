@@ -3,6 +3,7 @@
 import "../../../globals.css";
 import '@mantine/dates/styles.css';
 import "@mantine/core/styles.css";
+import '@mantine/carousel/styles.css';
 import { AppShell } from "@mantine/core";
 import { DebugMenu } from "../../components/shared/common/debug";
 import { useParams } from 'next/navigation';
