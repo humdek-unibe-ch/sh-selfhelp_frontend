@@ -18,7 +18,7 @@ export type TStyleName =
     | 'code'
     // Mantine data display components
     | 'badge' | 'chip' | 'avatar' | 'timeline' | 'timeline-item' | 'indicator'
-    | 'kbd' | 'rating' | 'themeIcon' | 'progress' | 'progress-root' | 'progress-section' | 'progress-label'
+    | 'kbd' | 'rating' | 'theme-icon' | 'progress' | 'progress-root' | 'progress-section' | 'progress-label'
     // Mantine navigation components
     | 'accordion' | 'accordion-Item'
     // Mantine feedback components
@@ -916,12 +916,13 @@ export interface IProgressSectionStyle extends IBaseStyle {
 }
 
 export interface IThemeIconStyle extends IBaseStyle {
-    style_name: 'themeIcon';
+    style_name: 'theme-icon';
     mantine_variant?: IContentField<string>;          // Select field for variant
     mantine_size?: IContentField<string>;             // Select field for size
     mantine_radius?: IContentField<string>;           // Select field for radius
     mantine_color?: IContentField<string>;            // Color picker field
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    use_mantine_style?: IContentField<string>; 
+    mantine_left_icon?: IContentField<string>;  // Select-icon field for icon
 }
 
 // ===========================================

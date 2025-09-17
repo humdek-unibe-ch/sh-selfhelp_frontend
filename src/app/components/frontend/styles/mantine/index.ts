@@ -211,7 +211,7 @@ export const MANTINE_COMPONENT_MAP = {
     'timeline-item': 'TimelineItemStyle',
     'indicator': 'IndicatorStyle',
     'kbd': 'KbdStyle',
-    'themeIcon': 'ThemeIconStyle',
+    'theme-icon': 'ThemeIconStyle',
     'list': 'ListStyle',
     'listItem': 'ListItemStyle',
     'rating': 'RatingStyle',

@@ -2700,10 +2700,10 @@ VALUES (get_style_id('spoiler'), get_field_id('use_mantine_style'), 1, 'If `useM
 -- THEME ICON COMPONENT
 -- ===========================================
 
--- Add new style 'themeIcon' based on Mantine ThemeIcon component
+-- Add new style 'theme-icon' based on Mantine ThemeIcon component
 INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
-    'themeIcon',
+    'theme-icon',
     (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
     get_style_group_id('mantine'),
     'Mantine ThemeIcon component for themed icon containers',
@@ -2712,21 +2712,24 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
 
 -- Add ThemeIcon-specific fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('themeIcon'), get_field_id('mantine_variant'), 'filled', 'Sets the variant of the theme icon. For more information check https://mantine.dev/core/theme-icon', 0, 0, 'Variant');
+VALUES (get_style_id('theme-icon'), get_field_id('mantine_variant'), 'filled', 'Sets the variant of the theme icon. For more information check https://mantine.dev/core/theme-icon', 0, 0, 'Variant');
 
 -- Use unified size field for themeIcon
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('themeIcon'), get_field_id('mantine_size'), 'md', 'Sets the size of the theme icon. For more information check https://mantine.dev/core/theme-icon', 0, 0, 'Size');
+VALUES (get_style_id('theme-icon'), get_field_id('mantine_size'), 'md', 'Sets the size of the theme icon. For more information check https://mantine.dev/core/theme-icon', 0, 0, 'Size');
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('themeIcon'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the theme icon. For more information check https://mantine.dev/core/theme-icon', 0, 0, 'Radius');
+VALUES (get_style_id('theme-icon'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the theme icon. For more information check https://mantine.dev/core/theme-icon', 0, 0, 'Radius');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('themeIcon'), get_field_id('mantine_color'), 'blue', 'Sets the color of the theme icon. For more information check https://mantine.dev/core/theme-icon', 0, 0, 'Color');
+VALUES (get_style_id('theme-icon'), get_field_id('mantine_color'), 'blue', 'Sets the color of the theme icon. For more information check https://mantine.dev/core/theme-icon', 0, 0, 'Color');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('themeIcon'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set ThemeIcon will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/theme-icon', 0, 1, 'Use Mantine Style');
+VALUES (get_style_id('theme-icon'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set ThemeIcon will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/theme-icon', 0, 1, 'Use Mantine Style');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('theme-icon'), get_field_id('mantine_left_icon'), NULL, 'Sets the icon for the theme icon. For more information check https://mantine.dev/core/theme-icon', 0, 0, 'Icon');
 
 -- ===========================================
 -- TIMELINE COMPONENT

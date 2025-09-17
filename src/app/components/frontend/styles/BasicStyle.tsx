@@ -203,7 +203,7 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <IndicatorStyle style={style} />;
         case 'kbd':
             return <KbdStyle style={style} />;
-        case 'themeIcon':
+        case 'theme-icon':
             return <ThemeIconStyle style={style} />;
         case 'rating':
             return <RatingStyle style={style} />;
