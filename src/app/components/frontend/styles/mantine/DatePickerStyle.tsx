@@ -10,6 +10,24 @@ import dayjs from 'dayjs';
 import { getFieldContent, castMantineSize, castMantineRadius } from '../../../../../utils/style-field-extractor';
 import { IDatePickerStyle } from '../../../../../types/common/styles.types';
 
+// Set dayjs locale if specified
+const setDayjsLocale = (locale: string) => {
+    try {
+        if (locale && locale !== 'en') {
+            // Import and set locale dynamically
+            import(`dayjs/locale/${locale}`).then(() => {
+                dayjs.locale(locale);
+            }).catch(() => {
+                console.warn(`Failed to load dayjs locale: ${locale}`);
+            });
+        } else {
+            dayjs.locale('en');
+        }
+    } catch (error) {
+        console.warn('Error setting dayjs locale:', error);
+    }
+};
+
 interface IDatePickerStyleProps {
     style: IDatePickerStyle;
 }
@@ -53,6 +71,11 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
+    // Set dayjs locale for proper formatting
+    useEffect(() => {
+        setDayjsLocale(locale);
+    }, [locale]);
+
     // Parse dates
     const minDate = minDateStr ? dayjs(minDateStr).toDate() : undefined;
     const maxDate = maxDateStr ? dayjs(maxDateStr).toDate() : undefined;
@@ -65,6 +88,9 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
     } catch (e) {
         console.warn('Invalid weekend days format:', weekendDaysStr);
     }
+
+    // Determine if we should use Input.Wrapper or let the component handle labels itself
+    const hasBuiltInLabels = label || description || error;
 
     // Initialize state from section_data if available (for record forms)
     const [currentValue, setCurrentValue] = useState<Date | null>(() => {
@@ -198,23 +224,23 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
             break;
     }
 
-    // Use Input.Wrapper for proper label and description handling (like other form components)
-    return label || description || error ? (
-        <Input.Wrapper
-            label={label}
-            description={description}
-            error={error}
-            required={isRequired}
-        >
-            {datePickerElement}
-            {/* Hidden input to ensure form submission captures the value */}
-            <input
-                type="hidden"
-                name={name}
-                value={formValue}
-            />
-        </Input.Wrapper>
-    ) : (
+    // Return the component with hidden input for form submission
+    // Use Input.Wrapper only when there are no built-in labels to avoid duplication
+    if (!hasBuiltInLabels) {
+        return (
+            <Input.Wrapper required={isRequired}>
+                {datePickerElement}
+                {/* Hidden input to ensure form submission captures the value */}
+                <input
+                    type="hidden"
+                    name={name}
+                    value={formValue}
+                />
+            </Input.Wrapper>
+        );
+    }
+
+    return (
         <>
             {datePickerElement}
             {/* Hidden input to ensure form submission captures the value */}
