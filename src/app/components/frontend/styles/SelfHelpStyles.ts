@@ -67,8 +67,6 @@ export { default as AccordionItemStyle } from './mantine/accordion/AccordionItem
 
 // Stepper Styles
 export { default as StepperStyle } from './mantine/StepperStyle';
-export { default as StepperStepStyle } from './mantine/StepperStepStyle';
-export { default as StepperCompleteStyle } from './mantine/StepperCompleteStyle';
 
 // Media & Content Styles
 export { default as VideoStyle } from './VideoStyle';

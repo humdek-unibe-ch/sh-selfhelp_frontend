@@ -20,7 +20,7 @@ export type TStyleName =
     | 'badge' | 'chip' | 'avatar' | 'timeline' | 'timeline-item' | 'indicator'
     | 'kbd' | 'rating' | 'themeIcon' | 'progress' | 'progress-root' | 'progress-section' | 'progress-label'
     // Mantine navigation components
-    | 'stepper' | 'stepper-Step' | 'stepper-Complete' | 'accordion' | 'accordion-Item'
+    | 'stepper' | 'stepper-step' | 'accordion' | 'accordion-Item'
     // Mantine feedback components
     | 'notification'
     // Mantine typography components
@@ -929,22 +929,21 @@ export interface IStepperStyle extends IBaseStyle {
     mantine_stepper_allow_next_clicks?: IContentField<string>; // Checkbox field for allow next clicks
     mantine_size?: IContentField<string>;             // Select field for size
     mantine_color?: IContentField<string>;            // Color picker field
+    mantine_stepper_next_label?: IContentField<string>; // Text field for next button label
+    mantine_stepper_back_label?: IContentField<string>; // Text field for back button label
+    mantine_stepper_back_enabled?: IContentField<string>; // Checkbox field for back button enable/disable
+    mantine_stepper_form_integration?: IContentField<string>; // Checkbox field for form integration
+    mantine_stepper_show_navigation?: IContentField<string>; // Checkbox field for showing navigation
+    mantine_stepper_use_last_step_as_completed?: IContentField<string>; // Checkbox for using last step as completed
+    mantine_stepper_allow_step_select?: IContentField<string>; // Checkbox for allowing step selection
+    mantine_icon_size?: IContentField<string>;        // Icon size field
+    mantine_stepper_completed_icon?: IContentField<string>; // Icon for completed steps
+    mantine_stepper_completed_content?: IContentField<string>; // Content for completed state
+    mantine_radius?: IContentField<string>;           // Border radius field
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
-}
-
-export interface IStepperStepStyle extends IBaseStyle {
-    style_name: 'stepper-Step';
-    label?: IContentField<string>;                    // Translatable label
-    description?: IContentField<string>;              // Translatable description
-    mantine_stepper_step_with_icon?: IContentField<string>; // Checkbox field for with icon
-    mantine_stepper_step_allow_click?: IContentField<string>; // Checkbox field for allow click
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
-}
-
-export interface IStepperCompleteStyle extends IBaseStyle {
-    style_name: 'stepper-Complete';
-    mantine_color?: IContentField<string>;            // Color picker field
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    // Enhanced for Refine integration
+    mantine_stepper_refine_mode?: IContentField<string>; // Checkbox for using Refine useStepsForm
+    mantine_stepper_validation_mode?: IContentField<string>; // Select for validation mode (strict, lenient, custom)
 }
 
 export interface IAccordionStyle extends IBaseStyle {
@@ -1198,8 +1197,6 @@ export type TStyle =
     | IThemeIconStyle
     // Mantine Navigation Components
     | IStepperStyle
-    | IStepperStepStyle
-    | IStepperCompleteStyle
     | IAccordionStyle
     | IAccordionItemStyle
     // Mantine Feedback Components

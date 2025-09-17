@@ -2150,7 +2150,7 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
     (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
     get_style_group_id('mantine'),
     'Mantine Stepper component for multi-step processes',
-    1
+    0
 );
 
 -- Add Stepper-specific fields
@@ -2179,70 +2179,65 @@ VALUES (get_style_id('stepper'), get_field_id('mantine_stepper_allow_next_clicks
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('stepper'), get_field_id('mantine_size'), 'sm', 'Sets the size of the stepper. For more information check https://mantine.dev/core/stepper', 0, 0, 'Size');
+VALUES (get_style_id('stepper'), get_field_id('mantine_size'), 'md', 'Sets the size of the stepper. For more information check https://mantine.dev/core/stepper', 0, 0, 'Size');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('stepper'), get_field_id('mantine_color'), 'blue', 'Sets the color of the stepper. For more information check https://mantine.dev/core/stepper', 0, 0, 'Color');
 
+-- Add navigation button fields
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_stepper_next_label', get_field_type_id('text'), 1, '{"placeholder": "Next"}');
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('stepper'), get_field_id('mantine_stepper_next_label'), 'Next', 'Label for the Next button. For more information check https://mantine.dev/core/stepper', 0, 0, 'Next Button Label');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_stepper_back_label', get_field_type_id('text'), 1, '{"placeholder": "Back"}');
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('stepper'), get_field_id('mantine_stepper_back_label'), 'Back', 'Label for the Back button. For more information check https://mantine.dev/core/stepper', 0, 0, 'Back Button Label');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_stepper_back_enabled', get_field_type_id('checkbox'), 0, null);
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('stepper'), get_field_id('mantine_stepper_back_enabled'), '1', 'Controls whether the Back button is enabled. For more information check https://mantine.dev/core/stepper', 0, 0, 'Enable Back Button');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_stepper_form_integration', get_field_type_id('checkbox'), 0, null);
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('stepper'), get_field_id('mantine_stepper_form_integration'), '0', 'Enables form integration where stepper buttons control form submission until completion. For more information check https://mantine.dev/core/stepper', 0, 0, 'Form Integration');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_stepper_show_navigation', get_field_type_id('checkbox'), 0, null);
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('stepper'), get_field_id('mantine_stepper_show_navigation'), '1', 'Show Next/Back navigation buttons. For more information check https://mantine.dev/core/stepper', 0, 0, 'Show Navigation');
+
+-- Add use last step as completed field
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_stepper_use_last_step_as_completed', get_field_type_id('checkbox'), 0, null);
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('stepper'), get_field_id('mantine_stepper_use_last_step_as_completed'), '0', 'If enabled, the last step will be treated as Stepper.Completed. For more information check https://mantine.dev/core/stepper', 0, 0, 'Use Last Step as Completed');
+
+-- Add allow step select field
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_stepper_allow_step_select', get_field_type_id('checkbox'), 0, null);
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('stepper'), get_field_id('mantine_stepper_allow_step_select'), '1', 'If enabled, users can click on steps to navigate. For more information check https://mantine.dev/core/stepper', 0, 0, 'Allow Step Select');
+
+
+-- Add iconSize field to stepper
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('stepper'), get_field_id('mantine_icon_size'), '16', 'Sets the size of step icons in pixels. For more information check https://mantine.dev/core/stepper', 0, 0, 'Icon Size');
+
+-- Add completedIcon field to stepper
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_stepper_completed_icon', get_field_type_id('select-icon'), 0, null);
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('stepper'), get_field_id('mantine_stepper_completed_icon'), NULL, 'Sets the icon for completed steps. For more information check https://mantine.dev/core/stepper', 0, 0, 'Completed Icon');
+
+-- Add completed content field to stepper
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_stepper_completed_content', get_field_type_id('text'), 1, '{"placeholder": "Process completed successfully!"}');
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('stepper'), get_field_id('mantine_stepper_completed_content'), 'Process completed successfully!', 'Content to display when the stepper process is completed. For more information check https://mantine.dev/core/stepper', 0, 0, 'Completed Content');
+
+-- Add radius field to stepper
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('stepper'), get_field_id('mantine_radius'), 'md', 'Sets the border radius of stepper elements. For more information check https://mantine.dev/core/stepper', 0, 0, 'Border Radius');
+
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('stepper'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Stepper will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/stepper', 0, 1, 'Use Mantine Style');
 
--- ===========================================
--- STEPPER STEP COMPONENT (child of stepper)
--- ===========================================
-
--- Add new style 'stepper-Step' based on Mantine Stepper.Step component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
-    NULL,
-    'stepper-Step',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
-    get_style_group_id('mantine'),
-    'Mantine Stepper.Step component for individual step items',
-    1
-);
-
--- Add Stepper.Step-specific fields
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('stepper-Step'), get_field_id('label'), NULL, 'Sets the label for the step. For more information check https://mantine.dev/core/stepper', 0, 0, 'Label');
-
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('stepper-Step'), get_field_id('description'), NULL, 'Sets the description for the step. For more information check https://mantine.dev/core/stepper', 0, 0, 'Description');
-
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_stepper_step_with_icon', get_field_type_id('checkbox'), 0, null);
-
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('stepper-Step'), get_field_id('mantine_stepper_step_with_icon'), '1', 'If `withIcon` prop is set, step will display an icon. For more information check https://mantine.dev/core/stepper', 0, 0, 'With Icon');
-
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_stepper_step_allow_click', get_field_type_id('checkbox'), 0, null);
-
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('stepper-Step'), get_field_id('mantine_stepper_step_allow_click'), '0', 'If `allowStepClick` prop is set, step can be clicked. For more information check https://mantine.dev/core/stepper', 0, 0, 'Allow Step Click');
-
--- Reuse existing fields
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('stepper-Step'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Stepper.Step will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/stepper', 0, 1, 'Use Mantine Style');
-
--- ===========================================
--- STEPPER COMPLETE COMPONENT (child of stepper)
--- ===========================================
-
--- Add new style 'stepper-Complete' based on Mantine Stepper.Completed component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
-    NULL,
-    'stepper-Complete',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
-    get_style_group_id('mantine'),
-    'Mantine Stepper.Completed component for completed step indicator',
-    1
-);
-
--- Add Stepper.Completed-specific fields
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('stepper-Complete'), get_field_id('mantine_color'), 'green', 'Sets the color of the completed step indicator. For more information check https://mantine.dev/core/stepper', 0, 0, 'Color');
-
--- Reuse existing fields
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('stepper-Complete'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Stepper.Completed will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/stepper', 0, 1, 'Use Mantine Style');
+-- Note: Steps are now handled directly within the stepper component loop. No separate stepper-step style is needed.
 
 -- ===========================================
 -- NOTIFICATION COMPONENT
@@ -2293,14 +2288,7 @@ VALUES (get_style_id('notification'), get_field_id('content'), NULL, 'Sets the m
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('notification'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Notification will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/notification', 0, 1, 'Use Mantine Style');
 
--- Define that stepper-Step and stepper-Complete can ONLY be added inside stepper
-INSERT IGNORE INTO styles_allowed_relationships (id_parent_style, id_child_style)
-SELECT s1.id, s2.id FROM styles s1, styles s2
-WHERE s1.name = 'stepper' AND s2.name = 'stepper-Step';
-
-INSERT IGNORE INTO styles_allowed_relationships (id_parent_style, id_child_style)
-SELECT s1.id, s2.id FROM styles s1, styles s2
-WHERE s1.name = 'stepper' AND s2.name = 'stepper-Complete';
+-- Note: Step relationships are now handled internally by the stepper component
 
 -- ===========================================
 -- ALERT COMPONENT
@@ -3391,7 +3379,7 @@ WHERE s1.name = 'card' AND s2.name = 'card-segment';
 -- ===========================================
 -- 1. timelineItem → timeline-item (consistent kebab-case naming)
 -- 2. accordionItem → accordion-item (consistent kebab-case naming)
--- 3. stepperStep → stepper-Step (consistent kebab-case naming)
+-- 3. stepperStep → stepper-step (consistent kebab-case naming)
 -- 4. stepperComplete → stepper-Complete (consistent kebab-case naming)
 -- 5. accordionPanel component removed (handled in frontend)
 -- 6. All component names follow kebab-case pattern for consistency
@@ -3478,7 +3466,7 @@ WHERE s1.name = 'progress-root' AND s2.name = 'progress-section';
 -- ✅ Eliminated duplicate field definitions (~97 → ~30 unique fields)
 -- ✅ Unified 9 different field types across 30+ components
 -- ✅ All translatable fields properly marked with display = 1
--- ✅ Improved naming consistency (timelineItem → timeline-item, accordionItem → accordion-item, stepperStep → stepper-Step, etc.)
+-- ✅ Improved naming consistency (timelineItem → timeline-item, accordionItem → accordion-item, stepperStep → stepper-step, etc.)
 -- ✅ Removed unnecessary components (accordionPanel) - handled in frontend
 -- ✅ Simplified component structure (accordion-item accepts all children)
 -- ✅ Converted select fields to text/textarea fields for better flexibility

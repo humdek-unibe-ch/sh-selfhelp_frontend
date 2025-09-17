@@ -44,8 +44,6 @@ export { ProgressStyle, ProgressRootStyle, ProgressSectionStyle } from './progre
 
 // Navigation Components
 export { default as StepperStyle } from './StepperStyle';
-export { default as StepperStepStyle } from './StepperStepStyle';
-export { default as StepperCompleteStyle } from './StepperCompleteStyle';
 export { default as AccordionStyle } from './accordion/AccordionStyle';
 export { default as AccordionItemStyle } from './accordion/AccordionItemStyle';
 
@@ -230,8 +228,6 @@ export const MANTINE_COMPONENT_MAP = {
 
     // Navigation Components
     'stepper': 'StepperStyle',
-    'stepper-Step': 'StepperStepStyle',
-    'stepper-Complete': 'StepperCompleteStyle',
     'accordion': 'AccordionStyle',
     'accordion-Item': 'AccordionItemStyle',
 

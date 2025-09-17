@@ -18,7 +18,7 @@ import {
     DividerStyle, PaperStyle, FieldsetStyle, FileInputStyle, HighlightStyle, IndicatorStyle,
     KbdStyle, ListStyle, ListItemStyle, NotificationStyle, NumberInputStyle,
     ProgressStyle, ProgressRootStyle, ProgressSectionStyle, RangeSliderStyle, RatingStyle, SegmentedControlStyle,
-    SpoilerStyle, StepperStyle, StepperStepStyle, StepperCompleteStyle,
+    SpoilerStyle, StepperStyle,
     SwitchStyle, ThemeIconStyle, TimelineStyle, TimelineItemStyle,
     TitleStyle, TypographyStyle,
     // Special Components
@@ -174,10 +174,6 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <AccordionItemStyle style={style} />;
         case 'stepper':
             return <StepperStyle style={style} />;
-        case 'stepper-Step':
-            return <StepperStepStyle style={style} />;
-        case 'stepper-Complete':
-            return <StepperCompleteStyle style={style} />;
 
         // Table Styles
         case 'table':
