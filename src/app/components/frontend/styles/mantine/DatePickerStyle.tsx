@@ -42,11 +42,10 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
     const isRequired = getFieldContent(style, 'is_required') === '1';
     const disabled = getFieldContent(style, 'disabled') === '1';
     const description = getFieldContent(style, 'description');
-    const error = getFieldContent(style, 'error');
 
     // DatePicker-specific fields
     const pickerType = getFieldContent(style, 'mantine_datepicker_type') || 'date';
-    // format: Used for Mantine component display formatting (valueFormat prop)
+    // format: Used for UI display formatting (valueFormat prop in components)
     const format = getFieldContent(style, 'mantine_datepicker_format');
     const locale = getFieldContent(style, 'mantine_datepicker_locale') || 'en';
     const placeholder = getFieldContent(style, 'mantine_datepicker_placeholder');
@@ -66,7 +65,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
     const timeStep = parseInt(getFieldContent(style, 'mantine_datepicker_time_step') || '15');
     const timeFormat = getFieldContent(style, 'mantine_datepicker_time_format') || '24';
     // timeStep is used with TimeGrid interval generation when withTimeGrid is enabled
-    // dateFormat: Used for form submission value formatting (different from display format)
+    // dateFormat: Used for form submission and storage (separate from display format)
     const dateFormat = getFieldContent(style, 'mantine_datepicker_date_format') || 'YYYY-MM-DD';
     const timeGridConfigStr = getFieldContent(style, 'mantine_datepicker_time_grid_config');
     const withSeconds = getFieldContent(style, 'mantine_datepicker_with_seconds') === '1';
@@ -107,7 +106,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
     }
 
     // Determine if we should use Input.Wrapper or let the component handle labels itself
-    const hasBuiltInLabels = label || description || error;
+    const hasBuiltInLabels = label || description;
 
     // Initialize state from section_data if available (for record forms)
     const [currentValue, setCurrentValue] = useState<Date | null>(() => {
@@ -118,7 +117,12 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
         if (firstRecord && firstRecord[name]) {
             const existingValue = firstRecord[name];
             if (existingValue) {
-                return dayjs(existingValue).toDate();
+                try {
+                    // Try to parse the existing value - it might be in different formats
+                    return dayjs(existingValue).toDate();
+                } catch (error) {
+                    console.warn('Failed to parse existing date value:', existingValue);
+                }
             }
         }
 
@@ -134,7 +138,11 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
         if (firstRecord && firstRecord[name]) {
             const existingValue = firstRecord[name];
             if (existingValue) {
-                setCurrentValue(dayjs(existingValue).toDate());
+                try {
+                    setCurrentValue(dayjs(existingValue).toDate());
+                } catch (error) {
+                    console.warn('Failed to parse updated date value:', existingValue);
+                }
             }
         }
     }, [style, name]);
@@ -189,8 +197,8 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
         }
     };
 
-    // Determine the current value for form submission
-    const formValue = currentValue ? dayjs(currentValue).format(format || dateFormat) : '';
+    // Determine the current value for form submission - use dateFormat for storage
+    const formValue = currentValue ? dayjs(currentValue).format(dateFormat || 'YYYY-MM-DD') : '';
 
     // Create the appropriate date picker component based on type
     let datePickerElement: React.ReactElement;
@@ -259,7 +267,6 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
                         label={label}
                         placeholder={placeholder}
                         description={description}
-                        error={error}
                         required={isRequired}
                         disabled={disabled}
                         size={size}
@@ -280,7 +287,6 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
                     label={label}
                     placeholder={placeholder}
                     description={description}
-                    error={error}
                     required={isRequired}
                     disabled={disabled}
                     size={size}
@@ -290,7 +296,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
                     firstDayOfWeek={firstDayOfWeek}
                     weekendDays={weekendDays}
                     clearable={clearable}
-                    valueFormat={format}
+                    valueFormat={format || 'YYYY-MM-DD'}
                     className={cssClass}
                     style={{ width: '100%' }}
                 />
@@ -306,7 +312,6 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
                 label: label,
                 placeholder: placeholder,
                 description: description,
-                error: error,
                 required: isRequired,
                 disabled: disabled,
                 size: size,
@@ -318,7 +323,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
                 clearable: clearable,
                 allowDeselect: allowDeselect,
                 readOnly: readonly,
-                valueFormat: format,
+                valueFormat: format || 'YYYY-MM-DD HH:mm',
                 className: cssClass,
                 style: { width: '100%' }
             };
