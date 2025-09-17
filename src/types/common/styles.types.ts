@@ -938,9 +938,10 @@ export interface IStepperStyle extends IBaseStyle {
     mantine_stepper_allow_step_select?: IContentField<string>; // Checkbox for allowing step selection
     mantine_icon_size?: IContentField<string>;        // Icon size field
     mantine_stepper_completed_icon?: IContentField<string>; // Icon for completed steps
-    mantine_stepper_completed_content?: IContentField<string>; // Content for completed state
     mantine_radius?: IContentField<string>;           // Border radius field
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    name?: IContentField<string>;                     // Form field name
+    label?: IContentField<string>;                    // Form field label
     // Enhanced for Refine integration
     mantine_stepper_refine_mode?: IContentField<string>; // Checkbox for using Refine useStepsForm
     mantine_stepper_validation_mode?: IContentField<string>; // Select for validation mode (strict, lenient, custom)

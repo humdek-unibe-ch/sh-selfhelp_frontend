@@ -2225,17 +2225,18 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('stepper'), get_field_id('mantine_stepper_completed_icon'), NULL, 'Sets the icon for completed steps. For more information check https://mantine.dev/core/stepper', 0, 0, 'Completed Icon');
 
--- Add completed content field to stepper
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_stepper_completed_content', get_field_type_id('text'), 1, '{"placeholder": "Process completed successfully!"}');
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('stepper'), get_field_id('mantine_stepper_completed_content'), 'Process completed successfully!', 'Content to display when the stepper process is completed. For more information check https://mantine.dev/core/stepper', 0, 0, 'Completed Content');
-
 -- Add radius field to stepper
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('stepper'), get_field_id('mantine_radius'), 'md', 'Sets the border radius of stepper elements. For more information check https://mantine.dev/core/stepper', 0, 0, 'Border Radius');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('stepper'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Stepper will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/stepper', 0, 1, 'Use Mantine Style');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('stepper'), get_field_id('name'), '', 'The name that will be used for the form. For more information check https://mantine.dev/core/stepper', 0, 0, 'Name');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('stepper'), get_field_id('label'), 'Submit', 'The label that will be used for the form submit button at the end of the stepper. For more information check https://mantine.dev/core/stepper', 0, 0, 'Label');
 
 -- Note: Steps are now handled directly within the stepper component loop. No separate stepper-step style is needed.
 
