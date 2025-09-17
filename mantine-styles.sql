@@ -3700,12 +3700,12 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 -- Create DatePicker-specific fields
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
 (NULL, 'mantine_datepicker_type', get_field_type_id('segment'), 0, '{"options":[{"value":"date","text":"Date Only"},{"value":"time","text":"Time Only"},{"value":"datetime","text":"Date & Time"}]}'),
-(NULL, 'mantine_datepicker_format', get_field_type_id('text'), 0, null),
+(NULL, 'mantine_datepicker_format', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": false, "placeholder": "YYYY-MM-DD", "options": [{"value": "YYYY-MM-DD", "text": "YYYY-MM-DD"}, {"value": "MM/DD/YYYY", "text": "MM/DD/YYYY"}, {"value": "DD/MM/YYYY", "text": "DD/MM/YYYY"}, {"value": "DD.MM.YYYY", "text": "DD.MM.YYYY"}, {"value": "MMM DD, YYYY", "text": "MMM DD, YYYY"}, {"value": "DD MMM YYYY", "text": "DD MMM YYYY"}]}'),
 (NULL, 'mantine_datepicker_locale', get_field_type_id('text'), 0, null),
 (NULL, 'mantine_datepicker_placeholder', get_field_type_id('text'), 1, null),
 (NULL, 'mantine_datepicker_min_date', get_field_type_id('text'), 0, null),
 (NULL, 'mantine_datepicker_max_date', get_field_type_id('text'), 0, null),
-(NULL, 'mantine_datepicker_first_day_of_week', get_field_type_id('segment'), 0, '{"options":[{"value":"0","text":"Sunday"},{"value":"1","text":"Monday"},{"value":"2","text":"Tuesday"},{"value":"3","text":"Wednesday"},{"value":"4","text":"Thursday"},{"value":"5","text":"Friday"},{"value":"6","text":"Saturday"}]}'),
+(NULL, 'mantine_datepicker_first_day_of_week', get_field_type_id('segment'), 0, '{"options":[{"value":"0","text":"Su"},{"value":"1","text":"Mo"},{"value":"2","text":"Tu"},{"value":"3","text":"We"},{"value":"4","text":"Th"},{"value":"5","text":"Fr"},{"value":"6","text":"Sa"}]}'),
 (NULL, 'mantine_datepicker_weekend_days', get_field_type_id('text'), 0, null),
 (NULL, 'mantine_datepicker_clearable', get_field_type_id('checkbox'), 0, null),
 (NULL, 'mantine_datepicker_allow_deseselect', get_field_type_id('checkbox'), 0, null),
@@ -3716,7 +3716,8 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 (NULL, 'mantine_datepicker_hide_weekends', get_field_type_id('checkbox'), 0, null),
 (NULL, 'mantine_datepicker_time_step', get_field_type_id('segment'), 0, '{"options":[{"value":"1","text":"1 min"},{"value":"5","text":"5 min"},{"value":"10","text":"10 min"},{"value":"15","text":"15 min"},{"value":"30","text":"30 min"},{"value":"60","text":"1 hour"}]}'),
 (NULL, 'mantine_datepicker_time_format', get_field_type_id('segment'), 0, '{"options":[{"value":"12","text":"12-hour"},{"value":"24","text":"24-hour"}]}'),
-(NULL, 'mantine_datepicker_date_format', get_field_type_id('segment'), 0, '{"options":[{"value":"MM/DD/YYYY","text":"MM/DD/YYYY"},{"value":"DD/MM/YYYY","text":"DD/MM/YYYY"},{"value":"YYYY-MM-DD","text":"YYYY-MM-DD"},{"value":"DD.MM.YYYY","text":"DD.MM.YYYY"}]}'),
+(NULL, 'mantine_datepicker_date_format', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": false, "placeholder": "YYYY-MM-DD", "options": [{"value": "YYYY-MM-DD", "text": "YYYY-MM-DD"}, {"value": "MM/DD/YYYY", "text": "MM/DD/YYYY"}, {"value": "DD/MM/YYYY", "text": "DD/MM/YYYY"}, {"value": "DD.MM.YYYY", "text": "DD.MM.YYYY"}, {"value": "MMM DD, YYYY", "text": "MMM DD, YYYY"}, {"value": "DD MMM YYYY", "text": "DD MMM YYYY"}]}'),
+(NULL, 'mantine_datepicker_time_grid_config', get_field_type_id('textarea'), 0, null),
 (NULL, 'mantine_datepicker_with_seconds', get_field_type_id('checkbox'), 0, null);
 
 -- Add datepicker style
@@ -3755,10 +3756,10 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 (get_style_id('datepicker'), get_field_id('mantine_datepicker_hide_weekends'), '0', 'If set, hides weekend days from the calendar. For more information check https://mantine.dev/dates/getting-started', 0, 0, 'Hide Weekends'),
 (get_style_id('datepicker'), get_field_id('mantine_datepicker_time_step'), '15', 'Sets the time step in minutes for time selection. For more information check https://mantine.dev/dates/getting-started', 0, 0, 'Time Step'),
 (get_style_id('datepicker'), get_field_id('mantine_datepicker_time_format'), '24', 'Sets the time format (12-hour or 24-hour). For more information check https://mantine.dev/dates/getting-started', 0, 0, 'Time Format'),
-(get_style_id('datepicker'), get_field_id('mantine_datepicker_date_format'), 'YYYY-MM-DD', 'Sets the date format pattern. For more information check https://mantine.dev/dates/getting-started', 0, 0, 'Date Format'),
+(get_style_id('datepicker'), get_field_id('mantine_datepicker_date_format'), 'YYYY-MM-DD', 'Sets the date format pattern for form submission. Choose from presets or enter a custom format. For more information check https://mantine.dev/dates/getting-started', 0, 0, 'Date Format'),
+(get_style_id('datepicker'), get_field_id('mantine_datepicker_time_grid_config'), NULL, 'JSON configuration for TimeGrid layout (e.g., {"cols": {"base": 2, "sm": 3}, "spacing": "xs"}). For more information check https://mantine.dev/dates/time-grid', 0, 0, 'Time Grid Config'),
 (get_style_id('datepicker'), get_field_id('mantine_datepicker_with_seconds'), '0', 'If set, includes seconds in time selection. For more information check https://mantine.dev/dates/getting-started', 0, 0, 'With Seconds'),
 (get_style_id('datepicker'), get_field_id('mantine_size'), 'md', 'Sets the size of the date picker. Choose from preset sizes (xs, sm, md, lg, xl). For more information check https://mantine.dev/dates/getting-started', 0, 0, 'Size'),
-(get_style_id('datepicker'), get_field_id('mantine_color'), NULL, 'Sets the color of the date picker. Choose from theme colors. For more information check https://mantine.dev/dates/getting-started', 0, 0, 'Color'),
 (get_style_id('datepicker'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the date picker. For more information check https://mantine.dev/dates/getting-started', 0, 0, 'Radius'),
 (get_style_id('datepicker'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the datepicker component', 0, 1, 'Use Mantine Style');
 

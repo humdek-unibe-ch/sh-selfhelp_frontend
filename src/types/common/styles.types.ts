@@ -408,10 +408,10 @@ export interface IDatePickerStyle extends IBaseStyle {
     mantine_datepicker_time_step?: IContentField<string>;
     mantine_datepicker_time_format?: IContentField<string>;
     mantine_datepicker_date_format?: IContentField<string>;
+    mantine_datepicker_time_grid_config?: IContentField<string>;
     mantine_datepicker_with_seconds?: IContentField<string>;
     // Reusable Mantine fields
     mantine_size?: IContentField<string>;
-    mantine_color?: IContentField<string>;
     mantine_radius?: IContentField<string>;
     use_mantine_style?: IContentField<string>;
     // For form integration

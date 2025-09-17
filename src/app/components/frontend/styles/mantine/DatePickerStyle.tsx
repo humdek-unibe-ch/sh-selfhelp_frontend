@@ -46,6 +46,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
 
     // DatePicker-specific fields
     const pickerType = getFieldContent(style, 'mantine_datepicker_type') || 'date';
+    // format: Used for Mantine component display formatting (valueFormat prop)
     const format = getFieldContent(style, 'mantine_datepicker_format');
     const locale = getFieldContent(style, 'mantine_datepicker_locale') || 'en';
     const placeholder = getFieldContent(style, 'mantine_datepicker_placeholder');
@@ -58,17 +59,30 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
     const readonly = getFieldContent(style, 'mantine_datepicker_readonly') === '1';
     const withTimeGrid = getFieldContent(style, 'mantine_datepicker_with_time_grid') === '1';
     const consistentWeeks = getFieldContent(style, 'mantine_datepicker_consistent_weeks') === '1';
+    // hideOutsideDates: Hides dates from previous/next months that appear in the current month's calendar view
     const hideOutsideDates = getFieldContent(style, 'mantine_datepicker_hide_outside_dates') === '1';
+    // hideWeekends: Hides Saturday and Sunday from the calendar, useful for business applications
     const hideWeekends = getFieldContent(style, 'mantine_datepicker_hide_weekends') === '1';
     const timeStep = parseInt(getFieldContent(style, 'mantine_datepicker_time_step') || '15');
     const timeFormat = getFieldContent(style, 'mantine_datepicker_time_format') || '24';
     // timeStep is used with TimeGrid interval generation when withTimeGrid is enabled
+    // dateFormat: Used for form submission value formatting (different from display format)
     const dateFormat = getFieldContent(style, 'mantine_datepicker_date_format') || 'YYYY-MM-DD';
+    const timeGridConfigStr = getFieldContent(style, 'mantine_datepicker_time_grid_config');
     const withSeconds = getFieldContent(style, 'mantine_datepicker_with_seconds') === '1';
+
+    // Parse TimeGrid configuration
+    let timeGridConfig: any = {};
+    try {
+        if (timeGridConfigStr) {
+            timeGridConfig = JSON.parse(timeGridConfigStr);
+        }
+    } catch (e) {
+        console.warn('Invalid time grid config JSON:', timeGridConfigStr);
+    }
 
     // Mantine-specific fields
     const size = castMantineSize(getFieldContent(style, 'mantine_size'));
-    const color = getFieldContent(style, 'mantine_color');
     const radius = castMantineRadius(getFieldContent(style, 'mantine_radius'));
 
     // Handle CSS field - use direct property from API response
@@ -203,28 +217,35 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
                     ? dayjs(currentValue).format(withSeconds ? 'HH:mm:ss' : 'HH:mm')
                     : null;
 
-                datePickerElement = (
-                    <TimeGrid
-                        value={gridValue}
-                        onChange={(value) => {
-                            if (value) {
-                                const [hours, minutes, seconds] = value.split(':').map(Number);
-                                const date = currentValue || new Date();
-                                date.setHours(hours, minutes || 0, seconds || 0, 0);
-                                setCurrentValue(new Date(date));
-                            } else {
-                                setCurrentValue(null);
-                            }
-                        }}
-                        data={timeData}
-                        format={timeFormat === '12' ? '12h' : '24h'}
-                        withSeconds={withSeconds}
-                        allowDeselect={allowDeselect}
-                        disabled={disabled}
-                        className={cssClass}
-                        style={{ width: '100%' }}
-                    />
-                );
+                // Create TimeGrid props with configuration
+                const timeGridProps: any = {
+                    value: gridValue,
+                    onChange: (value: string | null) => {
+                        if (value) {
+                            const [hours, minutes, seconds] = value.split(':').map(Number);
+                            const date = currentValue || new Date();
+                            date.setHours(hours, minutes || 0, seconds || 0, 0);
+                            setCurrentValue(new Date(date));
+                        } else {
+                            // Handle deselection - note: TimeGrid may not support null values directly
+                            // allowDeselect prop might not work as expected in current Mantine version
+                            setCurrentValue(null);
+                        }
+                    },
+                    data: timeData,
+                    format: timeFormat === '12' ? '12h' : '24h',
+                    withSeconds: withSeconds,
+                    disabled: disabled,
+                    className: cssClass,
+                    style: { width: '100%' }
+                };
+
+                // Apply TimeGrid configuration if provided
+                if (timeGridConfig.simpleGridProps) {
+                    timeGridProps.simpleGridProps = timeGridConfig.simpleGridProps;
+                }
+
+                datePickerElement = <TimeGrid {...timeGridProps} />;
             } else {
                 // Use TimeInput for free-form time entry
                 const timeFormatPattern = withSeconds
