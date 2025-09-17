@@ -1,5 +1,5 @@
 import React from 'react';
-import { TypographyStylesProvider } from '@mantine/core';
+import { Typography } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
 import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { ITypographyStyle } from '../../../../../types/common/styles.types';
@@ -12,12 +12,12 @@ interface ITypographyStyleProps {
 }
 
 /**
- * TypographyStyle component renders a Mantine TypographyStylesProvider component for consistent typography.
- * Applies Mantine's typography styles to all child components.
+ * TypographyStyle component renders a Mantine Typography component for consistent typography styles.
+ * Applies Mantine's typography styles to HTML content within child components.
  *
  * @component
  * @param {ITypographyStyleProps} props - Component props
- * @returns {JSX.Element} Rendered Mantine TypographyStylesProvider with child content
+ * @returns {JSX.Element} Rendered Mantine Typography with child content
  */
 const TypographyStyle: React.FC<ITypographyStyleProps> = ({ style }) => {
     // Ensure children is an array before mapping
@@ -34,22 +34,16 @@ const TypographyStyle: React.FC<ITypographyStyleProps> = ({ style }) => {
 
     if (use_mantine_style) {
         return (
-            <TypographyStylesProvider className={cssClass} style={styleObj}>
+            <Typography className={cssClass} style={styleObj}>
                 {children.map((child: any, index: number) => (
                     child ? <BasicStyle key={index} style={child} /> : null
                 ))}
-            </TypographyStylesProvider>
+            </Typography>
         );
     }
 
-    // Fallback to basic div when Mantine styling is disabled
-    return (
-        <div className={cssClass} style={styleObj}>
-            {children.map((child: any, index: number) => (
-                child ? <BasicStyle key={index} style={child} /> : null
-            ))}
-        </div>
-    );
+    // Return null when Mantine styling is disabled (no fallback needed)
+    return null;
 };
 
 export default TypographyStyle;

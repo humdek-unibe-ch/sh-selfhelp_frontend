@@ -3073,19 +3073,19 @@ WHERE s1.name = 'list' AND s2.name = 'list-item';
 -- TYPOGRAPHY COMPONENT
 -- ===========================================
 
--- Add new style 'typography' based on Mantine TypographyStylesProvider component
+-- Add new style 'typography' based on Mantine Typography component
 INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'typography',
     (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
     get_style_group_id('mantine'),
-    'Mantine TypographyStylesProvider component for consistent typography',
+    'Mantine Typography component for consistent typography styles',
     1
 );
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('typography'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Typography will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/typography-styles-provider', 0, 1, 'Use Mantine Style');
+VALUES (get_style_id('typography'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Typography will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/typography', 0, 1, 'Use Mantine Style');
 
 -- Define that timeline-item can ONLY be added inside timeline
 INSERT IGNORE INTO styles_allowed_relationships (id_parent_style, id_child_style)
