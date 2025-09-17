@@ -21,8 +21,8 @@ const TabStyle: React.FC<ITabStyleProps> = ({ style, isActive = false }) => {
     // Extract field values - mantine_tab_value field was removed, use section ID
     const value = style.id?.toString() || 'tab';
     const label = getFieldContent(style, 'label') || 'Tab';
-    const leftIconName = getFieldContent(style, 'mantine_tab_left_section');
-    const rightIconName = getFieldContent(style, 'mantine_tab_right_section');
+    const leftIconName = getFieldContent(style, 'mantine_left_icon');
+    const rightIconName = getFieldContent(style, 'mantine_right_icon');
     const disabled = getFieldContent(style, 'mantine_tab_disabled') === '1';
     const width = getFieldContent(style, 'mantine_width');
     const height = getFieldContent(style, 'mantine_height');

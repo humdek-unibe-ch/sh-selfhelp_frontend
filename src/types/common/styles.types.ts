@@ -429,8 +429,8 @@ export interface ITabStyle extends IBaseStyle {
     style_name: 'tab';
     // Tab-specific fields (mantine_tab_value removed - using section ID instead)
     label?: IContentField<string>;                     // Content field for tab label
-    mantine_tab_left_section?: IContentField<string>;  // Select-icon field for left icon
-    mantine_tab_right_section?: IContentField<string>; // Select-icon field for right icon
+    mantine_left_icon?: IContentField<string>;  // Select-icon field for left icon
+    mantine_right_icon?: IContentField<string>; // Select-icon field for right icon
     mantine_tab_disabled?: IContentField<string>;      // Checkbox field for disabled state
     mantine_width?: IContentField<string>;             // Select field for width
     mantine_height?: IContentField<string>;            // Select field for height
