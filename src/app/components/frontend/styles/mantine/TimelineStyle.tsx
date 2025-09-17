@@ -1,8 +1,10 @@
 import React from 'react';
-import { Timeline } from '@mantine/core';
+import { Avatar, Text, ThemeIcon, Timeline } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
+import IconComponent from '../../../shared/common/IconComponent';
 import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { ITimelineStyle } from '../../../../../types/common/styles.types';
+import { IconSun, IconVideo } from '@tabler/icons-react';
 
 /**
  * Props interface for TimelineStyle component
@@ -24,10 +26,13 @@ const TimelineStyle: React.FC<ITimelineStyleProps> = ({ style }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values using the new unified field structure
-    const bulletSize = parseInt(getFieldContent(style, 'mantine_size') || '16') as any;
+    const bulletSize = parseInt(getFieldContent(style, 'mantine_timeline_bullet_size') || '24');
     const lineWidth = parseInt(getFieldContent(style, 'mantine_timeline_line_width') || '2');
+    const active = parseInt(getFieldContent(style, 'mantine_timeline_active') || '0');
     const color = getFieldContent(style, 'mantine_color') || 'blue';
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
+
+    // Use the validated color from CMS
+    const align = getFieldContent(style, 'mantine_timeline_align') || 'left';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
@@ -35,37 +40,75 @@ const TimelineStyle: React.FC<ITimelineStyleProps> = ({ style }) => {
     // Build style object
     const styleObj: React.CSSProperties = {};
 
-    if (use_mantine_style) {
-        return (
-            <Timeline
-                bulletSize={bulletSize}
-                lineWidth={lineWidth}
-                color={color}
-                className={cssClass}
-                style={styleObj}
-            >
-                {children.map((child: any, index: number) => (
-                    child ? <BasicStyle key={index} style={child} /> : null
-                ))}
-            </Timeline>
-        );
-    }
-
-    // Fallback to basic timeline structure when Mantine styling is disabled
     return (
-        <div className={cssClass} style={{ ...styleObj, position: 'relative' }}>
-            {children.map((child: any, index: number) => (
-                child ? <BasicStyle key={index} style={child} /> : null
-            ))}
+        <Timeline
+            active={active}
+            bulletSize={bulletSize}
+            lineWidth={lineWidth}
+            color={color}
+            align={align as 'left' | 'right'}
+            className={cssClass}
+            style={styleObj}
+        >
+            {children.map((child: any, childIndex: number) => {
+                if (!child) return null;
 
-            {/* If no children, show a sample timeline */}
-            {children.length === 0 && (
-                <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
-                    <h3 style={{ margin: '0 0 16px 0', color: '#333' }}>Timeline</h3>
-                    <p>Add Timeline.Item components as children to display timeline entries.</p>
-                </div>
-            )}
-        </div>
+                // Extract timeline item fields
+                const title = getFieldContent(child, 'title');
+                const bulletIconName = getFieldContent(child, 'mantine_timeline_item_bullet');
+                const lineVariant = getFieldContent(child, 'mantine_timeline_item_line_variant') || 'solid';
+                const itemColor = getFieldContent(child, 'mantine_color');
+
+                // Determine if this item should inherit parent's color or use its own
+                // If the item index is within the parent's active range, use parent color
+                const shouldInheritParentColor = childIndex <= active;
+                // For active items, explicitly use parent color if available
+                // For inactive items, use their own color if specified
+                const effectiveColor = shouldInheritParentColor && color ? color : itemColor;
+
+                // Handle CSS field - use direct property from API response
+                const itemCssClass = "section-" + child.id + " " + (child.css ?? '');
+
+                // Build style object
+                const itemStyleObj: React.CSSProperties = {};
+
+                // Get bullet icon
+                const bullet = bulletIconName ? <IconComponent iconName={bulletIconName} size={16} /> : undefined;
+
+                // Build props object conditionally
+                const itemProps: any = {
+                    title,
+                    bullet,
+                    lineVariant: lineVariant as 'solid' | 'dashed' | 'dotted',
+                    className: itemCssClass,
+                    style: itemStyleObj
+                };
+
+                // Only add color if it's defined (to avoid overriding parent Timeline color)
+                if (effectiveColor) {
+                    itemProps.color = effectiveColor;
+                }
+
+                // Ensure item children is an array before mapping
+                const itemChildren = Array.isArray(child.children) ? child.children : [];
+
+                return (
+                    <Timeline.Item 
+                    key={childIndex}
+                    color={effectiveColor}
+                    title={title}
+                    bullet={bullet}
+                    lineVariant={lineVariant as 'solid' | 'dashed' | 'dotted'}
+                    className={itemCssClass}
+                    style={itemStyleObj}
+                    >
+                        {itemChildren.map((grandChild: any, grandChildIndex: number) => (
+                            grandChild ? <BasicStyle key={grandChildIndex} style={grandChild} /> : null
+                        ))}
+                    </Timeline.Item>
+                );
+            })}
+        </Timeline>
     );
 };
 

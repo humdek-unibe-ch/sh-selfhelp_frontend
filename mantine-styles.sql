@@ -2742,13 +2742,20 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
     (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
     get_style_group_id('mantine'),
     'Mantine Timeline component for chronological displays',
-    1
+    0
 );
 
 -- Add Timeline-specific fields
--- Use unified mantine_size for timeline bullet size
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_timeline_bullet_size', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "options":[
+{"value":"12","text":"12px"},
+{"value":"16","text":"16px"},
+{"value":"20","text":"20px"},
+{"value":"24","text":"24px"},
+{"value":"32","text":"32px"}
+]}');
+
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('timeline'), get_field_id('mantine_size'), 'md', 'Sets the size of the timeline bullets. For more information check https://mantine.dev/core/timeline', 0, 0, 'Bullet Size');
+VALUES (get_style_id('timeline'), get_field_id('mantine_timeline_bullet_size'), '24', 'Sets the size of the timeline bullets. For more information check https://mantine.dev/core/timeline', 0, 0, 'Bullet Size');
 
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_timeline_line_width', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "options":[
 {"value":"1","text":"1px"},
@@ -2759,6 +2766,26 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('timeline'), get_field_id('mantine_timeline_line_width'), '2', 'Sets the width of the timeline line. For more information check https://mantine.dev/core/timeline', 0, 0, 'Line Width');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_timeline_active', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "options":[
+{"value":"-1","text":"None"},
+{"value":"0","text":"First item"},
+{"value":"1","text":"First two items"},
+{"value":"3","text":"First three items"},
+{"value":"4","text":"First four items"},
+{"value":"5","text":"First five items"}
+]}');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('timeline'), get_field_id('mantine_timeline_active'), '0', 'Index of current active element, all elements before this index will be highlighted with color. For more information check https://mantine.dev/core/timeline', 0, 0, 'Active Index');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_timeline_align', get_field_type_id('segment'), 0, '{"options":[
+{"value":"left","text":"Left"},
+{"value":"right","text":"Right"}
+]}');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('timeline'), get_field_id('mantine_timeline_align'), 'left', 'Defines line and bullets position relative to content, also sets text-align. For more information check https://mantine.dev/core/timeline', 0, 0, 'Align');
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
@@ -2801,7 +2828,7 @@ VALUES (get_style_id('timeline-item'), get_field_id('mantine_timeline_item_line_
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('timeline-item'), get_field_id('mantine_color'), 'blue', 'Sets the color of the timeline item. For more information check https://mantine.dev/core/timeline', 0, 0, 'Color');
+VALUES (get_style_id('timeline-item'), get_field_id('mantine_color'), 'gray', 'Sets the color of the timeline item. For more information check https://mantine.dev/core/timeline', 0, 0, 'Color');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('timeline-item'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Timeline.Item will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/timeline', 0, 1, 'Use Mantine Style');

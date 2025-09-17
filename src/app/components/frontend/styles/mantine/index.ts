@@ -34,7 +34,6 @@ export { default as BadgeStyle } from './BadgeStyle';
 export { default as ChipStyle } from './ChipStyle';
 export { default as AvatarStyle } from './AvatarStyle';
 export { default as TimelineStyle } from './TimelineStyle';
-export { default as TimelineItemStyle } from './TimelineItemStyle';
 export { default as IndicatorStyle } from './IndicatorStyle';
 export { default as KbdStyle } from './KbdStyle';
 export { default as ThemeIconStyle } from './ThemeIconStyle';
@@ -208,7 +207,6 @@ export const MANTINE_COMPONENT_MAP = {
     'chip': 'ChipStyle',
     'avatar': 'AvatarStyle',
     'timeline': 'TimelineStyle',
-    'timeline-item': 'TimelineItemStyle',
     'indicator': 'IndicatorStyle',
     'kbd': 'KbdStyle',
     'theme-icon': 'ThemeIconStyle',

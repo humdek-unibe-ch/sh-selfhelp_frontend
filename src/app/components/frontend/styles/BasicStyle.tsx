@@ -19,7 +19,7 @@ import {
     KbdStyle, ListStyle, ListItemStyle, NotificationStyle, NumberInputStyle,
     ProgressStyle, ProgressRootStyle, ProgressSectionStyle, RangeSliderStyle, RatingStyle, SegmentedControlStyle,
     SpoilerStyle,
-    SwitchStyle, ThemeIconStyle, TimelineStyle, TimelineItemStyle,
+    SwitchStyle, ThemeIconStyle, TimelineStyle,
     TitleStyle, TypographyStyle,
     // Special Components
     UnknownStyle
@@ -29,9 +29,14 @@ import { TStyle } from '../../../../types/common/styles.types';
 /**
  * Props interface for BasicStyle component
  * @property {TStyle} style - The style configuration object
+ * @property {number} [parentActive] - Active index from parent Timeline
+ * @property {number} [childIndex] - Index of this child in parent Timeline
  */
 interface IBasicStyleProps {
     style: TStyle;
+    parentActive?: number;
+    childIndex?: number;
+    parentColor?: string;
 }
 
 /**
@@ -41,10 +46,11 @@ interface IBasicStyleProps {
  * @param {IBasicStyleProps} props - Component props
  * @returns {JSX.Element | null} The appropriate styled component or null
  */
-const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
+const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childIndex, parentColor }) => {
     if (!style || !style.style_name) {
         return null;
     }
+
 
     /**
      * Renders the appropriate style component based on style_name
@@ -193,8 +199,6 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style }) => {
             return <ChipStyle style={style} />;
         case 'timeline':
             return <TimelineStyle style={style} />;
-        case 'timeline-item':
-            return <TimelineItemStyle style={style} />;
         case 'list':
             return <ListStyle style={style} />;
         case 'list-item':

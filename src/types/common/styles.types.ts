@@ -17,7 +17,7 @@ export type TStyleName =
     // Mantine typography components
     | 'code'
     // Mantine data display components
-    | 'badge' | 'chip' | 'avatar' | 'timeline' | 'timeline-item' | 'indicator'
+    | 'badge' | 'chip' | 'avatar' | 'timeline' | 'indicator'
     | 'kbd' | 'rating' | 'theme-icon' | 'progress' | 'progress-root' | 'progress-section' | 'progress-label'
     // Mantine navigation components
     | 'accordion' | 'accordion-Item'
@@ -823,20 +823,14 @@ export interface IAvatarStyle extends IBaseStyle {
 
 export interface ITimelineStyle extends IBaseStyle {
     style_name: 'timeline';
-    mantine_size?: IContentField<string>;             // Select field for bullet size
+    mantine_timeline_bullet_size?: IContentField<string>; // Select field for bullet size
     mantine_timeline_line_width?: IContentField<string>; // Select field for line width
+    mantine_timeline_active?: IContentField<string>; // Select field for active index
+    mantine_timeline_align?: IContentField<string>; // Select field for alignment
     mantine_color?: IContentField<string>;            // Color picker field
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
 
-export interface ITimelineItemStyle extends IBaseStyle {
-    style_name: 'timeline-item';
-    title?: IContentField<string>;                    // Translatable title
-    mantine_timeline_item_bullet?: IContentField<string>; // Select-icon field for bullet icon
-    mantine_timeline_item_line_variant?: IContentField<string>; // Segment field for line variant
-    mantine_color?: IContentField<string>;            // Color picker field
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
-}
 
 export interface IIndicatorStyle extends IBaseStyle {
     style_name: 'indicator';
@@ -1171,7 +1165,6 @@ export type TStyle =
     | IChipStyle
     | IAvatarStyle
     | ITimelineStyle
-    | ITimelineItemStyle
     | IIndicatorStyle
     | IKbdStyle
     | IRatingStyle
