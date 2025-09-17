@@ -1830,6 +1830,97 @@ VALUES (get_style_id('range-slider'), get_field_id('value'), '', 'Sets the value
 
 
 -- ===========================================
+-- SLIDER COMPONENT
+-- ===========================================
+
+-- Add new style 'slider' based on Mantine slider component
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+    NULL,
+    'slider',
+    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    get_style_group_id('mantine'),
+    'Mantine slider component for single value selection',
+    0
+);
+
+-- Use unified numeric fields for slider
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('slider'), get_field_id('mantine_numeric_min'), '0', 'Sets the minimum value for the slider. For more information check https://mantine.dev/core/slider', 0, 0, 'Min');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('slider'), get_field_id('mantine_numeric_max'), '100', 'Sets the maximum value for the slider. For more information check https://mantine.dev/core/slider', 0, 0, 'Max');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('slider'), get_field_id('mantine_numeric_step'), '1', 'Sets the step value for the slider. For more information check https://mantine.dev/core/slider', 0, 0, 'Step');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('slider'), get_field_id('mantine_size'), 'sm', 'Sets the size of the slider. For more information check https://mantine.dev/core/slider', 0, 0, 'Size');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('slider'), get_field_id('mantine_color'), 'blue', 'Sets the color of the slider. For more information check https://mantine.dev/core/slider', 0, 0, 'Color');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('slider'), get_field_id('disabled'), '0', 'If set, the slider will be disabled. For more information check https://mantine.dev/core/slider', 0, 0, 'Disabled');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('slider'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the slider component', 0, 1, 'Use Mantine Style');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('slider'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the slider. For more information check https://mantine.dev/core/slider', 0, 0, 'Radius');
+
+-- Add slider-specific fields
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_slider_marks_values', get_field_type_id('textarea'), 1, null);
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('slider'), get_field_id('mantine_slider_marks_values'), '', 'Translatable values for slider marks in JSON format. Example: [{"value":25,"label":"Low"},{"value":50,"label":"Medium"},{"value":75,"label":"High"}]. For more information check https://mantine.dev/core/slider', 0, 0, 'Marks Values');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_slider_show_label', get_field_type_id('checkbox'), 0, null);
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('slider'), get_field_id('mantine_slider_show_label'), '1', 'If enabled, shows label on hover for slider. For more information check https://mantine.dev/core/slider', 0, 0, 'Show Label on Hover');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_slider_labels_always_on', get_field_type_id('checkbox'), 0, null);
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('slider'), get_field_id('mantine_slider_labels_always_on'), '0', 'If enabled, labels are always visible on the slider. For more information check https://mantine.dev/core/slider', 0, 0, 'Labels Always On');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_slider_inverted', get_field_type_id('checkbox'), 0, null);
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('slider'), get_field_id('mantine_slider_inverted'), '0', 'If enabled, inverts the slider track and thumb colors. For more information check https://mantine.dev/core/slider', 0, 0, 'Inverted');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_slider_thumb_size', get_field_type_id('creatable_select'), 0, '{
+"creatable": true,
+"searchable": false,
+"clearable": false,
+"placeholder": "16",
+"options": [
+{"value": "12", "text": "Extra Small (12px)"},
+{"value": "14", "text": "Small (14px)"},
+{"value": "16", "text": "Medium (16px)"},
+{"value": "18", "text": "Large (18px)"},
+{"value": "20", "text": "Extra Large (20px)"},
+{"value": "24", "text": "XL (24px)"},
+{"value": "32", "text": "XXL (32px)"}
+]
+}');
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('slider'), get_field_id('mantine_slider_thumb_size'), '16', 'Sets the thumb size in pixels. Choose from preset sizes or enter a custom value (e.g., 12, 14, 16, 18, 20, 24, 32). For more information check https://mantine.dev/core/slider', 0, 0, 'Thumb Size');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_slider_required', get_field_type_id('checkbox'), 0, null);
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('slider'), get_field_id('mantine_slider_required'), '0', 'If enabled, the slider will be required for form submission. For more information check https://mantine.dev/core/slider', 0, 0, 'Required');
+
+-- Add standard input fields for slider
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('slider'), get_field_id('label'), '', 'Sets the label text for the slider input field', 0, 0, 'Label');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('slider'), get_field_id('description'), '', 'Sets the description text displayed below the slider input field', 0, 0, 'Description');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('slider'), get_field_id('name'), '', 'Sets the name attribute for the slider input field, used for form integration', 0, 0, 'Name');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('slider'), get_field_id('value'), '', 'Sets the value attribute for the slider input field, used for form integration. Example: 50', 0, 0, 'Value');
+
+-- ===========================================
 -- RATING COMPONENT
 -- ===========================================
 

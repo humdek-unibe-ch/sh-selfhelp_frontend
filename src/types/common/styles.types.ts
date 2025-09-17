@@ -328,9 +328,29 @@ export interface IRadioStyle extends IBaseStyle {
 
 export interface ISliderStyle extends IBaseStyle {
     style_name: 'slider';
+    // Standard input fields
     label?: IContentField<string>;
+    description?: IContentField<string>;
     name?: IContentField<string>;
     value?: IContentField<string>;
+    // Mantine unified numeric fields
+    mantine_numeric_min?: IContentField<string>;
+    mantine_numeric_max?: IContentField<string>;
+    mantine_numeric_step?: IContentField<string>;
+    // Mantine unified styling fields
+    mantine_size?: IContentField<string>;
+    mantine_color?: IContentField<string>;
+    mantine_radius?: IContentField<string>;
+    disabled?: IContentField<string>;
+    use_mantine_style?: IContentField<string>;
+    // Slider-specific fields
+    mantine_slider_marks_values?: IContentField<string>;
+    mantine_slider_show_label?: IContentField<string>;
+    mantine_slider_labels_always_on?: IContentField<string>;
+    mantine_slider_inverted?: IContentField<string>;
+    mantine_slider_thumb_size?: IContentField<string>;
+    mantine_slider_required?: IContentField<string>;
+    // Legacy fields for backward compatibility
     labels?: IContentField<any[]>;
     min?: IContentField<string>;
     max?: IContentField<string>;

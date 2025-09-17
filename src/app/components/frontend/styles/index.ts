@@ -8,7 +8,7 @@ export { default as ImageStyle } from './ImageStyle';
 export { default as InputStyle } from './InputStyle';
 export { default as RadioStyle } from './mantine/RadioStyle';
 export { default as SelectStyle } from './SelectStyle';
-export { default as SliderStyle } from './SliderStyle';
+export { default as SliderStyle } from './mantine/SliderStyle';
 export { default as TextareaStyle } from './TextareaStyle';
 
 // New components

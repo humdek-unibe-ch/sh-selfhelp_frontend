@@ -23,6 +23,7 @@ export { default as FileInputStyle } from './FileInputStyle';
 export { default as NumberInputStyle } from './NumberInputStyle';
 export { default as RadioStyle } from './RadioStyle';
 export { default as RangeSliderStyle } from './RangeSliderStyle';
+export { default as SliderStyle } from './SliderStyle';
 export { default as SegmentedControlStyle } from './SegmentedControlStyle';
 export { default as SwitchStyle } from './SwitchStyle';
 export { default as ComboboxStyle } from './ComboboxStyle';
@@ -197,6 +198,7 @@ export const MANTINE_COMPONENT_MAP = {
     'numberInput': 'NumberInputStyle',
     'radio': 'RadioStyle',
     'range-slider': 'RangeSliderStyle',
+    'slider': 'SliderStyle',
     'segmented-control': 'SegmentedControlStyle',
     'switch': 'SwitchStyle',
     'combobox': 'ComboboxStyle',

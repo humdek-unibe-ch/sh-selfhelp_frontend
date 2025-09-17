@@ -74,7 +74,7 @@ export { default as PlaintextStyle } from './PlaintextStyle';
 // Form Input Styles
 export { default as RadioStyle } from './mantine/RadioStyle';
 export { default as CheckboxStyle } from './CheckboxStyle';
-export { default as SliderStyle } from './SliderStyle';
+export { default as SliderStyle } from './mantine/SliderStyle';
 
 // UI Components
 export { default as HtmlTagStyle } from './HtmlTagStyle';
