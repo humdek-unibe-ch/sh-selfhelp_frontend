@@ -2946,7 +2946,7 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
 );
 
 -- Add Title-specific fields
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_title_order', get_field_type_id('slider'), 0, '{
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_title_order', get_field_type_id('segment'), 0, '{
 	"options": [
 		{"value": "1", "text": "H1"},
 		{"value": "2", "text": "H2"},
@@ -2959,6 +2959,40 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('title'), get_field_id('mantine_title_order'), '1', 'Sets the heading level (1-6) for the title. For more information check https://mantine.dev/core/title', 0, 0, 'Heading Level');
+
+-- Add textWrap field for Title
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_title_text_wrap', get_field_type_id('segment'), 0, '{
+	"options": [
+		{"value": "wrap", "text": "Wrap"},
+		{"value": "balance", "text": "Balance"},
+		{"value": "nowrap", "text": "No Wrap"}
+	]
+}');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('title'), get_field_id('mantine_title_text_wrap'), 'wrap', 'Sets the text-wrap CSS property for the title. For more information check https://mantine.dev/core/title', 0, 0, 'Text Wrap');
+
+-- Add lineClamp field for Title
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_title_line_clamp', get_field_type_id('select'), 0, '{
+	"creatable": true,
+	"searchable": false,
+	"clearable": true,
+	"placeholder": "3",
+	"options": [
+		{"value": "1", "text": "1 line"},
+		{"value": "2", "text": "2 lines"},
+		{"value": "3", "text": "3 lines"},
+		{"value": "4", "text": "4 lines"},
+		{"value": "5", "text": "5 lines"}
+	]
+}');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('title'), get_field_id('mantine_title_line_clamp'), NULL, 'Sets the number of lines after which the text will be truncated. For more information check https://mantine.dev/core/title', 0, 0, 'Line Clamp');
+
+-- Add translatable content field for Title
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('title'), get_field_id('content'), NULL, 'The text content of the title. This field supports multiple languages.', 0, 0, 'Content');
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)

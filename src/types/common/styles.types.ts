@@ -970,8 +970,11 @@ export interface INotificationStyle extends IBaseStyle {
 
 export interface ITitleStyle extends IBaseStyle {
     style_name: 'title';
-    mantine_title_order?: IContentField<string>;      // Slider field for heading level (1-6)
+    content?: IContentField<string>;                  // Translatable content field
+    mantine_title_order?: IContentField<string>;      // Select field for heading level (1-6)
     mantine_size?: IContentField<string>;             // Select field for size
+    mantine_title_text_wrap?: IContentField<string>;  // Select field for text-wrap (wrap, balance, nowrap)
+    mantine_title_line_clamp?: IContentField<string>; // Select field for line clamp (1-5 lines)
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
 
