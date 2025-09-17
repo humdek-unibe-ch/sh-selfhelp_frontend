@@ -364,6 +364,19 @@ export interface ICheckboxStyle extends IBaseStyle {
     value?: IContentField<string>;
     is_required?: IContentField<string>;
     checkbox_value?: IContentField<string>;
+    // Mantine-specific fields
+    mantine_checkbox_icon?: IContentField<string>;
+    mantine_checkbox_labelPosition?: IContentField<string>;
+    description?: IContentField<string>;
+    error?: IContentField<string>;
+    disabled?: IContentField<string>;
+    // Reusable Mantine fields
+    mantine_size?: IContentField<string>;
+    mantine_radius?: IContentField<string>;
+    mantine_color?: IContentField<string>;
+    use_mantine_style?: IContentField<string>;
+    // For form integration
+    section_data?: any[];
 }
 
 // Media Styles

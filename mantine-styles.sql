@@ -3657,4 +3657,40 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 (get_style_id('carousel'), get_field_id('mantine_carousel_embla_options'), NULL, 'Sets advanced Embla carousel options as JSON. For more information check https://www.embla-carousel.com/api/options/', 0, 0, 'Embla Options'),
 (get_style_id('carousel'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the carousel component', 0, 1, 'Use Mantine Style');
 
+-- ===========================================
+-- CHECKBOX COMPONENT DEFINITION
+-- ===========================================
+
+-- Create Checkbox-specific fields
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'mantine_checkbox_icon', get_field_type_id('select-icon'), 0, null),
+(NULL, 'mantine_checkbox_labelPosition', get_field_type_id('segment'), 0, '{"options":[{"value":"right","text":"Right"},{"value":"left","text":"Left"}]}');
+
+-- Add checkbox style
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+    NULL,
+    'checkbox',
+    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    get_style_group_id('mantine'),
+    'Mantine Checkbox component for boolean input with customizable styling',
+    0
+);
+
+-- Link fields to checkbox style
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
+(get_style_id('checkbox'), get_field_id('label'), NULL, 'Sets the label text displayed next to the checkbox. For more information check https://mantine.dev/core/checkbox', 0, 0, 'Label'),
+(get_style_id('checkbox'), get_field_id('name'), NULL, 'Sets the name attribute for the checkbox input. For more information check https://mantine.dev/core/checkbox', 0, 0, 'Name'),
+(get_style_id('checkbox'), get_field_id('value'), NULL, 'Sets the value attribute for the checkbox input. For more information check https://mantine.dev/core/checkbox', 0, 0, 'Value'),
+(get_style_id('checkbox'), get_field_id('checkbox_value'), '1', 'Sets the checkbox value when checked. For more information check https://mantine.dev/core/checkbox', 0, 0, 'Checkbox Value'),
+(get_style_id('checkbox'), get_field_id('is_required'), '0', 'If set, the checkbox will be required for form submission. For more information check https://mantine.dev/core/checkbox', 0, 0, 'Required'),
+(get_style_id('checkbox'), get_field_id('disabled'), '0', 'If set, the checkbox will be disabled. For more information check https://mantine.dev/core/checkbox', 0, 0, 'Disabled'),
+(get_style_id('checkbox'), get_field_id('description'), NULL, 'Sets the description text displayed below the label. For more information check https://mantine.dev/core/checkbox', 0, 0, 'Description'),
+(get_style_id('checkbox'), get_field_id('error'), NULL, 'Sets the error message displayed below the checkbox. For more information check https://mantine.dev/core/checkbox', 0, 0, 'Error'),
+(get_style_id('checkbox'), get_field_id('mantine_size'), 'md', 'Sets the size of the checkbox. Choose from preset sizes (xs, sm, md, lg, xl). For more information check https://mantine.dev/core/checkbox', 0, 0, 'Size'),
+(get_style_id('checkbox'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the checkbox. Choose from preset values or enter a custom value. For more information check https://mantine.dev/core/checkbox', 0, 0, 'Radius'),
+(get_style_id('checkbox'), get_field_id('mantine_color'), NULL, 'Sets the color of the checkbox. Choose from theme colors or enter a custom color. For more information check https://mantine.dev/core/checkbox', 0, 0, 'Color'),
+(get_style_id('checkbox'), get_field_id('mantine_checkbox_icon'), NULL, 'Sets a custom icon for the checkbox. For more information check https://mantine.dev/core/checkbox', 0, 0, 'Icon'),
+(get_style_id('checkbox'), get_field_id('mantine_checkbox_labelPosition'), 'right', 'Sets the position of the label relative to the checkbox. For more information check https://mantine.dev/core/checkbox', 0, 0, 'Label Position'),
+(get_style_id('checkbox'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the checkbox component', 0, 1, 'Use Mantine Style');
+
 

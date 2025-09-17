@@ -96,8 +96,6 @@ const SliderStyle: React.FC<ISliderStyleProps> = ({ style }) => {
         setValue(newValue);
     };
 
-    console.log(style);
-
     // Slider component
     const sliderComponent = (
         <Slider
