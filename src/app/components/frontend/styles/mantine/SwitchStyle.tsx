@@ -1,5 +1,5 @@
 import React from 'react';
-import { Switch } from '@mantine/core';
+import { Switch, Input } from '@mantine/core';
 import { getFieldContent, castMantineSize } from '../../../../../utils/style-field-extractor';
 import { ISwitchStyle } from '../../../../../types/common/styles.types';
 
@@ -26,8 +26,16 @@ const SwitchStyle: React.FC<ISwitchStyleProps> = ({ style }) => {
     const offLabel = getFieldContent(style, 'mantine_switch_off_label') || 'Off';
     const size = castMantineSize(getFieldContent(style, 'mantine_size'));
     const color = getFieldContent(style, 'mantine_color') || 'blue';
+    const radius = castMantineSize(getFieldContent(style, 'mantine_radius'));
     const disabled = getFieldContent(style, 'disabled') === '1';
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
+    const name = getFieldContent(style, 'name');
+    const value = getFieldContent(style, 'value');
+    const isRequired = getFieldContent(style, 'is_required') === '1';
+    const labelPosition = getFieldContent(style, 'mantine_label_position') || 'top';
+    const onValue = getFieldContent(style, 'mantine_switch_on_value') || '1';
+
+    // Determine if switch should be checked based on value comparison
+    const isChecked = value === onValue;
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
@@ -35,37 +43,33 @@ const SwitchStyle: React.FC<ISwitchStyleProps> = ({ style }) => {
     // Build style object
     const styleObj: React.CSSProperties = {};
 
-    if (use_mantine_style) {
-        return (
-            <Switch
-                label={label}
-                description={description}
-                onLabel={onLabel}
-                offLabel={offLabel}
-                size={size}
-                color={color}
-                disabled={disabled}
-                className={cssClass}
-                style={styleObj}
-            />
-        );
-    }
+    // Create the Switch component
+    const switchElement = (
+        <Switch
+            value={value}
+            defaultChecked={isChecked}
+            name={name}
+            required={isRequired}
+            onLabel={onLabel}
+            offLabel={offLabel}
+            size={size}
+            color={color}
+            radius={radius}
+            disabled={disabled}
+            className={cssClass}
+            style={styleObj}
+        />
+    );
 
-    // Fallback to basic checkbox when Mantine styling is disabled
+    // Use Input.Wrapper for proper label and description handling
     return (
-        <label className={cssClass} style={styleObj}>
-            <input
-                type="checkbox"
-                disabled={disabled}
-                style={{ marginRight: '8px' }}
-            />
-            {label}
-            {description && (
-                <div style={{ fontSize: '0.875em', color: '#666', marginTop: '4px' }}>
-                    {description}
-                </div>
-            )}
-        </label>
+        <Input.Wrapper
+            label={label}
+            description={description}
+            required={isRequired}
+        >
+            {switchElement}
+        </Input.Wrapper>
     );
 };
 

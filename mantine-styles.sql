@@ -2015,7 +2015,7 @@ VALUES (get_style_id('switch'), get_field_id('mantine_switch_off_label'), 'Off',
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('switch'), get_field_id('mantine_size'), 'sm', 'Sets the size of the switch. For more information check https://mantine.dev/core/switch', 0, 0, 'Size');
+VALUES (get_style_id('switch'), get_field_id('mantine_size'), 'md', 'Sets the size of the switch. For more information check https://mantine.dev/core/switch', 0, 0, 'Size');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('switch'), get_field_id('mantine_color'), 'blue', 'Sets the color of the switch. For more information check https://mantine.dev/core/switch', 0, 0, 'Color');
@@ -2025,6 +2025,35 @@ VALUES (get_style_id('switch'), get_field_id('disabled'), '0', 'If `disabled` pr
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('switch'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Switch will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/switch', 0, 1, 'Use Mantine Style');
+
+-- Add controlled input fields for Switch
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('switch'), get_field_id('name'), NULL, 'Sets the name attribute for the switch input field, used for form integration. For more information check https://mantine.dev/core/switch', 0, 0, 'Name');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('switch'), get_field_id('is_required'), '0', 'If set, the switch will be marked as required for form validation. For more information check https://mantine.dev/core/switch', 0, 0, 'Required');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('switch'), get_field_id('mantine_radius'), 'md', 'Sets the border radius for the switch. For more information check https://mantine.dev/core/switch', 0, 0, 'Radius');
+
+-- Add label position field for Switch
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_label_position', get_field_type_id('segment'), 0, '{"options":[
+{"value":"top","text":"Top"},   
+{"value":"left","text":"Left"}
+]}');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('switch'), get_field_id('mantine_label_position'), 'top', 'Sets the position of the label relative to the switch. For more information check https://mantine.dev/core/switch', 0, 0, 'Label Position');
+
+-- Add value field for Switch (the current value from form data)
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('switch'), get_field_id('value'), NULL, 'Sets the current value of the switch for form integration. For more information check https://mantine.dev/core/switch', 0, 0, 'Current Value');
+
+-- Add on value field for Switch (what value means the switch is on)
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_switch_on_value', get_field_type_id('text'), 0, '{"placeholder": "Enter value for on state (e.g., 1, true, yes)"}');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('switch'), get_field_id('mantine_switch_on_value'), '1', 'Sets the value that represents the on/checked state of the switch. When the current value equals this value, the switch will be checked. For more information check https://mantine.dev/core/switch', 0, 0, 'On Value');
 
 -- ===========================================
 -- COMBOBOX COMPONENT

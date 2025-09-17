@@ -728,8 +728,14 @@ export interface ISwitchStyle extends IBaseStyle {
     mantine_switch_off_label?: IContentField<string>; // Translatable off label
     mantine_size?: IContentField<string>;             // Select field for size
     mantine_color?: IContentField<string>;            // Color picker field
+    mantine_radius?: IContentField<string>;           // Select field for border radius
     disabled?: IContentField<string>;                 // Checkbox field for disabled state
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    name?: IContentField<string>;                     // Text field for form field name
+    is_required?: IContentField<string>;              // Checkbox field for required validation
+    mantine_label_position?: IContentField<string>;   // Segment field for label position
+    value?: IContentField<string>;                    // Text field for current value
+    mantine_switch_on_value?: IContentField<string>;  // Text field for on state value
 }
 
 export interface IComboboxStyle extends IBaseStyle {
