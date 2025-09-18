@@ -12,7 +12,7 @@ export type TStyleName =
     | 'table' | 'tableRow' | 'tableCell'
     | 'progressBar' | 'showUserInput' | 'version' | 'loop'
     // Mantine form components
-    | 'button' | 'color-input' | 'color-picker' | 'fileInput' | 'numberInput' | 'radio-group' | 'range-slider'
+    | 'button' | 'color-input' | 'color-picker' | 'fileInput' | 'number-input' | 'radio-group' | 'range-slider'
     | 'segmented-control' | 'switch' | 'combobox' | 'multiSelect' | 'actionIcon'
     // Mantine typography components
     | 'code'
@@ -731,7 +731,7 @@ export interface IFileInputStyle extends IBaseStyle {
 }
 
 export interface INumberInputStyle extends IBaseStyle {
-    style_name: 'numberInput';
+    style_name: 'number-input';
     mantine_numeric_min?: IContentField<string>;      // Select field for minimum value
     mantine_numeric_max?: IContentField<string>;      // Select field for maximum value
     mantine_numeric_step?: IContentField<string>;     // Select field for step value

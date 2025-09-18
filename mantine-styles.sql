@@ -1582,10 +1582,10 @@ VALUES (get_style_id('fileInput'), get_field_id('use_mantine_style'), 1, 'If `us
 -- NUMBER INPUT COMPONENT
 -- ===========================================
 
--- Add new style 'numberInput' based on Mantine NumberInput component
+-- Add new style 'number-input' based on Mantine NumberInput component
 INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
-    'numberInput',
+    'number-input',
     (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
     get_style_group_id('mantine'),
     'Mantine NumberInput component for numeric input',
@@ -1601,7 +1601,7 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 ]}');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('numberInput'), get_field_id('mantine_numeric_min'), NULL, 'Sets the minimum value for the number input. For more information check https://mantine.dev/core/number-input', 0, 0, 'Min');
+VALUES (get_style_id('number-input'), get_field_id('mantine_numeric_min'), NULL, 'Sets the minimum value for the number input. For more information check https://mantine.dev/core/number-input', 0, 0, 'Min');
 
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_numeric_max', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "options":[
 {"value":"10","text":"10"},
@@ -1611,7 +1611,7 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 ]}');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('numberInput'), get_field_id('mantine_numeric_max'), NULL, 'Sets the maximum value for the number input. For more information check https://mantine.dev/core/number-input', 0, 0, 'Max');
+VALUES (get_style_id('number-input'), get_field_id('mantine_numeric_max'), NULL, 'Sets the maximum value for the number input. For more information check https://mantine.dev/core/number-input', 0, 0, 'Max');
 
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_numeric_step', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "options":[
 {"value":"0.1","text":"0.1"},
@@ -1622,7 +1622,7 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 ]}');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('numberInput'), get_field_id('mantine_numeric_step'), '1', 'Sets the step value for the number input. For more information check https://mantine.dev/core/number-input', 0, 0, 'Step');
+VALUES (get_style_id('number-input'), get_field_id('mantine_numeric_step'), '1', 'Sets the step value for the number input. For more information check https://mantine.dev/core/number-input', 0, 0, 'Step');
 
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_number_input_decimal_scale', get_field_type_id('slider'), 0, '{
 	"options": [
@@ -1636,7 +1636,7 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 }');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('numberInput'), get_field_id('mantine_number_input_decimal_scale'), '2', 'Sets the number of decimal places for the number input. For more information check https://mantine.dev/core/number-input', 0, 0, 'Decimal Scale');
+VALUES (get_style_id('number-input'), get_field_id('mantine_number_input_decimal_scale'), '2', 'Sets the number of decimal places for the number input. For more information check https://mantine.dev/core/number-input', 0, 0, 'Decimal Scale');
 
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_number_input_clamp_behavior', get_field_type_id('segment'), 0, '{"options":[
 {"value":"strict","text":"Strict"},
@@ -1644,38 +1644,38 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 ]}');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('numberInput'), get_field_id('mantine_number_input_clamp_behavior'), 'strict', 'Sets the clamp behavior for the number input. For more information check https://mantine.dev/core/number-input', 0, 0, 'Clamp Behavior');
+VALUES (get_style_id('number-input'), get_field_id('mantine_number_input_clamp_behavior'), 'strict', 'Sets the clamp behavior for the number input. For more information check https://mantine.dev/core/number-input', 0, 0, 'Clamp Behavior');
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('numberInput'), get_field_id('mantine_size'), 'sm', 'Sets the size of the number input. For more information check https://mantine.dev/core/number-input', 0, 0, 'Size');
+VALUES (get_style_id('number-input'), get_field_id('mantine_size'), 'sm', 'Sets the size of the number input. For more information check https://mantine.dev/core/number-input', 0, 0, 'Size');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('numberInput'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the number input. For more information check https://mantine.dev/core/number-input', 0, 0, 'Radius');
+VALUES (get_style_id('number-input'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the number input. For more information check https://mantine.dev/core/number-input', 0, 0, 'Radius');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('numberInput'), get_field_id('placeholder'), 'Enter number', 'Sets the placeholder text for the number input. For more information check https://mantine.dev/core/number-input', 0, 0, 'Placeholder');
+VALUES (get_style_id('number-input'), get_field_id('placeholder'), 'Enter number', 'Sets the placeholder text for the number input. For more information check https://mantine.dev/core/number-input', 0, 0, 'Placeholder');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('numberInput'), get_field_id('label'), '', 'Sets the label of the input field. For more information check https://mantine.dev/core/number-input', 0, 0, 'Label');
+VALUES (get_style_id('number-input'), get_field_id('label'), '', 'Sets the label of the input field. For more information check https://mantine.dev/core/number-input', 0, 0, 'Label');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('numberInput'), get_field_id('description'), '', 'Description text displayed below the input field', 0, 0, 'Description');
+VALUES (get_style_id('number-input'), get_field_id('description'), '', 'Description text displayed below the input field', 0, 0, 'Description');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('numberInput'), get_field_id('name'), '', 'Field name for form submission', 0, 0, 'Name');
+VALUES (get_style_id('number-input'), get_field_id('name'), '', 'Field name for form submission', 0, 0, 'Name');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('numberInput'), get_field_id('value'), '', 'Default numeric value for the number input', 0, 0, 'Value');
+VALUES (get_style_id('number-input'), get_field_id('value'), '', 'Default numeric value for the number input', 0, 0, 'Value');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('numberInput'), get_field_id('is_required'), '0', 'If set, the number input becomes required for form submission', 0, 0, 'Required');
+VALUES (get_style_id('number-input'), get_field_id('is_required'), '0', 'If set, the number input becomes required for form submission', 0, 0, 'Required');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('numberInput'), get_field_id('disabled'), '0', 'If `disabled` prop is set NumberInput will be disabled. For more information check https://mantine.dev/core/number-input', 0, 0, 'Disabled');
+VALUES (get_style_id('number-input'), get_field_id('disabled'), '0', 'If `disabled` prop is set NumberInput will be disabled. For more information check https://mantine.dev/core/number-input', 0, 0, 'Disabled');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('numberInput'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set NumberInput will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/number-input', 0, 1, 'Use Mantine Style');
+VALUES (get_style_id('number-input'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set NumberInput will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/number-input', 0, 1, 'Use Mantine Style');
 
 
 -- ===========================================
