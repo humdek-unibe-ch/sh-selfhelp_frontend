@@ -26,7 +26,7 @@ export type TStyleName =
     // Mantine typography components
     | 'title' | 'code' | 'highlight' | 'blockquote' | 'text'
     // Mantine utility components
-    | 'aspectRatio' | 'background-image' | 'fieldset' | 'spoiler'
+    | 'aspect-ratio' | 'background-image' | 'fieldset' | 'spoiler'
     // Card components
     | 'card' | 'card-segment'
     // List components
@@ -1116,7 +1116,7 @@ export interface IBlockquoteStyle extends IBaseStyle {
 // ===========================================
 
 export interface IAspectRatioStyle extends IBaseStyle {
-    style_name: 'aspectRatio';
+    style_name: 'aspect-ratio';
     mantine_aspect_ratio?: IContentField<string>;     // Select field for aspect ratio
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }

@@ -193,7 +193,7 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
             return <ShowUserInputStyle style={style} />;
         case 'avatar':
             return <AvatarStyle style={style} />;
-        case 'aspectRatio':
+        case 'aspect-ratio':
             return <AspectRatioStyle style={style} />;
         case 'badge':
             return <BadgeStyle style={style} />;

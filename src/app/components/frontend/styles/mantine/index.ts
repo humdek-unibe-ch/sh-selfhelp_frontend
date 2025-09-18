@@ -240,7 +240,7 @@ export const MANTINE_COMPONENT_MAP = {
     'blockquote': 'BlockquoteStyle',
 
     // Utility Components
-    'aspectRatio': 'AspectRatioStyle',
+    'aspect-ratio': 'AspectRatioStyle',
     'background-image': 'BackgroundImageStyle',
     'fieldset': 'FieldsetStyle',
     'spoiler': 'SpoilerStyle',

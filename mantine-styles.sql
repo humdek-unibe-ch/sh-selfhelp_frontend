@@ -1165,10 +1165,10 @@ WHERE s1.name = 'grid' AND s2.name = 'grid-column';
 -- ASPECT RATIO COMPONENT
 -- ===========================================
 
--- Add new style 'aspectRatio' based on Mantine AspectRatio component
+-- Add new style 'aspect-ratio' based on Mantine AspectRatio component
 INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
-    'aspectRatio',
+    'aspect-ratio',
     (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
     get_style_group_id('mantine'),
     'Mantine AspectRatio component for maintaining aspect ratios',
@@ -1186,11 +1186,11 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 ]}');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('aspectRatio'), get_field_id('mantine_aspect_ratio'), '16/9', 'Sets the aspect ratio of the component. For more information check https://mantine.dev/core/aspect-ratio', 0, 0, 'Ratio');
+VALUES (get_style_id('aspect-ratio'), get_field_id('mantine_aspect_ratio'), '16/9', 'Sets the aspect ratio of the component. For more information check https://mantine.dev/core/aspect-ratio', 0, 0, 'Ratio');
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('aspectRatio'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set AspectRatio will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/aspect-ratio', 0, 1, 'Use Mantine Style');
+VALUES (get_style_id('aspect-ratio'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set AspectRatio will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/aspect-ratio', 0, 1, 'Use Mantine Style');
 
 -- ===========================================
 -- CHIP COMPONENT
