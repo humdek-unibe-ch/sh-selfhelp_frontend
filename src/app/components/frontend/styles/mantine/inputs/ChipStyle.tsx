@@ -12,9 +12,9 @@ import {
     IconFlag,
     IconAlertTriangle
 } from '@tabler/icons-react';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
-import { IChipStyle } from '../../../../../types/common/styles.types';
-import IconComponent from '../../../shared/common/IconComponent';
+import { getFieldContent } from '../../../../../../utils/style-field-extractor';
+import { IChipStyle } from '../../../../../../types/common/styles.types';
+import IconComponent from '../../../../shared/common/IconComponent';
 
 /**
  * Props interface for ChipStyle component

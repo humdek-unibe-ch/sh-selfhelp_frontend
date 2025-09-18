@@ -417,13 +417,13 @@ export interface ICheckboxStyle extends IBaseStyle {
     mantine_checkbox_icon?: IContentField<string>;
     mantine_checkbox_labelPosition?: IContentField<string>;
     description?: IContentField<string>;
-    error?: IContentField<string>;
     disabled?: IContentField<string>;
     // Reusable Mantine fields
     mantine_size?: IContentField<string>;
     mantine_radius?: IContentField<string>;
     mantine_color?: IContentField<string>;
     use_mantine_style?: IContentField<string>;
+    mantine_use_input_wrapper?: IContentField<string>; // Checkbox field for using Input.Wrapper vs inline labels
 }
 
 // DatePicker Styles
@@ -813,6 +813,7 @@ export interface IRadioStyle extends IBaseStyle {
     mantine_tooltip_position?: IContentField<string>; // Select field for tooltip position
     disabled?: IContentField<string>;                 // Checkbox field for disabled state
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    mantine_use_input_wrapper?: IContentField<string>; // Checkbox field for using Input.Wrapper vs inline labels
 }
 
 export interface IRangeSliderStyle extends IBaseStyle {
@@ -870,6 +871,7 @@ export interface ISwitchStyle extends IBaseStyle {
     mantine_label_position?: IContentField<string>;   // Segment field for label position
     value?: IContentField<string>;                    // Text field for current value
     mantine_switch_on_value?: IContentField<string>;  // Text field for on state value
+    mantine_use_input_wrapper?: IContentField<string>; // Checkbox field for using Input.Wrapper vs inline labels
 }
 
 export interface IComboboxStyle extends IBaseStyle {

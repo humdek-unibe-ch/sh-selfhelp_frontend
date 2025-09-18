@@ -296,6 +296,9 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_combobox_data', get_field_type_id('textarea'), 1, '{"rows": 3, "placeholder": "Enter JSON array of combobox options"}');
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_multi_select_data', get_field_type_id('textarea'), 1, '{"rows": 3, "placeholder": "Enter JSON array of multi-select options"}');
 
+-- Add mantine_use_input_wrapper field for switch, checkbox, and radio components
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_use_input_wrapper', get_field_type_id('checkbox'), 0, null);
+
 -- Create new fields for Progress components
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
 (NULL, 'mantine_progress_striped', get_field_type_id('checkbox'), 0, null),
@@ -1748,7 +1751,8 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 VALUES (get_style_id('radio'), get_field_id('mantine_tooltip_position'), 'top', 'Sets the position of the tooltip. For more information check https://mantine.dev/core/tooltip', 0, 0, 'Tooltip Position');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('radio'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Radio will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/radio', 0, 1, 'Use Mantine Style');
+VALUES (get_style_id('radio'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set Radio will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/radio', 0, 1, 'Use Mantine Style'),
+(get_style_id('radio'), get_field_id('mantine_use_input_wrapper'), 1, 'When enabled, uses Input.Wrapper for proper label and description handling. When disabled, renders label and description inline next to the radio buttons.', 0, 0, 'Use Input Wrapper');
 
 -- ===========================================
 -- RANGE SLIDER COMPONENT
@@ -2142,12 +2146,12 @@ VALUES (get_style_id('switch'), get_field_id('mantine_radius'), 'sm', 'Sets the 
 
 -- Add label position field for Switch
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_label_position', get_field_type_id('segment'), 0, '{"options":[
-{"value":"top","text":"Top"},   
-{"value":"left","text":"Left"}
+{"value":"left","text":"Left"},   
+{"value":"right","text":"Right"}
 ]}');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('switch'), get_field_id('mantine_label_position'), 'top', 'Sets the position of the label relative to the switch. For more information check https://mantine.dev/core/switch', 0, 0, 'Label Position');
+VALUES (get_style_id('switch'), get_field_id('mantine_label_position'), 'left', 'Sets the position of the label relative to the switch. For more information check https://mantine.dev/core/switch', 0, 0, 'Label Position');
 
 -- Add value field for Switch (the current value from form data)
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
@@ -2158,6 +2162,9 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('switch'), get_field_id('mantine_switch_on_value'), '1', 'Sets the value that represents the on/checked state of the switch. When the current value equals this value, the switch will be checked. For more information check https://mantine.dev/core/switch', 0, 0, 'On Value');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('switch'), get_field_id('mantine_use_input_wrapper'), 0,'When enabled, uses Input.Wrapper for proper label and description handling. When disabled, renders label and description inline next to the switch.', 0, 0, 'Use Input Wrapper');
 
 -- ===========================================
 -- COMBOBOX COMPONENT
@@ -3685,13 +3692,13 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 (get_style_id('checkbox'), get_field_id('is_required'), '0', 'If set, the checkbox will be required for form submission. For more information check https://mantine.dev/core/checkbox', 0, 0, 'Required'),
 (get_style_id('checkbox'), get_field_id('disabled'), '0', 'If set, the checkbox will be disabled. For more information check https://mantine.dev/core/checkbox', 0, 0, 'Disabled'),
 (get_style_id('checkbox'), get_field_id('description'), NULL, 'Sets the description text displayed below the label. For more information check https://mantine.dev/core/checkbox', 0, 0, 'Description'),
-(get_style_id('checkbox'), get_field_id('error'), NULL, 'Sets the error message displayed below the checkbox. For more information check https://mantine.dev/core/checkbox', 0, 0, 'Error'),
 (get_style_id('checkbox'), get_field_id('mantine_size'), 'sm', 'Sets the size of the checkbox. Choose from preset sizes (xs, sm, md, lg, xl). For more information check https://mantine.dev/core/checkbox', 0, 0, 'Size'),
 (get_style_id('checkbox'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the checkbox. Choose from preset values or enter a custom value. For more information check https://mantine.dev/core/checkbox', 0, 0, 'Radius'),
 (get_style_id('checkbox'), get_field_id('mantine_color'), NULL, 'Sets the color of the checkbox. Choose from theme colors or enter a custom color. For more information check https://mantine.dev/core/checkbox', 0, 0, 'Color'),
 (get_style_id('checkbox'), get_field_id('mantine_checkbox_icon'), NULL, 'Sets a custom icon for the checkbox. For more information check https://mantine.dev/core/checkbox', 0, 0, 'Icon'),
 (get_style_id('checkbox'), get_field_id('mantine_checkbox_labelPosition'), 'right', 'Sets the position of the label relative to the checkbox. For more information check https://mantine.dev/core/checkbox', 0, 0, 'Label Position'),
-(get_style_id('checkbox'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the checkbox component', 0, 1, 'Use Mantine Style');
+(get_style_id('checkbox'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the checkbox component', 0, 1, 'Use Mantine Style'),
+(get_style_id('checkbox'), get_field_id('mantine_use_input_wrapper'), 0,'When enabled, uses Input.Wrapper for proper label and description handling. When disabled, renders label and description inline next to the checkbox.', 0, 0, 'Use Input Wrapper');
 
 -- ===========================================
 -- DATEPICKER COMPONENT DEFINITION

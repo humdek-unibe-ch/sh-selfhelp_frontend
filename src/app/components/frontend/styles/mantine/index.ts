@@ -17,26 +17,26 @@ export { default as DividerStyle } from './DividerStyle';
 export { default as PaperStyle } from './PaperStyle';
 
 // Form Components
-export { default as ColorInputStyle } from './ColorInputStyle';
-export { default as ColorPickerStyle } from './ColorPickerStyle';
-export { default as FileInputStyle } from './FileInputStyle';
-export { default as NumberInputStyle } from './NumberInputStyle';
-export { default as RadioStyle } from './RadioStyle';
-export { default as CheckboxStyle } from './CheckboxStyle';
-export { default as DatePickerStyle } from './DatePickerStyle';
-export { default as RangeSliderStyle } from './RangeSliderStyle';
-export { default as SliderStyle } from './SliderStyle';
-export { default as SegmentedControlStyle } from './SegmentedControlStyle';
-export { default as SwitchStyle } from './SwitchStyle';
-export { default as TextInputStyle } from './TextInputStyle';
+export { default as ColorInputStyle } from './inputs/ColorInputStyle';
+export { default as ColorPickerStyle } from './inputs/ColorPickerStyle';
+export { default as FileInputStyle } from './inputs/FileInputStyle';
+export { default as NumberInputStyle } from './inputs/NumberInputStyle';
+export { default as RadioStyle } from './inputs/RadioStyle';
+export { default as CheckboxStyle } from './inputs/CheckboxStyle';
+export { default as DatePickerStyle } from './inputs/DatePickerStyle';
+export { default as RangeSliderStyle } from './inputs/RangeSliderStyle';
+export { default as SliderStyle } from './inputs/SliderStyle';
+export { default as SegmentedControlStyle } from './inputs/SegmentedControlStyle';
+export { default as SwitchStyle } from './inputs/SwitchStyle';
+export { default as TextInputStyle } from './inputs/TextInputStyle';
 export { default as RichTextEditorStyle } from './rich-text-editor/RichTextEditorStyle';
-export { default as ComboboxStyle } from './ComboboxStyle';
+export { default as ComboboxStyle } from './inputs/ComboboxStyle';
 // export { default as MultiSelectStyle } from './MultiSelectStyle';
 export { default as ActionIconStyle } from './ActionIconStyle';
 
 // Data Display Components
 export { default as BadgeStyle } from './BadgeStyle';
-export { default as ChipStyle } from './ChipStyle';
+export { default as ChipStyle } from './inputs/ChipStyle';
 export { default as AvatarStyle } from './AvatarStyle';
 export { default as TimelineStyle } from './TimelineStyle';
 export { default as IndicatorStyle } from './IndicatorStyle';
@@ -55,7 +55,7 @@ export { default as AlertStyle } from './AlertStyle';
 export { default as NotificationStyle } from './NotificationStyle';
 
 // Data Display Components (continued)
-export { default as RatingStyle } from './RatingStyle';
+export { default as RatingStyle } from './inputs/RatingStyle';
 export { default as ImageStyle } from '../ImageStyle';
 
 // Typography Components

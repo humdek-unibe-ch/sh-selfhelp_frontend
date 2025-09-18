@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { RangeSlider, Input } from '@mantine/core';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
-import { IRangeSliderStyle } from '../../../../../types/common/styles.types';
+import { getFieldContent } from '../../../../../../utils/style-field-extractor';
+import { IRangeSliderStyle } from '../../../../../../types/common/styles.types';
 
 /**
  * Props interface for RangeSliderStyle component

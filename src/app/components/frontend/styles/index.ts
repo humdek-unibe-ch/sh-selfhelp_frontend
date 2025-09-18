@@ -3,13 +3,13 @@ export * from './SelfHelpStyles';
 
 // Updated style components with Mantine support
 export { default as AlertStyle } from './mantine/AlertStyle';
-export { default as CheckboxStyle } from './mantine/CheckboxStyle';
+export { default as CheckboxStyle } from './mantine/inputs/CheckboxStyle';
 export { default as ImageStyle } from './ImageStyle';
 export { default as InputStyle } from './InputStyle';
-export { default as RadioStyle } from './mantine/RadioStyle';
+export { default as RadioStyle } from './mantine/inputs/RadioStyle';
 export { default as SelectStyle } from './SelectStyle';
-export { default as SliderStyle } from './mantine/SliderStyle';
-export { default as TextareaStyle } from './mantine/TextareaStyle';
+export { default as SliderStyle } from './mantine/inputs/SliderStyle';
+export { default as TextareaStyle } from './mantine/inputs/TextareaStyle';
 
 // New components
 export { default as CardStyle } from './mantine/card/CardStyle';

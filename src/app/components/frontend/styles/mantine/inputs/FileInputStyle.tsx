@@ -1,7 +1,7 @@
 import React from 'react';
 import { FileInput } from '@mantine/core';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
-import { IFileInputStyle } from '../../../../../types/common/styles.types';
+import { getFieldContent } from '../../../../../../utils/style-field-extractor';
+import { IFileInputStyle } from '../../../../../../types/common/styles.types';
 
 /**
  * Props interface for FileInputStyle component

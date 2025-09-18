@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Radio, Tooltip, Group, Text } from '@mantine/core';
-import BasicStyle from '../BasicStyle';
-import { getFieldContent, castMantineSize } from '../../../../../utils/style-field-extractor';
-import { IRadioStyle } from '../../../../../types/common/styles.types';
+import { Radio, Tooltip, Group, Text, Input } from '@mantine/core';
+import BasicStyle from '../../BasicStyle';
+import { getFieldContent, castMantineSize } from '../../../../../../utils/style-field-extractor';
+import { IRadioStyle } from '../../../../../../types/common/styles.types';
 
 /**
  * Props interface for RadioStyle component
@@ -55,6 +55,7 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style }) => {
     const useRadioCard = getFieldContent(style, 'mantine_radio_card') === '1';
     const tooltipLabel = getFieldContent(style, 'mantine_tooltip_label');
     const tooltipPosition = getFieldContent(style, 'mantine_tooltip_position') || 'top';
+    const useInputWrapper = getFieldContent(style, 'mantine_use_input_wrapper') === '1';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
@@ -185,12 +186,12 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style }) => {
     // If we have radio options, render as a Radio.Group
     if (radioOptions.length > 0) {
         if (use_mantine_style) {
-            return (
+            const radioGroupElement = (
                 <Radio.Group
                     name={name}
                     value={selectedValue}
                     onChange={handleChange}
-                    label={label}
+                    label={useInputWrapper ? undefined : label}
                     required={required}
                     className={cssClass}
                     style={styleObj}
@@ -219,12 +220,27 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style }) => {
                     </div>
                 </Radio.Group>
             );
+
+            // Wrap with Input.Wrapper if enabled
+            if (useInputWrapper) {
+                return (
+                    <Input.Wrapper
+                        label={label}
+                        description={description}
+                        required={required}
+                    >
+                        {radioGroupElement}
+                    </Input.Wrapper>
+                );
+            }
+
+            return radioGroupElement;
         }
 
         // Fallback to basic radio group when Mantine styling is disabled
-        return (
+        const basicRadioGroupElement = (
             <fieldset className={cssClass} style={styleObj}>
-                {label && <legend>{label}</legend>}
+                {label && !useInputWrapper && <legend>{label}</legend>}
                 <div style={{
                     display: 'flex',
                     flexDirection: orientation === 'horizontal' ? 'row' : 'column',
@@ -270,16 +286,31 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style }) => {
                 </div>
             </fieldset>
         );
+
+        // Wrap with Input.Wrapper if enabled
+        if (useInputWrapper) {
+            return (
+                <Input.Wrapper
+                    label={label}
+                    description={description}
+                    required={required}
+                >
+                    {basicRadioGroupElement}
+                </Input.Wrapper>
+            );
+        }
+
+        return basicRadioGroupElement;
     }
 
     // Single radio button (when no options are provided)
     const singleValue = value || style.id.toString();
 
     if (use_mantine_style) {
-        return createRadioWithLabel({
+        const singleRadioElement = createRadioWithLabel({
             name,
             value: singleValue,
-            description,
+            description: useInputWrapper ? undefined : description,
             required,
             disabled,
             size,
@@ -287,23 +318,51 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style }) => {
             variant: !useRadioCard && variant === 'outline' ? 'outline' : undefined,
             className: cssClass,
             style: styleObj
-        }, label, false); // Single radio never uses card mode
+        }, useInputWrapper ? undefined : label, false); // Single radio never uses card mode
+
+        // Wrap with Input.Wrapper if enabled
+        if (useInputWrapper) {
+            return (
+                <Input.Wrapper
+                    label={label}
+                    description={description}
+                    required={required}
+                >
+                    {singleRadioElement}
+                </Input.Wrapper>
+            );
+        }
+
+        return singleRadioElement;
     }
 
     // Fallback to basic radio input when Mantine styling is disabled
-    return (
-        <label className={cssClass} style={styleObj}>
-            <input
-                type="radio"
-                name={name}
-                value={singleValue}
-                required={required}
-                disabled={disabled}
-            />
-            {label}
-            {description && <span style={{ fontSize: '0.875em', color: '#666' }}>{description}</span>}
-        </label>
+    const basicRadioElement = (
+        <input
+            type="radio"
+            name={name}
+            value={singleValue}
+            required={required}
+            disabled={disabled}
+            className={cssClass}
+            style={styleObj}
+        />
     );
+
+    // Wrap with Input.Wrapper if enabled
+    if (useInputWrapper) {
+        return (
+            <Input.Wrapper
+                label={label}
+                description={description}
+                required={required}
+            >
+                {basicRadioElement}
+            </Input.Wrapper>
+        );
+    }
+
+    return basicRadioElement;
 };
 
 export default RadioStyle;

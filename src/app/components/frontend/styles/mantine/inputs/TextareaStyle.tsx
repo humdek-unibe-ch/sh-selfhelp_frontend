@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Textarea, Input } from '@mantine/core';
-import { castMantineRadius, castMantineSize, getFieldContent } from '../../../../../utils/style-field-extractor';
-import IconComponent from '../../../shared/common/IconComponent';
-import { ITextareaStyle } from '../../../../../types/common/styles.types';
+import { castMantineRadius, castMantineSize, getFieldContent } from '../../../../../../utils/style-field-extractor';
+import IconComponent from '../../../../shared/common/IconComponent';
+import { ITextareaStyle } from '../../../../../../types/common/styles.types';
 
 interface ITextareaStyleProps {
     style: ITextareaStyle;

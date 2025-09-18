@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { TextInput, Input } from '@mantine/core';
-import { castMantineRadius, castMantineSize, getFieldContent } from '../../../../../utils/style-field-extractor';
-import IconComponent from '../../../shared/common/IconComponent';
-import { ITextInputStyle } from '../../../../../types/common/styles.types';
+import { castMantineRadius, castMantineSize, getFieldContent } from '../../../../../../utils/style-field-extractor';
+import IconComponent from '../../../../shared/common/IconComponent';
+import { ITextInputStyle } from '../../../../../../types/common/styles.types';
 
 interface ITextInputStyleProps {
     style: ITextInputStyle;
@@ -27,7 +27,7 @@ const TextInputStyle: React.FC<ITextInputStyleProps> = ({ style }) => {
 
     // Extract section content and convert to React nodes
     const leftSection = leftIconName ? <IconComponent iconName={leftIconName} size={16} /> : undefined;
-    const rightSection = rightIconName ? <IconComponent iconName={rightIconName} size={16} /> : undefined;    
+    const rightSection = rightIconName ? <IconComponent iconName={rightIconName} size={16} /> : undefined;
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
@@ -37,26 +37,22 @@ const TextInputStyle: React.FC<ITextInputStyleProps> = ({ style }) => {
     };
 
     return (
-        <Input.Wrapper
+        <TextInput
+            className={cssClass}
+            placeholder={placeholder}
+            required={required}
+            value={value}
             label={label}
             description={description}
-            required={required}
-            className={cssClass}
-        >
-            <TextInput
-                placeholder={placeholder}
-                required={required}
-                value={value}
-                name={name}
-                onChange={onChange}
-                disabled={disabled}
-                leftSection={leftSection}
-                rightSection={rightSection}
-                size={size}
-                radius={radius === 'none' ? 0 : radius}
-                variant={variant as 'default' | 'filled' | 'unstyled'}
-            />
-        </Input.Wrapper>
+            name={name}
+            onChange={onChange}
+            disabled={disabled}
+            leftSection={leftSection}
+            rightSection={rightSection}
+            size={size}
+            radius={radius === 'none' ? 0 : radius}
+            variant={variant as 'default' | 'filled' | 'unstyled'}
+        />
     );
 };
 

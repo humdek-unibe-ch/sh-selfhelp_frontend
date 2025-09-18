@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Slider, Input } from '@mantine/core';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
-import { ISliderStyle } from '../../../../../types/common/styles.types';
+import { getFieldContent } from '../../../../../../utils/style-field-extractor';
+import { ISliderStyle } from '../../../../../../types/common/styles.types';
 
 /**
  * Props interface for SliderStyle component

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ColorInput, Input } from '@mantine/core';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
-import { IColorInputStyle } from '../../../../../types/common/styles.types';
+import { getFieldContent } from '../../../../../../utils/style-field-extractor';
+import { IColorInputStyle } from '../../../../../../types/common/styles.types';
 
 /**
  * Props interface for ColorInputStyle component
@@ -92,25 +92,13 @@ const ColorInputStyle: React.FC<IColorInputStyleProps> = ({ style }) => {
             className={cssClass}
             style={styleObj}
             name={name}
-        />
-    );
-
-    const wrappedComponent = label || description ? (
-        <Input.Wrapper
             label={label}
             description={description}
-            required={isRequired}
-            className={cssClass}
-        >
-            {colorInputComponent}
-        </Input.Wrapper>
-    ) : (
-        colorInputComponent
+        />
     );
-
     return (
         <>
-            {wrappedComponent}
+            {colorInputComponent}
         </>
     );
 };

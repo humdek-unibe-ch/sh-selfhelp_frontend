@@ -1,7 +1,7 @@
 import React from 'react';
 import { SegmentedControl, Input } from '@mantine/core';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
-import { ISegmentedControlStyle } from '../../../../../types/common/styles.types';
+import { getFieldContent } from '../../../../../../utils/style-field-extractor';
+import { ISegmentedControlStyle } from '../../../../../../types/common/styles.types';
 
 /**
  * Props interface for SegmentedControlStyle component

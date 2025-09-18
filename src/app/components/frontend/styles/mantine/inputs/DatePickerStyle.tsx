@@ -9,8 +9,8 @@ import {
     getTimeRange
 } from '@mantine/dates';
 import dayjs from 'dayjs';
-import { getFieldContent, castMantineSize, castMantineRadius } from '../../../../../utils/style-field-extractor';
-import { IDatePickerStyle } from '../../../../../types/common/styles.types';
+import { getFieldContent, castMantineSize, castMantineRadius } from '../../../../../../utils/style-field-extractor';
+import { IDatePickerStyle } from '../../../../../../types/common/styles.types';
 
 // Set dayjs locale if specified
 const setDayjsLocale = (locale: string) => {
@@ -354,6 +354,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
                     type="hidden"
                     name={name}
                     value={formValue}
+                    required={isRequired}
                 />
             </Input.Wrapper>
         );
@@ -367,6 +368,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
                 type="hidden"
                 name={name}
                 value={formValue}
+                required={isRequired}
             />
         </>
     );

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ColorPicker, Button, Popover, Tooltip, Input } from '@mantine/core';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
-import { IColorPickerStyle } from '../../../../../types/common/styles.types';
+import { getFieldContent } from '../../../../../../utils/style-field-extractor';
+import { IColorPickerStyle } from '../../../../../../types/common/styles.types';
 
 /**
  * Props interface for ColorPickerStyle component

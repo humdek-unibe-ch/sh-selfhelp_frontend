@@ -7,9 +7,9 @@ import {
   IconMoodHappy,
   IconMoodCrazyHappy,
 } from '@tabler/icons-react';
-import { getFieldContent, castMantineSize } from '../../../../../utils/style-field-extractor';
-import IconComponent from '../../../shared/common/IconComponent';
-import { IRatingStyle } from '../../../../../types/common/styles.types';
+import { getFieldContent, castMantineSize } from '../../../../../../utils/style-field-extractor';
+import IconComponent from '../../../../shared/common/IconComponent';
+import { IRatingStyle } from '../../../../../../types/common/styles.types';
 
 /**
  * Props interface for RatingStyle component

@@ -45,19 +45,19 @@ export { default as ActionIconStyle } from './mantine/ActionIconStyle';
 
 // Form & Input Styles
 export { default as FormUserInputStyle } from './FormUserInputStyle';
-export { default as TextareaStyle } from './mantine/TextareaStyle';
+export { default as TextareaStyle } from './mantine/inputs/TextareaStyle';
 export { default as InputStyle } from './InputStyle';
 export { default as SelectStyle } from './SelectStyle';
-export { default as ColorInputStyle } from './mantine/ColorInputStyle';
-export { default as ColorPickerStyle } from './mantine/ColorPickerStyle';
-export { default as FileInputStyle } from './mantine/FileInputStyle';
-export { default as NumberInputStyle } from './mantine/NumberInputStyle';
-export { default as RangeSliderStyle } from './mantine/RangeSliderStyle';
-export { default as SegmentedControlStyle } from './mantine/SegmentedControlStyle';
-export { default as SwitchStyle } from './mantine/SwitchStyle';
-export { default as TextInputStyle } from './mantine/TextInputStyle';
-export { default as RichTextEditorStyle } from './mantine/rich-text-editor/RichTextEditorStyle';
-export { default as ComboboxStyle } from './mantine/ComboboxStyle';
+export { default as ColorInputStyle } from './mantine/inputs/ColorInputStyle';
+export { default as ColorPickerStyle } from './mantine/inputs/ColorPickerStyle';
+export { default as FileInputStyle } from './mantine/inputs/FileInputStyle';
+export { default as NumberInputStyle } from './mantine/inputs/NumberInputStyle';
+export { default as RangeSliderStyle } from './mantine/inputs/RangeSliderStyle';
+export { default as SegmentedControlStyle } from './mantine/inputs/SegmentedControlStyle';
+export { default as SwitchStyle } from './mantine/inputs/SwitchStyle';
+export { default as TextInputStyle } from './mantine/inputs/TextInputStyle';
+export { default as RichTextEditorStyle } from './mantine/inputs/rich-text-editor/RichTextEditorStyle';
+export { default as ComboboxStyle } from './mantine/inputs/ComboboxStyle';
 
 // Tab Styles
 export { default as TabsStyle } from './mantine/tabs/TabsStyle';
@@ -74,10 +74,10 @@ export { default as FigureStyle } from './FigureStyle';
 export { default as PlaintextStyle } from './PlaintextStyle';
 
 // Form Input Styles
-export { default as RadioStyle } from './mantine/RadioStyle';
-export { default as CheckboxStyle } from './mantine/CheckboxStyle';
-export { default as DatePickerStyle } from './mantine/DatePickerStyle';
-export { default as SliderStyle } from './mantine/SliderStyle';
+export { default as RadioStyle } from './mantine/inputs/RadioStyle';
+export { default as CheckboxStyle } from './mantine/inputs/CheckboxStyle';
+export { default as DatePickerStyle } from './mantine/inputs/DatePickerStyle';
+export { default as SliderStyle } from './mantine/inputs/SliderStyle';
 
 // UI Components
 export { default as HtmlTagStyle } from './HtmlTagStyle';
@@ -91,14 +91,14 @@ export { default as TableCellStyle } from './TableCellStyle';
 export { default as ShowUserInputStyle } from './ShowUserInputStyle';
 export { default as AvatarStyle } from './mantine/AvatarStyle';
 export { default as BadgeStyle } from './mantine/BadgeStyle';
-export { default as ChipStyle } from './mantine/ChipStyle';
+export { default as ChipStyle } from './mantine/inputs/ChipStyle';
 export { default as TimelineStyle } from './mantine/TimelineStyle';
 export { default as ListStyle } from './mantine/list/ListStyle';
 export { default as ListItemStyle } from './mantine/list/ListItemStyle';
 export { default as IndicatorStyle } from './mantine/IndicatorStyle';
 export { default as KbdStyle } from './mantine/KbdStyle';
 export { default as ThemeIconStyle } from './mantine/ThemeIconStyle';
-export { default as RatingStyle } from './mantine/RatingStyle';
+export { default as RatingStyle } from './mantine/inputs/RatingStyle';
 export { ProgressStyle, ProgressRootStyle, ProgressSectionStyle } from './mantine/progress';
 
 // Feedback Components

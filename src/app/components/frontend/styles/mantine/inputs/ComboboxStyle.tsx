@@ -14,8 +14,8 @@ import {
     ScrollArea
 } from '@mantine/core';
 import { IconPlus, IconX, IconCheck, IconChevronDown } from '@tabler/icons-react';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
-import { IComboboxStyle } from '../../../../../types/common/styles.types';
+import { getFieldContent } from '../../../../../../utils/style-field-extractor';
+import { IComboboxStyle } from '../../../../../../types/common/styles.types';
 
 /**
  * Props interface for ComboboxStyle component

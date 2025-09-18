@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NumberInput, Input } from '@mantine/core';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
-import { INumberInputStyle } from '../../../../../types/common/styles.types';
+import { getFieldContent } from '../../../../../../utils/style-field-extractor';
+import { INumberInputStyle } from '../../../../../../types/common/styles.types';
 
 /**
  * Props interface for NumberInputStyle component
@@ -96,26 +96,14 @@ const NumberInputStyle: React.FC<INumberInputStyleProps> = ({ style }) => {
             required={isRequired}
             className={cssClass}
             name={name}
-        />
-    );
-
-    // Wrap component with label or description if present
-    const wrappedComponent = label || description ? (
-        <Input.Wrapper
             label={label}
             description={description}
-            required={isRequired}
-            className={cssClass}
-        >
-            {numberInputComponent}
-        </Input.Wrapper>
-    ) : (
-        numberInputComponent
+        />
     );
 
     return (
         <>
-            {wrappedComponent}
+            {numberInputComponent}
         </>
     );
 };

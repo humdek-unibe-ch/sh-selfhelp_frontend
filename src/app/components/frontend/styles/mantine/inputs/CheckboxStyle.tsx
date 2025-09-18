@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Checkbox, Input } from '@mantine/core';
-import { getFieldContent, castMantineSize, castMantineRadius } from '../../../../../utils/style-field-extractor';
-import IconComponent from '../../../shared/common/IconComponent';
-import { ICheckboxStyle } from '../../../../../types/common/styles.types';
+import { getFieldContent, castMantineSize, castMantineRadius } from '../../../../../../utils/style-field-extractor';
+import IconComponent from '../../../../shared/common/IconComponent';
+import { ICheckboxStyle } from '../../../../../../types/common/styles.types';
 
 interface ICheckboxStyleProps {
     style: ICheckboxStyle;
@@ -17,7 +17,6 @@ const CheckboxStyle: React.FC<ICheckboxStyleProps> = ({ style }) => {
     const isRequired = getFieldContent(style, 'is_required') === '1';
     const disabled = getFieldContent(style, 'disabled') === '1';
     const description = getFieldContent(style, 'description');
-    const error = getFieldContent(style, 'error');
 
     // Mantine-specific fields
     const size = castMantineSize(getFieldContent(style, 'mantine_size'));
@@ -25,6 +24,7 @@ const CheckboxStyle: React.FC<ICheckboxStyleProps> = ({ style }) => {
     const color = getFieldContent(style, 'mantine_color');
     const iconName = getFieldContent(style, 'mantine_checkbox_icon');
     const labelPosition = getFieldContent(style, 'mantine_checkbox_labelPosition') as 'left' | 'right';
+    const useInputWrapper = getFieldContent(style, 'mantine_use_input_wrapper') === '1';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
@@ -87,34 +87,33 @@ const CheckboxStyle: React.FC<ICheckboxStyleProps> = ({ style }) => {
             labelPosition={labelPosition}
             className={cssClass}
             style={styleObj}
+            label={useInputWrapper ? undefined : label}
+            description={useInputWrapper ? undefined : description}
         />
     );
 
-    // Use Input.Wrapper for proper label and description handling (like SwitchStyle)
-    const wrappedElement = label || description || error ? (
-        <Input.Wrapper
-            label={label}
-            description={description}
-            error={error}
-            required={isRequired}
-        >
-            {checkboxElement}
-        </Input.Wrapper>
-    ) : (
-        checkboxElement
-    );
+    // Conditionally use Input.Wrapper based on mantine_use_input_wrapper field
+    if (useInputWrapper) {
+        return (
+            <Input.Wrapper
+                label={label}
+                description={description}
+                required={isRequired}
+            >
+                <div>
+                    {checkboxElement}
+                    {/* Hidden input to ensure form submission captures the value */}
+                    <input
+                        type="hidden"
+                        name={name}
+                        value={currentValue}
+                    />
+                </div>
+            </Input.Wrapper>
+        );
+    }
 
-    return (
-        <>
-            {wrappedElement}
-            {/* Hidden input to ensure form submission captures the value */}
-            <input
-                type="hidden"
-                name={name}
-                value={currentValue}
-            />
-        </>
-    );
+    return checkboxElement;
 
 };
 

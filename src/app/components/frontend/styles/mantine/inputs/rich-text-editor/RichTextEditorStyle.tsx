@@ -15,9 +15,9 @@ import TaskItem from '@tiptap/extension-task-item';
 import TipTapTaskList from '@tiptap/extension-task-list';
 import { getTaskListExtension } from '@mantine/tiptap';
 import { BubbleMenu } from '@tiptap/react/menus';
-import { getFieldContent } from '../../../../../../utils/style-field-extractor';
-import { IRichTextEditorStyle } from '../../../../../../types/common/styles.types';
 import styles from './RichTextEditorStyle.module.css';
+import { IRichTextEditorStyle } from '../../../../../../../types/common/styles.types';
+import { getFieldContent } from '../../../../../../../utils/style-field-extractor';
 
 interface IRichTextEditorStyleProps {
     style: IRichTextEditorStyle;
