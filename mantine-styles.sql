@@ -156,22 +156,22 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_size', get_field_type_id('slider'), 0, '{
 "options": [
-{"value": "xs", "text": "xs"},
-{"value": "sm", "text": "sm"},
-{"value": "md", "text": "md"},
-{"value": "lg", "text": "lg"},
-{"value": "xl", "text": "xl"}
+{"value": "xs", "text": "Extra Small"},
+{"value": "sm", "text": "Small"},
+{"value":"md","text":"Medium"},
+{"value":"lg","text":"Large"},
+{"value": "xl", "text": "Extra Large"}
 ]
 }');
 
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_radius', get_field_type_id('slider'), 0, '{
 "options": [
 {"value": "none", "text": "None"},
-{"value": "xs", "text": "xs"},
-{"value": "sm", "text": "sm"},
-{"value": "md", "text": "md"},
-{"value": "lg", "text": "lg"},
-{"value": "xl", "text": "xl"}
+{"value": "xs", "text": "Extra Small"},
+{"value": "sm", "text": "Small"},
+{"value":"md","text":"Medium"},
+{"value":"lg","text":"Large"},
+{"value": "xl", "text": "Extra Large"}
 ]
 }');
 
@@ -237,11 +237,11 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_gap', get_field_type_id('slider'), 0, '{
 "options": [
 {"value": "0", "text": "None"},
-{"value": "xs", "text": "xs"},
-{"value": "sm", "text": "sm"},
-{"value": "md", "text": "md"},
-{"value": "lg", "text": "lg"},
-{"value": "xl", "text": "xl"}
+{"value": "xs", "text": "Extra Small"},
+{"value": "sm", "text": "Small"},
+{"value":"md","text":"Medium"},
+{"value":"lg","text":"Large"},
+{"value": "xl", "text": "Extra Large"}
 ]
 }');
 
@@ -642,11 +642,11 @@ VALUES (get_style_id('container'), get_field_id('use_mantine_style'), 1, 'If `us
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_gap', get_field_type_id('slider'), 0, '{
 	"options": [
 		{"value": "0", "text": "None"},
-		{"value": "xs", "text": "xs"},
-		{"value": "sm", "text": "sm"},
-		{"value": "md", "text": "md"},
-		{"value": "lg", "text": "lg"},
-		{"value": "xl", "text": "xl"}
+		{"value": "xs", "text": "Extra Small"},
+		{"value": "sm", "text": "Small"},
+		{"value":"md","text":"Medium"},
+		{"value":"lg","text":"Large"},
+		{"value": "xl", "text": "Extra Large"}
 	]
 }');
 
@@ -688,22 +688,22 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_spacing', get_field_type_id('slider'), 0, '{
 	"options": [
 		{"value": "0", "text": "None"},
-		{"value": "xs", "text": "xs"},
-		{"value": "sm", "text": "sm"},
-		{"value": "md", "text": "md"},
-		{"value": "lg", "text": "lg"},
-		{"value": "xl", "text": "xl"}
+		{"value": "xs", "text": "Extra Small"},
+		{"value": "sm", "text": "Small"},
+		{"value":"md","text":"Medium"},
+		{"value":"lg","text":"Large"},
+		{"value": "xl", "text": "Extra Large"}
 	]
 }');
 
 -- Add generic breakpoints field (reusable across components) - use slider
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_breakpoints', get_field_type_id('slider'), 0, '{
 	"options": [
-		{"value": "xs", "text": "xs"},
-		{"value": "sm", "text": "sm"},
-		{"value": "md", "text": "md"},
-		{"value": "lg", "text": "lg"},
-		{"value": "xl", "text": "xl"}
+		{"value": "xs", "text": "Extra Small"},
+		{"value": "sm", "text": "Small"},
+		{"value":"md","text":"Medium"},
+		{"value":"lg","text":"Large"},
+		{"value": "xl", "text": "Extra Large"}
 	]
 }');
 
@@ -735,7 +735,7 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
 
 -- Add Flex-specific fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('flex'), get_field_id('mantine_gap'), 'md', 'Sets the gap between flex items. For more information check https://mantine.dev/core/flex', 0, 0, 'Gap');
+VALUES (get_style_id('flex'), get_field_id('mantine_gap'), 'sm', 'Sets the gap between flex items. For more information check https://mantine.dev/core/flex', 0, 0, 'Gap');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('flex'), get_field_id('mantine_justify'), NULL, 'Sets the justify-content property. For more information check https://mantine.dev/core/flex', 0, 0, 'Justify');
@@ -775,7 +775,7 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
 
 -- Add Group-specific fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('group'), get_field_id('mantine_gap'), 'md', 'Sets the gap between group items. For more information check https://mantine.dev/core/group', 0, 0, 'Gap');
+VALUES (get_style_id('group'), get_field_id('mantine_gap'), 'sm', 'Sets the gap between group items. For more information check https://mantine.dev/core/group', 0, 0, 'Gap');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('group'), get_field_id('mantine_justify'), NULL, 'Sets the justify-content property. For more information check https://mantine.dev/core/group', 0, 0, 'Justify');
@@ -826,7 +826,7 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 VALUES (get_style_id('simple-grid'), get_field_id('mantine_cols'), '3', 'Sets the number of columns in the grid (1-6). For more information check https://mantine.dev/core/simple-grid', 0, 0, 'Columns');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('simple-grid'), get_field_id('mantine_spacing'), 'md', 'Sets the spacing between grid items. For more information check https://mantine.dev/core/simple-grid', 0, 0, 'Spacing');
+VALUES (get_style_id('simple-grid'), get_field_id('mantine_spacing'), 'sm', 'Sets the spacing between grid items. For more information check https://mantine.dev/core/simple-grid', 0, 0, 'Spacing');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('simple-grid'), get_field_id('mantine_breakpoints'), NULL, 'Sets responsive breakpoints for different screen sizes. For more information check https://mantine.dev/core/simple-grid', 0, 0, 'Breakpoints');
@@ -835,11 +835,11 @@ VALUES (get_style_id('simple-grid'), get_field_id('mantine_breakpoints'), NULL, 
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_vertical_spacing', get_field_type_id('slider'), 0, '{
 	"options": [
 		{"value": "0", "text": "None"},
-		{"value": "xs", "text": "xs"},
-		{"value": "sm", "text": "sm"},
-		{"value": "md", "text": "md"},
-		{"value": "lg", "text": "lg"},
-		{"value": "xl", "text": "xl"}
+		{"value": "xs", "text": "Extra Small"},
+		{"value": "sm", "text": "Small"},
+		{"value":"md","text":"Medium"},
+		{"value":"lg","text":"Large"},
+		{"value": "xl", "text": "Extra Large"}
 	]
 }');
 
@@ -872,7 +872,7 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
 
 -- Add Space-specific fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('space'), get_field_id('mantine_size'), 'md', 'Sets the size of the space. For more information check https://mantine.dev/core/space', 0, 0, 'Size');
+VALUES (get_style_id('space'), get_field_id('mantine_size'), 'sm', 'Sets the size of the space. For more information check https://mantine.dev/core/space', 0, 0, 'Size');
 
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_space_direction', get_field_type_id('segment'), 0, '{"options":[
 {"value":"horizontal","text":"Horizontal"},
@@ -901,7 +901,7 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
 
 -- Add Stack-specific fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('stack'), get_field_id('mantine_gap'), 'md', 'Sets the gap between stack items. For more information check https://mantine.dev/core/stack', 0, 0, 'Gap');
+VALUES (get_style_id('stack'), get_field_id('mantine_gap'), 'sm', 'Sets the gap between stack items. For more information check https://mantine.dev/core/stack', 0, 0, 'Gap');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('stack'), get_field_id('mantine_justify'), NULL, 'Sets the justify-content property. For more information check https://mantine.dev/core/stack', 0, 0, 'Justify');
@@ -938,7 +938,7 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 VALUES (get_style_id('grid'), get_field_id('mantine_cols'), '12', 'Sets the total number of columns in the grid (default 12). For more information check https://mantine.dev/core/grid', 0, 0, 'Columns');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('grid'), get_field_id('mantine_gap'), 'md', 'Sets the gutter (spacing) between grid columns. For more information check https://mantine.dev/core/grid', 0, 0, 'Gutter');
+VALUES (get_style_id('grid'), get_field_id('mantine_gap'), 'sm', 'Sets the gutter (spacing) between grid columns. For more information check https://mantine.dev/core/grid', 0, 0, 'Gutter');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('grid'), get_field_id('mantine_justify'), NULL, 'Sets the justify-content CSS property for the grid. For more information check https://mantine.dev/core/grid', 0, 0, 'Justify');
@@ -1088,11 +1088,11 @@ VALUES (get_style_id('tabs'), get_field_id('mantine_orientation'), 'horizontal',
 
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_tabs_radius', get_field_type_id('slider'), 0, '{
 	"options": [
-		{"value": "xs", "text": "xs"},
-		{"value": "sm", "text": "sm"},
-		{"value": "md", "text": "md"},
-		{"value": "lg", "text": "lg"},
-		{"value": "xl", "text": "xl"}
+		{"value": "xs", "text": "Extra Small"},
+		{"value": "sm", "text": "Small"},
+		{"value":"md","text":"Medium"},
+		{"value":"lg","text":"Large"},
+		{"value": "xl", "text": "Extra Large"}
 	]
 }');
 
@@ -2119,7 +2119,7 @@ VALUES (get_style_id('switch'), get_field_id('mantine_switch_off_label'), 'Off',
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('switch'), get_field_id('mantine_size'), 'md', 'Sets the size of the switch. For more information check https://mantine.dev/core/switch', 0, 0, 'Size');
+VALUES (get_style_id('switch'), get_field_id('mantine_size'), 'sm', 'Sets the size of the switch. For more information check https://mantine.dev/core/switch', 0, 0, 'Size');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('switch'), get_field_id('mantine_color'), 'blue', 'Sets the color of the switch. For more information check https://mantine.dev/core/switch', 0, 0, 'Color');
@@ -2138,7 +2138,7 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 VALUES (get_style_id('switch'), get_field_id('is_required'), '0', 'If set, the switch will be marked as required for form validation. For more information check https://mantine.dev/core/switch', 0, 0, 'Required');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('switch'), get_field_id('mantine_radius'), 'md', 'Sets the border radius for the switch. For more information check https://mantine.dev/core/switch', 0, 0, 'Radius');
+VALUES (get_style_id('switch'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius for the switch. For more information check https://mantine.dev/core/switch', 0, 0, 'Radius');
 
 -- Add label position field for Switch
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_label_position', get_field_type_id('segment'), 0, '{"options":[
@@ -2244,7 +2244,7 @@ VALUES (get_style_id('actionIcon'), get_field_id('mantine_action_icon_loading'),
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('actionIcon'), get_field_id('mantine_size'), 'md', 'Sets the size of the action icon. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Size');
+VALUES (get_style_id('actionIcon'), get_field_id('mantine_size'), 'sm', 'Sets the size of the action icon. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Size');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('actionIcon'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the action icon. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Radius');
@@ -2532,7 +2532,7 @@ VALUES (get_style_id('avatar'), get_field_id('mantine_variant'), 'light', 'Sets 
 
 -- Use unified size field for avatar
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('avatar'), get_field_id('mantine_size'), 'md', 'Sets the size of the avatar. For more information check https://mantine.dev/core/avatar', 0, 0, 'Size');
+VALUES (get_style_id('avatar'), get_field_id('mantine_size'), 'sm', 'Sets the size of the avatar. For more information check https://mantine.dev/core/avatar', 0, 0, 'Size');
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
@@ -2593,7 +2593,7 @@ VALUES (get_style_id('badge'), get_field_id('mantine_variant'), 'filled', 'Sets 
 
 -- Use unified size field for badge
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('badge'), get_field_id('mantine_size'), 'md', 'Sets the size of the badge. For more information check https://mantine.dev/core/badge', 0, 0, 'Size');
+VALUES (get_style_id('badge'), get_field_id('mantine_size'), 'sm', 'Sets the size of the badge. For more information check https://mantine.dev/core/badge', 0, 0, 'Size');
 
 -- Use unified icon fields for badge
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
@@ -2820,7 +2820,7 @@ VALUES (get_style_id('theme-icon'), get_field_id('mantine_variant'), 'filled', '
 
 -- Use unified size field for themeIcon
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('theme-icon'), get_field_id('mantine_size'), 'md', 'Sets the size of the theme icon. For more information check https://mantine.dev/core/theme-icon', 0, 0, 'Size');
+VALUES (get_style_id('theme-icon'), get_field_id('mantine_size'), 'sm', 'Sets the size of the theme icon. For more information check https://mantine.dev/core/theme-icon', 0, 0, 'Size');
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
@@ -3157,8 +3157,8 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 (get_style_id('list'), get_field_id('mantine_list_with_padding'), '0', 'If set, adds padding to nested lists for better hierarchy. For more information check https://mantine.dev/core/list', 0, 0, 'With Padding'),
 (get_style_id('list'), get_field_id('mantine_list_center'), '0', 'If set, centers the list item content with the icon. For more information check https://mantine.dev/core/list', 0, 0, 'Center Content'),
 (get_style_id('list'), get_field_id('mantine_list_icon'), NULL, 'Sets the default icon for all list items. For more information check https://mantine.dev/core/list', 0, 0, 'Default Icon'),
-(get_style_id('list'), get_field_id('mantine_size'), 'md', 'Sets the size of the list. For more information check https://mantine.dev/core/list', 0, 0, 'Size'),
-(get_style_id('list'), get_field_id('mantine_spacing'), 'md', 'Sets the spacing between list items. For more information check https://mantine.dev/core/list', 0, 0, 'Spacing'),
+(get_style_id('list'), get_field_id('mantine_size'), 'sm', 'Sets the size of the list. For more information check https://mantine.dev/core/list', 0, 0, 'Size'),
+(get_style_id('list'), get_field_id('mantine_spacing'), 'sm', 'Sets the spacing between list items. For more information check https://mantine.dev/core/list', 0, 0, 'Spacing'),
 (get_style_id('list'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the list component', 0, 1, 'Use Mantine Style');
 
 -- Link fields to list-item style
@@ -3272,8 +3272,8 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 "options": [
 {"value": "xs", "text": "Extra Small"},
 {"value": "sm", "text": "Small"},
-{"value": "md", "text": "Medium"},
-{"value": "lg", "text": "Large"},
+{"value":"md","text":"Medium"},
+{"value":"lg","text":"Large"},
 {"value": "xl", "text": "Extra Large"}
 ]
 }');
@@ -3415,7 +3415,7 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 VALUES (get_style_id('card'), get_field_id('mantine_card_shadow'), 'sm', 'Sets the shadow of the card. For more information check https://mantine.dev/core/card', 0, 0, 'Shadow');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('card'), get_field_id('mantine_card_padding'), 'md', 'Sets the padding of the card. For more information check https://mantine.dev/core/card', 0, 0, 'Padding');
+VALUES (get_style_id('card'), get_field_id('mantine_card_padding'), 'sm', 'Sets the padding of the card. For more information check https://mantine.dev/core/card', 0, 0, 'Padding');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('card'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the card. For more information check https://mantine.dev/core/card', 0, 0, 'Radius');
@@ -3523,7 +3523,7 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
 
 -- Link fields to progress-root style
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
-(get_style_id('progress-root'), get_field_id('mantine_size'), 'md', 'Sets the size of the progress bar. Choose from preset sizes or enter a custom value. For more information check https://mantine.dev/core/progress', 0, 0, 'Size'),
+(get_style_id('progress-root'), get_field_id('mantine_size'), 'sm', 'Sets the size of the progress bar. Choose from preset sizes or enter a custom value. For more information check https://mantine.dev/core/progress', 0, 0, 'Size'),
 (get_style_id('progress-root'), get_field_id('mantine_progress_auto_contrast'), '0', 'If set, colors will be adjusted for better contrast. For more information check https://mantine.dev/core/progress', 0, 0, 'Auto Contrast'),
 (get_style_id('progress-root'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the progress component', 0, 1, 'Use Mantine Style');
 
@@ -3532,7 +3532,7 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 (get_style_id('progress'), get_field_id('value'), '0', 'Sets the progress value (0-100). For more information check https://mantine.dev/core/progress', 0, 0, 'Progress Value'),
 (get_style_id('progress'), get_field_id('mantine_color'), 'blue', 'Sets the color of the progress bar. For more information check https://mantine.dev/core/progress', 0, 0, 'Color'),
 (get_style_id('progress'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the progress bar. For more information check https://mantine.dev/core/progress', 0, 0, 'Radius'),
-(get_style_id('progress'), get_field_id('mantine_size'), 'md', 'Sets the size of the progress bar. Choose from preset sizes or enter a custom value. For more information check https://mantine.dev/core/progress', 0, 0, 'Size'),
+(get_style_id('progress'), get_field_id('mantine_size'), 'sm', 'Sets the size of the progress bar. Choose from preset sizes or enter a custom value. For more information check https://mantine.dev/core/progress', 0, 0, 'Size'),
 (get_style_id('progress'), get_field_id('mantine_progress_striped'), '0', 'If set, displays stripes on the progress bar. For more information check https://mantine.dev/core/progress', 0, 0, 'Striped'),
 (get_style_id('progress'), get_field_id('mantine_progress_animated'), '0', 'If set, animates the progress bar stripes. For more information check https://mantine.dev/core/progress', 0, 0, 'Animated'),
 (get_style_id('progress'), get_field_id('mantine_progress_transition_duration'), '200', 'Sets the transition duration in milliseconds. Choose from preset durations or enter a custom value. For more information check https://mantine.dev/core/progress', 0, 0, 'Transition Duration'),
@@ -3586,7 +3586,7 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
 -- Link fields to text style
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
 (get_style_id('text'), get_field_id('text'), NULL, 'The text content to display. For more information check https://mantine.dev/core/text', 0, 0, 'Text Content'),
-(get_style_id('text'), get_field_id('mantine_size'), 'md', 'Sets the font size of the text. For more information check https://mantine.dev/core/text', 0, 0, 'Size'),
+(get_style_id('text'), get_field_id('mantine_size'), 'sm', 'Sets the font size of the text. For more information check https://mantine.dev/core/text', 0, 0, 'Size'),
 (get_style_id('text'), get_field_id('mantine_color'), 'dark', 'Sets the color of the text. For more information check https://mantine.dev/core/text', 0, 0, 'Color'),
 (get_style_id('text'), get_field_id('mantine_text_font_weight'), NULL, 'Sets the font weight of the text. Choose from preset weights or enter a custom value (100-900). For more information check https://mantine.dev/core/text', 0, 0, 'Font Weight'),
 (get_style_id('text'), get_field_id('mantine_text_font_style'), 'normal', 'Sets the font style of the text. For more information check https://mantine.dev/core/text', 0, 0, 'Font Style'),
@@ -3614,8 +3614,8 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 -- Create Carousel-specific fields (using global fields where possible)
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
 (NULL, 'mantine_carousel_slide_size', get_field_type_id('slider'), 0, '{"min": 10, "max": 100, "step": 5, "defaultValue": 100, "marks": [{"value": 25, "label": "25%", "saveValue": "25"}, {"value": 50, "label": "50%", "saveValue": "50"}, {"value": 75, "label": "75%", "saveValue": "75"}, {"value": 100, "label": "100%", "saveValue": "100"}]}'),
-(NULL, 'mantine_carousel_slide_gap', get_field_type_id('slider'), 0, '{ "options": [{"value": "xs", "text": "xs"}, {"value": "sm", "text": "sm"}, {"value": "md", "text": "md"}, {"value": "lg", "text": "lg"}, {"value": "xl", "text": "xl"}]}'),
-(NULL, 'mantine_carousel_controls_offset', get_field_type_id('slider'), 0, '{ "options": [{"value": "xs", "text": "xs"}, {"value": "sm", "text": "sm"}, {"value": "md", "text": "md"}, {"value": "lg", "text": "lg"}, {"value": "xl", "text": "xl"}]}'),
+(NULL, 'mantine_carousel_slide_gap', get_field_type_id('slider'), 0, '{ "options": [{"value": "xs", "text": "Extra Small"}, {"value": "sm", "text": "Small"}, {"value":"md","text":"Medium"}, {"value":"lg","text":"Large"}, {"value": "xl", "text": "Extra Large"}]}'),
+(NULL, 'mantine_carousel_controls_offset', get_field_type_id('slider'), 0, '{ "options": [{"value": "xs", "text": "Extra Small"}, {"value": "sm", "text": "Small"}, {"value":"md","text":"Medium"}, {"value":"lg","text":"Large"}, {"value": "xl", "text": "Extra Large"}]}'),
 (NULL, 'mantine_carousel_next_control_icon', get_field_type_id('select-icon'), 0, null),
 (NULL, 'mantine_carousel_previous_control_icon', get_field_type_id('select-icon'), 0, null),
 (NULL, 'mantine_carousel_align', get_field_type_id('segment'), 0, '{"options": [{"value": "start", "text": "Start"}, {"value": "center", "text": "Center"}, {"value": "end", "text": "End"}]}'),
@@ -3639,7 +3639,7 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
 (get_style_id('carousel'), get_field_id('mantine_height'), NULL, 'Sets the height of the carousel. Choose from preset values or enter a custom value. For more information check https://mantine.dev/x/carousel', 0, 0, 'Height'),
 (get_style_id('carousel'), get_field_id('mantine_carousel_slide_size'), '100', 'Sets the size of each slide as a percentage. Use the slider to adjust from 10% to 100%. For more information check https://mantine.dev/x/carousel', 0, 0, 'Slide Size'),
-(get_style_id('carousel'), get_field_id('mantine_carousel_slide_gap'), 'md', 'Sets the gap between slides. Choose from preset sizes or enter a custom value. For more information check https://mantine.dev/x/carousel', 0, 0, 'Slide Gap'),
+(get_style_id('carousel'), get_field_id('mantine_carousel_slide_gap'), 'sm', 'Sets the gap between slides. Choose from preset sizes or enter a custom value. For more information check https://mantine.dev/x/carousel', 0, 0, 'Slide Gap'),
 (get_style_id('carousel'), get_field_id('mantine_orientation'), 'horizontal', 'Sets the orientation of the carousel. For more information check https://mantine.dev/x/carousel', 0, 0, 'Orientation'),
 (get_style_id('carousel'), get_field_id('has_controls'), '1', 'If set, displays navigation controls (previous/next buttons). For more information check https://mantine.dev/x/carousel', 0, 0, 'Show Controls'),
 (get_style_id('carousel'), get_field_id('has_indicators'), '1', 'If set, displays slide indicators at the bottom. For more information check https://mantine.dev/x/carousel', 0, 0, 'Show Indicators'),
@@ -3686,7 +3686,7 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 (get_style_id('checkbox'), get_field_id('disabled'), '0', 'If set, the checkbox will be disabled. For more information check https://mantine.dev/core/checkbox', 0, 0, 'Disabled'),
 (get_style_id('checkbox'), get_field_id('description'), NULL, 'Sets the description text displayed below the label. For more information check https://mantine.dev/core/checkbox', 0, 0, 'Description'),
 (get_style_id('checkbox'), get_field_id('error'), NULL, 'Sets the error message displayed below the checkbox. For more information check https://mantine.dev/core/checkbox', 0, 0, 'Error'),
-(get_style_id('checkbox'), get_field_id('mantine_size'), 'md', 'Sets the size of the checkbox. Choose from preset sizes (xs, sm, md, lg, xl). For more information check https://mantine.dev/core/checkbox', 0, 0, 'Size'),
+(get_style_id('checkbox'), get_field_id('mantine_size'), 'sm', 'Sets the size of the checkbox. Choose from preset sizes (xs, sm, md, lg, xl). For more information check https://mantine.dev/core/checkbox', 0, 0, 'Size'),
 (get_style_id('checkbox'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the checkbox. Choose from preset values or enter a custom value. For more information check https://mantine.dev/core/checkbox', 0, 0, 'Radius'),
 (get_style_id('checkbox'), get_field_id('mantine_color'), NULL, 'Sets the color of the checkbox. Choose from theme colors or enter a custom color. For more information check https://mantine.dev/core/checkbox', 0, 0, 'Color'),
 (get_style_id('checkbox'), get_field_id('mantine_checkbox_icon'), NULL, 'Sets a custom icon for the checkbox. For more information check https://mantine.dev/core/checkbox', 0, 0, 'Icon'),
@@ -3757,9 +3757,42 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 (get_style_id('datepicker'), get_field_id('mantine_datepicker_time_format'), '24', 'Sets the time format (12-hour or 24-hour). For more information check https://mantine.dev/dates/getting-started', 0, 0, 'Time Format'),
 (get_style_id('datepicker'), get_field_id('mantine_datepicker_date_format'), 'YYYY-MM-DD', 'Sets the date format pattern for form submission. Choose from presets or enter a custom format. For more information check https://mantine.dev/dates/getting-started', 0, 0, 'Date Format'),
 (get_style_id('datepicker'), get_field_id('mantine_datepicker_time_grid_config'), NULL, 'JSON configuration for TimeGrid layout (e.g., {"cols": {"base": 2, "sm": 3}, "spacing": "xs"}). For more information check https://mantine.dev/dates/time-grid', 0, 0, 'Time Grid Config'),
-(get_style_id('datepicker'), get_field_id('mantine_datepicker_with_seconds'), '0', 'If set, includes seconds in time selection. For more information check https://mantine.dev/dates/getting-started', 0, 0, 'With Seconds'),
-(get_style_id('datepicker'), get_field_id('mantine_size'), 'md', 'Sets the size of the date picker. Choose from preset sizes (xs, sm, md, lg, xl). For more information check https://mantine.dev/dates/getting-started', 0, 0, 'Size'),
-(get_style_id('datepicker'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the date picker. For more information check https://mantine.dev/dates/getting-started', 0, 0, 'Radius'),
-(get_style_id('datepicker'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the datepicker component', 0, 1, 'Use Mantine Style');
+(get_style_id('datepicker'), get_field_id('mantine_datepicker_with_seconds'), '0', 'If set, includes seconds in time selection. For more information check https://mantine.dev/dates/getting-started', 0, 0, 'With Seconds');
+
+-- Create text-input specific fields
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'mantine_text_input_variant', get_field_type_id('segment'), 0, '{
+"options": [
+{"value": "default", "text": "Default"},
+{"value": "filled", "text": "Filled"},
+{"value": "unstyled", "text": "Unstyled"}
+]
+}');
+
+-- Add text-input style
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+    NULL,
+    'text-input',
+    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    get_style_group_id('mantine'),
+    'Mantine TextInput component for controlled text input with validation and sections',
+    0
+);
+
+-- Link fields to text-input style
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
+(get_style_id('text-input'), get_field_id('label'), NULL, 'Sets the label text displayed above the input field. For more information check https://mantine.dev/core/text-input', 0, 0, 'Label'),
+(get_style_id('text-input'), get_field_id('name'), NULL, 'Sets the name attribute for form submission. For more information check https://mantine.dev/core/text-input', 0, 0, 'Name'),
+(get_style_id('text-input'), get_field_id('value'), NULL, 'Sets the initial value of the input field. For more information check https://mantine.dev/core/text-input', 0, 0, 'Value'),
+(get_style_id('text-input'), get_field_id('placeholder'), NULL, 'Sets the placeholder text for the input field. For more information check https://mantine.dev/core/text-input', 0, 0, 'Placeholder'),
+(get_style_id('text-input'), get_field_id('description'), NULL, 'Sets the description text displayed below the label. For more information check https://mantine.dev/core/text-input', 0, 0, 'Description'),
+(get_style_id('text-input'), get_field_id('is_required'), '0', 'If set, the input field will be required for form submission. For more information check https://mantine.dev/core/text-input', 0, 0, 'Required'),
+(get_style_id('text-input'), get_field_id('disabled'), '0', 'If set, the input field will be disabled. For more information check https://mantine.dev/core/text-input', 0, 0, 'Disabled'),
+(get_style_id('text-input'), get_field_id('mantine_left_icon'), NULL, 'Sets the content for the left section (typically an icon). For more information check https://mantine.dev/core/text-input', 0, 0, 'Left Section'),
+(get_style_id('text-input'), get_field_id('mantine_right_icon'), NULL, 'Sets the content for the right section (typically an icon). For more information check https://mantine.dev/core/text-input', 0, 0, 'Right Section'),
+(get_style_id('text-input'), get_field_id('mantine_text_input_variant'), 'default', 'Sets the variant of the input field. For more information check https://mantine.dev/core/text-input', 0, 0, 'Variant'),
+(get_style_id('text-input'), get_field_id('mantine_size'), 'sm', 'Sets the size of the input field. For more information check https://mantine.dev/core/text-input', 0, 0, 'Size'),
+(get_style_id('text-input'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the input field. For more information check https://mantine.dev/core/text-input', 0, 0, 'Radius'),
+(get_style_id('text-input'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the text-input component', 0, 1, 'Use Mantine Style');
 
 

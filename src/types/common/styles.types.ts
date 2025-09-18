@@ -4,7 +4,7 @@ export type TStyleName =
     | 'container' | 'alert' | 'div' | 'refContainer' | 'dataContainer' | 'htmlTag' | 'center'
     | 'flex' | 'group' | 'stack' | 'simple-grid' | 'scroll-area' | 'space' | 'grid' | 'grid-column' | 'divider' | 'paper'
     | 'heading' | 'markdown' | 'markdownInline' | 'plaintext'
-    | 'formUserInput' | 'formUserInputLog' | 'formUserInputRecord' | 'input' | 'textarea' | 'select' | 'radio' | 'slider' | 'checkbox'
+    | 'formUserInput' | 'formUserInputLog' | 'formUserInputRecord' | 'input' | 'text-input' | 'textarea' | 'select' | 'radio' | 'slider' | 'checkbox'
     | 'image' | 'video' | 'audio' | 'figure' | 'carousel'
     | 'button' | 'link'
     | 'entryList' | 'entryRecord' | 'entryRecordDelete'
@@ -287,6 +287,23 @@ export interface IInputStyle extends IBaseStyle {
     max?: IContentField<string>;
     format?: IContentField<string>;
     locked_after_submit?: IContentField<string>;
+}
+
+export interface ITextInputStyle extends IBaseStyle {
+    style_name: 'text-input';
+    label?: IContentField<string>;
+    name?: IContentField<string>;
+    value?: IContentField<string>;
+    placeholder?: IContentField<string>;
+    description?: IContentField<string>;
+    is_required?: IContentField<string>;
+    disabled?: IContentField<string>;
+    mantine_left_icon?: IContentField<string>;
+    mantine_right_icon?: IContentField<string>;
+    use_mantine_style?: IContentField<string>;
+    mantine_size?: IContentField<string>;
+    mantine_radius?: IContentField<string>;
+    mantine_text_input_variant?: IContentField<string>;
 }
 
 export interface ITextareaStyle extends IBaseStyle {
@@ -1226,6 +1243,7 @@ export type TStyle =
     | IFormUserInputLogStyle
     | IFormUserInputRecordStyle
     | IInputStyle
+    | ITextInputStyle
     | ITextareaStyle
     | ISelectStyle
     | IRadioStyle

@@ -19,7 +19,7 @@ import {
     KbdStyle, ListStyle, ListItemStyle, NotificationStyle, NumberInputStyle,
     ProgressStyle, ProgressRootStyle, ProgressSectionStyle, RangeSliderStyle, RatingStyle, SegmentedControlStyle,
     SpoilerStyle,
-    SwitchStyle, ThemeIconStyle, TimelineStyle,
+    SwitchStyle, TextInputStyle, ThemeIconStyle, TimelineStyle,
     TitleStyle, TextStyle, TypographyStyle,
     // Special Components
     UnknownStyle
@@ -166,6 +166,8 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
             return <SegmentedControlStyle style={style} />;
         case 'switch':
             return <SwitchStyle style={style} />;
+        case 'text-input':
+            return <TextInputStyle style={style} />;
         case 'combobox':
             return <ComboboxStyle style={style} />;
 

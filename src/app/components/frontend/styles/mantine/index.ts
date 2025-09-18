@@ -28,6 +28,7 @@ export { default as RangeSliderStyle } from './RangeSliderStyle';
 export { default as SliderStyle } from './SliderStyle';
 export { default as SegmentedControlStyle } from './SegmentedControlStyle';
 export { default as SwitchStyle } from './SwitchStyle';
+export { default as TextInputStyle } from './TextInputStyle';
 export { default as ComboboxStyle } from './ComboboxStyle';
 // export { default as MultiSelectStyle } from './MultiSelectStyle';
 export { default as ActionIconStyle } from './ActionIconStyle';
@@ -203,6 +204,7 @@ export const MANTINE_COMPONENT_MAP = {
     'slider': 'SliderStyle',
     'segmented-control': 'SegmentedControlStyle',
     'switch': 'SwitchStyle',
+    'text-input': 'TextInputStyle',
     'combobox': 'ComboboxStyle',
     'multiSelect': 'MultiSelectStyle',
     'actionIcon': 'ActionIconStyle',
