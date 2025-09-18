@@ -49,7 +49,7 @@ const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style }) => {
             <textarea
                 name={name}
                 className={cssClass}
-                value={initialValue}
+                value={value}
                 onChange={onChange}
                 disabled={disabled}
                 rows={minRows}

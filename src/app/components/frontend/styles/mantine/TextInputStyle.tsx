@@ -36,8 +36,6 @@ const TextInputStyle: React.FC<ITextInputStyleProps> = ({ style }) => {
         setValue(event.target.value);
     };
 
-    console.log(style);
-
     return (
         <Input.Wrapper
             label={label}

@@ -1,0 +1,52 @@
+/* RichTextEditor Custom Styles */
+
+/* Editor content wrapper - applies to the Content component */
+.editorContent {
+    border-radius: 8px;
+    background-color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Global styles for Tiptap editor content */
+:global(.mantine-RichTextEditor-content) ol:not([data-type]),
+:global(.mantine-RichTextEditor-content) ul:not([data-type]) {
+    padding-left: 1.5rem !important;
+    margin: 1rem 0 !important;
+    list-style-position: outside !important;
+    list-style-image: none !important;
+    display: block !important;
+}
+
+:global(.mantine-RichTextEditor-content) ul:not([data-type]) {
+    list-style-type: disc !important;
+}
+
+:global(.mantine-RichTextEditor-content) ol:not([data-type]) {
+    list-style-type: decimal !important;
+    counter-reset: list-counter !important;
+}
+
+
+
+/* Reset counter for nested lists is handled above */
+
+:global(.mantine-RichTextEditor-content) li p {
+    margin: 0;
+    display: inline;
+}
+
+
+
+
+
+
+
+
+
+
+/* Animation for checkbox checkmark */
+@keyframes checkmark {
+    0% { transform: scale(0.8); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}

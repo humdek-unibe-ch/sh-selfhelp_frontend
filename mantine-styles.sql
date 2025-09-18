@@ -3839,4 +3839,57 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 (get_style_id('textarea'), get_field_id('mantine_textarea_variant'), 'default', 'Sets the variant of the textarea field. For more information check https://mantine.dev/core/textarea', 0, 0, 'Variant'),
 (get_style_id('textarea'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the textarea component', 0, 0, 'Use Mantine Style');
 
+-- ===========================================
+-- RICH TEXT EDITOR STYLE DEFINITIONS
+-- ===========================================
+
+-- Add rich text editor specific fields
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'mantine_rich_text_editor_variant', get_field_type_id('segment'), 0, '{"options":[{"value":"default","text":"Default"},{"value":"subtle","text":"Subtle"}]}');
+
+-- Add placeholder field for rich text editor
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'mantine_rich_text_editor_placeholder', get_field_type_id('text'), 1, null);
+
+-- Add bubble menu toggle
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'mantine_rich_text_editor_bubble_menu', get_field_type_id('checkbox'), 0, null);
+
+-- Add text color toggle
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'mantine_rich_text_editor_text_color', get_field_type_id('checkbox'), 0, null);
+
+-- Add task list toggle
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'mantine_rich_text_editor_task_list', get_field_type_id('checkbox'), 0, null);
+
+-- Add rich text editor style
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+    NULL,
+    'rich-text-editor',
+    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    get_style_group_id('mantine'),
+    'Rich text editor component based on Tiptap with toolbar controls for formatting. It supports controlled input for form submission.',
+    0
+);
+
+-- Link basic fields to rich text editor style
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
+(get_style_id('rich-text-editor'), get_field_id('label'), NULL, 'Sets the label text displayed above the rich text editor. For more information check https://mantine.dev/x/tiptap', 0, 0, 'Label'),
+(get_style_id('rich-text-editor'), get_field_id('name'), NULL, 'Sets the name attribute for form submission. For more information check https://mantine.dev/x/tiptap', 0, 0, 'Name'),
+(get_style_id('rich-text-editor'), get_field_id('value'), NULL, 'Sets the initial HTML content of the rich text editor. For more information check https://mantine.dev/x/tiptap', 0, 0, 'Value'),
+(get_style_id('rich-text-editor'), get_field_id('description'), NULL, 'Sets the description text displayed below the label. For more information check https://mantine.dev/x/tiptap', 0, 0, 'Description'),
+(get_style_id('rich-text-editor'), get_field_id('is_required'), '0', 'If set, the rich text editor will be required for form submission.', 0, 0, 'Required'),
+(get_style_id('rich-text-editor'), get_field_id('disabled'), '0', 'If set, the rich text editor will be disabled.', 0, 0, 'Disabled'),
+(get_style_id('rich-text-editor'), get_field_id('mantine_rich_text_editor_variant'), 'default', 'Sets the variant of the rich text editor.', 0, 0, 'Variant'),
+
+-- New advanced fields
+(get_style_id('rich-text-editor'), get_field_id('mantine_rich_text_editor_placeholder'), 'Start writing...', 'Sets the placeholder text shown when the editor is empty. For more information check https://tiptap.dev/docs/editor/extensions/functionality/placeholder', 0, 0, 'Placeholder Text'),
+(get_style_id('rich-text-editor'), get_field_id('mantine_rich_text_editor_bubble_menu'), '0', 'If set, enables a bubble menu that appears when text is selected for quick formatting. For more information check https://tiptap.dev/docs/editor/extensions/functionality/bubble-menu', 0, 0, 'Enable Bubble Menu'),
+(get_style_id('rich-text-editor'), get_field_id('mantine_rich_text_editor_text_color'), '0', 'If set, enables text color controls in the toolbar. For more information check https://tiptap.dev/docs/editor/extensions/functionality/color', 0, 0, 'Enable Text Color'),
+(get_style_id('rich-text-editor'), get_field_id('mantine_rich_text_editor_task_list'), '0', 'If set, enables task list functionality with checkboxes. For more information check https://tiptap.dev/docs/editor/extensions/functionality/task-list', 0, 0, 'Enable Task Lists'),
+
+-- Mantine style toggle
+(get_style_id('rich-text-editor'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the rich text editor component', 0, 1, 'Use Mantine Style');
+
 

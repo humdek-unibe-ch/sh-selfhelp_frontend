@@ -19,7 +19,7 @@ import {
     KbdStyle, ListStyle, ListItemStyle, NotificationStyle, NumberInputStyle,
     ProgressStyle, ProgressRootStyle, ProgressSectionStyle, RangeSliderStyle, RatingStyle, SegmentedControlStyle,
     SpoilerStyle,
-    SwitchStyle, TextInputStyle, TextareaStyle, ThemeIconStyle, TimelineStyle,
+    SwitchStyle, TextInputStyle, TextareaStyle, RichTextEditorStyle, ThemeIconStyle, TimelineStyle,
     TitleStyle, TextStyle, TypographyStyle,
     // Special Components
     UnknownStyle
@@ -170,6 +170,8 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
             return <TextInputStyle style={style} />;
         case 'textarea':
             return <TextareaStyle style={style} />;
+        case 'rich-text-editor':
+            return <RichTextEditorStyle style={style} />;
         case 'combobox':
             return <ComboboxStyle style={style} />;
 

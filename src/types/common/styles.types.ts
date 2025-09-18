@@ -13,7 +13,7 @@ export type TStyleName =
     | 'progressBar' | 'showUserInput' | 'version' | 'loop'
     // Mantine form components
     | 'button' | 'color-input' | 'color-picker' | 'fileInput' | 'number-input' | 'radio-group' | 'range-slider'
-    | 'segmented-control' | 'switch' | 'combobox' | 'multiSelect' | 'actionIcon'
+    | 'segmented-control' | 'switch' | 'combobox' | 'multiSelect' | 'actionIcon' | 'rich-text-editor'
     // Mantine typography components
     | 'code'
     // Mantine data display components
@@ -315,7 +315,6 @@ export interface ITextareaStyle extends IBaseStyle {
     value?: IContentField<string>;
     min?: IContentField<string>;
     max?: IContentField<string>;
-    locked_after_submit?: IContentField<string>;
     markdown_editor?: IContentField<string>;
     description?: IContentField<string>;
     disabled?: IContentField<string>;
@@ -328,6 +327,23 @@ export interface ITextareaStyle extends IBaseStyle {
     mantine_size?: IContentField<string>;
     mantine_radius?: IContentField<string>;
     mantine_textarea_variant?: IContentField<string>;
+    use_mantine_style?: IContentField<string>;
+}
+
+export interface IRichTextEditorStyle extends IBaseStyle {
+    style_name: 'rich-text-editor';
+    label?: IContentField<string>;
+    name?: IContentField<string>;
+    value?: IContentField<string>;
+    placeholder?: IContentField<string>;
+    description?: IContentField<string>;
+    is_required?: IContentField<string>;
+    disabled?: IContentField<string>;
+    mantine_rich_text_editor_variant?: IContentField<string>;
+    mantine_rich_text_editor_placeholder?: IContentField<string>;
+    mantine_rich_text_editor_bubble_menu?: IContentField<string>;
+    mantine_rich_text_editor_text_color?: IContentField<string>;
+    mantine_rich_text_editor_task_list?: IContentField<string>;
     use_mantine_style?: IContentField<string>;
 }
 
@@ -1257,6 +1273,7 @@ export type TStyle =
     | IInputStyle
     | ITextInputStyle
     | ITextareaStyle
+    | IRichTextEditorStyle
     | ISelectStyle
     | IRadioStyle
     | ISliderStyle
