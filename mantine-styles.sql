@@ -3795,4 +3795,48 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 (get_style_id('text-input'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the input field. For more information check https://mantine.dev/core/text-input', 0, 0, 'Radius'),
 (get_style_id('text-input'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the text-input component', 0, 1, 'Use Mantine Style');
 
+-- Create textarea-specific fields
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_textarea_autosize', get_field_type_id('checkbox'), 0, null);
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_textarea_min_rows', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "placeholder": "3", "options":[{"value":"1","text":"1"},{"value":"2","text":"2"},{"value":"3","text":"3"},{"value":"4","text":"4"},{"value":"5","text":"5"}]}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_textarea_max_rows', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "placeholder": "8", "options":[{"value":"5","text":"5"},{"value":"8","text":"8"},{"value":"10","text":"10"},{"value":"15","text":"15"},{"value":"20","text":"20"}]}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_textarea_resize', get_field_type_id('segment'), 0, '{"options":[{"value":"none","text":"None"},{"value":"vertical","text":"Vertical"},{"value":"both","text":"Both"}]}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'mantine_textarea_variant', get_field_type_id('segment'), 0, '{
+"options": [
+{"value": "default", "text": "Default"},
+{"value": "filled", "text": "Filled"},
+{"value": "unstyled", "text": "Unstyled"}
+]
+}');
+
+-- Add textarea style
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+    NULL,
+    'textarea',
+    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    get_style_group_id('input'),
+    'Textarea component for multi-line text input with autosize and resize options. It supports Mantine styling.',
+    0
+);
+
+-- Link fields to textarea style
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
+(get_style_id('textarea'), get_field_id('label'), NULL, 'Sets the label text displayed above the textarea field. For more information check https://mantine.dev/core/textarea', 0, 0, 'Label'),
+(get_style_id('textarea'), get_field_id('name'), NULL, 'Sets the name attribute for form submission. For more information check https://mantine.dev/core/textarea', 0, 0, 'Name'),
+(get_style_id('textarea'), get_field_id('value'), NULL, 'Sets the initial value of the textarea field. For more information check https://mantine.dev/core/textarea', 0, 0, 'Value'),
+(get_style_id('textarea'), get_field_id('placeholder'), NULL, 'Sets the placeholder text for the textarea field. For more information check https://mantine.dev/core/textarea', 0, 0, 'Placeholder'),
+(get_style_id('textarea'), get_field_id('description'), NULL, 'Sets the description text displayed below the label. For more information check https://mantine.dev/core/textarea', 0, 0, 'Description'),
+(get_style_id('textarea'), get_field_id('is_required'), '0', 'If set, the textarea field will be required for form submission. For more information check https://mantine.dev/core/textarea', 0, 0, 'Required'),
+(get_style_id('textarea'), get_field_id('disabled'), '0', 'If set, the textarea field will be disabled. For more information check https://mantine.dev/core/textarea', 0, 0, 'Disabled'),
+(get_style_id('textarea'), get_field_id('mantine_left_icon'), NULL, 'Sets the content for the left section (typically an icon). For more information check https://mantine.dev/core/textarea', 0, 0, 'Left Section'),
+(get_style_id('textarea'), get_field_id('mantine_right_icon'), NULL, 'Sets the content for the right section (typically an icon). For more information check https://mantine.dev/core/textarea', 0, 0, 'Right Section'),
+(get_style_id('textarea'), get_field_id('mantine_textarea_autosize'), '1', 'If set, the textarea will automatically adjust its height based on content. For more information check https://mantine.dev/core/textarea', 0, 0, 'Autosize'),
+(get_style_id('textarea'), get_field_id('mantine_textarea_min_rows'), '3', 'Sets the minimum number of rows when autosize is enabled. For more information check https://mantine.dev/core/textarea', 0, 0, 'Min Rows'),
+(get_style_id('textarea'), get_field_id('mantine_textarea_max_rows'), '8', 'Sets the maximum number of rows when autosize is enabled. For more information check https://mantine.dev/core/textarea', 0, 0, 'Max Rows'),
+(get_style_id('textarea'), get_field_id('mantine_textarea_resize'), 'none', 'Sets the resize behavior of the textarea. For more information check https://mantine.dev/core/textarea', 0, 0, 'Resize'),
+(get_style_id('textarea'), get_field_id('mantine_size'), 'sm', 'Sets the size of the textarea field. For more information check https://mantine.dev/core/textarea', 0, 0, 'Size'),
+(get_style_id('textarea'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the textarea field. For more information check https://mantine.dev/core/textarea', 0, 0, 'Radius'),
+(get_style_id('textarea'), get_field_id('mantine_textarea_variant'), 'default', 'Sets the variant of the textarea field. For more information check https://mantine.dev/core/textarea', 0, 0, 'Variant'),
+(get_style_id('textarea'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the textarea component', 0, 0, 'Use Mantine Style');
+
 

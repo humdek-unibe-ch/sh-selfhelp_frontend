@@ -9,7 +9,7 @@ export { default as InputStyle } from './InputStyle';
 export { default as RadioStyle } from './mantine/RadioStyle';
 export { default as SelectStyle } from './SelectStyle';
 export { default as SliderStyle } from './mantine/SliderStyle';
-export { default as TextareaStyle } from './TextareaStyle';
+export { default as TextareaStyle } from './mantine/TextareaStyle';
 
 // New components
 export { default as CardStyle } from './mantine/card/CardStyle';

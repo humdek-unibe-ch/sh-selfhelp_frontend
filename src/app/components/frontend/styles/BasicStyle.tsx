@@ -3,7 +3,7 @@ import {
     AlertStyle, ButtonStyle, CarouselStyle, CardStyle, CardSegmentStyle, ContainerStyle,
     DivStyle, FormUserInputStyle, HeadingStyle, ImageStyle, InputStyle,
     LinkStyle, LoginStyle, MarkdownStyle, RegisterStyle,
-    SelectStyle, TabsStyle, TabStyle, TextareaStyle, VideoStyle,
+    SelectStyle, TabsStyle, TabStyle, VideoStyle,
     AudioStyle, FigureStyle, PlaintextStyle, RadioStyle,
     ScrollAreaStyle, CheckboxStyle, DatePickerStyle, SliderStyle,
     HtmlTagStyle, ValidateStyle,
@@ -19,7 +19,7 @@ import {
     KbdStyle, ListStyle, ListItemStyle, NotificationStyle, NumberInputStyle,
     ProgressStyle, ProgressRootStyle, ProgressSectionStyle, RangeSliderStyle, RatingStyle, SegmentedControlStyle,
     SpoilerStyle,
-    SwitchStyle, TextInputStyle, ThemeIconStyle, TimelineStyle,
+    SwitchStyle, TextInputStyle, TextareaStyle, ThemeIconStyle, TimelineStyle,
     TitleStyle, TextStyle, TypographyStyle,
     // Special Components
     UnknownStyle
@@ -168,6 +168,8 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
             return <SwitchStyle style={style} />;
         case 'text-input':
             return <TextInputStyle style={style} />;
+        case 'textarea':
+            return <TextareaStyle style={style} />;
         case 'combobox':
             return <ComboboxStyle style={style} />;
 

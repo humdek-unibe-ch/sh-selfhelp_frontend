@@ -45,7 +45,7 @@ export { default as ActionIconStyle } from './mantine/ActionIconStyle';
 
 // Form & Input Styles
 export { default as FormUserInputStyle } from './FormUserInputStyle';
-export { default as TextareaStyle } from './TextareaStyle';
+export { default as TextareaStyle } from './mantine/TextareaStyle';
 export { default as InputStyle } from './InputStyle';
 export { default as SelectStyle } from './SelectStyle';
 export { default as ColorInputStyle } from './mantine/ColorInputStyle';

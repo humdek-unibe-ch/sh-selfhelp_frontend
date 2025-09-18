@@ -317,6 +317,18 @@ export interface ITextareaStyle extends IBaseStyle {
     max?: IContentField<string>;
     locked_after_submit?: IContentField<string>;
     markdown_editor?: IContentField<string>;
+    description?: IContentField<string>;
+    disabled?: IContentField<string>;
+    mantine_left_icon?: IContentField<string>;
+    mantine_right_icon?: IContentField<string>;
+    mantine_textarea_autosize?: IContentField<string>;
+    mantine_textarea_min_rows?: IContentField<string>;
+    mantine_textarea_max_rows?: IContentField<string>;
+    mantine_textarea_resize?: IContentField<string>;
+    mantine_size?: IContentField<string>;
+    mantine_radius?: IContentField<string>;
+    mantine_textarea_variant?: IContentField<string>;
+    use_mantine_style?: IContentField<string>;
 }
 
 export interface ISelectStyle extends IBaseStyle {
