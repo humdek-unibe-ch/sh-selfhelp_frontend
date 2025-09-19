@@ -156,7 +156,7 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
             return <ColorInputStyle style={style} />;
         case 'color-picker':
             return <ColorPickerStyle style={style} />;
-        case 'fileInput':
+        case 'file-input':
             return <FileInputStyle style={style} />;
         case 'number-input':
             return <NumberInputStyle style={style} />;

@@ -198,7 +198,7 @@ export const MANTINE_COMPONENT_MAP = {
     'button': 'ButtonStyle',
     'color-input': 'ColorInputStyle',
     'color-picker': 'ColorPickerStyle',
-    'fileInput': 'FileInputStyle',
+    'file-input': 'FileInputStyle',
     'number-input': 'NumberInputStyle',
     'radio': 'RadioStyle',
     'range-slider': 'RangeSliderStyle',

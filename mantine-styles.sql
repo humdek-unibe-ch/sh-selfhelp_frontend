@@ -1537,10 +1537,10 @@ VALUES (get_style_id('fieldset'), get_field_id('use_mantine_style'), 1, 'If `use
 -- FILE INPUT COMPONENT
 -- ===========================================
 
--- Add new style 'fileInput' based on Mantine FileInput component
+-- Add new style 'file-input' based on Mantine FileInput component
 INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
-    'fileInput',
+    'file-input',
     (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
     get_style_group_id('mantine'),
     'Mantine FileInput component for file uploads',
@@ -1551,35 +1551,105 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_file_input_multiple', get_field_type_id('checkbox'), 0, null);
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('fileInput'), get_field_id('mantine_file_input_multiple'), '0', 'If `multiple` prop is set, multiple files can be selected. For more information check https://mantine.dev/core/file-input', 0, 0, 'Multiple');
+VALUES (get_style_id('file-input'), get_field_id('mantine_file_input_multiple'), '0', 'If `multiple` prop is set, multiple files can be selected. For more information check https://mantine.dev/core/file-input', 0, 0, 'Multiple');
 
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_file_input_accept', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "options":[
-{"value":"image/*","text":"Images"},
-{"value":"audio/*","text":"Audio"},
-{"value":"video/*","text":"Video"},
-{"value":".pdf","text":"PDF"},
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_file_input_accept', get_field_type_id('select'), 0, '{"creatable": true, "searchable": true, "clearable": true, "placeholder": "image/*", "options":[
+{"value":"image/*","text":"All Images"},
+{"value":"image/png,image/jpeg,image/gif","text":"Common Images (PNG, JPG, GIF)"},
+{"value":"image/png","text":"PNG Images"},
+{"value":"image/jpeg","text":"JPEG Images"},
+{"value":"image/webp","text":"WebP Images"},
+{"value":"audio/*","text":"All Audio Files"},
+{"value":"video/*","text":"All Video Files"},
+{"value":".pdf","text":"PDF Documents"},
 {"value":".doc,.docx","text":"Word Documents"},
-{"value":".xls,.xlsx","text":"Excel Files"}
+{"value":".xls,.xlsx","text":"Excel Files"},
+{"value":".ppt,.pptx","text":"PowerPoint Files"},
+{"value":".txt","text":"Text Files"},
+{"value":".zip,.rar","text":"Archive Files"},
+{"value":"application/json","text":"JSON Files"},
+{"value":"text/csv","text":"CSV Files"}
 ]}');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('fileInput'), get_field_id('mantine_file_input_accept'), NULL, 'Sets the accepted file types for the file input. For more information check https://mantine.dev/core/file-input', 0, 0, 'Accept');
+VALUES (get_style_id('file-input'), get_field_id('mantine_file_input_accept'), NULL, 'Sets the accepted file types for the file input. Choose from presets or enter custom MIME types separated by commas. For more information check https://mantine.dev/core/file-input', 0, 0, 'Accept');
+
+-- Add new FileInput-specific fields
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_file_input_clearable', get_field_type_id('checkbox'), 0, null);
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('file-input'), get_field_id('mantine_file_input_clearable'), '1', 'If set, displays a clear button when files are selected. For more information check https://mantine.dev/core/file-input', 0, 0, 'Clearable');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_file_input_max_size', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "placeholder": "5242880", "options":[
+{"value":"1024","text":"1 KB"},
+{"value":"10240","text":"10 KB"},
+{"value":"102400","text":"100 KB"},
+{"value":"524288","text":"512 KB"},
+{"value":"1048576","text":"1 MB"},
+{"value":"2097152","text":"2 MB"},
+{"value":"5242880","text":"5 MB"},
+{"value":"10485760","text":"10 MB"},
+{"value":"20971520","text":"20 MB"},
+{"value":"52428800","text":"50 MB"},
+{"value":"104857600","text":"100 MB"}
+]}');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('file-input'), get_field_id('mantine_file_input_max_size'), NULL, 'Sets the maximum file size in bytes. Choose from presets or enter a custom value. For more information check https://mantine.dev/core/file-input', 0, 0, 'Max File Size');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_file_input_max_files', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "placeholder": "5", "options":[
+{"value":"1","text":"1 file"},
+{"value":"3","text":"3 files"},
+{"value":"5","text":"5 files"},
+{"value":"10","text":"10 files"},
+{"value":"20","text":"20 files"},
+{"value":"50","text":"50 files"},
+{"value":"100","text":"100 files"}
+]}');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('file-input'), get_field_id('mantine_file_input_max_files'), NULL, 'Sets the maximum number of files that can be selected when multiple is enabled. Choose from presets or enter a custom value. For more information check https://mantine.dev/core/file-input', 0, 0, 'Max Files');
+
+-- Add icon fields
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('file-input'), get_field_id('mantine_left_icon'), NULL, 'Sets the icon displayed in the left section of the file input. For more information check https://mantine.dev/core/file-input', 0, 0, 'Left Icon');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('file-input'), get_field_id('mantine_right_icon'), NULL, 'Sets the icon displayed in the right section of the file input. For more information check https://mantine.dev/core/file-input', 0, 0, 'Right Icon');
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('fileInput'), get_field_id('mantine_size'), 'sm', 'Sets the size of the file input. For more information check https://mantine.dev/core/file-input', 0, 0, 'Size');
+VALUES (get_style_id('file-input'), get_field_id('mantine_size'), 'sm', 'Sets the size of the file input. For more information check https://mantine.dev/core/file-input', 0, 0, 'Size');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('fileInput'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the file input. For more information check https://mantine.dev/core/file-input', 0, 0, 'Radius');
+VALUES (get_style_id('file-input'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the file input. For more information check https://mantine.dev/core/file-input', 0, 0, 'Radius');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('fileInput'), get_field_id('placeholder'), 'Select files', 'Sets the placeholder text for the file input. For more information check https://mantine.dev/core/file-input', 0, 0, 'Placeholder');
+VALUES (get_style_id('file-input'), get_field_id('placeholder'), 'Select files', 'Sets the placeholder text for the file input. For more information check https://mantine.dev/core/file-input', 0, 0, 'Placeholder');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('fileInput'), get_field_id('disabled'), '0', 'If `disabled` prop is set FileInput will be disabled. For more information check https://mantine.dev/core/file-input', 0, 0, 'Disabled');
+VALUES (get_style_id('file-input'), get_field_id('disabled'), '0', 'If `disabled` prop is set FileInput will be disabled. For more information check https://mantine.dev/core/file-input', 0, 0, 'Disabled');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('fileInput'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set FileInput will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/file-input', 0, 1, 'Use Mantine Style');
+VALUES (get_style_id('file-input'), get_field_id('is_required'), '0', 'If `is_required` prop is set FileInput will be required. For more information check https://mantine.dev/core/file-input', 0, 0, 'Required');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('file-input'), get_field_id('name'), NULL, 'Sets the name attribute for the file input, used for form submission. If not set, falls back to section-${style.id}. For more information check https://mantine.dev/core/file-input', 0, 0, 'Name');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('file-input'), get_field_id('label'), NULL, 'Sets the label for the file input. For more information check https://mantine.dev/core/file-input', 0, 0, 'Label');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('file-input'), get_field_id('description'), NULL, 'Sets the description for the file input. For more information check https://mantine.dev/core/file-input', 0, 0, 'Description');
+
+-- Add drag and drop field
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_file_input_drag_drop', get_field_type_id('checkbox'), 0, null);
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('file-input'), get_field_id('mantine_file_input_drag_drop'), '0', 'If set, enables drag and drop functionality for file uploads. For more information check https://mantine.dev/core/file-input', 0, 0, 'Enable Drag & Drop');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('file-input'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set FileInput will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/file-input', 0, 1, 'Use Mantine Style');
 
 -- ===========================================
 -- NUMBER INPUT COMPONENT

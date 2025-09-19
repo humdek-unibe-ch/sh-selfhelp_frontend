@@ -9,10 +9,20 @@ import { IconAlertCircle, IconCheck } from '@tabler/icons-react';
 import { usePageContentContext } from '../../contexts/PageContentContext';
 import { useSubmitFormMutation, useUpdateFormMutation } from '../../../../hooks/useFormSubmission';
 import { getFieldContent } from '../../../../utils/style-field-extractor';
+import { IFileInputStyleRef } from './mantine/inputs/FileInputStyle';
 
 interface FormUserInputStyleProps {
     style: IFormUserInputLogStyle | IFormUserInputRecordStyle;
 }
+
+/**
+ * Context for sharing FileInput registration function with child components
+ */
+const FileInputRegistrationContext = React.createContext<{
+    registerFileInputRef: (fieldName: string, ref: IFileInputStyleRef | null) => void;
+} | null>(null);
+
+export { FileInputRegistrationContext };
 
 const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
     const { pageContent } = usePageContentContext();
@@ -21,6 +31,7 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
     const formRef = useRef<HTMLFormElement | null>(null);
+    const fileInputRefs = useRef<Map<string, IFileInputStyleRef>>(new Map());
 
     // Extract form configuration from style
     const formName = getFieldContent(style, 'name') || 'default_form';
@@ -59,6 +70,29 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
         const { record_id, ...rest } = firstRecord as Record<string, any>;
         return { existingRecordId: record_id ?? null, existingFormDataFromSection: rest };
     }, [isRecord, style]);
+
+    // Function to collect files from all FileInput components
+    const collectFilesFromInputs = useCallback((): Record<string, File[]> => {
+        const filesData: Record<string, File[]> = {};
+        
+        fileInputRefs.current.forEach((fileInputRef, fieldName) => {
+            const files = fileInputRef.getSelectedFiles();
+            if (files.length > 0) {
+                filesData[fieldName] = files;
+            }
+        });
+        
+        return filesData;
+    }, []);
+
+    // Function to register FileInput refs
+    const registerFileInputRef = useCallback((fieldName: string, ref: IFileInputStyleRef | null) => {
+        if (ref) {
+            fileInputRefs.current.set(fieldName, ref);
+        } else {
+            fileInputRefs.current.delete(fieldName);
+        }
+    }, []);
 
     const validateForm = useCallback((formElement: HTMLFormElement): string | null => {
         const requiredFields = formElement.querySelectorAll('[required]');
@@ -117,35 +151,97 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
         setSubmitSuccess(false);
 
         const formData = new FormData(formElement);
-        const formDataObject = Object.fromEntries(formData.entries());
+        
+        // Collect files from FileInput components
+        const filesData = collectFilesFromInputs();
+        
+        // Create clean FormData with only user-defined fields
+        const cleanFormData = new FormData();
+        
+        // Add only non-internal fields from the original form
+        for (const [key, value] of formData.entries()) {
+            // Skip internal fields and section-* fields
+            if (key === '__id_sections' || 
+                key === 'section_id' || 
+                key === 'page_id' || 
+                key === 'record_id' ||
+                key.startsWith('section-')) {
+                continue;
+            }
+            
+            // Skip file fields as they will be handled separately by our file collection logic
+            const isFileField = Object.keys(filesData).some(fieldName => 
+                key === fieldName || key === `${fieldName}[]`
+            );
+            if (isFileField) {
+                continue;
+            }
+            
+            // Add user-defined fields
+            cleanFormData.append(key, value);
+        }
+        
+        // Add files to clean FormData with proper field names
+        Object.entries(filesData).forEach(([fieldName, files]) => {
+            if (files.length === 1) {
+                // Single file: add as single file
+                cleanFormData.append(fieldName, files[0]);
+            } else if (files.length > 1) {
+                // Multiple files: add as array
+                files.forEach(file => {
+                    cleanFormData.append(`${fieldName}[]`, file);
+                });
+            }
+        });
 
-        // Remove internal fields
-        delete formDataObject.__id_sections;
+        const formDataObject = Object.fromEntries(cleanFormData.entries());
 
-        // Convert empty strings to null for better data handling
+        // Convert empty strings to null for better data handling, but keep files as-is
         const processedFormData: Record<string, any> = {};
         Object.keys(formDataObject).forEach(key => {
-            processedFormData[key] = formDataObject[key] === '' ? null : formDataObject[key];
+            const value = formDataObject[key];
+            // Keep File objects as-is, convert empty strings to null for other fields
+            processedFormData[key] = (value instanceof File) ? value : (value === '' ? null : value);
         });
 
         try {
             let response;
             
+            // Determine if we have files to send
+            const hasFiles = Object.keys(filesData).length > 0;
+            
             if (isRecord && existingRecordId) {
                 // Update existing record
-                response = await updateFormMutation.mutateAsync({
-                    page_id: pageId,
-                    section_id: sectionId,
-                    form_data: processedFormData,
-                    update_based_on: { record_id: existingRecordId }
-                });
+                if (hasFiles) {
+                    // Send as FormData for file uploads - add required fields to clean FormData
+                    cleanFormData.append('page_id', String(pageId));
+                    cleanFormData.append('section_id', String(sectionId));
+                    cleanFormData.append('record_id', String(existingRecordId));
+                    response = await updateFormMutation.mutateAsync(cleanFormData as any);
+                } else {
+                    // Send as JSON for regular data
+                    response = await updateFormMutation.mutateAsync({
+                        page_id: pageId,
+                        section_id: sectionId,
+                        form_data: processedFormData,
+                        update_based_on: { record_id: existingRecordId }
+                    });
+                }
             } else {
                 // Create new record (for both log and new record types)
-                response = await submitFormMutation.mutateAsync({
-                    page_id: pageId,
-                    section_id: sectionId,
-                    form_data: processedFormData
-                });
+                if (hasFiles) {
+                    // Send as FormData for file uploads - add required fields to clean FormData
+                    cleanFormData.append('page_id', String(pageId));
+                    cleanFormData.append('section_id', String(sectionId));
+                    response = await submitFormMutation.mutateAsync(cleanFormData as any);
+                } else {
+                    // Send as JSON for regular data
+                    response = await submitFormMutation.mutateAsync({
+                        page_id: pageId,
+                        section_id: sectionId,
+                        form_data: processedFormData
+                    });
+                }
             }
 
             setSubmitSuccess(true);
@@ -153,6 +249,10 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
             // Reset form for log types, keep data for record types
             if (isLogType) {
                 setFormKey(prev => prev + 1);
+                // Clear files from FileInput components
+                fileInputRefs.current.forEach((fileInputRef) => {
+                    fileInputRef.clearFiles();
+                });
             }
 
             // Handle success alert - prefer backend message over style message
@@ -193,7 +293,8 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
         redirectUrl, 
         isAjax,
         submitFormMutation,
-        updateFormMutation
+        updateFormMutation,
+        collectFilesFromInputs
     ]);
 
     // Pre-populate form fields for record types with existing data from section_data
@@ -261,20 +362,22 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
                     <input type="hidden" name="record_id" value={String(existingRecordId)} />
                 ) : null}
                 
-                <div className={getFieldContent(style, 'css') || ''}>
-                    {style.children?.map((child, index) => (
-                        child ? <BasicStyle key={index} style={child} /> : null
-                    ))}
-                    
-                    <Button 
-                        type="submit" 
-                        loading={isSubmitting}
-                        disabled={!pageId}
-                        mt="md"
-                    >
-                        {isRecord && existingRecordId ? `Update ${buttonLabel}` : buttonLabel}
-                    </Button>
-                </div>
+                <FileInputRegistrationContext.Provider value={{ registerFileInputRef }}>
+                    <div className={getFieldContent(style, 'css') || ''}>
+                        {style.children?.map((child, index) => (
+                            child ? <BasicStyle key={index} style={child} /> : null
+                        ))}
+                        
+                        <Button 
+                            type="submit" 
+                            loading={isSubmitting}
+                            disabled={!pageId}
+                            mt="md"
+                        >
+                            {isRecord && existingRecordId ? `Update ${buttonLabel}` : buttonLabel}
+                        </Button>
+                    </div>
+                </FileInputRegistrationContext.Provider>
             </form>
         </div>
     );

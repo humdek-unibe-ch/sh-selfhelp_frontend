@@ -12,7 +12,7 @@ export type TStyleName =
     | 'table' | 'tableRow' | 'tableCell'
     | 'progressBar' | 'showUserInput' | 'version' | 'loop'
     // Mantine form components
-    | 'button' | 'color-input' | 'color-picker' | 'fileInput' | 'number-input' | 'radio-group' | 'range-slider'
+    | 'button' | 'color-input' | 'color-picker' | 'file-input' | 'number-input' | 'radio-group' | 'range-slider'
     | 'segmented-control' | 'switch' | 'combobox' | 'multiSelect' | 'actionIcon' | 'rich-text-editor'
     // Mantine typography components
     | 'code'
@@ -765,14 +765,24 @@ export interface IColorPickerStyle extends IBaseStyle {
 }
 
 export interface IFileInputStyle extends IBaseStyle {
-    style_name: 'fileInput';
+    style_name: 'file-input';
     mantine_file_input_multiple?: IContentField<string>; // Checkbox field for multiple files
     mantine_file_input_accept?: IContentField<string>; // Select field for accepted file types
+    mantine_file_input_clearable?: IContentField<string>; // Checkbox field for clearable option
+    mantine_file_input_max_size?: IContentField<string>; // Select field for max file size
+    mantine_file_input_max_files?: IContentField<string>; // Select field for max number of files
+    mantine_file_input_drag_drop?: IContentField<string>; // Checkbox field for drag and drop
     mantine_size?: IContentField<string>;             // Select field for size
     mantine_radius?: IContentField<string>;           // Select field for radius
+    mantine_left_icon?: IContentField<string>;        // Icon field for left section
+    mantine_right_icon?: IContentField<string>;       // Icon field for right section
     placeholder?: IContentField<string>;              // Translatable placeholder
     disabled?: IContentField<string>;                 // Checkbox field for disabled state
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    is_required?: IContentField<string>;              // Checkbox field for required validation
+    name?: IContentField<string>;                     // Text field for form field name
+    label?: IContentField<string>;                    // Text field for label
+    description?: IContentField<string>;              // Textarea field for description
 }
 
 export interface INumberInputStyle extends IBaseStyle {

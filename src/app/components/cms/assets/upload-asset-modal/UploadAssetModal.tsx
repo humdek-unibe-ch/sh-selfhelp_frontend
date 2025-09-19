@@ -12,10 +12,7 @@ import {
   Progress,
   Alert,
   Paper,
-  Center,
-  List,
   Badge,
-  Title,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
@@ -26,8 +23,6 @@ import {
   IconAlertCircle, 
   IconX, 
   IconCloudUpload, 
-  IconCheck,
-  IconExclamationMark 
 } from '@tabler/icons-react';
 import { useCreateAsset, useCreateMultipleAssets } from '../../../../../hooks/useAssets';
 

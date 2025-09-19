@@ -20,8 +20,12 @@ export class FormSubmissionApi {
      * Submit form data (anonymous users)
      * Creates a new form record
      */
-    static async submitForm(data: IFormSubmitRequest): Promise<IFormSubmitResponse> {
-        const response = await apiClient.post(API_CONFIG.ENDPOINTS.FORMS_SUBMIT, data);
+    static async submitForm(data: IFormSubmitRequest | FormData): Promise<IFormSubmitResponse> {
+        const config = data instanceof FormData ? {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        } : undefined;
+        
+        const response = await apiClient.post(API_CONFIG.ENDPOINTS.FORMS_SUBMIT, data, config);
         return response.data;
     }
 
@@ -29,8 +33,12 @@ export class FormSubmissionApi {
      * Update existing form data (authenticated users)
      * Updates an existing form record based on criteria
      */
-    static async updateForm(data: IFormUpdateRequest): Promise<IFormUpdateResponse> {
-        const response = await apiClient.put(API_CONFIG.ENDPOINTS.FORMS_UPDATE, data);
+    static async updateForm(data: IFormUpdateRequest | FormData): Promise<IFormUpdateResponse> {
+        const config = data instanceof FormData ? {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        } : undefined;
+        
+        const response = await apiClient.put(API_CONFIG.ENDPOINTS.FORMS_UPDATE, data, config);
         return response.data;
     }
 

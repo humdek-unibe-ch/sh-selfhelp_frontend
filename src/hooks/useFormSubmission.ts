@@ -16,7 +16,7 @@ export function useSubmitFormMutation() {
     const { refreshAfterUserAction } = useNavigationRefresh();
 
     return useMutation({
-        mutationFn: (data: IFormSubmitRequest) => FormSubmissionApi.submitForm(data),
+        mutationFn: (data: IFormSubmitRequest | FormData) => FormSubmissionApi.submitForm(data),
         onSuccess: async (response, variables) => {
 
             // Invalidate page content so UI pulls latest data
@@ -56,7 +56,7 @@ export function useUpdateFormMutation() {
     const { refreshAfterUserAction } = useNavigationRefresh();
 
     return useMutation({
-        mutationFn: (data: IFormUpdateRequest) => FormSubmissionApi.updateForm(data),
+        mutationFn: (data: IFormUpdateRequest | FormData) => FormSubmissionApi.updateForm(data),
         onSuccess: async (response, variables) => {
 
             // Invalidate page content so UI pulls latest data
