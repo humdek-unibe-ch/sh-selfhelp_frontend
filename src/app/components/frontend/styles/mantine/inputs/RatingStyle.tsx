@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Rating, Input } from '@mantine/core';
 import {
   IconMoodCry,
@@ -10,6 +10,7 @@ import {
 import { getFieldContent, castMantineSize } from '../../../../../../utils/style-field-extractor';
 import IconComponent from '../../../../shared/common/IconComponent';
 import { IRatingStyle } from '../../../../../../types/common/styles.types';
+import { FormFieldValueContext } from '../../FormStyle';
 
 /**
  * Props interface for RatingStyle component
@@ -138,8 +139,29 @@ const RatingStyle: React.FC<IRatingStyleProps> = ({ style }) => {
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
-    // State for controlled input
-    const [ratingValue, setRatingValue] = useState<number>(initialValue);
+    // Get form context for pre-populated values
+    const formContext = useContext(FormFieldValueContext);
+    const formValue = formContext && name ? formContext.getFieldValue(name) : null;
+
+    // Initialize rating value from form context or style configuration
+    const [ratingValue, setRatingValue] = useState<number>(() => {
+        if (formValue !== null) {
+            // Use form value if available
+            return parseFloat(formValue) || initialValue;
+        }
+        // Fallback to style configuration
+        return initialValue;
+    });
+
+    // Update rating value when form context changes (for record editing)
+    useEffect(() => {
+        if (formValue !== null) {
+            const parsedValue = parseFloat(formValue);
+            if (!isNaN(parsedValue)) {
+                setRatingValue(parsedValue);
+            }
+        }
+    }, [formValue]);
 
     // Handle rating change for controlled input
     const handleRatingChange = (value: number) => {

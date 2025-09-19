@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Radio, Tooltip, Group, Text, Input } from '@mantine/core';
 import BasicStyle from '../../BasicStyle';
 import { getFieldContent, castMantineSize } from '../../../../../../utils/style-field-extractor';
 import { IRadioStyle } from '../../../../../../types/common/styles.types';
+import { FormFieldValueContext } from '../../FormStyle';
 
 /**
  * Props interface for RadioStyle component
@@ -63,13 +64,23 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style }) => {
     // Build style object
     const styleObj: React.CSSProperties = {};
 
-    // State for controlled component
-    const [selectedValue, setSelectedValue] = useState<string>(value || '');
+    // Get form context for pre-populated values
+    const formContext = useContext(FormFieldValueContext);
+    const formValue = formContext && name ? formContext.getFieldValue(name) : null;
 
-    // Update state when value prop changes
+    // State for controlled component - use form value if available, otherwise use style value
+    const [selectedValue, setSelectedValue] = useState<string>(() => {
+        return formValue || value || '';
+    });
+
+    // Update state when form context or value prop changes
     useEffect(() => {
-        setSelectedValue(value || '');
-    }, [value]);
+        if (formValue !== null) {
+            setSelectedValue(formValue);
+        } else {
+            setSelectedValue(value || '');
+        }
+    }, [formValue, value]);
 
     // Parse radio options from JSON textarea
     let radioOptions: Array<{ value: string; text: string; description?: string }> = [];

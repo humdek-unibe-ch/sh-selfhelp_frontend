@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { NumberInput, Input } from '@mantine/core';
 import { getFieldContent } from '../../../../../../utils/style-field-extractor';
 import { INumberInputStyle } from '../../../../../../types/common/styles.types';
+import { FormFieldValueContext } from '../../FormStyle';
 
 /**
  * Props interface for NumberInputStyle component
@@ -47,32 +48,19 @@ const NumberInputStyle: React.FC<INumberInputStyleProps> = ({ style }) => {
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
-    // Initialize selected value state from section_data if available (for record forms)
-    const [selectedValue, setSelectedValue] = useState(() => {
-        // Check if we have existing data from section_data (for record forms)
-        const sectionDataArray: any[] | undefined = (style as any).section_data;
-        const firstRecord = Array.isArray(sectionDataArray) && sectionDataArray.length > 0 ? sectionDataArray[0] : null;
+    // Get form context for pre-populated values
+    const formContext = useContext(FormFieldValueContext);
+    const formValue = formContext && name ? formContext.getFieldValue(name) : null;
 
-        if (firstRecord && firstRecord[name]) {
-            // If we have existing data, use it to determine the selected value
-            const existingValue = firstRecord[name];
-            return existingValue || defaultValue;
-        }
+    // Use form value if available, otherwise use initial value from style
+    const [selectedValue, setSelectedValue] = useState(formValue || defaultValue);
 
-        // Fallback to style configuration
-        return defaultValue;
-    });
-
-    // Update selected value when section_data changes (for record form pre-population)
+    // Update value when form context changes (for record editing)
     useEffect(() => {
-        const sectionDataArray: any[] | undefined = (style as any).section_data;
-        const firstRecord = Array.isArray(sectionDataArray) && sectionDataArray.length > 0 ? sectionDataArray[0] : null;
-
-        if (firstRecord && firstRecord[name]) {
-            const existingValue = firstRecord[name];
-            setSelectedValue(existingValue || defaultValue);
+        if (formValue !== null) {
+            setSelectedValue(formValue);
         }
-    }, [style, name, defaultValue]);
+    }, [formValue]);
 
     // Handle value change
     const handleValueChange = (value: string | number) => {

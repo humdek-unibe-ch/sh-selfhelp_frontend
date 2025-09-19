@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import {
     Combobox,
     Input,
@@ -16,6 +16,7 @@ import {
 import { IconPlus, IconX, IconCheck, IconChevronDown } from '@tabler/icons-react';
 import { getFieldContent } from '../../../../../../utils/style-field-extractor';
 import { IComboboxStyle } from '../../../../../../types/common/styles.types';
+import { FormFieldValueContext } from '../../FormStyle';
 
 /**
  * Props interface for ComboboxStyle component
@@ -111,18 +112,18 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style }) => {
     const [multiValues, setMultiValues] = useState('');
     const [search, setSearch] = useState('');
 
-    // Initialize selected values state from section_data if available (for record forms)
-    const [selectedValues, setSelectedValues] = useState<string[]>(() => {
-        // Check if we have existing data from section_data (for record forms)
-        const sectionDataArray: any[] | undefined = (style as any).section_data;
-        const firstRecord = Array.isArray(sectionDataArray) && sectionDataArray.length > 0 ? sectionDataArray[0] : null;
+    // Get form context for pre-populated values
+    const formContext = useContext(FormFieldValueContext);
+    const formValue = formContext && name ? formContext.getFieldValue(name) : null;
 
-        if (firstRecord && firstRecord[name]) {
-            const existingValue = firstRecord[name];
-            if (multiSelect && typeof existingValue === 'string') {
-                return existingValue.split(separator).filter(Boolean);
-            } else if (!multiSelect && typeof existingValue === 'string') {
-                return [existingValue];
+    // Initialize selected values state from form context or style configuration
+    const [selectedValues, setSelectedValues] = useState<string[]>(() => {
+        if (formValue !== null) {
+            // Use form value if available
+            if (multiSelect && typeof formValue === 'string') {
+                return formValue.split(separator).filter(Boolean);
+            } else if (!multiSelect && typeof formValue === 'string') {
+                return [formValue];
             }
         }
 
@@ -136,20 +137,16 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style }) => {
         return [];
     });
 
-    // Update selected values when section_data changes (for record form pre-population)
+    // Update selected values when form context changes (for record editing)
     useEffect(() => {
-        const sectionDataArray: any[] | undefined = (style as any).section_data;
-        const firstRecord = Array.isArray(sectionDataArray) && sectionDataArray.length > 0 ? sectionDataArray[0] : null;
-
-        if (firstRecord && firstRecord[name]) {
-            const existingValue = firstRecord[name];
-            if (multiSelect && typeof existingValue === 'string') {
-                setSelectedValues(existingValue.split(separator).filter(Boolean));
-            } else if (!multiSelect && typeof existingValue === 'string') {
-                setSelectedValues([existingValue]);
+        if (formValue !== null) {
+            if (multiSelect && typeof formValue === 'string') {
+                setSelectedValues(formValue.split(separator).filter(Boolean));
+            } else if (!multiSelect && typeof formValue === 'string') {
+                setSelectedValues([formValue]);
             }
         }
-    }, [style, name, defaultValue, multiSelect, separator]);
+    }, [formValue, multiSelect, separator]);
 
     // Initialize combobox hook
     const combobox = useCombobox({

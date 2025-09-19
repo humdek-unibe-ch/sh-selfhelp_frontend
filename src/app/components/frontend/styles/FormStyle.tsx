@@ -1,18 +1,15 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import {
-    IFormUserInputLogStyle,
-    IFormUserInputRecordStyle
-} from '../../../../types/common/styles.types';
 import BasicStyle from './BasicStyle';
-import { Button, Alert, LoadingOverlay } from '@mantine/core';
+import { Button, Alert, LoadingOverlay, Group } from '@mantine/core';
 import { IconAlertCircle, IconCheck } from '@tabler/icons-react';
 import { usePageContentContext } from '../../contexts/PageContentContext';
 import { useSubmitFormMutation, useUpdateFormMutation } from '../../../../hooks/useFormSubmission';
 import { getFieldContent } from '../../../../utils/style-field-extractor';
 import { IFileInputStyleRef } from './mantine/inputs/FileInputStyle';
+import { IFormLogStyle, IFormRecordStyle } from '../../../../types/common/styles.types';
 
 interface FormUserInputStyleProps {
-    style: IFormUserInputLogStyle | IFormUserInputRecordStyle;
+    style: IFormLogStyle | IFormRecordStyle;
 }
 
 /**
@@ -22,7 +19,14 @@ const FileInputRegistrationContext = React.createContext<{
     registerFileInputRef: (fieldName: string, ref: IFileInputStyleRef | null) => void;
 } | null>(null);
 
-export { FileInputRegistrationContext };
+/**
+ * Context for sharing form field values with child components
+ */
+const FormFieldValueContext = React.createContext<{
+    getFieldValue: (fieldName: string) => string | null;
+} | null>(null);
+
+export { FileInputRegistrationContext, FormFieldValueContext };
 
 const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
     const { pageContent } = usePageContentContext();
@@ -34,12 +38,29 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
     const fileInputRefs = useRef<Map<string, IFileInputStyleRef>>(new Map());
 
     // Extract form configuration from style
-    const formName = getFieldContent(style, 'name') || 'default_form';
+    const name = getFieldContent(style, 'name') || 'default_form';
     const isLog = getFieldContent(style, 'is_log') === '1';
     const alertSuccess = getFieldContent(style, 'alert_success');
+    const alertError = getFieldContent(style, 'alert_error');
     const redirectUrl = getFieldContent(style, 'redirect_at_end');
-    const isAjax = getFieldContent(style, 'ajax') === '1';
     const buttonLabel = getFieldContent(style, 'label') || 'Submit';
+
+    // Extract button configuration
+    const saveLabel = getFieldContent(style, 'btn_save_label') || 'Save';
+    const updateLabel = getFieldContent(style, 'btn_update_label') || 'Update';
+    const cancelLabel = getFieldContent(style, 'btn_cancel_label');
+    const cancelUrl = getFieldContent(style, 'btn_cancel_url');
+
+    // Extract Mantine button styling
+    const useMantineStyle = getFieldContent(style, 'use_mantine_style') === '1';
+    const buttonSize = getFieldContent(style, 'mantine_buttons_size') || 'sm';
+    const buttonRadius = getFieldContent(style, 'mantine_buttons_radius') || 'sm';
+    const buttonVariant = getFieldContent(style, 'mantine_buttons_variant') || 'filled';
+    const buttonPosition = getFieldContent(style, 'mantine_buttons_position') || 'space-between';
+    const buttonOrder = getFieldContent(style, 'mantine_buttons_order') || 'cancel-save';
+    const saveColor = getFieldContent(style, 'mantine_btn_save_color') || 'blue';
+    const updateColor = getFieldContent(style, 'mantine_btn_update_color') || 'green';
+    const cancelColor = getFieldContent(style, 'mantine_btn_cancel_color') || 'gray';
     
     // Get form ID from style - now directly available as number
 
@@ -49,12 +70,16 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
     const pageId = pageContent?.id;
 
     // Determine form behavior based on style name
-    const isRecord = style.style_name === 'formUserInputRecord';
-    const isLogType = style.style_name === 'formUserInputLog' || isLog;
+    const isRecord = style.style_name === 'form-record';
+    const isLogType = style.style_name === 'form-log' || isLog;
 
     // React Query hooks
     const submitFormMutation = useSubmitFormMutation();
     const updateFormMutation = useUpdateFormMutation();
+
+    console.log('style', style);
+
+    console.log('section_data',JSON.stringify(style.section_data));
     
     // For record types, derive existing data from section_data of this style
     const { existingRecordId, existingFormDataFromSection } = useMemo(() => {
@@ -258,18 +283,9 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
             // Handle success alert - prefer backend message over style message
             const successMessage = response?.data?.message || alertSuccess;
 
-            // Handle redirect
-            if (redirectUrl && !isAjax) {
-                setTimeout(() => {
-                    window.location.href = redirectUrl;
-                }, 1500); // Slightly longer delay to show success message
-            }
-
         } catch (error: any) {
-
-            
             // Extract error message from API response if available
-            let errorMessage = 'Failed to submit form. Please try again.';
+            let errorMessage = alertError || 'Failed to submit form. Please try again.';
             if (error?.response?.data?.error) {
                 errorMessage = error.response.data.error;
             } else if (error?.response?.data?.message) {
@@ -277,25 +293,158 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
             } else if (error?.message) {
                 errorMessage = error.message;
             }
-            
+
             setSubmitError(errorMessage);
         } finally {
             setIsSubmitting(false);
         }
     }, [
         validateForm,
-        pageId, 
-        sectionId, 
-        isRecord, 
-        isLogType, 
-        existingRecordId, 
-        alertSuccess, 
-        redirectUrl, 
-        isAjax,
+        pageId,
+        sectionId,
+        isRecord,
+        isLogType,
+        existingRecordId,
+        alertSuccess,
+        alertError,
+        redirectUrl,
         submitFormMutation,
         updateFormMutation,
         collectFilesFromInputs
     ]);
+
+    const handleCancel = useCallback(() => {
+        if (cancelUrl) {
+            window.location.href = cancelUrl;
+        } else {
+            // Default cancel behavior - could go back or stay on page
+            window.history.back();
+        }
+    }, [cancelUrl]);
+
+    // Helper function to render buttons in correct order
+    const renderButtons = useCallback((isMantine: boolean) => {
+        const cancelButton = (cancelUrl) && (
+            isMantine ? (
+                <Button
+                    key="cancel"
+                    type="button"
+                    onClick={handleCancel}
+                    size={buttonSize}
+                    radius={buttonRadius}
+                    variant={buttonVariant as any}
+                    color={cancelColor}
+                    disabled={isSubmitting}
+                >
+                    {cancelLabel}
+                </Button>
+            ) : (
+                <button
+                    key="cancel"
+                    type="button"
+                    onClick={handleCancel}
+                    disabled={isSubmitting}
+                    style={{
+                        padding: buttonSize === 'xs' ? '0.25rem 0.5rem' :
+                                buttonSize === 'sm' ? '0.5rem 1rem' :
+                                buttonSize === 'lg' ? '0.75rem 1.5rem' :
+                                buttonSize === 'xl' ? '1rem 2rem' : '0.625rem 1.25rem',
+                        fontSize: buttonSize === 'xs' ? '0.75rem' :
+                                 buttonSize === 'sm' ? '0.875rem' :
+                                 buttonSize === 'lg' ? '1.125rem' :
+                                 buttonSize === 'xl' ? '1.25rem' : '1rem',
+                        borderRadius: buttonRadius === 'xs' ? '0.125rem' :
+                                     buttonRadius === 'sm' ? '0.25rem' :
+                                     buttonRadius === 'lg' ? '0.5rem' :
+                                     buttonRadius === 'xl' ? '0.75rem' : '0.375rem',
+                        backgroundColor: cancelColor === 'gray' ? '#6b7280' :
+                                       cancelColor === 'blue' ? '#3b82f6' :
+                                       cancelColor === 'green' ? '#22c55e' :
+                                       cancelColor === 'red' ? '#ef4444' : '#6b7280',
+                        color: 'white',
+                        border: 'none',
+                        cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                        opacity: isSubmitting ? 0.6 : 1,
+                        fontWeight: '500',
+                        transition: 'all 0.2s ease'
+                    }}
+                >
+                    {cancelLabel}
+                </button>
+            )
+        );
+
+        const saveButton = (
+            isMantine ? (
+                <Button
+                    key="save"
+                    type="submit"
+                    loading={isSubmitting}
+                    disabled={!pageId}
+                    size={buttonSize}
+                    radius={buttonRadius}
+                    variant={buttonVariant as any}
+                    color={isRecord && existingRecordId ? updateColor : saveColor}
+                >
+                    {isRecord && existingRecordId ? updateLabel : saveLabel}
+                </Button>
+            ) : (
+                <button
+                    key="save"
+                    type="submit"
+                    disabled={isSubmitting || !pageId}
+                    style={{
+                        padding: buttonSize === 'xs' ? '0.25rem 0.5rem' :
+                                buttonSize === 'sm' ? '0.5rem 1rem' :
+                                buttonSize === 'lg' ? '0.75rem 1.5rem' :
+                                buttonSize === 'xl' ? '1rem 2rem' : '0.625rem 1.25rem',
+                        fontSize: buttonSize === 'xs' ? '0.75rem' :
+                                 buttonSize === 'sm' ? '0.875rem' :
+                                 buttonSize === 'lg' ? '1.125rem' :
+                                 buttonSize === 'xl' ? '1.25rem' : '1rem',
+                        borderRadius: buttonRadius === 'xs' ? '0.125rem' :
+                                     buttonRadius === 'sm' ? '0.25rem' :
+                                     buttonRadius === 'lg' ? '0.5rem' :
+                                     buttonRadius === 'xl' ? '0.75rem' : '0.375rem',
+                        backgroundColor: isRecord && existingRecordId ?
+                            (updateColor === 'green' ? '#22c55e' :
+                             updateColor === 'blue' ? '#3b82f6' :
+                             updateColor === 'orange' ? '#f97316' :
+                             updateColor === 'red' ? '#ef4444' : '#22c55e') :
+                            (saveColor === 'blue' ? '#3b82f6' :
+                             saveColor === 'green' ? '#22c55e' :
+                             saveColor === 'red' ? '#ef4444' : '#3b82f6'),
+                        color: 'white',
+                        border: 'none',
+                        cursor: isSubmitting || !pageId ? 'not-allowed' : 'pointer',
+                        opacity: isSubmitting || !pageId ? 0.6 : 1,
+                        fontWeight: '500',
+                        transition: 'all 0.2s ease'
+                    }}
+                >
+                    {isSubmitting ? 'Submitting...' : (isRecord && existingRecordId ? updateLabel : saveLabel)}
+                </button>
+            )
+        );
+
+        // Return buttons in the specified order
+        if (buttonOrder === 'save-cancel') {
+            return [saveButton, cancelButton].filter(Boolean);
+        } else {
+            return [cancelButton, saveButton].filter(Boolean);
+        }
+    }, [
+        buttonSize, buttonRadius, buttonVariant, buttonOrder, cancelColor, saveColor, updateColor,
+        isSubmitting, pageId, isRecord, existingRecordId, handleCancel, cancelLabel, cancelUrl,
+        updateLabel, saveLabel
+    ]);
+
+    // Function to get field value from existing form data
+    const getFieldValue = useCallback((fieldName: string): string | null => {
+        if (!isRecord || !existingFormDataFromSection) return null;
+        const value = existingFormDataFromSection[fieldName];
+        return value !== null && value !== undefined ? String(value) : null;
+    }, [isRecord, existingFormDataFromSection]);
 
     // Pre-populate form fields for record types with existing data from section_data
     useEffect(() => {
@@ -356,6 +505,8 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
                 </Alert>
             )}
 
+            
+
             <form ref={formRef} key={formKey} onSubmit={handleSubmit}>
                 <input type="hidden" name="__id_sections" value={style.id} />
                 {isRecord && existingRecordId ? (
@@ -363,20 +514,34 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
                 ) : null}
                 
                 <FileInputRegistrationContext.Provider value={{ registerFileInputRef }}>
-                    <div className={getFieldContent(style, 'css') || ''}>
-                        {style.children?.map((child, index) => (
-                            child ? <BasicStyle key={index} style={child} /> : null
-                        ))}
-                        
-                        <Button 
-                            type="submit" 
-                            loading={isSubmitting}
-                            disabled={!pageId}
-                            mt="md"
-                        >
-                            {isRecord && existingRecordId ? `Update ${buttonLabel}` : buttonLabel}
-                        </Button>
-                    </div>
+                    <FormFieldValueContext.Provider value={{ getFieldValue }}>
+                        <div className={getFieldContent(style, 'css') || ''}>
+                            {style.children?.map((child, index) => (
+                                child ? <BasicStyle key={index} style={child} /> : null
+                            ))}
+
+                            {/* Form Buttons */}
+                            {useMantineStyle ? (
+                                // Mantine Style Buttons
+                                <Group justify={buttonPosition as any} mt="xl">
+                                    {renderButtons(true)}
+                                </Group>
+                            ) : (
+                                // Fallback HTML Buttons
+                                <div style={{
+                                    display: 'flex',
+                                    gap: '1rem',
+                                    justifyContent: buttonPosition === 'space-between' ? 'space-between' :
+                                                   buttonPosition === 'center' ? 'center' :
+                                                   buttonPosition === 'flex-end' ? 'flex-end' :
+                                                   buttonPosition === 'flex-start' ? 'flex-start' : 'space-between',
+                                    marginTop: '2rem'
+                                }}>
+                                    {renderButtons(false)}
+                                </div>
+                            )}
+                        </div>
+                    </FormFieldValueContext.Provider>
                 </FileInputRegistrationContext.Provider>
             </form>
         </div>

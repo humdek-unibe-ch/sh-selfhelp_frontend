@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Slider, Input } from '@mantine/core';
 import { getFieldContent } from '../../../../../../utils/style-field-extractor';
 import { ISliderStyle } from '../../../../../../types/common/styles.types';
+import { FormFieldValueContext } from '../../FormStyle';
 
 /**
  * Props interface for SliderStyle component
@@ -66,9 +67,30 @@ const SliderStyle: React.FC<ISliderStyleProps> = ({ style }) => {
     // Build style object
     const styleObj: React.CSSProperties = {};
 
-    // State for controlled component - default to min + (max-min)/2
+    // Get form context for pre-populated values
+    const formContext = useContext(FormFieldValueContext);
+    const formValue = formContext && name ? formContext.getFieldValue(name) : null;
+
+    // Initialize value from form context or style configuration
     const defaultValue = parseFloat(styleValue) || ((min + max) / 2);
-    const [value, setValue] = useState<number>(defaultValue);
+    const [value, setValue] = useState<number>(() => {
+        if (formValue !== null) {
+            // Use form value if available
+            return parseFloat(formValue) || defaultValue;
+        }
+        // Fallback to style configuration
+        return defaultValue;
+    });
+
+    // Update value when form context changes (for record editing)
+    useEffect(() => {
+        if (formValue !== null) {
+            const parsedValue = parseFloat(formValue);
+            if (!isNaN(parsedValue)) {
+                setValue(parsedValue);
+            }
+        }
+    }, [formValue]);
 
     // Parse translatable marks values from JSON
     let customMarks: Array<{ value: number; label: string }> = [];

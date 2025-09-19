@@ -1,20 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Chip, Tooltip, Group, ActionIcon } from '@mantine/core';
-import {
-    IconInfoCircle,
-    IconCheck,
-    IconX,
-    IconStar,
-    IconHeart,
-    IconThumbUp,
-    IconThumbDown,
-    IconBookmark,
-    IconFlag,
-    IconAlertTriangle
-} from '@tabler/icons-react';
+import React, { useState, useEffect, useContext } from 'react';
+import { Chip, Tooltip } from '@mantine/core';
 import { getFieldContent } from '../../../../../../utils/style-field-extractor';
 import { IChipStyle } from '../../../../../../types/common/styles.types';
 import IconComponent from '../../../../shared/common/IconComponent';
+import { FormFieldValueContext } from '../../FormStyle';
 
 /**
  * Props interface for ChipStyle component
@@ -74,33 +63,27 @@ const ChipStyle: React.FC<IChipStyleProps> = ({ style }) => {
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
-    // Initialize checked state from section_data if available (for record forms)
+    // Get form context for pre-populated values
+    const formContext = useContext(FormFieldValueContext);
+    const formValue = formContext && name ? formContext.getFieldValue(name) : null;
+
+    // Initialize checked state from form context or style configuration
     const [isChecked, setIsChecked] = useState(() => {
-        // Check if we have existing data from section_data (for record forms)
-        const sectionDataArray: any[] | undefined = (style as any).section_data;
-        const firstRecord = Array.isArray(sectionDataArray) && sectionDataArray.length > 0 ? sectionDataArray[0] : null;
-
-        if (firstRecord && firstRecord[name]) {
-            // If we have existing data, use it to determine checked state
-            const existingValue = firstRecord[name];
-            return existingValue === onValue || (existingValue === '1' && onValue === '1');
+        if (formValue !== null) {
+            // Use form value if available
+            return formValue === onValue || (formValue === '1' && onValue === '1');
         }
-
         // Fallback to style configuration
         return getFieldContent(style, 'chip_checked') === '1';
     });
 
-    // Update checked state when section_data changes (for record form pre-population)
+    // Update checked state when form context changes (for record editing)
     useEffect(() => {
-        const sectionDataArray: any[] | undefined = (style as any).section_data;
-        const firstRecord = Array.isArray(sectionDataArray) && sectionDataArray.length > 0 ? sectionDataArray[0] : null;
-
-        if (firstRecord && firstRecord[name]) {
-            const existingValue = firstRecord[name];
-            const shouldBeChecked = existingValue === onValue || (existingValue === '1' && onValue === '1');
+        if (formValue !== null) {
+            const shouldBeChecked = formValue === onValue || (formValue === '1' && onValue === '1');
             setIsChecked(shouldBeChecked);
         }
-    }, [style, name, onValue]);
+    }, [formValue, onValue]);
 
     // Handle chip change
     const handleChange = (checked: boolean) => {

@@ -24,7 +24,7 @@ import {
     // Special Components
     UnknownStyle
 } from './SelfHelpStyles';
-import { TStyle } from '../../../../types/common/styles.types';
+import { TStyle, IValidateStyle } from '../../../../types/common/styles.types';
 
 /**
  * Props interface for BasicStyle component
@@ -63,6 +63,11 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
             return <RegisterStyle style={style} />;
         case 'validate':
             return <ValidateStyle style={style} />;
+        // TODO: Enable when TypeScript compilation is resolved
+        // case 'form-log':
+        //     return <ValidateStyle style={style as IValidateStyle} />;
+        // case 'form-record':
+        //     return <ValidateStyle style={style as IValidateStyle} />;
         case 'resetPassword':
             return <ResetPasswordStyle style={style} />;
         case 'twoFactorAuth':
@@ -135,8 +140,8 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
             return <ActionIconStyle style={style} />;
 
         // Form & Input Styles
-        case 'formUserInputLog':
-        case 'formUserInputRecord':
+        case 'form-log':
+        case 'form-record':
             return <FormUserInputStyle style={style} />;
         case 'textarea':
             return <TextareaStyle style={style} />;

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Textarea, Input } from '@mantine/core';
 import { castMantineRadius, castMantineSize, getFieldContent } from '../../../../../../utils/style-field-extractor';
 import IconComponent from '../../../../shared/common/IconComponent';
 import { ITextareaStyle } from '../../../../../../types/common/styles.types';
+import { FormFieldValueContext } from '../../FormStyle';
 
 interface ITextareaStyleProps {
     style: ITextareaStyle;
@@ -33,7 +34,19 @@ const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style }) => {
     const radius = castMantineRadius(getFieldContent(style, 'mantine_radius'));
     const variant = getFieldContent(style, 'mantine_textarea_variant');
 
-    const [value, setValue] = useState(initialValue);
+    // Get form context for pre-populated values
+    const formContext = useContext(FormFieldValueContext);
+    const formValue = formContext && name ? formContext.getFieldValue(name) : null;
+
+    // Use form value if available, otherwise use initial value from style
+    const [value, setValue] = useState(formValue || initialValue);
+
+    // Update value when form context changes (for record editing)
+    useEffect(() => {
+        if (formValue !== null) {
+            setValue(formValue);
+        }
+    }, [formValue]);
 
     // Extract section content and convert to React nodes
     const leftSection = leftIconName ? <IconComponent iconName={leftIconName} size={16} /> : undefined;

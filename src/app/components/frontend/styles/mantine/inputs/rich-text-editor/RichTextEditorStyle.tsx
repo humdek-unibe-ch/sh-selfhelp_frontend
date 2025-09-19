@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Input } from '@mantine/core';
 import { RichTextEditor as MantineRichTextEditor, Link } from '@mantine/tiptap';
 import { useEditor } from '@tiptap/react';
@@ -18,6 +18,7 @@ import { BubbleMenu } from '@tiptap/react/menus';
 import styles from './RichTextEditorStyle.module.css';
 import { IRichTextEditorStyle } from '../../../../../../../types/common/styles.types';
 import { getFieldContent } from '../../../../../../../utils/style-field-extractor';
+import { FormFieldValueContext } from '../../../FormStyle';
 
 interface IRichTextEditorStyleProps {
     style: IRichTextEditorStyle;
@@ -47,8 +48,19 @@ const RichTextEditorStyle: React.FC<IRichTextEditorStyleProps> = ({ style }) => 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
-    // State for controlled input
-    const [value, setValue] = useState(initialValue);
+    // Get form context for pre-populated values
+    const formContext = useContext(FormFieldValueContext);
+    const formValue = formContext && name ? formContext.getFieldValue(name) : null;
+
+    // Use form value if available, otherwise use initial value from style
+    const [value, setValue] = useState(formValue || initialValue);
+
+    // Update value when form context changes (for record editing)
+    useEffect(() => {
+        if (formValue !== null) {
+            setValue(formValue);
+        }
+    }, [formValue]);
 
     // Create Tiptap editor instance
     const editor = useEditor({
@@ -78,7 +90,7 @@ const RichTextEditorStyle: React.FC<IRichTextEditorStyleProps> = ({ style }) => 
                 }),
             ] : []),
         ],
-        content: initialValue, // Use initialValue for initial content
+        content: value, // Use dynamic value for initial content
         onUpdate: ({ editor }) => {
             const html = editor.getHTML();
             setValue(html);
@@ -87,13 +99,13 @@ const RichTextEditorStyle: React.FC<IRichTextEditorStyleProps> = ({ style }) => 
         immediatelyRender: false, // Fix SSR hydration mismatch
     });
 
-    // Update editor content when initialValue changes (for controlled behavior)
+    // Update editor content when value changes (for controlled behavior and form context updates)
     useEffect(() => {
-        if (editor && initialValue !== editor.getHTML()) {
-            editor.commands.setContent(initialValue);
-            setValue(initialValue);
+        if (editor && value !== editor.getHTML()) {
+            editor.commands.setContent(value);
+            setValue(value);
         }
-    }, [editor, initialValue]);
+    }, [editor, value]);
 
     // Fallback: Render basic textarea with only CSS and name when Mantine styling is disabled
     if (!use_mantine_style) {

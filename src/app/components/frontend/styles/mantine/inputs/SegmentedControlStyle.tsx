@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { SegmentedControl, Input } from '@mantine/core';
 import { getFieldContent } from '../../../../../../utils/style-field-extractor';
 import { ISegmentedControlStyle } from '../../../../../../types/common/styles.types';
+import { FormFieldValueContext } from '../../FormStyle';
 
 /**
  * Props interface for SegmentedControlStyle component
@@ -30,9 +31,30 @@ const SegmentedControlStyle: React.FC<ISegmentedControlStyleProps> = ({ style })
     const name = getFieldContent(style, 'name');
     const label = getFieldContent(style, 'label');
     const description = getFieldContent(style, 'description');
-    const defaultValue = getFieldContent(style, 'value');
+    const styleValue = getFieldContent(style, 'value');
     const itemBorder = getFieldContent(style, 'mantine_segmented_control_item_border') === '1';
     const isRequired = getFieldContent(style, 'is_required') === '1';
+
+    // Get form context for pre-populated values
+    const formContext = useContext(FormFieldValueContext);
+    const formValue = formContext && name ? formContext.getFieldValue(name) : null;
+
+    // Initialize selected value from form context or style configuration
+    const [selectedValue, setSelectedValue] = useState<string>(() => {
+        return formValue || styleValue || '';
+    });
+
+    // Update selected value when form context changes (for record editing)
+    useEffect(() => {
+        if (formValue !== null) {
+            setSelectedValue(formValue);
+        }
+    }, [formValue]);
+
+    // Handle value change
+    const handleValueChange = (value: string) => {
+        setSelectedValue(value);
+    };
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
@@ -73,7 +95,8 @@ const SegmentedControlStyle: React.FC<ISegmentedControlStyleProps> = ({ style })
             className={cssClass}
             style={styleObj}
             name={name}
-            defaultValue={defaultValue}
+            value={selectedValue}
+            onChange={handleValueChange}
             withItemsBorders={itemBorder}
         />
     );

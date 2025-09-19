@@ -3969,4 +3969,213 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 -- Mantine style toggle
 (get_style_id('rich-text-editor'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the rich text editor component', 0, 1, 'Use Mantine Style');
 
+-- ===========================================
+-- FORM STYLES DEFINITIONS
+-- ===========================================
+
+-- Form button size field
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'mantine_buttons_size', get_field_type_id('slider'), 0, '{
+"options": [
+{"value": "xs", "text": "Extra Small"},
+{"value": "sm", "text": "Small"},
+{"value":"md","text":"Medium"},
+{"value":"lg","text":"Large"},
+{"value": "xl", "text": "Extra Large"}
+]
+}');
+
+-- Form button radius field
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'mantine_buttons_radius', get_field_type_id('slider'), 0, '{
+"options": [
+{"value": "none", "text": "None"},
+{"value": "xs", "text": "Extra Small"},
+{"value": "sm", "text": "Small"},
+{"value":"md","text":"Medium"},
+{"value":"lg","text":"Large"},
+{"value": "xl", "text": "Extra Large"}
+]
+}');
+
+-- Form button variant field
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'mantine_buttons_variant', get_field_type_id('select'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "filled", "options":[
+{"value":"filled","text":"Filled"},
+{"value":"light","text":"Light"},
+{"value":"outline","text":"Outline"},
+{"value":"transparent","text":"Transparent"},
+{"value":"white","text":"White"},
+{"value":"subtle","text":"Subtle"},
+{"value":"gradient","text":"Gradient"}
+]}');
+
+-- Form buttons position field
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'mantine_buttons_position', get_field_type_id('select'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "space-between", "options":[
+{"value":"space-between","text":"Justified (based on button order)"},
+{"value":"center","text":"Centered"},
+{"value":"flex-end","text":"Right aligned"},
+{"value":"flex-start","text":"Left aligned"}
+]}');
+
+-- Form buttons order field
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'mantine_buttons_order', get_field_type_id('segment'), 0, '{"options":[
+{"value":"save-cancel","text":"Save → Cancel"},
+{"value":"cancel-save","text":"Cancel → Save"}
+]}');
+
+-- Form save button label field
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'btn_save_label', get_field_type_id('text'), 1, null);
+
+-- Form update button label field
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'btn_update_label', get_field_type_id('text'), 1, null);
+
+-- Form cancel button label field
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'btn_cancel_label', get_field_type_id('text'), 1, null);
+
+-- Form save button color field
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'mantine_btn_save_color', get_field_type_id('color-picker'), 0,  '{
+  "options": [
+    { "value": "gray", "text": "Gray" },
+    { "value": "red", "text": "Red" },
+    { "value": "grape", "text": "Grape" },
+    { "value": "violet", "text": "Violet" },
+    { "value": "blue", "text": "Blue" },
+    { "value": "cyan", "text": "Cyan" },
+    { "value": "green", "text": "Green" },
+    { "value": "lime", "text": "Lime" },
+    { "value": "yellow", "text": "Yellow" },
+    { "value": "orange", "text": "Orange" }
+  ]
+}');
+
+-- Form cancel button color field
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'mantine_btn_cancel_color', get_field_type_id('color-picker'), 0,  '{
+  "options": [
+    { "value": "gray", "text": "Gray" },
+    { "value": "red", "text": "Red" },
+    { "value": "grape", "text": "Grape" },
+    { "value": "violet", "text": "Violet" },
+    { "value": "blue", "text": "Blue" },
+    { "value": "cyan", "text": "Cyan" },
+    { "value": "green", "text": "Green" },
+    { "value": "lime", "text": "Lime" },
+    { "value": "yellow", "text": "Yellow" },
+    { "value": "orange", "text": "Orange" }
+  ]
+}');
+
+-- Form update button color field
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'mantine_btn_update_color', get_field_type_id('color-picker'), 0,  '{
+  "options": [
+    { "value": "gray", "text": "Gray" },
+    { "value": "red", "text": "Red" },
+    { "value": "grape", "text": "Grape" },
+    { "value": "violet", "text": "Violet" },
+    { "value": "blue", "text": "Blue" },
+    { "value": "cyan", "text": "Cyan" },
+    { "value": "green", "text": "Green" },
+    { "value": "lime", "text": "Lime" },
+    { "value": "yellow", "text": "Yellow" },
+    { "value": "orange", "text": "Orange" }
+  ]
+}');
+
+-- Form redirect URL field
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'redirect_at_end', get_field_type_id('select-page-keyword'), 0, null);
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'btn_cancel_url', get_field_type_id('select-page-keyword'), 0, null);
+
+-- Form alert error field
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+(NULL, 'alert_error', get_field_type_id('textarea'), 1, null);
+
+-- Add form-log style
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+    NULL,
+    'form-log',
+    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    get_style_group_id('mantine'),
+    'Log form component that clears data after successful submission. Supports multiple entries and form validation.',
+    1
+);
+
+-- Add form-record style
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+    NULL,
+    'form-record',
+    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    get_style_group_id('mantine'),
+    'Record form component that preserves data and updates existing records. Pre-populates fields with existing data.',
+    1
+);
+
+-- Link fields to form-log style
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
+-- Basic form fields
+(get_style_id('form-log'), get_field_id('name'), NULL, 'Sets the form name for identification and API calls', 0, 0, 'Form Name'),
+(get_style_id('form-log'), get_field_id('is_log'), '1', 'Enables log mode - form clears after successful submission', 0, 1, 'Log Mode'),
+(get_style_id('form-log'), get_field_id('redirect_at_end'), NULL, 'URL to redirect to after successful form submission', 0, 0, 'Redirect URL'),
+
+-- Alert fields
+(get_style_id('form-log'), get_field_id('alert_success'), '', 'Success message displayed after form submission', 0, 0, 'Success Message'),
+(get_style_id('form-log'), get_field_id('alert_error'), 'An error occurred while submitting the form', 'Error message displayed when form submission fails', 0, 0, 'Error Message'),
+
+-- Button configuration (with update button)
+(get_style_id('form-log'), get_field_id('btn_save_label'), 'Save', 'Text displayed on the save button for new records', 0, 0, 'Save Button Label'),
+(get_style_id('form-log'), get_field_id('btn_cancel_label'), 'Cancel', 'Text displayed on the cancel button', 0, 0, 'Cancel Button Label'),
+(get_style_id('form-log'), get_field_id('btn_cancel_url'), NULL, 'URL to navigate to when cancel button is clicked', 0, 0, 'Cancel URL'),
+
+-- Button styling
+(get_style_id('form-log'), get_field_id('mantine_buttons_size'), 'sm', 'Size of the form buttons', 0, 0, 'Button Size'),
+(get_style_id('form-log'), get_field_id('mantine_buttons_radius'), 'sm', 'Border radius of the form buttons', 0, 0, 'Button Radius'),
+(get_style_id('form-log'), get_field_id('mantine_buttons_variant'), 'filled', 'Visual style variant for the buttons', 0, 0, 'Button Variant'),
+(get_style_id('form-log'), get_field_id('mantine_buttons_position'), 'space-between', 'Positioning of the buttons container', 0, 0, 'Button Position'),
+(get_style_id('form-log'), get_field_id('mantine_buttons_order'), 'save-cancel', 'Order of buttons (which button appears first)', 0, 0, 'Button Order'),
+(get_style_id('form-log'), get_field_id('mantine_btn_save_color'), 'blue', 'Color theme for the save button', 0, 0, 'Save Button Color'),
+(get_style_id('form-log'), get_field_id('mantine_btn_cancel_color'), 'gray', 'Color theme for the cancel button', 0, 0, 'Cancel Button Color'),
+
+-- Mantine style toggle
+(get_style_id('form-log'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the form component', 0, 1, 'Use Mantine Style');
+
+-- Link fields to form-record style
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
+-- Basic form fields (inherited from form-log)
+(get_style_id('form-record'), get_field_id('name'), NULL, 'Sets the form name for identification and API calls', 0, 0, 'Form Name'),
+(get_style_id('form-record'), get_field_id('is_log'), '0', 'Disables log mode - form preserves data for record updates', 0, 1, 'Log Mode'),
+(get_style_id('form-record'), get_field_id('redirect_at_end'), NULL, 'URL to redirect to after successful form submission', 0, 0, 'Redirect URL'),
+
+-- Alert fields
+(get_style_id('form-record'), get_field_id('alert_success'), '', 'Success message displayed after form submission', 0, 0, 'Success Message'),
+(get_style_id('form-record'), get_field_id('alert_error'), 'An error occurred while saving the record', 'Error message displayed when form submission fails', 0, 0, 'Error Message'),
+
+-- Button configuration (with update button)
+(get_style_id('form-record'), get_field_id('btn_save_label'), 'Save', 'Text displayed on the save button for new records', 0, 0, 'Save Button Label'),
+(get_style_id('form-record'), get_field_id('btn_update_label'), 'Update', 'Text displayed on the update button for existing records', 0, 0, 'Update Button Label'),
+(get_style_id('form-record'), get_field_id('btn_cancel_label'), 'Cancel', 'Text displayed on the cancel button', 0, 0, 'Cancel Button Label'),
+(get_style_id('form-record'), get_field_id('btn_cancel_url'), NULL, 'URL to navigate to when cancel button is clicked', 0, 0, 'Cancel URL'),
+
+-- Button styling (with update button color)
+(get_style_id('form-record'), get_field_id('mantine_buttons_size'), 'sm', 'Size of the form buttons', 0, 0, 'Button Size'),
+(get_style_id('form-record'), get_field_id('mantine_buttons_radius'), 'sm', 'Border radius of the form buttons', 0, 0, 'Button Radius'),
+(get_style_id('form-record'), get_field_id('mantine_buttons_variant'), 'filled', 'Visual style variant for the buttons', 0, 0, 'Button Variant'),
+(get_style_id('form-record'), get_field_id('mantine_buttons_position'), 'space-between', 'Positioning of the buttons container', 0, 0, 'Button Position'),
+(get_style_id('form-record'), get_field_id('mantine_buttons_order'), 'save-cancel', 'Order of buttons (which button appears first)', 0, 0, 'Button Order'),
+(get_style_id('form-record'), get_field_id('mantine_btn_save_color'), 'blue', 'Color theme for the save button', 0, 0, 'Save Button Color'),
+(get_style_id('form-record'), get_field_id('mantine_btn_update_color'), 'orange', 'Color theme for the update button', 0, 0, 'Update Button Color'),
+(get_style_id('form-record'), get_field_id('mantine_btn_cancel_color'), 'gray', 'Color theme for the cancel button', 0, 0, 'Cancel Button Color'),
+
+-- Mantine style toggle
+(get_style_id('form-record'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the form component', 0, 0, 'Use Mantine Style');
+
 

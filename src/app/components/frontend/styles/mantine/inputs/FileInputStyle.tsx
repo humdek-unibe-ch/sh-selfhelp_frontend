@@ -6,7 +6,7 @@ import { IFileInputStyle } from '../../../../../../types/common/styles.types';
 import { notifications } from '@mantine/notifications';
 import { IconAlertTriangle, IconCheck, IconX, IconUpload, IconFile, IconTrash, IconClearAll } from '@tabler/icons-react';
 import { useDropzone } from 'react-dropzone';
-import { FileInputRegistrationContext } from '../../FormUserInputStyle';
+import { FileInputRegistrationContext } from '../../FormStyle';
 
 /**
  * Props interface for FileInputStyle component
@@ -265,22 +265,16 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
     // Add form submit listener for debugging
     useEffect(() => {
         const handleSubmit = (e: Event) => {
-            console.log('FileInput Debug: Form submit detected in FileInput component');
-            console.log('FileInput Debug: Selected files at submit time:', selectedFiles);
             handleFormSubmit();
         };
 
         // Listen for form submit events
         const form = fileInputRef.current?.closest('form') || dropzoneInputRef.current?.closest('form');
         if (form) {
-            console.log('FileInput Debug: Found parent form, adding submit listener');
             form.addEventListener('submit', handleSubmit);
             return () => {
-                console.log('FileInput Debug: Removing submit listener');
                 form.removeEventListener('submit', handleSubmit);
             };
-        } else {
-            console.log('FileInput Debug: No parent form found');
         }
     }, [handleFormSubmit, selectedFiles]);
 

@@ -335,7 +335,8 @@ export function FieldRenderer({
                 fieldId={field.id}
                 config={field.config}
                 creatable={field.config.creatable}
-                clearable={true}
+                clearable={field.config.clearable}
+                searchable={field.config.searchable}
                 value={fieldValue}
                 onChange={onChange}
                 placeholder="Search and select page keyword..."

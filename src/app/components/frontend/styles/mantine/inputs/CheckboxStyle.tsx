@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Checkbox, Input } from '@mantine/core';
 import { getFieldContent, castMantineSize, castMantineRadius } from '../../../../../../utils/style-field-extractor';
 import IconComponent from '../../../../shared/common/IconComponent';
 import { ICheckboxStyle } from '../../../../../../types/common/styles.types';
+import { FormFieldValueContext } from '../../FormStyle';
 
 interface ICheckboxStyleProps {
     style: ICheckboxStyle;
@@ -36,33 +37,27 @@ const CheckboxStyle: React.FC<ICheckboxStyleProps> = ({ style }) => {
     // Build style object for wrapper props
     const styleObj: React.CSSProperties = {};
 
-    // Initialize checked state from section_data if available (for record forms)
+    // Get form context for pre-populated values
+    const formContext = useContext(FormFieldValueContext);
+    const formValue = formContext && name ? formContext.getFieldValue(name) : null;
+
+    // Initialize checked state from form context or style configuration
     const [isChecked, setIsChecked] = useState(() => {
-        // Check if we have existing data from section_data (for record forms)
-        const sectionDataArray = style.section_data;
-        const firstRecord = Array.isArray(sectionDataArray) && sectionDataArray.length > 0 ? sectionDataArray[0] : null;
-
-        if (firstRecord && firstRecord[name]) {
-            // If we have existing data, use it to determine checked state
-            const existingValue = firstRecord[name];
-            return existingValue === checkboxValue || (existingValue === '1' && checkboxValue === '1');
+        if (formValue !== null) {
+            // Use form value if available
+            return formValue === checkboxValue || (formValue === '1' && checkboxValue === '1');
         }
-
         // Fallback to style configuration
         return value === checkboxValue;
     });
 
-    // Update checked state when section_data changes (for record form pre-population)
+    // Update checked state when form context changes (for record editing)
     useEffect(() => {
-        const sectionDataArray = style.section_data;
-        const firstRecord = Array.isArray(sectionDataArray) && sectionDataArray.length > 0 ? sectionDataArray[0] : null;
-
-        if (firstRecord && firstRecord[name]) {
-            const existingValue = firstRecord[name];
-            const shouldBeChecked = existingValue === checkboxValue || (existingValue === '1' && checkboxValue === '1');
+        if (formValue !== null) {
+            const shouldBeChecked = formValue === checkboxValue || (formValue === '1' && checkboxValue === '1');
             setIsChecked(shouldBeChecked);
         }
-    }, [style, name, checkboxValue]);
+    }, [formValue, checkboxValue]);
 
     // Handle checkbox change
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,7 +72,7 @@ const CheckboxStyle: React.FC<ICheckboxStyleProps> = ({ style }) => {
         <Checkbox
             checked={isChecked}
             onChange={handleChange}
-            name={name}
+            name="" // Empty name to prevent HTML checkbox from submitting
             required={isRequired}
             disabled={disabled}
             size={size}

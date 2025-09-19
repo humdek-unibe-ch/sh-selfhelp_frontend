@@ -1,10 +1,11 @@
 // Style name literal types for type safety
 export type TStyleName =
     | 'login' | 'profile' | 'validate' | 'register' | 'resetPassword' | 'twoFactorAuth'
+    | 'form-log' | 'form-record' | 'form'
     | 'container' | 'alert' | 'div' | 'refContainer' | 'dataContainer' | 'htmlTag' | 'center'
     | 'flex' | 'group' | 'stack' | 'simple-grid' | 'scroll-area' | 'space' | 'grid' | 'grid-column' | 'divider' | 'paper'
     | 'heading' | 'markdown' | 'markdownInline' | 'plaintext'
-    | 'formUserInput' | 'formUserInputLog' | 'formUserInputRecord' | 'input' | 'text-input' | 'textarea' | 'select' | 'radio' | 'slider' | 'checkbox'
+    | 'formUserInput' | 'form-log' | 'form-record' | 'input' | 'text-input' | 'textarea' | 'select' | 'radio' | 'slider' | 'checkbox'
     | 'image' | 'video' | 'audio' | 'figure' | 'carousel'
     | 'button' | 'link'
     | 'entryList' | 'entryRecord' | 'entryRecordDelete'
@@ -113,6 +114,14 @@ export interface IValidateStyle extends IBaseStyle {
     value_gender?: IContentField<string>;
     value_name?: IContentField<string>;
     anonymous_user_name_description?: IContentField<string>;
+    // Form configuration fields
+    is_log?: IContentField<string>;
+    redirect_at_end?: IContentField<string>;
+    cancel_url?: IContentField<string>;
+    ajax?: IContentField<string>;
+    label_save?: IContentField<string>;
+    label_update?: IContentField<string>;
+    label_cancel?: IContentField<string>;
 }
 
 export interface IRegisterStyle extends IBaseStyle {
@@ -247,32 +256,32 @@ export interface IPlaintextStyle extends IBaseStyle {
 
 // Form & Input Styles
 
-export interface IFormUserInputLogStyle extends IBaseStyle {
-    style_name: 'formUserInputLog';
-    label?: IContentField<string>;
-    type?: IContentField<string>;
+export interface IFormStyle extends IBaseStyle {
+    style_name: 'form-log' | 'form-record';
+    btn_save_label?: IContentField<string>;
     alert_success?: IContentField<string>;
     name?: IContentField<string>;
     is_log?: IContentField<string>;
-    anchor?: IContentField<string>;
-    ajax?: IContentField<string>;
     redirect_at_end?: IContentField<string>;
-    own_entries_only?: IContentField<string>;
-    internal?: IContentField<string>;
+    btn_cancel_url?: IContentField<string>;
+    btn_cancel_label?: IContentField<string>;
+    alert_error?: IContentField<string>;
+    buttons_size?: IContentField<string>;
+    buttons_radius?: IContentField<string>;
+    btn_save_color?: IContentField<string>;    
+    btn_cancel_color?: IContentField<string>;
+    buttons_variant?: IContentField<string>;
+    buttons_position?: IContentField<string>;
 }
 
-export interface IFormUserInputRecordStyle extends IBaseStyle {
-    style_name: 'formUserInputRecord';
-    label?: IContentField<string>;
-    type?: IContentField<string>;
-    alert_success?: IContentField<string>;
-    name?: IContentField<string>;
-    is_log?: IContentField<string>;
-    anchor?: IContentField<string>;
-    ajax?: IContentField<string>;
-    redirect_at_end?: IContentField<string>;
-    own_entries_only?: IContentField<string>;
-    internal?: IContentField<string>;
+export interface IFormLogStyle extends IFormStyle {
+    style_name: 'form-log';
+}
+
+export interface IFormRecordStyle extends IFormStyle {
+    style_name: 'form-record';
+    btn_update_label?: IContentField<string>;
+    btn_update_color?: IContentField<string>;
 }
 
 export interface IInputStyle extends IBaseStyle {

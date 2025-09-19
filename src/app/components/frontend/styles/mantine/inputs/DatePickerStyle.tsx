@@ -1,5 +1,5 @@
 // DatePickerStyle Component
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Input } from '@mantine/core';
 import {
     DatePickerInput,
@@ -11,6 +11,7 @@ import {
 import dayjs from 'dayjs';
 import { getFieldContent, castMantineSize, castMantineRadius } from '../../../../../../utils/style-field-extractor';
 import { IDatePickerStyle } from '../../../../../../types/common/styles.types';
+import { FormFieldValueContext } from '../../FormStyle';
 
 // Set dayjs locale if specified
 const setDayjsLocale = (locale: string) => {
@@ -108,21 +109,18 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
     // Determine if we should use Input.Wrapper or let the component handle labels itself
     const hasBuiltInLabels = label || description;
 
-    // Initialize state from section_data if available (for record forms)
-    const [currentValue, setCurrentValue] = useState<Date | null>(() => {
-        // Check if we have existing data from section_data (for record forms)
-        const sectionDataArray = style.section_data;
-        const firstRecord = Array.isArray(sectionDataArray) && sectionDataArray.length > 0 ? sectionDataArray[0] : null;
+    // Get form context for pre-populated values
+    const formContext = useContext(FormFieldValueContext);
+    const formContextValue = formContext && name ? formContext.getFieldValue(name) : null;
 
-        if (firstRecord && firstRecord[name]) {
-            const existingValue = firstRecord[name];
-            if (existingValue) {
-                try {
-                    // Try to parse the existing value - it might be in different formats
-                    return dayjs(existingValue).toDate();
-                } catch (error) {
-                    console.warn('Failed to parse existing date value:', existingValue);
-                }
+    // Initialize state from form context or style configuration
+    const [currentValue, setCurrentValue] = useState<Date | null>(() => {
+        if (formContextValue !== null) {
+            // Use form value if available
+            try {
+                return dayjs(formContextValue).toDate();
+            } catch (error) {
+                console.warn('Failed to parse form date value:', formContextValue);
             }
         }
 
@@ -130,22 +128,16 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
         return value ? dayjs(value).toDate() : null;
     });
 
-    // Update value when section_data changes (for record form pre-population)
+    // Update value when form context changes (for record editing)
     useEffect(() => {
-        const sectionDataArray = style.section_data;
-        const firstRecord = Array.isArray(sectionDataArray) && sectionDataArray.length > 0 ? sectionDataArray[0] : null;
-
-        if (firstRecord && firstRecord[name]) {
-            const existingValue = firstRecord[name];
-            if (existingValue) {
-                try {
-                    setCurrentValue(dayjs(existingValue).toDate());
-                } catch (error) {
-                    console.warn('Failed to parse updated date value:', existingValue);
-                }
+        if (formContextValue !== null) {
+            try {
+                setCurrentValue(dayjs(formContextValue).toDate());
+            } catch (error) {
+                console.warn('Failed to parse updated form date value:', formContextValue);
             }
         }
-    }, [style, name]);
+    }, [formContextValue]);
 
     // Handle value change for different component types
     const handleDateTimeChange = (value: Date | string | null) => {
@@ -353,7 +345,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
                 <input
                     type="hidden"
                     name={name}
-                    value={formValue}
+                    value={formValue || ''}
                     required={isRequired}
                 />
             </Input.Wrapper>
@@ -367,7 +359,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
             <input
                 type="hidden"
                 name={name}
-                value={formValue}
+                value={formValue || ''}
                 required={isRequired}
             />
         </>

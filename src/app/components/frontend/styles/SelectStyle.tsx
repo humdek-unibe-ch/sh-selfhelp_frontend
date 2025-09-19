@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Select, MultiSelect } from '@mantine/core';
 import { ISelectStyle } from '../../../../types/common/styles.types';
 import { getFieldContent, castMantineSize, castMantineRadius } from '../../../../utils/style-field-extractor';
+import { FormFieldValueContext } from './FormStyle';
 
 /**
  * Props interface for SelectStyle component
@@ -55,6 +56,24 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style }) => {
         label: item.label || item.text,
     }));
 
+    // Get form context for pre-populated values
+    const formContext = useContext(FormFieldValueContext);
+    const formValue = formContext && name ? formContext.getFieldValue(name) : null;
+
+    // Use form value if available, otherwise use initial value from style
+    const [selectedValue, setSelectedValue] = useState(isMultiple ? (formValue ? formValue.split(',') : []) : (formValue || value));
+
+    // Update value when form context changes (for record editing)
+    useEffect(() => {
+        if (formValue !== null) {
+            setSelectedValue(isMultiple ? formValue.split(',') : formValue);
+        }
+    }, [formValue, isMultiple]);
+
+    const handleValueChange = (value: string | string[]) => {
+        setSelectedValue(value);
+    };
+
     const commonProps = {
         label,
         placeholder,
@@ -68,6 +87,8 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style }) => {
         className: cssClass,
         style: styleObj,
         data: items,
+        value: selectedValue,
+        onChange: handleValueChange,
     };
 
     if (use_mantine_style) {
@@ -75,7 +96,6 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style }) => {
             return (
                 <MultiSelect
                     {...commonProps}
-                    defaultValue={value ? value.split(',') : undefined}
                     maxValues={maxValues}
                 />
             );
@@ -84,7 +104,6 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style }) => {
         return (
             <Select
                 {...commonProps}
-                defaultValue={value}
             />
         );
     }
@@ -105,7 +124,8 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style }) => {
             )}
             <select
                 name={name}
-                defaultValue={isMultiple ? undefined : value}
+                value={isMultiple ? undefined : selectedValue}
+                onChange={(e) => handleValueChange(e.target.value)}
                 multiple={isMultiple}
                 required={required}
                 disabled={disabled || locked}

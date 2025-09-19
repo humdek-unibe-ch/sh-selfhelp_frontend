@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { RangeSlider, Input } from '@mantine/core';
 import { getFieldContent } from '../../../../../../utils/style-field-extractor';
 import { IRangeSliderStyle } from '../../../../../../types/common/styles.types';
+import { FormFieldValueContext } from '../../FormStyle';
 
 /**
  * Props interface for RangeSliderStyle component
@@ -63,8 +64,52 @@ const RangeSliderStyle: React.FC<IRangeSliderStyleProps> = ({ style }) => {
     // Build style object
     const styleObj: React.CSSProperties = {};
 
-    // State for controlled component - default to [min, max] range
-    const [value, setValue] = useState<[number, number]>(JSON.parse(styleValue) as [number, number]);
+    // Get form context for pre-populated values
+    const formContext = useContext(FormFieldValueContext);
+    const formValue = formContext && name ? formContext.getFieldValue(name) : null;
+
+    // Initialize value from form context or style configuration
+    const [value, setValue] = useState<[number, number]>(() => {
+        if (formValue !== null) {
+            // Use form value if available - might be JSON string or already parsed array
+            try {
+                if (typeof formValue === 'string') {
+                    return JSON.parse(formValue) as [number, number];
+                } else if (Array.isArray(formValue)) {
+                    return formValue as [number, number];
+                }
+            } catch (error) {
+                console.warn('Failed to parse range slider form value:', formValue);
+            }
+        }
+
+        // Fallback to style configuration
+        try {
+            return JSON.parse(styleValue) as [number, number];
+        } catch (error) {
+            // Default to full range if parsing fails
+            return [min, max];
+        }
+    });
+
+    // Update value when form context changes (for record editing)
+    useEffect(() => {
+        if (formValue !== null) {
+            try {
+                let parsedValue: [number, number];
+                if (typeof formValue === 'string') {
+                    parsedValue = JSON.parse(formValue) as [number, number];
+                } else if (Array.isArray(formValue)) {
+                    parsedValue = formValue as [number, number];
+                } else {
+                    return; // Invalid format
+                }
+                setValue(parsedValue);
+            } catch (error) {
+                console.warn('Failed to parse updated range slider form value:', formValue);
+            }
+        }
+    }, [formValue]);
 
     // Parse translatable marks values from JSON
     let customMarks: Array<{ value: number; label: string }> = [];

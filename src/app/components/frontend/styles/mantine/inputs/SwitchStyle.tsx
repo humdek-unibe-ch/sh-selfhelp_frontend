@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Switch, Input } from '@mantine/core';
 import { getFieldContent, castMantineSize } from '../../../../../../utils/style-field-extractor';
 import { ISwitchStyle } from '../../../../../../types/common/styles.types';
+import { FormFieldValueContext } from '../../FormStyle';
 
 /**
  * Props interface for SwitchStyle component
@@ -33,10 +34,34 @@ const SwitchStyle: React.FC<ISwitchStyleProps> = ({ style }) => {
     const isRequired = getFieldContent(style, 'is_required') === '1';
     const labelPosition = getFieldContent(style, 'mantine_label_position') || 'top';
     const onValue = getFieldContent(style, 'mantine_switch_on_value') || '1';
+    const offValue = getFieldContent(style, 'mantine_switch_off_value') || '0';
     const useInputWrapper = getFieldContent(style, 'mantine_use_input_wrapper') === '1';
 
-    // Determine if switch should be checked based on value comparison
-    const isChecked = value === onValue;
+    // Get form context for pre-populated values
+    const formContext = useContext(FormFieldValueContext);
+    const formValue = formContext && name ? formContext.getFieldValue(name) : null;
+
+    // Initialize checked state from form context or style configuration
+    const [isChecked, setIsChecked] = useState(() => {
+        if (formValue !== null) {
+            // Use form value if available
+            return formValue === onValue;
+        }
+        // Fallback to style configuration
+        return value === onValue;
+    });
+
+    // Update checked state when form context changes (for record editing)
+    useEffect(() => {
+        if (formValue !== null) {
+            setIsChecked(formValue === onValue);
+        }
+    }, [formValue, onValue]);
+
+    // Handle switch change
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setIsChecked(event.currentTarget.checked);
+    };
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
@@ -47,9 +72,9 @@ const SwitchStyle: React.FC<ISwitchStyleProps> = ({ style }) => {
     // Create the Switch component
     const switchElement = (
         <Switch
-            value={value}
-            defaultChecked={isChecked}
-            name={name}
+            checked={isChecked}
+            onChange={handleChange}
+            name="" // Empty name to prevent HTML switch from submitting
             required={isRequired}
             onLabel={onLabel}
             offLabel={offLabel}
@@ -73,12 +98,30 @@ const SwitchStyle: React.FC<ISwitchStyleProps> = ({ style }) => {
                 description={description}
                 required={isRequired}
             >
-                {switchElement}
+                <div>
+                    {switchElement}
+                    {/* Hidden input to ensure form submission captures the value */}
+                    <input
+                        type="hidden"
+                        name={name}
+                        value={isChecked ? onValue : offValue}
+                    />
+                </div>
             </Input.Wrapper>
         );
     }
 
-   return switchElement;
+    return (
+        <>
+            {switchElement}
+            {/* Hidden input to ensure form submission captures the value */}
+            <input
+                type="hidden"
+                name={name}
+                value={isChecked ? onValue : offValue}
+            />
+        </>
+    );
 };
 
 export default SwitchStyle;
