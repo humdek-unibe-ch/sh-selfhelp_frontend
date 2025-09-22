@@ -6,4 +6,3 @@
  */
 
 export { DebugMenu } from './DebugMenu';
-export { CssClassValidator } from './CssClassValidator'; 

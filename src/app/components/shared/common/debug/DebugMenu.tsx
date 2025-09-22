@@ -38,7 +38,6 @@ import {
 import { isDebugEnabled, DEBUG_CONFIG } from '../../../../../config/debug.config';
 import { debugLogger } from '../../../../../utils/debug-logger';
 import { useAppNavigation } from '../../../../../hooks/useAppNavigation';
-import { CssClassValidator } from './CssClassValidator';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { useLanguageContext } from '../../../contexts/LanguageContext';
 import { notifications } from '@mantine/notifications';
@@ -401,10 +400,6 @@ export function DebugMenu() {
                                 {JSON.stringify(DEBUG_CONFIG, null, 2)}
                             </Code>
                         </Stack>
-                    </Tabs.Panel>
-
-                    <Tabs.Panel value="css" pt="md">
-                        <CssClassValidator />
                     </Tabs.Panel>
 
                     <Tabs.Panel value="language">

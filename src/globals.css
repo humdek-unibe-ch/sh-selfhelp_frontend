@@ -7,19 +7,46 @@
 
 /* Tailwind CSS layers and Mantine integration */
 
-/* Safelist classes for dynamic content - Tailwind 4 approach */
-@source inline("container mx-auto px-4 px-6 px-8 py-4 py-6 py-8");
-@source inline("max-w-xs max-w-sm max-w-md max-w-lg max-w-xl max-w-2xl max-w-3xl max-w-4xl max-w-5xl max-w-6xl max-w-7xl max-w-none max-w-full");
-@source inline("grid grid-cols-1 grid-cols-2 grid-cols-3 grid-cols-4 grid-cols-6 grid-cols-12");
+/* Comprehensive safelist classes for dynamic content - Tailwind 4 approach */
+
+/* Layout & Container Classes */
+@source inline("container mx-auto max-w-xs max-w-sm max-w-md max-w-lg max-w-xl max-w-2xl max-w-3xl max-w-4xl max-w-5xl max-w-6xl max-w-7xl max-w-none max-w-full");
+
+/* Grid & Flexbox Classes */
+@source inline("grid grid-cols-1 grid-cols-2 grid-cols-3 grid-cols-4 grid-cols-6 grid-cols-12 gap-1 gap-2 gap-3 gap-4 gap-6 gap-8");
 @source inline("sm:grid-cols-1 sm:grid-cols-2 sm:grid-cols-3 sm:grid-cols-4 md:grid-cols-1 md:grid-cols-2 md:grid-cols-3 md:grid-cols-4 md:grid-cols-6");
-@source inline("lg:grid-cols-1 lg:grid-cols-2 lg:grid-cols-3 lg:grid-cols-4 lg:grid-cols-6 gap-1 gap-2 gap-3 gap-4 gap-6 gap-8");
-@source inline("flex inline-flex flex-row flex-col flex-wrap flex-nowrap");
-@source inline("justify-start justify-center justify-end justify-between justify-around");
-@source inline("items-start items-center items-end items-stretch");
-@source inline("text-left text-center text-right text-justify");
-@source inline("font-normal font-medium font-semibold font-bold");
-@source inline("text-xs text-sm text-base text-lg text-xl text-2xl text-3xl text-4xl text-5xl text-6xl");
-@source inline("leading-none leading-tight leading-snug leading-normal leading-relaxed leading-loose");
+@source inline("lg:grid-cols-1 lg:grid-cols-2 lg:grid-cols-3 lg:grid-cols-4 lg:grid-cols-6 flex inline-flex flex-row flex-col flex-wrap flex-nowrap");
+@source inline("justify-start justify-center justify-end justify-between justify-around items-start items-center items-end items-stretch");
+
+/* Typography Classes */
+@source inline("text-xs text-sm text-base text-lg text-xl text-2xl text-3xl text-4xl text-5xl text-6xl font-thin font-light font-normal font-medium font-semibold font-bold");
+@source inline("text-left text-center text-right text-justify leading-none leading-tight leading-snug leading-normal leading-relaxed leading-loose");
+
+/* Basic Color Classes */
+@source inline("text-white text-black text-gray-50 text-gray-100 text-gray-200 text-gray-300 text-gray-400 text-gray-500 text-gray-600 text-gray-700 text-gray-800 text-gray-900");
+@source inline("bg-white bg-black bg-gray-50 bg-gray-100 bg-gray-200 bg-gray-300 bg-gray-400 bg-gray-500 bg-gray-600 bg-gray-700 bg-gray-800 bg-gray-900");
+@source inline("border border-0 border-2 border-4 border-8 border-gray-200 border-gray-300 dark:border-gray-700 text-blue-500 bg-blue-500 hover:bg-blue-600");
+
+/* Essential sizing and display classes */
+@source inline("w-auto w-full w-screen h-auto h-full h-screen block inline-block inline hidden relative absolute");
+
+/* Border radius and shadows */
+@source inline("rounded-none rounded-sm rounded rounded-md rounded-lg rounded-xl rounded-2xl rounded-3xl rounded-full shadow-none shadow-sm shadow shadow-md shadow-lg shadow-xl shadow-2xl");
+
+/* Transitions and animations */
+@source inline("transition-none transition-all transition-colors transition-opacity duration-75 duration-100 duration-150 duration-200 duration-300 animate-spin animate-ping animate-pulse animate-bounce");
+
+/* Additional specific classes not covered by brace expansion */
+@source inline("focus:outline-none focus:ring-1 focus:ring-2 focus:ring-blue-500 hover:shadow-md");
+
+/* Comprehensive CMS classes from predefined list */
+@source inline("absolute appearance-none bg-blue-500 bg-blue-600 bg-blue-700 bg-gray-100 bg-gray-200 bg-gray-300 bg-gray-800 bg-gray-900 bg-green-500 bg-green-600 bg-green-700 bg-indigo-500 bg-indigo-600 bg-indigo-700 bg-red-500 bg-red-600 bg-red-700 bg-white bg-yellow-400 bg-yellow-500 bg-yellow-600 block border-0 border-2 border-4 border-blue-500 border-gray-200 border-gray-300 border-gray-400 border-green-500 border-red-500 bottom-0 capitalize col-span-1 col-span-12 col-span-2 col-span-3 col-span-4 col-span-6 container fixed flex flex-col flex-nowrap flex-row flex-wrap font-bold font-light font-medium font-normal font-semibold gap-2 gap-4 gap-6 gap-8 grid grid-cols-1 grid-cols-12 grid-cols-2 grid-cols-3 grid-cols-4 grid-cols-6 h-32 h-48 h-64 h-auto h-full h-screen hidden hover:bg-blue-600 hover:bg-gray-100 hover:bg-green-600 hover:bg-red-600 hover:shadow-lg hover:shadow-md hover:text-blue-600 hover:text-green-600 hover:text-red-600 inline inline-block inline-flex items-center items-end items-start items-stretch justify-around justify-between justify-center justify-end justify-start left-0 lg:block lg:flex lg:hidden lg:text-lg lg:w-1/3 lowercase m-0 m-1 m-2 m-3 m-4 m-5 m-6 m-8 m-auto max-w-2xl max-w-full max-w-lg max-w-md max-w-sm max-w-xl max-w-xs mb-0 mb-1 mb-2 mb-3 mb-4 mb-5 mb-6 mb-8 md:block md:flex md:hidden md:text-base md:w-1/2 ml-0 ml-1 ml-2 ml-3 ml-4 ml-5 ml-6 ml-8 ml-auto mr-0 mr-1 mr-2 mr-3 mr-4 mr-5 mr-6 mr-8 mr-auto mt-0 mt-1 mt-2 mt-3 mt-4 mt-5 mt-6 mt-8 mx-0 mx-1 mx-2 mx-3 mx-4 mx-5 mx-6 mx-8 mx-auto my-0 my-1 my-2 my-3 my-4 my-5 my-6 my-8 no-underline opacity-100 opacity-25 opacity-50 opacity-75 outline-none overflow-auto overflow-hidden overflow-scroll overflow-x-auto overflow-x-hidden overflow-y-auto overflow-y-hidden p-0 p-1 p-2 p-3 p-4 p-5 p-6 p-8 pb-0 pb-1 pb-2 pb-3 pb-4 pb-5 pb-6 pb-8 pl-0 pl-1 pl-2 pl-3 pl-4 pl-5 pl-6 pl-8 pr-0 pr-1 pr-2 pr-3 pr-4 pr-5 pr-6 pr-8 pt-0 pt-1 pt-2 pt-3 pt-4 pt-5 pt-6 pt-8 px-0 px-1 px-2 px-3 px-4 px-5 px-6 px-8 py-0 py-1 py-2 py-3 py-4 py-5 py-6 py-8 relative resize-none resize-x resize-y right-0 rounded rounded-b rounded-full rounded-l rounded-lg rounded-md rounded-none rounded-r rounded-sm rounded-t shadow shadow-lg shadow-md shadow-none shadow-sm sm:block sm:flex sm:hidden sm:text-sm sm:w-full static sticky text-2xl text-3xl text-base text-black text-blue-500 text-blue-600 text-blue-700 text-center text-gray-500 text-gray-600 text-gray-700 text-gray-800 text-gray-900 text-green-500 text-green-600 text-green-700 text-indigo-500 text-indigo-600 text-indigo-700 text-left text-lg text-red-500 text-red-600 text-red-700 text-right text-sm text-white text-xl text-xs text-yellow-600 text-yellow-700 top-0 underline uppercase w-1/2 w-1/3 w-1/4 w-2/3 w-3/4 w-auto w-full z-10 z-20 z-30 z-40 z-50");
+
+/* Dark mode variants for CMS classes */
+@source inline("dark:bg-blue-500 dark:bg-blue-600 dark:bg-blue-700 dark:bg-gray-100 dark:bg-gray-200 dark:bg-gray-300 dark:bg-gray-800 dark:bg-gray-900 dark:bg-green-500 dark:bg-green-600 dark:bg-green-700 dark:bg-indigo-500 dark:bg-indigo-600 dark:bg-indigo-700 dark:bg-red-500 dark:bg-red-600 dark:bg-red-700 dark:bg-white dark:bg-yellow-400 dark:bg-yellow-500 dark:bg-yellow-600 dark:border-blue-500 dark:border-gray-200 dark:border-gray-300 dark:border-gray-400 dark:border-green-500 dark:border-red-500 dark:text-black dark:text-blue-500 dark:text-blue-600 dark:text-blue-700 dark:text-gray-500 dark:text-gray-600 dark:text-gray-700 dark:text-gray-800 dark:text-gray-900 dark:text-green-500 dark:text-green-600 dark:text-green-700 dark:text-indigo-500 dark:text-indigo-600 dark:text-indigo-700 dark:text-red-500 dark:text-red-600 dark:text-red-700 dark:text-white dark:text-yellow-600 dark:text-yellow-700 dark:shadow dark:shadow-lg dark:shadow-md dark:shadow-sm dark:hover:bg-blue-600 dark:hover:bg-gray-100 dark:hover:bg-green-600 dark:hover:bg-red-600 dark:hover:shadow-lg dark:hover:shadow-md dark:hover:text-blue-600 dark:hover:text-green-600 dark:hover:text-red-600");
+
+/* Focus states for CMS classes */
+@source inline("focus:ring-offset-2");
 
 /* Dynamic patterns for user customization using brace expansion */
 @source inline("{hover:,focus:,active:,dark:,dark:hover:,dark:focus:}{bg,text,border}-{slate,gray,zinc,neutral,stone,red,orange,amber,yellow,lime,green,emerald,teal,cyan,sky,blue,indigo,violet,purple,fuchsia,pink,rose}-{50,100,200,300,400,500,600,700,800,900,950}");

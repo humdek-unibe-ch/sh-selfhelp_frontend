@@ -24,7 +24,7 @@ import {
     UnknownStyle,
     FormStyle
 } from './SelfHelpStyles';
-import { IFormRecordStyle, IFormLogStyle, TStyle } from '../../../../types/common/styles.types';
+import { TStyle } from '../../../../types/common/styles.types';
 
 /**
  * Props interface for BasicStyle component
@@ -50,7 +50,6 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
     if (!style || !style.style_name) {
         return null;
     }
-
 
     /**
      * Renders the appropriate style component based on style_name

@@ -1,37 +1,44 @@
 # AI Generation Prompt for SH-SelfHelp CMS Sections
 
 ## Overview
-This document provides comprehensive instructions for AI models to generate JSON structures that can be imported into the SH-SelfHelp CMS system. The system uses a hierarchical section-based architecture where each section has a specific style type and configurable fields.
+This document provides comprehensive instructions for AI models to generate **complete JSON array structures** that can be directly imported into the SH-SelfHelp CMS system. The system uses a hierarchical section-based architecture where each section has a specific style type and configurable fields.
+
+**CRITICAL**: Your final output must be valid JSON in array format `[]` containing all sections.
 
 ## System Architecture
 
-### Section Structure
-Every section in the system follows this base structure:
+### Complete Page Structure
+The entire page content must be wrapped in an array `[]` containing all sections:
+
 ```json
-{
-  "name": "style-name",
-  "style_name": "style_type",
-  "children": [],
-  "fields": {
-    "field_name": {
-      "language_code": {
-        "content": "field_value",
-        "meta": null
+[
+  {
+    "name": "section-name",
+    "style_name": "style_type",
+    "children": [],
+    "fields": {
+      "field_name": {
+        "language_code": {
+          "content": "field_value",
+          "meta": null
+        }
       }
+    },
+    "global_fields": {
+      "condition": null,
+      "data_config": null,
+      "css": "tailwind-classes",
+      "css_mobile": "mobile-specific-classes",
+      "debug": false
     }
-  },
-  "global_fields": {
-    "condition": null,
-    "data_config": null,
-    "css": "tailwind-classes",
-    "css_mobile": "mobile-specific-classes",
-    "debug": false
   }
-}
+]
 ```
 
+**CRITICAL**: Always generate the complete JSON array structure, not individual objects.
+
 **Important Notes:**
-- **Section Names**: Use format `timestamp-style_name` (e.g., "1758543742-html-tag")
+- **Section Names**: Use format `style_name` (e.g., "html-tag")
 - **Fields**: Can be an empty array `[]` or an object with field definitions
 - **Boolean Values**: Always stored as strings `"0"` (false) or `"1"` (true)
 - **Language Codes**: Use specific codes like `"de-CH"`, `"en-GB"`, or `"all"` for non-translatable fields
@@ -104,6 +111,16 @@ Many components support toggling between Mantine UI and custom implementations:
 
 - `"1"` = Use Mantine UI component with full props support
 - `"0"` or `null` = Use custom HTML implementation or return `null`
+
+#### Mantine Properties & Tailwind CSS Priority
+**ALWAYS** use proper Mantine properties first to achieve the desired styling and behavior. Only use Tailwind CSS classes in `global_fields.css` when Mantine properties cannot achieve the required result.
+
+**Examples:**
+- Use `mantine_size`, `mantine_variant`, `mantine_color` for component styling
+- Use `mantine_justify`, `mantine_align` for layout alignment
+- Use `mantine_gap` for spacing between child elements
+- Use `mantine_radius` for border radius
+- Only use Tailwind classes like `bg-blue-500`, `text-center`, `shadow-lg` when Mantine properties are insufficient
 
 #### Style Router (BasicStyle.tsx)
 The `BasicStyle` component acts as a router, mapping `style_name` to specific components:
@@ -584,6 +601,91 @@ All sections include these global_fields:
 
 ## CSS Styling Guidelines
 
+### Available Tailwind CSS Classes
+
+The system includes a comprehensive safelist of Tailwind CSS classes that are preserved during CSS purging. These classes are organized into categories and can be used in the `css` field of any section's `global_fields`. The available classes are loaded from the project's CSS safelist configuration and include:
+
+#### Layout & Container Classes
+- **Containers**: `container`, `mx-auto`
+- **Padding**: `px-0` through `px-8`, `py-0` through `py-8`, `p-0` through `p-8`
+- **Margins**: `m-0` through `m-8`, `mx-0` through `mx-8`, `my-0` through `my-8`, `mt-0` through `mt-8`, `mb-0` through `mb-8`, `ml-0` through `ml-8`, `mr-0` through `mr-8`, `mx-auto`, `my-auto`
+- **Max Widths**: `max-w-xs`, `max-w-sm`, `max-w-md`, `max-w-lg`, `max-w-xl`, `max-w-2xl`, `max-w-full`
+
+#### Grid & Flexbox Classes
+- **Grid**: `grid`, `grid-cols-1`, `grid-cols-2`, `grid-cols-3`, `grid-cols-4`, `grid-cols-6`, `grid-cols-12`
+- **Responsive Grids**: `sm:grid-cols-1`, `md:grid-cols-2`, `lg:grid-cols-3`
+- **Flexbox**: `flex`, `flex-row`, `flex-col`, `flex-wrap`, `flex-nowrap`
+- **Alignment**: `justify-start`, `justify-center`, `justify-end`, `justify-between`, `items-start`, `items-center`, `items-end`
+- **Gaps**: `gap-1`, `gap-2`, `gap-3`, `gap-4`, `gap-6`, `gap-8`
+
+#### Spacing Classes
+- **Margins**: `m-0`, `m-1`, `m-2`, `mx-auto`, `my-0`, `mt-0`, `mb-0`, `ml-0`, `mr-0` (and values up to 8)
+- **Padding**: `p-0`, `p-1`, `p-2`, `px-0`, `py-0`, `pt-0`, `pb-0`, `pl-0`, `pr-0` (and values up to 8)
+
+#### Typography Classes
+- **Font Sizes**: `text-xs`, `text-sm`, `text-base`, `text-lg`, `text-xl`, `text-2xl`, `text-3xl`, `text-4xl`, `text-5xl`, `text-6xl`
+- **Font Weights**: `font-thin`, `font-light`, `font-normal`, `font-medium`, `font-semibold`, `font-bold`
+- **Text Alignment**: `text-left`, `text-center`, `text-right`, `text-justify`
+- **Line Heights**: `leading-none`, `leading-tight`, `leading-snug`, `leading-normal`, `leading-relaxed`, `leading-loose`
+
+#### Color Classes (with Dark Mode Support)
+- **Text Colors**: `text-white`, `text-black`, `text-gray-100` through `text-gray-900`, `text-blue-500/600/700`, `text-red-500/600/700`, `text-green-500/600/700`, `text-purple-*`, `text-pink-*`, `text-orange-*`, `text-indigo-500/600/700`, `text-yellow-600/700`
+- **Background Colors**: `bg-white`, `bg-black`, `bg-gray-100` through `bg-gray-900`, `bg-blue-500/600/700`, `bg-red-500/600/700`, `bg-green-500/600/700`, `bg-indigo-500/600/700`, `bg-yellow-400/500/600`
+- **Border Colors**: `border-gray-200/300/400`, `border-blue-500`, `border-green-500`, `border-red-500`
+- **Dark Mode**: All color classes have `dark:` variants available
+
+#### Sizing Classes
+- **Widths**: `w-auto`, `w-full`, `w-screen`, plus fractional widths (`w-1/2`, `w-1/3`, `w-2/3`, `w-1/4`, etc.) and fixed widths (`w-1` through `w-64`)
+- **Heights**: `h-auto`, `h-full`, `h-screen`, plus fixed heights (`h-1` through `h-64`)
+
+#### Border & Radius Classes
+- **Borders**: `border`, `border-0`, `border-2`, `border-4`, `border-8`
+- **Border Radius**: `rounded-none`, `rounded-sm`, `rounded`, `rounded-md`, `rounded-lg`, `rounded-xl`, `rounded-2xl`, `rounded-3xl`, `rounded-full`
+
+#### Shadow Classes
+- **Box Shadows**: `shadow-none`, `shadow-sm`, `shadow`, `shadow-md`, `shadow-lg`, `shadow-xl`, `shadow-2xl`, `shadow-inner`
+
+#### Display & Position Classes
+- **Display**: `block`, `inline-block`, `inline`, `hidden`
+- **Position**: `relative`, `absolute`, `fixed`, `sticky`
+- **Overflow**: `overflow-hidden`, `overflow-visible`, `overflow-auto`, `overflow-scroll`
+
+#### Animation & Transition Classes
+- **Animations**: `animate-spin`, `animate-ping`, `animate-pulse`, `animate-bounce`
+- **Transitions**: `transition-none`, `transition-all`, `transition-colors`, `transition-opacity`, `transition-transform`
+- **Durations**: `duration-75`, `duration-100`, `duration-150`, `duration-200`, `duration-300`, `duration-500`
+
+#### Responsive Breakpoints
+- **Breakpoints**: `sm:`, `md:`, `lg:`, `xl:` prefixes for all responsive classes
+- **Examples**: `sm:hidden`, `md:flex`, `lg:grid-cols-3`
+
+#### Interactive States (Hover, Focus)
+- **Hover States**: `hover:bg-*`, `hover:text-*`, `hover:shadow-*`
+- **Focus States**: `focus:outline-none`, `focus:ring-*`
+
+#### Advanced Classes
+- **Transforms**: `transform`, `rotate-*`, `translate-*`, `skew-*`, `scale-*`
+- **Backdrop Filters**: `backdrop-blur-*`, `backdrop-brightness-*`
+- **Object Fit**: `object-contain`, `object-cover`, `object-fill`, `object-none`, `object-scale-down`
+- **Aspect Ratio**: `aspect-auto`, `aspect-square`, `aspect-video`
+- **Scroll Behavior**: `scroll-smooth`, `scroll-auto`
+- **Prose (for markdown)**: `prose`, `prose-sm`, `prose-lg`, `prose-xl`
+
+#### **Complete CMS Class Library**
+The system now includes **400+ predefined Tailwind CSS classes** from the comprehensive CMS class library, including:
+- **All spacing utilities** (`p-*`, `m-*`, `px-*`, `py-*`, etc.)
+- **Complete color palette** with Bootstrap-compatible colors
+- **All responsive breakpoints** (`sm:`, `md:`, `lg:`)
+- **Interactive states** (`hover:`, `focus:` with ring utilities)
+- **Typography transforms** (`uppercase`, `capitalize`, `underline`)
+- **Layout utilities** (`relative`, `absolute`, `fixed`, `sticky`)
+- **Z-index layers** (`z-10` through `z-50`)
+- **Overflow controls** (`overflow-*`, `overflow-x-*`, `overflow-y-*`)
+- **Cursor styles** and **pointer events**
+- **Resize utilities** and **appearance controls**
+
+All classes include **dark mode variants** (`dark:*`) and are validated in real-time during development by checking if they actually exist in the browser's loaded CSS stylesheets.
+
 ### Tailwind CSS Classes with Dark Mode Support
 The system uses Tailwind CSS with Mantine UI theming for styling. **CRITICAL**: Always include dark mode variants for proper theme support.
 
@@ -835,7 +937,7 @@ Here's a complete example of a simple page section:
 Based on the actual exported page data, here's how the system structures real content. Notice the naming patterns, field structures, and hierarchical relationships:
 
 ### Key Patterns from Real Data:
-1. **Section Names**: Use timestamp-style_name format (e.g., "1758543742-html-tag")
+1. **Section Names**: Use style_name format (e.g., "html-tag")
 2. **Empty Fields**: Many sections have `[]` instead of `{}` for fields
 3. **Boolean Values**: Always strings "0" or "1"
 4. **Language Structure**: Multi-language support with "de-CH", "en-GB", "all"
@@ -844,12 +946,13 @@ Based on the actual exported page data, here's how the system structures real co
 
 ### Real Example Structure:
 ```json
-{
-  "name": "1757924762-fieldset",
-  "style_name": "fieldset",
-  "children": [
+[
+  {
+    "name": "fieldset",
+    "style_name": "fieldset",
+    "children": [
     {
-      "name": "1758287030-datepicker",
+      "name": "datepicker",
       "style_name": "datepicker",
       "children": [],
       "fields": {
@@ -932,7 +1035,8 @@ Based on the actual exported page data, here's how the system structures real co
     "css_mobile": null,
     "debug": false
   }
-}
+  }
+]
 ```
 
 ## Legacy Example: Travel Blog Layout
@@ -1231,7 +1335,7 @@ Based on the provided image showing a travel blog layout with multiple articles,
 ## Important Notes for AI Generation
 
 ### System-Specific Requirements:
-1. **Section Naming**: Always use `timestamp-style_name` format (e.g., "1758543742-html-tag")
+1. **Section Naming**: Always use `style_name` format (e.g., "html-tag")
 2. **Boolean Values**: Always use string values `"0"` or `"1"`, never boolean `true`/`false`
 3. **Fields Structure**: Can be empty array `[]` or object with field definitions
 4. **Language Keys**: Use `"de-CH"`, `"en-GB"`, `"all"` - match the real export patterns
@@ -1253,11 +1357,13 @@ Based on the provided image showing a travel blog layout with multiple articles,
 5. **Legacy Styles**: Use legacy styles only when modern equivalents don't exist
 
 ### Validation Checklist:
-- [ ] Section names follow timestamp-style format
+- [ ] **Complete JSON Array**: Output must be wrapped in `[]` containing all sections
+- [ ] Section names follow style format
 - [ ] Boolean values are strings "0"/"1"
 - [ ] Language structure matches real exports
-- [ ] Global fields are complete
-- [ ] CSS includes dark mode variants
+- [ ] Global fields are complete for every section
+- [ ] **Mantine Properties First**: Use Mantine props before Tailwind CSS
+- [ ] CSS includes dark mode variants when using Tailwind
 - [ ] Form fields use correct naming conventions
 - [ ] Image sources use valid URLs or asset paths
 
@@ -1378,5 +1484,27 @@ Fields marked with "(+ creatable)" allow custom values beyond the predefined opt
 "mantine_radius": "md",
 "use_mantine_style": "1"
 ```
+
+### JSON Generation Requirements
+**ALWAYS** generate the complete JSON array structure as your final output. The response should be valid JSON that can be directly imported into the SH-SelfHelp CMS system.
+
+**Example Output Format:**
+```json
+[
+  {
+    "name": "container",
+    "style_name": "container",
+    "children": [...],
+    "fields": {...},
+    "global_fields": {...}
+  }
+]
+```
+
+**Priority Order for Styling:**
+1. **Mantine Properties**: Always try Mantine component props first (mantine_size, mantine_color, etc.)
+2. **Mantine Field Values**: Use the predefined values from the reference above
+3. **Tailwind CSS**: Only when Mantine properties cannot achieve the desired result
+4. **Custom HTML**: Use `html-tag` style only as last resort for very specific layouts
 
 When generating JSON from requirements, always reference the real export patterns and field structures shown above to ensure compatibility with the SH-SelfHelp CMS system.
