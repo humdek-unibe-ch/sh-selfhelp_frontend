@@ -291,7 +291,7 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'cite', get_field_type_id('text'), 1, null);
 
 -- JSON textarea fields (translatable)
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_radio_options', get_field_type_id('textarea'), 1, '{"rows": 5, "placeholder": "Enter JSON array of radio options"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_radio_options', get_field_type_id('json'), 1, '{"rows": 5, "placeholder": "Enter JSON array of radio options"}');
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_segmented_control_data', get_field_type_id('textarea'), 1, '{"rows": 3, "placeholder": "Enter JSON array of segmented control options"}');
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_combobox_data', get_field_type_id('textarea'), 1, '{"rows": 3, "placeholder": "Enter JSON array of combobox options"}');
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_multi_select_data', get_field_type_id('textarea'), 1, '{"rows": 3, "placeholder": "Enter JSON array of multi-select options"}');
@@ -1777,7 +1777,7 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES (get_style_id('radio'), get_field_id('is_required'), '0', 'Makes the radio button or radio group required for form submission. For more information check https://mantine.dev/core/radio', 0, 0, 'Required');
 
 -- Add Radio options field (for group functionality)
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_radio_options', get_field_type_id('textarea'), 1, '{"rows": 5, "placeholder": "Enter JSON array of radio options"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_radio_options', get_field_type_id('json'), 1, '{"rows": 5, "placeholder": "Enter JSON array of radio options"}');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('radio'), get_field_id('mantine_radio_options'), '[{"value":"option1","text":"Option 1","description":"First choice description"},{"value":"option2","text":"Option 2","description":"Second choice description"},{"value":"option3","text":"Option 3","description":"Third choice description"}]', 'Sets the options for the radio group as JSON array. If provided, renders as Radio.Group. Format: [{"value":"1","text":"Item1","description":"Optional description"}]. For more information check https://mantine.dev/core/radio', 0, 0, 'Options');
@@ -2254,7 +2254,7 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('combobox'), get_field_id('placeholder'), 'Select option', 'Sets the placeholder text for the combobox. For more information check https://mantine.dev/core/combobox', 0, 0, 'Placeholder');
 
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_combobox_options', get_field_type_id('textarea'), 1, '{"rows": 3, "placeholder": "Enter JSON array of combobox options"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_combobox_options', get_field_type_id('json'), 1, '{"rows": 3, "placeholder": "Enter JSON array of combobox options"}');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('combobox'), get_field_id('mantine_combobox_options'), '[{"value":"option1","text":"Option 1"},{"value":"option2","text":"Option 2"}]', 'Sets the data/options for the combobox as JSON array. Format: [{"value":"option1","text":"Option 1"}]. For more information check https://mantine.dev/core/combobox', 0, 0, 'Options');
@@ -3699,7 +3699,7 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 (NULL, 'mantine_carousel_contain_scroll', get_field_type_id('segment'), 0, '{"options": [{"value": "auto", "text": "Auto"}, {"value": "trimSnaps", "text": "Trim Snaps"}, {"value": "keepSnaps", "text": "Keep Snaps"}]}'),
 (NULL, 'mantine_carousel_in_view_threshold', get_field_type_id('slider'), 0, '{"min": 0, "max": 1, "step": 0.1, "defaultValue": 0, "marks": [{"value": 0, "label": "0%", "saveValue": "0"}, {"value": 0.5, "label": "50%", "saveValue": "0.5"}, {"value": 1, "label": "100%", "saveValue": "1"}]}'),
 (NULL, 'mantine_carousel_duration', get_field_type_id('select'), 0, '{"creatable": true, "searchable": false, "clearable": true, "placeholder": "25", "options": [{"value": "10", "text": "Fast (10ms)"}, {"value": "25", "text": "Normal (25ms)"}, {"value": "50", "text": "Slow (50ms)"}, {"value": "100", "text": "Very Slow (100ms)"}, {"value": "150", "text": "Extra Slow (150ms)"}, {"value": "200", "text": "Super Slow (200ms)"}, {"value": "0", "text": "Instant (0ms)"}]}'),
-(NULL, 'mantine_carousel_embla_options', get_field_type_id('textarea'), 0, NULL);
+(NULL, 'mantine_carousel_embla_options', get_field_type_id('json'), 0, NULL);
 
 -- Add carousel style
 INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
