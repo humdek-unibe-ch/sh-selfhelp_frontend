@@ -7,8 +7,7 @@ import {
     AudioStyle, FigureStyle, PlaintextStyle, RadioStyle,
     ScrollAreaStyle, CheckboxStyle, DatePickerStyle, SliderStyle,
     HtmlTagStyle, ValidateStyle,
-    ResetPasswordStyle, TwoFactorAuthStyle, TableStyle, TableRowStyle,
-    TableCellStyle, ShowUserInputStyle, CenterStyle,
+    ResetPasswordStyle, TwoFactorAuthStyle, CenterStyle,
     FlexStyle, GroupStyle, StackStyle, SimpleGridStyle, GridStyle,
     GridColumnStyle, SpaceStyle, AccordionStyle, AccordionItemStyle,
     ActionIconStyle, AspectRatioStyle, AvatarStyle,
@@ -137,9 +136,8 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
 
         // Form & Input Styles
         case 'form-log':
-            return <FormStyle style={style as IFormLogStyle} />;
         case 'form-record':
-            return <FormStyle style={style as IFormRecordStyle} />;
+            return <FormStyle style={style} />;
         case 'textarea':
             return <TextareaStyle style={style} />;
         case 'input':
