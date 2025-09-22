@@ -3,6 +3,8 @@ import { Slider, Input } from '@mantine/core';
 import { getFieldContent } from '../../../../../../utils/style-field-extractor';
 import { ISliderStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
+import parse from "html-react-parser";
+import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
 
 /**
  * Props interface for SliderStyle component
@@ -143,7 +145,7 @@ const SliderStyle: React.FC<ISliderStyleProps> = ({ style }) => {
     const wrappedComponent = label || description ? (
         <Input.Wrapper
             label={label}
-            description={description}
+            description={parse(sanitizeHtmlForParsing(description))}
             className={cssClass}
             style={styleObj}
             required={required}

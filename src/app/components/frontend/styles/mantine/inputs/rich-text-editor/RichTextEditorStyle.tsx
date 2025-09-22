@@ -19,6 +19,8 @@ import styles from './RichTextEditorStyle.module.css';
 import { IRichTextEditorStyle } from '../../../../../../../types/common/styles.types';
 import { getFieldContent } from '../../../../../../../utils/style-field-extractor';
 import { FormFieldValueContext } from '../../../FormStyle';
+import parse from "html-react-parser";
+import { sanitizeHtmlForInline, sanitizeHtmlForParsing } from '../../../../../../../utils/html-sanitizer.utils';
 
 interface IRichTextEditorStyleProps {
     style: IRichTextEditorStyle;
@@ -112,7 +114,7 @@ const RichTextEditorStyle: React.FC<IRichTextEditorStyleProps> = ({ style }) => 
         return (
             <Input.Wrapper
                 label={label}
-                description={description}
+                description={parse(sanitizeHtmlForParsing(description))}
                 required={required}
                 className={cssClass}
             >
@@ -146,7 +148,7 @@ const RichTextEditorStyle: React.FC<IRichTextEditorStyleProps> = ({ style }) => 
     return (
         <Input.Wrapper
             label={label}
-            description={description}
+            description={parse(sanitizeHtmlForInline(description))}
             required={required}
             className={cssClass}
         >

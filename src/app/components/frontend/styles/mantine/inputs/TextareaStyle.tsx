@@ -4,6 +4,8 @@ import { castMantineRadius, castMantineSize, getFieldContent } from '../../../..
 import IconComponent from '../../../../shared/common/IconComponent';
 import { ITextareaStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
+import parse from "html-react-parser";
+import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
 
 interface ITextareaStyleProps {
     style: ITextareaStyle;
@@ -76,7 +78,7 @@ const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style }) => {
     return (
         <Input.Wrapper
             label={label}
-            description={description}
+            description={parse(sanitizeHtmlForParsing(description))}
             required={required}
             className={cssClass}
         >

@@ -11,6 +11,8 @@ import { getFieldContent, castMantineSize } from '../../../../../../utils/style-
 import IconComponent from '../../../../shared/common/IconComponent';
 import { IRatingStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
+import parse from "html-react-parser";
+import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
 
 /**
  * Props interface for RatingStyle component
@@ -203,7 +205,7 @@ const RatingStyle: React.FC<IRatingStyleProps> = ({ style }) => {
     const wrappedComponent = label || description ? (
         <Input.Wrapper
             label={label}
-            description={description}
+            description={parse(sanitizeHtmlForParsing(description))}
             className={cssClass}
             style={styleObj}
         >

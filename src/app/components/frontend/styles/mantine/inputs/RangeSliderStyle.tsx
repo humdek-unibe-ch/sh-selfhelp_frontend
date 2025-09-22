@@ -3,6 +3,8 @@ import { RangeSlider, Input } from '@mantine/core';
 import { getFieldContent } from '../../../../../../utils/style-field-extractor';
 import { IRangeSliderStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
+import parse from "html-react-parser";
+import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
 
 /**
  * Props interface for RangeSliderStyle component
@@ -161,7 +163,7 @@ const RangeSliderStyle: React.FC<IRangeSliderStyleProps> = ({ style }) => {
     const wrappedComponent = label || description ? (
         <Input.Wrapper
             label={label}
-            description={description}
+            description={parse(sanitizeHtmlForParsing(description))}
             className={cssClass}
             style={styleObj}
         >

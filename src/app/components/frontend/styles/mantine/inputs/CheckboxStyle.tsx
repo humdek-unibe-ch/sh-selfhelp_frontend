@@ -4,6 +4,8 @@ import { getFieldContent, castMantineSize, castMantineRadius } from '../../../..
 import IconComponent from '../../../../shared/common/IconComponent';
 import { ICheckboxStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
+import parse from "html-react-parser";
+import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
 
 interface ICheckboxStyleProps {
     style: ICheckboxStyle;
@@ -83,7 +85,7 @@ const CheckboxStyle: React.FC<ICheckboxStyleProps> = ({ style }) => {
             className={cssClass}
             style={styleObj}
             label={useInputWrapper ? undefined : label}
-            description={useInputWrapper ? undefined : description}
+            description={useInputWrapper ? undefined : parse(sanitizeHtmlForParsing(description))}
         />
     );
 
@@ -92,7 +94,7 @@ const CheckboxStyle: React.FC<ICheckboxStyleProps> = ({ style }) => {
         return (
             <Input.Wrapper
                 label={label}
-                description={description}
+                description={parse(sanitizeHtmlForParsing(description))}
                 required={isRequired}
             >
                 <div>

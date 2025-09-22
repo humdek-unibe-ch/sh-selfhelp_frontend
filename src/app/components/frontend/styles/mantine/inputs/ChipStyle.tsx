@@ -4,7 +4,8 @@ import { getFieldContent } from '../../../../../../utils/style-field-extractor';
 import { IChipStyle } from '../../../../../../types/common/styles.types';
 import IconComponent from '../../../../shared/common/IconComponent';
 import { FormFieldValueContext } from '../../FormStyle';
-
+import DOMPurify from 'dompurify';
+import parse from "html-react-parser";
 /**
  * Props interface for ChipStyle component
  */
@@ -39,7 +40,6 @@ const ChipStyle: React.FC<IChipStyleProps> = ({ style }) => {
 
     // Form configuration fields (similar to checkbox)
     const name = getFieldContent(style, 'name') || `section-${style.id}`;
-    const defaultValue = getFieldContent(style, 'value');
     const legacyChipValue = getFieldContent(style, 'chip_value') || '1'; // Legacy field for backward compatibility
     const onValue = getFieldContent(style, 'chip_on_value') || legacyChipValue; // Value when checked
     const offValue = getFieldContent(style, 'chip_off_value') || '0'; // Value when unchecked
@@ -115,7 +115,7 @@ const ChipStyle: React.FC<IChipStyleProps> = ({ style }) => {
         <>
             {tooltip && tooltip.trim() ? (
                 <Tooltip
-                    label={tooltip}
+                    label={parse(DOMPurify.sanitize(tooltip))}
                     position={safeTooltipPosition as any}
                     refProp="rootRef"
                 >

@@ -12,6 +12,8 @@ import dayjs from 'dayjs';
 import { getFieldContent, castMantineSize, castMantineRadius } from '../../../../../../utils/style-field-extractor';
 import { IDatePickerStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
+import parse from "html-react-parser";
+import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
 
 // Set dayjs locale if specified
 const setDayjsLocale = (locale: string) => {
@@ -258,7 +260,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
                         onChange={handleTimeEventChange}
                         label={label}
                         placeholder={placeholder}
-                        description={description}
+                        description={parse(sanitizeHtmlForParsing(description))}
                         required={isRequired}
                         disabled={disabled}
                         size={size}
@@ -278,7 +280,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
                     onChange={handleDateTimeChange}
                     label={label}
                     placeholder={placeholder}
-                    description={description}
+                    description={parse(sanitizeHtmlForInline(description))}
                     required={isRequired}
                     disabled={disabled}
                     size={size}

@@ -3,6 +3,8 @@ import { Switch, Input } from '@mantine/core';
 import { getFieldContent, castMantineSize } from '../../../../../../utils/style-field-extractor';
 import { ISwitchStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
+import parse from "html-react-parser";
+import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
 
 /**
  * Props interface for SwitchStyle component
@@ -86,7 +88,7 @@ const SwitchStyle: React.FC<ISwitchStyleProps> = ({ style }) => {
             style={styleObj}
             labelPosition={labelPosition as 'left' | 'right'}
             label={ useInputWrapper ? undefined : label}
-            description={useInputWrapper ? undefined : description}
+            description={useInputWrapper ? undefined : parse(sanitizeHtmlForParsing(description))}
         />
     );
 
@@ -95,7 +97,7 @@ const SwitchStyle: React.FC<ISwitchStyleProps> = ({ style }) => {
         return (
             <Input.Wrapper
                 label={label}
-                description={description}
+                description={parse(sanitizeHtmlForParsing(description))}
                 required={isRequired}
             >
                 <div>

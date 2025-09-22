@@ -3,6 +3,8 @@ import { SegmentedControl, Input } from '@mantine/core';
 import { getFieldContent } from '../../../../../../utils/style-field-extractor';
 import { ISegmentedControlStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
+import parse from "html-react-parser";
+import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
 
 /**
  * Props interface for SegmentedControlStyle component
@@ -106,7 +108,7 @@ const SegmentedControlStyle: React.FC<ISegmentedControlStyleProps> = ({ style })
         return (
             <Input.Wrapper
                 label={label}
-                description={description}
+                description={parse(sanitizeHtmlForParsing(description))}
                 required={isRequired}
                 className={cssClass}
             >

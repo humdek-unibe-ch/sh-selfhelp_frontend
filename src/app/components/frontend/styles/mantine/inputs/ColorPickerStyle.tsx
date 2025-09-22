@@ -3,6 +3,8 @@ import { ColorPicker, Button, Popover, Tooltip, Input } from '@mantine/core';
 import { getFieldContent } from '../../../../../../utils/style-field-extractor';
 import { IColorPickerStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
+import parse from "html-react-parser";
+import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
 
 /**
  * Props interface for ColorPickerStyle component
@@ -111,7 +113,7 @@ const ColorPickerStyle: React.FC<IColorPickerStyleProps> = ({ style }) => {
     const wrappedColorPicker = label || description ? (
         <Input.Wrapper
             label={label}
-            description={description}
+            description={parse(sanitizeHtmlForParsing(description))}
             required={isRequired}
             className={cssClass}
         >

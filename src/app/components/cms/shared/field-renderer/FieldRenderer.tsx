@@ -6,6 +6,7 @@ import {
     GlobalCreatableSelectField,
     TextInputField,
     TextareaField,
+    RichTextField,
     CheckboxField,
     MonacoEditorField,
     SelectField,
@@ -199,10 +200,10 @@ export function FieldRenderer({
         );
     }
     
-    // Textarea field
+    // Textarea field - now uses rich text editor
     if (field.type === 'textarea') {
         return renderFieldWithBadge(
-            <TextareaField
+            <RichTextField
                 fieldId={field.id}
                 value={fieldValue}
                 onChange={onChange}

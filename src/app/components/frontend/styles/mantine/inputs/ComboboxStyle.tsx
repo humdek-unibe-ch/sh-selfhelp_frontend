@@ -17,6 +17,8 @@ import { IconPlus, IconX, IconCheck, IconChevronDown } from '@tabler/icons-react
 import { getFieldContent } from '../../../../../../utils/style-field-extractor';
 import { IComboboxStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
+import parse from "html-react-parser";
+import { sanitizeHtmlForInline, sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
 
 /**
  * Props interface for ComboboxStyle component
@@ -373,7 +375,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style }) => {
         const singleSelectComponent = (
             <Stack gap="xs">
                 <Combobox
-                    store={combobox}
+                    store={combobox}                    
                     withinPortal={false}
                     onOptionSubmit={(val) => {
                         handleToggleValue(val);
@@ -458,7 +460,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style }) => {
                 {label || description ? (
                     <Input.Wrapper
                         label={label}
-                        description={description}
+                        description={parse(sanitizeHtmlForParsing(description))}
                         required={isRequired}
                         className={cssClass}
                     >
@@ -579,7 +581,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style }) => {
     const wrappedMultiSelect = label || description ? (
         <Input.Wrapper
             label={label}
-            description={description}
+            description={parse(sanitizeHtmlForInline(description))}
             required={isRequired}
             className={cssClass}
         >

@@ -2,6 +2,7 @@ export { GlobalCreatableSelectField } from './GlobalCreatableSelectField';
 export { CreatableSelectField } from './CreatableSelectField/CreatableSelectField';
 export { TextInputField } from './TextInputField';
 export { TextareaField } from './TextareaField';
+export { RichTextField } from './RichTextField';
 export { CheckboxField } from './CheckboxField';
 export { MonacoEditorField } from './MonacoEditorField';
 export { SelectField } from './SelectField';

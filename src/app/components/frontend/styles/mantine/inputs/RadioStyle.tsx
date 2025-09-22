@@ -4,6 +4,8 @@ import BasicStyle from '../../BasicStyle';
 import { getFieldContent, castMantineSize } from '../../../../../../utils/style-field-extractor';
 import { IRadioStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
+import parse from "html-react-parser";
+import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
 
 /**
  * Props interface for RadioStyle component
@@ -237,7 +239,7 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style }) => {
                 return (
                     <Input.Wrapper
                         label={label}
-                        description={description}
+                        description={parse(sanitizeHtmlForParsing(description))}
                         required={required}
                     >
                         {radioGroupElement}
@@ -303,7 +305,7 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style }) => {
             return (
                 <Input.Wrapper
                     label={label}
-                    description={description}
+                    description={parse(sanitizeHtmlForInline(description))}
                     required={required}
                 >
                     {basicRadioGroupElement}
@@ -336,7 +338,7 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style }) => {
             return (
                 <Input.Wrapper
                     label={label}
-                    description={description}
+                    description={parse(sanitizeHtmlForInline(description))}
                     required={required}
                 >
                     {singleRadioElement}
@@ -365,7 +367,7 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style }) => {
         return (
             <Input.Wrapper
                 label={label}
-                description={description}
+                description={parse(sanitizeHtmlForInline(description))}
                 required={required}
             >
                 {basicRadioElement}
