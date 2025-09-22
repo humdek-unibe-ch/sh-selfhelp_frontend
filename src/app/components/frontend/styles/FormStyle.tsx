@@ -8,7 +8,7 @@ import { getFieldContent } from '../../../../utils/style-field-extractor';
 import { IFileInputStyleRef } from './mantine/inputs/FileInputStyle';
 import { IFormLogStyle, IFormRecordStyle } from '../../../../types/common/styles.types';
 
-interface FormUserInputStyleProps {
+interface FormStyleProps {
     style: IFormLogStyle | IFormRecordStyle;
 }
 
@@ -28,7 +28,7 @@ const FormFieldValueContext = React.createContext<{
 
 export { FileInputRegistrationContext, FormFieldValueContext };
 
-const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
+const FormStyle: React.FC<FormStyleProps> = ({ style }) => {
     const { pageContent } = usePageContentContext();
     const [formKey, setFormKey] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -548,4 +548,4 @@ const FormUserInputStyle: React.FC<FormUserInputStyleProps> = ({ style }) => {
     );
 };
 
-export default FormUserInputStyle;
+export default FormStyle;

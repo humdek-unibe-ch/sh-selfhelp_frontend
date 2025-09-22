@@ -1,7 +1,7 @@
 import React from 'react';
 import {
     AlertStyle, ButtonStyle, CarouselStyle, CardStyle, CardSegmentStyle, ContainerStyle,
-    DivStyle, FormUserInputStyle, HeadingStyle, ImageStyle, InputStyle,
+    DivStyle, HeadingStyle, ImageStyle, InputStyle,
     LinkStyle, LoginStyle, MarkdownStyle, RegisterStyle,
     SelectStyle, TabsStyle, TabStyle, VideoStyle,
     AudioStyle, FigureStyle, PlaintextStyle, RadioStyle,
@@ -22,9 +22,10 @@ import {
     SwitchStyle, TextInputStyle, TextareaStyle, RichTextEditorStyle, ThemeIconStyle, TimelineStyle,
     TitleStyle, TextStyle, TypographyStyle,
     // Special Components
-    UnknownStyle
+    UnknownStyle,
+    FormStyle
 } from './SelfHelpStyles';
-import { TStyle, IValidateStyle } from '../../../../types/common/styles.types';
+import { IFormRecordStyle, IFormLogStyle, TStyle } from '../../../../types/common/styles.types';
 
 /**
  * Props interface for BasicStyle component
@@ -62,12 +63,7 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
         case 'register':
             return <RegisterStyle style={style} />;
         case 'validate':
-            return <ValidateStyle style={style} />;
-        // TODO: Enable when TypeScript compilation is resolved
-        // case 'form-log':
-        //     return <ValidateStyle style={style as IValidateStyle} />;
-        // case 'form-record':
-        //     return <ValidateStyle style={style as IValidateStyle} />;
+            return <ValidateStyle style={style} />;        
         case 'resetPassword':
             return <ResetPasswordStyle style={style} />;
         case 'twoFactorAuth':
@@ -136,13 +132,14 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
             return <ButtonStyle style={style} />;
         case 'link':
             return <LinkStyle style={style} />;
-        case 'actionIcon':
+        case 'action-icon':
             return <ActionIconStyle style={style} />;
 
         // Form & Input Styles
         case 'form-log':
+            return <FormStyle style={style as IFormLogStyle} />;
         case 'form-record':
-            return <FormUserInputStyle style={style} />;
+            return <FormStyle style={style as IFormRecordStyle} />;
         case 'textarea':
             return <TextareaStyle style={style} />;
         case 'input':
@@ -192,16 +189,6 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
         case 'accordion-Item':
             return <AccordionItemStyle style={style} />;
 
-        // Table Styles
-        case 'table':
-            return <TableStyle style={style} />;
-        case 'tableRow':
-            return <TableRowStyle style={style} />;
-        case 'tableCell':
-            return <TableCellStyle style={style} />;
-            
-        case 'showUserInput':
-            return <ShowUserInputStyle style={style} />;
         case 'avatar':
             return <AvatarStyle style={style} />;
         case 'aspect-ratio':

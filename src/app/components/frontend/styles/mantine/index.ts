@@ -209,7 +209,7 @@ export const MANTINE_COMPONENT_MAP = {
     'rich-text-editor': 'RichTextEditorStyle',
     'combobox': 'ComboboxStyle',
     'multiSelect': 'MultiSelectStyle',
-    'actionIcon': 'ActionIconStyle',
+    'action-icon': 'ActionIconStyle',
 
     // Data Display Components
     'badge': 'BadgeStyle',

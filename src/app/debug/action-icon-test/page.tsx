@@ -13,8 +13,8 @@ const ActionIconTestPage = () => {
     // Mock style data for testing
     const mockActionIconStyle: IActionIconStyle = {
         id: 999,
-        name: { content: 'Test ActionIcon', meta: undefined },
-        style_name: 'actionIcon' as const,
+        name: { content: 'Test action-icon', meta: undefined },
+        style_name: 'action-icon' as const,
         // Basic Mantine fields
         mantine_variant: { content: 'subtle', meta: undefined },
         mantine_size: { content: 'md', meta: undefined },
@@ -45,7 +45,7 @@ const ActionIconTestPage = () => {
     const mockActionIconWithExternalLink = {
         ...mockActionIconStyle,
         id: 1000,
-        name: { content: 'External Link ActionIcon', meta: undefined },
+        name: { content: 'External Link action-icon', meta: undefined },
         mantine_left_icon: { content: 'IconExternalLink', meta: undefined },
         page_keyword: { content: 'https://mantine.dev/core/action-icon', meta: undefined },
         open_in_new_tab: { content: '1', meta: undefined }, // Test new tab
@@ -54,7 +54,7 @@ const ActionIconTestPage = () => {
     const mockActionIconWithoutMantine = {
         ...mockActionIconStyle,
         id: 1001,
-        name: { content: 'Fallback ActionIcon', meta: undefined },
+        name: { content: 'Fallback action-icon', meta: undefined },
         use_mantine_style: { content: '0', meta: undefined }, // Test fallback
         mantine_left_icon: { content: 'IconSettings', meta: undefined },
     };

@@ -1,11 +1,10 @@
 // Style name literal types for type safety
 export type TStyleName =
     | 'login' | 'profile' | 'validate' | 'register' | 'resetPassword' | 'twoFactorAuth'
-    | 'form-log' | 'form-record' | 'form'
     | 'container' | 'alert' | 'div' | 'refContainer' | 'dataContainer' | 'html-tag' | 'center'
     | 'flex' | 'group' | 'stack' | 'simple-grid' | 'scroll-area' | 'space' | 'grid' | 'grid-column' | 'divider' | 'paper'
     | 'heading' | 'markdown' | 'markdownInline' | 'plaintext'
-    | 'formUserInput' | 'form-log' | 'form-record' | 'input' | 'text-input' | 'textarea' | 'select' | 'radio' | 'slider' | 'checkbox'
+    | 'form-log' | 'form-record' | 'input' | 'text-input' | 'textarea' | 'select' | 'radio' | 'slider' | 'checkbox'
     | 'image' | 'video' | 'audio' | 'figure' | 'carousel'
     | 'button' | 'link'
     | 'entryList' | 'entryRecord' | 'entryRecordDelete'
@@ -14,7 +13,7 @@ export type TStyleName =
     | 'progressBar' | 'showUserInput' | 'version' | 'loop'
     // Mantine form components
     | 'button' | 'color-input' | 'color-picker' | 'file-input' | 'number-input' | 'radio-group' | 'range-slider'
-    | 'segmented-control' | 'switch' | 'combobox' | 'multiSelect' | 'actionIcon' | 'rich-text-editor'
+    | 'segmented-control' | 'switch' | 'combobox' | 'multiSelect' | 'action-icon' | 'rich-text-editor'
     // Mantine typography components
     | 'code'
     // Mantine data display components
@@ -916,7 +915,7 @@ export interface IComboboxStyle extends IBaseStyle {
 }
 
 export interface IActionIconStyle extends IBaseStyle {
-    style_name: 'actionIcon';
+    style_name: 'action-icon';
     mantine_variant?: IContentField<string>;          // Select field for variant
     mantine_action_icon_loading?: IContentField<string>; // Checkbox field for loading
     mantine_size?: IContentField<string>;             // Select field for size
@@ -1290,8 +1289,6 @@ export type TStyle =
     | IHeadingStyle
     | IMarkdownStyle
     | IPlaintextStyle
-    | IFormUserInputLogStyle
-    | IFormUserInputRecordStyle
     | IInputStyle
     | ITextInputStyle
     | ITextareaStyle

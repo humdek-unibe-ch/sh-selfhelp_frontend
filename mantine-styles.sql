@@ -2300,10 +2300,10 @@ VALUES (get_style_id('combobox'), get_field_id('mantine_multi_select_max_values'
 -- ACTION ICON COMPONENT
 -- ===========================================
 
--- Add new style 'actionIcon' based on Mantine ActionIcon component
+-- Add new style 'action-icon' based on Mantine ActionIcon component
 INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
-    'actionIcon',
+    'action-icon',
     (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
     get_style_group_id('mantine'),
     'Mantine ActionIcon component for interactive icons',
@@ -2312,42 +2312,42 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
 
 -- Add ActionIcon-specific fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('actionIcon'), get_field_id('mantine_variant'), 'subtle', 'Sets the variant of the action icon. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Variant');
+VALUES (get_style_id('action-icon'), get_field_id('mantine_variant'), 'subtle', 'Sets the variant of the action icon. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Variant');
 
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_action_icon_loading', get_field_type_id('checkbox'), 0, null);
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('actionIcon'), get_field_id('mantine_action_icon_loading'), '0', 'If `loading` prop is set, action icon will show loading state. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Loading');
+VALUES (get_style_id('action-icon'), get_field_id('mantine_action_icon_loading'), '0', 'If `loading` prop is set, action icon will show loading state. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Loading');
 
 -- Reuse existing fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('actionIcon'), get_field_id('mantine_size'), 'sm', 'Sets the size of the action icon. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Size');
+VALUES (get_style_id('action-icon'), get_field_id('mantine_size'), 'sm', 'Sets the size of the action icon. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Size');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('actionIcon'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the action icon. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Radius');
+VALUES (get_style_id('action-icon'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the action icon. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Radius');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('actionIcon'), get_field_id('mantine_color'), 'blue', 'Sets the color of the action icon. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Color');
+VALUES (get_style_id('action-icon'), get_field_id('mantine_color'), 'blue', 'Sets the color of the action icon. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Color');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('actionIcon'), get_field_id('disabled'), '0', 'If `disabled` prop is set ActionIcon will be disabled. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Disabled');
+VALUES (get_style_id('action-icon'), get_field_id('disabled'), '0', 'If `disabled` prop is set ActionIcon will be disabled. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Disabled');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('actionIcon'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set ActionIcon will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/action-icon', 0, 1, 'Use Mantine Style');
+VALUES (get_style_id('action-icon'), get_field_id('use_mantine_style'), 1, 'If `useMantineStyle` prop is set ActionIcon will use the Mantine style, otherwise it will be a clear element which can be styled with CSS and Tailwind CSS classes. For more information check https://mantine.dev/core/action-icon', 0, 1, 'Use Mantine Style');
 
 -- Add icon field for ActionIcon
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('actionIcon'), get_field_id('mantine_left_icon'), NULL, 'Sets the icon for the action icon. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Icon');
+VALUES (get_style_id('action-icon'), get_field_id('mantine_left_icon'), NULL, 'Sets the icon for the action icon. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Icon');
 
 -- Add link-related fields for ActionIcon
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('actionIcon'), get_field_id('is_link'), '0', 'If `isLink` prop is set ActionIcon will be a link. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Is Link');
+VALUES (get_style_id('action-icon'), get_field_id('is_link'), '0', 'If `isLink` prop is set ActionIcon will be a link. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Is Link');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('actionIcon'), get_field_id('page_keyword'), '#', 'Select a page keyword to link to. For more information check https://mantine.dev/core/action-icon', 0, 0, 'URL');
+VALUES (get_style_id('action-icon'), get_field_id('page_keyword'), '#', 'Select a page keyword to link to. For more information check https://mantine.dev/core/action-icon', 0, 0, 'URL');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('actionIcon'), get_field_id('open_in_new_tab'), '0', 'If `openInNewTab` prop is set ActionIcon will open in a new tab. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Open in New Tab');
+VALUES (get_style_id('action-icon'), get_field_id('open_in_new_tab'), '0', 'If `openInNewTab` prop is set ActionIcon will open in a new tab. For more information check https://mantine.dev/core/action-icon', 0, 0, 'Open in New Tab');
 
 -- ===========================================
 -- NOTIFICATION COMPONENT

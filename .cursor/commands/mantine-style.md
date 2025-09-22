@@ -613,7 +613,7 @@ Add a case for your component in the switch statement within the BasicStyle comp
 ```typescript
 switch (style.style_name) {
     // ... existing cases ...
-    case 'actionIcon':          // Use the exact style_name from your SQL
+    case 'action-icon':          // Use the exact style_name from your SQL
         return <ActionIconStyle style={style} />;
     // ... other cases ...
 }
@@ -632,7 +632,7 @@ export { default as ActionIconStyle } from './ActionIconStyle';
 - The system uses the `style_name` field to route to the appropriate component
 
 **Common Issues:**
-- Case sensitivity: Ensure `style_name` matches exactly (e.g., 'actionIcon', not 'ActionIcon')
+- Case sensitivity: Ensure `style_name` matches exactly (e.g., 'action-icon', not 'action-icon')
 - Import path: Make sure the import path is correct
 - Export: Ensure the component is properly exported from the index file
 
