@@ -4105,7 +4105,7 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
     NULL,
     'form-log',
     (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
-    get_style_group_id('mantine'),
+    get_style_group_id('form'),
     'Log form component that clears data after successful submission. Supports multiple entries and form validation.',
     1
 );
@@ -4115,7 +4115,7 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
     NULL,
     'form-record',
     (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
-    get_style_group_id('mantine'),
+    get_style_group_id('form'),
     'Record form component that preserves data and updates existing records. Pre-populates fields with existing data.',
     1
 );
