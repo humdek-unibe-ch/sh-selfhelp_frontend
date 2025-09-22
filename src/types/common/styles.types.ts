@@ -2,7 +2,7 @@
 export type TStyleName =
     | 'login' | 'profile' | 'validate' | 'register' | 'resetPassword' | 'twoFactorAuth'
     | 'form-log' | 'form-record' | 'form'
-    | 'container' | 'alert' | 'div' | 'refContainer' | 'dataContainer' | 'htmlTag' | 'center'
+    | 'container' | 'alert' | 'div' | 'refContainer' | 'dataContainer' | 'html-tag' | 'center'
     | 'flex' | 'group' | 'stack' | 'simple-grid' | 'scroll-area' | 'space' | 'grid' | 'grid-column' | 'divider' | 'paper'
     | 'heading' | 'markdown' | 'markdownInline' | 'plaintext'
     | 'formUserInput' | 'form-log' | 'form-record' | 'input' | 'text-input' | 'textarea' | 'select' | 'radio' | 'slider' | 'checkbox'
@@ -230,8 +230,9 @@ export interface IDataContainerStyle extends IBaseStyle {
 }
 
 export interface IHtmlTagStyle extends IBaseStyle {
-    style_name: 'htmlTag';
+    style_name: 'html-tag';
     html_tag?: IContentField<string>;
+    html_tag_content?: IContentField<string>;
 }
 
 // Text & Content Styles

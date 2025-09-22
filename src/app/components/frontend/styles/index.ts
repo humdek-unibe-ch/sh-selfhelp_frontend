@@ -14,5 +14,6 @@ export { default as TextareaStyle } from './mantine/inputs/TextareaStyle';
 // New components
 export { default as CardStyle } from './mantine/card/CardStyle';
 export { default as CardSegmentStyle } from './mantine/card/CardSegmentStyle';
+export { default as HtmlTagStyle } from './HtmlTagStyle';
 export { default as ListStyle } from './mantine/list/ListStyle';
 export { default as ListItemStyle } from './mantine/list/ListItemStyle';

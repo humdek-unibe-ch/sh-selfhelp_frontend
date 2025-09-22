@@ -116,7 +116,7 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
             return <MarkdownStyle style={style} />;
         case 'plaintext':
             return <PlaintextStyle style={style} />;
-        case 'htmlTag':
+        case 'html-tag':
             return <HtmlTagStyle style={style} />;
 
         // Media Styles

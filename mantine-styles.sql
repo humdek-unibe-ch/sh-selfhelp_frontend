@@ -4178,6 +4178,116 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 -- Mantine style toggle
 (get_style_id('form-record'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the form component', 0, 0, 'Use Mantine Style');
 
+-- ===========================================
+-- HTML TAG STYLE
+-- ===========================================
+
+-- Add html-tag style (can have children for flexible custom UI)
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+    NULL,
+    'html-tag',
+    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    get_style_group_id('wrapper'),
+    'Raw HTML tag component for custom flexible UI designs - allows rendering any HTML element with children',
+    1
+);
+
+-- Add content field for html-tag (translatable textarea)
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (
+    NULL,
+    'html_tag_content',
+    get_field_type_id('textarea'),
+    1,
+    '{"placeholder": "Enter HTML content or text", "description": "Content to display inside the HTML tag"}'
+);
+
+-- Add tag field for html-tag (dropdown with all HTML tags)
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (
+    NULL,
+    'html_tag',
+    get_field_type_id('select'),
+    0,
+    '{"searchable": true, "clearable": false, "creatable": false, "placeholder": "div", "options": [
+        {"value": "div", "text": "<div> - Division"},
+        {"value": "span", "text": "<span> - Inline Container"},
+        {"value": "p", "text": "<p> - Paragraph"},
+        {"value": "h1", "text": "<h1> - Heading 1"},
+        {"value": "h2", "text": "<h2> - Heading 2"},
+        {"value": "h3", "text": "<h3> - Heading 3"},
+        {"value": "h4", "text": "<h4> - Heading 4"},
+        {"value": "h5", "text": "<h5> - Heading 5"},
+        {"value": "h6", "text": "<h6> - Heading 6"},
+        {"value": "section", "text": "<section> - Section"},
+        {"value": "article", "text": "<article> - Article"},
+        {"value": "aside", "text": "<aside> - Aside"},
+        {"value": "header", "text": "<header> - Header"},
+        {"value": "footer", "text": "<footer> - Footer"},
+        {"value": "nav", "text": "<nav> - Navigation"},
+        {"value": "main", "text": "<main> - Main Content"},
+        {"value": "ul", "text": "<ul> - Unordered List"},
+        {"value": "ol", "text": "<ol> - Ordered List"},
+        {"value": "li", "text": "<li> - List Item"},
+        {"value": "dl", "text": "<dl> - Description List"},
+        {"value": "dt", "text": "<dt> - Description Term"},
+        {"value": "dd", "text": "<dd> - Description Definition"},
+        {"value": "blockquote", "text": "<blockquote> - Blockquote"},
+        {"value": "pre", "text": "<pre> - Preformatted Text"},
+        {"value": "code", "text": "<code> - Code"},
+        {"value": "em", "text": "<em> - Emphasis"},
+        {"value": "strong", "text": "<strong> - Strong Emphasis"},
+        {"value": "b", "text": "<b> - Bold"},
+        {"value": "i", "text": "<i> - Italic"},
+        {"value": "u", "text": "<u> - Underline"},
+        {"value": "mark", "text": "<mark> - Highlight"},
+        {"value": "small", "text": "<small> - Small Text"},
+        {"value": "sup", "text": "<sup> - Superscript"},
+        {"value": "sub", "text": "<sub> - Subscript"},
+        {"value": "cite", "text": "<cite> - Citation"},
+        {"value": "q", "text": "<q> - Quote"},
+        {"value": "abbr", "text": "<abbr> - Abbreviation"},
+        {"value": "dfn", "text": "<dfn> - Definition"},
+        {"value": "time", "text": "<time> - Time"},
+        {"value": "var", "text": "<var> - Variable"},
+        {"value": "samp", "text": "<samp> - Sample Output"},
+        {"value": "kbd", "text": "<kbd> - Keyboard Input"},
+        {"value": "address", "text": "<address> - Address"},
+        {"value": "del", "text": "<del> - Deleted Text"},
+        {"value": "ins", "text": "<ins> - Inserted Text"},
+        {"value": "s", "text": "<s> - Strikethrough"},
+        {"value": "figure", "text": "<figure> - Figure"},
+        {"value": "figcaption", "text": "<figcaption> - Figure Caption"},
+        {"value": "table", "text": "<table> - Table"},
+        {"value": "thead", "text": "<thead> - Table Head"},
+        {"value": "tbody", "text": "<tbody> - Table Body"},
+        {"value": "tfoot", "text": "<tfoot> - Table Foot"},
+        {"value": "tr", "text": "<tr> - Table Row"},
+        {"value": "th", "text": "<th> - Table Header"},
+        {"value": "td", "text": "<td> - Table Cell"},
+        {"value": "caption", "text": "<caption> - Table Caption"},
+        {"value": "colgroup", "text": "<colgroup> - Table Column Group"},
+        {"value": "col", "text": "<col> - Table Column"},
+        {"value": "fieldset", "text": "<fieldset> - Fieldset"},
+        {"value": "legend", "text": "<legend> - Legend"},
+        {"value": "label", "text": "<label> - Label"},
+        {"value": "button", "text": "<button> - Button"},
+        {"value": "output", "text": "<output> - Output"},
+        {"value": "meter", "text": "<meter> - Meter"},
+        {"value": "details", "text": "<details> - Details"},
+        {"value": "summary", "text": "<summary> - Summary"},
+        {"value": "dialog", "text": "<dialog> - Dialog"},
+        {"value": "canvas", "text": "<canvas> - Canvas"},
+        {"value": "svg", "text": "<svg> - SVG"},
+        {"value": "picture", "text": "<picture> - Picture"},
+        {"value": "img", "text": "<img> - Image"},
+        {"value": "a", "text": "<a> - Link"}
+    ]}'
+);
+
+-- Associate fields with html-tag style
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
+(get_style_id('html-tag'), get_field_id('html_tag_content'), NULL, 'Translatable content to display inside the HTML tag. This field supports multiple languages.', 0, 0, 'Content'),
+(get_style_id('html-tag'), get_field_id('html_tag'), 'div', 'Select the HTML tag to render. This provides raw HTML flexibility for custom UI designs.', 0, 0, 'HTML Tag');
+
 UPDATE `fields`
 SET id_type = get_field_type_id('textarea')
 WHERE name = 'confirmation_message';

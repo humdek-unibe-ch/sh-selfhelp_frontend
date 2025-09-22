@@ -1,16 +1,13 @@
 'use client';
 
-import React from 'react';
-import { Input } from '@mantine/core';
+import React, { useState } from 'react';
+import { Input, Button } from '@mantine/core';
 import { RichTextEditor, Link } from '@mantine/tiptap';
+import { IconCode } from '@tabler/icons-react';
 import { useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Highlight from '@tiptap/extension-highlight';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
-import Superscript from '@tiptap/extension-superscript';
-import Subscript from '@tiptap/extension-subscript';
-import Color from '@tiptap/extension-color';
 import Placeholder from '@tiptap/extension-placeholder';
 import { TextStyle } from '@tiptap/extension-text-style';
 
@@ -39,6 +36,9 @@ export function RichTextField({
     description,
     required = false,
 }: IRichTextFieldProps) {
+    const [sourceMode, setSourceMode] = useState(false);
+    const [rawHtml, setRawHtml] = useState('');
+
     const errorMessage = validator ? (validator(value).isValid ? undefined : validator(value).error) : undefined;
 
     const editor = useEditor({
@@ -69,6 +69,21 @@ export function RichTextField({
         }
     }, [editor, value]);
 
+    const toggleSourceMode = () => {
+        if (!sourceMode) {
+            // Entering source mode → load HTML into textarea
+            setRawHtml(editor?.getHTML() || value);
+        } else {
+            // Leaving source mode → update editor with raw HTML
+            if (editor) {
+                editor.commands.setContent(rawHtml, { parseOptions: { preserveWhitespace: true } });
+            }
+            const nextValue = sanitize ? sanitize(rawHtml) : rawHtml;
+            onChange(nextValue);
+        }
+        setSourceMode(!sourceMode);
+    };
+
     return (
         <Input.Wrapper
             key={fieldId}
@@ -77,35 +92,72 @@ export function RichTextField({
             required={required}
             error={errorMessage}
         >
-            <RichTextEditor editor={editor}>
-                <RichTextEditor.Toolbar>
-                    <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.Bold />
-                        <RichTextEditor.Italic />
-                        <RichTextEditor.Underline />
-                        <RichTextEditor.Strikethrough />
+            {sourceMode ? (
+                <>
+                    <Button
+                        variant="light"
+                        size="xs"
+                        onClick={toggleSourceMode}
+                        disabled={disabled}
+                        mb="xs"
+                    >
+                        Back to Editor
+                    </Button>
+                    <textarea
+                    value={rawHtml}
+                    onChange={(e) => setRawHtml(e.target.value)}
+                    disabled={disabled}
+                    style={{
+                        width: '100%',
+                        minHeight: '200px',
+                        fontFamily: 'monospace',
+                        fontSize: '14px',
+                        padding: '8px',
+                        border: '1px solid #ced4da',
+                        borderRadius: '4px',
+                        resize: 'vertical'
+                    }}
+                    placeholder={placeholder || 'Start writing...'}
+                    />
+                </>
+            ) : (
+                <RichTextEditor editor={editor}>
+                    <RichTextEditor.Toolbar>
+                        <RichTextEditor.ControlsGroup>
+                            <RichTextEditor.Bold />
+                            <RichTextEditor.Italic />
+                            <RichTextEditor.Underline />
+                            <RichTextEditor.Strikethrough />
                         <RichTextEditor.ClearFormatting />
                         <RichTextEditor.Highlight />
-                        <RichTextEditor.Code />
-                    </RichTextEditor.ControlsGroup>
+                        <RichTextEditor.Control
+                            onClick={toggleSourceMode}
+                            active={sourceMode}
+                            disabled={disabled}
+                            aria-label="Toggle source mode"
+                            title="Toggle source mode"
+                        >
+                            <IconCode size={16} />
+                        </RichTextEditor.Control>
+                        </RichTextEditor.ControlsGroup>
 
-                    <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.H1 />
-                        <RichTextEditor.H2 />
-                        <RichTextEditor.H3 />
-                        <RichTextEditor.H4 />
-                    </RichTextEditor.ControlsGroup>
+                        <RichTextEditor.ControlsGroup>
+                            <RichTextEditor.H1 />
+                            <RichTextEditor.H2 />
+                            <RichTextEditor.H3 />
+                            <RichTextEditor.H4 />
+                        </RichTextEditor.ControlsGroup>
 
-                    <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.Hr />
-                        <RichTextEditor.BulletList />
-                        <RichTextEditor.OrderedList />
-                    </RichTextEditor.ControlsGroup>
+                        <RichTextEditor.ControlsGroup>
+                            <RichTextEditor.Hr />
+                            <RichTextEditor.BulletList />
+                            <RichTextEditor.OrderedList />
+                        </RichTextEditor.ControlsGroup>
 
-                    <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.Link />
-                        <RichTextEditor.Unlink />
-                    </RichTextEditor.ControlsGroup>
+                        <RichTextEditor.ControlsGroup>
+                            <RichTextEditor.Link />
+                            <RichTextEditor.Unlink />
+                        </RichTextEditor.ControlsGroup>
 
                     <RichTextEditor.ControlsGroup>
                         <RichTextEditor.AlignLeft />
@@ -115,10 +167,11 @@ export function RichTextField({
                         <RichTextEditor.Undo />
                         <RichTextEditor.Redo />
                     </RichTextEditor.ControlsGroup>
-                </RichTextEditor.Toolbar>
+                    </RichTextEditor.Toolbar>
 
-                <RichTextEditor.Content style={{ minHeight: '200px' }} />
-            </RichTextEditor>
+                    <RichTextEditor.Content style={{ minHeight: '200px' }} />
+                </RichTextEditor>
+            )}
         </Input.Wrapper>
     );
 }
