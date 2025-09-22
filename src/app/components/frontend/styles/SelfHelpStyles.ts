@@ -82,13 +82,6 @@ export { default as SliderStyle } from './mantine/inputs/SliderStyle';
 // UI Components
 export { default as HtmlTagStyle } from './HtmlTagStyle';
 
-// Table Styles
-export { default as TableStyle } from './TableStyle';
-export { default as TableRowStyle } from './TableRowStyle';
-export { default as TableCellStyle } from './TableCellStyle';
-
-// Data Display Styles
-export { default as ShowUserInputStyle } from './ShowUserInputStyle';
 export { default as AvatarStyle } from './mantine/AvatarStyle';
 export { default as BadgeStyle } from './mantine/BadgeStyle';
 export { default as ChipStyle } from './mantine/inputs/ChipStyle';
