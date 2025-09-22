@@ -9,7 +9,7 @@ This document provides comprehensive instructions for AI models to generate JSON
 Every section in the system follows this base structure:
 ```json
 {
-  "name": "Section Name",
+  "name": "style-name",
   "style_name": "style_type",
   "children": [],
   "fields": {
@@ -23,26 +23,246 @@ Every section in the system follows this base structure:
   "global_fields": {
     "condition": null,
     "data_config": null,
-    "css": null,
-    "css_mobile": null,
+    "css": "tailwind-classes",
+    "css_mobile": "mobile-specific-classes",
     "debug": false
   }
 }
 ```
+
+**Important Notes:**
+- **Section Names**: Use format `timestamp-style_name` (e.g., "1758543742-html-tag")
+- **Fields**: Can be an empty array `[]` or an object with field definitions
+- **Boolean Values**: Always stored as strings `"0"` (false) or `"1"` (true)
+- **Language Codes**: Use specific codes like `"de-CH"`, `"en-GB"`, or `"all"` for non-translatable fields
 
 ### Key Principles
 1. **Hierarchical Structure**: Sections can contain child sections, creating nested layouts
 2. **Style-Based Rendering**: Each section has a `style_name` that determines how it renders
 3. **Multi-Language Support**: All field values are organized by language code (e.g., "en-GB", "de-CH")
 4. **Field-Based Configuration**: Section behavior is controlled through configurable fields
-5. **Global Fields**: Every section includes global_fields for system-wide configuration (condition, data_config, css, css_mobile, debug)
-6. **CSS Classes**: Styling is applied using Tailwind CSS classes through the `css` field in global_fields
+5. **Global Fields**: Every section includes global_fields for system-wide configuration
+6. **CSS Classes**: Styling is applied using Tailwind CSS classes through the `css` field
+7. **Mantine UI Integration**: Most styles support both Mantine UI components and custom implementations
+8. **Global Style Components**: Form elements (buttons, inputs, etc.) are global and can be used anywhere
+
+### CSS and Styling System
+
+#### Tailwind CSS Classes
+All styling is applied through Tailwind CSS classes in the `css` field:
+- **Layout**: `flex flex-col gap-4`, `grid grid-cols-2 gap-6`, `container mx-auto`
+- **Spacing**: `p-4 m-4`, `px-6 py-8`, `space-y-4`
+- **Colors**: `bg-white dark:bg-gray-900`, `text-gray-900 dark:text-white`, `border-gray-200`
+- **Typography**: `text-lg font-bold`, `text-center`, `leading-relaxed`
+- **Responsive**: `sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3`
+- **Dark Mode**: Always include dark mode variants (dark:) for all colors and backgrounds
+
+#### Dark Mode Support
+**CRITICAL**: Always include dark mode variants for visual elements:
+```json
+"css": "bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700"
+```
+
+#### Mobile-Specific Styling
+Use `css_mobile` for mobile-specific overrides:
+```json
+"css_mobile": "px-2 py-4 text-sm"
+```
+
+### Style Loading and Rendering System
+
+#### Style Categories
+Styles are organized into categories and loaded from different folders:
+
+**Mantine UI Styles** (`src/app/components/frontend/styles/mantine/`):
+- These are the primary style implementations using Mantine UI v8 components
+- Support both Mantine styling (`use_mantine_style = '1'`) and custom fallbacks
+- Include comprehensive Mantine props mapping
+
+**Legacy/Custom Styles** (`src/app/components/frontend/styles/` root level):
+- Custom implementations for specific use cases
+- Authentication forms, basic HTML elements
+- May not support Mantine toggling
+
+**Global Styles** (Form components):
+- Button, Input, Textarea, Select, etc. can be used in any context
+- Support both Mantine and custom implementations
+
+#### Mantine vs Custom Implementation Toggle
+Many components support toggling between Mantine UI and custom implementations:
+
+```json
+"fields": {
+  "use_mantine_style": {
+    "all": {
+      "content": "1",
+      "meta": null
+    }
+  }
+}
+```
+
+- `"1"` = Use Mantine UI component with full props support
+- `"0"` or `null` = Use custom HTML implementation or return `null`
+
+#### Style Router (BasicStyle.tsx)
+The `BasicStyle` component acts as a router, mapping `style_name` to specific components:
+- Authentication: `login`, `register`, `profile`, `validate`, `resetPassword`, `twoFactorAuth`
+- Layout: `container`, `div`, `flex`, `grid`, `stack`, `center`, etc.
+- Content: `heading`, `markdown`, `plaintext`, `image`, `video`
+- Forms: `input`, `textarea`, `select`, `radio`, `checkbox`, `button`
+- Advanced: `tabs`, `accordion`, `timeline`, `carousel`, etc.
+
+### Custom HTML with HtmlTag Style
+For very custom layouts that Mantine UI cannot support, use the `html-tag` style:
+
+```json
+{
+  "name": "custom-layout",
+  "style_name": "html-tag",
+  "children": [],
+  "fields": {
+    "html_tag": {
+      "all": {
+        "content": "section",
+        "meta": null
+      }
+    },
+    "html_tag_content": {
+      "all": {
+        "content": "<div class=\"custom-layout\">Custom HTML content</div>",
+        "meta": null
+      }
+    }
+  },
+  "global_fields": {
+    "css": "custom-styling-classes",
+    "css_mobile": null,
+    "condition": null,
+    "data_config": null,
+    "debug": false
+  }
+}
+```
+
+This allows arbitrary HTML tags and content with full CSS customization.
 
 ## Available Style Types
 
-### Authentication Styles
-- **login**: User login form with email/password fields
+### Layout & Container Styles
+- **container**: Responsive container with Mantine fluid/fixed width options
+- **card**: Card component with segments, shadows, and padding
+- **card-segment**: Card content sections
+- **center**: Centers content horizontally and vertically
+- **flex**: Flexbox layout with direction, justify, align controls
+- **group**: Horizontal group layout with spacing
+- **stack**: Vertical stack layout with spacing
+- **simple-grid**: CSS Grid with responsive columns
+- **grid**: Advanced CSS Grid with column spans
+- **grid-column**: Grid column with span/offset controls
+- **space**: Spacing component
+- **aspect-ratio**: Maintains aspect ratio for content
+- **background-image**: Background image container
+- **divider**: Visual divider with variants and orientation
+- **paper**: Elevated surface with shadow and radius
+- **fieldset**: Form fieldset with legend
+
+### Content & Text Styles
+- **heading**: Headings (h1-h6) - Note: Uses `title` field, not `text`
+- **markdown**: Markdown content renderer - Uses `text_md` field
+- **text**: Plain text with typography controls - Uses `text` field
+- **plaintext**: Simple text display - Uses `text` field
+- **code**: Inline/block code with syntax highlighting
+- **highlight**: Text highlighting with customizable colors - Uses `text` and `mantine_highlight_highlight` fields
+- **blockquote**: Blockquote with optional icon and citation
+- **title**: Large title component with size and alignment
+
+### Media Styles
+- **image**: Responsive images with alt text and sizing
+  - Uses `img_src`, `alt`, `title`, `is_fluid` fields
+  - Supports external URLs and uploaded assets
+- **carousel**: Image carousel with controls and indicators
+- **video**: Video player (custom implementation)
+- **audio**: Audio player (custom implementation)
+- **figure**: Image with caption
+- **avatar**: User avatar with image and alt text
+- **background-image**: Background image component
+
+### Interactive Elements
+- **button**: Action button with navigation and confirmations
+  - Uses `label`, `page_keyword`, `open_in_new_tab`, `disabled`, `confirmation_*` fields
+  - Supports both Mantine and custom HTML rendering
+- **link**: Navigation link (custom implementation)
+- **actionIcon**: Icon button with navigation
+
+### Form Elements
+- **form-record**: Record creation/editing form container
+  - Uses `alert_success`, `name`, `is_log` fields
+- **text-input**: Text input field with Mantine styling
+- **textarea**: Multi-line text with rich editor option
+- **select**: Dropdown selection with search
+- **radio**: Radio button group
+- **checkbox**: Checkbox with custom values
+- **switch**: Toggle switch
+- **datepicker**: Date picker with localization
+- **file-input**: File upload with drag & drop
+- **rich-text-editor**: WYSIWYG editor
+- **combobox**: Advanced select with create/search
+- **chip**: Chip/toggle component
+- **slider**: Range slider with marks and labels
+- **range-slider**: Dual-handle range slider
+- **number-input**: Numeric input with validation
+- **color-input**: Color picker input
+- **color-picker**: Standalone color picker
+
+### Navigation & Lists
+- **tabs**: Tab container with tab children
+- **tab**: Individual tab with label and content
+- **accordion**: Collapsible sections
+- **accordion-Item**: Accordion item with content
+- **list**: Ordered/unordered lists
+- **list-item**: List item with optional icon and content
+
+### Data Display
+- **timeline**: Timeline with items and bullets
+- **timeline-item**: Timeline entry with title
+- **progress**: Progress bar
+- **progress-root**: Progress container
+- **progress-section**: Multi-section progress
+- **badge**: Status badge with variants
+- **indicator**: Notification indicator
+- **kbd**: Keyboard key display
+- **rating**: Star rating component
+- **theme-icon**: Themed icon container
+
+### Feedback Components
+- **alert**: Alert/notification box with variants
+- **notification**: Toast-style notification
+
+### Utility & Advanced
+- **html-tag**: Custom HTML with arbitrary tags and content
+- **scroll-area**: Scrollable container
+- **spoiler**: Collapsible content spoiler
+- **typography**: Typography wrapper
+
+### Legacy/Custom Styles
+- **div**: Basic div container (legacy)
+- **input**: Basic input field (legacy)
+- **video**: Basic video player (legacy)
+- **audio**: Basic audio player (legacy)
+- **figure**: Basic figure with caption (legacy)
+- **entryList**: Data list display (legacy)
+- **entryRecord**: Data record display (legacy)
+- **entryRecordDelete**: Delete confirmation (legacy)
+- **version**: Version display (legacy)
+- **loop**: Content loop (legacy)
+- **dataContainer**: Data container (legacy)
+- **showUserInput**: User input display (legacy)
+
+### Authentication Styles (Legacy)
+- **login**: User login form
 - **register**: User registration form
+- **validate**: User validation form
 - **resetPassword**: Password reset form
 - **twoFactorAuth**: Two-factor authentication form
 - **profile**: User profile management form
@@ -610,7 +830,112 @@ Here's a complete example of a simple page section:
 }
 ```
 
-## Practical Example: Travel Blog Layout
+## Practical Example: Real Page Export Analysis
+
+Based on the actual exported page data, here's how the system structures real content. Notice the naming patterns, field structures, and hierarchical relationships:
+
+### Key Patterns from Real Data:
+1. **Section Names**: Use timestamp-style_name format (e.g., "1758543742-html-tag")
+2. **Empty Fields**: Many sections have `[]` instead of `{}` for fields
+3. **Boolean Values**: Always strings "0" or "1"
+4. **Language Structure**: Multi-language support with "de-CH", "en-GB", "all"
+5. **HTML Content**: Rich text fields can contain HTML (like `<p>`, `<strong>`, etc.)
+6. **Global Fields**: Always present with consistent structure
+
+### Real Example Structure:
+```json
+{
+  "name": "1757924762-fieldset",
+  "style_name": "fieldset",
+  "children": [
+    {
+      "name": "1758287030-datepicker",
+      "style_name": "datepicker",
+      "children": [],
+      "fields": {
+        "label": {
+          "de-CH": {
+            "content": "Date",
+            "meta": null
+          },
+          "en-GB": {
+            "content": "",
+            "meta": null
+          }
+        },
+        "is_required": {
+          "all": {
+            "content": "0",
+            "meta": null
+          }
+        },
+        "name": {
+          "all": {
+            "content": "date",
+            "meta": null
+          }
+        },
+        "value": {
+          "all": {
+            "content": "",
+            "meta": null
+          }
+        },
+        "description": {
+          "de-CH": {
+            "content": "",
+            "meta": null
+          },
+          "en-GB": {
+            "content": "",
+            "meta": null
+          }
+        },
+        "disabled": {
+          "all": {
+            "content": "0",
+            "meta": null
+          }
+        }
+      },
+      "global_fields": {
+        "condition": null,
+        "data_config": null,
+        "css": null,
+        "css_mobile": null,
+        "debug": false
+      }
+    }
+  ],
+  "fields": {
+    "label": {
+      "de-CH": {
+        "content": "Form",
+        "meta": null
+      },
+      "en-GB": {
+        "content": "",
+        "meta": null
+      }
+    },
+    "disabled": {
+      "all": {
+        "content": "0",
+        "meta": null
+      }
+    }
+  },
+  "global_fields": {
+    "condition": null,
+    "data_config": null,
+    "css": null,
+    "css_mobile": null,
+    "debug": false
+  }
+}
+```
+
+## Legacy Example: Travel Blog Layout
 
 Based on the provided image showing a travel blog layout with multiple articles, here's how to generate the JSON structure:
 
@@ -903,13 +1228,155 @@ Based on the provided image showing a travel blog layout with multiple articles,
 ]
 ```
 
-## Important Notes
+## Important Notes for AI Generation
 
-1. **Always use the placeholder image URL**: `http://127.0.0.1/selfhelp/assets/image-holder.png`
-2. **Maintain proper JSON structure**: Ensure all brackets and quotes are properly closed
-3. **Use semantic section names**: Names should be descriptive for admin users
-4. **Consider accessibility**: Include alt text for images, proper heading hierarchy
-5. **Mobile responsiveness**: Use responsive Tailwind classes when appropriate
-6. **Validation**: Ensure required fields are marked with `is_required: "1"`
+### System-Specific Requirements:
+1. **Section Naming**: Always use `timestamp-style_name` format (e.g., "1758543742-html-tag")
+2. **Boolean Values**: Always use string values `"0"` or `"1"`, never boolean `true`/`false`
+3. **Fields Structure**: Can be empty array `[]` or object with field definitions
+4. **Language Keys**: Use `"de-CH"`, `"en-GB"`, `"all"` - match the real export patterns
+5. **Meta Field**: Always set `"meta": null` in field content objects
+6. **Global Fields**: Always include the complete global_fields structure
 
-When generating JSON from an image, focus on recreating the visual layout and structure while using the appropriate style types and field configurations outlined above.
+### Content Guidelines:
+1. **Image Sources**: Use real URLs or `uploads/assets/general/image-holder.png` for uploaded images
+2. **HTML Content**: Rich text fields can contain HTML tags like `<p>`, `<strong>`, `<hr>`
+3. **Form Fields**: Use the exact field names from real export data
+4. **CSS Classes**: Apply Tailwind classes in `global_fields.css` for styling
+5. **Dark Mode**: Include dark mode variants (`dark:`) for all color-related classes
+
+### Style Selection Guidelines:
+1. **Mantine First**: Prefer Mantine UI styles (`use_mantine_style: "1"`) for modern components
+2. **Form Components**: Use specific Mantine form styles (text-input, file-input, etc.)
+3. **Layout Components**: Use flex, grid, stack, container for modern layouts
+4. **Custom HTML**: Use `html-tag` style only for very custom layouts that Mantine cannot support
+5. **Legacy Styles**: Use legacy styles only when modern equivalents don't exist
+
+### Validation Checklist:
+- [ ] Section names follow timestamp-style format
+- [ ] Boolean values are strings "0"/"1"
+- [ ] Language structure matches real exports
+- [ ] Global fields are complete
+- [ ] CSS includes dark mode variants
+- [ ] Form fields use correct naming conventions
+- [ ] Image sources use valid URLs or asset paths
+
+## Mantine Field Value Reference
+
+### Segment Field Values (Fixed Options)
+Segment fields provide mutually exclusive options and have predefined values:
+
+**mantine_orientation**: `horizontal`, `vertical`
+
+**mantine_color_format**: `hex`, `rgba`, `hsla`
+
+**mantine_direction**: `row`, `column`, `row-reverse`, `column-reverse`
+
+**mantine_wrap**: `wrap`, `nowrap`, `wrap-reverse`
+
+**mantine_group_wrap**: `wrap`, `nowrap`, `wrap-reverse`
+
+**mantine_space_direction**: `horizontal`, `vertical`
+
+**mantine_grid_overflow**: `visible`, `hidden`, `scroll`, `auto`
+
+**mantine_number_input_clamp_behavior**: `strict`, `blur`
+
+### Select Field Values (Fixed Options)
+Select fields provide dropdown choices with predefined and creatable options:
+
+**mantine_variant**: `filled`, `light`, `outline`, `subtle`, `default`, `transparent`, `white`
+
+**mantine_size**: `xs`, `sm`, `md`, `lg`, `xl`
+
+**mantine_radius**: `none`, `xs`, `sm`, `md`, `lg`, `xl`
+
+**mantine_gap**: `0`, `xs`, `sm`, `md`, `lg`, `xl`
+
+**mantine_justify**: `flex-start`, `center`, `flex-end`, `space-between`, `space-around`, `space-evenly`
+
+**mantine_align**: `flex-start`, `center`, `flex-end`, `stretch`, `baseline`
+
+**mantine_width**: `25%`, `50%`, `75%`, `100%`, `auto`, `fit-content`, `max-content`, `min-content` (+ creatable)
+
+**mantine_height**: `25%`, `50%`, `75%`, `100%`, `auto`, `fit-content`, `max-content`, `min-content` (+ creatable)
+
+**mantine_tooltip_position**: `top`, `bottom`, `left`, `right`, `top-start`, `top-end`, `bottom-start`, `bottom-end`, `left-start`, `left-end`, `right-start`, `right-end`
+
+**mantine_numeric_min**: `0`, `1`, `10`, `100` (+ creatable)
+
+**mantine_numeric_max**: `10`, `100`, `1000`, `10000` (+ creatable)
+
+**mantine_numeric_step**: `0.1`, `0.5`, `1`, `5`, `10` (+ creatable)
+
+**mantine_icon_size**: `14`, `16`, `18`, `20`, `24`, `32` (+ creatable)
+
+**mantine_control_size**: `14`, `16`, `18`, `20`, `24`, `32` (+ creatable)
+
+**mantine_tabs_variant**: `default`, `outline`, `pills`
+
+**mantine_aspect_ratio**: `1/1`, `4/3`, `16/9`, `21/9`, etc. (+ creatable)
+
+**mantine_chip_variant**: `filled`, `light`, `outline`, `dot`, `light-outline`
+
+**mantine_image_fit**: `contain`, `cover`, `fill`, `none`, `scale-down`
+
+**mantine_radio_label_position**: `right`, `left`
+
+**mantine_fieldset_variant**: `default`, `filled`
+
+**mantine_file_input_accept**: `image/*`, `audio/*`, `video/*`, `.pdf`, `.doc`, `.docx` (+ creatable)
+
+**mantine_file_input_max_size**: `1024`, `5242880`, `10485760`, `20971520` (+ creatable)
+
+**mantine_file_input_max_files**: `1`, `5`, `10`, `20` (+ creatable)
+
+### Slider Field Values (Range Options)
+Slider fields provide ranged values with predefined steps:
+
+**mantine_size**: `xs` (smallest) to `xl` (largest)
+
+**mantine_radius**: `none` (sharp) to `xl` (most rounded)
+
+**mantine_gap**: `0` (no gap) to `xl` (largest gap)
+
+### Color Field Values (Mantine Colors)
+**mantine_color**: `gray`, `red`, `grape`, `violet`, `blue`, `cyan`, `green`, `lime`, `yellow`, `orange`
+
+### Usage Guidelines for AI Generation
+
+#### When to Use Specific Values:
+1. **Size Fields**: Use `md` as default, `sm`/`lg` for smaller/larger variants
+2. **Color Fields**: Use `blue` as primary default, `gray` for neutral elements
+3. **Variant Fields**: Use `filled` as default for buttons, `light` for subtle elements
+4. **Layout Fields**: Use `center` for alignment, `flex-start` for left/top alignment
+5. **Spacing Fields**: Use `md` for standard spacing, `sm` for tight, `lg` for loose
+6. **Width/Height**: Use `100%` for full width, `auto` for content-based sizing
+
+#### Creatable Fields:
+Fields marked with "(+ creatable)" allow custom values beyond the predefined options. For example:
+- **mantine_width**: Can use custom percentages like `33.33%` or pixel values like `300px`
+- **mantine_numeric_min/max**: Can use any numeric value like `25`, `500`, etc.
+- **mantine_icon_size**: Can use any pixel value like `28`, `36`, etc.
+
+#### Common Field Combinations:
+```json
+// Standard button
+"mantine_variant": "filled",
+"mantine_color": "blue",
+"mantine_size": "md",
+"mantine_radius": "md"
+
+// Layout container
+"mantine_width": "100%",
+"mantine_gap": "md",
+"mantine_justify": "center",
+"mantine_align": "center"
+
+// Form input
+"mantine_size": "md",
+"mantine_radius": "md",
+"use_mantine_style": "1"
+```
+
+When generating JSON from requirements, always reference the real export patterns and field structures shown above to ensure compatibility with the SH-SelfHelp CMS system.
