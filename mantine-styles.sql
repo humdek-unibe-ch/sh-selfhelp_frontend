@@ -4178,4 +4178,8 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 -- Mantine style toggle
 (get_style_id('form-record'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the form component', 0, 0, 'Use Mantine Style');
 
+UPDATE `fields`
+SET id_type = get_field_type_id('textarea')
+WHERE name = 'confirmation_message';
+
 

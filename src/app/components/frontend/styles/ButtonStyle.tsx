@@ -1,9 +1,11 @@
-import React from 'react';
-import { Button } from '@mantine/core';
+import React, { useState } from 'react';
+import { Button, Modal, Group, Text } from '@mantine/core';
 import { useRouter } from 'next/navigation';
 import { getFieldContent } from '../../../../utils/style-field-extractor';
 import { IButtonStyle } from '../../../../types/common/styles.types';
 import IconComponent from '../../shared/common/IconComponent';
+import parse from "html-react-parser";
+import DOMPurify from 'dompurify';
 
 /**
  * Props interface for ButtonStyle component
@@ -39,6 +41,13 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
     const auto_contrast = getFieldContent(style, 'mantine_auto_contrast');
     const open_in_new_tab = getFieldContent(style, 'open_in_new_tab');
     const use_mantine_style = getFieldContent(style, 'use_mantine_style');
+    const label_cancel = getFieldContent(style, 'label_cancel');
+    const confirmation_title = getFieldContent(style, 'confirmation_title');
+    const confirmation_continue = getFieldContent(style, 'confirmation_continue');
+    const confirmation_message = parse(DOMPurify.sanitize(getFieldContent(style, 'confirmation_message')));
+
+    // Modal state
+    const [confirmationOpened, setConfirmationOpened] = useState(false);
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
@@ -46,7 +55,8 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
     const leftSection = leftIconName ? <IconComponent iconName={leftIconName} size={16} /> : null;
     const rightSection = rightIconName ? <IconComponent iconName={rightIconName} size={16} /> : null;
 
-    const handleClick = (e?: React.MouseEvent) => {
+    // Execute the actual button action (navigation or URL opening)
+    const executeAction = () => {
         if (url && url !== '#') {
             // Check if URL is internal (relative or same origin)
             if (open_in_new_tab === '1') {
@@ -57,10 +67,6 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
                 (typeof window !== 'undefined' && url.startsWith(window.location.origin));
 
             if (isInternal) {
-                // Prevent default anchor behavior if this is called from an anchor tag
-                if (e) {
-                    e.preventDefault();
-                }
                 // Use Next.js router for internal navigation
                 const path = url.startsWith('/') ? url : url.replace(window.location.origin, '');
                 router.push(path);
@@ -69,6 +75,21 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
                 window.location.href = url;
             }
         }
+    };
+
+    const handleClick = (e?: React.MouseEvent) => {
+        // Check if confirmation is required
+        if (confirmation_title && confirmation_message) {
+            // Prevent default if this is from an anchor tag
+            if (e) {
+                e.preventDefault();
+            }
+            setConfirmationOpened(true);
+            return;
+        }
+
+        // Execute action directly if no confirmation needed
+        executeAction();
     };
 
     // Handle anchor click for internal links
@@ -85,47 +106,77 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
         }
     };
 
+    // Confirmation Modal
     return (
-        use_mantine_style === '1' ? (
-            <Button
-                variant={variant}
-                color={color}
-                size={compact === '1' ? 'compact-' + size : size}
-                radius={radius === 'none' ? 0 : radius}
-                className={cssClass}
-                fullWidth={fullWidth === '1'}
-                leftSection={leftSection}
-                rightSection={rightSection}
-                disabled={disabled === '1'}
-                autoContrast={auto_contrast === '1'}
-                component={is_link === '1' ? 'a' : 'button'}
-                href={is_link === '1' ? url : undefined}
-                onClick={handleClick}
-                target={open_in_new_tab === '1' ? '_blank' : '_self'}
-            >
-                {label}
-            </Button>
-        ) : (
-            // Regular React button/link when Mantine is disabled
-            is_link === '1' ? (
-                <a
-                    href={url && url !== '#' ? url : '#'}
+        <>
+            {use_mantine_style === '1' ? (
+                <Button
+                    variant={variant}
+                    color={color}
+                    size={compact === '1' ? 'compact-' + size : size}
+                    radius={radius === 'none' ? 0 : radius}
                     className={cssClass}
-                    target={open_in_new_tab === '1' ? '_blank' : '_self'}
-                    onClick={handleAnchorClick}
-                >
-                    {label}
-                </a>
-            ) : (
-                <button
-                    onClick={handleClick}
-                    className={cssClass}
+                    fullWidth={fullWidth === '1'}
+                    leftSection={leftSection}
+                    rightSection={rightSection}
                     disabled={disabled === '1'}
+                    autoContrast={auto_contrast === '1'}
+                    component={is_link === '1' ? 'a' : 'button'}
+                    href={is_link === '1' ? url : undefined}
+                    onClick={handleClick}
+                    target={open_in_new_tab === '1' ? '_blank' : '_self'}
                 >
                     {label}
-                </button>
-            )
-        ));
+                </Button>
+            ) : (
+                // Regular React button/link when Mantine is disabled
+                is_link === '1' ? (
+                    <a
+                        href={url && url !== '#' ? url : '#'}
+                        className={cssClass}
+                        target={open_in_new_tab === '1' ? '_blank' : '_self'}
+                        onClick={handleAnchorClick}
+                    >
+                        {label}
+                    </a>
+                ) : (
+                    <button
+                        onClick={handleClick}
+                        className={cssClass}
+                        disabled={disabled === '1'}
+                    >
+                        {label}
+                    </button>
+                )
+            )}
+
+            <Modal
+                opened={confirmationOpened}
+                onClose={() => setConfirmationOpened(false)}
+                title={confirmation_title}
+                centered
+                size="md"
+            >
+                {confirmation_message}
+                <Group justify="flex-end">
+                    <Button
+                        variant="default"
+                        onClick={() => setConfirmationOpened(false)}
+                    >
+                        {label_cancel || 'Cancel'}
+                    </Button>
+                    <Button
+                        onClick={() => {
+                            setConfirmationOpened(false);
+                            executeAction();
+                        }}
+                    >
+                        {confirmation_continue || 'Continue'}
+                    </Button>
+                </Group>
+            </Modal>
+        </>
+    );
 };
 
 export default ButtonStyle;
