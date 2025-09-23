@@ -83,6 +83,88 @@ export interface ILoginStyle extends IBaseStyle {
 
 export interface IProfileStyle extends IBaseStyle {
     style_name: 'profile';
+
+    // Profile Section Title
+    profile_title?: IContentField<string>;
+
+    // User Information Display Labels
+    profile_account_info_title?: IContentField<string>;
+    profile_label_email?: IContentField<string>;
+    profile_label_username?: IContentField<string>;
+    profile_label_name?: IContentField<string>;
+    profile_label_created?: IContentField<string>;
+    profile_label_last_login?: IContentField<string>;
+
+    // Name Change Section
+    profile_name_change_title?: IContentField<string>;
+    profile_name_change_description?: IContentField<string>;
+    profile_name_change_label?: IContentField<string>;
+    profile_name_change_placeholder?: IContentField<string>;
+    profile_name_change_button?: IContentField<string>;
+
+    // Name Change Messages
+    profile_name_change_success?: IContentField<string>;
+    profile_name_change_error_required?: IContentField<string>;
+    profile_name_change_error_invalid?: IContentField<string>;
+    profile_name_change_error_general?: IContentField<string>;
+
+    // Password Reset Section
+    profile_password_reset_title?: IContentField<string>;
+    profile_password_reset_description?: IContentField<string>;
+    profile_password_reset_label_current?: IContentField<string>;
+    profile_password_reset_label_new?: IContentField<string>;
+    profile_password_reset_label_confirm?: IContentField<string>;
+    profile_password_reset_placeholder_current?: IContentField<string>;
+    profile_password_reset_placeholder_new?: IContentField<string>;
+    profile_password_reset_placeholder_confirm?: IContentField<string>;
+    profile_password_reset_button?: IContentField<string>;
+
+    // Password Reset Messages
+    profile_password_reset_success?: IContentField<string>;
+    profile_password_reset_error_current_required?: IContentField<string>;
+    profile_password_reset_error_current_wrong?: IContentField<string>;
+    profile_password_reset_error_new_required?: IContentField<string>;
+    profile_password_reset_error_confirm_required?: IContentField<string>;
+    profile_password_reset_error_mismatch?: IContentField<string>;
+    profile_password_reset_error_weak?: IContentField<string>;
+    profile_password_reset_error_general?: IContentField<string>;
+
+    // Account Deletion Section
+    profile_delete_title?: IContentField<string>;
+    profile_delete_description?: IContentField<string>;
+    profile_delete_alert_text?: IContentField<string>;
+    profile_delete_modal_warning?: IContentField<string>;
+    profile_delete_label_email?: IContentField<string>;
+    profile_delete_placeholder_email?: IContentField<string>;
+    profile_delete_button?: IContentField<string>;
+
+    // Account Deletion Messages
+    profile_delete_success?: IContentField<string>;
+    profile_delete_error_email_required?: IContentField<string>;
+    profile_delete_error_email_mismatch?: IContentField<string>;
+    profile_delete_error_general?: IContentField<string>;
+
+    // UI Configuration Fields
+    profile_gap?: IContentField<string>;
+    profile_use_accordion?: IContentField<string>;
+    profile_accordion_multiple?: IContentField<string>;
+    profile_accordion_default_opened?: IContentField<string>;
+
+    // Styling Fields
+    profile_variant?: IContentField<string>;
+    profile_radius?: IContentField<string>;
+    profile_shadow?: IContentField<string>;
+
+    // Layout Configuration
+    profile_columns?: IContentField<string>;
+
+    // Global Margin and Padding Fields
+    mantine_padding_inline?: IContentField<string>;
+    mantine_padding_block?: IContentField<string>;
+    mantine_margin_inline?: IContentField<string>;
+    mantine_margin_block?: IContentField<string>;
+
+    // Legacy fields (keeping for compatibility)
     alert_fail?: IContentField<string>;
     alert_del_fail?: IContentField<string>;
     alert_del_success?: IContentField<string>;

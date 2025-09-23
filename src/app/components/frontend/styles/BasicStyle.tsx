@@ -22,7 +22,8 @@ import {
     TitleStyle, TextStyle, TypographyStyle,
     // Special Components
     UnknownStyle,
-    FormStyle
+    FormStyle,
+    ProfileStyle
 } from './SelfHelpStyles';
 import { TStyle } from '../../../../types/common/styles.types';
 
@@ -208,6 +209,8 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
             return <ThemeIconStyle style={style} />;
         case 'rating':
             return <RatingStyle style={style} />;
+        case 'profile':
+            return <ProfileStyle style={style} />;
         case 'progress':
             return <ProgressStyle style={style} />;
         case 'progress-root':

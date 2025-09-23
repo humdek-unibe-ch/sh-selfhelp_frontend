@@ -18,6 +18,12 @@ export const API_CONFIG = {
         AUTH_SET_LANGUAGE: '/auth/set-language',
         AUTH_USER_DATA: '/auth/user-data',
 
+        // User profile management endpoints
+        USER_UPDATE_USERNAME: '/auth/user/username',
+        USER_UPDATE_NAME: '/auth/user/name',
+        USER_UPDATE_PASSWORD: '/auth/user/password',
+        USER_DELETE_ACCOUNT: '/auth/user/account',
+
         // Public pages endpoints
         /**
          * Fetches a list of pages when not logged in.

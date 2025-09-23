@@ -13,10 +13,13 @@ export { useDeletePageMutation } from './useDeletePageMutation';
 // Section mutations
 export * from './sections';
 
-// Future mutations will be exported here:
-// export { useCreateUserMutation } from './useCreateUserMutation';
-// export { useUpdateUserMutation } from './useUpdateUserMutation';
-// export { useDeleteUserMutation } from './useDeleteUserMutation';
+// Profile mutations
+export {
+    useUpdateUsernameMutation,
+    useUpdateNameMutation,
+    useUpdatePasswordMutation,
+    useDeleteAccountMutation
+} from './useProfileMutations';
 
 // Re-export utility types and functions
 export type { IParsedError } from '../../utils/mutation-error-handler';

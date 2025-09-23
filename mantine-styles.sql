@@ -312,8 +312,8 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 -- 3. STYLES AND STYLES_FIELDS (EXECUTED LAST)
 -- ===========================================
 
--- Create 'mantine' style group for Mantine-specific components
-INSERT IGNORE INTO `styleGroup` (`id`, `name`, `description`, `position`) VALUES (NULL, 'mantine', 'Mantine UI components for modern web interfaces', 10);
+-- Create 'mantine' style group for Mantine-specific components (position updated to avoid conflict with Wrapper)
+INSERT IGNORE INTO `styleGroup` (`id`, `name`, `description`, `position`) VALUES (NULL, 'mantine', 'Mantine UI components for modern web interfaces', 15);
 
 -- ===========================================
 -- 1. FIELD TYPES DEFINITIONS
@@ -471,8 +471,8 @@ VALUES (get_style_id('button'), get_field_id('mantine_variant'), 'filled', 'Sele
 DELETE FROM styles_fields
 WHERE id_fields = get_field_id('url') and id_styles = get_style_id('button');
 
--- Create 'mantine' style group for Mantine-specific components
-INSERT IGNORE INTO `styleGroup` (`id`, `name`, `description`, `position`) VALUES (NULL, 'mantine', 'Mantine UI components for modern web interfaces', 10);
+-- Create 'mantine' style group for Mantine-specific components (position updated to avoid conflict with Wrapper)
+INSERT IGNORE INTO `styleGroup` (`id`, `name`, `description`, `position`) VALUES (NULL, 'mantine', 'Mantine UI components for modern web interfaces', 15);
 
 -- Add new style 'center' based on Mantine Center component
 INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
@@ -4295,4 +4295,254 @@ UPDATE `fields`
 SET id_type = get_field_type_id('textarea')
 WHERE name = 'confirmation_message';
 
+-- ===========================================
+-- PROFILE STYLE - USER PROFILE MANAGEMENT
+-- ===========================================
+
+-- Add new style 'profile' for user profile management
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+    NULL,
+    'profile',
+    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    get_style_group_id('Admin'),
+    'User profile management component with account settings, password reset, and account deletion',
+    0
+);
+
+-- Profile Section Title
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_title', get_field_type_id('text'), 1, '{"placeholder": "My Profile", "description": "Main title for the profile section"}');
+
+-- User Information Display Labels
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_label_email', get_field_type_id('text'), 1, '{"placeholder": "Email", "description": "Label for email field display"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_label_username', get_field_type_id('text'), 1, '{"placeholder": "Username", "description": "Label for username field display"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_label_name', get_field_type_id('text'), 1, '{"placeholder": "Full Name", "description": "Label for full name field display"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_label_created', get_field_type_id('text'), 1, '{"placeholder": "Account Created", "description": "Label for account creation date"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_label_last_login', get_field_type_id('text'), 1, '{"placeholder": "Last Login", "description": "Label for last login date"}');
+
+-- Account Information Section Title
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_account_info_title', get_field_type_id('text'), 1, '{"placeholder": "Account Information", "description": "Title for the account information section"}');
+
+-- Name Change Section
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_name_change_title', get_field_type_id('text'), 1, '{"placeholder": "Change Display Name", "description": "Title for name change section"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_name_change_description', get_field_type_id('textarea'), 1, '{"placeholder": "<p>Update your display name. This will be visible to other users.</p>", "description": "Description explaining name change functionality"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_name_change_label', get_field_type_id('text'), 1, '{"placeholder": "New Display Name", "description": "Label for new name input field"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_name_change_placeholder', get_field_type_id('text'), 1, '{"placeholder": "Enter new display name", "description": "Placeholder text for name input"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_name_change_button', get_field_type_id('text'), 1, '{"placeholder": "Update Display Name", "description": "Text for the name change button"}');
+
+-- Name Change Messages
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_name_change_success', get_field_type_id('text'), 1, '{"placeholder": "Display name updated successfully!", "description": "Success message for name change"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_name_change_error_required', get_field_type_id('text'), 1, '{"placeholder": "Display name is required", "description": "Error message when name is empty"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_name_change_error_invalid', get_field_type_id('text'), 1, '{"placeholder": "Display name contains invalid characters", "description": "Error message for invalid name format"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_name_change_error_general', get_field_type_id('text'), 1, '{"placeholder": "Failed to update display name. Please try again.", "description": "General error message for name change failures"}');
+
+-- Password Reset Section
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_password_reset_title', get_field_type_id('text'), 1, '{"placeholder": "Change Password", "description": "Title for password reset section"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_password_reset_description', get_field_type_id('textarea'), 1, '{"placeholder": "<p>Set a new password for your account. Make sure it is strong and secure.</p>", "description": "Description explaining password reset functionality"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_password_reset_label_current', get_field_type_id('text'), 1, '{"placeholder": "Current Password", "description": "Label for current password input field"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_password_reset_label_new', get_field_type_id('text'), 1, '{"placeholder": "New Password", "description": "Label for new password input field"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_password_reset_label_confirm', get_field_type_id('text'), 1, '{"placeholder": "Confirm New Password", "description": "Label for password confirmation input field"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_password_reset_placeholder_current', get_field_type_id('text'), 1, '{"placeholder": "Enter current password", "description": "Placeholder for current password input"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_password_reset_placeholder_new', get_field_type_id('text'), 1, '{"placeholder": "Enter new password", "description": "Placeholder for new password input"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_password_reset_placeholder_confirm', get_field_type_id('text'), 1, '{"placeholder": "Confirm new password", "description": "Placeholder for password confirmation input"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_password_reset_button', get_field_type_id('text'), 1, '{"placeholder": "Update Password", "description": "Text for the password reset button"}');
+
+-- Password Reset Messages
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_password_reset_success', get_field_type_id('text'), 1, '{"placeholder": "Password updated successfully!", "description": "Success message for password change"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_password_reset_error_current_required', get_field_type_id('text'), 1, '{"placeholder": "Current password is required", "description": "Error message when current password is empty"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_password_reset_error_current_wrong', get_field_type_id('text'), 1, '{"placeholder": "Current password is incorrect", "description": "Error message when current password is wrong"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_password_reset_error_new_required', get_field_type_id('text'), 1, '{"placeholder": "New password is required", "description": "Error message when new password is empty"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_password_reset_error_confirm_required', get_field_type_id('text'), 1, '{"placeholder": "Password confirmation is required", "description": "Error message when confirmation password is empty"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_password_reset_error_mismatch', get_field_type_id('text'), 1, '{"placeholder": "New passwords do not match", "description": "Error message when passwords don''t match"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_password_reset_error_weak', get_field_type_id('text'), 1, '{"placeholder": "Password is too weak. Please choose a stronger password.", "description": "Error message for weak password"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_password_reset_error_general', get_field_type_id('text'), 1, '{"placeholder": "Failed to update password. Please try again.", "description": "General error message for password change failures"}');
+
+-- Account Deletion Section
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_delete_title', get_field_type_id('text'), 1, '{"placeholder": "Delete Account", "description": "Title for account deletion section"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_delete_description', get_field_type_id('textarea'), 1, '{"placeholder": "<p>Permanently delete your account and all associated data. This action cannot be undone.</p>", "description": "Warning description for account deletion"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_delete_alert_text', get_field_type_id('text'), 1, '{"placeholder": "This action cannot be undone. All your data will be permanently deleted.", "description": "Warning text in the delete account alert"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_delete_modal_warning', get_field_type_id('textarea'), 1, '{"placeholder": "Deleting your account will permanently remove all your data, including profile information, preferences, and any content you have created.", "description": "Detailed warning text in the delete account modal"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_delete_label_email', get_field_type_id('text'), 1, '{"placeholder": "Confirm Email", "description": "Label for email confirmation field"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_delete_placeholder_email', get_field_type_id('text'), 1, '{"placeholder": "Enter your email to confirm", "description": "Placeholder for email confirmation input"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_delete_button', get_field_type_id('text'), 1, '{"placeholder": "Delete Account", "description": "Text for the account deletion button"}');
+
+-- Account Deletion Messages
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_delete_success', get_field_type_id('text'), 1, '{"placeholder": "Account deleted successfully.", "description": "Success message for account deletion"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_delete_error_email_required', get_field_type_id('text'), 1, '{"placeholder": "Email confirmation is required", "description": "Error message when email is empty"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_delete_error_email_mismatch', get_field_type_id('text'), 1, '{"placeholder": "Email does not match your account email", "description": "Error message when email doesn''t match"}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_delete_error_general', get_field_type_id('text'), 1, '{"placeholder": "Failed to delete account. Please try again.", "description": "General error message for account deletion failures"}');
+
+-- UI Configuration Fields
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_gap', get_field_type_id('select'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "md", "options":[
+{"value":"xs","text":"Extra Small (8px)"},
+{"value":"sm","text":"Small (12px)"},
+{"value":"md","text":"Medium (16px)"},
+{"value":"lg","text":"Large (20px)"},
+{"value":"xl","text":"Extra Large (24px)"}
+]}');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_use_accordion', get_field_type_id('checkbox'), 0, null);
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_accordion_multiple', get_field_type_id('checkbox'), 0, null);
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_accordion_default_opened', get_field_type_id('select'), 0, '{"multiSelect": true, "searchable": false, "clearable": true, "placeholder": "Select sections to open by default", "options":[
+{"value":"user_info","text":"User Information"},
+{"value":"username_change","text":"Change Username"},
+{"value":"password_reset","text":"Change Password"},
+{"value":"account_delete","text":"Delete Account"}
+]}');
+
+-- Styling Fields
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_variant', get_field_type_id('select'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "default", "options":[
+{"value":"default","text":"Default"},
+{"value":"filled","text":"Filled"},
+{"value":"outline","text":"Outline"},
+{"value":"light","text":"Light"},
+{"value":"subtle","text":"Subtle"}
+]}');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_radius', get_field_type_id('slider'), 0, '{"creatable": true, "searchable": false, "clearable": true, "placeholder": "sm", "options":[
+{"value":"xs","text":"Extra Small"},
+{"value":"sm","text":"Small"},
+{"value":"md","text":"Medium"},
+{"value":"lg","text":"Large"},
+{"value":"xl","text":"Extra Large"}
+]}');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_shadow', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
+{"value":"none","text":"No Shadow"},
+{"value":"xs","text":"Extra Small"},
+{"value":"sm","text":"Small"},
+{"value":"md","text":"Medium"},
+{"value":"lg","text":"Large"},
+{"value":"xl","text":"Extra Large"}
+]}');
+
+-- Layout Configuration (for non-accordion mode)
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'profile_columns', get_field_type_id('select'), 0, '{"creatable": false, "searchable": false, "clearable": false, "placeholder": "1", "options":[
+{"value":"1","text":"1 Column"},
+{"value":"2","text":"2 Columns"},
+{"value":"3","text":"3 Columns"},
+{"value":"4","text":"4 Columns"}
+]}');
+
+-- Global Margin and Padding Fields (reusable across Mantine components)
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_padding_inline', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
+{"value":"none","text":"None"},
+{"value":"xs","text":"Extra Small"},
+{"value":"sm","text":"Small"},
+{"value":"md","text":"Medium"},
+{"value":"lg","text":"Large"},
+{"value":"xl","text":"Extra Large"}
+]}');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_padding_block', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
+{"value":"none","text":"None"},
+{"value":"xs","text":"Extra Small"},
+{"value":"sm","text":"Small"},
+{"value":"md","text":"Medium"},
+{"value":"lg","text":"Large"},
+{"value":"xl","text":"Extra Large"}
+]}');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_margin_inline', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
+{"value":"none","text":"None"},
+{"value":"xs","text":"Extra Small"},
+{"value":"sm","text":"Small"},
+{"value":"md","text":"Medium"},
+{"value":"lg","text":"Large"},
+{"value":"xl","text":"Extra Large"}
+]}');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_margin_block', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
+{"value":"none","text":"None"},
+{"value":"xs","text":"Extra Small"},
+{"value":"sm","text":"Small"},
+{"value":"md","text":"Medium"},
+{"value":"lg","text":"Large"},
+{"value":"xl","text":"Extra Large"}
+]}');
+
+-- Associate all fields with profile style
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
+-- Profile Section
+(get_style_id('profile'), get_field_id('profile_title'), 'My Profile', 'Main title displayed at the top of the profile page', 0, 0, 'Profile Title'),
+
+-- User Information Display
+(get_style_id('profile'), get_field_id('profile_account_info_title'), 'Account Information', 'Title for the account information section', 0, 0, 'Account Info Title'),
+(get_style_id('profile'), get_field_id('profile_label_email'), 'Email', 'Label for displaying user email', 0, 0, 'Email Label'),
+(get_style_id('profile'), get_field_id('profile_label_username'), 'Username', 'Label for displaying username', 0, 0, 'Username Label'),
+(get_style_id('profile'), get_field_id('profile_label_name'), 'Full Name', 'Label for displaying full name', 0, 0, 'Name Label'),
+(get_style_id('profile'), get_field_id('profile_label_created'), 'Account Created', 'Label for account creation date', 0, 0, 'Created Label'),
+(get_style_id('profile'), get_field_id('profile_label_last_login'), 'Last Login', 'Label for last login date', 0, 0, 'Last Login Label'),
+
+-- Name Change
+(get_style_id('profile'), get_field_id('profile_name_change_title'), 'Change Display Name', 'Section title for name change', 0, 0, 'Name Change Title'),
+(get_style_id('profile'), get_field_id('profile_name_change_description'), '<p>Update your display name. This will be visible to other users.</p>', 'Description explaining name change', 0, 0, 'Name Change Description'),
+(get_style_id('profile'), get_field_id('profile_name_change_label'), 'New Display Name', 'Label for name input field', 0, 0, 'Name Input Label'),
+(get_style_id('profile'), get_field_id('profile_name_change_placeholder'), 'Enter new display name', 'Placeholder for name input', 0, 0, 'Name Placeholder'),
+(get_style_id('profile'), get_field_id('profile_name_change_button'), 'Update Display Name', 'Button text for name change', 0, 0, 'Name Change Button'),
+
+-- Name Change Messages
+(get_style_id('profile'), get_field_id('profile_name_change_success'), 'Display name updated successfully!', 'Success message after name change', 0, 0, 'Name Success Message'),
+(get_style_id('profile'), get_field_id('profile_name_change_error_required'), 'Display name is required', 'Error when name field is empty', 0, 0, 'Name Required Error'),
+(get_style_id('profile'), get_field_id('profile_name_change_error_invalid'), 'Display name contains invalid characters', 'Error for invalid name format', 0, 0, 'Name Invalid Error'),
+(get_style_id('profile'), get_field_id('profile_name_change_error_general'), 'Failed to update display name. Please try again.', 'General name change error', 0, 0, 'Name General Error'),
+
+-- Password Reset
+(get_style_id('profile'), get_field_id('profile_password_reset_title'), 'Change Password', 'Section title for password change', 0, 0, 'Password Reset Title'),
+(get_style_id('profile'), get_field_id('profile_password_reset_description'), '<p>Set a new password for your account. Make sure it is strong and secure.</p>', 'Description explaining password change', 0, 0, 'Password Reset Description'),
+(get_style_id('profile'), get_field_id('profile_password_reset_label_current'), 'Current Password', 'Label for current password field', 0, 0, 'Current Password Label'),
+(get_style_id('profile'), get_field_id('profile_password_reset_label_new'), 'New Password', 'Label for new password field', 0, 0, 'New Password Label'),
+(get_style_id('profile'), get_field_id('profile_password_reset_label_confirm'), 'Confirm New Password', 'Label for password confirmation field', 0, 0, 'Confirm Password Label'),
+(get_style_id('profile'), get_field_id('profile_password_reset_placeholder_current'), 'Enter current password', 'Placeholder for current password', 0, 0, 'Current Password Placeholder'),
+(get_style_id('profile'), get_field_id('profile_password_reset_placeholder_new'), 'Enter new password', 'Placeholder for new password', 0, 0, 'New Password Placeholder'),
+(get_style_id('profile'), get_field_id('profile_password_reset_placeholder_confirm'), 'Confirm new password', 'Placeholder for password confirmation', 0, 0, 'Confirm Password Placeholder'),
+(get_style_id('profile'), get_field_id('profile_password_reset_button'), 'Update Password', 'Button text for password change', 0, 0, 'Password Change Button'),
+
+-- Password Reset Messages
+(get_style_id('profile'), get_field_id('profile_password_reset_success'), 'Password updated successfully!', 'Success message after password change', 0, 0, 'Password Success Message'),
+(get_style_id('profile'), get_field_id('profile_password_reset_error_current_required'), 'Current password is required', 'Error when current password is empty', 0, 0, 'Current Password Required Error'),
+(get_style_id('profile'), get_field_id('profile_password_reset_error_current_wrong'), 'Current password is incorrect', 'Error when current password is wrong', 0, 0, 'Current Password Wrong Error'),
+(get_style_id('profile'), get_field_id('profile_password_reset_error_new_required'), 'New password is required', 'Error when new password is empty', 0, 0, 'New Password Required Error'),
+(get_style_id('profile'), get_field_id('profile_password_reset_error_confirm_required'), 'Password confirmation is required', 'Error when confirmation is empty', 0, 0, 'Confirm Password Required Error'),
+(get_style_id('profile'), get_field_id('profile_password_reset_error_mismatch'), 'New passwords do not match', 'Error when passwords don''t match', 0, 0, 'Password Mismatch Error'),
+(get_style_id('profile'), get_field_id('profile_password_reset_error_weak'), 'Password is too weak. Please choose a stronger password.', 'Error for weak password', 0, 0, 'Weak Password Error'),
+(get_style_id('profile'), get_field_id('profile_password_reset_error_general'), 'Failed to update password. Please try again.', 'General password change error', 0, 0, 'Password General Error'),
+
+-- Account Deletion
+(get_style_id('profile'), get_field_id('profile_delete_title'), 'Delete Account', 'Section title for account deletion', 0, 0, 'Delete Account Title'),
+(get_style_id('profile'), get_field_id('profile_delete_description'), '<p>Permanently delete your account and all associated data. This action cannot be undone.</p>', 'Warning description for account deletion', 0, 0, 'Delete Account Description'),
+(get_style_id('profile'), get_field_id('profile_delete_alert_text'), 'This action cannot be undone. All your data will be permanently deleted.', 'Warning text in the delete account alert', 0, 0, 'Delete Alert Text'),
+(get_style_id('profile'), get_field_id('profile_delete_modal_warning'), '<p>Deleting your account will permanently remove all your data, including profile information, preferences, and any content you have created.</p>', 'Detailed warning text in the delete account modal', 0, 0, 'Delete Modal Warning'),
+(get_style_id('profile'), get_field_id('profile_delete_label_email'), 'Confirm Email', 'Label for email confirmation field', 0, 0, 'Email Confirmation Label'),
+(get_style_id('profile'), get_field_id('profile_delete_placeholder_email'), 'Enter your email to confirm', 'Placeholder for email confirmation', 0, 0, 'Email Confirmation Placeholder'),
+(get_style_id('profile'), get_field_id('profile_delete_button'), 'Delete Account', 'Button text for account deletion', 0, 0, 'Delete Account Button'),
+
+-- Account Deletion Messages
+(get_style_id('profile'), get_field_id('profile_delete_success'), 'Account deleted successfully.', 'Success message after account deletion', 0, 0, 'Account Deletion Success'),
+(get_style_id('profile'), get_field_id('profile_delete_error_email_required'), 'Email confirmation is required', 'Error when email field is empty', 0, 0, 'Email Required Error'),
+(get_style_id('profile'), get_field_id('profile_delete_error_email_mismatch'), 'Email does not match your account email', 'Error when email doesn''t match', 0, 0, 'Email Mismatch Error'),
+(get_style_id('profile'), get_field_id('profile_delete_error_general'), 'Failed to delete account. Please try again.', 'General account deletion error', 0, 0, 'Account Deletion General Error'),
+
+-- UI Configuration
+(get_style_id('profile'), get_field_id('profile_gap'), 'md', 'Spacing between profile sections', 0, 0, 'Section Spacing'),
+(get_style_id('profile'), get_field_id('profile_use_accordion'), '0', 'Wrap profile sections in accordion for collapsible interface', 0, 0, 'Use Accordion'),
+(get_style_id('profile'), get_field_id('profile_accordion_multiple'), '1', 'Allow multiple accordion sections to be open simultaneously', 0, 0, 'Multiple Accordion'),
+(get_style_id('profile'), get_field_id('profile_accordion_default_opened'), 'user_info', 'Which accordion sections should be opened by default', 0, 0, 'Default Opened Sections'),
+
+-- Styling Options
+(get_style_id('profile'), get_field_id('profile_variant'), 'default', 'Visual style variant for the profile cards', 0, 0, 'Card Variant'),
+(get_style_id('profile'), get_field_id('profile_radius'), 'sm', 'Border radius for profile cards', 0, 0, 'Border Radius'),
+(get_style_id('profile'), get_field_id('profile_shadow'), 'sm', 'Shadow effect for profile cards', 0, 0, 'Shadow Effect'),
+
+-- Layout Configuration
+(get_style_id('profile'), get_field_id('profile_columns'), '2', 'Number of columns for non-accordion layout', 0, 0, 'Layout Columns'),
+
+(get_style_id('profile'), get_field_id('use_mantine_style'), '1', 'Use Mantine style for the profile container', 0, 1, 'Use Mantine Style'),
+
+-- Global Margin and Padding
+(get_style_id('profile'), get_field_id('mantine_padding_inline'), 'md', 'Horizontal padding (px) for the profile container', 0, 0, 'Padding X'),
+(get_style_id('profile'), get_field_id('mantine_padding_block'), 'md', 'Vertical padding (py) for the profile container', 0, 0, 'Padding Y'),
+(get_style_id('profile'), get_field_id('mantine_margin_inline'), 'none', 'Horizontal margin (mx) for the profile container', 0, 0, 'Margin X'),
+(get_style_id('profile'), get_field_id('mantine_margin_block'), 'none', 'Vertical margin (my) for the profile container', 0, 0, 'Margin Y');
 

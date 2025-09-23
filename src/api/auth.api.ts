@@ -219,5 +219,88 @@ export const AuthApi = {
         }
 
         return response.data;
+    },
+
+    /**
+     * Updates the current user's username
+     * @param {string} newUsername - The new username to set
+     * @returns {Promise<IUserDataResponse>} Response containing updated user information
+     * @throws {Error} When username update fails
+     */
+    async updateUsername(newUsername: string): Promise<IUserDataResponse> {
+        const response = await apiClient.put<IUserDataResponse>(
+            API_CONFIG.ENDPOINTS.USER_UPDATE_USERNAME,
+            { user_name: newUsername }
+        );
+
+        if (response.data.error) {
+            throw new Error(response.data.error);
+        }
+
+        return response.data;
+    },
+
+    /**
+     * Updates the current user's display name
+     * @param {string} newName - The new display name to set
+     * @returns {Promise<IUserDataResponse>} Response containing updated user information
+     * @throws {Error} When name update fails
+     */
+    async updateName(newName: string): Promise<IUserDataResponse> {
+        const response = await apiClient.put<IUserDataResponse>(
+            API_CONFIG.ENDPOINTS.USER_UPDATE_NAME,
+            { name: newName }
+        );
+
+        if (response.data.error) {
+            throw new Error(response.data.error);
+        }
+
+        return response.data;
+    },
+
+    /**
+     * Updates the current user's password
+     * @param {string} currentPassword - The current password for verification
+     * @param {string} newPassword - The new password to set
+     * @returns {Promise<{status: number, message: string}>} Response confirming password update
+     * @throws {Error} When password update fails
+     */
+    async updatePassword(currentPassword: string, newPassword: string): Promise<{status: number, message: string, error?: string}> {
+        const response = await apiClient.put<{status: number, message: string, error?: string}>(
+            API_CONFIG.ENDPOINTS.USER_UPDATE_PASSWORD,
+            {
+                current_password: currentPassword,
+                new_password: newPassword
+            }
+        );
+
+        if (response.data.error) {
+            throw new Error(response.data.error);
+        }
+
+        return response.data;
+    },
+
+    /**
+     * Permanently deletes the current user's account
+     * @param {string} emailConfirmation - Email address for confirmation (must match user's email)
+     * @returns {Promise<{status: number, message: string}>} Response confirming account deletion
+     * @throws {Error} When account deletion fails
+     */
+    async deleteAccount(emailConfirmation: string): Promise<{status: number, message: string, error?: string}> {
+        const response = await apiClient.delete<{status: number, message: string, error?: string}>(
+            API_CONFIG.ENDPOINTS.USER_DELETE_ACCOUNT,
+            { data: { email_confirmation: emailConfirmation } }
+        );
+
+        if (response.data.error) {
+            throw new Error(response.data.error);
+        }
+
+        // Clear auth data after successful deletion
+        this.clearAuthData();
+
+        return response.data;
     }
 };

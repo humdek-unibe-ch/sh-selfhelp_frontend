@@ -9,6 +9,7 @@ export { default as RegisterStyle } from './RegisterStyle';
 export { default as ValidateStyle } from './ValidateStyle';
 export { default as ResetPasswordStyle } from './ResetPasswordStyle';
 export { default as TwoFactorAuthStyle } from './TwoFactorAuthStyle';
+export { default as ProfileStyle } from './ProfileStyle';
 
 // Layout & Container Styles
 export { default as ContainerStyle } from './mantine/ContainerStyle';
