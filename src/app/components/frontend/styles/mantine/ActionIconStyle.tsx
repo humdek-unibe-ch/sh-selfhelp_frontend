@@ -1,9 +1,9 @@
 import React from 'react';
 import { ActionIcon } from '@mantine/core';
 import { useRouter } from 'next/navigation';
-import { getFieldContent, castMantineSize, castMantineRadius } from '../../../../../utils/style-field-extractor';
 import { IActionIconStyle } from '../../../../../types/common/styles.types';
 import IconComponent from '../../../shared/common/IconComponent';
+import { castMantineSize, castMantineRadius } from '../../../../../utils/style-field-extractor';
 
 /**
  * Props interface for ActionIconStyle component
@@ -24,19 +24,19 @@ const ActionIconStyle: React.FC<IActionIconStyleProps> = ({ style }) => {
     const router = useRouter();
 
     // Extract field values using the new unified field structure
-    const variant = getFieldContent(style, 'mantine_variant') || 'subtle';
-    const loading = getFieldContent(style, 'mantine_action_icon_loading') === '1';
-    const size = castMantineSize(getFieldContent(style, 'mantine_size'));
-    const radius = castMantineRadius(getFieldContent(style, 'mantine_radius'));
-    const color = getFieldContent(style, 'mantine_color') || 'blue';
-    const disabled = getFieldContent(style, 'disabled') === '1';
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
+    const variant = style.mantine_variant?.content || 'subtle';
+    const loading = style.mantine_action_icon_loading?.content === '1';
+    const size = castMantineSize((style as any).mantine_size?.content);
+    const radius = castMantineRadius((style as any).mantine_radius?.content);
+    const color = style.mantine_color?.content || 'blue';
+    const disabled = style.disabled?.content === '1';
+    const use_mantine_style = style.use_mantine_style?.content === '1';
 
     // New fields for icon and link functionality
-    const iconName = getFieldContent(style, 'mantine_left_icon');
-    const url = getFieldContent(style, 'page_keyword');
-    const is_link = getFieldContent(style, 'is_link');
-    const open_in_new_tab = getFieldContent(style, 'open_in_new_tab');
+    const iconName = style.mantine_left_icon?.content;
+    const url = style.page_keyword?.content;
+    const is_link = style.is_link?.content;
+    const open_in_new_tab = style.open_in_new_tab?.content;
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

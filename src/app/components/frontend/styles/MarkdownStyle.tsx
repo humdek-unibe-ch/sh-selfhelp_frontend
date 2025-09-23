@@ -4,7 +4,6 @@ import remarkGfm from 'remark-gfm';
 import { Text } from '@mantine/core';
 import styles from './MarkdownStyle.module.css';
 import { IMarkdownStyle } from '../../../../types/common/styles.types';
-import { getFieldContent } from '../../../../utils/style-field-extractor';
 
 /**
  * Props interface for MarkdownStyle component
@@ -24,8 +23,8 @@ interface IMarkdownStyleProps {
  * @returns {JSX.Element} Rendered markdown content
  */
 const MarkdownStyle: React.FC<IMarkdownStyleProps> = ({ style }) => {
-    const content = getFieldContent(style, 'text_md');
-    const cssClass = getFieldContent(style, 'css');
+    const content = style.text_md?.content;
+    const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
     // Return null if no content
     if (!content) {

@@ -1,6 +1,5 @@
 import React from 'react';
 import { Code } from '@mantine/core';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { ICodeStyle } from '../../../../../types/common/styles.types';
 
 /**
@@ -20,8 +19,8 @@ interface ICodeStyleProps {
  */
 const CodeStyle: React.FC<ICodeStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
-    const codeBlock = getFieldContent(style, 'mantine_code_block') === '1';
-    const color = getFieldContent(style, 'mantine_color') || 'blue';
+    const codeBlock = style.mantine_code_block?.content === '1';
+    const color = style.mantine_color?.content || 'blue';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
@@ -30,7 +29,7 @@ const CodeStyle: React.FC<ICodeStyleProps> = ({ style }) => {
     const styleObj: React.CSSProperties = {};
 
     // Get code content from any available field
-    const codeContent = getFieldContent(style, 'content') || '';
+    const codeContent = style.content?.content || '';
 
     if (codeBlock) {
         return (

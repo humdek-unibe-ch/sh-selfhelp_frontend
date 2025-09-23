@@ -1,6 +1,5 @@
 import React from 'react';
 import { Tabs } from '@mantine/core';
-import { getFieldContent } from '../../../../../../utils/style-field-extractor';
 import { ITabsStyle, ITabStyle } from '../../../../../../types/common/styles.types';
 import TabStyle from './TabStyle';
 import BasicStyle from '../../BasicStyle';
@@ -22,12 +21,12 @@ const TabsStyle: React.FC<ITabsStyleProps> = ({ style }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values with defaults
-    const variant = getFieldContent(style, 'mantine_tabs_variant') || 'default';
-    const orientation = getFieldContent(style, 'mantine_tabs_orientation') || 'horizontal';
-    const radius = getFieldContent(style, 'mantine_tabs_radius') || 'sm';
-    const color = getFieldContent(style, 'mantine_tabs_color') || 'blue';
-    const width = getFieldContent(style, 'mantine_width');
-    const height = getFieldContent(style, 'mantine_height');
+    const variant = style.mantine_tabs_variant?.content || 'default';
+    const orientation = style.mantine_tabs_orientation?.content || 'horizontal';
+    const radius = style.mantine_tabs_radius?.content || 'sm';
+    const color = style.mantine_color?.content || 'blue';
+    const width = style.mantine_width?.content;
+    const height = style.mantine_height?.content;
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

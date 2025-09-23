@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { ColorInput, Input } from '@mantine/core';
-import { getFieldContent } from '../../../../../../utils/style-field-extractor';
 import { IColorInputStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 
@@ -28,18 +27,18 @@ interface IColorInputStyleProps {
  */
 const ColorInputStyle: React.FC<IColorInputStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
-    const placeholder = getFieldContent(style, 'placeholder');
-    const format = getFieldContent(style, 'mantine_color_format') || 'hex';
-    const size = getFieldContent(style, 'mantine_size') || 'sm';
-    const radius = getFieldContent(style, 'mantine_radius') || 'sm';
+    const placeholder = style.placeholder?.content;
+    const format = style.mantine_color_format?.content || 'hex';
+    const size = style.mantine_size?.content || 'sm';
+    const radius = style.mantine_radius?.content || 'sm';
 
     // Form configuration fields (similar to ColorPicker)
-    const label = getFieldContent(style, 'label');
-    const description = getFieldContent(style, 'description');
-    const name = getFieldContent(style, 'name') || `section-${style.id}`;
-    const defaultValue = getFieldContent(style, 'value') || '';
-    const isRequired = getFieldContent(style, 'is_required') === '1';
-    const disabled = getFieldContent(style, 'disabled') === '1';
+    const label = style.label?.content;
+    const description = style.description?.content;
+    const name = style.name?.content || `section-${style.id}`;
+    const defaultValue = style.value?.content || '';
+    const isRequired = style.is_required?.content === '1';
+    const disabled = style.disabled?.content === '1';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

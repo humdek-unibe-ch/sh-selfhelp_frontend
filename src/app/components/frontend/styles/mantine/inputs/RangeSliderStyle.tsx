@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { RangeSlider, Input } from '@mantine/core';
-import { getFieldContent } from '../../../../../../utils/style-field-extractor';
 import { IRangeSliderStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";
@@ -42,23 +41,23 @@ interface IRangeSliderStyleProps {
  */
 const RangeSliderStyle: React.FC<IRangeSliderStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
-    const label = getFieldContent(style, 'label');
-    const description = getFieldContent(style, 'description');
-    const name = getFieldContent(style, 'name');
+    const label = style.label?.content;
+    const description = style.description?.content || '';
+    const name = style.name?.content;
     // Get form context for field registration
-    const min = parseFloat(getFieldContent(style, 'mantine_numeric_min') || '0');
-    const max = parseFloat(getFieldContent(style, 'mantine_numeric_max') || '100');
-    const step = parseFloat(getFieldContent(style, 'mantine_numeric_step') || '1');
-    const size = getFieldContent(style, 'mantine_size') || 'sm';
-    const color = getFieldContent(style, 'mantine_color') || 'blue';
-    const radius = getFieldContent(style, 'mantine_radius') || 'sm';
-    const disabled = getFieldContent(style, 'disabled') === '1';
-    const styleValue = getFieldContent(style, 'value') || '[0, 100]';
+    const min = parseFloat((style as any).mantine_numeric_min?.content || '0');
+    const max = parseFloat((style as any).mantine_numeric_max?.content || '100');
+    const step = parseFloat((style as any).mantine_numeric_step?.content || '1');
+    const size = style.mantine_size?.content || 'sm';
+    const color = style.mantine_color?.content || 'blue';
+    const radius = style.mantine_radius?.content || 'sm';
+    const disabled = style.disabled?.content === '1';
+    const styleValue = style.value?.content || '[0, 100]';
 
     // New fields
-    const showLabelOnHover = getFieldContent(style, 'mantine_range_slider_show_label') === '1';
-    const labelsAlwaysOn = getFieldContent(style, 'mantine_range_slider_labels_always_on') === '1';
-    const inverted = getFieldContent(style, 'mantine_range_slider_inverted') === '1';
+    const showLabelOnHover = style.mantine_range_slider_show_label?.content === '1';
+    const labelsAlwaysOn = style.mantine_range_slider_labels_always_on?.content === '1';
+    const inverted = style.mantine_range_slider_inverted?.content === '1';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
@@ -116,7 +115,7 @@ const RangeSliderStyle: React.FC<IRangeSliderStyleProps> = ({ style }) => {
     // Parse translatable marks values from JSON
     let customMarks: Array<{ value: number; label: string }> = [];
     try {
-        const marksJson = getFieldContent(style, 'mantine_range_slider_marks_values');
+        const marksJson = style.mantine_range_slider_marks_values?.content;
         if (marksJson && marksJson.trim()) {
             const parsed = JSON.parse(marksJson);
             if (Array.isArray(parsed)) {

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Group } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { IGroupStyle } from '../../../../../types/common/styles.types';
 
 /**
@@ -26,13 +25,13 @@ const GroupStyle: React.FC<IGroupStyleProps> = ({ style }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values for Mantine Group props
-    const gap = getFieldContent(style, 'mantine_gap');
-    const justify = getFieldContent(style, 'mantine_justify');
-    const align = getFieldContent(style, 'mantine_align');
-    const wrap = getFieldContent(style, 'mantine_group_wrap') === '1';
-    const grow = getFieldContent(style, 'mantine_group_grow') === '1';
-    const width = getFieldContent(style, 'mantine_width');
-    const height = getFieldContent(style, 'mantine_height');
+    const gap = style.mantine_gap?.content;
+    const justify = style.mantine_justify?.content;
+    const align = style.mantine_align?.content;
+    const wrap = style.mantine_group_wrap?.content === '1';
+    const grow = style.mantine_group_grow?.content === '1';
+    const width = style.mantine_width?.content;
+    const height = style.mantine_height?.content;
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

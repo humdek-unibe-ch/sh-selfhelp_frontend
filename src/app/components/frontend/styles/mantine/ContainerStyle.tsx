@@ -1,7 +1,6 @@
 import React from 'react';
 import { Container } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { IContainerStyle } from '../../../../../types/common/styles.types';
 
 /**
@@ -26,10 +25,10 @@ const ContainerStyle: React.FC<IContainerStyleProps> = ({ style }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values for Mantine Container props
-    const size = getFieldContent(style, 'mantine_slider_size');
-    const fluid = getFieldContent(style, 'mantine_fluid') === '1';
-    const px = getFieldContent(style, 'mantine_px');
-    const py = getFieldContent(style, 'mantine_py');
+    const size = style.mantine_slider_size?.content;
+    const fluid = style.mantine_fluid?.content === '1';
+    const px = style.mantine_px?.content;
+    const py = style.mantine_py?.content;
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

@@ -1,6 +1,5 @@
 import React from 'react';
 import { Kbd } from '@mantine/core';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { IKbdStyle } from '../../../../../types/common/styles.types';
 
 /**
@@ -20,8 +19,8 @@ interface IKbdStyleProps {
  */
 const KbdStyle: React.FC<IKbdStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
-    const key = getFieldContent(style, 'label') || 'A';
-    const size = getFieldContent(style, 'mantine_size') || 'sm';
+    const key = style.label?.content || 'A';
+    const size = style.mantine_size?.content || 'sm';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

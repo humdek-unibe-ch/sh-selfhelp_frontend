@@ -2,7 +2,6 @@ import React from 'react';
 import { List } from '@mantine/core';
 import BasicStyle from '../../BasicStyle';
 import { IListItemStyle } from '../../../../../../types/common/styles.types';
-import { getFieldContent } from '../../../../../../utils/style-field-extractor';
 import IconComponent from '../../../../shared/common/IconComponent';
 
 /**
@@ -22,8 +21,8 @@ interface IListItemStyleProps {
  */
 const ListItemStyle: React.FC<IListItemStyleProps> = ({ style }) => {
     // Extract Mantine-specific props
-    const content = getFieldContent(style, 'mantine_list_item_content');
-    const iconName = getFieldContent(style, 'mantine_list_item_icon');
+    const content = style.mantine_list_item_content?.content;
+    const iconName = style.mantine_list_item_icon?.content;
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

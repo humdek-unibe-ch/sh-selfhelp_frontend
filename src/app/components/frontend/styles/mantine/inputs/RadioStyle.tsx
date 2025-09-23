@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Radio, Tooltip, Group, Text, Input } from '@mantine/core';
 import BasicStyle from '../../BasicStyle';
-import { getFieldContent, castMantineSize } from '../../../../../../utils/style-field-extractor';
 import { IRadioStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";
-import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
+import { sanitizeHtmlForParsing, sanitizeHtmlForInline } from '../../../../../../utils/html-sanitizer.utils';
+import { castMantineSize } from '../../../../../../utils/style-field-extractor';
 
 /**
  * Props interface for RadioStyle component
@@ -41,24 +41,24 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values using the new unified field structure
-    const label = getFieldContent(style, 'label');
-    const name = getFieldContent(style, 'name');
-    const value = getFieldContent(style, 'value');
-    const description = getFieldContent(style, 'description');
-    const orientation = getFieldContent(style, 'mantine_orientation') || 'vertical';
-    const size = castMantineSize(getFieldContent(style, 'mantine_size'));
-    const color = getFieldContent(style, 'mantine_color') || 'blue';
-    const required = getFieldContent(style, 'is_required') === '1';
-    const disabled = getFieldContent(style, 'disabled') === '1';
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
+    const label = style.label?.content;
+    const name = style.name?.content;
+    const value = style.value?.content;
+    const description = style.description?.content || '';
+    const orientation = style.mantine_orientation?.content || 'vertical';
+    const size = castMantineSize((style as any).mantine_size?.content);
+    const color = style.mantine_color?.content || 'blue';
+    const required = style.is_required?.content === '1';
+    const disabled = style.disabled?.content === '1';
+    const use_mantine_style = style.use_mantine_style?.content === '1';
 
     // New fields
-    const labelPosition = getFieldContent(style, 'mantine_radio_label_position') || 'right';
-    const variant = getFieldContent(style, 'mantine_radio_variant') || 'default';
-    const useRadioCard = getFieldContent(style, 'mantine_radio_card') === '1';
-    const tooltipLabel = getFieldContent(style, 'mantine_tooltip_label');
-    const tooltipPosition = getFieldContent(style, 'mantine_tooltip_position') || 'top';
-    const useInputWrapper = getFieldContent(style, 'mantine_use_input_wrapper') === '1';
+    const labelPosition = style.mantine_radio_label_position?.content || 'right';
+    const variant = style.mantine_radio_variant?.content || 'default';
+    const useRadioCard = style.mantine_radio_card?.content === '1';
+    const tooltipLabel = style.mantine_tooltip_label?.content;
+    const tooltipPosition = style.mantine_tooltip_position?.content || 'top';
+    const useInputWrapper = style.mantine_use_input_wrapper?.content === '1';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
@@ -87,7 +87,7 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style }) => {
     // Parse radio options from JSON textarea
     let radioOptions: Array<{ value: string; text: string; description?: string }> = [];
     try {
-        const optionsJson = getFieldContent(style, 'mantine_radio_options');
+        const optionsJson = style.mantine_radio_options?.content;
         if (optionsJson) {
             const parsed = JSON.parse(optionsJson);
             // Handle both old format (label/text) and new format with description

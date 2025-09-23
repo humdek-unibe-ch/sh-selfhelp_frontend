@@ -29,7 +29,7 @@ export { default as SliderStyle } from './inputs/SliderStyle';
 export { default as SegmentedControlStyle } from './inputs/SegmentedControlStyle';
 export { default as SwitchStyle } from './inputs/SwitchStyle';
 export { default as TextInputStyle } from './inputs/TextInputStyle';
-export { default as RichTextEditorStyle } from './rich-text-editor/RichTextEditorStyle';
+// export { default as RichTextEditorStyle } from './rich-text-editor/RichTextEditorStyle';
 export { default as ComboboxStyle } from './inputs/ComboboxStyle';
 // export { default as MultiSelectStyle } from './MultiSelectStyle';
 export { default as ActionIconStyle } from './ActionIconStyle';

@@ -17,7 +17,6 @@ import { getTaskListExtension } from '@mantine/tiptap';
 import { BubbleMenu } from '@tiptap/react/menus';
 import styles from './RichTextEditorStyle.module.css';
 import { IRichTextEditorStyle } from '../../../../../../../types/common/styles.types';
-import { getFieldContent } from '../../../../../../../utils/style-field-extractor';
 import { FormFieldValueContext } from '../../../FormStyle';
 import parse from "html-react-parser";
 import { sanitizeHtmlForInline, sanitizeHtmlForParsing } from '../../../../../../../utils/html-sanitizer.utils';
@@ -28,24 +27,24 @@ interface IRichTextEditorStyleProps {
 
 const RichTextEditorStyle: React.FC<IRichTextEditorStyleProps> = ({ style }) => {
     // Extract field values
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
+    const use_mantine_style = style.use_mantine_style?.content === '1';
 
-    const name = getFieldContent(style, 'name');
-    const label = getFieldContent(style, 'label');
-    const description = getFieldContent(style, 'description');
-    const placeholder = getFieldContent(style, 'placeholder');
-    const initialValue = getFieldContent(style, 'value') || '';
-    const required = getFieldContent(style, 'is_required') === '1';
-    const disabled = getFieldContent(style, 'disabled') === '1';
+    const name = style.name?.content;
+    const label = style.label?.content;
+    const description = style.description?.content || '';
+    const placeholder = style.placeholder?.content;
+    const initialValue = style.value?.content || '';
+    const required = style.is_required?.content === '1';
+    const disabled = style.disabled?.content === '1';
 
     // Mantine styling fields
-    const variant = getFieldContent(style, 'mantine_rich_text_editor_variant') || 'default';
+    const variant = style.mantine_rich_text_editor_variant?.content || 'default';
 
     // New advanced fields
-    const editorPlaceholder = getFieldContent(style, 'mantine_rich_text_editor_placeholder') || 'Start writing...';
-    const bubbleMenuEnabled = getFieldContent(style, 'mantine_rich_text_editor_bubble_menu') === '1';
-    const textColorEnabled = getFieldContent(style, 'mantine_rich_text_editor_text_color') === '1';
-    const taskListEnabled = getFieldContent(style, 'mantine_rich_text_editor_task_list') === '1';
+    const editorPlaceholder = style.mantine_rich_text_editor_placeholder?.content || 'Start writing...';
+    const bubbleMenuEnabled = style.mantine_rich_text_editor_bubble_menu?.content === '1';
+    const textColorEnabled = style.mantine_rich_text_editor_text_color?.content === '1';
+    const taskListEnabled = style.mantine_rich_text_editor_task_list?.content === '1';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

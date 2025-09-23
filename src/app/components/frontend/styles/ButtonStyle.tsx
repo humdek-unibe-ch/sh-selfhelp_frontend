@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Modal, Group, Text } from '@mantine/core';
 import { useRouter } from 'next/navigation';
-import { getFieldContent } from '../../../../utils/style-field-extractor';
 import { IButtonStyle } from '../../../../types/common/styles.types';
 import IconComponent from '../../shared/common/IconComponent';
 import parse from "html-react-parser";
@@ -26,25 +25,25 @@ interface IButtonStyleProps {
  */
 const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
     const router = useRouter();
-    const label = getFieldContent(style, 'label');
-    const url = getFieldContent(style, 'page_keyword');
-    const variant = getFieldContent(style, 'mantine_variant');
-    const color = getFieldContent(style, 'mantine_color');
-    const size = getFieldContent(style, 'mantine_size');
-    const radius = getFieldContent(style, 'mantine_radius');
-    const fullWidth = getFieldContent(style, 'mantine_fullwidth');
-    const leftIconName = getFieldContent(style, 'mantine_left_icon');
-    const rightIconName = getFieldContent(style, 'mantine_right_icon');
-    const compact = getFieldContent(style, 'mantine_compact');
-    const disabled = getFieldContent(style, 'disabled');
-    const is_link = getFieldContent(style, 'is_link');
-    const auto_contrast = getFieldContent(style, 'mantine_auto_contrast');
-    const open_in_new_tab = getFieldContent(style, 'open_in_new_tab');
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style');
-    const label_cancel = getFieldContent(style, 'label_cancel');
-    const confirmation_title = getFieldContent(style, 'confirmation_title');
-    const confirmation_continue = getFieldContent(style, 'confirmation_continue');
-    const confirmation_message = parse(DOMPurify.sanitize(getFieldContent(style, 'confirmation_message')));
+    const label = style.label?.content;
+    const url = style.page_keyword?.content;
+    const variant = style.mantine_variant?.content;
+    const color = style.mantine_color?.content;
+    const size = style.mantine_size?.content;
+    const radius = style.mantine_radius?.content;
+    const fullWidth = style.mantine_fullwidth?.content;
+    const leftIconName = style.mantine_left_icon?.content;
+    const rightIconName = style.mantine_right_icon?.content;
+    const compact = style.mantine_compact?.content;
+    const disabled = style.disabled?.content;
+    const is_link = style.is_link?.content;
+    const auto_contrast = style.mantine_auto_contrast?.content;
+    const open_in_new_tab = style.open_in_new_tab?.content;
+    const use_mantine_style = style.use_mantine_style?.content;
+    const label_cancel = style.label_cancel?.content;
+    const confirmation_title = style.confirmation_title?.content;
+    const confirmation_continue = style.confirmation_continue?.content;
+    const confirmation_message = parse(DOMPurify.sanitize((style as any).confirmation_message?.content));
 
     // Modal state
     const [confirmationOpened, setConfirmationOpened] = useState(false);

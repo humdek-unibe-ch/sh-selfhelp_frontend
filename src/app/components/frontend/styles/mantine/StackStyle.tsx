@@ -1,7 +1,6 @@
 import React from 'react';
 import { Stack } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { IStackStyle } from '../../../../../types/common/styles.types';
 
 /**
@@ -26,11 +25,11 @@ const StackStyle: React.FC<IStackStyleProps> = ({ style }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values for Mantine Stack props
-    const gap = getFieldContent(style, 'mantine_gap');
-    const justify = getFieldContent(style, 'mantine_justify');
-    const align = getFieldContent(style, 'mantine_align');
-    const width = getFieldContent(style, 'mantine_width');
-    const height = getFieldContent(style, 'mantine_height');
+    const gap = style.mantine_gap?.content;
+    const justify = style.mantine_justify?.content;
+    const align = style.mantine_align?.content;
+    const width = style.mantine_width?.content;
+    const height = style.mantine_height?.content;
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Chip, Tooltip } from '@mantine/core';
-import { getFieldContent } from '../../../../../../utils/style-field-extractor';
 import { IChipStyle } from '../../../../../../types/common/styles.types';
 import IconComponent from '../../../../shared/common/IconComponent';
 import { FormFieldValueContext } from '../../FormStyle';
@@ -31,31 +30,31 @@ interface IChipStyleProps {
  */
 const ChipStyle: React.FC<IChipStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
-    const label = getFieldContent(style, 'label') || 'Chip';
-    const variant = getFieldContent(style, 'mantine_chip_variant') || 'filled';
-    const size = getFieldContent(style, 'mantine_size') || 'sm';
-    const radius = getFieldContent(style, 'mantine_radius') || 'sm';
-    const color = getFieldContent(style, 'mantine_color') || 'blue';
-    const disabled = getFieldContent(style, 'disabled') === '1';
+    const label = style.label?.content || 'Chip';
+    const variant = style.mantine_chip_variant?.content || 'filled';
+    const size = style.mantine_size?.content || 'sm';
+    const radius = style.mantine_radius?.content || 'sm';
+    const color = style.mantine_color?.content || 'blue';
+    const disabled = style.disabled?.content === '1';
 
     // Form configuration fields (similar to checkbox)
-    const name = getFieldContent(style, 'name') || `section-${style.id}`;
-    const legacyChipValue = getFieldContent(style, 'chip_value') || '1'; // Legacy field for backward compatibility
-    const onValue = getFieldContent(style, 'chip_on_value') || legacyChipValue; // Value when checked
-    const offValue = getFieldContent(style, 'chip_off_value') || '0'; // Value when unchecked
-    const isRequired = getFieldContent(style, 'is_required') === '1';
+    const name = style.name?.content || `section-${style.id}`;
+    const legacyChipValue = style.chip_value?.content || '1'; // Legacy field for backward compatibility
+    const onValue = style.chip_on_value?.content || legacyChipValue; // Value when checked
+    const offValue = style.chip_off_value?.content || '0'; // Value when unchecked
+    const isRequired = style.is_required?.content === '1';
 
     // Tooltip fields
-    const tooltip = getFieldContent(style, 'tooltip');
-    const tooltipPosition = getFieldContent(style, 'mantine_tooltip_position') || 'top';
+    const tooltip = style.tooltip?.content;
+    const tooltipPosition = style.mantine_tooltip_position?.content || 'top';
 
     // Validate tooltip position to ensure it's a valid Mantine position
     const validPositions = ['top', 'bottom', 'left', 'right', 'top-start', 'top-end', 'bottom-start', 'bottom-end', 'left-start', 'left-end', 'right-start', 'right-end'];
     const safeTooltipPosition = validPositions.includes(tooltipPosition) ? tooltipPosition : 'top';
 
     // Icon field configuration
-    const iconName = getFieldContent(style, 'mantine_left_icon');
-    const iconSize = parseInt(getFieldContent(style, 'mantine_icon_size') || '16');
+    const iconName = style.mantine_left_icon?.content;
+    const iconSize = parseInt((style as any).mantine_icon_size?.content || '16');
 
     const chipIcon = iconName ? <IconComponent iconName={iconName} size={iconSize} /> : null;
 
@@ -74,7 +73,7 @@ const ChipStyle: React.FC<IChipStyleProps> = ({ style }) => {
             return formValue === onValue || (formValue === '1' && onValue === '1');
         }
         // Fallback to style configuration
-        return getFieldContent(style, 'chip_checked') === '1';
+        return style.chip_checked?.content === '1';
     });
 
     // Update checked state when form context changes (for record editing)

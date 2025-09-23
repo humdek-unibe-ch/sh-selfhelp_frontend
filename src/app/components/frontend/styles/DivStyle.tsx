@@ -2,7 +2,6 @@ import React from 'react';
 import { Box } from '@mantine/core';
 import BasicStyle from './BasicStyle';
 import { IDivStyle } from '../../../../types/common/styles.types';
-import { getFieldContent } from '../../../../utils/style-field-extractor';
 
 /**
  * Props interface for DivStyle component
@@ -23,10 +22,10 @@ interface IDivStyleProps {
  * @returns {JSX.Element} Rendered div with styled children
  */
 const DivStyle: React.FC<IDivStyleProps> = ({ style }) => {
-    const backgroundColor = getFieldContent(style, 'color_background');
-    const borderColor = getFieldContent(style, 'color_border');
-    const textColor = getFieldContent(style, 'color_text');
-    const cssClass = getFieldContent(style, 'css');
+    const backgroundColor = style.color_background?.content;
+    const borderColor = style.color_border?.content;
+    const textColor = style.color_text?.content;
+    const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
     // Build inline styles for colors
     const inlineStyles: React.CSSProperties = {};

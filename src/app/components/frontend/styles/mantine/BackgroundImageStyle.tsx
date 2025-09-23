@@ -1,7 +1,6 @@
 import React from 'react';
 import { BackgroundImage } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { IBackgroundImageStyle } from '../../../../../types/common/styles.types';
 import { getAssetUrl } from '../../../../../utils/asset-url.utils';
 
@@ -25,8 +24,8 @@ const BackgroundImageStyle: React.FC<IBackgroundImageStyleProps> = ({ style }) =
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values using the new unified field structure
-    const src = getFieldContent(style, 'img_src');
-    const radius = getFieldContent(style, 'mantine_radius') || 'sm';
+    const src = style.img_src?.content || '';
+    const radius = style.mantine_radius?.content || 'sm';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

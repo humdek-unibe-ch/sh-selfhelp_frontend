@@ -1,6 +1,5 @@
 import React from 'react';
 import { Divider } from '@mantine/core';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { IDividerStyle } from '../../../../../types/common/styles.types';
 
 /**
@@ -20,12 +19,12 @@ interface IDividerStyleProps {
  */
 const DividerStyle: React.FC<IDividerStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
-    const variant = getFieldContent(style, 'mantine_divider_variant') || 'solid';
-    const size = getFieldContent(style, 'mantine_size') || 'sm';
-    const label = getFieldContent(style, 'mantine_divider_label');
-    const labelPosition = getFieldContent(style, 'mantine_divider_label_position') || 'center';
-    const orientation = getFieldContent(style, 'mantine_orientation') || 'horizontal';
-    const color = getFieldContent(style, 'mantine_color') || 'gray';
+    const variant = style.mantine_divider_variant?.content || 'solid';
+    const size = style.mantine_size?.content || 'sm';
+    const label = style.mantine_divider_label?.content;
+    const labelPosition = style.mantine_divider_label_position?.content || 'center';
+    const orientation = style.mantine_orientation?.content || 'horizontal';
+    const color = style.mantine_color?.content || 'gray';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

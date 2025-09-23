@@ -1,8 +1,8 @@
 import React from 'react';
 import { Badge } from '@mantine/core';
 import IconComponent from '../../../shared/common/IconComponent';
-import { getFieldContent, castMantineSize, castMantineRadius } from '../../../../../utils/style-field-extractor';
 import { IBadgeStyle } from '../../../../../types/common/styles.types';
+import { castMantineSize, castMantineRadius } from '../../../../../utils/style-field-extractor';
 
 /**
  * Props interface for BadgeStyle component
@@ -21,15 +21,15 @@ interface IBadgeStyleProps {
  */
 const BadgeStyle: React.FC<IBadgeStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
-    const label = getFieldContent(style, 'label') || 'Badge';
-    const variant = getFieldContent(style, 'mantine_variant') || 'filled';
-    const size = castMantineSize(getFieldContent(style, 'mantine_size'));
-    const radius = castMantineRadius(getFieldContent(style, 'mantine_radius'));
-    const color = getFieldContent(style, 'mantine_color') || 'blue';
-    const leftIconName = getFieldContent(style, 'mantine_left_icon');
-    const rightIconName = getFieldContent(style, 'mantine_right_icon');
-    const auto_contrast = getFieldContent(style, 'mantine_auto_contrast');
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
+    const label = style.label?.content || 'Badge';
+    const variant = style.mantine_variant?.content || 'filled';
+    const size = castMantineSize((style as any).mantine_size?.content);
+    const radius = castMantineRadius((style as any).mantine_radius?.content);
+    const color = style.mantine_color?.content || 'blue';
+    const leftIconName = style.mantine_left_icon?.content;
+    const rightIconName = style.mantine_right_icon?.content;
+    const auto_contrast = style.mantine_auto_contrast?.content;
+    const use_mantine_style = style.use_mantine_style?.content === '1';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

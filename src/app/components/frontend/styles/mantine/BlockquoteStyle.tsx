@@ -1,7 +1,6 @@
 import React from 'react';
 import { Blockquote } from '@mantine/core';
 import IconComponent from '../../../shared/common/IconComponent';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { IBlockquoteStyle } from '../../../../../types/common/styles.types';
 
 /**
@@ -21,12 +20,12 @@ interface IBlockquoteStyleProps {
  */
 const BlockquoteStyle: React.FC<IBlockquoteStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
-    const content = getFieldContent(style, 'content') || 'This is a blockquote with some quoted text content.';
-    const cite = getFieldContent(style, 'cite');
-    const iconName = getFieldContent(style, 'mantine_left_icon') || 'icon-quote';
-    const iconSize = parseInt(getFieldContent(style, 'mantine_icon_size') || '20');
-    const color = getFieldContent(style, 'mantine_color') || 'gray';
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
+    const content = style.content?.content || 'This is a blockquote with some quoted text content.';
+    const cite = style.cite?.content;
+    const iconName = style.mantine_left_icon?.content || 'icon-quote';
+    const iconSize = parseInt((style as any).mantine_icon_size?.content || '20');
+    const color = style.mantine_color?.content || 'gray';
+    const use_mantine_style = style.use_mantine_style?.content === '1';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

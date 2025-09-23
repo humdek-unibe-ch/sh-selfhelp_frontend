@@ -55,190 +55,191 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
     /**
      * Renders the appropriate style component based on style_name
      */
-    switch (style.style_name) {
+    switch (style.style_name as string) {
         // Authentication Styles
         case 'login':
-            return <LoginStyle style={style} />;
+            return <LoginStyle style={style as any} />;
         case 'register':
-            return <RegisterStyle style={style} />;
+            return <RegisterStyle style={style as any} />;
         case 'validate':
-            return <ValidateStyle style={style} />;        
+            return <ValidateStyle style={style as any} />;
         case 'resetPassword':
-            return <ResetPasswordStyle style={style} />;
+            return <ResetPasswordStyle style={style as any} />;
         case 'twoFactorAuth':
-            return <TwoFactorAuthStyle style={style} />;
+            return <TwoFactorAuthStyle style={style as any} />;
 
         // Container & Layout Styles
         case 'container':
-            return <ContainerStyle style={style} />;
+            return <ContainerStyle style={style as any} />;
         case 'card':
-            return <CardStyle style={style} />;
+            return <CardStyle style={style as any} />;
         case 'card-segment':
-            return <CardSegmentStyle style={style} />;
+            return <CardSegmentStyle style={style as any} />;
         case 'div':
-            return <DivStyle style={style} />;
+            return <DivStyle style={style as any} />;
         case 'alert':
-            return <AlertStyle style={style} />;
+            return <AlertStyle style={style as any} />;
         case 'center':
-            return <CenterStyle style={style} />;
+            return <CenterStyle style={style as any} />;
         case 'flex':
-            return <FlexStyle style={style} />;
+            return <FlexStyle style={style as any} />;
         case 'group':
-            return <GroupStyle style={style} />;
+            return <GroupStyle style={style as any} />;
         case 'stack':
-            return <StackStyle style={style} />;
+            return <StackStyle style={style as any} />;
         case 'simple-grid':
-            return <SimpleGridStyle style={style} />;
+            return <SimpleGridStyle style={style as any} />;
         case 'scroll-area':
-            return <ScrollAreaStyle style={style} />;
+            return <ScrollAreaStyle style={style as any} />;
         case 'grid':
-            return <GridStyle style={style} />;
+            return <GridStyle style={style as any} />;
         case 'grid-column':
-            return <GridColumnStyle style={style} />;
+            return <GridColumnStyle style={style as any} />;
         case 'space':
-            return <SpaceStyle style={style} />;
+            return <SpaceStyle style={style as any} />;
         case 'background-image':
-            return <BackgroundImageStyle style={style} />;
+            return <BackgroundImageStyle style={style as any} />;
         case 'divider':
-            return <DividerStyle style={style} />;
+            return <DividerStyle style={style as any} />;
         case 'paper':
-            return <PaperStyle style={style} />;
+            return <PaperStyle style={style as any} />;
 
         // Text & Content Styles
         case 'heading':
-            return <HeadingStyle style={style} />;
+            return <HeadingStyle style={style as any} />;
         case 'markdown':
-            return <MarkdownStyle style={style} />;
+            return <MarkdownStyle style={style as any} />;
         case 'plaintext':
-            return <PlaintextStyle style={style} />;
+            return <PlaintextStyle style={style as any} />;
         case 'html-tag':
-            return <HtmlTagStyle style={style} />;
+            return <HtmlTagStyle style={style as any} />;
 
         // Media Styles
         case 'image':
-            return <ImageStyle style={style} />;
+            return <ImageStyle style={style as any} />;
         case 'carousel':
-            return <CarouselStyle style={style} />;
+            return <CarouselStyle style={style as any} />;
         case 'video':
-            return <VideoStyle style={style} />;
+            return <VideoStyle style={style as any} />;
         case 'audio':
-            return <AudioStyle style={style} />;
+            return <AudioStyle style={style as any} />;
         case 'figure':
-            return <FigureStyle style={style} />;
+            return <FigureStyle style={style as any} />;
 
         // Navigation & Links Styles
         case 'button':
-            return <ButtonStyle style={style} />;
+            return <ButtonStyle style={style as any} />;
         case 'link':
-            return <LinkStyle style={style} />;
+            return <LinkStyle style={style as any} />;
         case 'action-icon':
-            return <ActionIconStyle style={style} />;
+            return <ActionIconStyle style={style as any} />;
 
         // Form & Input Styles
         case 'form-log':
+            return <FormStyle style={style as any} />;
         case 'form-record':
-            return <FormStyle style={style} />;
+            return <FormStyle style={style as any} />;
         case 'textarea':
-            return <TextareaStyle style={style} />;
+            return <TextareaStyle style={style as any} />;
         case 'input':
-            return <InputStyle style={style} />;
+            return <InputStyle style={style as any} />;
         case 'select':
-            return <SelectStyle style={style} />;
+            return <SelectStyle style={style as any} />;
         case 'radio':
-            return <RadioStyle style={style} />;
+            return <RadioStyle style={style as any} />;
         case 'checkbox':
-            return <CheckboxStyle style={style} />;
+            return <CheckboxStyle style={style as any} />;
         case 'datepicker':
-            return <DatePickerStyle style={style} />;
+            return <DatePickerStyle style={style as any} />;
         case 'slider':
-            return <SliderStyle style={style} />;
+            return <SliderStyle style={style as any} />;
         case 'color-input':
-            return <ColorInputStyle style={style} />;
+            return <ColorInputStyle style={style as any} />;
         case 'color-picker':
-            return <ColorPickerStyle style={style} />;
+            return <ColorPickerStyle style={style as any} />;
         case 'file-input':
-            return <FileInputStyle style={style} />;
+            return <FileInputStyle style={style as any} />;
         case 'number-input':
-            return <NumberInputStyle style={style} />;
+            return <NumberInputStyle style={style as any} />;
         case 'range-slider':
-            return <RangeSliderStyle style={style} />;
+            return <RangeSliderStyle style={style as any} />;
         case 'segmented-control':
-            return <SegmentedControlStyle style={style} />;
+            return <SegmentedControlStyle style={style as any} />;
         case 'switch':
-            return <SwitchStyle style={style} />;
+            return <SwitchStyle style={style as any} />;
         case 'text-input':
-            return <TextInputStyle style={style} />;
+            return <TextInputStyle style={style as any} />;
         case 'textarea':
-            return <TextareaStyle style={style} />;
+            return <TextareaStyle style={style as any} />;
         case 'rich-text-editor':
-            return <RichTextEditorStyle style={style} />;
+            return <RichTextEditorStyle style={style as any} />;
         case 'combobox':
-            return <ComboboxStyle style={style} />;
+            return <ComboboxStyle style={style as any} />;
 
         // Tab Styles
         case 'tabs':
-            return <TabsStyle style={style} />;
+            return <TabsStyle style={style as any} />;
         case 'tab':
-            return <TabStyle style={style} />;
+            return <TabStyle style={style as any} />;
 
         // Accordion Styles
         case 'accordion':
-            return <AccordionStyle style={style} />;
+            return <AccordionStyle style={style as any} />;
         case 'accordion-Item':
-            return <AccordionItemStyle style={style} />;
+            return <AccordionItemStyle style={style as any} />;
 
         case 'avatar':
-            return <AvatarStyle style={style} />;
+            return <AvatarStyle style={style as any} />;
         case 'aspect-ratio':
-            return <AspectRatioStyle style={style} />;
+            return <AspectRatioStyle style={style as any} />;
         case 'badge':
-            return <BadgeStyle style={style} />;
+            return <BadgeStyle style={style as any} />;
         case 'chip':
-            return <ChipStyle style={style} />;
+            return <ChipStyle style={style as any} />;
         case 'timeline':
-            return <TimelineStyle style={style} />;
+            return <TimelineStyle style={style as any} />;
         case 'list':
-            return <ListStyle style={style} />;
+            return <ListStyle style={style as any} />;
         case 'list-item':
-            return <ListItemStyle style={style} />;
+            return <ListItemStyle style={style as any} />;
         case 'indicator':
-            return <IndicatorStyle style={style} />;
+            return <IndicatorStyle style={style as any} />;
         case 'kbd':
-            return <KbdStyle style={style} />;
+            return <KbdStyle style={style as any} />;
         case 'theme-icon':
-            return <ThemeIconStyle style={style} />;
+            return <ThemeIconStyle style={style as any} />;
         case 'rating':
-            return <RatingStyle style={style} />;
+            return <RatingStyle style={style as any} />;
         case 'profile':
-            return <ProfileStyle style={style} />;
+            return <ProfileStyle style={style as any} />;
         case 'progress':
-            return <ProgressStyle style={style} />;
+            return <ProgressStyle style={style as any} />;
         case 'progress-root':
-            return <ProgressRootStyle style={style} />;
+            return <ProgressRootStyle style={style as any} />;
         case 'progress-section':
-            return <ProgressSectionStyle style={style} />;
+            return <ProgressSectionStyle style={style as any} />;
         case 'notification':
-            return <NotificationStyle style={style} />;
+            return <NotificationStyle style={style as any} />;
         case 'title':
-            return <TitleStyle style={style} />;
+            return <TitleStyle style={style as any} />;
         case 'text':
-            return <TextStyle style={style} />;
+            return <TextStyle style={style as any} />;
         case 'code':
-            return <CodeStyle style={style} />;
+            return <CodeStyle style={style as any} />;
         case 'highlight':
-            return <HighlightStyle style={style} />;
+            return <HighlightStyle style={style as any} />;
         case 'blockquote':
-            return <BlockquoteStyle style={style} />;
+            return <BlockquoteStyle style={style as any} />;
         case 'fieldset':
-            return <FieldsetStyle style={style} />;
+            return <FieldsetStyle style={style as any} />;
         case 'spoiler':
-            return <SpoilerStyle style={style} />;
+            return <SpoilerStyle style={style as any} />;
         case 'typography':
-            return <TypographyStyle style={style} />;
+            return <TypographyStyle style={style as any} />;
 
         // Unknown/Unsupported styles
         default:
-            return <UnknownStyle style={style} />;
+            return <UnknownStyle style={style as any} />;
     }
 };
 

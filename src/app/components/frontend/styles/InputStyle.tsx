@@ -1,8 +1,8 @@
 import React from 'react';
 import { TextInput, NumberInput, PasswordInput, Checkbox, ColorInput } from '@mantine/core';
-import { getFieldContent, castMantineSize, castMantineRadius } from '../../../../utils/style-field-extractor';
 import { IInputStyle } from '../../../../types/common/styles.types';
 import IconComponent from '../../shared/common/IconComponent';
+import { castMantineSize, castMantineRadius } from '../../../../utils/style-field-extractor';
 
 /**
  * Props interface for InputStyle component
@@ -18,23 +18,23 @@ interface IInputStyleProps {
  */
 const InputStyle: React.FC<IInputStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
-    const inputType = getFieldContent(style, 'type_input') || 'text';
-    const label = getFieldContent(style, 'label');
-    const placeholder = getFieldContent(style, 'placeholder');
-    const name = getFieldContent(style, 'name');
-    const value = getFieldContent(style, 'value');
-    const required = getFieldContent(style, 'is_required') === '1';
-    const min = getFieldContent(style, 'min');
-    const max = getFieldContent(style, 'max');
-    const format = getFieldContent(style, 'format');
-    const locked = getFieldContent(style, 'locked_after_submit') === '1';
-    const size = castMantineSize(getFieldContent(style, 'mantine_size'));
-    const radius = castMantineRadius(getFieldContent(style, 'mantine_radius'));
-    const variant = getFieldContent(style, 'mantine_variant') || 'default';
-    const leftIconName = getFieldContent(style, 'mantine_left_icon');
-    const rightIconName = getFieldContent(style, 'mantine_right_icon');
-    const disabled = getFieldContent(style, 'disabled') === '1';
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
+    const inputType = style.type_input?.content || 'text';
+    const label = style.label?.content;
+    const placeholder = style.placeholder?.content;
+    const name = style.name?.content;
+    const value = style.value?.content;
+    const required = style.is_required?.content === '1';
+    const min = style.min?.content;
+    const max = style.max?.content;
+    const format = style.format?.content;
+    const locked = style.locked_after_submit?.content === '1';
+    const size = castMantineSize((style as any).mantine_size?.content);
+    const radius = castMantineRadius((style as any).mantine_radius?.content);
+    const variant = (style as any).mantine_variant?.content || 'default';
+    const leftIconName = (style as any).mantine_left_icon?.content;
+    const rightIconName = (style as any).mantine_right_icon?.content;
+    const disabled = (style as any).disabled?.content === '1';
+    const use_mantine_style = (style as any).use_mantine_style?.content === '1';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

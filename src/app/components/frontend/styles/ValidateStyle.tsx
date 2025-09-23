@@ -4,7 +4,6 @@ import { IconCheck, IconX } from '@tabler/icons-react';
 import { IValidateStyle } from '../../../../types/common/styles.types';
 import { usePageContentContext } from '../../contexts/PageContentContext';
 import { useSubmitFormMutation, useUpdateFormMutation } from '../../../../hooks/useFormSubmission';
-import { getFieldContent } from '../../../../utils/style-field-extractor';
 import { useParams, useRouter } from 'next/navigation';
 import { useValidateTokenMutation, useCompleteValidationMutation, useTokenValidation } from '../../../../hooks/mutations/useValidationMutations';
 
@@ -68,34 +67,34 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style }) => {
     const anonymousUserNameDescription = style.anonymous_user_name_description?.content;
 
     // Form configuration fields
-    const formName = getFieldContent(style, 'name') || 'validate_form';
-    const alertSuccessConfig = getFieldContent(style, 'alert_success') || alertSuccess;
-    const redirectUrl = getFieldContent(style, 'redirect_at_end');
-    const cancelUrl = getFieldContent(style, 'cancel_url');
-    const saveLabel = getFieldContent(style, 'label_save') || 'Save';
-    const updateLabel = getFieldContent(style, 'label_update') || 'Update';
-    const cancelLabel = getFieldContent(style, 'label_cancel') || 'Cancel';
+    const formName = style.name?.content || 'validate_form';
+    const alertSuccessConfig = style.alert_success?.content || alertSuccess;
+    const redirectUrl = style.redirect_at_end?.content;
+    const cancelUrl = style.cancel_url?.content;
+    const saveLabel = style.label_save?.content || 'Save';
+    const updateLabel = style.label_update?.content || 'Update';
+    const cancelLabel = style.label_cancel?.content || 'Cancel';
 
     // Button styling
-    const buttonSize = getFieldContent(style, 'mantine_buttons_size') || 'sm';
-    const buttonRadius = getFieldContent(style, 'mantine_buttons_radius') || 'sm';
-    const buttonVariant = getFieldContent(style, 'mantine_buttons_variant') || 'filled';
-    const buttonPosition = getFieldContent(style, 'mantine_buttons_position') || 'space-between';
-    const buttonOrder = getFieldContent(style, 'mantine_buttons_order') || 'save-cancel';
-    const activateColor = getFieldContent(style, 'mantine_btn_save_color') || 'blue';
-    const cancelColor = getFieldContent(style, 'mantine_btn_cancel_color') || 'gray';
+    const buttonSize = style.mantine_buttons_size?.content || 'sm';
+    const buttonRadius = style.mantine_buttons_radius?.content || 'sm';
+    const buttonVariant = style.mantine_buttons_variant?.content || 'filled';
+    const buttonPosition = style.mantine_buttons_position?.content || 'space-between';
+    const buttonOrder = style.mantine_buttons_order?.content || 'save-cancel';
+    const activateColor = style.mantine_btn_save_color?.content || 'blue';
+    const cancelColor = style.mantine_btn_cancel_color?.content || 'gray';
 
     // Card styling
-    const cardShadow = getFieldContent(style, 'mantine_card_shadow') || 'sm';
-    const cardPadding = getFieldContent(style, 'mantine_card_padding') || 'lg';
-    const cardRadius = getFieldContent(style, 'mantine_radius') || 'sm';
-    const withBorder = getFieldContent(style, 'mantine_border') === '1';
+    const cardShadow = style.mantine_card_shadow?.content || 'sm';
+    const cardPadding = style.mantine_card_padding?.content || 'lg';
+    const cardRadius = style.mantine_radius?.content || 'sm';
+    const withBorder = style.mantine_border?.content === '1';
 
     // Container styling (global margin/padding)
-    const containerPaddingX = getFieldContent(style, 'mantine_padding_inline') || 'sm';
-    const containerPaddingY = getFieldContent(style, 'mantine_padding_block') || 'sm';
-    const containerMarginX = getFieldContent(style, 'mantine_margin_inline') || 'none';
-    const containerMarginY = getFieldContent(style, 'mantine_margin_block') || 'none';
+    const containerPaddingX = style.mantine_padding_inline?.content || 'sm';
+    const containerPaddingY = style.mantine_padding_block?.content || 'sm';
+    const containerMarginX = style.mantine_margin_inline?.content || 'none';
+    const containerMarginY = style.mantine_margin_block?.content || 'none';
 
     // Get form ID from style - now directly available as number
     const sectionId = style.id;
@@ -132,7 +131,7 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style }) => {
 
         // The record form's section_data lives on the parent form style (`style.section_data`)
         // and contains key-value pairs where keys match input names inside the form.
-        const sectionDataArray: any[] | undefined = (style as any).section_data;
+        const sectionDataArray: any[] | undefined = style.section_data;
         const firstRecord = Array.isArray(sectionDataArray) && sectionDataArray.length > 0 ? sectionDataArray[0] : null;
 
         if (!firstRecord) return { existingRecordId: null, existingFormDataFromSection: null };

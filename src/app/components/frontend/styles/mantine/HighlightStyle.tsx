@@ -1,6 +1,5 @@
 import React from 'react';
 import { Highlight } from '@mantine/core';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { IHighlightStyle } from '../../../../../types/common/styles.types';
 
 /**
@@ -20,10 +19,10 @@ interface IHighlightStyleProps {
  */
 const HighlightStyle: React.FC<IHighlightStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
-    const content = getFieldContent(style, 'content') || getFieldContent(style, 'text') || 'Highlight some text in this content';
-    const highlightText = getFieldContent(style, 'mantine_highlight_highlight') || 'highlight';
-    const color = getFieldContent(style, 'mantine_color') || 'yellow';
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
+    const content = style.text?.content || 'Highlight some text in this content';
+    const highlightText = style.mantine_highlight_highlight?.content || 'highlight';
+    const color = style.mantine_color?.content || 'yellow';
+    const use_mantine_style = style.use_mantine_style?.content === '1';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

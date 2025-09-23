@@ -1,12 +1,12 @@
 import React, { useState, useCallback, useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { FileInput, Text, Alert, Box, rem, Paper, Group, Button, Stack, Badge, List } from '@mantine/core';
-import { castMantineSize, castMantineRadius, getFieldContent } from '../../../../../../utils/style-field-extractor';
 import { IconComponent } from '../../../../shared';
 import { IFileInputStyle } from '../../../../../../types/common/styles.types';
 import { notifications } from '@mantine/notifications';
 import { IconAlertTriangle, IconCheck, IconX, IconUpload, IconFile, IconTrash, IconClearAll } from '@tabler/icons-react';
 import { useDropzone } from 'react-dropzone';
 import { FileInputRegistrationContext } from '../../FormStyle';
+import { castMantineRadius, castMantineSize } from '../../../../../../utils/style-field-extractor';
 
 /**
  * Props interface for FileInputStyle component
@@ -58,23 +58,23 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
     const dropzoneInputRef = useRef<HTMLInputElement>(null);
 
     // Extract field values using the new unified field structure
-    const placeholder = getFieldContent(style, 'placeholder') || 'Select files';
-    const multiple = getFieldContent(style, 'mantine_file_input_multiple') === '1';
-    const accept = getFieldContent(style, 'mantine_file_input_accept');
-    const clearable = getFieldContent(style, 'mantine_file_input_clearable') === '1';
-    const dragDrop = getFieldContent(style, 'mantine_file_input_drag_drop') === '1';
-    const maxSizeStr = getFieldContent(style, 'mantine_file_input_max_size');
-    const maxFilesStr = getFieldContent(style, 'mantine_file_input_max_files');
-    const name = getFieldContent(style, 'name') || `section-${style.id}`;
-    const size = castMantineSize(getFieldContent(style, 'mantine_size')) || 'sm';
-    const radius = castMantineRadius(getFieldContent(style, 'mantine_radius')) || 'sm';
-    const leftIconName = getFieldContent(style, 'mantine_left_icon');
-    const rightIconName = getFieldContent(style, 'mantine_right_icon');
-    const disabled = getFieldContent(style, 'disabled') === '1';
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
-    const isRequired = getFieldContent(style, 'is_required') === '1';
-    const label = getFieldContent(style, 'label');
-    const description = getFieldContent(style, 'description');
+    const placeholder = style.placeholder?.content || 'Select files';
+    const multiple = style.mantine_file_input_multiple?.content === '1';
+    const accept = style.mantine_file_input_accept?.content;
+    const clearable = style.mantine_file_input_clearable?.content === '1';
+    const dragDrop = style.mantine_file_input_drag_drop?.content === '1';
+    const maxSizeStr = style.mantine_file_input_max_size?.content;
+    const maxFilesStr = style.mantine_file_input_max_files?.content;
+    const name = style.name?.content || `section-${style.id}`;
+    const size = castMantineSize((style as any).mantine_size?.content) || 'sm';
+    const radius = castMantineRadius((style as any).mantine_radius?.content) || 'sm';
+    const leftIconName = style.mantine_left_icon?.content;
+    const rightIconName = style.mantine_right_icon?.content;
+    const disabled = style.disabled?.content === '1';
+    const use_mantine_style = style.use_mantine_style?.content === '1';
+    const isRequired = style.is_required?.content === '1';
+    const label = style.label?.content;
+    const description = style.description?.content;
 
     // Parse numeric values
     const maxSize = maxSizeStr ? parseInt(maxSizeStr, 10) : undefined;

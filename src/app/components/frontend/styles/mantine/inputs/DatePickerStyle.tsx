@@ -9,11 +9,11 @@ import {
     getTimeRange
 } from '@mantine/dates';
 import dayjs from 'dayjs';
-import { getFieldContent, castMantineSize, castMantineRadius } from '../../../../../../utils/style-field-extractor';
 import { IDatePickerStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";
 import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
+import { castMantineRadius, castMantineSize } from '../../../../../../utils/style-field-extractor';
 
 // Set dayjs locale if specified
 const setDayjsLocale = (locale: string) => {
@@ -39,39 +39,39 @@ interface IDatePickerStyleProps {
 
 const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
-    const label = getFieldContent(style, 'label');
-    const name = getFieldContent(style, 'name') || `section-${style.id}`;
-    const value = getFieldContent(style, 'value');
-    const isRequired = getFieldContent(style, 'is_required') === '1';
-    const disabled = getFieldContent(style, 'disabled') === '1';
-    const description = getFieldContent(style, 'description');
+    const label = style.label?.content;
+    const name = style.name?.content || `section-${style.id}`;
+    const value = style.value?.content;
+    const isRequired = style.is_required?.content === '1';
+    const disabled = style.disabled?.content === '1';
+    const description = style.description?.content || '';
 
     // DatePicker-specific fields
-    const pickerType = getFieldContent(style, 'mantine_datepicker_type') || 'date';
+    const pickerType = style.mantine_datepicker_type?.content || 'date';
     // format: Used for UI display formatting (valueFormat prop in components)
-    const format = getFieldContent(style, 'mantine_datepicker_format');
-    const locale = getFieldContent(style, 'mantine_datepicker_locale') || 'en';
-    const placeholder = getFieldContent(style, 'mantine_datepicker_placeholder');
-    const minDateStr = getFieldContent(style, 'mantine_datepicker_min_date');
-    const maxDateStr = getFieldContent(style, 'mantine_datepicker_max_date');
-    const firstDayOfWeek = parseInt(getFieldContent(style, 'mantine_datepicker_first_day_of_week') || '1') as 0 | 1 | 2 | 3 | 4 | 5 | 6;
-    const weekendDaysStr = getFieldContent(style, 'mantine_datepicker_weekend_days') || '[0,6]';
-    const clearable = getFieldContent(style, 'mantine_datepicker_clearable') === '1';
-    const allowDeselect = getFieldContent(style, 'mantine_datepicker_allow_deselect') === '1';
-    const readonly = getFieldContent(style, 'mantine_datepicker_readonly') === '1';
-    const withTimeGrid = getFieldContent(style, 'mantine_datepicker_with_time_grid') === '1';
-    const consistentWeeks = getFieldContent(style, 'mantine_datepicker_consistent_weeks') === '1';
+    const format = style.mantine_datepicker_format?.content;
+    const locale = style.mantine_datepicker_locale?.content || 'en';
+    const placeholder = style.mantine_datepicker_placeholder?.content;
+    const minDateStr = style.mantine_datepicker_min_date?.content;
+    const maxDateStr = style.mantine_datepicker_max_date?.content;
+    const firstDayOfWeek = parseInt((style as any).mantine_datepicker_first_day_of_week?.content || '1') as 0 | 1 | 2 | 3 | 4 | 5 | 6;
+    const weekendDaysStr = style.mantine_datepicker_weekend_days?.content || '[0,6]';
+    const clearable = style.mantine_datepicker_clearable?.content === '1';
+    const allowDeselect = style.mantine_datepicker_allow_deselect?.content === '1';
+    const readonly = style.mantine_datepicker_readonly?.content === '1';
+    const withTimeGrid = style.mantine_datepicker_with_time_grid?.content === '1';
+    const consistentWeeks = style.mantine_datepicker_consistent_weeks?.content === '1';
     // hideOutsideDates: Hides dates from previous/next months that appear in the current month's calendar view
-    const hideOutsideDates = getFieldContent(style, 'mantine_datepicker_hide_outside_dates') === '1';
+    const hideOutsideDates = style.mantine_datepicker_hide_outside_dates?.content === '1';
     // hideWeekends: Hides Saturday and Sunday from the calendar, useful for business applications
-    const hideWeekends = getFieldContent(style, 'mantine_datepicker_hide_weekends') === '1';
-    const timeStep = parseInt(getFieldContent(style, 'mantine_datepicker_time_step') || '15');
-    const timeFormat = getFieldContent(style, 'mantine_datepicker_time_format') || '24';
+    const hideWeekends = style.mantine_datepicker_hide_weekends?.content === '1';
+    const timeStep = parseInt((style as any).mantine_datepicker_time_step?.content || '15');
+    const timeFormat = style.mantine_datepicker_time_format?.content || '24';
     // timeStep is used with TimeGrid interval generation when withTimeGrid is enabled
     // dateFormat: Used for form submission and storage (separate from display format)
-    const dateFormat = getFieldContent(style, 'mantine_datepicker_date_format') || 'YYYY-MM-DD';
-    const timeGridConfigStr = getFieldContent(style, 'mantine_datepicker_time_grid_config');
-    const withSeconds = getFieldContent(style, 'mantine_datepicker_with_seconds') === '1';
+    const dateFormat = style.mantine_datepicker_date_format?.content || 'YYYY-MM-DD';
+    const timeGridConfigStr = style.mantine_datepicker_time_grid_config?.content;
+    const withSeconds = style.mantine_datepicker_with_seconds?.content === '1';
 
     // Parse TimeGrid configuration
     let timeGridConfig: any = {};
@@ -84,8 +84,8 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
     }
 
     // Mantine-specific fields
-    const size = castMantineSize(getFieldContent(style, 'mantine_size'));
-    const radius = castMantineRadius(getFieldContent(style, 'mantine_radius'));
+    const size = castMantineSize((style as any).mantine_size?.content);
+    const radius = castMantineRadius((style as any).mantine_radius?.content);
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
@@ -280,7 +280,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
                     onChange={handleDateTimeChange}
                     label={label}
                     placeholder={placeholder}
-                    description={parse(sanitizeHtmlForInline(description))}
+                    description={parse(sanitizeHtmlForParsing(description))}
                     required={isRequired}
                     disabled={disabled}
                     size={size}

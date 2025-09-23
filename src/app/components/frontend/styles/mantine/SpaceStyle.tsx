@@ -1,7 +1,6 @@
 import React from 'react';
 import { Space } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { ISpaceStyle } from '../../../../../types/common/styles.types';
 
 /**
@@ -23,8 +22,8 @@ interface ISpaceStyleProps {
  */
 const SpaceStyle: React.FC<ISpaceStyleProps> = ({ style }) => {
     // Extract field values for Mantine Space props
-    const size = getFieldContent(style, 'mantine_size');
-    const direction = getFieldContent(style, 'mantine_space_direction');
+    const size = style.mantine_size?.content;
+    const direction = style.mantine_space_direction?.content;
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

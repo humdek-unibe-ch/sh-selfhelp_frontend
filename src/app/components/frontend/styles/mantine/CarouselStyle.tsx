@@ -3,7 +3,6 @@ import { Carousel } from '@mantine/carousel';
 import BasicStyle from '../BasicStyle';
 import { ICarouselStyle } from '../../../../../types/common/styles.types';
 import IconComponent from '../../../shared/common/IconComponent';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 
 /**
  * Props interface for CarouselStyle component
@@ -25,27 +24,27 @@ interface ICarouselStyleProps {
  */
 const CarouselStyle: React.FC<ICarouselStyleProps> = ({ style }) => {
     // Extract field values using the unified field extraction utility
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
+    const use_mantine_style = style.use_mantine_style?.content === '1';
 
     // Extract Mantine Carousel props
-    const height = getFieldContent(style, 'mantine_height');
-    const slideSize = getFieldContent(style, 'mantine_carousel_slide_size');
-    const slideGap = getFieldContent(style, 'mantine_carousel_slide_gap');
-    const orientation = getFieldContent(style, 'mantine_orientation') as 'horizontal' | 'vertical';
-    const withControls = getFieldContent(style, 'has_controls') === '1';
-    const withIndicators = getFieldContent(style, 'has_indicators') === '1';
-    const controlSize = getFieldContent(style, 'mantine_control_size');
-    const controlsOffset = getFieldContent(style, 'mantine_carousel_controls_offset');
-    const nextControlIcon = getFieldContent(style, 'mantine_carousel_next_control_icon');
-    const previousControlIcon = getFieldContent(style, 'mantine_carousel_previous_control_icon');
-    const loop = getFieldContent(style, 'mantine_loop') === '1';
-    const dragFree = getFieldContent(style, 'drag_free') === '1';
-    const align = getFieldContent(style, 'mantine_carousel_align') as 'start' | 'center' | 'end';
-    const containScroll = getFieldContent(style, 'mantine_carousel_contain_scroll') as 'auto' | 'trimSnaps' | 'keepSnaps';
-    const skipSnaps = getFieldContent(style, 'skip_snaps') === '1';
-    const inViewThreshold = getFieldContent(style, 'mantine_carousel_in_view_threshold');
-    const duration = getFieldContent(style, 'mantine_carousel_duration');
-    const emblaOptionsString = getFieldContent(style, 'mantine_carousel_embla_options');
+    const height = style.mantine_height?.content;
+    const slideSize = style.mantine_carousel_slide_size?.content;
+    const slideGap = style.mantine_carousel_slide_gap?.content;
+    const orientation = style.mantine_orientation?.content as 'horizontal' | 'vertical';
+    const withControls = style.has_controls?.content === '1';
+    const withIndicators = style.has_indicators?.content === '1';
+    const controlSize = style.mantine_control_size?.content;
+    const controlsOffset = style.mantine_carousel_controls_offset?.content;
+    const nextControlIcon = style.mantine_carousel_next_control_icon?.content;
+    const previousControlIcon = style.mantine_carousel_previous_control_icon?.content;
+    const loop = style.mantine_loop?.content === '1';
+    const dragFree = style.drag_free?.content === '1';
+    const align = style.mantine_carousel_align?.content as 'start' | 'center' | 'end';
+    const containScroll = style.mantine_carousel_contain_scroll?.content as 'auto' | 'trimSnaps' | 'keepSnaps';
+    const skipSnaps = style.skip_snaps?.content === '1';
+    const inViewThreshold = style.mantine_carousel_in_view_threshold?.content;
+    const duration = style.mantine_carousel_duration?.content;
+    const emblaOptionsString = style.mantine_carousel_embla_options?.content;
 
     // Parse Embla options if provided
     let emblaOptions: any = {};

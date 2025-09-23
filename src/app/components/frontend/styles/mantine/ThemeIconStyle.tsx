@@ -1,8 +1,8 @@
 import React from 'react';
 import { ThemeIcon } from '@mantine/core';
 import IconComponent from '../../../shared/common/IconComponent';
-import { castMantineRadius, castMantineSize, getFieldContent } from '../../../../../utils/style-field-extractor';
 import { IThemeIconStyle } from '../../../../../types/common/styles.types';
+import { castMantineSize, castMantineRadius } from '../../../../../utils/style-field-extractor';
 
 /**
  * Props interface for ThemeIconStyle component
@@ -21,11 +21,11 @@ interface IThemeIconStyleProps {
  */
 const ThemeIconStyle: React.FC<IThemeIconStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
-    const variant = getFieldContent(style, 'mantine_variant') || 'filled';
-    const size = castMantineSize(getFieldContent(style, 'mantine_size')) || 'md';
-    const radius = castMantineRadius(getFieldContent(style, 'mantine_radius')) || 'sm';
-    const color = getFieldContent(style, 'mantine_color') || 'blue';
-    const leftIconName = getFieldContent(style, 'mantine_left_icon');
+    const variant = style.mantine_variant?.content || 'filled';
+    const size = castMantineSize((style as any).mantine_size?.content) || 'md';
+    const radius = castMantineRadius((style as any).mantine_radius?.content) || 'sm';
+    const color = style.mantine_color?.content || 'blue';
+    const leftIconName = style.mantine_left_icon?.content;
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

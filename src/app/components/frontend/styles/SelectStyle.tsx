@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Select, MultiSelect } from '@mantine/core';
 import { ISelectStyle } from '../../../../types/common/styles.types';
-import { getFieldContent, castMantineSize, castMantineRadius } from '../../../../utils/style-field-extractor';
 import { FormFieldValueContext } from './FormStyle';
+import { castMantineSize, castMantineRadius } from '../../../../utils/style-field-extractor';
 
 /**
  * Props interface for SelectStyle component
@@ -18,20 +18,20 @@ interface ISelectStyleProps {
  */
 const SelectStyle: React.FC<ISelectStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
-    const label = getFieldContent(style, 'label');
-    const placeholder = getFieldContent(style, 'placeholder') || 'Select an option';
-    const name = getFieldContent(style, 'name');
-    const value = getFieldContent(style, 'value');
-    const required = getFieldContent(style, 'is_required') === '1';
-    const isMultiple = getFieldContent(style, 'is_multiple') === '1';
-    const searchable = getFieldContent(style, 'mantine_select_searchable') === '1' || getFieldContent(style, 'live_search') === '1';
-    const clearable = getFieldContent(style, 'mantine_select_clearable') === '1' || getFieldContent(style, 'allow_clear') === '1';
-    const locked = getFieldContent(style, 'locked_after_submit') === '1';
-    const disabled = getFieldContent(style, 'disabled') === '1';
-    const size = castMantineSize(getFieldContent(style, 'mantine_size'));
-    const radius = castMantineRadius(getFieldContent(style, 'mantine_radius'));
-    const maxValues = getFieldContent(style, 'max') ? parseInt(getFieldContent(style, 'max')!) : undefined;
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
+    const label = style.label?.content;
+    const placeholder = (style as any).placeholder?.content || 'Select an option';
+    const name = style.name?.content;
+    const value = style.value?.content;
+    const required = style.is_required?.content === '1';
+    const isMultiple = style.is_multiple?.content === '1';
+    const searchable = (style as any).mantine_select_searchable?.content === '1' || style.live_search?.content === '1';
+    const clearable = (style as any).mantine_select_clearable?.content === '1' || style.allow_clear?.content === '1';
+    const locked = style.locked_after_submit?.content === '1';
+    const disabled = style.disabled?.content === '1';
+    const size = castMantineSize((style as any).mantine_size?.content);
+    const radius = castMantineRadius((style as any).mantine_radius?.content);
+    const maxValues = style.max?.content ? parseInt(style.max.content) : undefined;
+    const use_mantine_style = (style as any).use_mantine_style?.content === '1';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
@@ -42,7 +42,7 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style }) => {
     // Parse items - handle both array and JSON string formats
     let itemsArray: any[] = [];
     try {
-        const itemsContent = getFieldContent(style, 'mantine_multi_select_data') || getFieldContent(style, 'items');
+        const itemsContent = (style as any).mantine_multi_select_data?.content || style.items?.content;
         if (itemsContent) {
             itemsArray = JSON.parse(itemsContent);
         }
@@ -70,7 +70,11 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style }) => {
         }
     }, [formValue, isMultiple]);
 
-    const handleValueChange = (value: string | string[]) => {
+    const handleSingleValueChange = (value: string | null) => {
+        setSelectedValue(value || '');
+    };
+
+    const handleMultiValueChange = (value: string[]) => {
         setSelectedValue(value);
     };
 
@@ -87,8 +91,6 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style }) => {
         className: cssClass,
         style: styleObj,
         data: items,
-        value: selectedValue,
-        onChange: handleValueChange,
     };
 
     if (use_mantine_style) {
@@ -97,6 +99,8 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style }) => {
                 <MultiSelect
                     {...commonProps}
                     maxValues={maxValues}
+                    value={selectedValue as string[] | undefined}
+                    onChange={handleMultiValueChange}
                 />
             );
         }
@@ -104,6 +108,8 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style }) => {
         return (
             <Select
                 {...commonProps}
+                value={selectedValue as string | null | undefined}
+                onChange={handleSingleValueChange}
             />
         );
     }
@@ -125,7 +131,7 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style }) => {
             <select
                 name={name}
                 value={isMultiple ? undefined : selectedValue}
-                onChange={(e) => handleValueChange(e.target.value)}
+                onChange={(e) => handleSingleValueChange(e.target.value)}
                 multiple={isMultiple}
                 required={required}
                 disabled={disabled || locked}

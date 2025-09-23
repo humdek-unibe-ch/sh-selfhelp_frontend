@@ -1,6 +1,5 @@
 import React from 'react';
 import { Accordion } from '@mantine/core';
-import { getFieldContent } from '../../../../../../utils/style-field-extractor';
 import IconComponent from '../../../../shared/common/IconComponent';
 import { IAccordionItemStyle } from '../../../../../../types/common/styles.types';
 import BasicStyle from '../../BasicStyle';
@@ -25,11 +24,11 @@ const AccordionItemStyle: React.FC<IAccordionItemStyleProps> = ({ style }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values using the new unified field structure
-    const itemValue = getFieldContent(style, 'mantine_accordion_item_value') || `section-${style.id}`;
-    const label = getFieldContent(style, 'label') || `Item ${style.id}`;
-    const iconName = getFieldContent(style, 'mantine_accordion_item_icon');
-    const disabled = getFieldContent(style, 'disabled') === '1';
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
+    const itemValue = style.mantine_accordion_item_value?.content || `section-${style.id}`;
+    const label = style.label?.content || `Item ${style.id}`;
+    const iconName = style.mantine_accordion_item_icon?.content;
+    const disabled = style.disabled?.content === '1';
+    const use_mantine_style = style.use_mantine_style?.content === '1';
 
     // Get icon component using IconComponent
     const icon = iconName ? <IconComponent iconName={iconName} size={16} /> : undefined;

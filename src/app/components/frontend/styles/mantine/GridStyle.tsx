@@ -1,7 +1,6 @@
 import React from 'react';
 import { Grid } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { IGridStyle } from '../../../../../types/common/styles.types';
 
 /**
@@ -20,13 +19,13 @@ const GridStyle: React.FC<IGridStyleProps> = ({ style }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values with defaults
-    const cols = parseInt(getFieldContent(style, 'mantine_cols') || '12');
-    const gap = getFieldContent(style, 'mantine_gap') || 'md';
-    const justify = getFieldContent(style, 'mantine_justify');
-    const align = getFieldContent(style, 'mantine_align');
-    const overflow = getFieldContent(style, 'mantine_grid_overflow') || 'visible';
-    const width = getFieldContent(style, 'mantine_width');
-    const height = getFieldContent(style, 'mantine_height');
+    const cols = parseInt((style as any).mantine_cols?.content || '12');
+    const gap = style.mantine_gap?.content || 'md';
+    const justify = style.mantine_justify?.content;
+    const align = style.mantine_align?.content;
+    const overflow = style.mantine_grid_overflow?.content || 'visible';
+    const width = style.mantine_width?.content;
+    const height = style.mantine_height?.content;
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

@@ -1,6 +1,5 @@
 import React from 'react';
 import { Tabs } from '@mantine/core';
-import { getFieldContent } from '../../../../../../utils/style-field-extractor';
 import { ITabStyle } from '../../../../../../types/common/styles.types';
 import { IconComponent } from '../../../../shared';
 
@@ -20,12 +19,12 @@ interface ITabStyleProps {
 const TabStyle: React.FC<ITabStyleProps> = ({ style, isActive = false }) => {
     // Extract field values - mantine_tab_value field was removed, use section ID
     const value = style.id?.toString() || 'tab';
-    const label = getFieldContent(style, 'label') || 'Tab';
-    const leftIconName = getFieldContent(style, 'mantine_left_icon');
-    const rightIconName = getFieldContent(style, 'mantine_right_icon');
-    const disabled = getFieldContent(style, 'mantine_tab_disabled') === '1';
-    const width = getFieldContent(style, 'mantine_width');
-    const height = getFieldContent(style, 'mantine_height');
+    const label = style.label?.content || 'Tab';
+    const leftIconName = style.mantine_left_icon?.content;
+    const rightIconName = style.mantine_right_icon?.content;
+    const disabled = style.mantine_tab_disabled?.content === '1';
+    const width = style.mantine_width?.content;
+    const height = style.mantine_height?.content;
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

@@ -1,7 +1,6 @@
 import React from 'react';
 import { SimpleGrid } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { ISimpleGridStyle } from '../../../../../types/common/styles.types';
 
 /**
@@ -26,12 +25,12 @@ const SimpleGridStyle: React.FC<ISimpleGridStyleProps> = ({ style }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values for Mantine SimpleGrid props
-    const cols = getFieldContent(style, 'mantine_cols');
-    const spacing = getFieldContent(style, 'mantine_spacing');
-    const breakpoints = getFieldContent(style, 'mantine_breakpoints');
-    const verticalSpacing = getFieldContent(style, 'mantine_vertical_spacing');
-    const width = getFieldContent(style, 'mantine_width');
-    const height = getFieldContent(style, 'mantine_height');
+    const cols = style.mantine_cols?.content;
+    const spacing = style.mantine_spacing?.content;
+    const breakpoints = style.mantine_breakpoints?.content;
+    const verticalSpacing = style.mantine_vertical_spacing?.content;
+    const width = style.mantine_width?.content;
+    const height = style.mantine_height?.content;
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

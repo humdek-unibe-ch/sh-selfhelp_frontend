@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { TextInput, Input } from '@mantine/core';
-import { castMantineRadius, castMantineSize, getFieldContent } from '../../../../../../utils/style-field-extractor';
 import IconComponent from '../../../../shared/common/IconComponent';
 import { ITextInputStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
+import { castMantineSize, castMantineRadius } from '../../../../../../utils/style-field-extractor';
 
 interface ITextInputStyleProps {
     style: ITextInputStyle;
@@ -12,18 +12,18 @@ interface ITextInputStyleProps {
 const TextInputStyle: React.FC<ITextInputStyleProps> = ({ style }) => {
 
     // Extract field values
-    const label = getFieldContent(style, 'label');
-    const description = getFieldContent(style, 'description');
-    const placeholder = getFieldContent(style, 'placeholder');
-    const initialValue = getFieldContent(style, 'value');
-    const name = getFieldContent(style, 'name');
-    const required = getFieldContent(style, 'is_required') === '1';
-    const disabled = getFieldContent(style, 'disabled') === '1';
-    const leftIconName = getFieldContent(style, 'mantine_left_icon');
-    const rightIconName = getFieldContent(style, 'mantine_right_icon');
-    const size = castMantineSize(getFieldContent(style, 'mantine_size'));
-    const radius = castMantineRadius(getFieldContent(style, 'mantine_radius'));
-    const variant = getFieldContent(style, 'mantine_text_input_variant');
+    const label = style.label?.content;
+    const description = style.description?.content;
+    const placeholder = style.placeholder?.content;
+    const initialValue = style.value?.content;
+    const name = style.name?.content;
+    const required = style.is_required?.content === '1';
+    const disabled = style.disabled?.content === '1';
+    const leftIconName = style.mantine_left_icon?.content;
+    const rightIconName = style.mantine_right_icon?.content;
+    const size = castMantineSize((style as any).mantine_size?.content);
+    const radius = castMantineRadius((style as any).mantine_radius?.content);
+    const variant = style.mantine_text_input_variant?.content;
 
     // Get form context for pre-populated values
     const formContext = useContext(FormFieldValueContext);

@@ -2,8 +2,8 @@ import React from 'react';
 import { List } from '@mantine/core';
 import BasicStyle from '../../BasicStyle';
 import { IListStyle } from '../../../../../../types/common/styles.types';
-import { getFieldContent, castMantineSize } from '../../../../../../utils/style-field-extractor';
 import IconComponent from '../../../../shared/common/IconComponent';
+import { castMantineSize } from '../../../../../../utils/style-field-extractor';
 
 /**
  * Props interface for ListStyle component
@@ -22,12 +22,12 @@ interface IListStyleProps {
  */
 const ListStyle: React.FC<IListStyleProps> = ({ style }) => {
     // Extract Mantine-specific props
-    const listStyleType = getFieldContent(style, 'mantine_list_list_style_type');
-    const withPadding = getFieldContent(style, 'mantine_list_with_padding') === '1';
-    const center = getFieldContent(style, 'mantine_list_center') === '1';
-    const iconName = getFieldContent(style, 'mantine_list_icon');
-    const size = castMantineSize(getFieldContent(style, 'mantine_size'));
-    const spacing = getFieldContent(style, 'mantine_spacing') || 'md';
+    const listStyleType = style.mantine_list_list_style_type?.content;
+    const withPadding = style.mantine_list_with_padding?.content === '1';
+    const center = style.mantine_list_center?.content === '1';
+    const iconName = style.mantine_list_icon?.content;
+    const size = castMantineSize((style as any).mantine_size?.content);
+    const spacing = style.mantine_spacing?.content || 'md';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

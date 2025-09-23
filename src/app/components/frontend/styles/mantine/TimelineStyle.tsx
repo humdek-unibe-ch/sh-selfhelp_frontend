@@ -2,7 +2,6 @@ import React from 'react';
 import { Avatar, Text, ThemeIcon, Timeline } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
 import IconComponent from '../../../shared/common/IconComponent';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { ITimelineStyle } from '../../../../../types/common/styles.types';
 import { IconSun, IconVideo } from '@tabler/icons-react';
 
@@ -26,13 +25,13 @@ const TimelineStyle: React.FC<ITimelineStyleProps> = ({ style }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values using the new unified field structure
-    const bulletSize = parseInt(getFieldContent(style, 'mantine_timeline_bullet_size') || '24');
-    const lineWidth = parseInt(getFieldContent(style, 'mantine_timeline_line_width') || '2');
-    const active = parseInt(getFieldContent(style, 'mantine_timeline_active') || '0');
-    const color = getFieldContent(style, 'mantine_color') || 'blue';
+    const bulletSize = parseInt((style as any).mantine_timeline_bullet_size?.content || '24');
+    const lineWidth = parseInt((style as any).mantine_timeline_line_width?.content || '2');
+    const active = parseInt((style as any).mantine_timeline_active?.content || '0');
+    const color = style.mantine_color?.content || 'blue';
 
     // Use the validated color from CMS
-    const align = getFieldContent(style, 'mantine_timeline_align') || 'left';
+    const align = style.mantine_timeline_align?.content || 'left';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
@@ -54,10 +53,10 @@ const TimelineStyle: React.FC<ITimelineStyleProps> = ({ style }) => {
                 if (!child) return null;
 
                 // Extract timeline item fields
-                const title = getFieldContent(child, 'title');
-                const bulletIconName = getFieldContent(child, 'mantine_timeline_item_bullet');
-                const lineVariant = getFieldContent(child, 'mantine_timeline_item_line_variant') || 'solid';
-                const itemColor = getFieldContent(child, 'mantine_color');
+                const title = (child as any).title?.content;
+                const bulletIconName = (child as any).mantine_timeline_item_bullet?.content;
+                const lineVariant = (child as any).mantine_timeline_item_line_variant?.content || 'solid';
+                const itemColor = (child as any).mantine_color?.content;
 
                 // Determine if this item should inherit parent's color or use its own
                 // If the item index is within the parent's active range, use parent color

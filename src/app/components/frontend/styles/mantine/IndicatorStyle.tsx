@@ -1,7 +1,6 @@
 import React from 'react';
 import { Indicator } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { IIndicatorStyle } from '../../../../../types/common/styles.types';
 
 /**
@@ -34,17 +33,17 @@ const IndicatorStyle: React.FC<IIndicatorStyleProps> = ({ style }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values using the new unified field structure
-    const processing = getFieldContent(style, 'mantine_indicator_processing') === '1';
-    const disabled = getFieldContent(style, 'mantine_indicator_disabled') === '1';
-    const size = parseInt(getFieldContent(style, 'mantine_indicator_size') || '10');
-    const color = getFieldContent(style, 'mantine_color') || 'red';
-    const position = getFieldContent(style, 'mantine_indicator_position') || 'top-end';
-    const label = getFieldContent(style, 'label') || '';
-    const inline = getFieldContent(style, 'mantine_indicator_inline') === '1';
-    const offset = parseInt(getFieldContent(style, 'mantine_indicator_offset') || '0');
-    const withBorder = getFieldContent(style, 'mantine_border') === '1';
-    const radius = getFieldContent(style, 'mantine_radius') || 'xl';
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
+    const processing = style.mantine_indicator_processing?.content === '1';
+    const disabled = style.mantine_indicator_disabled?.content === '1';
+    const size = parseInt((style as any).mantine_indicator_size?.content || '10');
+    const color = style.mantine_color?.content || 'red';
+    const position = style.mantine_indicator_position?.content || 'top-end';
+    const label = style.label?.content || '';
+    const inline = style.mantine_indicator_inline?.content === '1';
+    const offset = parseInt((style as any).mantine_indicator_offset?.content || '0');
+    const withBorder = style.mantine_border?.content === '1';
+    const radius = style.mantine_radius?.content || 'xl';
+    const use_mantine_style = style.use_mantine_style?.content === '1';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

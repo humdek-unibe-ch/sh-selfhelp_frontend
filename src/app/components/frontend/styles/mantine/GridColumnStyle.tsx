@@ -1,7 +1,6 @@
 import React from 'react';
 import { Grid } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { IGridColumnStyle } from '../../../../../types/common/styles.types';
 
 /**
@@ -20,12 +19,12 @@ const GridColumnStyle: React.FC<IGridColumnStyleProps> = ({ style }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values with defaults
-    const span = getFieldContent(style, 'mantine_grid_span') || 'auto';
-    const offset = parseInt(getFieldContent(style, 'mantine_grid_offset') || '0');
-    const order = getFieldContent(style, 'mantine_grid_order') ? parseInt(getFieldContent(style, 'mantine_grid_order')!) : undefined;
-    const grow = getFieldContent(style, 'mantine_grid_grow') === '1';
-    const width = getFieldContent(style, 'mantine_width');
-    const height = getFieldContent(style, 'mantine_height');
+    const span = style.mantine_grid_span?.content || 'auto';
+    const offset = parseInt((style as any).mantine_grid_offset?.content || '0');
+    const order = style.mantine_grid_order?.content ? parseInt((style as any).mantine_grid_order?.content!) : undefined;
+    const grow = style.mantine_grid_grow?.content === '1';
+    const width = style.mantine_width?.content;
+    const height = style.mantine_height?.content;
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

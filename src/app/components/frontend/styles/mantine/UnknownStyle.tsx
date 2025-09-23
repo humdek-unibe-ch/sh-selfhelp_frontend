@@ -1,7 +1,6 @@
 import React from 'react';
 import { Alert, Text, Code, Group } from '@mantine/core';
 import { IconAlertTriangle, IconCode } from '@tabler/icons-react';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { IBaseStyle } from '../../../../../types/common/styles.types';
 
 /**
@@ -21,9 +20,6 @@ const UnknownStyle: React.FC<IUnknownStyleProps> = ({ style }) => {
     const styleName = style.style_name;
     const styleId = style.id;
     const cssClass = "unknown-style section-" + styleId + " " + (style.css ?? '');
-
-    // Extract any content that might be available
-    const content = getFieldContent(style, 'content') || getFieldContent(style, 'value') || getFieldContent(style, 'message');
 
     return (
         <Alert
@@ -46,7 +42,6 @@ const UnknownStyle: React.FC<IUnknownStyleProps> = ({ style }) => {
             <Text size="xs" c="dimmed" component="div" mb="sm">
                 <div>• Style Name: <Code>{styleName}</Code></div>
                 <div>• Style ID: <Code>{styleId}</Code></div>
-                {content && <div>• Content: {content}</div>}
             </Text>
 
             <Text size="xs" c="dimmed">

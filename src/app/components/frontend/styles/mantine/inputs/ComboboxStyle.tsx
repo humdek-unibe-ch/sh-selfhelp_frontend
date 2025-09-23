@@ -14,7 +14,6 @@ import {
     ScrollArea
 } from '@mantine/core';
 import { IconPlus, IconX, IconCheck, IconChevronDown } from '@tabler/icons-react';
-import { getFieldContent } from '../../../../../../utils/style-field-extractor';
 import { IComboboxStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";
@@ -45,24 +44,24 @@ interface IComboboxStyleProps {
  */
 const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
-    const placeholder = getFieldContent(style, 'placeholder') || 'Select option...';
-    const disabled = getFieldContent(style, 'disabled') === '1';
+    const use_mantine_style = style.use_mantine_style?.content === '1';
+    const placeholder = style.placeholder?.content || 'Select option...';
+    const disabled = style.disabled?.content === '1';
 
     // Form configuration fields
-    const label = getFieldContent(style, 'label');
-    const description = getFieldContent(style, 'description');
-    const name = getFieldContent(style, 'name') || `section-${style.id}`;
-    const defaultValue = getFieldContent(style, 'value') || '';
-    const isRequired = getFieldContent(style, 'is_required') === '1';
+    const label = style.label?.content;
+    const description = style.description?.content || '';
+    const name = style.name?.content || `section-${style.id}`;
+    const defaultValue = style.value?.content || '';
+    const isRequired = style.is_required?.content === '1';
 
     // Combobox configuration fields
-    const multiSelect = getFieldContent(style, 'mantine_combobox_multi_select') === '1';
-    const searchable = getFieldContent(style, 'mantine_combobox_searchable') !== '0'; // Default to true
-    const creatable = getFieldContent(style, 'mantine_combobox_creatable') === '1';
-    const clearable = getFieldContent(style, 'mantine_combobox_clearable') === '1';
-    const separator = getFieldContent(style, 'mantine_combobox_separator') || ' ';
-    const maxValues = getFieldContent(style, 'mantine_multi_select_max_values') ? parseInt(getFieldContent(style, 'mantine_multi_select_max_values')!) : undefined;
+    const multiSelect = style.mantine_combobox_multi_select?.content === '1';
+    const searchable = style.mantine_combobox_searchable?.content !== '0'; // Default to true
+    const creatable = style.mantine_combobox_creatable?.content === '1';
+    const clearable = style.mantine_combobox_clearable?.content === '1';
+    const separator = style.mantine_combobox_separator?.content || ' ';
+    const maxValues = style.mantine_multi_select_max_values?.content ? parseInt((style as any).mantine_multi_select_max_values?.content!) : undefined;
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
@@ -70,7 +69,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style }) => {
     // Parse combobox options from JSON textarea
     let predefinedOptions: Array<{ value: string; label: string }> = [];
     try {
-        const dataJson = getFieldContent(style, 'mantine_combobox_options');
+        const dataJson = style.mantine_combobox_options?.content;
 
         if (dataJson && dataJson.trim()) {
             const parsed = JSON.parse(dataJson);

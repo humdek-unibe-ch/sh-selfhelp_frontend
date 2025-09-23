@@ -1,7 +1,7 @@
 import React from 'react';
 import { Anchor } from '@mantine/core';
 import { ILinkStyle } from '../../../../types/common/styles.types';
-import { getFieldContent, hasFieldValue } from '../../../../utils/style-field-extractor';
+import { hasFieldValue } from '../../../../utils/style-field-extractor';
 
 /**
  * Props interface for LinkStyle component
@@ -21,10 +21,10 @@ interface ILinkStyleProps {
  * @returns {JSX.Element} Rendered link with specified styling and target
  */
 const LinkStyle: React.FC<ILinkStyleProps> = ({ style }) => {
-    const label = getFieldContent(style, 'label');
-    const url = getFieldContent(style, 'url');
+    const label = style.label?.content;
+    const url = style.url?.content;
     const openInNewTab = hasFieldValue(style, 'open_in_new_tab');
-    const cssClass = getFieldContent(style, 'css');
+    const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
     return (
         <Anchor 

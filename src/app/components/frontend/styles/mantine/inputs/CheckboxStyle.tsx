@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Checkbox, Input } from '@mantine/core';
-import { getFieldContent, castMantineSize, castMantineRadius } from '../../../../../../utils/style-field-extractor';
 import IconComponent from '../../../../shared/common/IconComponent';
 import { ICheckboxStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";
 import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
+import { castMantineSize, castMantineRadius } from '../../../../../../utils/style-field-extractor';
 
 interface ICheckboxStyleProps {
     style: ICheckboxStyle;
@@ -13,21 +13,21 @@ interface ICheckboxStyleProps {
 
 const CheckboxStyle: React.FC<ICheckboxStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
-    const label = getFieldContent(style, 'label');
-    const name = getFieldContent(style, 'name') || `section-${style.id}`;
-    const value = getFieldContent(style, 'value');
-    const checkboxValue = getFieldContent(style, 'checkbox_value') || '1';
-    const isRequired = getFieldContent(style, 'is_required') === '1';
-    const disabled = getFieldContent(style, 'disabled') === '1';
-    const description = getFieldContent(style, 'description');
+    const label = style.label?.content;
+    const name = style.name?.content || `section-${style.id}`;
+    const value = style.value?.content;
+    const checkboxValue = style.checkbox_value?.content || '1';
+    const isRequired = style.is_required?.content === '1';
+    const disabled = style.disabled?.content === '1';
+    const description = style.description?.content || '';
 
     // Mantine-specific fields
-    const size = castMantineSize(getFieldContent(style, 'mantine_size'));
-    const radius = castMantineRadius(getFieldContent(style, 'mantine_radius'));
-    const color = getFieldContent(style, 'mantine_color');
-    const iconName = getFieldContent(style, 'mantine_checkbox_icon');
-    const labelPosition = getFieldContent(style, 'mantine_checkbox_labelPosition') as 'left' | 'right';
-    const useInputWrapper = getFieldContent(style, 'mantine_use_input_wrapper') === '1';
+    const size = castMantineSize((style as any).mantine_size?.content);
+    const radius = castMantineRadius((style as any).mantine_radius?.content);
+    const color = style.mantine_color?.content;
+    const iconName = style.mantine_checkbox_icon?.content;
+    const labelPosition = style.mantine_checkbox_labelPosition?.content as 'left' | 'right';
+    const useInputWrapper = style.mantine_use_input_wrapper?.content === '1';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

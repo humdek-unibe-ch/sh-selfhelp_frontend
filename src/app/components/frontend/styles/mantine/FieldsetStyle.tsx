@@ -1,7 +1,6 @@
 import React from 'react';
 import { Fieldset } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { IFieldsetStyle } from '../../../../../types/common/styles.types';
 
 /**
@@ -25,10 +24,10 @@ const FieldsetStyle: React.FC<IFieldsetStyleProps> = ({ style }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values using the new unified field structure
-    const label = getFieldContent(style, 'label');
-    const variant = getFieldContent(style, 'mantine_fieldset_variant') || 'default';
-    const radius = getFieldContent(style, 'mantine_radius') || 'sm';
-    const disabled = getFieldContent(style, 'disabled') === '1';
+    const label = style.label?.content;
+    const variant = style.mantine_fieldset_variant?.content || 'default';
+    const radius = style.mantine_radius?.content || 'sm';
+    const disabled = style.disabled?.content === '1';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

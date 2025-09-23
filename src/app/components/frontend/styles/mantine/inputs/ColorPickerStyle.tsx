@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { ColorPicker, Button, Popover, Tooltip, Input } from '@mantine/core';
-import { getFieldContent } from '../../../../../../utils/style-field-extractor';
 import { IColorPickerStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";
@@ -32,23 +31,23 @@ interface IColorPickerStyleProps {
 const ColorPickerStyle: React.FC<IColorPickerStyleProps> = ({ style }) => {
 
     // Extract field values using the new unified field structure
-    const format = getFieldContent(style, 'mantine_color_format') || 'hex';
-    const swatchesPerRow = parseInt(getFieldContent(style, 'mantine_color_picker_swatches_per_row') || '7');
-    const size = getFieldContent(style, 'mantine_size') || 'sm';
+    const format = style.mantine_color_format?.content || 'hex';
+    const swatchesPerRow = parseInt((style as any).mantine_color_picker_swatches_per_row?.content || '7');
+    const size = style.mantine_size?.content || 'sm';
 
     // New field values
-    const swatchesJson = getFieldContent(style, 'mantine_color_picker_swatches');        
-    const saturationLabel = getFieldContent(style, 'mantine_color_picker_saturation_label') || 'Saturation';
-    const hueLabel = getFieldContent(style, 'mantine_color_picker_hue_label') || 'Hue';
-    const alphaLabel = getFieldContent(style, 'mantine_color_picker_alpha_label') || 'Alpha';
-    const fullWidth = getFieldContent(style, 'mantine_fullwidth') === '1';
+    const swatchesJson = style.mantine_color_picker_swatches?.content;        
+    const saturationLabel = style.mantine_color_picker_saturation_label?.content || 'Saturation';
+    const hueLabel = style.mantine_color_picker_hue_label?.content || 'Hue';
+    const alphaLabel = style.mantine_color_picker_alpha_label?.content || 'Alpha';
+    const fullWidth = style.mantine_fullwidth?.content === '1';
 
     // Form configuration fields (similar to ChipStyle)
-    const label = getFieldContent(style, 'label');
-    const description = getFieldContent(style, 'description');
-    const name = getFieldContent(style, 'name') || `section-${style.id}`;
-    const defaultValue = getFieldContent(style, 'value') || '';
-    const isRequired = getFieldContent(style, 'is_required') === '1';
+    const label = style.label?.content;
+    const description = style.description?.content || '';
+    const name = style.name?.content || `section-${style.id}`;
+    const defaultValue = style.value?.content || '';
+    const isRequired = style.is_required?.content === '1';
 
     // Parse swatches JSON array
     let swatches: string[] = [];

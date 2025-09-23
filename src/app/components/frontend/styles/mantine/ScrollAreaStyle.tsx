@@ -1,7 +1,6 @@
 import React from 'react';
 import { ScrollArea } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { IScrollAreaStyle } from '../../../../../types/common/styles.types';
 
 /**
@@ -26,12 +25,12 @@ const ScrollAreaStyle: React.FC<IScrollAreaStyleProps> = ({ style }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values for Mantine ScrollArea props
-    const scrollbarSize = getFieldContent(style, 'mantine_scroll_area_scrollbar_size');
-    const scrollbarType = getFieldContent(style, 'mantine_scroll_area_type');
-    const offsetScrollbars = getFieldContent(style, 'mantine_scroll_area_offset_scrollbars') === '1';
-    const scrollHideDelay = getFieldContent(style, 'mantine_scroll_area_scroll_hide_delay');
-    const width = getFieldContent(style, 'mantine_width');
-    const height = getFieldContent(style, 'mantine_height');
+    const scrollbarSize = style.mantine_scroll_area_scrollbar_size?.content;
+    const scrollbarType = style.mantine_scroll_area_type?.content;
+    const offsetScrollbars = style.mantine_scroll_area_offset_scrollbars?.content === '1';
+    const scrollHideDelay = style.mantine_scroll_area_scroll_hide_delay?.content;
+    const width = style.mantine_width?.content;
+    const height = style.mantine_height?.content;
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

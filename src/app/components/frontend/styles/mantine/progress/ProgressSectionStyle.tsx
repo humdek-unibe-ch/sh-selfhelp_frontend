@@ -1,6 +1,5 @@
 import React from 'react';
 import { Progress, Tooltip } from '@mantine/core';
-import { getFieldContent } from '../../../../../../utils/style-field-extractor';
 import { IProgressSectionStyle } from '../../../../../../types/common/styles.types';
 import BasicStyle from '../../BasicStyle';
 
@@ -21,13 +20,13 @@ interface IProgressSectionStyleProps {
  */
 const ProgressSectionStyle: React.FC<IProgressSectionStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
-    const value = parseFloat(getFieldContent(style, 'value') || '0');
-    const color = getFieldContent(style, 'mantine_color') || 'blue';
-    const striped = getFieldContent(style, 'mantine_progress_striped') === '1';
-    const animated = getFieldContent(style, 'mantine_progress_animated') === '1';
-    const label = getFieldContent(style, 'label');
-    const tooltipLabel = getFieldContent(style, 'mantine_tooltip_label');
-    const tooltipPosition = getFieldContent(style, 'mantine_tooltip_position') || 'top';
+    const value = parseFloat((style as any).value?.content || '0');
+    const color = style.mantine_color?.content || 'blue';
+    const striped = style.mantine_progress_striped?.content === '1';
+    const animated = style.mantine_progress_animated?.content === '1';
+    const label = style.label?.content;
+    const tooltipLabel = style.mantine_tooltip_label?.content;
+    const tooltipPosition = style.mantine_tooltip_position?.content || 'top';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

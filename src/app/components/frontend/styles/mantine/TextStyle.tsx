@@ -1,6 +1,5 @@
 import React from 'react';
 import { Text } from '@mantine/core';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { ITextStyle } from '../../../../../types/common/styles.types';
 
 /**
@@ -22,7 +21,7 @@ interface ITextStyleProps {
  */
 const TextStyle: React.FC<ITextStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style');
+    const use_mantine_style = style.use_mantine_style?.content;
 
     // Skip rendering if Mantine styling is disabled
     if (use_mantine_style === '0') {
@@ -30,26 +29,26 @@ const TextStyle: React.FC<ITextStyleProps> = ({ style }) => {
     }
 
     // Extract text content
-    const text = getFieldContent(style, 'text') || '';
+    const text = style.text?.content || '';
 
     // Extract Mantine-specific props
-    const size = getFieldContent(style, 'mantine_size') || 'md';
-    const color = getFieldContent(style, 'mantine_color');
-    const fontWeight = getFieldContent(style, 'mantine_text_font_weight');
-    const fontStyle = getFieldContent(style, 'mantine_text_font_style');
-    const textDecoration = getFieldContent(style, 'mantine_text_text_decoration');
-    const textTransform = getFieldContent(style, 'mantine_text_text_transform');
-    const textAlign = getFieldContent(style, 'mantine_text_align');
-    const variant = getFieldContent(style, 'mantine_text_variant') || 'default';
-    const truncate = getFieldContent(style, 'mantine_text_truncate') == 'none' ? undefined : getFieldContent(style, 'mantine_text_truncate');
-    const lineClampStr = getFieldContent(style, 'mantine_text_line_clamp');
-    const inherit = getFieldContent(style, 'mantine_text_inherit') === '1';
-    const span = getFieldContent(style, 'mantine_text_span') === '1';
+    const size = style.mantine_size?.content || 'md';
+    const color = style.mantine_color?.content;
+    const fontWeight = style.mantine_text_font_weight?.content;
+    const fontStyle = style.mantine_text_font_style?.content;
+    const textDecoration = style.mantine_text_text_decoration?.content;
+    const textTransform = style.mantine_text_text_transform?.content;
+    const textAlign = style.mantine_text_align?.content;
+    const variant = style.mantine_text_variant?.content || 'default';
+    const truncate = style.mantine_text_truncate?.content == 'none' ? undefined : style.mantine_text_truncate?.content;
+    const lineClampStr = style.mantine_text_line_clamp?.content;
+    const inherit = style.mantine_text_inherit?.content === '1';
+    const span = style.mantine_text_span?.content === '1';
 
     // Parse gradient configuration for gradient variant
     let gradient;
     if (variant === 'gradient') {
-        const gradientStr = getFieldContent(style, 'mantine_text_gradient');
+        const gradientStr = style.mantine_text_gradient?.content;
         if (gradientStr) {
             try {
                 gradient = JSON.parse(gradientStr);

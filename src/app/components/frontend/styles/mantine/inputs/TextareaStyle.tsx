@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Textarea, Input } from '@mantine/core';
-import { castMantineRadius, castMantineSize, getFieldContent } from '../../../../../../utils/style-field-extractor';
 import IconComponent from '../../../../shared/common/IconComponent';
 import { ITextareaStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";
 import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
+import { castMantineSize, castMantineRadius } from '../../../../../../utils/style-field-extractor';
 
 interface ITextareaStyleProps {
     style: ITextareaStyle;
@@ -13,28 +13,28 @@ interface ITextareaStyleProps {
 
 const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style }) => {
     // Extract field values
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
+    const use_mantine_style = style.use_mantine_style?.content === '1';
 
-    const name = getFieldContent(style, 'name');
+    const name = style.name?.content;
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
-    const label = getFieldContent(style, 'label');
-    const description = getFieldContent(style, 'description');
-    const placeholder = getFieldContent(style, 'placeholder');
-    const initialValue = getFieldContent(style, 'value');
-    const required = getFieldContent(style, 'is_required') === '1';
-    const disabled = getFieldContent(style, 'disabled') === '1';
-    const leftIconName = getFieldContent(style, 'mantine_left_icon');
-    const rightIconName = getFieldContent(style, 'mantine_right_icon');
-    const autosize = getFieldContent(style, 'mantine_textarea_autosize') === '1';
-    const minRows = parseInt(getFieldContent(style, 'mantine_textarea_min_rows') || '3');
-    const maxRows = parseInt(getFieldContent(style, 'mantine_textarea_max_rows') || '8');
-    const resize = getFieldContent(style, 'mantine_textarea_resize') as 'none' | 'vertical' | 'both';
-    const size = castMantineSize(getFieldContent(style, 'mantine_size'));
-    const radius = castMantineRadius(getFieldContent(style, 'mantine_radius'));
-    const variant = getFieldContent(style, 'mantine_textarea_variant');
+    const label = style.label?.content;
+    const description = style.description?.content || '';
+    const placeholder = style.placeholder?.content;
+    const initialValue = style.value?.content;
+    const required = style.is_required?.content === '1';
+    const disabled = style.disabled?.content === '1';
+    const leftIconName = style.mantine_left_icon?.content;
+    const rightIconName = style.mantine_right_icon?.content;
+    const autosize = style.mantine_textarea_autosize?.content === '1';
+    const minRows = parseInt((style as any).mantine_textarea_min_rows?.content || '3');
+    const maxRows = parseInt((style as any).mantine_textarea_max_rows?.content || '8');
+    const resize = style.mantine_textarea_resize?.content as 'none' | 'vertical' | 'both';
+    const size = castMantineSize((style as any).mantine_size?.content);
+    const radius = castMantineRadius((style as any).mantine_radius?.content);
+    const variant = style.mantine_textarea_variant?.content;
 
     // Get form context for pre-populated values
     const formContext = useContext(FormFieldValueContext);

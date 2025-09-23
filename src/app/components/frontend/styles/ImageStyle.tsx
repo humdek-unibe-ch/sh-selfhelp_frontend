@@ -1,8 +1,8 @@
 import React from 'react';
 import { Image } from '@mantine/core';
 import { IImageStyle } from '../../../../types/common/styles.types';
-import { getFieldContent, castMantineRadius } from '../../../../utils/style-field-extractor';
 import { getAssetUrl } from '../../../../utils/asset-url.utils';
+import { castMantineRadius } from '../../../../utils/style-field-extractor';
 
 /**
  * Props interface for ImageStyle component
@@ -25,18 +25,18 @@ interface IImageStyleProps {
 const ImageStyle: React.FC<IImageStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
     // Support multiple field names for compatibility with different data structures
-    const rawSrc = getFieldContent(style, 'img_src');
+    const rawSrc = style.img_src?.content;
 
     // Use getAssetUrl which now properly handles external URLs
     const src = rawSrc ? getAssetUrl(rawSrc) : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
 
-    const alt = getFieldContent(style, 'alt');
-    const title = getFieldContent(style, 'title');
-    const width = getFieldContent(style, 'mantine_width');
-    const height = getFieldContent(style, 'mantine_height');
-    const fit = getFieldContent(style, 'mantine_image_fit') || 'contain';
-    const radius = castMantineRadius(getFieldContent(style, 'mantine_radius'));
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
+    const alt = style.alt?.content;
+    const title = style.title?.content;
+    const width = style.mantine_width?.content;
+    const height = style.mantine_height?.content;
+    const fit = style.mantine_image_fit?.content || 'contain';
+    const radius = castMantineRadius((style as any).mantine_radius?.content);
+    const use_mantine_style = style.use_mantine_style?.content === '1';
 
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
 

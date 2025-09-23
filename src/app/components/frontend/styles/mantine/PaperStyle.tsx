@@ -1,7 +1,7 @@
 import React from 'react';
 import { Paper } from '@mantine/core';
-import { castMantineRadius, getFieldContent } from '../../../../../utils/style-field-extractor';
 import { IPaperStyle } from '../../../../../types/common/styles.types';
+import { castMantineRadius } from '../../../../../utils/style-field-extractor';
 import BasicStyle from '../BasicStyle';
 
 /**
@@ -22,11 +22,11 @@ interface IPaperStyleProps {
 const PaperStyle: React.FC<IPaperStyleProps> = ({ style }) => {
 
     // Extract Mantine-specific props
-    const shadow = getFieldContent(style, 'mantine_paper_shadow') || 'sm';
-    const radius = castMantineRadius(getFieldContent(style, 'mantine_radius'));
-    const px = getFieldContent(style, 'mantine_px') || 'md';
-    const py = getFieldContent(style, 'mantine_py') || 'md';
-    const withBorder = getFieldContent(style, 'mantine_border') === '1';
+    const shadow = style.mantine_paper_shadow?.content || 'sm';
+    const radius = castMantineRadius((style as any).mantine_radius?.content);
+    const px = style.mantine_px?.content || 'md';
+    const py = style.mantine_py?.content || 'md';
+    const withBorder = style.mantine_border?.content === '1';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

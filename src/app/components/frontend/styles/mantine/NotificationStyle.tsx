@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Notification } from '@mantine/core';
 import IconComponent from '../../../shared/common/IconComponent';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { INotificationStyle } from '../../../../../types/common/styles.types';
 
 /**
@@ -24,14 +23,14 @@ const NotificationStyle: React.FC<INotificationStyleProps> = ({ style }) => {
     const [isVisible, setIsVisible] = useState(true);
 
     // Extract field values using the new unified field structure
-    const title = getFieldContent(style, 'title');
-    const message = getFieldContent(style, 'content') || 'Notification message';
-    const color = getFieldContent(style, 'mantine_color') || 'blue';
-    const loading = getFieldContent(style, 'mantine_notification_loading') === '1';
-    const withCloseButton = getFieldContent(style, 'mantine_notification_with_close_button') === '1';
-    const withBorder = getFieldContent(style, 'mantine_border') === '1';
-    const radius = getFieldContent(style, 'mantine_radius') || 'sm';
-    const selectedIcon = getFieldContent(style, 'mantine_left_icon');
+    const title = style.title?.content;
+    const message = style.content?.content || 'Notification message';
+    const color = style.mantine_color?.content || 'blue';
+    const loading = style.mantine_notification_loading?.content === '1';
+    const withCloseButton = style.mantine_notification_with_close_button?.content === '1';
+    const withBorder = style.mantine_border?.content === '1';
+    const radius = style.mantine_radius?.content || 'sm';
+    const selectedIcon = style.mantine_left_icon?.content;
 
     // Handler for closing the notification
     const handleClose = () => {

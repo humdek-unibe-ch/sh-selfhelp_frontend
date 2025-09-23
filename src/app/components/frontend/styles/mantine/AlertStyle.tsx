@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Alert } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
 import { IAlertStyle } from '../../../../../types/common/styles.types';
-import { getFieldContent, castMantineRadius } from '../../../../../utils/style-field-extractor';
 import IconComponent from '../../../shared/common/IconComponent';
+import { castMantineRadius } from '../../../../../utils/style-field-extractor';
 
 /**
  * Props interface for AlertStyle component
@@ -18,14 +18,14 @@ interface IAlertStyleProps {
  */
 const AlertStyle: React.FC<IAlertStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
-    const message = getFieldContent(style, 'content') || getFieldContent(style, 'value') || getFieldContent(style, 'message');
-    const title = getFieldContent(style, 'mantine_alert_title');
-    const variant = getFieldContent(style, 'mantine_variant') || 'light';
-    const color = getFieldContent(style, 'mantine_color') || 'blue';
-    const radius = castMantineRadius(getFieldContent(style, 'mantine_radius'));
-    const withCloseButton = getFieldContent(style, 'mantine_with_close_button') === '1';
-    const closeButtonLabel = getFieldContent(style, 'close_button_label') || 'Close';
-    const iconName = getFieldContent(style, 'mantine_left_icon');
+    const message = style.content?.content;
+    const title = style.mantine_alert_title?.content;
+    const variant = style.mantine_variant?.content || 'light';
+    const color = style.mantine_color?.content || 'blue';
+    const radius = castMantineRadius((style as any).mantine_radius?.content);
+    const withCloseButton = style.mantine_with_close_button?.content === '1';
+    const closeButtonLabel = style.close_button_label?.content || 'Close';
+    const iconName = style.mantine_left_icon?.content;
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

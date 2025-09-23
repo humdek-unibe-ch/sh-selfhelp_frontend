@@ -270,7 +270,7 @@ export interface ICenterStyle extends IBaseStyle {
 export interface IDividerStyle extends IBaseStyle {
     style_name: 'divider';
     mantine_divider_variant?: IContentField<string>;
-    mantine_divider_size?: IContentField<string>;
+    mantine_size?: IContentField<string>;
     mantine_divider_label?: IContentField<string>;
     mantine_divider_label_position?: IContentField<string>;
     mantine_orientation?: IContentField<string>;
@@ -362,6 +362,7 @@ export interface IFormStyle extends IBaseStyle {
     btn_cancel_color?: IContentField<string>;
     buttons_variant?: IContentField<string>;
     buttons_position?: IContentField<string>;
+    use_mantine_style?: IContentField<string>;
 }
 
 export interface IFormLogStyle extends IFormStyle {
@@ -544,7 +545,7 @@ export interface IDatePickerStyle extends IBaseStyle {
     mantine_datepicker_first_day_of_week?: IContentField<string>;
     mantine_datepicker_weekend_days?: IContentField<string>;
     mantine_datepicker_clearable?: IContentField<string>;
-    mantine_datepicker_allow_deseselect?: IContentField<string>;
+    mantine_datepicker_allow_deselect?: IContentField<string>;
     mantine_datepicker_readonly?: IContentField<string>;
     mantine_datepicker_with_time_grid?: IContentField<string>;
     mantine_datepicker_consistent_weeks?: IContentField<string>;
@@ -981,6 +982,7 @@ export interface ISwitchStyle extends IBaseStyle {
     value?: IContentField<string>;                    // Text field for current value
     mantine_switch_on_value?: IContentField<string>;  // Text field for on state value
     mantine_use_input_wrapper?: IContentField<string>; // Checkbox field for using Input.Wrapper vs inline labels
+    mantine_switch_off_value?: IContentField<string>;  // Text field for off state value
 }
 
 export interface IComboboxStyle extends IBaseStyle {
@@ -1031,6 +1033,8 @@ export interface IBadgeStyle extends IBaseStyle {
     mantine_radius?: IContentField<string>;           // Select field for radius
     mantine_color?: IContentField<string>;            // Color picker field
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    mantine_right_icon?: IContentField<string>;        // Select-icon field for right icon
+    mantine_auto_contrast?: IContentField<string>;    // Checkbox field for auto contrast
 }
 
 export interface IChipStyle extends IBaseStyle {
@@ -1053,6 +1057,11 @@ export interface IChipStyle extends IBaseStyle {
     mantine_chip_on_value?: IContentField<string>;    // Value when chip is checked
     mantine_chip_off_value?: IContentField<string>;   // Value when chip is unchecked
     is_required?: IContentField<string>;              // Makes the chip field required
+    tooltip?: IContentField<string>;                  // Tooltip field
+    mantine_tooltip_position?: IContentField<string>;  // Select field for tooltip position
+    chip_on_value?: IContentField<string>;            // Value when chip is checked
+    chip_off_value?: IContentField<string>;           // Value when chip is unchecked
+    chip_checked?: IContentField<string>;              // Checkbox field for checked state
 }
 
 export interface IAvatarStyle extends IBaseStyle {
@@ -1064,6 +1073,9 @@ export interface IAvatarStyle extends IBaseStyle {
     mantine_radius?: IContentField<string>;           // Select field for radius
     mantine_color?: IContentField<string>;            // Color picker field
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    mantine_left_icon?: IContentField<string>;        // Icon selection field
+    mantine_avatar_initials?: IContentField<string>;  // Text field for custom initials
+    img_src?: IContentField<string>;                  // Image source
 }
 
 export interface ITimelineStyle extends IBaseStyle {
@@ -1247,6 +1259,7 @@ export interface ICodeStyle extends IBaseStyle {
     mantine_code_block?: IContentField<string>;       // Checkbox field for block display
     mantine_color?: IContentField<string>;            // Color picker field
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    content?: IContentField<string>;                  // Translatable content field
 }
 
 export interface IHighlightStyle extends IBaseStyle {
@@ -1302,7 +1315,7 @@ export interface ICardSegmentStyle extends IBaseStyle {
 export interface IListStyle extends IBaseStyle {
     style_name: 'list';
     mantine_list_type?: IContentField<string>;        // Segment field for list type
-    mantine_list_spacing?: IContentField<string>;     // Select field for spacing
+    mantine_spacing?: IContentField<string>;     // Select field for spacing
     mantine_size?: IContentField<string>;             // Select field for size
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
     mantine_list_list_style_type?: IContentField<string>; // Select field for list style type
@@ -1320,7 +1333,7 @@ export interface IListItemStyle extends IBaseStyle {
 
 export interface IBackgroundImageStyle extends IBaseStyle {
     style_name: 'background-image';
-    src?: IContentField<string>;                      // Background image source
+    img_src?: IContentField<string>;                  // Image source
     mantine_radius?: IContentField<string>;           // Select field for radius
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
@@ -1331,6 +1344,7 @@ export interface IFieldsetStyle extends IBaseStyle {
     mantine_fieldset_variant?: IContentField<string>; // Select field for variant
     mantine_radius?: IContentField<string>;           // Select field for radius
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    disabled?: IContentField<string>;                 // Checkbox field for disabled state
 }
 
 export interface ISpoilerStyle extends IBaseStyle {

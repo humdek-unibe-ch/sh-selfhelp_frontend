@@ -1,15 +1,14 @@
 import React from 'react';
 import { IHtmlTagStyle } from '../../../../types/common/styles.types';
 import BasicStyle from './BasicStyle';
-import { getFieldContent } from '../../../../utils/style-field-extractor';
 
 interface IHtmlTagStyleProps {
     style: IHtmlTagStyle;
 }
 
 const HtmlTagStyle: React.FC<IHtmlTagStyleProps> = ({ style }) => {
-    const htmlTag = getFieldContent(style, 'html_tag') || 'div';
-    const content = getFieldContent(style, 'html_tag_content') || '';
+    const htmlTag = style.html_tag?.content || 'div';
+    const content = style.html_tag_content?.content || '';
 
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];

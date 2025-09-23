@@ -1,7 +1,6 @@
 import React from 'react';
 import { Typography } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { ITypographyStyle } from '../../../../../types/common/styles.types';
 
 /**
@@ -24,7 +23,7 @@ const TypographyStyle: React.FC<ITypographyStyleProps> = ({ style }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values using the new unified field structure
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
+    const use_mantine_style = style.use_mantine_style?.content === '1';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

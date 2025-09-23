@@ -1,7 +1,6 @@
 import React from 'react';
 import { Center } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { ICenterStyle } from '../../../../../types/common/styles.types';
 
 /**
@@ -26,13 +25,13 @@ const CenterStyle: React.FC<ICenterStyleProps> = ({ style }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values
-    const inline = getFieldContent(style, 'mantine_center_inline') === '1';
-    const width = getFieldContent(style, 'mantine_width');
-    const height = getFieldContent(style, 'mantine_height');
-    const minWidth = getFieldContent(style, 'mantine_miw');
-    const minHeight = getFieldContent(style, 'mantine_mih');
-    const maxWidth = getFieldContent(style, 'mantine_maw');
-    const maxHeight = getFieldContent(style, 'mantine_mah');
+    const inline = style.mantine_center_inline?.content === '1';
+    const width = style.mantine_width?.content;
+    const height = style.mantine_height?.content;
+    const minWidth = style.mantine_miw?.content;
+    const minHeight = style.mantine_mih?.content;
+    const maxWidth = style.mantine_maw?.content;
+    const maxHeight = style.mantine_mah?.content;
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

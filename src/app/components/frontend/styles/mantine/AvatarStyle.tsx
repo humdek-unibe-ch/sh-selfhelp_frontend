@@ -1,6 +1,5 @@
 import React from 'react';
 import { Avatar } from '@mantine/core';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { IAvatarStyle } from '../../../../../types/common/styles.types';
 import { TMantineAvatarVariant, TMantineSize } from '../../../../../types/mantine/common.types';
 import { getAssetUrl } from '../../../../../utils/asset-url.utils';
@@ -23,15 +22,15 @@ interface IAvatarStyleProps {
  */
 const AvatarStyle: React.FC<IAvatarStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
-    const src = getFieldContent(style, 'img_src');
-    const alt = getFieldContent(style, 'alt') || 'Avatar';
-    const iconName = getFieldContent(style, 'mantine_left_icon');
-    const customInitials = getFieldContent(style, 'mantine_avatar_initials') || 'U';
-    const variant = getFieldContent(style, 'mantine_avatar_variant') || 'light';
-    const size = getFieldContent(style, 'mantine_size') || 'md';
-    const radius = getFieldContent(style, 'mantine_radius') || '50%';
-    const color = getFieldContent(style, 'mantine_color') || 'blue';
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
+    const src = style.img_src?.content;
+    const alt = style.alt?.content || 'Avatar';
+    const iconName = style.mantine_left_icon?.content;
+    const customInitials = style.mantine_avatar_initials?.content || 'U';
+    const variant = style.mantine_avatar_variant?.content || 'light';
+    const size = style.mantine_size?.content || 'md';
+    const radius = style.mantine_radius?.content || '50%';
+    const color = style.mantine_color?.content || 'blue';
+    const use_mantine_style = style.use_mantine_style?.content === '1';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');
@@ -40,7 +39,7 @@ const AvatarStyle: React.FC<IAvatarStyleProps> = ({ style }) => {
     const styleObj: React.CSSProperties = {};
 
     // Get initials from name, label, or src (if src is text-based)
-    const name = getFieldContent(style, 'name') || getFieldContent(style, 'label');
+    const name = style.name?.content || style.label?.content;
 
     // Check if src is a text name (not a URL)
     const isUrl = src && (src.startsWith('http') || src.startsWith('https') || src.includes('.'));

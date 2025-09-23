@@ -7,12 +7,12 @@ import {
   IconMoodHappy,
   IconMoodCrazyHappy,
 } from '@tabler/icons-react';
-import { getFieldContent, castMantineSize } from '../../../../../../utils/style-field-extractor';
 import IconComponent from '../../../../shared/common/IconComponent';
 import { IRatingStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";
 import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
+import { castMantineSize } from '../../../../../../utils/style-field-extractor';
 
 /**
  * Props interface for RatingStyle component
@@ -113,27 +113,27 @@ const getFullIcon = (value: number, size: number = 24) => {
  */
 const RatingStyle: React.FC<IRatingStyleProps> = ({ style }) => {
     // Extract standard input field values
-    const label = getFieldContent(style, 'label');
-    const description = getFieldContent(style, 'description');
-    const name = getFieldContent(style, 'name');
-    const disabled = getFieldContent(style, 'disabled') === '1';
-    const readonly = getFieldContent(style, 'readonly') === '1';
-    const initialValue = parseFloat(getFieldContent(style, 'value') || '0');
+    const label = style.label?.content;
+    const description = style.description?.content || '';
+    const name = style.name?.content;
+    const disabled = style.disabled?.content === '1';
+    const readonly = style.readonly?.content === '1';
+    const initialValue = parseFloat((style as any).value?.content || '0');
 
     // Extract rating-specific field values
-    const useSmiles = getFieldContent(style, 'mantine_rating_use_smiles') === '1';
-    const emptyIconName = getFieldContent(style, 'mantine_rating_empty_icon');
-    const fullIconName = getFieldContent(style, 'mantine_rating_full_icon');
-    const highlightSelectedOnly = getFieldContent(style, 'mantine_rating_highlight_selected_only') === '1' || useSmiles ;
-    const baseCount = parseInt(getFieldContent(style, 'mantine_rating_count') || '5') as 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
-    const fractions = parseInt(getFieldContent(style, 'mantine_rating_fractions') || '1') as 1 | 2 | 3 | 4 | 5;
+    const useSmiles = style.mantine_rating_use_smiles?.content === '1';
+    const emptyIconName = style.mantine_rating_empty_icon?.content;
+    const fullIconName = style.mantine_rating_full_icon?.content;
+    const highlightSelectedOnly = style.mantine_rating_highlight_selected_only?.content === '1' || useSmiles ;
+    const baseCount = parseInt((style as any).mantine_rating_count?.content || '5') as 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+    const fractions = parseInt((style as any).mantine_rating_fractions?.content || '1') as 1 | 2 | 3 | 4 | 5;
 
     // When smiles are enabled, force count to 5
     const count = useSmiles ? 5 : baseCount;
 
     // Extract Mantine styling field values
-    const size = castMantineSize(getFieldContent(style, 'mantine_size'));
-    const color = getFieldContent(style, 'mantine_color') || 'yellow';
+    const size = castMantineSize((style as any).mantine_size?.content);
+    const color = style.mantine_color?.content || 'yellow';
 
     // Calculate icon size from Mantine size for proper scaling
     const iconSize = getIconSizeFromMantineSize(size);

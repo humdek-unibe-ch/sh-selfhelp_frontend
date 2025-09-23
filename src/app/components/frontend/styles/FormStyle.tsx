@@ -4,7 +4,6 @@ import { Button, Alert, LoadingOverlay, Group } from '@mantine/core';
 import { IconAlertCircle, IconCheck } from '@tabler/icons-react';
 import { usePageContentContext } from '../../contexts/PageContentContext';
 import { useSubmitFormMutation, useUpdateFormMutation } from '../../../../hooks/useFormSubmission';
-import { getFieldContent } from '../../../../utils/style-field-extractor';
 import { IFileInputStyleRef } from './mantine/inputs/FileInputStyle';
 import { IFormLogStyle, IFormRecordStyle } from '../../../../types/common/styles.types';
 
@@ -38,29 +37,29 @@ const FormStyle: React.FC<FormStyleProps> = ({ style }) => {
     const fileInputRefs = useRef<Map<string, IFileInputStyleRef>>(new Map());
 
     // Extract form configuration from style
-    const name = getFieldContent(style, 'name') || 'default_form';
-    const isLog = getFieldContent(style, 'is_log') === '1';
-    const alertSuccess = getFieldContent(style, 'alert_success');
-    const alertError = getFieldContent(style, 'alert_error');
-    const redirectUrl = getFieldContent(style, 'redirect_at_end');
-    const buttonLabel = getFieldContent(style, 'label') || 'Submit';
+    const name = style.name?.content || 'default_form';
+    const isLog = style.is_log?.content === '1';
+    const alertSuccess = style.alert_success?.content;
+    const alertError = style.alert_error?.content;
+    const redirectUrl = style.redirect_at_end?.content;
+    const buttonLabel = style.label?.content || 'Submit';
 
     // Extract button configuration
-    const saveLabel = getFieldContent(style, 'btn_save_label') || 'Save';
-    const updateLabel = getFieldContent(style, 'btn_update_label') || 'Update';
-    const cancelLabel = getFieldContent(style, 'btn_cancel_label');
-    const cancelUrl = getFieldContent(style, 'btn_cancel_url');
+    const saveLabel = style.btn_save_label?.content || 'Save';
+    const updateLabel = style.btn_save_label?.content || 'Update'; // Use same label for update
+    const cancelLabel = style.btn_cancel_label?.content;
+    const cancelUrl = style.btn_cancel_url?.content;
 
-    // Extract Mantine button styling
-    const useMantineStyle = getFieldContent(style, 'use_mantine_style') === '1';
-    const buttonSize = getFieldContent(style, 'mantine_buttons_size') || 'sm';
-    const buttonRadius = getFieldContent(style, 'mantine_buttons_radius') || 'sm';
-    const buttonVariant = getFieldContent(style, 'mantine_buttons_variant') || 'filled';
-    const buttonPosition = getFieldContent(style, 'mantine_buttons_position') || 'space-between';
-    const buttonOrder = getFieldContent(style, 'mantine_buttons_order') || 'cancel-save';
-    const saveColor = getFieldContent(style, 'mantine_btn_save_color') || 'blue';
-    const updateColor = getFieldContent(style, 'mantine_btn_update_color') || 'green';
-    const cancelColor = getFieldContent(style, 'mantine_btn_cancel_color') || 'gray';
+    // Extract button styling
+    const buttonSize = style.buttons_size?.content || 'sm';
+    const buttonRadius = style.buttons_radius?.content || 'sm';
+    const buttonVariant = style.buttons_variant?.content || 'filled';
+    const buttonPosition = style.buttons_position?.content || 'space-between';
+    const buttonOrder = 'cancel-save'; // Default order
+    const useMantineStyle = style.use_mantine_style?.content === '1';
+    const saveColor = style.btn_save_color?.content || 'blue';
+    const updateColor = style.btn_save_color?.content || 'green'; // Use same color for update
+    const cancelColor = style.btn_cancel_color?.content || 'gray';
     
     // Get form ID from style - now directly available as number
 
@@ -87,7 +86,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style }) => {
 
         // The record form's section_data lives on the parent form style (`style.section_data`)
         // and contains key-value pairs where keys match input names inside the form.
-        const sectionDataArray: any[] | undefined = (style as any).section_data;
+        const sectionDataArray: any[] | undefined = style.section_data;
         const firstRecord = Array.isArray(sectionDataArray) && sectionDataArray.length > 0 ? sectionDataArray[0] : null;
 
         if (!firstRecord) return { existingRecordId: null, existingFormDataFromSection: null };
@@ -427,12 +426,8 @@ const FormStyle: React.FC<FormStyleProps> = ({ style }) => {
             )
         );
 
-        // Return buttons in the specified order
-        if (buttonOrder === 'save-cancel') {
-            return [saveButton, cancelButton].filter(Boolean);
-        } else {
-            return [cancelButton, saveButton].filter(Boolean);
-        }
+        // Return buttons in the specified order (always cancel-save)
+        return [cancelButton, saveButton].filter(Boolean);
     }, [
         buttonSize, buttonRadius, buttonVariant, buttonOrder, cancelColor, saveColor, updateColor,
         isSubmitting, pageId, isRecord, existingRecordId, handleCancel, cancelLabel, cancelUrl,
@@ -515,7 +510,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style }) => {
                 
                 <FileInputRegistrationContext.Provider value={{ registerFileInputRef }}>
                     <FormFieldValueContext.Provider value={{ getFieldValue }}>
-                        <div className={getFieldContent(style, 'css') || ''}>
+                        <div className={(style as any).css?.content || ''}>
                             {style.children?.map((child, index) => (
                                 child ? <BasicStyle key={index} style={child} /> : null
                             ))}

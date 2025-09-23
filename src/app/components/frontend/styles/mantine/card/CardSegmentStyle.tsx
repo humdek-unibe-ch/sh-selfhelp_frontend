@@ -2,7 +2,6 @@ import React from 'react';
 import { Card } from '@mantine/core';
 import BasicStyle from '../../BasicStyle';
 import { ICardSegmentStyle } from '../../../../../../types/common/styles.types';
-import { getFieldContent } from '../../../../../../utils/style-field-extractor';
 
 /**
  * Props interface for CardSegmentStyle component

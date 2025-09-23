@@ -1,7 +1,6 @@
 import React from 'react';
 import { AspectRatio } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import { IAspectRatioStyle } from '../../../../../types/common/styles.types';
 
 /**
@@ -30,8 +29,8 @@ const AspectRatioStyle: React.FC<IAspectRatioStyleProps> = ({ style }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values using the new unified field structure
-    const ratio = getFieldContent(style, 'mantine_aspect_ratio') || '16/9';
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
+    const ratio = style.mantine_aspect_ratio?.content || '16/9';
+    const use_mantine_style = style.use_mantine_style?.content === '1';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Accordion } from '@mantine/core';
 import BasicStyle from '../../BasicStyle';
-import { getFieldContent } from '../../../../../../utils/style-field-extractor';
 import { IAccordionStyle } from '../../../../../../types/common/styles.types';
 
 /**
@@ -24,16 +23,16 @@ const AccordionStyle: React.FC<IAccordionStyleProps> = ({ style }) => {
     const children = Array.isArray(style.children) ? style.children : [];
 
     // Extract field values using the new unified field structure
-    const variant = getFieldContent(style, 'mantine_accordion_variant') || 'default';
-    const multiple = getFieldContent(style, 'mantine_accordion_multiple') === '1';
-    const chevronPosition = getFieldContent(style, 'mantine_accordion_chevron_position') || 'left';
-    const chevronSize = parseInt(getFieldContent(style, 'mantine_accordion_chevron_size') || '16');
-    const disableChevronRotation = getFieldContent(style, 'mantine_accordion_disable_chevron_rotation') === '1';
-    const loop = getFieldContent(style, 'mantine_accordion_loop') !== '0'; // Default to true
-    const transitionDuration = parseInt(getFieldContent(style, 'mantine_accordion_transition_duration') || '200');
-    const defaultValue = getFieldContent(style, 'mantine_accordion_default_value');
-    const radius = getFieldContent(style, 'mantine_radius') || 'sm';
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
+    const variant = style.mantine_accordion_variant?.content || 'default';
+    const multiple = style.mantine_accordion_multiple?.content === '1';
+    const chevronPosition = style.mantine_accordion_chevron_position?.content || 'left';
+    const chevronSize = parseInt((style as any).mantine_accordion_chevron_size?.content || '16');
+    const disableChevronRotation = style.mantine_accordion_disable_chevron_rotation?.content === '1';
+    const loop = style.mantine_accordion_loop?.content !== '0'; // Default to true
+    const transitionDuration = parseInt((style as any).mantine_accordion_transition_duration?.content || '200');
+    const defaultValue = style.mantine_accordion_default_value?.content;
+    const radius = style.mantine_radius?.content || 'sm';
+    const use_mantine_style = style.use_mantine_style?.content === '1';
 
     // Parse defaultValue for multiple items
     const parsedDefaultValue = defaultValue

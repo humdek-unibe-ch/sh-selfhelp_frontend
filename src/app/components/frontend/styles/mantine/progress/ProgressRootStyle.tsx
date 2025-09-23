@@ -1,7 +1,7 @@
 import React from 'react';
 import { Progress } from '@mantine/core';
-import { getFieldContent, castMantineSize } from '../../../../../../utils/style-field-extractor';
 import { IProgressRootStyle } from '../../../../../../types/common/styles.types';
+import { castMantineSize } from '../../../../../../utils/style-field-extractor';
 import BasicStyle from '../../BasicStyle';
 
 /**
@@ -21,8 +21,8 @@ interface IProgressRootStyleProps {
  */
 const ProgressRootStyle: React.FC<IProgressRootStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
-    const size = castMantineSize(getFieldContent(style, 'mantine_size'));
-    const autoContrast = getFieldContent(style, 'mantine_progress_auto_contrast') === '1';
+    const size = castMantineSize((style as any).mantine_size?.content);
+    const autoContrast = style.mantine_progress_auto_contrast?.content === '1';
 
     // Handle CSS field - use direct property from API response
     const cssClass = "section-" + style.id + " " + (style.css ?? '');

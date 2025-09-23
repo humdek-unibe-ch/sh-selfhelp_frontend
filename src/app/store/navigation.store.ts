@@ -26,21 +26,25 @@ export const useNavigationStore = create<NavigationState>()(
     persist(
         (set) => ({
             ...initialState,
-            setActiveItem: (path: string | null): void => 
-                set(() => ({ activeItem: path })),
+            setActiveItem: (path: string | null): void => {
+                set(() => ({ activeItem: path }));
+            },
 
-            toggleItem: (itemPath: string): void =>
+            toggleItem: (itemPath: string): void => {
                 set((state) => ({
                     openItems: state.openItems.includes(itemPath)
                         ? state.openItems.filter((item) => item !== itemPath)
                         : [...state.openItems, itemPath]
-                })),
+                }));
+            },
 
-            setBreadcrumbs: (items: NavigationItem[]): void =>
-                set(() => ({ breadcrumbs: items })),
+            setBreadcrumbs: (items: NavigationItem[]): void => {
+                set(() => ({ breadcrumbs: items }));
+            },
 
-            resetNavigation: (): void =>
-                set(initialState),
+            resetNavigation: (): void => {
+                set(initialState);
+            },
         }),
         {
             name: 'navigation-storage',

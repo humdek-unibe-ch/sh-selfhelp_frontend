@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { SegmentedControl, Input } from '@mantine/core';
-import { getFieldContent } from '../../../../../../utils/style-field-extractor';
 import { ISegmentedControlStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";
@@ -23,19 +22,19 @@ interface ISegmentedControlStyleProps {
  */
 const SegmentedControlStyle: React.FC<ISegmentedControlStyleProps> = ({ style }) => {
     // Extract field values using the new unified field structure
-    const orientation = getFieldContent(style, 'mantine_orientation') || 'horizontal';
-    const size = getFieldContent(style, 'mantine_size') || 'sm';
-    const radius = getFieldContent(style, 'mantine_radius') || 'sm';
-    const color = getFieldContent(style, 'mantine_color') || 'blue';
-    const fullWidth = getFieldContent(style, 'fullwidth') === '1';
-    const disabled = getFieldContent(style, 'disabled') === '1';
-    const readonly = getFieldContent(style, 'readonly') === '1';
-    const name = getFieldContent(style, 'name');
-    const label = getFieldContent(style, 'label');
-    const description = getFieldContent(style, 'description');
-    const styleValue = getFieldContent(style, 'value');
-    const itemBorder = getFieldContent(style, 'mantine_segmented_control_item_border') === '1';
-    const isRequired = getFieldContent(style, 'is_required') === '1';
+    const orientation = style.mantine_orientation?.content || 'horizontal';
+    const size = style.mantine_size?.content || 'sm';
+    const radius = style.mantine_radius?.content || 'sm';
+    const color = style.mantine_color?.content || 'blue';
+    const fullWidth = style.fullwidth?.content === '1';
+    const disabled = style.disabled?.content === '1';
+    const readonly = style.readonly?.content === '1';
+    const name = style.name?.content;
+    const label = style.label?.content;
+    const description = style.description?.content || '';
+    const styleValue = style.value?.content;
+    const itemBorder = style.mantine_segmented_control_item_border?.content === '1';
+    const isRequired = style.is_required?.content === '1';
 
     // Get form context for pre-populated values
     const formContext = useContext(FormFieldValueContext);
@@ -67,7 +66,7 @@ const SegmentedControlStyle: React.FC<ISegmentedControlStyleProps> = ({ style })
     // Parse segmented control data from JSON textarea
     let controlData: Array<{ value: string; label: string }> = [];
     try {
-        const dataJson = getFieldContent(style, 'mantine_segmented_control_data');
+        const dataJson = style.mantine_segmented_control_data?.content;
         if (dataJson) {
             controlData = JSON.parse(dataJson);
         } else {
