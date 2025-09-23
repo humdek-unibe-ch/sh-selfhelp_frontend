@@ -117,7 +117,7 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style }) => {
             setFormData(prev => ({
                 ...prev,
                 name: userData.name || prev.name,
-                // Don't pre-populate password or gender for security
+                // Don't pre-populate password for security
             }));
         }
     }, [tokenValidation]);

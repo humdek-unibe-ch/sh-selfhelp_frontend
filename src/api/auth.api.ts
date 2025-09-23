@@ -318,7 +318,7 @@ export const AuthApi = {
      * Complete user validation with password and additional data
      * @param userId - User ID from URL parameter
      * @param token - Validation token from URL parameter
-     * @param data - Validation data including password, name, gender, and form inputs
+     * @param data - Validation data including password, name, and form inputs
      */
     async completeValidation(userId: number, token: string, data: {
         password: string;

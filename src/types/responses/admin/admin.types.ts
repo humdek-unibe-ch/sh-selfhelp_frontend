@@ -40,7 +40,6 @@ export interface ISectionField {
 export interface ISectionFieldTranslation {
     language_id: number;
     language_code: string | null;
-    gender_id: number;
     content: string | null;
     meta: string | null | object;
 }

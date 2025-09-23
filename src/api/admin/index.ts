@@ -10,7 +10,6 @@ export { AdminSectionApi } from './section.api';
 export { AdminStyleApi } from './style.api';
 export { AdminLanguageApi } from './language.api';
 export { AdminUserApi } from './user.api';
-export { AdminGenderApi } from './gender.api';
 export { AdminAssetApi } from './asset.api';
 export { AdminPermissionApi } from './permission.api';
 export { AdminScheduledJobsApi } from './scheduled-jobs.api';
@@ -21,7 +20,6 @@ import { AdminSectionApi } from './section.api';
 import { AdminStyleApi } from './style.api';
 import { AdminLanguageApi } from './language.api';
 import { AdminUserApi } from './user.api';
-import { AdminGenderApi } from './gender.api';
 import { AdminAssetApi } from './asset.api';
 import { AdminPermissionApi } from './permission.api';
 import { AdminScheduledJobsApi } from './scheduled-jobs.api';
@@ -43,8 +41,6 @@ export const AdminApi = {
     // User methods
     ...AdminUserApi,
     
-    // Gender methods
-    ...AdminGenderApi,
     
     // Asset methods
     ...AdminAssetApi,

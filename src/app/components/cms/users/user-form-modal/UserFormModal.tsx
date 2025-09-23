@@ -19,7 +19,6 @@ import { showErrorNotification, showSuccessNotification } from '../../../../../u
 import type { ICreateUserRequest, IUpdateUserRequest } from '../../../../../types/requests/admin/users.types';
 import { useGroups } from '../../../../../hooks/useGroups';
 import { useRoles } from '../../../../../hooks/useRoles';
-import { useGenders } from '../../../../../hooks/useGenders';
 import { validateName, validateValidationCode } from '../../../../../utils/name-validation.utils';
 import { ModalWrapper } from '../../../shared';
 
@@ -35,7 +34,6 @@ interface IUserFormValues {
     name: string;
     user_name: string;
     validation_code: string;
-    id_genders: string | null;
     blocked: boolean;
     groupIds: string[];
     roleIds: string[];
@@ -49,7 +47,6 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
     const { data: userDetails, isLoading: isLoadingUser } = useUserDetails(userId || 0);
     const { data: groups, isLoading: isLoadingGroups } = useGroups();
     const { data: roles, isLoading: isLoadingRoles } = useRoles();
-    const { data: genders, isLoading: isLoadingGenders } = useGenders();
 
     // Form
     const form = useForm<IUserFormValues>({
@@ -58,7 +55,6 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
             name: '',
             user_name: '',
             validation_code: '',
-            id_genders: null,
             blocked: false,
             groupIds: [],
             roleIds: [],
@@ -96,7 +92,6 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
                 name: userDetails.name || '',
                 user_name: userDetails.user_name || '',
                 validation_code: userDetails.validation_code || '',
-                id_genders: userDetails.id_genders?.toString() || null,
                 blocked: userDetails.blocked,
                 groupIds: userDetails.groups?.map((g: any) => g.id.toString()) || [],
                 roleIds: userDetails.roles?.map((r: any) => r.id.toString()) || [],
@@ -123,7 +118,6 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
                     name: values.name || undefined,
                     user_name: values.user_name,
                     validation_code: values.validation_code,
-                    id_genders: values.id_genders ? parseInt(values.id_genders, 10) : undefined,
                     blocked: values.blocked,
                     group_ids: values.groupIds.map(id => parseInt(id, 10)),
                     role_ids: values.roleIds.map(id => parseInt(id, 10)),
@@ -136,7 +130,6 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
             } else if (userId) {
                 const updateData: IUpdateUserRequest = {
                     name: values.name || undefined,
-                    id_genders: values.id_genders ? parseInt(values.id_genders, 10) : undefined,
                     blocked: values.blocked,
                     group_ids: values.groupIds.map(id => parseInt(id, 10)),
                     role_ids: values.roleIds.map(id => parseInt(id, 10)),
@@ -158,15 +151,10 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
         }
     };
 
-    const isLoading = isLoadingUser || isLoadingGroups || isLoadingRoles || isLoadingGenders;
+    const isLoading = isLoadingUser || isLoadingGroups || isLoadingRoles;
     const isSubmitting = createUserMutation.isPending || updateUserMutation.isPending;
 
     // Prepare select data
-    const genderOptions = genders?.genders?.map((gender) => ({
-        value: gender.id.toString(),
-        label: gender.name,
-    })) || [];
-
     const groupOptions = groups?.groups?.map((group) => ({
         value: group.id.toString(),
         label: group.name,
@@ -279,13 +267,6 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
                                     {...form.getInputProps('name')}
                                 />
                             )}
-
-                            <Select
-                                label="Gender"
-                                placeholder="Select gender"
-                                data={genderOptions}
-                                {...form.getInputProps('id_genders')}
-                            />
                         </Stack>
                     </div>
 

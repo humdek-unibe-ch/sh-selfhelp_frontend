@@ -63,8 +63,6 @@ export const API_CONFIG = {
         // Admin styles endpoints
         ADMIN_STYLES_GET_ALL: '/admin/styles',
 
-        // Admin genders endpoints
-        ADMIN_GENDERS_GET_ALL: '/admin/genders',
 
         // Admin CMS preferences endpoints
         ADMIN_CMS_PREFERENCES_GET: '/admin/cms-preferences',

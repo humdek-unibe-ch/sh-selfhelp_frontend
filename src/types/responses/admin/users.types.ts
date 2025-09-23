@@ -34,7 +34,6 @@ export interface IUserDetails {
   user_name: string | null;
   code: string | null;
   validation_code: string | null;
-  id_genders: number | null;
   id_languages: number | null;
   id_userTypes: number | null;
   blocked: boolean;

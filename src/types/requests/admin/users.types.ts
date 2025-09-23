@@ -4,7 +4,6 @@ export interface ICreateUserRequest {
   user_name: string;
   validation_code: string;
   password?: string;
-  id_genders?: number;
   id_languages?: number;
   id_userTypes?: number;
   blocked?: boolean;
@@ -17,7 +16,6 @@ export interface IUpdateUserRequest {
   name?: string;
   user_name?: string;
   password?: string;
-  id_genders?: number;
   id_languages?: number;
   id_userTypes?: number;
   blocked?: boolean;

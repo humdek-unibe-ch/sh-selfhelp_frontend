@@ -10,7 +10,6 @@ export interface ILanguage {
 
 export interface IFieldTranslation {
     language_id: number;
-    gender_id: number;
     content: string | null;
     meta: string | null | object;
 }
