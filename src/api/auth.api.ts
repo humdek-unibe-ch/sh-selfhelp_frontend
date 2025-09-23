@@ -302,5 +302,31 @@ export const AuthApi = {
         this.clearAuthData();
 
         return response.data;
+    },
+
+    /**
+     * Validate a user token before showing the validation form
+     * @param userId - User ID from URL parameter
+     * @param token - Validation token from URL parameter
+     */
+    async validateToken(userId: number, token: string) {
+        const response = await apiClient.get(API_CONFIG.ENDPOINTS.USER_VALIDATE_TOKEN(userId, token));
+        return response.data;
+    },
+
+    /**
+     * Complete user validation with password and additional data
+     * @param userId - User ID from URL parameter
+     * @param token - Validation token from URL parameter
+     * @param data - Validation data including password, name, gender, and form inputs
+     */
+    async completeValidation(userId: number, token: string, data: {
+        password: string;
+        name?: string;
+        section_id: number;
+        form_inputs?: Record<string, any>;
+    }) {
+        const response = await apiClient.post(API_CONFIG.ENDPOINTS.USER_COMPLETE_VALIDATION(userId, token), data);
+        return response.data;
     }
 };

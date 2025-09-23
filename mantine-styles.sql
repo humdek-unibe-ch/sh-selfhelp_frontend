@@ -104,6 +104,43 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 {"value":"32","text":"XXL (32px)"}
 ]}');
 
+-- Global Margin and Padding Fields (reusable across Mantine components)
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_padding_inline', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
+{"value":"none","text":"None"},
+{"value":"xs","text":"Extra Small"},
+{"value":"sm","text":"Small"},
+{"value":"md","text":"Medium"},
+{"value":"lg","text":"Large"},
+{"value":"xl","text":"Extra Large"}
+]}');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_padding_block', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
+{"value":"none","text":"None"},
+{"value":"xs","text":"Extra Small"},
+{"value":"sm","text":"Small"},
+{"value":"md","text":"Medium"},
+{"value":"lg","text":"Large"},
+{"value":"xl","text":"Extra Large"}
+]}');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_margin_inline', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
+{"value":"none","text":"None"},
+{"value":"xs","text":"Extra Small"},
+{"value":"sm","text":"Small"},
+{"value":"md","text":"Medium"},
+{"value":"lg","text":"Large"},
+{"value":"xl","text":"Extra Large"}
+]}');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_margin_block', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
+{"value":"none","text":"None"},
+{"value":"xs","text":"Extra Small"},
+{"value":"sm","text":"Small"},
+{"value":"md","text":"Medium"},
+{"value":"lg","text":"Large"},
+{"value":"xl","text":"Extra Large"}
+]}');
+
 -- Add global tooltip field (reusable across all components)
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'tooltip', get_field_type_id('textarea'), 1, '{"rows": 2, "placeholder": "Enter tooltip text that appears on hover"}');
 
@@ -4425,43 +4462,6 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 {"value":"4","text":"4 Columns"}
 ]}');
 
--- Global Margin and Padding Fields (reusable across Mantine components)
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_padding_inline', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
-{"value":"none","text":"None"},
-{"value":"xs","text":"Extra Small"},
-{"value":"sm","text":"Small"},
-{"value":"md","text":"Medium"},
-{"value":"lg","text":"Large"},
-{"value":"xl","text":"Extra Large"}
-]}');
-
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_padding_block', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
-{"value":"none","text":"None"},
-{"value":"xs","text":"Extra Small"},
-{"value":"sm","text":"Small"},
-{"value":"md","text":"Medium"},
-{"value":"lg","text":"Large"},
-{"value":"xl","text":"Extra Large"}
-]}');
-
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_margin_inline', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
-{"value":"none","text":"None"},
-{"value":"xs","text":"Extra Small"},
-{"value":"sm","text":"Small"},
-{"value":"md","text":"Medium"},
-{"value":"lg","text":"Large"},
-{"value":"xl","text":"Extra Large"}
-]}');
-
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_margin_block', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
-{"value":"none","text":"None"},
-{"value":"xs","text":"Extra Small"},
-{"value":"sm","text":"Small"},
-{"value":"md","text":"Medium"},
-{"value":"lg","text":"Large"},
-{"value":"xl","text":"Extra Large"}
-]}');
-
 -- Associate all fields with profile style
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
 -- Profile Section
@@ -4546,3 +4546,104 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 (get_style_id('profile'), get_field_id('mantine_margin_inline'), 'none', 'Horizontal margin (mx) for the profile container', 0, 0, 'Margin X'),
 (get_style_id('profile'), get_field_id('mantine_margin_block'), 'none', 'Vertical margin (my) for the profile container', 0, 0, 'Margin Y');
 
+
+-- ===========================================
+-- VALIDATE STYLE DEFINITIONS
+-- ===========================================
+
+-- Add validate style (internal form for account validation with token)
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+    NULL,
+    'validate',
+    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    get_style_group_id('Admin'),
+    'User account validation form that accepts user ID and token from URL, validates and activates account. Can have children for additional form fields.',
+    1
+);
+
+-- Validate form specific fields
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
+-- Basic labels
+(NULL, 'label_name', get_field_type_id('text'), 1, '{"placeholder": "Name"}'),
+(NULL, 'label_pw', get_field_type_id('text'), 1, '{"placeholder": "Password"}'),
+(NULL, 'label_pw_confirm', get_field_type_id('text'), 1, '{"placeholder": "Confirm Password"}'),
+(NULL, 'title', get_field_type_id('text'), 1, '{"placeholder": "Account Validation"}'),
+(NULL, 'subtitle', get_field_type_id('textarea'), 1, '{"rows": 2, "placeholder": "Please complete your account setup"}'),
+
+
+-- Placeholders and descriptions
+(NULL, 'name_placeholder', get_field_type_id('text'), 1, '{"placeholder": "Enter your full name"}'),
+(NULL, 'name_description', get_field_type_id('textarea'), 1, '{"rows": 2, "placeholder": "Your display name"}'),
+(NULL, 'pw_placeholder', get_field_type_id('text'), 1, '{"placeholder": "Enter your password"}'),
+(NULL, 'anonymous_user_name_description', get_field_type_id('textarea'), 1, '{"rows": 2, "placeholder": "This name will be visible to other users"}'),
+
+-- Alert messages
+(NULL, 'alert_fail', get_field_type_id('text'), 1, '{"placeholder": "Validation failed"}'),
+(NULL, 'alert_success', get_field_type_id('text'), 1, '{"placeholder": "Validation successful"}'),
+
+-- Form configuration fields (non-translatable)
+(NULL, 'label_activate', get_field_type_id('text'), 1, '{"placeholder": "Activate Account"}'),
+(NULL, 'label_save', get_field_type_id('text'), 1, '{"placeholder": "Save"}'),
+(NULL, 'label_update', get_field_type_id('text'), 1, '{"placeholder": "Update"}'),
+(NULL, 'label_cancel', get_field_type_id('text'), 1, '{"placeholder": "Cancel"}'),
+(NULL, 'name', get_field_type_id('text'), 0, '{"placeholder": "validate_form"}'),
+(NULL, 'is_log', get_field_type_id('checkbox'), 0, null),
+(NULL, 'redirect_at_end', get_field_type_id('select-page-keyword'), 0, null),
+(NULL, 'cancel_url', get_field_type_id('select-page-keyword'), 0, null),
+(NULL, 'ajax', get_field_type_id('checkbox'), 0, null);
+
+-- Link fields to validate style
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
+-- Basic form configuration
+(get_style_id('validate'), get_field_id('name'), 'validate_form', 'Sets the form name for identification and API calls', 0, 0, 'Form Name'),
+(get_style_id('validate'), get_field_id('redirect_at_end'), 'login', 'URL to redirect to after successful account validation', 0, 0, 'Redirect URL'),
+(get_style_id('validate'), get_field_id('btn_cancel_url'), NULL, 'URL to navigate to when cancel button is clicked', 0, 0, 'Cancel URL'),
+
+-- Title and subtitle
+(get_style_id('validate'), get_field_id('title'), 'Account Validation', 'Main heading displayed at the top of the validation form', 0, 0, 'Form Title'),
+(get_style_id('validate'), get_field_id('subtitle'), 'Please complete your account setup to activate your account', 'Subtitle text displayed below the title', 0, 0, 'Form Subtitle'),
+
+-- Field labels
+(get_style_id('validate'), get_field_id('label_name'), 'Name', 'Label for the name input field', 0, 0, 'Name Field Label'),
+(get_style_id('validate'), get_field_id('label_pw'), 'Password', 'Label for the password input field', 0, 0, 'Password Field Label'),
+(get_style_id('validate'), get_field_id('label_pw_confirm'), 'Confirm Password', 'Label for the password confirmation field', 0, 0, 'Confirm Password Label'),
+
+-- Placeholders and descriptions
+(get_style_id('validate'), get_field_id('name_placeholder'), 'Enter your full name', 'Placeholder text for the name input field', 0, 0, 'Name Placeholder'),
+(get_style_id('validate'), get_field_id('name_description'), NULL, 'Help text displayed below the name field', 0, 0, 'Name Description'),
+(get_style_id('validate'), get_field_id('pw_placeholder'), 'Enter your password', 'Placeholder text for the password field', 0, 0, 'Password Placeholder'),
+(get_style_id('validate'), get_field_id('anonymous_user_name_description'), 'This name will be visible to other users', 'Description text for anonymous user name field', 0, 0, 'Anonymous User Description'),
+
+-- Alert messages
+(get_style_id('validate'), get_field_id('alert_success'), 'Account validated successfully! Welcome to our platform.', 'Success message displayed after successful validation', 0, 0, 'Success Message'),
+(get_style_id('validate'), get_field_id('alert_fail'), 'Validation failed. Please check your information and try again.', 'Error message displayed when validation fails', 0, 0, 'Error Message'),
+
+-- Button configuration
+(get_style_id('validate'), get_field_id('label_activate'), 'Activate Account', 'Text for the account activation button', 0, 0, 'Activate Button Label'),
+(get_style_id('validate'), get_field_id('label_save'), 'Save', 'Text for the save button (fallback)', 0, 0, 'Save Button Label'),
+(get_style_id('validate'), get_field_id('label_update'), 'Update', 'Text for the update button (fallback)', 0, 0, 'Update Button Label'),
+(get_style_id('validate'), get_field_id('label_cancel'), 'Cancel', 'Text for the cancel button', 0, 0, 'Cancel Button Label'),
+
+-- Button styling (with activate button color)
+(get_style_id('validate'), get_field_id('mantine_buttons_size'), 'sm', 'Size of the form buttons', 0, 0, 'Button Size'),
+(get_style_id('validate'), get_field_id('mantine_buttons_radius'), 'sm', 'Border radius of the form buttons', 0, 0, 'Button Radius'),
+(get_style_id('validate'), get_field_id('mantine_buttons_variant'), 'filled', 'Visual style variant for the buttons', 0, 0, 'Button Variant'),
+(get_style_id('validate'), get_field_id('mantine_buttons_position'), 'space-between', 'Positioning of the buttons container', 0, 0, 'Button Position'),
+(get_style_id('validate'), get_field_id('mantine_buttons_order'), 'save-cancel', 'Order of buttons (activate appears first)', 0, 0, 'Button Order'),
+(get_style_id('validate'), get_field_id('mantine_btn_save_color'), 'blue', 'Color theme for the activate button', 0, 0, 'Activate Button Color'),
+(get_style_id('validate'), get_field_id('mantine_btn_cancel_color'), 'gray', 'Color theme for the cancel button', 0, 0, 'Cancel Button Color'),
+
+-- Card styling
+(get_style_id('validate'), get_field_id('mantine_card_shadow'), 'sm', 'Shadow effect for the validation card', 0, 0, 'Card Shadow'),
+(get_style_id('validate'), get_field_id('mantine_card_padding'), 'lg', 'Padding inside the validation card', 0, 0, 'Card Padding'),
+(get_style_id('validate'), get_field_id('mantine_border'), '1', 'Show border around the validation card', 0, 0, 'Card Border'),
+(get_style_id('validate'), get_field_id('mantine_radius'), 'sm', 'Border radius for the validation card', 0, 0, 'Card Radius'),
+
+-- Global margin and padding fields
+(get_style_id('validate'), get_field_id('mantine_padding_inline'), 'sm', 'Horizontal padding (px) for the validation container', 0, 0, 'Container Padding X'),
+(get_style_id('validate'), get_field_id('mantine_padding_block'), 'sm', 'Vertical padding (py) for the validation container', 0, 0, 'Container Padding Y'),
+(get_style_id('validate'), get_field_id('mantine_margin_inline'), 'none', 'Horizontal margin (mx) for the validation container', 0, 0, 'Container Margin X'),
+(get_style_id('validate'), get_field_id('mantine_margin_block'), 'none', 'Vertical margin (my) for the validation container', 0, 0, 'Container Margin Y'),
+
+-- Mantine style toggle
+(get_style_id('validate'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the validation form component', 0, 1, 'Use Mantine Style');

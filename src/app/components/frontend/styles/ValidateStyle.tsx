@@ -5,12 +5,16 @@ import { IValidateStyle } from '../../../../types/common/styles.types';
 import { usePageContentContext } from '../../contexts/PageContentContext';
 import { useSubmitFormMutation, useUpdateFormMutation } from '../../../../hooks/useFormSubmission';
 import { getFieldContent } from '../../../../utils/style-field-extractor';
+import { useParams, useRouter } from 'next/navigation';
+import { useValidateTokenMutation, useCompleteValidationMutation, useTokenValidation } from '../../../../hooks/mutations/useValidationMutations';
 
 interface IValidateStyleProps {
     style: IValidateStyle;
 }
 
 const ValidateStyle: React.FC<IValidateStyleProps> = ({ style }) => {
+    const params = useParams();
+    const router = useRouter();
     const { pageContent } = usePageContentContext();
     const [formKey, setFormKey] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -21,11 +25,33 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style }) => {
     const [formData, setFormData] = useState({
         name: '',
         password: '',
-        passwordConfirm: '',
-        gender: ''
+        passwordConfirm: ''
     });
     const [errors, setErrors] = useState<string[]>([]);
     const [success, setSuccess] = useState(false);
+    const [passwordError, setPasswordError] = useState<string>('');
+
+    // Extract userId and token from URL path
+    // This works with any URL pattern as long as it contains /validate/{uid}/{token}
+    let userId = 0;
+    let token = '';
+
+    // Get the current pathname from params.slug (since we're using [[...slug]])
+    if (params.slug && Array.isArray(params.slug)) {
+        const pathParts = params.slug;
+        const validateIndex = pathParts.indexOf('validate');
+
+        if (validateIndex !== -1 && pathParts.length > validateIndex + 2) {
+            // Found validate in path, extract uid and token
+            userId = parseInt(pathParts[validateIndex + 1]) || 0;
+            token = pathParts[validateIndex + 2] || '';
+        }
+    }
+
+    // Token validation hooks
+    const { data: tokenValidation, isLoading: isValidatingToken, error: tokenValidationError } = useTokenValidation(userId, token);
+    const validateTokenMutation = useValidateTokenMutation();
+    const completeValidationMutation = useCompleteValidationMutation();
 
     // Extract form configuration from style
     const title = style.title?.content;
@@ -33,10 +59,6 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style }) => {
     const labelName = style.label_name?.content || 'Name';
     const labelPw = style.label_pw?.content || 'Password';
     const labelPwConfirm = style.label_pw_confirm?.content || 'Confirm Password';
-    const labelGender = style.label_gender?.content || 'Gender';
-    const genderMale = style.gender_male?.content || 'Male';
-    const genderFemale = style.gender_female?.content || 'Female';
-    const genderDivers = style.gender_divers?.content || 'Other';
     const labelActivate = style.label_activate?.content || 'Activate';
     const alertFail = style.alert_fail?.content || 'Validation failed';
     const alertSuccess = style.alert_success?.content || 'Validation successful';
@@ -47,24 +69,58 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style }) => {
 
     // Form configuration fields
     const formName = getFieldContent(style, 'name') || 'validate_form';
-    const isLog = getFieldContent(style, 'is_log') === '1';
     const alertSuccessConfig = getFieldContent(style, 'alert_success') || alertSuccess;
     const redirectUrl = getFieldContent(style, 'redirect_at_end');
     const cancelUrl = getFieldContent(style, 'cancel_url');
-    const isAjax = getFieldContent(style, 'ajax') === '1';
     const saveLabel = getFieldContent(style, 'label_save') || 'Save';
     const updateLabel = getFieldContent(style, 'label_update') || 'Update';
     const cancelLabel = getFieldContent(style, 'label_cancel') || 'Cancel';
+
+    // Button styling
+    const buttonSize = getFieldContent(style, 'mantine_buttons_size') || 'sm';
+    const buttonRadius = getFieldContent(style, 'mantine_buttons_radius') || 'sm';
+    const buttonVariant = getFieldContent(style, 'mantine_buttons_variant') || 'filled';
+    const buttonPosition = getFieldContent(style, 'mantine_buttons_position') || 'space-between';
+    const buttonOrder = getFieldContent(style, 'mantine_buttons_order') || 'save-cancel';
+    const activateColor = getFieldContent(style, 'mantine_btn_save_color') || 'blue';
+    const cancelColor = getFieldContent(style, 'mantine_btn_cancel_color') || 'gray';
+
+    // Card styling
+    const cardShadow = getFieldContent(style, 'mantine_card_shadow') || 'sm';
+    const cardPadding = getFieldContent(style, 'mantine_card_padding') || 'lg';
+    const cardRadius = getFieldContent(style, 'mantine_radius') || 'sm';
+    const withBorder = getFieldContent(style, 'mantine_border') === '1';
+
+    // Container styling (global margin/padding)
+    const containerPaddingX = getFieldContent(style, 'mantine_padding_inline') || 'sm';
+    const containerPaddingY = getFieldContent(style, 'mantine_padding_block') || 'sm';
+    const containerMarginX = getFieldContent(style, 'mantine_margin_inline') || 'none';
+    const containerMarginY = getFieldContent(style, 'mantine_margin_block') || 'none';
 
     // Get form ID from style - now directly available as number
     const sectionId = style.id;
 
     // Get current page ID from context
     const pageId = pageContent?.id;
+    const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
-    // Determine form behavior based on style name
-    const isRecord = style.style_name === 'form-record' || style.style_name === 'form-record';
-    const isLogType = style.style_name === 'form-log' || style.style_name === 'form-log' || isLog;
+    // For validate style, these are always false (validate forms don't use record/log behavior)
+    const isRecord = false;
+    const isLogType = false;
+
+    console.log(style);
+
+    // Pre-populate form data when token validation succeeds
+    useEffect(() => {
+        if (tokenValidation?.data?.token_valid && tokenValidation?.data) {
+            const userData = tokenValidation.data;
+            setFormData(prev => ({
+                ...prev,
+                name: userData.name || prev.name,
+                // Don't pre-populate password or gender for security
+            }));
+        }
+    }, [tokenValidation]);
 
     // React Query hooks
     const submitFormMutation = useSubmitFormMutation();
@@ -117,6 +173,19 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style }) => {
             return `Please enter valid email addresses for: ${invalidEmails.join(', ')}`;
         }
 
+        // Password matching validation
+        const passwordField = formElement.querySelector('input[name="password"]') as HTMLInputElement;
+        const passwordConfirmField = formElement.querySelector('input[name="passwordConfirm"]') as HTMLInputElement;
+
+        if (passwordField && passwordConfirmField) {
+            const password = passwordField.value;
+            const passwordConfirm = passwordConfirmField.value;
+
+            if (password && passwordConfirm && password !== passwordConfirm) {
+                return 'Passwords do not match. Please make sure both password fields contain the same value.';
+            }
+        }
+
         return null;
     }, []);
 
@@ -132,14 +201,15 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style }) => {
             return;
         }
 
-        if (!pageId) {
-            setSubmitError('Page ID is required for form submission');
+        if (!userId || !token) {
+            setSubmitError('Invalid validation link. Missing user ID or token.');
             return;
         }
 
         setIsSubmitting(true);
         setSubmitError(null);
         setSubmitSuccess(false);
+        setPasswordError('');
 
         const formDataObj = new FormData(formElement);
 
@@ -171,45 +241,36 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style }) => {
         });
 
         try {
-            let response;
+            // Prepare validation data
+            const validationData = {
+                password: formData.password,
+                name: formData.name || undefined,
+                section_id: sectionId,
+                form_inputs: processedFormData
+            };
 
-            if (isRecord && existingRecordId) {
-                // Update existing record
-                response = await updateFormMutation.mutateAsync({
-                    page_id: pageId,
-                    section_id: sectionId,
-                    form_data: processedFormData,
-                    update_based_on: { record_id: existingRecordId }
-                });
-            } else {
-                // Create new record (for both log and new record types)
-                response = await submitFormMutation.mutateAsync({
-                    page_id: pageId,
-                    section_id: sectionId,
-                    form_data: processedFormData
-                });
-            }
+            // Use complete validation endpoint
+            const response = await completeValidationMutation.mutateAsync({
+                userId,
+                token,
+                data: validationData
+            });
 
             setSubmitSuccess(true);
 
-            // Reset form for log types, keep data for record types
-            if (isLogType) {
-                setFormKey(prev => prev + 1);
-            }
-
             // Handle success alert - prefer backend message over style message
-            const successMessage = response?.data?.message || alertSuccessConfig;
+            const successMessage = (response as any)?.data?.message || alertSuccessConfig;
 
             // Handle redirect
-            if (redirectUrl && !isAjax) {
+            if (redirectUrl) {
                 setTimeout(() => {
-                    window.location.href = redirectUrl;
+                    router.push(redirectUrl);
                 }, 1500); // Slightly longer delay to show success message
             }
 
         } catch (error: any) {
             // Extract error message from API response if available
-            let errorMessage = 'Failed to submit form. Please try again.';
+            let errorMessage = 'Failed to complete validation. Please try again.';
             if (error?.response?.data?.error) {
                 errorMessage = error.response.data.error;
             } else if (error?.response?.data?.message) {
@@ -224,22 +285,35 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style }) => {
         }
     }, [
         validateForm,
-        pageId,
+        userId,
+        token,
         sectionId,
-        isRecord,
-        isLogType,
-        existingRecordId,
+        formData,
         alertSuccessConfig,
         redirectUrl,
-        isAjax,
-        submitFormMutation,
-        updateFormMutation
+        completeValidationMutation
     ]);
 
     const handleInputChange = (field: string, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }));
+
+        // Clear general errors
         if (errors.length > 0) {
             setErrors([]);
+        }
+
+        // Real-time password matching validation
+        if (field === 'password' || field === 'passwordConfirm') {
+            const newFormData = { ...formData, [field]: value };
+            if (newFormData.password && newFormData.passwordConfirm) {
+                if (newFormData.password !== newFormData.passwordConfirm) {
+                    setPasswordError('Passwords do not match');
+                } else {
+                    setPasswordError('');
+                }
+            } else {
+                setPasswordError('');
+            }
         }
     };
 
@@ -281,12 +355,82 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style }) => {
         }
     }, [isRecord, existingFormDataFromSection, existingRecordId, formKey]);
 
+    // Show loading while validating token
+    if (isValidatingToken) {
+        return (
+            <Box className={cssClass}
+                p={containerPaddingX}
+                pt={containerPaddingY}
+                m={containerMarginX}
+                mt={containerMarginY}>
+                <Card
+                    shadow={cardShadow}
+                    padding={cardPadding}
+                    radius={cardRadius}
+                    withBorder={withBorder}
+                >
+                    <LoadingOverlay visible={true} />
+                    <Title order={2} mb="md">
+                        Validating Link
+                    </Title>
+                    <Text size="md" c="dimmed">
+                        Please wait while we validate your account activation link...
+                    </Text>
+                </Card>
+            </Box>
+        );
+    }
+
+    // Show error if token validation failed or token is invalid
+    if (tokenValidationError || tokenValidation?.data?.token_valid === false) {
+        return (
+            <Box className={cssClass}
+                p={containerPaddingX}
+                pt={containerPaddingY}
+                m={containerMarginX}
+                mt={containerMarginY}>
+                <Card
+                    shadow={cardShadow}
+                    padding={cardPadding}
+                    radius={cardRadius}
+                    withBorder={withBorder}
+                >
+                    <Alert icon={<IconX size={16} />} color="red" title="Invalid Validation Link">
+                        <Text size="md" fw={500} mb="sm">
+                            Account validation failed
+                        </Text>
+                        <Text size="sm">
+                            {tokenValidation?.data?.message ||
+                             tokenValidationError?.message ||
+                             'This validation link is invalid or has expired. Please request a new validation email.'}
+                        </Text>
+                    </Alert>
+                </Card>
+            </Box>
+        );
+    }
+
+    // Don't show validation form until token is confirmed valid
+    if (!tokenValidation?.data?.token_valid) {
+        return null;
+    }
+
+    // Show validation form if token is valid
     return (
-        <div style={{ position: 'relative' }}>
+        <>
             <LoadingOverlay visible={isSubmitting} />
 
-            <Box className={style.css ?? ""}>
-                <Card shadow="sm" padding="lg" radius="md" withBorder>
+            <Box className={cssClass}
+                p={containerPaddingX}
+                pt={containerPaddingY}
+                m={containerMarginX}
+                mt={containerMarginY}>
+                <Card
+                    shadow={cardShadow}
+                    padding={cardPadding}
+                    radius={cardRadius}
+                    withBorder={withBorder}
+                >
                     {title && (
                         <Title order={2} mb="md">
                             {title}
@@ -326,74 +470,76 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style }) => {
                                 </Alert>
                             )}
 
-                        <TextInput
-                            label={labelName}
-                            placeholder={namePlaceholder}
-                            description={nameDescription || anonymousUserNameDescription}
-                            value={formData.name}
-                            onChange={(e) => handleInputChange('name', e.target.value)}
-                            required
-                            mb="md"
-                        />
-
-                        <TextInput
-                            label={labelPw}
-                            placeholder={pwPlaceholder}
-                            type="password"
-                            value={formData.password}
-                            onChange={(e) => handleInputChange('password', e.target.value)}
-                            required
-                            mb="md"
-                        />
-
-                        <TextInput
-                            label={labelPwConfirm}
-                            type="password"
-                            value={formData.passwordConfirm}
-                            onChange={(e) => handleInputChange('passwordConfirm', e.target.value)}
-                            required
-                            mb="md"
-                        />
-
-                        <Box mb="md">
-                            <Text size="sm" fw={500} mb="xs">
-                                {labelGender} <Text component="span" c="red">*</Text>
-                            </Text>
-                            <Radio.Group
-                                value={formData.gender}
-                                onChange={(value) => handleInputChange('gender', value)}
+                            <TextInput
+                                label={labelName}
+                                placeholder={namePlaceholder}
+                                description={nameDescription || anonymousUserNameDescription}
+                                value={formData.name}
+                                onChange={(e) => handleInputChange('name', e.target.value)}
                                 required
-                            >
-                                <Group mt="xs">
-                                    <Radio value="male" label={genderMale} />
-                                    <Radio value="female" label={genderFemale} />
-                                    <Radio value="other" label={genderDivers} />
-                                </Group>
-                            </Radio.Group>
-                        </Box>
+                                mb="md"
+                            />
 
-                            <Group justify={cancelUrl || cancelLabel ? "space-between" : "center"} mt="xl">
+                            <TextInput
+                                label={labelPw}
+                                placeholder={pwPlaceholder}
+                                type="password"
+                                value={formData.password}
+                                onChange={(e) => handleInputChange('password', e.target.value)}
+                                required
+                                mb="md"
+                            />
+
+                            <TextInput
+                                label={labelPwConfirm}
+                                type="password"
+                                value={formData.passwordConfirm}
+                                onChange={(e) => handleInputChange('passwordConfirm', e.target.value)}
+                                error={passwordError}
+                                required
+                                mb="md"
+                            />
+
+
+                            <Group justify={cancelUrl || cancelLabel ? buttonPosition as any : "center"} mt="xl">
+                                {buttonOrder === 'cancel-save' && (cancelUrl || cancelLabel) && (
+                                    <Button
+                                        type="button"
+                                        onClick={handleCancel}
+                                        size={buttonSize}
+                                        radius={buttonRadius}
+                                        color={cancelColor}
+                                        variant="light"
+                                        disabled={isSubmitting}
+                                        mr={buttonPosition === 'space-between' ? 'auto' : undefined}
+                                    >
+                                        {cancelLabel}
+                                    </Button>
+                                )}
+
                                 <Button
                                     type="submit"
                                     loading={isSubmitting}
                                     disabled={!pageId}
-                                    size="md"
-                                    radius="md"
-                                    color="blue"
-                                    variant="filled"
+                                    size={buttonSize}
+                                    radius={buttonRadius}
+                                    color={activateColor}
+                                    variant={buttonVariant}
+                                    ml={buttonOrder === 'cancel-save' && buttonPosition === 'space-between' ? 'auto' : undefined}
                                 >
-                                    {isRecord && existingRecordId ? updateLabel : saveLabel}
+                                    {isRecord && existingRecordId ? updateLabel : (labelActivate || saveLabel)}
                                 </Button>
 
-                                {(cancelUrl || cancelLabel) && (
+                                {buttonOrder === 'save-cancel' && (cancelUrl || cancelLabel) && (
                                     <Button
                                         type="button"
                                         onClick={handleCancel}
-                                        size="md"
-                                        radius="md"
-                                        color="gray"
+                                        size={buttonSize}
+                                        radius={buttonRadius}
+                                        color={cancelColor}
                                         variant="light"
                                         disabled={isSubmitting}
+                                        ml={buttonPosition === 'space-between' ? 'auto' : undefined}
                                     >
                                         {cancelLabel}
                                     </Button>
@@ -403,7 +549,7 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style }) => {
                     )}
                 </Card>
             </Box>
-        </div>
+        </>
     );
 };
 

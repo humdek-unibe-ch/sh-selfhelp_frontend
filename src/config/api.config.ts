@@ -24,6 +24,10 @@ export const API_CONFIG = {
         USER_UPDATE_PASSWORD: '/auth/user/password',
         USER_DELETE_ACCOUNT: '/auth/user/account',
 
+        // User validation endpoints
+        USER_VALIDATE_TOKEN: (userId: number, token: string) => `/validate/${userId}/${token}`,
+        USER_COMPLETE_VALIDATION: (userId: number, token: string) => `/validate/${userId}/${token}/complete`,
+
         // Public pages endpoints
         /**
          * Fetches a list of pages when not logged in.

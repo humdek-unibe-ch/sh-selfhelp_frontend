@@ -183,26 +183,34 @@ export interface IValidateStyle extends IBaseStyle {
     label_name?: IContentField<string>;
     name_placeholder?: IContentField<string>;
     name_description?: IContentField<string>;
-    label_gender?: IContentField<string>;
-    gender_male?: IContentField<string>;
-    gender_female?: IContentField<string>;
-    gender_divers?: IContentField<string>;
     label_activate?: IContentField<string>;
     pw_placeholder?: IContentField<string>;
     success?: IContentField<string>;
     name?: IContentField<string>;
     page_keyword?: IContentField<string>;
-    value_gender?: IContentField<string>;
     value_name?: IContentField<string>;
     anonymous_user_name_description?: IContentField<string>;
     // Form configuration fields
-    is_log?: IContentField<string>;
     redirect_at_end?: IContentField<string>;
     cancel_url?: IContentField<string>;
-    ajax?: IContentField<string>;
     label_save?: IContentField<string>;
     label_update?: IContentField<string>;
     label_cancel?: IContentField<string>;
+    mantine_buttons_size?: IContentField<string>;
+    mantine_buttons_radius?: IContentField<string>;
+    mantine_buttons_variant?: IContentField<string>;
+    mantine_buttons_position?: IContentField<string>;
+    mantine_buttons_order?: IContentField<string>;
+    mantine_btn_save_color?: IContentField<string>;
+    mantine_btn_cancel_color?: IContentField<string>;
+    mantine_card_shadow?: IContentField<string>;
+    mantine_card_padding?: IContentField<string>;
+    mantine_radius?: IContentField<string>;
+    mantine_border?: IContentField<string>;
+    mantine_padding_inline?: IContentField<string>;
+    mantine_padding_block?: IContentField<string>;
+    mantine_margin_inline?: IContentField<string>;
+    mantine_margin_block?: IContentField<string>;
 }
 
 export interface IRegisterStyle extends IBaseStyle {

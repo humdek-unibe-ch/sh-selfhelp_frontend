@@ -35,10 +35,32 @@ const DynamicPageContentOptimized = React.memo(function DynamicPageContentOptimi
     const { routes, isLoading: navLoading, isFetching: navFetching } = useAppNavigation();
     
     // Convert keyword to pageId using navigation data
-    const pageId = useMemo(() => {
+    const pageId: number | null = useMemo(() => {
         if (!keyword || routes.length === 0) return null;
-        const page = routes.find(p => p.keyword === keyword);
-        return page?.id_pages || null;
+
+        // First try exact keyword match
+        const exactMatch = routes.find(p => p.keyword === keyword);
+        if (exactMatch) {
+            return exactMatch.id_pages ?? null;
+        }
+
+        // Try URL pattern matching for dynamic routes
+        const keywordPath = `/${keyword}`;
+        const patternMatch = routes.find(page => {
+            if (!page.url) return false;
+
+            // Convert URL pattern to regex
+            // e.g., "/validate/[i:uid]/[a:token]" -> "/validate/[^/]+/[^/]+"
+            const pattern = page.url
+                .replace(/\[i:[^\]]+\]/g, '[^/]+')  // integer parameters
+                .replace(/\[a:[^\]]+\]/g, '[^/]+')  // alphanumeric parameters
+                .replace(/\[s:[^\]]+\]/g, '[^/]+'); // string parameters
+
+            const regex = new RegExp(`^${pattern}$`);
+            return regex.test(keywordPath);
+        });
+
+        return patternMatch?.id_pages ?? null;
     }, [keyword, routes]);
     
     const { content: queryContent, isLoading: pageLoading, isFetching: pageFetching, isPlaceholderData } = usePageContent(pageId);
@@ -69,10 +91,27 @@ const DynamicPageContentOptimized = React.memo(function DynamicPageContentOptimi
     const isContentUpdating = pageFetching || isUpdatingLanguage;
     
     // Memoize navigation check
-    const existsInNavigation = useMemo(() => 
-        routes.some(p => p.keyword === keyword), 
-        [routes, keyword]
-    );
+    const existsInNavigation = useMemo(() => {
+        // First check for exact keyword match
+        if (routes.some(p => p.keyword === keyword)) {
+            return true;
+        }
+
+        // Check URL pattern matching for dynamic routes
+        const keywordPath = `/${keyword}`;
+        return routes.some(page => {
+            if (!page.url) return false;
+
+            // Convert URL pattern to regex
+            const pattern = page.url
+                .replace(/\[i:[^\]]+\]/g, '[^/]+')  // integer parameters
+                .replace(/\[a:[^\]]+\]/g, '[^/]+')  // alphanumeric parameters
+                .replace(/\[s:[^\]]+\]/g, '[^/]+'); // string parameters
+
+            const regex = new RegExp(`^${pattern}$`);
+            return regex.test(keywordPath);
+        });
+    }, [routes, keyword]);
     
     // Check if page content is available (more reliable than navigation check)
     const hasValidContent = pageContent && pageContent.id;
