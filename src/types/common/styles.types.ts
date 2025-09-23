@@ -1,7 +1,7 @@
 // Style name literal types for type safety
 export type TStyleName =
     | 'login' | 'profile' | 'validate' | 'register' | 'resetPassword' | 'twoFactorAuth'
-    | 'container' | 'alert' | 'div' | 'refContainer' | 'dataContainer' | 'html-tag' | 'center'
+    | 'container' | 'alert' | 'div' | 'refContainer' | 'dataContainer' | 'html-tag' | 'center' | 'box'
     | 'flex' | 'group' | 'stack' | 'simple-grid' | 'scroll-area' | 'space' | 'grid' | 'grid-column' | 'divider' | 'paper'
     | 'heading' | 'markdown' | 'markdownInline' | 'plaintext'
     | 'form-log' | 'form-record' | 'input' | 'text-input' | 'textarea' | 'select' | 'radio' | 'slider' | 'checkbox'
@@ -1035,6 +1035,31 @@ export interface IBadgeStyle extends IBaseStyle {
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
     mantine_right_icon?: IContentField<string>;        // Select-icon field for right icon
     mantine_auto_contrast?: IContentField<string>;    // Checkbox field for auto contrast
+}
+
+export interface IBoxStyle extends IBaseStyle {
+    style_name: 'box';
+    content?: IContentField<string>;                 // Translatable content field
+    mantine_background_color?: IContentField<string>; // Color picker field for background color
+    mantine_color?: IContentField<string>;            // Color picker field for text color
+    mantine_border?: IContentField<string>;           // Segment field for border style (none, solid, dashed, dotted)
+    mantine_border_size?: IContentField<string>;      // Slider field for border size
+    mantine_border_color?: IContentField<string>;     // Color picker field for border color
+    mantine_radius?: IContentField<string>;           // Select field for border radius
+    mantine_shadow?: IContentField<string>;           // Slider field for shadow
+    mantine_padding_inline?: IContentField<string>;   // Slider field for horizontal padding
+    mantine_padding_block?: IContentField<string>;    // Slider field for vertical padding
+    mantine_margin_inline?: IContentField<string>;    // Slider field for horizontal margin
+    mantine_margin_block?: IContentField<string>;     // Slider field for vertical margin
+    mantine_pt?: IContentField<string>;               // Slider field for top padding
+    mantine_pb?: IContentField<string>;               // Slider field for bottom padding
+    mantine_pl?: IContentField<string>;               // Slider field for left padding
+    mantine_pr?: IContentField<string>;               // Slider field for right padding
+    mantine_mt?: IContentField<string>;               // Slider field for top margin
+    mantine_mb?: IContentField<string>;               // Slider field for bottom margin
+    mantine_ml?: IContentField<string>;               // Slider field for left margin
+    mantine_mr?: IContentField<string>;               // Slider field for right margin
+    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
 
 export interface IChipStyle extends IBaseStyle {

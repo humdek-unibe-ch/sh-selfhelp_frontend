@@ -144,8 +144,130 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 -- Add global tooltip field (reusable across all components)
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'tooltip', get_field_type_id('textarea'), 1, '{"rows": 2, "placeholder": "Enter tooltip text that appears on hover"}');
 
--- Add global border field (reusable across all components that support withBorder prop)
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_border', get_field_type_id('checkbox'), 0, null);
+-- Add global border color field (reusable across all components)
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_border_color', get_field_type_id('color-picker'), 0, '{
+  "options": [
+    { "value": "gray", "text": "Gray" },
+    { "value": "red", "text": "Red" },        
+    { "value": "grape", "text": "Grape" },
+    { "value": "violet", "text": "Violet" },        
+    { "value": "blue", "text": "Blue" },    
+    { "value": "cyan", "text": "Cyan" },    
+    { "value": "green", "text": "Green" },    
+    { "value": "lime", "text": "Lime" },
+    { "value": "yellow", "text": "Yellow" },
+    { "value": "orange", "text": "Orange" }    
+  ]
+}');
+
+-- Add global background color field (reusable across all components)
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_background_color', get_field_type_id('color-picker'), 0, '{
+  "options": [
+    { "value": "gray", "text": "Gray" },
+    { "value": "red", "text": "Red" },        
+    { "value": "grape", "text": "Grape" },
+    { "value": "violet", "text": "Violet" },        
+    { "value": "blue", "text": "Blue" },    
+    { "value": "cyan", "text": "Cyan" },    
+    { "value": "green", "text": "Green" },    
+    { "value": "lime", "text": "Lime" },
+    { "value": "yellow", "text": "Yellow" },
+    { "value": "orange", "text": "Orange" }    
+  ]
+}');
+
+-- Add global directional margin fields (reusable across all components)
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_mt', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
+{"value":"xs","text":"Extra Small"},
+{"value":"sm","text":"Small"},
+{"value":"md","text":"Medium"},
+{"value":"lg","text":"Large"},
+{"value":"xl","text":"Extra Large"}
+]}');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_mb', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
+{"value":"xs","text":"Extra Small"},
+{"value":"sm","text":"Small"},
+{"value":"md","text":"Medium"},
+{"value":"lg","text":"Large"},
+{"value":"xl","text":"Extra Large"}
+]}');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_ml', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
+{"value":"xs","text":"Extra Small"},
+{"value":"sm","text":"Small"},
+{"value":"md","text":"Medium"},
+{"value":"lg","text":"Large"},
+{"value":"xl","text":"Extra Large"}
+]}');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_mr', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
+{"value":"xs","text":"Extra Small"},
+{"value":"sm","text":"Small"},
+{"value":"md","text":"Medium"},
+{"value":"lg","text":"Large"},
+{"value":"xl","text":"Extra Large"}
+]}');
+
+-- Add global directional padding fields (reusable across all components)
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_pt', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
+{"value":"xs","text":"Extra Small"},
+{"value":"sm","text":"Small"},
+{"value":"md","text":"Medium"},
+{"value":"lg","text":"Large"},
+{"value":"xl","text":"Extra Large"}
+]}');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_pb', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
+{"value":"xs","text":"Extra Small"},
+{"value":"sm","text":"Small"},
+{"value":"md","text":"Medium"},
+{"value":"lg","text":"Large"},
+{"value":"xl","text":"Extra Large"}
+]}');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_pl', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
+{"value":"xs","text":"Extra Small"},
+{"value":"sm","text":"Small"},
+{"value":"md","text":"Medium"},
+{"value":"lg","text":"Large"},
+{"value":"xl","text":"Extra Large"}
+]}');
+
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_pr', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
+{"value":"xs","text":"Extra Small"},
+{"value":"sm","text":"Small"},
+{"value":"md","text":"Medium"},
+{"value":"lg","text":"Large"},
+{"value":"xl","text":"Extra Large"}
+]}');
+
+-- Add global border style field (reusable across all components)
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_border', get_field_type_id('segment'), 0, '{"options":[
+{"value":"none","text":"None"},
+{"value":"solid","text":"Solid"},
+{"value":"dashed","text":"Dashed"},
+{"value":"dotted","text":"Dotted"}
+]}');
+
+-- Add global border size field (reusable across all components)
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_border_size', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "1", "options":[
+{"value":"1","text":"1px"},
+{"value":"2","text":"2px"},
+{"value":"3","text":"3px"},
+{"value":"4","text":"4px"},
+{"value":"5","text":"5px"}
+]}');
+
+-- Add global shadow field (reusable across all components)
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_shadow', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
+{"value":"none","text":"None"},
+{"value":"xs","text":"Extra Small"},
+{"value":"sm","text":"Small"},
+{"value":"md","text":"Medium"},
+{"value":"lg","text":"Large"},
+{"value":"xl","text":"Extra Large"}
+]}');
 
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'readonly', get_field_type_id('checkbox'), 0, null);
 
@@ -434,7 +556,44 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 }
 ');
 
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) 
+-- ===========================================
+-- BOX COMPONENT
+-- ===========================================
+
+-- Add new style 'box' based on Mantine Box component
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+    NULL,
+    'box',
+    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    get_style_group_id('mantine'),
+    'Mantine Box component as a base for all Mantine components with style props support',
+    1
+);
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
+(get_style_id('box'), get_field_id('mantine_background_color'), NULL, 'Sets the background color of the Box component. For more information check https://mantine.dev/core/box', 0, 0, 'Background Color'),
+(get_style_id('box'), get_field_id('mantine_color'), NULL, 'Sets the text color of the Box component. For more information check https://mantine.dev/core/box', 0, 0, 'Text Color'),
+(get_style_id('box'), get_field_id('mantine_border'), 'none', 'Sets the border style of the Box component. For more information check https://mantine.dev/core/box', 0, 0, 'Border Style'),
+(get_style_id('box'), get_field_id('mantine_border_size'), '1', 'Sets the border size/thickness of the Box component. For more information check https://mantine.dev/core/box', 0, 0, 'Border Size'),
+(get_style_id('box'), get_field_id('mantine_border_color'), NULL, 'Sets the border color of the Box component. For more information check https://mantine.dev/core/box', 0, 0, 'Border Color'),
+(get_style_id('box'), get_field_id('mantine_radius'), 'none', 'Sets the border radius of the Box component. For more information check https://mantine.dev/core/box', 0, 0, 'Border Radius'),
+(get_style_id('box'), get_field_id('mantine_shadow'), 'none', 'Sets the shadow of the Box component. For more information check https://mantine.dev/core/box', 0, 0, 'Shadow'),
+(get_style_id('box'), get_field_id('mantine_padding_inline'), 'none', 'Sets the horizontal padding of the Box component. For more information check https://mantine.dev/core/box', 0, 0, 'Padding X'),
+(get_style_id('box'), get_field_id('mantine_padding_block'), 'none', 'Sets the vertical padding of the Box component. For more information check https://mantine.dev/core/box', 0, 0, 'Padding Y'),
+(get_style_id('box'), get_field_id('mantine_margin_inline'), 'none', 'Sets the horizontal margin of the Box component. For more information check https://mantine.dev/core/box', 0, 0, 'Margin X'),
+(get_style_id('box'), get_field_id('mantine_margin_block'), 'none', 'Sets the vertical margin of the Box component. For more information check https://mantine.dev/core/box', 0, 0, 'Margin Y'),
+(get_style_id('box'), get_field_id('mantine_pt'), 'none', 'Sets the top padding of the Box component. For more information check https://mantine.dev/core/box', 0, 0, 'Padding Top'),
+(get_style_id('box'), get_field_id('mantine_pb'), 'none', 'Sets the bottom padding of the Box component. For more information check https://mantine.dev/core/box', 0, 0, 'Padding Bottom'),
+(get_style_id('box'), get_field_id('mantine_pl'), 'none', 'Sets the left padding of the Box component. For more information check https://mantine.dev/core/box', 0, 0, 'Padding Left'),
+(get_style_id('box'), get_field_id('mantine_pr'), 'none', 'Sets the right padding of the Box component. For more information check https://mantine.dev/core/box', 0, 0, 'Padding Right'),
+(get_style_id('box'), get_field_id('mantine_mt'), 'none', 'Sets the top margin of the Box component. For more information check https://mantine.dev/core/box', 0, 0, 'Margin Top'),
+(get_style_id('box'), get_field_id('mantine_mb'), 'none', 'Sets the bottom margin of the Box component. For more information check https://mantine.dev/core/box', 0, 0, 'Margin Bottom'),
+(get_style_id('box'), get_field_id('mantine_ml'), 'none', 'Sets the left margin of the Box component. For more information check https://mantine.dev/core/box', 0, 0, 'Margin Left'),
+(get_style_id('box'), get_field_id('mantine_mr'), 'none', 'Sets the right margin of the Box component. For more information check https://mantine.dev/core/box', 0, 0, 'Margin Right'),
+(get_style_id('box'), get_field_id('content'), '', 'Set text content over the children. For more information check https://mantine.dev/core/box', 0, 0, 'Content'),
+(get_style_id('box'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the Box component. For more information check https://mantine.dev/core/box', 0, 1, 'Use Mantine Style');
+
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('button'), get_field_id('mantine_color'), 'blue', 'Select color for the button. For more information check https://mantine.dev/core/button', 0, 0, 'Color');
 
 

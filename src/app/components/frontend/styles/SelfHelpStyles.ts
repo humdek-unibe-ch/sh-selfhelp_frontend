@@ -85,6 +85,7 @@ export { default as HtmlTagStyle } from './HtmlTagStyle';
 
 export { default as AvatarStyle } from './mantine/AvatarStyle';
 export { default as BadgeStyle } from './mantine/BadgeStyle';
+export { default as BoxStyle } from './mantine/BoxStyle';
 export { default as ChipStyle } from './mantine/inputs/ChipStyle';
 export { default as TimelineStyle } from './mantine/TimelineStyle';
 export { default as ListStyle } from './mantine/list/ListStyle';

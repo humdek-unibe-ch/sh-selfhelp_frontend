@@ -188,6 +188,7 @@ The system has hundreds of pre-existing fields that should be reused when possib
 | 2638 | mantine_segmented_control_data | 2 | Segmented control data (JSON) |
 | 2639 | mantine_combobox_data | 2 | Combobox data (JSON) |
 | 2640 | mantine_multi_select_data | 2 | Multi-select data (JSON) |
+| 245 | mantine_border | 37 | Border style options (none, solid, dashed, dotted) |
 | 2648 | mantine_center_inline | 3 | Center inline toggle |
 | 2651 | mantine_miw | 33 | Minimum inline width |
 | 2652 | mantine_mih | 33 | Minimum inline height |
@@ -265,6 +266,8 @@ The system has hundreds of pre-existing fields that should be reused when possib
 | 2748 | mantine_scrollarea_scrollbar_size | 33 | Scrollbar size |
 | 2749 | mantine_scrollarea_type | 37 | Scrollarea type (Hover, Always, Scroll) |
 | 2750 | mantine_scrollarea_offset_scrollbars | 3 | Offset scrollbars toggle |
+| 2751 | mantine_border_size | 55 | Border size/thickness (1px, 2px, 3px, 4px, 5px) |
+| 2752 | mantine_shadow | 55 | Shadow options (none, xs, sm, md, lg, xl) |
 
 #### Field Type Reference
 | Type ID | Type Name | Description |
@@ -508,7 +511,6 @@ interface I{COMPONENT_NAME}StyleProps {
 import React from 'react';
 import { {COMPONENT_NAME} } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 import IconComponent from '../../shared/common/IconComponent';
 import { I{COMPONENT_NAME}Style } from '../../../../../types/common/styles.types';
 
@@ -517,13 +519,13 @@ interface I{COMPONENT_NAME}StyleProps {
 }
 
 const {COMPONENT_NAME}Style: React.FC<I{COMPONENT_NAME}StyleProps> = ({ style }) => {
-    // Extract field values using the new unified field structure
-    const use_mantine_style = getFieldContent(style, 'use_mantine_style') === '1';
+    // Extract field values using direct style property access
+    const use_mantine_style = style.use_mantine_style?.content === '1';
 
     // Extract Mantine-specific props
-    const variant = getFieldContent(style, 'mantine_{COMPONENT_NAME}_variant') || 'default';
-    const size = getFieldContent(style, 'mantine_size') || 'md';
-    const iconName = getFieldContent(style, 'mantine_{COMPONENT_NAME}_icon');
+    const variant = style.mantine_{COMPONENT_NAME}_variant?.content || 'default';
+    const size = style.mantine_size?.content || 'sm';
+    const iconName = style.mantine_{COMPONENT_NAME}_icon?.content;
 
     // Get icon component using IconComponent
     const icon = iconName ? <IconComponent iconName={iconName} size={16} /> : undefined;
@@ -551,17 +553,23 @@ const {COMPONENT_NAME}Style: React.FC<I{COMPONENT_NAME}StyleProps> = ({ style })
 ```
 
 ### Field Value Extraction Pattern
+Use direct property access on the style object:
 ```typescript
-const getFieldValue = (style: any, fieldName: string, defaultValue?: any) => {
-    const field = style.fields?.find((f: any) => f.name === fieldName);
-    return field?.value || defaultValue;
-};
+// Access field content directly
+const fieldValue = style.field_name?.content;
+
+// For boolean fields
+const isEnabled = style.field_name?.content === '1';
+
+// For numeric fields with fallback
+const size = style.mantine_size?.content || 'md';
 ```
 
 ### Import Requirements
 - Import the Mantine component from `@mantine/core`
-- Import utility functions for field extraction
+- Import IconComponent for icon fields
 - Import CSS modules if custom styling is used
+- Only import utility functions like `castMantineSize`, `castMantineRadius` when needed for type casting
 
 ## Implementation Checklist
 
