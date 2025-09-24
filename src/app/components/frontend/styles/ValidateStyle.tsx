@@ -95,12 +95,6 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
     const cardRadius = style.mantine_radius?.content || 'sm';
     const withBorder = style.mantine_border?.content === '1';
 
-    // Container styling (global margin/padding)
-    const containerPaddingX = style.mantine_padding_inline?.content || 'sm';
-    const containerPaddingY = style.mantine_padding_block?.content || 'sm';
-    const containerMarginX = style.mantine_margin_inline?.content || 'none';
-    const containerMarginY = style.mantine_margin_block?.content || 'none';
-
     // Get form ID from style - now directly available as number
     const sectionId = style.id;
 
@@ -362,11 +356,7 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
     // Show loading while validating token
     if (isValidatingToken) {
         return (
-            <Box {...styleProps} className={cssClass}
-                p={containerPaddingX}
-                pt={containerPaddingY}
-                m={containerMarginX}
-                mt={containerMarginY}>
+            <Box {...styleProps} className={cssClass}>
                 <Card
                     shadow={cardShadow}
                     padding={cardPadding}
@@ -388,11 +378,7 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
     // Show error if token validation failed or token is invalid
     if (tokenValidationError || tokenValidation?.data?.token_valid === false) {
         return (
-            <Box {...styleProps} className={cssClass}
-                p={containerPaddingX}
-                pt={containerPaddingY}
-                m={containerMarginX}
-                mt={containerMarginY}>
+            <Box {...styleProps} className={cssClass}>
                 <Card
                     shadow={cardShadow}
                     padding={cardPadding}
@@ -424,11 +410,7 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
         <>
             <LoadingOverlay visible={isSubmitting} />
 
-            <Box {...styleProps} className={cssClass}
-                p={containerPaddingX}
-                pt={containerPaddingY}
-                m={containerMarginX}
-                mt={containerMarginY}>
+            <Box {...styleProps} className={cssClass}>
                 <Card
                     shadow={cardShadow}
                     padding={cardPadding}

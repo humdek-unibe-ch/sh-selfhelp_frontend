@@ -162,12 +162,6 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
     // Layout configuration
     const columns = parseInt(style.profile_columns?.content || '1');
 
-    // Global margin and padding
-    const paddingX = style.mantine_padding_inline?.content || 'none';
-    const paddingY = style.mantine_padding_block?.content || 'none';
-    const marginX = style.mantine_margin_inline?.content || 'none';
-    const marginY = style.mantine_margin_block?.content || 'none';
-
     
 
     // Convert spacing values to CSS
@@ -543,10 +537,6 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
         <Stack
             gap={gap}
             {...styleProps} className={cssClass}
-            px={getSpacingValue(paddingX)}
-            py={getSpacingValue(paddingY)}
-            mx={getSpacingValue(marginX)}
-            my={getSpacingValue(marginY)}
         >
             {/* Profile Header */}
             {profileTitle && (

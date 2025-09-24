@@ -104,43 +104,6 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 {"value":"32","text":"XXL (32px)"}
 ]}');
 
--- Global Margin and Padding Fields (reusable across Mantine components)
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_padding_inline', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
-{"value":"none","text":"None"},
-{"value":"xs","text":"Extra Small"},
-{"value":"sm","text":"Small"},
-{"value":"md","text":"Medium"},
-{"value":"lg","text":"Large"},
-{"value":"xl","text":"Extra Large"}
-]}');
-
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_padding_block', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
-{"value":"none","text":"None"},
-{"value":"xs","text":"Extra Small"},
-{"value":"sm","text":"Small"},
-{"value":"md","text":"Medium"},
-{"value":"lg","text":"Large"},
-{"value":"xl","text":"Extra Large"}
-]}');
-
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_margin_inline', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
-{"value":"none","text":"None"},
-{"value":"xs","text":"Extra Small"},
-{"value":"sm","text":"Small"},
-{"value":"md","text":"Medium"},
-{"value":"lg","text":"Large"},
-{"value":"xl","text":"Extra Large"}
-]}');
-
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_margin_block', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
-{"value":"none","text":"None"},
-{"value":"xs","text":"Extra Small"},
-{"value":"sm","text":"Small"},
-{"value":"md","text":"Medium"},
-{"value":"lg","text":"Large"},
-{"value":"xl","text":"Extra Large"}
-]}');
-
 -- Add global standardized spacing fields
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'spacing_margin_top', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
 {"value":"none","text":"None"},
@@ -811,12 +774,7 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 ]}');
 
 -- Add global border style field (reusable across all components)
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_border', get_field_type_id('segment'), 0, '{"options":[
-{"value":"none","text":"None"},
-{"value":"solid","text":"Solid"},
-{"value":"dashed","text":"Dashed"},
-{"value":"dotted","text":"Dotted"}
-]}');
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_border', get_field_type_id('checkbox'), 0, null);
 
 -- Add global border size field (reusable across all components)
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_border_size', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "1", "options":[
@@ -4111,6 +4069,7 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
 -- Add Paper-specific fields
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_paper_shadow', get_field_type_id('slider'), 0, '{
 "options": [
+{"value": "none", "text": "None"},
 {"value": "xs", "text": "Extra Small"},
 {"value": "sm", "text": "Small"},
 {"value":"md","text":"Medium"},
