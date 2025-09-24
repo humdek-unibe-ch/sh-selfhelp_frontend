@@ -33,11 +33,16 @@ const setDayjsLocale = (locale: string) => {
     }
 };
 
+/**
+ * Props interface for IDatePickerStyle component
+ */
 interface IDatePickerStyleProps {
     style: IDatePickerStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
-const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
+const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const label = style.label?.content;
     const name = style.name?.content || `section-${style.id}`;
@@ -88,7 +93,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
     const radius = castMantineRadius((style as any).mantine_radius?.content);
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Set dayjs locale for proper formatting
     useEffect(() => {
@@ -266,7 +271,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
                         size={size}
                         radius={radius === 'none' ? 0 : radius}
                         withSeconds={withSeconds}
-                        className={cssClass}
+                        {...styleProps} className={cssClass}
                         style={{ width: '100%' }}
                     />
                 );
@@ -291,7 +296,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style }) => {
                     weekendDays={weekendDays}
                     clearable={clearable}
                     valueFormat={format || 'YYYY-MM-DD'}
-                    className={cssClass}
+                    {...styleProps} className={cssClass}
                     style={{ width: '100%' }}
                 />
             );

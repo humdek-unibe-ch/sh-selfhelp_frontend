@@ -2,11 +2,16 @@ import React from 'react';
 import { Box } from '@mantine/core';
 import { IAudioStyle } from '../../../../types/common/styles.types';
 
+/**
+ * Props interface for IAudioStyle component
+ */
 interface IAudioStyleProps {
     style: IAudioStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
-const AudioStyle: React.FC<IAudioStyleProps> = ({ style }) => {
+const AudioStyle: React.FC<IAudioStyleProps> = ({ style, styleProps, cssClass }) => {
     // Get audio sources - handle both array and JSON string formats
     let sources: any[] = [];
     try {

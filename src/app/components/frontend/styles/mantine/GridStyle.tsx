@@ -6,15 +6,20 @@ import { IGridStyle } from '../../../../../types/common/styles.types';
 /**
  * Props interface for GridStyle component
  */
+/**
+ * Props interface for IGridStyle component
+ */
 interface IGridStyleProps {
     style: IGridStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
  * GridStyle component renders a responsive grid layout
  * Uses Mantine UI Grid component with 12-column system
  */
-const GridStyle: React.FC<IGridStyleProps> = ({ style }) => {
+const GridStyle: React.FC<IGridStyleProps> = ({ style, styleProps, cssClass }) => {
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
 
@@ -28,7 +33,7 @@ const GridStyle: React.FC<IGridStyleProps> = ({ style }) => {
     const height = style.mantine_height?.content;
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Build style object
     const styleObj: React.CSSProperties = {};

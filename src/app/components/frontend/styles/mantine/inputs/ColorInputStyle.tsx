@@ -6,8 +6,13 @@ import { FormFieldValueContext } from '../../FormStyle';
 /**
  * Props interface for ColorInputStyle component
  */
+/**
+ * Props interface for IColorInputStyle component
+ */
 interface IColorInputStyleProps {
     style: IColorInputStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -25,7 +30,7 @@ interface IColorInputStyleProps {
  * @param {IColorInputStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine ColorInput with styled configuration
  */
-const ColorInputStyle: React.FC<IColorInputStyleProps> = ({ style }) => {
+const ColorInputStyle: React.FC<IColorInputStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const placeholder = style.placeholder?.content;
     const format = style.mantine_color_format?.content || 'hex';
@@ -41,7 +46,7 @@ const ColorInputStyle: React.FC<IColorInputStyleProps> = ({ style }) => {
     const disabled = style.disabled?.content === '1';
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Get form context for pre-populated values
     const formContext = useContext(FormFieldValueContext);
@@ -84,7 +89,7 @@ const ColorInputStyle: React.FC<IColorInputStyleProps> = ({ style }) => {
             onChange={handleColorChange}
             disabled={disabled}
             required={isRequired}
-            className={cssClass}
+            {...styleProps} className={cssClass}
             style={styleObj}
             name={name}
             label={label}

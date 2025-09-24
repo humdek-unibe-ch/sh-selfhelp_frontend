@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
 import { Box, Card, Title, TextInput, Button, Alert, Text, Group } from '@mantine/core';
 import { IconLock, IconX } from '@tabler/icons-react';
-import MarkdownStyle from './MarkdownStyle';
 import { ITwoFactorAuthStyle } from '../../../../types/common/styles.types';
 
+/**
+ * Props interface for ITwoFactorAuthStyle component
+ */
 interface ITwoFactorAuthStyleProps {
     style: ITwoFactorAuthStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
-const TwoFactorAuthStyle: React.FC<ITwoFactorAuthStyleProps> = ({ style }) => {
+const TwoFactorAuthStyle: React.FC<ITwoFactorAuthStyleProps> = ({ style, styleProps, cssClass }) => {
     const [code, setCode] = useState('');
     const [error, setError] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -76,11 +80,7 @@ const TwoFactorAuthStyle: React.FC<ITwoFactorAuthStyleProps> = ({ style }) => {
 
                 {textMd && (
                     <Box mb="lg">
-                        <MarkdownStyle style={{
-                            ...style,
-                            style_name: 'markdown',
-                            text_md: { content: textMd }
-                        } as any} />
+                        {textMd}
                     </Box>
                 )}
 

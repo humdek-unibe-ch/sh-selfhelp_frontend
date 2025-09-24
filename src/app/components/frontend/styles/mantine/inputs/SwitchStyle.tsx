@@ -9,8 +9,13 @@ import { castMantineSize } from '../../../../../../utils/style-field-extractor';
 /**
  * Props interface for SwitchStyle component
  */
+/**
+ * Props interface for ISwitchStyle component
+ */
 interface ISwitchStyleProps {
     style: ISwitchStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -21,7 +26,7 @@ interface ISwitchStyleProps {
  * @param {ISwitchStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine Switch with styled configuration
  */
-const SwitchStyle: React.FC<ISwitchStyleProps> = ({ style }) => {
+const SwitchStyle: React.FC<ISwitchStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const label = style.label?.content || 'Switch';
     const description = style.description?.content || '';
@@ -66,7 +71,7 @@ const SwitchStyle: React.FC<ISwitchStyleProps> = ({ style }) => {
     };
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Build style object
     const styleObj: React.CSSProperties = {};
@@ -84,7 +89,7 @@ const SwitchStyle: React.FC<ISwitchStyleProps> = ({ style }) => {
             color={color}
             radius={radius}
             disabled={disabled}
-            className={cssClass}
+            {...styleProps} className={cssClass}
             style={styleObj}
             labelPosition={labelPosition as 'left' | 'right'}
             label={ useInputWrapper ? undefined : label}

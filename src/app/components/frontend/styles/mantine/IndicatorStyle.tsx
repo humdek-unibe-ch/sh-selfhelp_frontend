@@ -6,8 +6,13 @@ import { IIndicatorStyle } from '../../../../../types/common/styles.types';
 /**
  * Props interface for IndicatorStyle component
  */
+/**
+ * Props interface for IIndicatorStyle component
+ */
 interface IIndicatorStyleProps {
     style: IIndicatorStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -28,7 +33,7 @@ interface IIndicatorStyleProps {
  * - withBorder: Adds white border around indicator
  * - radius: Border radius of the indicator
  */
-const IndicatorStyle: React.FC<IIndicatorStyleProps> = ({ style }) => {
+const IndicatorStyle: React.FC<IIndicatorStyleProps> = ({ style, styleProps, cssClass }) => {
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
 
@@ -46,108 +51,33 @@ const IndicatorStyle: React.FC<IIndicatorStyleProps> = ({ style }) => {
     const use_mantine_style = style.use_mantine_style?.content === '1';
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+
 
     // Build style object
     const styleObj: React.CSSProperties = {};
 
-    if (use_mantine_style) {
-        return (
-            <Indicator
-                processing={processing}
-                disabled={disabled}
-                size={size}
-                color={color}
-                position={position as any}
-                label={label || undefined}
-                inline={inline}
-                offset={offset}
-                withBorder={withBorder}
-                radius={radius}
-                className={cssClass}
-                style={styleObj}
-            >
-                {children.length > 0 ? (
-                    children.map((child: any, index: number) => (
-                        child ? <BasicStyle key={index} style={child} /> : null
-                    ))
-                ) : (
-                    // Default content if no children
-                    <div style={{
-                        width: '40px',
-                        height: '40px',
-                        backgroundColor: '#f0f0f0',
-                        borderRadius: '4px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}>
-                        ?
-                    </div>
-                )}
-            </Indicator>
-        );
-    }
-
-    // Fallback when Mantine styling is disabled
-    const getPositionStyles = () => {
-        const actualOffset = offset || 2;
-
-        switch (position) {
-            case 'top-start':
-                return { top: `-${actualOffset}px`, left: `-${actualOffset}px` };
-            case 'top-center':
-                return { top: `-${actualOffset}px`, left: '50%', transform: 'translateX(-50%)' };
-            case 'top-end':
-                return { top: `-${actualOffset}px`, right: `-${actualOffset}px` };
-            case 'middle-start':
-                return { top: '50%', left: `-${actualOffset}px`, transform: 'translateY(-50%)' };
-            case 'middle-center':
-                return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
-            case 'middle-end':
-                return { top: '50%', right: `-${actualOffset}px`, transform: 'translateY(-50%)' };
-            case 'bottom-start':
-                return { bottom: `-${actualOffset}px`, left: `-${actualOffset}px` };
-            case 'bottom-center':
-                return { bottom: `-${actualOffset}px`, left: '50%', transform: 'translateX(-50%)' };
-            case 'bottom-end':
-                return { bottom: `-${actualOffset}px`, right: `-${actualOffset}px` };
-            default:
-                return { top: `-${actualOffset}px`, right: `-${actualOffset}px` };
-        }
-    };
 
     return (
-        <div className={cssClass} style={{ ...styleObj, position: 'relative', display: inline ? 'inline-block' : 'block' }}>
-            {/* Indicator dot */}
-            <div
-                style={{
-                    position: 'absolute',
-                    width: `${size}px`,
-                    height: `${size}px`,
-                    borderRadius: radius === 'xl' ? '50%' : '4px',
-                    backgroundColor: disabled ? '#ccc' : color,
-                    border: withBorder ? '2px solid white' : 'none',
-                    zIndex: 1,
-                    animation: processing ? 'pulse 2s infinite' : 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                    fontSize: Math.max(8, size - 4) + 'px',
-                    fontWeight: 'bold',
-                    ...getPositionStyles()
-                }}
-            >
-                {label && <span>{label}</span>}
-            </div>
-
-            {/* Child content */}
+        <Indicator
+            processing={processing}
+            disabled={disabled}
+            size={size}
+            color={color}
+            position={position as any}
+            label={label || undefined}
+            inline={inline}
+            offset={offset}
+            withBorder={withBorder}
+            radius={radius}
+            {...styleProps} className={cssClass}
+            style={styleObj}
+        >
             {children.length > 0 ? (
                 children.map((child: any, index: number) => (
                     child ? <BasicStyle key={index} style={child} /> : null
                 ))
             ) : (
+                // Default content if no children
                 <div style={{
                     width: '40px',
                     height: '40px',
@@ -160,7 +90,7 @@ const IndicatorStyle: React.FC<IIndicatorStyleProps> = ({ style }) => {
                     ?
                 </div>
             )}
-        </div>
+        </Indicator>
     );
 };
 

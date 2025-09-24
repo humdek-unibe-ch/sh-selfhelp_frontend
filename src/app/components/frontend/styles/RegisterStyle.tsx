@@ -8,15 +8,20 @@ import { IRegisterStyle } from '../../../../types/common/styles.types';
 /**
  * Props interface for RegisterStyle component
  */
+/**
+ * Props interface for IRegisterStyle component
+ */
 interface IRegisterStyleProps {
     style: IRegisterStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
  * RegisterStyle component renders a registration form with email and validation code fields
  * Uses Mantine UI components for consistent theming and styling
  */
-const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style }) => {
+const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssClass }) => {
     const [email, setEmail] = useState('');
     const [validationCode, setValidationCode] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +37,6 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style }) => {
     const alertSuccess = style.alert_success?.content || 'Registration successful! Please check your email for activation link.';
     const successMessage = style.success?.content || 'Registration completed successfully';
     const formType = style.fields?.type?.content || 'success';
-    const cssClass = style.css || '';
     
     // Check if open registration is enabled
     const openRegistration = style.fields?.open_registration?.content === '1';
@@ -69,7 +73,7 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style }) => {
                 shadow="md" 
                 p="xl" 
                 radius="md" 
-                className={cssClass}
+                {...styleProps} className={cssClass}
                 style={{ maxWidth: 400, margin: '0 auto' }}
             >
                 <Alert 
@@ -89,7 +93,7 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style }) => {
             shadow="md" 
             p="xl" 
             radius="md" 
-            className={cssClass}
+            {...styleProps} className={cssClass}
             style={{ maxWidth: 400, margin: '0 auto' }}
         >
             <Title order={2} ta="center" mb="lg">

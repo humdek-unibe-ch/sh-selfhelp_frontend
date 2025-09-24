@@ -5,8 +5,13 @@ import { IKbdStyle } from '../../../../../types/common/styles.types';
 /**
  * Props interface for KbdStyle component
  */
+/**
+ * Props interface for IKbdStyle component
+ */
 interface IKbdStyleProps {
     style: IKbdStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -17,19 +22,19 @@ interface IKbdStyleProps {
  * @param {IKbdStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine Kbd component
  */
-const KbdStyle: React.FC<IKbdStyleProps> = ({ style }) => {
+const KbdStyle: React.FC<IKbdStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const key = style.label?.content || 'A';
     const size = style.mantine_size?.content || 'sm';
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Build style object
     const styleObj: React.CSSProperties = {};
 
     return (
-        <Kbd size={size as any} className={cssClass} style={styleObj}>
+        <Kbd size={size as any} {...styleProps} className={cssClass} style={styleObj}>
             {key}
         </Kbd>
     );

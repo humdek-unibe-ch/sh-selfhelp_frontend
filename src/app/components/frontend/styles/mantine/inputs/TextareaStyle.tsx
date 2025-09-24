@@ -9,16 +9,17 @@ import { castMantineSize, castMantineRadius } from '../../../../../../utils/styl
 
 interface ITextareaStyleProps {
     style: ITextareaStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
-const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style }) => {
+const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values
     const use_mantine_style = style.use_mantine_style?.content === '1';
 
     const name = style.name?.content;
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
     const label = style.label?.content;
     const description = style.description?.content || '';
@@ -81,6 +82,7 @@ const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style }) => {
             description={parse(sanitizeHtmlForParsing(description))}
             required={required}
             className={cssClass}
+            {...styleProps}
         >
             <Textarea
                 placeholder={placeholder}

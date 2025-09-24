@@ -8,8 +8,13 @@ import { ICenterStyle } from '../../../../../types/common/styles.types';
  * @interface ICenterStyleProps
  * @property {ICenterStyle} style - The center style configuration object
  */
+/**
+ * Props interface for ICenterStyle component
+ */
 interface ICenterStyleProps {
     style: ICenterStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -20,7 +25,7 @@ interface ICenterStyleProps {
  * @param {ICenterStyleProps} props - Component props
  * @returns {JSX.Element} Rendered center component with specified styling
  */
-const CenterStyle: React.FC<ICenterStyleProps> = ({ style }) => {
+const CenterStyle: React.FC<ICenterStyleProps> = ({ style, styleProps, cssClass }) => {
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
 
@@ -34,7 +39,7 @@ const CenterStyle: React.FC<ICenterStyleProps> = ({ style }) => {
     const maxHeight = style.mantine_mah?.content;
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Build style object for sizing properties
     const styleObj: React.CSSProperties = {};
@@ -48,7 +53,7 @@ const CenterStyle: React.FC<ICenterStyleProps> = ({ style }) => {
     return (
         <Center
             inline={inline}
-            className={cssClass}
+            {...styleProps} className={cssClass}
             style={styleObj}
         >
             {children.map((child: any, index: number) => (

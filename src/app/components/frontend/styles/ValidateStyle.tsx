@@ -7,11 +7,16 @@ import { useSubmitFormMutation, useUpdateFormMutation } from '../../../../hooks/
 import { useParams, useRouter } from 'next/navigation';
 import { useValidateTokenMutation, useCompleteValidationMutation, useTokenValidation } from '../../../../hooks/mutations/useValidationMutations';
 
+/**
+ * Props interface for IValidateStyle component
+ */
 interface IValidateStyleProps {
     style: IValidateStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
-const ValidateStyle: React.FC<IValidateStyleProps> = ({ style }) => {
+const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssClass }) => {
     const params = useParams();
     const router = useRouter();
     const { pageContent } = usePageContentContext();
@@ -101,7 +106,7 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style }) => {
 
     // Get current page ID from context
     const pageId = pageContent?.id;
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // For validate style, these are always false (validate forms don't use record/log behavior)
     const isRecord = false;
@@ -357,7 +362,7 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style }) => {
     // Show loading while validating token
     if (isValidatingToken) {
         return (
-            <Box className={cssClass}
+            <Box {...styleProps} className={cssClass}
                 p={containerPaddingX}
                 pt={containerPaddingY}
                 m={containerMarginX}
@@ -383,7 +388,7 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style }) => {
     // Show error if token validation failed or token is invalid
     if (tokenValidationError || tokenValidation?.data?.token_valid === false) {
         return (
-            <Box className={cssClass}
+            <Box {...styleProps} className={cssClass}
                 p={containerPaddingX}
                 pt={containerPaddingY}
                 m={containerMarginX}
@@ -419,7 +424,7 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style }) => {
         <>
             <LoadingOverlay visible={isSubmitting} />
 
-            <Box className={cssClass}
+            <Box {...styleProps} className={cssClass}
                 p={containerPaddingX}
                 pt={containerPaddingY}
                 m={containerMarginX}

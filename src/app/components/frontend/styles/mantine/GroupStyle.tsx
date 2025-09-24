@@ -8,8 +8,13 @@ import { IGroupStyle } from '../../../../../types/common/styles.types';
  * @interface IGroupStyleProps
  * @property {IGroupStyle} style - The group style configuration object
  */
+/**
+ * Props interface for IGroupStyle component
+ */
 interface IGroupStyleProps {
     style: IGroupStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -20,7 +25,7 @@ interface IGroupStyleProps {
  * @param {IGroupStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine Group with styled children
  */
-const GroupStyle: React.FC<IGroupStyleProps> = ({ style }) => {
+const GroupStyle: React.FC<IGroupStyleProps> = ({ style, styleProps, cssClass }) => {
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
 
@@ -34,7 +39,7 @@ const GroupStyle: React.FC<IGroupStyleProps> = ({ style }) => {
     const height = style.mantine_height?.content;
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Build style object for sizing properties
     const styleObj: React.CSSProperties = {};
@@ -48,7 +53,7 @@ const GroupStyle: React.FC<IGroupStyleProps> = ({ style }) => {
             align={align || undefined}
             wrap={wrap ? 'wrap' : undefined}
             grow={grow}
-            className={cssClass}
+            {...styleProps} className={cssClass}
             style={styleObj}
         >
             {children.map((child: any, index: number) => (

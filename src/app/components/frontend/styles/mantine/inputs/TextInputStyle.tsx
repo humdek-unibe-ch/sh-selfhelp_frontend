@@ -5,11 +5,16 @@ import { ITextInputStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 import { castMantineSize, castMantineRadius } from '../../../../../../utils/style-field-extractor';
 
+/**
+ * Props interface for ITextInputStyle component
+ */
 interface ITextInputStyleProps {
     style: ITextInputStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
-const TextInputStyle: React.FC<ITextInputStyleProps> = ({ style }) => {
+const TextInputStyle: React.FC<ITextInputStyleProps> = ({ style, styleProps, cssClass }) => {
 
     // Extract field values
     const label = style.label?.content;
@@ -44,7 +49,7 @@ const TextInputStyle: React.FC<ITextInputStyleProps> = ({ style }) => {
     const rightSection = rightIconName ? <IconComponent iconName={rightIconName} size={16} /> : undefined;
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setValue(event.target.value);
@@ -52,7 +57,7 @@ const TextInputStyle: React.FC<ITextInputStyleProps> = ({ style }) => {
 
     return (
         <TextInput
-            className={cssClass}
+            {...styleProps} className={cssClass}
             placeholder={placeholder}
             required={required}
             value={value}

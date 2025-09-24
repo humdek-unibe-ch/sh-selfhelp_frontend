@@ -17,8 +17,13 @@ import { castMantineSize } from '../../../../../../utils/style-field-extractor';
 /**
  * Props interface for RatingStyle component
  */
+/**
+ * Props interface for IRatingStyle component
+ */
 interface IRatingStyleProps {
     style: IRatingStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -111,7 +116,7 @@ const getFullIcon = (value: number, size: number = 24) => {
  * @param {IRatingStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine Rating with styled configuration
  */
-const RatingStyle: React.FC<IRatingStyleProps> = ({ style }) => {
+const RatingStyle: React.FC<IRatingStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract standard input field values
     const label = style.label?.content;
     const description = style.description?.content || '';
@@ -139,7 +144,7 @@ const RatingStyle: React.FC<IRatingStyleProps> = ({ style }) => {
     const iconSize = getIconSizeFromMantineSize(size);
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Get form context for pre-populated values
     const formContext = useContext(FormFieldValueContext);
@@ -193,7 +198,7 @@ const RatingStyle: React.FC<IRatingStyleProps> = ({ style }) => {
             readOnly={readonly || disabled}
             size={size}
             color={color}
-            className={cssClass}
+            {...styleProps} className={cssClass}
             style={styleObj}
             emptySymbol={emptyIcon}
             fullSymbol={fullIcon}
@@ -206,7 +211,7 @@ const RatingStyle: React.FC<IRatingStyleProps> = ({ style }) => {
         <Input.Wrapper
             label={label}
             description={parse(sanitizeHtmlForParsing(description))}
-            className={cssClass}
+            {...styleProps} className={cssClass}
             style={styleObj}
         >
             {ratingComponent}

@@ -12,6 +12,8 @@ import { castMantineSize } from '../../../../../../utils/style-field-extractor';
  */
 interface IRadioStyleProps {
     style: IRadioStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -36,7 +38,7 @@ interface IRadioStyleProps {
  * @param {IRadioStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine Radio component(s)
  */
-const RadioStyle: React.FC<IRadioStyleProps> = ({ style }) => {
+const RadioStyle: React.FC<IRadioStyleProps> = ({ style, styleProps, cssClass }) => {
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
 
@@ -61,7 +63,6 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style }) => {
     const useInputWrapper = style.mantine_use_input_wrapper?.content === '1';
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
     // Build style object
     const styleObj: React.CSSProperties = {};
@@ -206,7 +207,7 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style }) => {
                     onChange={handleChange}
                     label={useInputWrapper ? undefined : label}
                     required={required}
-                    className={cssClass}
+                    className={cssClass} {...styleProps}
                     style={styleObj}
                 >
                     <div style={{
@@ -252,7 +253,7 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style }) => {
 
         // Fallback to basic radio group when Mantine styling is disabled
         const basicRadioGroupElement = (
-            <fieldset className={cssClass} style={styleObj}>
+            <fieldset className={cssClass} {...styleProps} style={styleObj}>
                 {label && !useInputWrapper && <legend>{label}</legend>}
                 <div style={{
                     display: 'flex',

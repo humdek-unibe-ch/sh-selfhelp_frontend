@@ -8,15 +8,20 @@ import { castMantineRadius } from '../../../../../utils/style-field-extractor';
 /**
  * Props interface for AlertStyle component
  */
+/**
+ * Props interface for IAlertStyle component
+ */
 interface IAlertStyleProps {
     style: IAlertStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
  * AlertStyle component renders a Mantine Alert component
  * Supports different variants, colors, and close button functionality
  */
-const AlertStyle: React.FC<IAlertStyleProps> = ({ style }) => {
+const AlertStyle: React.FC<IAlertStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const message = style.content?.content;
     const title = style.mantine_alert_title?.content;
@@ -28,7 +33,7 @@ const AlertStyle: React.FC<IAlertStyleProps> = ({ style }) => {
     const iconName = style.mantine_left_icon?.content;
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Get icon section using IconComponent
     const icon = iconName ? <IconComponent iconName={iconName} size={20} /> : undefined;
@@ -56,7 +61,7 @@ const AlertStyle: React.FC<IAlertStyleProps> = ({ style }) => {
             icon={icon}
             withCloseButton={withCloseButton}
             closeButtonLabel={closeButtonLabel}
-            className={cssClass}
+            {...styleProps} className={cssClass}
             radius={radius === 'none' ? 0 : radius}
             onClose={withCloseButton ? handleClose : undefined}
         >

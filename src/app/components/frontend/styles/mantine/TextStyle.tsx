@@ -5,8 +5,13 @@ import { ITextStyle } from '../../../../../types/common/styles.types';
 /**
  * Props interface for TextStyle component
  */
+/**
+ * Props interface for ITextStyle component
+ */
 interface ITextStyleProps {
     style: ITextStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -19,7 +24,7 @@ interface ITextStyleProps {
  * @param {ITextStyleProps} props - Component props
  * @returns {JSX.Element | null} Rendered Mantine Text or null when styling is disabled
  */
-const TextStyle: React.FC<ITextStyleProps> = ({ style }) => {
+const TextStyle: React.FC<ITextStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const use_mantine_style = style.use_mantine_style?.content;
 
@@ -68,7 +73,7 @@ const TextStyle: React.FC<ITextStyleProps> = ({ style }) => {
     }
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     return (
         <Text
@@ -85,7 +90,7 @@ const TextStyle: React.FC<ITextStyleProps> = ({ style }) => {
             lineClamp={lineClamp}
             inherit={inherit}
             span={span}
-            className={cssClass}
+            {...styleProps} className={cssClass}
         >
             {text}
         </Text>

@@ -8,8 +8,13 @@ import { castMantineSize } from '../../../../../../utils/style-field-extractor';
 /**
  * Props interface for ListStyle component
  */
+/**
+ * Props interface for IListStyle component
+ */
 interface IListStyleProps {
     style: IListStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -20,7 +25,7 @@ interface IListStyleProps {
  * @param {IListStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine List with child content
  */
-const ListStyle: React.FC<IListStyleProps> = ({ style }) => {
+const ListStyle: React.FC<IListStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract Mantine-specific props
     const listStyleType = style.mantine_list_list_style_type?.content;
     const withPadding = style.mantine_list_with_padding?.content === '1';
@@ -30,7 +35,7 @@ const ListStyle: React.FC<IListStyleProps> = ({ style }) => {
     const spacing = style.mantine_spacing?.content || 'md';
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Get icon component using IconComponent
     const icon = iconName ? <IconComponent iconName={iconName} size={16} /> : undefined;
@@ -46,7 +51,7 @@ const ListStyle: React.FC<IListStyleProps> = ({ style }) => {
             icon={icon}
             size={size}
             spacing={spacing as 'xs' | 'sm' | 'md' | 'lg' | 'xl'}
-            className={cssClass}
+            {...styleProps} className={cssClass}
         >
             {children.map((childStyle, index) => (
                 childStyle ? <BasicStyle key={`${childStyle.id}-${index}`} style={childStyle} /> : null

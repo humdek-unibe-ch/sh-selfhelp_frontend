@@ -8,8 +8,13 @@ import { hasFieldValue } from '../../../../utils/style-field-extractor';
  * @interface ILinkStyleProps
  * @property {ILinkStyle} style - The link style configuration object
  */
+/**
+ * Props interface for ILinkStyle component
+ */
 interface ILinkStyleProps {
     style: ILinkStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -20,18 +25,18 @@ interface ILinkStyleProps {
  * @param {ILinkStyleProps} props - Component props
  * @returns {JSX.Element} Rendered link with specified styling and target
  */
-const LinkStyle: React.FC<ILinkStyleProps> = ({ style }) => {
+const LinkStyle: React.FC<ILinkStyleProps> = ({ style, styleProps, cssClass }) => {
     const label = style.label?.content;
     const url = style.url?.content;
     const openInNewTab = hasFieldValue(style, 'open_in_new_tab');
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     return (
         <Anchor 
             href={url}
             target={openInNewTab ? '_blank' : '_self'}
             rel={openInNewTab ? 'noopener noreferrer' : undefined}
-            className={cssClass}
+            {...styleProps} className={cssClass}
         >
             {label}
         </Anchor>

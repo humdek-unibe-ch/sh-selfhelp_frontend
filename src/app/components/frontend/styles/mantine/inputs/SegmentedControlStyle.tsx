@@ -8,8 +8,13 @@ import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.u
 /**
  * Props interface for SegmentedControlStyle component
  */
+/**
+ * Props interface for ISegmentedControlStyle component
+ */
 interface ISegmentedControlStyleProps {
     style: ISegmentedControlStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -20,7 +25,7 @@ interface ISegmentedControlStyleProps {
  * @param {ISegmentedControlStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine SegmentedControl with styled configuration
  */
-const SegmentedControlStyle: React.FC<ISegmentedControlStyleProps> = ({ style }) => {
+const SegmentedControlStyle: React.FC<ISegmentedControlStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const orientation = style.mantine_orientation?.content || 'horizontal';
     const size = style.mantine_size?.content || 'sm';
@@ -58,7 +63,7 @@ const SegmentedControlStyle: React.FC<ISegmentedControlStyleProps> = ({ style })
     };
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Build style object
     const styleObj: React.CSSProperties = {};
@@ -93,7 +98,7 @@ const SegmentedControlStyle: React.FC<ISegmentedControlStyleProps> = ({ style })
             fullWidth={fullWidth}
             disabled={disabled}
             readOnly={readonly}
-            className={cssClass}
+            {...styleProps} className={cssClass}
             style={styleObj}
             name={name}
             value={selectedValue}
@@ -109,7 +114,7 @@ const SegmentedControlStyle: React.FC<ISegmentedControlStyleProps> = ({ style })
                 label={label}
                 description={parse(sanitizeHtmlForParsing(description))}
                 required={isRequired}
-                className={cssClass}
+                {...styleProps} className={cssClass}
             >
                 {segmentedControl}
             </Input.Wrapper>

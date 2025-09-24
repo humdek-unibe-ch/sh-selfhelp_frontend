@@ -8,8 +8,13 @@ import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.u
 /**
  * Props interface for SliderStyle component
  */
+/**
+ * Props interface for ISliderStyle component
+ */
 interface ISliderStyleProps {
     style: ISliderStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -40,7 +45,7 @@ interface ISliderStyleProps {
  * @param {ISliderStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine Slider with enhanced configuration
  */
-const SliderStyle: React.FC<ISliderStyleProps> = ({ style }) => {
+const SliderStyle: React.FC<ISliderStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const label = style.label?.content;
     const description = style.description?.content || '';
@@ -63,7 +68,7 @@ const SliderStyle: React.FC<ISliderStyleProps> = ({ style }) => {
     const inverted = style.mantine_slider_inverted?.content === '1';
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Build style object
     const styleObj: React.CSSProperties = {};
@@ -145,7 +150,7 @@ const SliderStyle: React.FC<ISliderStyleProps> = ({ style }) => {
         <Input.Wrapper
             label={label}
             description={parse(sanitizeHtmlForParsing(description))}
-            className={cssClass}
+            {...styleProps} className={cssClass}
             style={styleObj}
             required={required}
         >

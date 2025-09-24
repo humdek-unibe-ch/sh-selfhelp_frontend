@@ -7,9 +7,13 @@ import { IContainerStyle } from '../../../../../types/common/styles.types';
  * Props interface for ContainerStyle component
  * @interface IContainerStyleProps
  * @property {IContainerStyle} style - The container style configuration object
+ * @property {Record<string, any>} styleProps - Additional style properties for spacing
+ * @property {string} cssClass - CSS class name for the component
  */
 interface IContainerStyleProps {
     style: IContainerStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -20,7 +24,7 @@ interface IContainerStyleProps {
  * @param {IContainerStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine Container with styled children
  */
-const ContainerStyle: React.FC<IContainerStyleProps> = ({ style }) => {
+const ContainerStyle: React.FC<IContainerStyleProps> = ({ style, styleProps, cssClass }) => {
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
 
@@ -29,9 +33,6 @@ const ContainerStyle: React.FC<IContainerStyleProps> = ({ style }) => {
     const fluid = style.mantine_fluid?.content === '1';
     const px = style.mantine_px?.content;
     const py = style.mantine_py?.content;
-
-    // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
     // Mantine Container doesn't support direct width/height props
     // Size prop handles max-width responsively, fluid makes it 100%
@@ -45,6 +46,7 @@ const ContainerStyle: React.FC<IContainerStyleProps> = ({ style }) => {
     // Conditional rendering based on use_mantine_style
     return (
         <Container
+            {...styleProps}
             size={containerSize}  // Mantine size prop (xs, sm, md, lg, xl)
             fluid={fluid}
             px={containerPx}

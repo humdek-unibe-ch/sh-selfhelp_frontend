@@ -22,8 +22,13 @@ import { sanitizeHtmlForInline, sanitizeHtmlForParsing } from '../../../../../..
 /**
  * Props interface for ComboboxStyle component
  */
+/**
+ * Props interface for IComboboxStyle component
+ */
 interface IComboboxStyleProps {
     style: IComboboxStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -42,7 +47,7 @@ interface IComboboxStyleProps {
  * @param {IComboboxStyleProps} props - Component props
  * @returns {JSX.Element} Rendered configurable Combobox with styled configuration
  */
-const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style }) => {
+const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const use_mantine_style = style.use_mantine_style?.content === '1';
     const placeholder = style.placeholder?.content || 'Select option...';
@@ -64,7 +69,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style }) => {
     const maxValues = style.mantine_multi_select_max_values?.content ? parseInt((style as any).mantine_multi_select_max_values?.content!) : undefined;
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Parse combobox options from JSON textarea
     let predefinedOptions: Array<{ value: string; label: string }> = [];
@@ -461,7 +466,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style }) => {
                         label={label}
                         description={parse(sanitizeHtmlForParsing(description))}
                         required={isRequired}
-                        className={cssClass}
+                        {...styleProps} className={cssClass}
                     >
                         <Stack gap="xs">
                             {singleSelectComponent}
@@ -582,7 +587,7 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style }) => {
             label={label}
             description={parse(sanitizeHtmlForInline(description))}
             required={isRequired}
-            className={cssClass}
+            {...styleProps} className={cssClass}
         >
             <Stack gap="xs">
                 {multiSelectComponent}

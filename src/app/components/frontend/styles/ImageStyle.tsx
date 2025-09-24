@@ -9,8 +9,13 @@ import { castMantineRadius } from '../../../../utils/style-field-extractor';
  * @interface IImageStyleProps
  * @property {IImageStyle} style - The image style configuration object containing source, alt text, and CSS
  */
+/**
+ * Props interface for IImageStyle component
+ */
 interface IImageStyleProps {
     style: IImageStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -22,7 +27,7 @@ interface IImageStyleProps {
  * @param {IImageStyleProps} props - Component props
  * @returns {JSX.Element} Rendered image with specified source and styling
  */
-const ImageStyle: React.FC<IImageStyleProps> = ({ style }) => {
+const ImageStyle: React.FC<IImageStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     // Support multiple field names for compatibility with different data structures
     const rawSrc = style.img_src?.content;
@@ -38,7 +43,7 @@ const ImageStyle: React.FC<IImageStyleProps> = ({ style }) => {
     const radius = castMantineRadius((style as any).mantine_radius?.content);
     const use_mantine_style = style.use_mantine_style?.content === '1';
 
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     if (use_mantine_style) {
         return (
@@ -49,27 +54,22 @@ const ImageStyle: React.FC<IImageStyleProps> = ({ style }) => {
                 height={height}
                 fit={fit as 'contain' | 'cover' | 'fill' | 'none' | 'scale-down'}
                 radius={radius === 'none' ? 0 : radius}
-                className={cssClass}
+                {...styleProps} className={cssClass}
                 title={title}
             />
         );
     }
 
     // Fallback to basic img element when Mantine styling is disabled
+
     return (
         <img
             src={src}
             alt={alt}
             title={title}
+            width={width}
+            height={height}
             className={cssClass}
-            style={{
-                objectFit: (fit as any) || 'contain',
-                borderRadius: radius === 'xs' ? '2px' :
-                           radius === 'sm' ? '4px' :
-                           radius === 'md' ? '8px' :
-                           radius === 'lg' ? '12px' :
-                           radius === 'xl' ? '16px' : '0px'
-            }}
         />
     );
 };

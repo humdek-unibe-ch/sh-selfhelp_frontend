@@ -8,8 +8,13 @@ import { castMantineSize, castMantineRadius } from '../../../../../utils/style-f
 /**
  * Props interface for ActionIconStyle component
  */
+/**
+ * Props interface for IActionIconStyle component
+ */
 interface IActionIconStyleProps {
     style: IActionIconStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -20,7 +25,7 @@ interface IActionIconStyleProps {
  * @param {IActionIconStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine ActionIcon with styled configuration
  */
-const ActionIconStyle: React.FC<IActionIconStyleProps> = ({ style }) => {
+const ActionIconStyle: React.FC<IActionIconStyleProps> = ({ style, styleProps, cssClass }) => {
     const router = useRouter();
 
     // Extract field values using the new unified field structure
@@ -39,7 +44,7 @@ const ActionIconStyle: React.FC<IActionIconStyleProps> = ({ style }) => {
     const open_in_new_tab = style.open_in_new_tab?.content;
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+
 
     // Get icon component using IconComponent
     const icon = iconName ? <IconComponent iconName={iconName} size={16} /> : <span style={{ fontSize: '16px' }}>⚡</span>;
@@ -86,67 +91,23 @@ const ActionIconStyle: React.FC<IActionIconStyleProps> = ({ style }) => {
         }
     };
 
-    if (use_mantine_style) {
-        return (
-            <ActionIcon
-                variant={variant as any}
-                loading={loading}
-                size={size}
-                radius={radius === 'none' ? 0 : radius}
-                color={color}
-                disabled={disabled || loading}
-                className={cssClass}
-                style={styleObj}
-                component={is_link === '1' ? 'a' : 'button'}
-                href={is_link === '1' ? url : undefined}
-                onClick={handleClick}
-                target={open_in_new_tab === '1' ? '_blank' : '_self'}
-            >
-                {loading ? null : icon}
-            </ActionIcon>
-        );
-    }
-
-    // Fallback to basic button/link when Mantine styling is disabled
-    if (is_link === '1') {
-        return (
-            <a
-                href={url && url !== '#' ? url : '#'}
-                className={cssClass}
-                target={open_in_new_tab === '1' ? '_blank' : '_self'}
-                onClick={handleAnchorClick}
-                style={{
-                    ...styleObj,
-                    textDecoration: 'none',
-                    border: 'none',
-                    borderRadius: '4px',
-                    padding: '8px',
-                    cursor: disabled || loading ? 'not-allowed' : 'pointer',
-                    opacity: disabled || loading ? 0.5 : 1,
-                    display: 'inline-block'
-                }}
-            >
-                {loading ? '...' : icon}
-            </a>
-        );
-    }
-
     return (
-        <button
-            onClick={handleClick}
-            className={cssClass}
+        <ActionIcon
+            variant={variant as any}
+            loading={loading}
+            size={size}
+            radius={radius === 'none' ? 0 : radius}
+            color={color}
             disabled={disabled || loading}
-            style={{
-                ...styleObj,
-                border: 'none',
-                borderRadius: '4px',
-                padding: '8px',
-                cursor: disabled || loading ? 'not-allowed' : 'pointer',
-                opacity: disabled || loading ? 0.5 : 1
-            }}
+            {...styleProps} className={cssClass}
+            style={styleObj}
+            component={is_link === '1' ? 'a' : 'button'}
+            href={is_link === '1' ? url : undefined}
+            onClick={handleClick}
+            target={open_in_new_tab === '1' ? '_blank' : '_self'}
         >
-            {loading ? '...' : icon}
-        </button>
+            {loading ? null : icon}
+        </ActionIcon>
     );
 };
 

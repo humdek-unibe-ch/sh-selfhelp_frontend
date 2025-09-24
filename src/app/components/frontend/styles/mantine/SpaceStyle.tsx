@@ -8,8 +8,13 @@ import { ISpaceStyle } from '../../../../../types/common/styles.types';
  * @interface ISpaceStyleProps
  * @property {ISpaceStyle} style - The space style configuration object
  */
+/**
+ * Props interface for ISpaceStyle component
+ */
 interface ISpaceStyleProps {
     style: ISpaceStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -20,19 +25,19 @@ interface ISpaceStyleProps {
  * @param {ISpaceStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine Space component
  */
-const SpaceStyle: React.FC<ISpaceStyleProps> = ({ style }) => {
+const SpaceStyle: React.FC<ISpaceStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values for Mantine Space props
     const size = style.mantine_size?.content;
     const direction = style.mantine_space_direction?.content;
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     return (
         <Space
             w={direction === 'horizontal' ? size : undefined}
             h={direction === 'vertical' ? size : undefined}
-            className={cssClass}
+            {...styleProps} className={cssClass}
         />
     );
 };

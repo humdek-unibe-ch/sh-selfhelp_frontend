@@ -6,8 +6,13 @@ import { IFieldsetStyle } from '../../../../../types/common/styles.types';
 /**
  * Props interface for FieldsetStyle component
  */
+/**
+ * Props interface for IFieldsetStyle component
+ */
 interface IFieldsetStyleProps {
     style: IFieldsetStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -19,7 +24,7 @@ interface IFieldsetStyleProps {
  * @param {IFieldsetStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine Fieldset with child content or null
  */
-const FieldsetStyle: React.FC<IFieldsetStyleProps> = ({ style }) => {
+const FieldsetStyle: React.FC<IFieldsetStyleProps> = ({ style, styleProps, cssClass }) => {
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
 
@@ -30,7 +35,7 @@ const FieldsetStyle: React.FC<IFieldsetStyleProps> = ({ style }) => {
     const disabled = style.disabled?.content === '1';
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
         return (
             <Fieldset
@@ -38,7 +43,7 @@ const FieldsetStyle: React.FC<IFieldsetStyleProps> = ({ style }) => {
                 variant={variant as 'default' | 'filled' | 'unstyled'}
                 radius={radius === 'none' ? 0 : radius}
                 disabled={disabled}
-                className={cssClass}
+                {...styleProps} className={cssClass}
             >
                 {children.map((child: any, index: number) => (
                     child ? <BasicStyle key={index} style={child} /> : null

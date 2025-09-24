@@ -8,8 +8,13 @@ import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.u
 /**
  * Props interface for ColorPickerStyle component
  */
+/**
+ * Props interface for IColorPickerStyle component
+ */
 interface IColorPickerStyleProps {
     style: IColorPickerStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -28,7 +33,7 @@ interface IColorPickerStyleProps {
  * @param {IColorPickerStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine ColorPicker with styled configuration
  */
-const ColorPickerStyle: React.FC<IColorPickerStyleProps> = ({ style }) => {
+const ColorPickerStyle: React.FC<IColorPickerStyleProps> = ({ style, styleProps, cssClass }) => {
 
     // Extract field values using the new unified field structure
     const format = style.mantine_color_format?.content || 'hex';
@@ -62,7 +67,7 @@ const ColorPickerStyle: React.FC<IColorPickerStyleProps> = ({ style }) => {
     }
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Get form context for pre-populated values
     const formContext = useContext(FormFieldValueContext);
@@ -104,7 +109,7 @@ const ColorPickerStyle: React.FC<IColorPickerStyleProps> = ({ style }) => {
             hueLabel={hueLabel}
             alphaLabel={alphaLabel}
             fullWidth={fullWidth}
-            className={cssClass}
+            {...styleProps} className={cssClass}
         />
     );
 
@@ -114,7 +119,7 @@ const ColorPickerStyle: React.FC<IColorPickerStyleProps> = ({ style }) => {
             label={label}
             description={parse(sanitizeHtmlForParsing(description))}
             required={isRequired}
-            className={cssClass}
+            {...styleProps} className={cssClass}
         >
             {colorPickerComponent}
         </Input.Wrapper>

@@ -6,8 +6,13 @@ import { IAccordionStyle } from '../../../../../../types/common/styles.types';
 /**
  * Props interface for AccordionStyle component
  */
+/**
+ * Props interface for IAccordionStyle component
+ */
 interface IAccordionStyleProps {
     style: IAccordionStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -18,7 +23,7 @@ interface IAccordionStyleProps {
  * @param {IAccordionStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine Accordion with child accordion items
  */
-const AccordionStyle: React.FC<IAccordionStyleProps> = ({ style }) => {
+const AccordionStyle: React.FC<IAccordionStyleProps> = ({ style, styleProps, cssClass }) => {
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
 
@@ -42,7 +47,7 @@ const AccordionStyle: React.FC<IAccordionStyleProps> = ({ style }) => {
         : undefined;
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Build style object
     const styleObj: React.CSSProperties = {};
@@ -60,7 +65,7 @@ const AccordionStyle: React.FC<IAccordionStyleProps> = ({ style }) => {
                 transitionDuration={transitionDuration}
                 defaultValue={parsedDefaultValue}
                 radius={radius === 'none' ? 0 : radius}
-                className={cssClass}
+                {...styleProps} className={cssClass}
                 style={styleObj}
             >
                 {children.map((child: any, index: number) => (

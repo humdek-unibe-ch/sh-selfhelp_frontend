@@ -6,8 +6,13 @@ import { INotificationStyle } from '../../../../../types/common/styles.types';
 /**
  * Props interface for NotificationStyle component
  */
+/**
+ * Props interface for INotificationStyle component
+ */
 interface INotificationStyleProps {
     style: INotificationStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -18,7 +23,7 @@ interface INotificationStyleProps {
  * @param {INotificationStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine Notification with styled configuration
  */
-const NotificationStyle: React.FC<INotificationStyleProps> = ({ style }) => {
+const NotificationStyle: React.FC<INotificationStyleProps> = ({ style, styleProps, cssClass }) => {
     // State to control notification visibility
     const [isVisible, setIsVisible] = useState(true);
 
@@ -38,7 +43,7 @@ const NotificationStyle: React.FC<INotificationStyleProps> = ({ style }) => {
     };
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Build style object
     const styleObj: React.CSSProperties = {};
@@ -75,7 +80,7 @@ const NotificationStyle: React.FC<INotificationStyleProps> = ({ style }) => {
             withCloseButton={withCloseButton}
             withBorder={withBorder}
             radius={radius === 'none' ? 0 : radius}
-            className={cssClass}
+            {...styleProps} className={cssClass}
             style={styleObj}
             icon={icon}            
             onClose={withCloseButton ? handleClose : undefined}

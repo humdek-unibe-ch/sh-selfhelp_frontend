@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
 import { Box, Card, TextInput, Button, Alert, Text } from '@mantine/core';
 import { IconCheck, IconMail } from '@tabler/icons-react';
-import MarkdownStyle from './MarkdownStyle';
 import { IResetPasswordStyle } from '../../../../types/common/styles.types';
 
+/**
+ * Props interface for IResetPasswordStyle component
+ */
 interface IResetPasswordStyleProps {
     style: IResetPasswordStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
-const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style }) => {
+const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, styleProps, cssClass }) => {
     const [email, setEmail] = useState('');
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [error, setError] = useState('');
@@ -55,11 +59,7 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style }) => {
                     
                     {textMd && (
                         <Box mt="md">
-                            <MarkdownStyle style={{
-                                ...style,
-                                style_name: 'markdown',
-                                text_md: { content: textMd }
-                            } as any} />
+
                         </Box>
                     )}
                 </Card>
@@ -72,11 +72,7 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style }) => {
             <Card shadow="sm" padding="lg" radius="md" withBorder>
                 {textMd && (
                     <Box mb="lg">
-                        <MarkdownStyle style={{
-                            ...style,
-                            style_name: 'markdown',
-                            text_md: { content: textMd }
-                        } as any} />
+
                     </Box>
                 )}
 

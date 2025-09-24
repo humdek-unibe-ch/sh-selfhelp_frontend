@@ -13,7 +13,6 @@ export { default as ProfileStyle } from './ProfileStyle';
 
 // Layout & Container Styles
 export { default as ContainerStyle } from './mantine/ContainerStyle';
-export { default as DivStyle } from './DivStyle';
 export { default as AlertStyle } from './mantine/AlertStyle';
 export { default as CardStyle } from './mantine/card/CardStyle';
 export { default as CardSegmentStyle } from './mantine/card/CardSegmentStyle';
@@ -32,8 +31,6 @@ export { default as DividerStyle } from './mantine/DividerStyle';
 export { default as PaperStyle } from './mantine/PaperStyle';
 
 // Text & Content Styles
-export { default as HeadingStyle } from './HeadingStyle';
-export { default as MarkdownStyle } from './MarkdownStyle';
 
 // Media Styles
 export { default as ImageStyle } from './ImageStyle';
@@ -72,7 +69,6 @@ export { default as AccordionItemStyle } from './mantine/accordion/AccordionItem
 export { default as VideoStyle } from './VideoStyle';
 export { default as AudioStyle } from './AudioStyle';
 export { default as FigureStyle } from './FigureStyle';
-export { default as PlaintextStyle } from './PlaintextStyle';
 
 // Form Input Styles
 export { default as RadioStyle } from './mantine/inputs/RadioStyle';

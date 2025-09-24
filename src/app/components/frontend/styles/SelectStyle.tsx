@@ -9,6 +9,7 @@ import { castMantineSize, castMantineRadius } from '../../../../utils/style-fiel
  */
 interface ISelectStyleProps {
     style: ISelectStyle;
+    cssClass: string;
 }
 
 /**
@@ -16,7 +17,7 @@ interface ISelectStyleProps {
  * Supports single and multiple selection, live search, image selection
  * Uses Mantine UI components for consistency
  */
-const SelectStyle: React.FC<ISelectStyleProps> = ({ style }) => {
+const SelectStyle: React.FC<ISelectStyleProps> = ({ style, cssClass }) => {
     // Extract field values using the new unified field structure
     const label = style.label?.content;
     const placeholder = (style as any).placeholder?.content || 'Select an option';
@@ -26,15 +27,11 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style }) => {
     const isMultiple = style.is_multiple?.content === '1';
     const searchable = (style as any).mantine_select_searchable?.content === '1' || style.live_search?.content === '1';
     const clearable = (style as any).mantine_select_clearable?.content === '1' || style.allow_clear?.content === '1';
-    const locked = style.locked_after_submit?.content === '1';
     const disabled = style.disabled?.content === '1';
     const size = castMantineSize((style as any).mantine_size?.content);
     const radius = castMantineRadius((style as any).mantine_radius?.content);
     const maxValues = style.max?.content ? parseInt(style.max.content) : undefined;
     const use_mantine_style = (style as any).use_mantine_style?.content === '1';
-
-    // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
     // Build style object
     const styleObj: React.CSSProperties = {};
@@ -83,7 +80,7 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style }) => {
         placeholder,
         name,
         required,
-        disabled: disabled || locked,
+        disabled: disabled,
         searchable,
         clearable,
         size,
@@ -134,7 +131,7 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style }) => {
                 onChange={(e) => handleSingleValueChange(e.target.value)}
                 multiple={isMultiple}
                 required={required}
-                disabled={disabled || locked}
+                disabled={disabled}
                 style={{
                     width: '100%',
                     padding: '8px 12px',

@@ -9,6 +9,8 @@ import { IFormLogStyle, IFormRecordStyle } from '../../../../types/common/styles
 
 interface FormStyleProps {
     style: IFormLogStyle | IFormRecordStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -27,7 +29,7 @@ const FormFieldValueContext = React.createContext<{
 
 export { FileInputRegistrationContext, FormFieldValueContext };
 
-const FormStyle: React.FC<FormStyleProps> = ({ style }) => {
+const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) => {
     const { pageContent } = usePageContentContext();
     const [formKey, setFormKey] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -471,7 +473,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style }) => {
     }, [isRecord, existingFormDataFromSection, existingRecordId, formKey]);
 
     return (
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative' }} className={cssClass}>
             <LoadingOverlay visible={isSubmitting} />
             
             {submitSuccess && alertSuccess && (

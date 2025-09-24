@@ -5,8 +5,13 @@ import { ICodeStyle } from '../../../../../types/common/styles.types';
 /**
  * Props interface for CodeStyle component
  */
+/**
+ * Props interface for ICodeStyle component
+ */
 interface ICodeStyleProps {
     style: ICodeStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -17,13 +22,13 @@ interface ICodeStyleProps {
  * @param {ICodeStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine Code with styled configuration
  */
-const CodeStyle: React.FC<ICodeStyleProps> = ({ style }) => {
+const CodeStyle: React.FC<ICodeStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const codeBlock = style.mantine_code_block?.content === '1';
     const color = style.mantine_color?.content || 'blue';
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Build style object
     const styleObj: React.CSSProperties = {};
@@ -36,7 +41,7 @@ const CodeStyle: React.FC<ICodeStyleProps> = ({ style }) => {
             <Code
                 block
                 color={color}
-                className={cssClass}
+                {...styleProps} className={cssClass}
                 style={styleObj}
             >
                 {codeContent}
@@ -46,7 +51,7 @@ const CodeStyle: React.FC<ICodeStyleProps> = ({ style }) => {
         return (
             <Code
                 color={color}
-                className={cssClass}
+                {...styleProps} className={cssClass}
                 style={styleObj}
             >
                 {codeContent}

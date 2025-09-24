@@ -11,15 +11,20 @@ import { ROUTES } from '../../../../config/routes.config';
 /**
  * Props interface for LoginStyle component
  */
+/**
+ * Props interface for ILoginStyle component
+ */
 interface ILoginStyleProps {
     style: ILoginStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
  * LoginStyle component renders a login form with email/username and password fields
  * Uses Mantine UI components for consistent theming and styling
  */
-const LoginStyle: React.FC<ILoginStyleProps> = ({ style }) => {
+const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -35,7 +40,6 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style }) => {
     const alertFail = style.alert_fail?.content || 'Invalid email or password.';
     const loginTitle = style.login_title?.content || 'Welcome back!';
     const formType = style.type?.content || style.fields?.type?.content || 'light';
-    const cssClass = style.css || '';
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -76,7 +80,7 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style }) => {
             shadow="md" 
             p="xl" 
             radius="md" 
-            className={cssClass}
+            {...styleProps} className={cssClass}
             style={{ maxWidth: 400, margin: '0 auto' }}
         >
             <Title order={2} ta="center" mb="lg">

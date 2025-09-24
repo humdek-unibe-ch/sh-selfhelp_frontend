@@ -8,6 +8,8 @@ import { IconComponent } from '../../../../shared';
  */
 interface ITabStyleProps {
     style: ITabStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
     isActive?: boolean;
 }
 
@@ -16,7 +18,7 @@ interface ITabStyleProps {
  * Can be used standalone or within a TabsStyle container
  * Uses Mantine UI Tabs.Tab component
  */
-const TabStyle: React.FC<ITabStyleProps> = ({ style, isActive = false }) => {
+const TabStyle: React.FC<ITabStyleProps> = ({ style, styleProps, cssClass, isActive = false }) => {
     // Extract field values - mantine_tab_value field was removed, use section ID
     const value = style.id?.toString() || 'tab';
     const label = style.label?.content || 'Tab';
@@ -27,7 +29,7 @@ const TabStyle: React.FC<ITabStyleProps> = ({ style, isActive = false }) => {
     const height = style.mantine_height?.content;
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Build style object
     const styleObj: React.CSSProperties = {};
@@ -39,6 +41,7 @@ const TabStyle: React.FC<ITabStyleProps> = ({ style, isActive = false }) => {
     const rightSection = rightIconName ? <IconComponent iconName={rightIconName} size={16} /> : null;
 
     const tabProps: any = {
+        ...styleProps,
         value,
         disabled,
         style: styleObj,

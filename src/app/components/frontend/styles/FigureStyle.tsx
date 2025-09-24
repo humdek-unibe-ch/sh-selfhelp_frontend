@@ -3,11 +3,16 @@ import { Box, Text } from '@mantine/core';
 import BasicStyle from './BasicStyle';
 import { IFigureStyle } from '../../../../types/common/styles.types';
 
+/**
+ * Props interface for IFigureStyle component
+ */
 interface IFigureStyleProps {
     style: IFigureStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
-const FigureStyle: React.FC<IFigureStyleProps> = ({ style }) => {
+const FigureStyle: React.FC<IFigureStyleProps> = ({ style, styleProps, cssClass }) => {
     const captionTitle = style.caption_title?.content;
     const caption = style.caption?.content;
     

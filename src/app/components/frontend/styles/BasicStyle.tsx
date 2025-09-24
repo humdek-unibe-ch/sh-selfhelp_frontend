@@ -1,10 +1,10 @@
 import React from 'react';
 import {
     AlertStyle, ButtonStyle, CarouselStyle, CardStyle, CardSegmentStyle, ContainerStyle,
-    DivStyle, HeadingStyle, ImageStyle, InputStyle,
-    LinkStyle, LoginStyle, MarkdownStyle, RegisterStyle,
+    ImageStyle, InputStyle,
+    LinkStyle, LoginStyle, RegisterStyle,
     SelectStyle, TabsStyle, TabStyle, VideoStyle,
-    AudioStyle, FigureStyle, PlaintextStyle, RadioStyle,
+    AudioStyle, FigureStyle, RadioStyle,
     ScrollAreaStyle, CheckboxStyle, DatePickerStyle, SliderStyle,
     HtmlTagStyle, ValidateStyle,
     ResetPasswordStyle, TwoFactorAuthStyle, CenterStyle,
@@ -159,177 +159,177 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
     switch (style.style_name as string) {
         // Authentication Styles
         case 'login':
-            return <LoginStyle style={style as ILoginStyle} />;
+            return <LoginStyle style={style as ILoginStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'register':
-            return <RegisterStyle style={style as IRegisterStyle} />;
+            return <RegisterStyle style={style as IRegisterStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'validate':
-            return <ValidateStyle style={style as IValidateStyle} />;
+            return <ValidateStyle style={style as IValidateStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'resetPassword':
-            return <ResetPasswordStyle style={style as IResetPasswordStyle} />;
+            return <ResetPasswordStyle style={style as IResetPasswordStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'twoFactorAuth':
-            return <TwoFactorAuthStyle style={style as ITwoFactorAuthStyle} />;
+            return <TwoFactorAuthStyle style={style as ITwoFactorAuthStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
 
         // Container & Layout Styles
         case 'container':
-            return <ContainerStyle style={style as IContainerStyle} />;
+            return <ContainerStyle style={style as IContainerStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'card':
-            return <CardStyle style={style as ICardStyle} />;
+            return <CardStyle style={style as ICardStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'card-segment':
-            return <CardSegmentStyle style={style as ICardSegmentStyle} />;
+            return <CardSegmentStyle style={style as ICardSegmentStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'alert':
-            return <AlertStyle style={style as IAlertStyle} />;
+            return <AlertStyle style={style as IAlertStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'center':
-            return <CenterStyle style={style as ICenterStyle} />;
+            return <CenterStyle style={style as ICenterStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'flex':
-            return <FlexStyle style={style as IFlexStyle} />;
+            return <FlexStyle style={style as IFlexStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'group':
-            return <GroupStyle style={style as IGroupStyle} />;
+            return <GroupStyle style={style as IGroupStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'stack':
-            return <StackStyle style={style as IStackStyle} />;
+            return <StackStyle style={style as IStackStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'simple-grid':
-            return <SimpleGridStyle style={style as ISimpleGridStyle}  styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
+            return <SimpleGridStyle style={style as ISimpleGridStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'scroll-area':
-            return <ScrollAreaStyle style={style as IScrollAreaStyle} />;
+            return <ScrollAreaStyle style={style as IScrollAreaStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'grid':
-            return <GridStyle style={style as IGridStyle} />;
+            return <GridStyle style={style as IGridStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'grid-column':
-            return <GridColumnStyle style={style as IGridColumnStyle} />;
+            return <GridColumnStyle style={style as IGridColumnStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'space':
-            return <SpaceStyle style={style as ISpaceStyle} />;
+            return <SpaceStyle style={style as ISpaceStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'background-image':
-            return <BackgroundImageStyle style={style as IBackgroundImageStyle} />;
+            return <BackgroundImageStyle style={style as IBackgroundImageStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'divider':
-            return <DividerStyle style={style as IDividerStyle} />;
+            return <DividerStyle style={style as IDividerStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'paper':
-            return <PaperStyle style={style as IPaperStyle} />;
+            return <PaperStyle style={style as IPaperStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
 
         case 'html-tag':
-            return <HtmlTagStyle style={style as IHtmlTagStyle} />;
+            return <HtmlTagStyle style={style as IHtmlTagStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
 
         // Media Styles
         case 'image':
-            return <ImageStyle style={style as IImageStyle} />;
+            return <ImageStyle style={style as IImageStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'carousel':
-            return <CarouselStyle style={style as ICarouselStyle} />;
+            return <CarouselStyle style={style as ICarouselStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'video':
-            return <VideoStyle style={style as IVideoStyle} />;
+            return <VideoStyle style={style as IVideoStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'audio':
-            return <AudioStyle style={style as IAudioStyle} />;
+            return <AudioStyle style={style as IAudioStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'figure':
-            return <FigureStyle style={style as IFigureStyle} />;
+            return <FigureStyle style={style as IFigureStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
 
         // Navigation & Links Styles
         case 'button':
-            return <ButtonStyle style={style as IButtonStyle} />;
+            return <ButtonStyle style={style as IButtonStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'link':
-            return <LinkStyle style={style as ILinkStyle} />;
+            return <LinkStyle style={style as ILinkStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'action-icon':
-            return <ActionIconStyle style={style as IActionIconStyle} />;
+            return <ActionIconStyle style={style as IActionIconStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
 
         // Form & Input Styles
         case 'form-log':
-            return <FormStyle style={style as unknown as IFormStyle} />;
+            return <FormStyle style={style as unknown as IFormStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'form-record':
-            return <FormStyle style={style as unknown as IFormStyle} />;
+            return <FormStyle style={style as unknown as IFormStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'textarea':
-            return <TextareaStyle style={style as ITextareaStyle} />;
+            return <TextareaStyle style={style as ITextareaStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'input':
-            return <InputStyle style={style as IInputStyle} />;
+            return <InputStyle style={style as IInputStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'select':
-            return <SelectStyle style={style as ISelectStyle} />;
+            return <SelectStyle style={style as ISelectStyle}  cssClass={getCssClass(style)} />;
         case 'radio':
-            return <RadioStyle style={style as IRadioStyle} />;
+            return <RadioStyle style={style as IRadioStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'checkbox':
-            return <CheckboxStyle style={style as ICheckboxStyle} />;
+            return <CheckboxStyle style={style as ICheckboxStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'datepicker':
-            return <DatePickerStyle style={style as IDatePickerStyle} />;
+            return <DatePickerStyle style={style as IDatePickerStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'slider':
-            return <SliderStyle style={style as ISliderStyle} />;
+            return <SliderStyle style={style as ISliderStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'color-input':
-            return <ColorInputStyle style={style as IColorInputStyle} />;
+            return <ColorInputStyle style={style as IColorInputStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'color-picker':
-            return <ColorPickerStyle style={style as IColorPickerStyle} />;
+            return <ColorPickerStyle style={style as IColorPickerStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'file-input':
-            return <FileInputStyle style={style as IFileInputStyle} />;
+            return <FileInputStyle style={style as IFileInputStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'number-input':
-            return <NumberInputStyle style={style as INumberInputStyle} />;
+            return <NumberInputStyle style={style as INumberInputStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'range-slider':
-            return <RangeSliderStyle style={style as IRangeSliderStyle} />;
+            return <RangeSliderStyle style={style as IRangeSliderStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'segmented-control':
-            return <SegmentedControlStyle style={style as ISegmentedControlStyle} />;
+            return <SegmentedControlStyle style={style as ISegmentedControlStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'switch':
-            return <SwitchStyle style={style as ISwitchStyle} />;
+            return <SwitchStyle style={style as ISwitchStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'text-input':
-            return <TextInputStyle style={style as ITextInputStyle} />;
+            return <TextInputStyle style={style as ITextInputStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'textarea':
-            return <TextareaStyle style={style as ITextareaStyle} />;
+            return <TextareaStyle style={style as ITextareaStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'rich-text-editor':
-            return <RichTextEditorStyle style={style as IRichTextEditorStyle} />;
+            return <RichTextEditorStyle style={style as IRichTextEditorStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'combobox':
-            return <ComboboxStyle style={style as IComboboxStyle} />;
+            return <ComboboxStyle style={style as IComboboxStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
 
         // Tab Styles
         case 'tabs':
-            return <TabsStyle style={style as ITabsStyle} />;
+            return <TabsStyle style={style as ITabsStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'tab':
-            return <TabStyle style={style as ITabStyle} />;
+            return <TabStyle style={style as ITabStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
 
         // Accordion Styles
         case 'accordion':
-            return <AccordionStyle style={style as IAccordionStyle} />;
+            return <AccordionStyle style={style as IAccordionStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'accordion-Item':
-            return <AccordionItemStyle style={style as IAccordionItemStyle} />;
+            return <AccordionItemStyle style={style as IAccordionItemStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
 
         case 'avatar':
-            return <AvatarStyle style={style as IAvatarStyle} />;
+            return <AvatarStyle style={style as IAvatarStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'aspect-ratio':
-            return <AspectRatioStyle style={style as IAspectRatioStyle} />;
+            return <AspectRatioStyle style={style as IAspectRatioStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'badge':
-            return <BadgeStyle style={style as IBadgeStyle} />;
+            return <BadgeStyle style={style as IBadgeStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'box':
             return <BoxStyle style={style as unknown as IBoxStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'chip':
-            return <ChipStyle style={style as IChipStyle} />;
+            return <ChipStyle style={style as IChipStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'timeline':
-            return <TimelineStyle style={style as ITimelineStyle} />;
+            return <TimelineStyle style={style as ITimelineStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'list':
-            return <ListStyle style={style as IListStyle} />;
+            return <ListStyle style={style as IListStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'list-item':
-            return <ListItemStyle style={style as IListItemStyle} />;
+            return <ListItemStyle style={style as IListItemStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'indicator':
-            return <IndicatorStyle style={style as IIndicatorStyle} />;
+            return <IndicatorStyle style={style as IIndicatorStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'kbd':
-            return <KbdStyle style={style as IKbdStyle} />;
+            return <KbdStyle style={style as IKbdStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'theme-icon':
-            return <ThemeIconStyle style={style as IThemeIconStyle} />;
+            return <ThemeIconStyle style={style as IThemeIconStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'rating':
-            return <RatingStyle style={style as IRatingStyle} />;
+            return <RatingStyle style={style as IRatingStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'profile':
-            return <ProfileStyle style={style as IProfileStyle} />;
+            return <ProfileStyle style={style as IProfileStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'progress':
-            return <ProgressStyle style={style as IProgressStyle} />;
+            return <ProgressStyle style={style as IProgressStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'progress-root':
-            return <ProgressRootStyle style={style as IProgressRootStyle} />;
+            return <ProgressRootStyle style={style as IProgressRootStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'progress-section':
-            return <ProgressSectionStyle style={style as IProgressSectionStyle} />;
+            return <ProgressSectionStyle style={style as IProgressSectionStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'notification':
-            return <NotificationStyle style={style as INotificationStyle} />;
+            return <NotificationStyle style={style as INotificationStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'title':
-            return <TitleStyle style={style as ITitleStyle} />;
+            return <TitleStyle style={style as ITitleStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'text':
-            return <TextStyle style={style as ITextStyle} />;
+            return <TextStyle style={style as ITextStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'code':
-            return <CodeStyle style={style as ICodeStyle} />;
+            return <CodeStyle style={style as ICodeStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'highlight':
-            return <HighlightStyle style={style as IHighlightStyle} />;
+            return <HighlightStyle style={style as IHighlightStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'blockquote':
-            return <BlockquoteStyle style={style as IBlockquoteStyle} />;
+            return <BlockquoteStyle style={style as IBlockquoteStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'fieldset':
-            return <FieldsetStyle style={style as IFieldsetStyle} />;
+            return <FieldsetStyle style={style as IFieldsetStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'spoiler':
-            return <SpoilerStyle style={style as ISpoilerStyle} />;
+            return <SpoilerStyle style={style as ISpoilerStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'typography':
-            return <TypographyStyle style={style as ITypographyStyle} />;
+            return <TypographyStyle style={style as ITypographyStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
 
         // Unknown/Unsupported styles
         default:

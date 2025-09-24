@@ -10,9 +10,13 @@ import DOMPurify from 'dompurify';
  * Props interface for ButtonStyle component
  * @interface IButtonStyleProps
  * @property {IButtonStyle} style - The button style configuration object
+ * @property {Record<string, any>} styleProps - Additional style properties for spacing
+ * @property {string} cssClass - CSS class name for the component
  */
 interface IButtonStyleProps {
     style: IButtonStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -23,7 +27,7 @@ interface IButtonStyleProps {
  * @param {IButtonStyleProps} props - Component props
  * @returns {JSX.Element} Rendered button with specified styling and action
  */
-const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
+const ButtonStyle: React.FC<IButtonStyleProps> = ({ style, styleProps, cssClass }) => {
     const router = useRouter();
     const label = style.label?.content;
     const url = style.page_keyword?.content;
@@ -47,9 +51,6 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
 
     // Modal state
     const [confirmationOpened, setConfirmationOpened] = useState(false);
-
-    // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
     const leftSection = leftIconName ? <IconComponent iconName={leftIconName} size={16} /> : null;
     const rightSection = rightIconName ? <IconComponent iconName={rightIconName} size={16} /> : null;
@@ -110,6 +111,7 @@ const ButtonStyle: React.FC<IButtonStyleProps> = ({ style }) => {
         <>
             {use_mantine_style === '1' ? (
                 <Button
+                    {...styleProps}
                     variant={variant}
                     color={color}
                     size={compact === '1' ? 'compact-' + size : size}

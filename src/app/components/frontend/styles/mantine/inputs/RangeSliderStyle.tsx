@@ -8,8 +8,13 @@ import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.u
 /**
  * Props interface for RangeSliderStyle component
  */
+/**
+ * Props interface for IRangeSliderStyle component
+ */
 interface IRangeSliderStyleProps {
     style: IRangeSliderStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -39,7 +44,7 @@ interface IRangeSliderStyleProps {
  * @param {IRangeSliderStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine RangeSlider with enhanced configuration
  */
-const RangeSliderStyle: React.FC<IRangeSliderStyleProps> = ({ style }) => {
+const RangeSliderStyle: React.FC<IRangeSliderStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const label = style.label?.content;
     const description = style.description?.content || '';
@@ -60,7 +65,7 @@ const RangeSliderStyle: React.FC<IRangeSliderStyleProps> = ({ style }) => {
     const inverted = style.mantine_range_slider_inverted?.content === '1';
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Build style object
     const styleObj: React.CSSProperties = {};
@@ -163,7 +168,7 @@ const RangeSliderStyle: React.FC<IRangeSliderStyleProps> = ({ style }) => {
         <Input.Wrapper
             label={label}
             description={parse(sanitizeHtmlForParsing(description))}
-            className={cssClass}
+            {...styleProps} className={cssClass}
             style={styleObj}
         >
             {rangeSliderComponent}

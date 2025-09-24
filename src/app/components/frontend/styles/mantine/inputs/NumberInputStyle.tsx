@@ -6,8 +6,13 @@ import { FormFieldValueContext } from '../../FormStyle';
 /**
  * Props interface for NumberInputStyle component
  */
+/**
+ * Props interface for INumberInputStyle component
+ */
 interface INumberInputStyleProps {
     style: INumberInputStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -25,7 +30,7 @@ interface INumberInputStyleProps {
  * @param {INumberInputStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine NumberInput with styled configuration
  */
-const NumberInputStyle: React.FC<INumberInputStyleProps> = ({ style }) => {
+const NumberInputStyle: React.FC<INumberInputStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const placeholder = style.placeholder?.content;
     const label = style.label?.content;
@@ -45,7 +50,7 @@ const NumberInputStyle: React.FC<INumberInputStyleProps> = ({ style }) => {
     const disabled = style.disabled?.content === '1';
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Get form context for pre-populated values
     const formContext = useContext(FormFieldValueContext);
@@ -81,7 +86,7 @@ const NumberInputStyle: React.FC<INumberInputStyleProps> = ({ style }) => {
             radius={radius === 'none' ? 0 : radius}
             disabled={disabled}
             required={isRequired}
-            className={cssClass}
+            {...styleProps} className={cssClass}
             name={name}
             label={label}
             description={description}

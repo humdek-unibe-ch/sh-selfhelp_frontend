@@ -6,8 +6,13 @@ import BasicStyle from '../../BasicStyle';
 /**
  * Props interface for ProgressSectionStyle component
  */
+/**
+ * Props interface for IProgressSectionStyle component
+ */
 interface IProgressSectionStyleProps {
     style: IProgressSectionStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -18,7 +23,7 @@ interface IProgressSectionStyleProps {
  * @param {IProgressSectionStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine Progress.Section with styled configuration and optional tooltip
  */
-const ProgressSectionStyle: React.FC<IProgressSectionStyleProps> = ({ style }) => {
+const ProgressSectionStyle: React.FC<IProgressSectionStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const value = parseFloat((style as any).value?.content || '0');
     const color = style.mantine_color?.content || 'blue';
@@ -29,7 +34,7 @@ const ProgressSectionStyle: React.FC<IProgressSectionStyleProps> = ({ style }) =
     const tooltipPosition = style.mantine_tooltip_position?.content || 'top';
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Render children content (for label or other nested content)
     const children = style.children?.map((childStyle) => (
@@ -43,7 +48,7 @@ const ProgressSectionStyle: React.FC<IProgressSectionStyleProps> = ({ style }) =
             color={color}
             striped={striped}
             animated={animated}
-            className={cssClass}
+            {...styleProps} className={cssClass}
         >
             {label && <Progress.Label>{label}</Progress.Label>}
             {children}

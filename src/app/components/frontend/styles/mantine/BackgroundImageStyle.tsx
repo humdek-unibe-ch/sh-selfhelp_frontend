@@ -7,8 +7,13 @@ import { getAssetUrl } from '../../../../../utils/asset-url.utils';
 /**
  * Props interface for BackgroundImageStyle component
  */
+/**
+ * Props interface for IBackgroundImageStyle component
+ */
 interface IBackgroundImageStyleProps {
     style: IBackgroundImageStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -19,7 +24,7 @@ interface IBackgroundImageStyleProps {
  * @param {IBackgroundImageStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine BackgroundImage with child content
  */
-const BackgroundImageStyle: React.FC<IBackgroundImageStyleProps> = ({ style }) => {
+const BackgroundImageStyle: React.FC<IBackgroundImageStyleProps> = ({ style, styleProps, cssClass }) => {
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
 
@@ -28,7 +33,7 @@ const BackgroundImageStyle: React.FC<IBackgroundImageStyleProps> = ({ style }) =
     const radius = style.mantine_radius?.content || 'sm';
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Build style object
     const styleObj: React.CSSProperties = {};
@@ -37,7 +42,7 @@ const BackgroundImageStyle: React.FC<IBackgroundImageStyleProps> = ({ style }) =
         <BackgroundImage
             src={ getAssetUrl(src)}
             radius={radius === 'none' ? 0 : radius}
-            className={cssClass}
+            {...styleProps} className={cssClass}
             style={styleObj}
         >
             {children.length > 0 ? (

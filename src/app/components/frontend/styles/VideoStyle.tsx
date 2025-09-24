@@ -2,11 +2,16 @@ import React from 'react';
 import { Box } from '@mantine/core';
 import { IVideoStyle } from '../../../../types/common/styles.types';
 
+/**
+ * Props interface for IVideoStyle component
+ */
 interface IVideoStyleProps {
     style: IVideoStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
-const VideoStyle: React.FC<IVideoStyleProps> = ({ style }) => {
+const VideoStyle: React.FC<IVideoStyleProps> = ({ style, styleProps, cssClass }) => {
     // Get video sources - handle both array and JSON string formats
     let sources: any[] = [];
     try {

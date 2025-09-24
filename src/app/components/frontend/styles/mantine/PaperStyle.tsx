@@ -7,8 +7,13 @@ import BasicStyle from '../BasicStyle';
 /**
  * Props interface for PaperStyle component
  */
+/**
+ * Props interface for IPaperStyle component
+ */
 interface IPaperStyleProps {
     style: IPaperStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -19,7 +24,7 @@ interface IPaperStyleProps {
  * @param {IPaperStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine Paper with styled configuration
  */
-const PaperStyle: React.FC<IPaperStyleProps> = ({ style }) => {
+const PaperStyle: React.FC<IPaperStyleProps> = ({ style, styleProps, cssClass }) => {
 
     // Extract Mantine-specific props
     const shadow = style.mantine_paper_shadow?.content || 'sm';
@@ -29,7 +34,7 @@ const PaperStyle: React.FC<IPaperStyleProps> = ({ style }) => {
     const withBorder = style.mantine_border?.content === '1';
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
@@ -42,7 +47,7 @@ const PaperStyle: React.FC<IPaperStyleProps> = ({ style }) => {
             px={px === 'none' ? 0 : px}
             py={py === 'none' ? 0 : py}
             withBorder={withBorder}
-            className={cssClass}
+            {...styleProps} className={cssClass}
         >
             {children.map((childStyle, index) => (
                 childStyle ? <BasicStyle key={`${childStyle.id}-${index}`} style={childStyle} /> : null

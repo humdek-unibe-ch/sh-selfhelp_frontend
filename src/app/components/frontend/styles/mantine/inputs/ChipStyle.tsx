@@ -8,8 +8,13 @@ import parse from "html-react-parser";
 /**
  * Props interface for ChipStyle component
  */
+/**
+ * Props interface for IChipStyle component
+ */
 interface IChipStyleProps {
     style: IChipStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -28,7 +33,7 @@ interface IChipStyleProps {
  * @param {IChipStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine Chip with styled configuration
  */
-const ChipStyle: React.FC<IChipStyleProps> = ({ style }) => {
+const ChipStyle: React.FC<IChipStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const label = style.label?.content || 'Chip';
     const variant = style.mantine_chip_variant?.content || 'filled';
@@ -60,7 +65,7 @@ const ChipStyle: React.FC<IChipStyleProps> = ({ style }) => {
 
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Get form context for pre-populated values
     const formContext = useContext(FormFieldValueContext);
@@ -102,7 +107,7 @@ const ChipStyle: React.FC<IChipStyleProps> = ({ style }) => {
             radius={radius === 'none' ? 0 : radius}
             color={color}
             disabled={disabled}
-            className={cssClass}
+            {...styleProps} className={cssClass}
             required={isRequired}
             icon={chipIcon}
         >

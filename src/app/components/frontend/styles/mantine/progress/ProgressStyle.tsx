@@ -6,8 +6,13 @@ import { castMantineSize, castMantineRadius } from '../../../../../../utils/styl
 /**
  * Props interface for ProgressStyle component
  */
+/**
+ * Props interface for IProgressStyle component
+ */
 interface IProgressStyleProps {
     style: IProgressStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -18,7 +23,7 @@ interface IProgressStyleProps {
  * @param {IProgressStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine Progress with styled configuration
  */
-const ProgressStyle: React.FC<IProgressStyleProps> = ({ style }) => {
+const ProgressStyle: React.FC<IProgressStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const value = parseFloat((style as any).value?.content || '0');
     const color = style.mantine_color?.content || 'blue';
@@ -29,7 +34,7 @@ const ProgressStyle: React.FC<IProgressStyleProps> = ({ style }) => {
     const transitionDuration = parseInt((style as any).mantine_progress_transition_duration?.content || '200');
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     return (
         <Progress
@@ -40,7 +45,7 @@ const ProgressStyle: React.FC<IProgressStyleProps> = ({ style }) => {
             striped={striped}
             animated={animated}
             transitionDuration={transitionDuration}
-            className={cssClass}
+            {...styleProps} className={cssClass}
         />
     );
 

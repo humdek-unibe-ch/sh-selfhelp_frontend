@@ -8,8 +8,13 @@ import { IStackStyle } from '../../../../../types/common/styles.types';
  * @interface IStackStyleProps
  * @property {IStackStyle} style - The stack style configuration object
  */
+/**
+ * Props interface for IStackStyle component
+ */
 interface IStackStyleProps {
     style: IStackStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -20,7 +25,7 @@ interface IStackStyleProps {
  * @param {IStackStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine Stack with styled children
  */
-const StackStyle: React.FC<IStackStyleProps> = ({ style }) => {
+const StackStyle: React.FC<IStackStyleProps> = ({ style, styleProps, cssClass }) => {
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
 
@@ -32,7 +37,7 @@ const StackStyle: React.FC<IStackStyleProps> = ({ style }) => {
     const height = style.mantine_height?.content;
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Build style object for sizing properties
     const styleObj: React.CSSProperties = {};
@@ -44,7 +49,7 @@ const StackStyle: React.FC<IStackStyleProps> = ({ style }) => {
             gap={gap || 'md'}
             justify={justify || undefined}
             align={align || undefined}
-            className={cssClass}
+            {...styleProps} className={cssClass}
             style={styleObj}
         >
             {children.map((child: any, index: number) => (

@@ -5,8 +5,13 @@ import { ITitleStyle } from '../../../../../types/common/styles.types';
 /**
  * Props interface for TitleStyle component
  */
+/**
+ * Props interface for ITitleStyle component
+ */
 interface ITitleStyleProps {
     style: ITitleStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -18,7 +23,7 @@ interface ITitleStyleProps {
  * @param {ITitleStyleProps} props - Component props
  * @returns {JSX.Element | null} Rendered Mantine Title or null when styling is disabled
  */
-const TitleStyle: React.FC<ITitleStyleProps> = ({ style }) => {
+const TitleStyle: React.FC<ITitleStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const title = style.content?.content || 'Title';
     const order = parseInt(style.mantine_title_order?.content || '1') as 1 | 2 | 3 | 4 | 5 | 6;
@@ -27,7 +32,7 @@ const TitleStyle: React.FC<ITitleStyleProps> = ({ style }) => {
     const lineClamp = style.mantine_title_line_clamp?.content;
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     return (
         <Title
@@ -36,7 +41,7 @@ const TitleStyle: React.FC<ITitleStyleProps> = ({ style }) => {
             textWrap={textWrap}
             lineClamp={lineClamp ? parseInt(lineClamp) : undefined}
             // inherit={inherit}
-            className={cssClass}
+            {...styleProps} className={cssClass}
         >
             {title}
         </Title>

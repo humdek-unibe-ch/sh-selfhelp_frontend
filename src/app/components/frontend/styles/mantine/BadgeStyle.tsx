@@ -7,8 +7,13 @@ import { castMantineSize, castMantineRadius } from '../../../../../utils/style-f
 /**
  * Props interface for BadgeStyle component
  */
+/**
+ * Props interface for IBadgeStyle component
+ */
 interface IBadgeStyleProps {
     style: IBadgeStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -19,7 +24,7 @@ interface IBadgeStyleProps {
  * @param {IBadgeStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine Badge with styled configuration
  */
-const BadgeStyle: React.FC<IBadgeStyleProps> = ({ style }) => {
+const BadgeStyle: React.FC<IBadgeStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const label = style.label?.content || 'Badge';
     const variant = style.mantine_variant?.content || 'filled';
@@ -32,7 +37,7 @@ const BadgeStyle: React.FC<IBadgeStyleProps> = ({ style }) => {
     const use_mantine_style = style.use_mantine_style?.content === '1';
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Build style object
     const styleObj: React.CSSProperties = {};
@@ -51,7 +56,7 @@ const BadgeStyle: React.FC<IBadgeStyleProps> = ({ style }) => {
                 leftSection={leftSection}
                 rightSection={rightSection}
                 autoContrast={auto_contrast === '1'}
-                className={cssClass}
+                {...styleProps} className={cssClass}
                 style={styleObj}
             >
                 {label}

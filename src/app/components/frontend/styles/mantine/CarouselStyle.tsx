@@ -9,8 +9,13 @@ import IconComponent from '../../../shared/common/IconComponent';
  * @interface ICarouselStyleProps
  * @property {ICarouselStyle} style - The carousel style configuration object
  */
+/**
+ * Props interface for ICarouselStyle component
+ */
 interface ICarouselStyleProps {
     style: ICarouselStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -22,7 +27,7 @@ interface ICarouselStyleProps {
  * @param {ICarouselStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine Carousel or fallback div
  */
-const CarouselStyle: React.FC<ICarouselStyleProps> = ({ style }) => {
+const CarouselStyle: React.FC<ICarouselStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the unified field extraction utility
     const use_mantine_style = style.use_mantine_style?.content === '1';
 
@@ -84,47 +89,31 @@ const CarouselStyle: React.FC<ICarouselStyleProps> = ({ style }) => {
     const previousIcon = previousControlIcon ? <IconComponent iconName={previousControlIcon} size={16} /> : undefined;
 
     // Generate CSS class name
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
-    // Render Mantine Carousel if enabled
-    if (use_mantine_style) {
-        return (
-            <Carousel
-                height={height}                
-                slideSize={slideSize}
-                slideGap={slideGap}
-                orientation={orientation}
-                withControls={withControls}
-                withIndicators={withIndicators}
-                controlSize={controlSize ? parseInt(controlSize) : undefined}
-                controlsOffset={controlsOffset}
-                nextControlIcon={nextIcon}
-                previousControlIcon={previousIcon}
-                emblaOptions={emblaOptions}
-                className={cssClass}
-            >
-                {style.children?.map((child, index) => (
-                    child ? (
-                        <Carousel.Slide key={index}>
-                            <BasicStyle style={child} />
-                        </Carousel.Slide>
-                    ) : null
-                ))}
-            </Carousel>
-        );
-    }
 
-    // Fallback to basic div if Mantine styling is disabled
     return (
-        <div className={cssClass}>
+        <Carousel
+            height={height}
+            slideSize={slideSize}
+            slideGap={slideGap}
+            orientation={orientation}
+            withControls={withControls}
+            withIndicators={withIndicators}
+            controlSize={controlSize ? parseInt(controlSize) : undefined}
+            controlsOffset={controlsOffset}
+            nextControlIcon={nextIcon}
+            previousControlIcon={previousIcon}
+            emblaOptions={emblaOptions}
+            {...styleProps} className={cssClass}
+        >
             {style.children?.map((child, index) => (
                 child ? (
-                    <div key={index} className="carousel-slide">
+                    <Carousel.Slide key={index}>
                         <BasicStyle style={child} />
-                    </div>
+                    </Carousel.Slide>
                 ) : null
             ))}
-        </div>
+        </Carousel>
     );
 };
 

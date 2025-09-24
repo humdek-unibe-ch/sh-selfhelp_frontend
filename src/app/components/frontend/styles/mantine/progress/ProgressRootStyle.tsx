@@ -7,8 +7,13 @@ import BasicStyle from '../../BasicStyle';
 /**
  * Props interface for ProgressRootStyle component
  */
+/**
+ * Props interface for IProgressRootStyle component
+ */
 interface IProgressRootStyleProps {
     style: IProgressRootStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -19,13 +24,13 @@ interface IProgressRootStyleProps {
  * @param {IProgressRootStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine Progress.Root with styled configuration and child sections
  */
-const ProgressRootStyle: React.FC<IProgressRootStyleProps> = ({ style }) => {
+const ProgressRootStyle: React.FC<IProgressRootStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const size = castMantineSize((style as any).mantine_size?.content);
     const autoContrast = style.mantine_progress_auto_contrast?.content === '1';
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Render children sections
     const children = style.children?.map((childStyle) => (
@@ -36,7 +41,7 @@ const ProgressRootStyle: React.FC<IProgressRootStyleProps> = ({ style }) => {
         <Progress.Root
             size={size}
             autoContrast={autoContrast}
-            className={cssClass}
+            {...styleProps} className={cssClass}
         >
             {children}
         </Progress.Root>

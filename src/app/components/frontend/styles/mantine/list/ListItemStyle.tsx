@@ -7,8 +7,13 @@ import IconComponent from '../../../../shared/common/IconComponent';
 /**
  * Props interface for ListItemStyle component
  */
+/**
+ * Props interface for IListItemStyle component
+ */
 interface IListItemStyleProps {
     style: IListItemStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -19,13 +24,13 @@ interface IListItemStyleProps {
  * @param {IListItemStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine List.Item with content and children
  */
-const ListItemStyle: React.FC<IListItemStyleProps> = ({ style }) => {
+const ListItemStyle: React.FC<IListItemStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract Mantine-specific props
     const content = style.mantine_list_item_content?.content;
     const iconName = style.mantine_list_item_icon?.content;
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Get icon component using IconComponent
     const icon = iconName ? <IconComponent iconName={iconName} size={16} /> : undefined;
@@ -36,7 +41,7 @@ const ListItemStyle: React.FC<IListItemStyleProps> = ({ style }) => {
     return (
         <List.Item
             icon={icon}
-            className={cssClass}
+            {...styleProps} className={cssClass}
         >
             {content}
             {children.map((childStyle, index) => (

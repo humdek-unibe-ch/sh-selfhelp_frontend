@@ -21,11 +21,16 @@ import { FormFieldValueContext } from '../../../FormStyle';
 import parse from "html-react-parser";
 import { sanitizeHtmlForInline, sanitizeHtmlForParsing } from '../../../../../../../utils/html-sanitizer.utils';
 
+/**
+ * Props interface for IRichTextEditorStyle component
+ */
 interface IRichTextEditorStyleProps {
     style: IRichTextEditorStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
-const RichTextEditorStyle: React.FC<IRichTextEditorStyleProps> = ({ style }) => {
+const RichTextEditorStyle: React.FC<IRichTextEditorStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values
     const use_mantine_style = style.use_mantine_style?.content === '1';
 
@@ -47,7 +52,7 @@ const RichTextEditorStyle: React.FC<IRichTextEditorStyleProps> = ({ style }) => 
     const taskListEnabled = style.mantine_rich_text_editor_task_list?.content === '1';
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Get form context for pre-populated values
     const formContext = useContext(FormFieldValueContext);
@@ -115,7 +120,7 @@ const RichTextEditorStyle: React.FC<IRichTextEditorStyleProps> = ({ style }) => 
                 label={label}
                 description={parse(sanitizeHtmlForParsing(description))}
                 required={required}
-                className={cssClass}
+                {...styleProps} className={cssClass}
             >
                 <textarea
                     name={name}
@@ -149,7 +154,7 @@ const RichTextEditorStyle: React.FC<IRichTextEditorStyleProps> = ({ style }) => 
             label={label}
             description={parse(sanitizeHtmlForInline(description))}
             required={required}
-            className={cssClass}
+            {...styleProps} className={cssClass}
         >
             <MantineRichTextEditor
                 editor={editor}

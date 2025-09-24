@@ -13,6 +13,8 @@ import { castMantineRadius, castMantineSize } from '../../../../../../utils/styl
  */
 interface IFileInputStyleProps {
     style: IFileInputStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -42,7 +44,7 @@ export interface IFileInputStyleRef {
  * @param {IFileInputStyleProps} props - Component props
  * @returns {JSX.Element | null} Rendered Mantine FileInput or null if Mantine styling disabled
  */
-const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ style }, ref) => {
+const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ style, styleProps, cssClass }, ref) => {
     // State for file validation errors
     const [validationError, setValidationError] = useState<string | null>(null);
     // State for selected files (important for form submission) - keeping original File objects
@@ -81,7 +83,6 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
     const maxFiles = maxFilesStr ? parseInt(maxFilesStr, 10) : undefined;
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
     // File validation function
     const validateFiles = useCallback((files: File[]): string | null => {
@@ -335,7 +336,7 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
     // Render drag and drop zone if enabled
     if (dragDrop) {
         return (
-            <div className={cssClass}>
+            <Box className={cssClass} {...styleProps}>
                 <Stack gap="md">
                     {/* Drag and Drop Zone */}
                     <Box
@@ -437,13 +438,13 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
                         </Alert>
                     )}
                 </Stack>
-            </div>
+            </Box>
         );
     }
 
     // Standard FileInput rendering
     return (
-        <div className={cssClass}>
+        <Box className={cssClass} {...styleProps}>
             <Stack gap="md">
                 <FileInput
                     name={name}
@@ -525,7 +526,7 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
                     </Alert>
                 )}
             </Stack>
-        </div>
+        </Box>
     );
 });
 

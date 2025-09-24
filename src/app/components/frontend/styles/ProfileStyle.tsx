@@ -37,15 +37,20 @@ const HtmlContent: React.FC<{ html: string; className?: string }> = ({ html, cla
 /**
  * Props interface for ProfileStyle component
  */
+/**
+ * Props interface for IProfileStyle component
+ */
 interface IProfileStyleProps {
     style: IProfileStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
  * ProfileStyle component renders a comprehensive user profile management interface
  * with sections for user information display, username change, password reset, and account deletion
  */
-const ProfileStyle: React.FC<IProfileStyleProps> = ({ style }) => {
+const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClass }) => {
     const { user, isLoading: userLoading } = useAuthUser();
 
     // Mutations
@@ -163,7 +168,7 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style }) => {
     const marginX = style.mantine_margin_inline?.content || 'none';
     const marginY = style.mantine_margin_block?.content || 'none';
 
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Convert spacing values to CSS
     const getSpacingValue = (value: string) => {
@@ -537,7 +542,7 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style }) => {
     return (
         <Stack
             gap={gap}
-            className={cssClass}
+            {...styleProps} className={cssClass}
             px={getSpacingValue(paddingX)}
             py={getSpacingValue(paddingY)}
             mx={getSpacingValue(marginX)}

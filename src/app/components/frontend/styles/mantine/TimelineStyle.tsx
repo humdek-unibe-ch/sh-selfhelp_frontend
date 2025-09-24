@@ -8,8 +8,13 @@ import { IconSun, IconVideo } from '@tabler/icons-react';
 /**
  * Props interface for TimelineStyle component
  */
+/**
+ * Props interface for ITimelineStyle component
+ */
 interface ITimelineStyleProps {
     style: ITimelineStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -20,7 +25,7 @@ interface ITimelineStyleProps {
  * @param {ITimelineStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine Timeline with child timeline items
  */
-const TimelineStyle: React.FC<ITimelineStyleProps> = ({ style }) => {
+const TimelineStyle: React.FC<ITimelineStyleProps> = ({ style, styleProps, cssClass }) => {
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
 
@@ -34,7 +39,7 @@ const TimelineStyle: React.FC<ITimelineStyleProps> = ({ style }) => {
     const align = style.mantine_timeline_align?.content || 'left';
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Build style object
     const styleObj: React.CSSProperties = {};
@@ -46,7 +51,7 @@ const TimelineStyle: React.FC<ITimelineStyleProps> = ({ style }) => {
             lineWidth={lineWidth}
             color={color}
             align={align as 'left' | 'right'}
-            className={cssClass}
+            {...styleProps} className={cssClass}
             style={styleObj}
         >
             {children.map((child: any, childIndex: number) => {

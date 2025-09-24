@@ -7,8 +7,13 @@ import { castMantineRadius } from '../../../../../../utils/style-field-extractor
 /**
  * Props interface for CardStyle component
  */
+/**
+ * Props interface for ICardStyle component
+ */
 interface ICardStyleProps {
     style: ICardStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -19,7 +24,7 @@ interface ICardStyleProps {
  * @param {ICardStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine Card with child content
  */
-const CardStyle: React.FC<ICardStyleProps> = ({ style }) => {
+const CardStyle: React.FC<ICardStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const shadow = style.mantine_card_shadow?.content || 'sm';
     const padding = style.mantine_card_padding?.content || 'md';
@@ -27,7 +32,7 @@ const CardStyle: React.FC<ICardStyleProps> = ({ style }) => {
     const withBorder = style.mantine_border?.content === '1';
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Build style object
     const styleObj: React.CSSProperties = {};
@@ -41,7 +46,7 @@ const CardStyle: React.FC<ICardStyleProps> = ({ style }) => {
             padding={padding === 'none' ? undefined : padding as 'xs' | 'sm' | 'md' | 'lg' | 'xl'}
             radius={radius === 'none' ? 0 : radius}
             withBorder={withBorder}
-            className={cssClass}
+            {...styleProps} className={cssClass}
             style={styleObj}
         >
             {children.map((childStyle, index) => (

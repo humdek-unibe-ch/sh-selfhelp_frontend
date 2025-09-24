@@ -7,8 +7,13 @@ import BasicStyle from '../../BasicStyle';
 /**
  * Props interface for AccordionItemStyle component
  */
+/**
+ * Props interface for IAccordionItemStyle component
+ */
 interface IAccordionItemStyleProps {
     style: IAccordionItemStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -19,7 +24,7 @@ interface IAccordionItemStyleProps {
  * @param {IAccordionItemStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine Accordion.Item with child content
  */
-const AccordionItemStyle: React.FC<IAccordionItemStyleProps> = ({ style }) => {
+const AccordionItemStyle: React.FC<IAccordionItemStyleProps> = ({ style, styleProps, cssClass }) => {
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
 
@@ -34,7 +39,7 @@ const AccordionItemStyle: React.FC<IAccordionItemStyleProps> = ({ style }) => {
     const icon = iconName ? <IconComponent iconName={iconName} size={16} /> : undefined;
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Build style object
     const styleObj: React.CSSProperties = {};
@@ -46,7 +51,7 @@ const AccordionItemStyle: React.FC<IAccordionItemStyleProps> = ({ style }) => {
         return (
             <Accordion.Item
                 value={value}
-                className={cssClass}
+                {...styleProps} className={cssClass}
                 style={styleObj}                
             >
                 <Accordion.Control icon={icon} disabled={disabled}>

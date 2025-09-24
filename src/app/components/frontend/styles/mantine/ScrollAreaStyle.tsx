@@ -8,8 +8,13 @@ import { IScrollAreaStyle } from '../../../../../types/common/styles.types';
  * @interface IScrollAreaStyleProps
  * @property {IScrollAreaStyle} style - The scroll area style configuration object
  */
+/**
+ * Props interface for IScrollAreaStyle component
+ */
 interface IScrollAreaStyleProps {
     style: IScrollAreaStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -20,7 +25,7 @@ interface IScrollAreaStyleProps {
  * @param {IScrollAreaStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine ScrollArea with styled children
  */
-const ScrollAreaStyle: React.FC<IScrollAreaStyleProps> = ({ style }) => {
+const ScrollAreaStyle: React.FC<IScrollAreaStyleProps> = ({ style, styleProps, cssClass }) => {
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
 
@@ -33,7 +38,7 @@ const ScrollAreaStyle: React.FC<IScrollAreaStyleProps> = ({ style }) => {
     const height = style.mantine_height?.content;
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Build style object for sizing properties
     const styleObj: React.CSSProperties = {};
@@ -49,7 +54,7 @@ const ScrollAreaStyle: React.FC<IScrollAreaStyleProps> = ({ style }) => {
             type={scrollbarType as "auto" | "always" | "scroll" | "hover" | "never"}
             offsetScrollbars={offsetScrollbars}
             scrollHideDelay={scrollHideDelayNumber}
-            className={cssClass}
+            {...styleProps} className={cssClass}
             style={styleObj}
         >
             {children.map((child: any, index: number) => (

@@ -7,8 +7,13 @@ import { castMantineSize, castMantineRadius } from '../../../../../utils/style-f
 /**
  * Props interface for ThemeIconStyle component
  */
+/**
+ * Props interface for IThemeIconStyle component
+ */
 interface IThemeIconStyleProps {
     style: IThemeIconStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -19,7 +24,7 @@ interface IThemeIconStyleProps {
  * @param {IThemeIconStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine ThemeIcon with icon content
  */
-const ThemeIconStyle: React.FC<IThemeIconStyleProps> = ({ style }) => {
+const ThemeIconStyle: React.FC<IThemeIconStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const variant = style.mantine_variant?.content || 'filled';
     const size = castMantineSize((style as any).mantine_size?.content) || 'md';
@@ -28,7 +33,7 @@ const ThemeIconStyle: React.FC<IThemeIconStyleProps> = ({ style }) => {
     const leftIconName = style.mantine_left_icon?.content;
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Build style object
     const styleObj: React.CSSProperties = {};
@@ -42,7 +47,7 @@ const ThemeIconStyle: React.FC<IThemeIconStyleProps> = ({ style }) => {
             size={size}
             radius={radius === 'none' ? 0 : radius}
             color={color}
-            className={cssClass}
+            {...styleProps} className={cssClass}
             style={styleObj}
         >
             {icon}

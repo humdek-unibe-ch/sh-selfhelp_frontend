@@ -6,8 +6,13 @@ import { IAspectRatioStyle } from '../../../../../types/common/styles.types';
 /**
  * Props interface for AspectRatioStyle component
  */
+/**
+ * Props interface for IAspectRatioStyle component
+ */
 interface IAspectRatioStyleProps {
     style: IAspectRatioStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -24,7 +29,7 @@ interface IAspectRatioStyleProps {
  * @param {IAspectRatioStyleProps} props - Component props
  * @returns {JSX.Element|null} Rendered Mantine AspectRatio with child content or null
  */
-const AspectRatioStyle: React.FC<IAspectRatioStyleProps> = ({ style }) => {
+const AspectRatioStyle: React.FC<IAspectRatioStyleProps> = ({ style, styleProps, cssClass }) => {
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
 
@@ -33,7 +38,7 @@ const AspectRatioStyle: React.FC<IAspectRatioStyleProps> = ({ style }) => {
     const use_mantine_style = style.use_mantine_style?.content === '1';
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Parse ratio (e.g., "16/9" -> 16/9)
     const parseRatio = (ratioStr: string): number => {
@@ -59,7 +64,7 @@ const AspectRatioStyle: React.FC<IAspectRatioStyleProps> = ({ style }) => {
         return (
             <AspectRatio
                 ratio={aspectRatio}
-                className={cssClass}
+                {...styleProps} className={cssClass}
             >
                 {children.length > 0 ? (
                     children.map((child: any, index: number) => (

@@ -2,13 +2,18 @@ import React from 'react';
 import { Tabs } from '@mantine/core';
 import { ITabsStyle, ITabStyle } from '../../../../../../types/common/styles.types';
 import TabStyle from './TabStyle';
-import BasicStyle from '../../BasicStyle';
+import BasicStyle, { getCssClass, getSpacingProps } from '../../BasicStyle';
 
 /**
  * Props interface for TabsStyle component
  */
+/**
+ * Props interface for ITabsStyle component
+ */
 interface ITabsStyleProps {
     style: ITabsStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -16,7 +21,7 @@ interface ITabsStyleProps {
  * Children must be TabStyle components
  * Uses Mantine UI Tabs component with new database fields
  */
-const TabsStyle: React.FC<ITabsStyleProps> = ({ style }) => {
+const TabsStyle: React.FC<ITabsStyleProps> = ({ style, styleProps, cssClass }) => {
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
 
@@ -29,7 +34,7 @@ const TabsStyle: React.FC<ITabsStyleProps> = ({ style }) => {
     const height = style.mantine_height?.content;
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Build style object
     const styleObj: React.CSSProperties = {};
@@ -60,11 +65,16 @@ const TabsStyle: React.FC<ITabsStyleProps> = ({ style }) => {
 
                     const tabStyle = child as ITabStyle;
                     const tabValue = tabStyle.id.toString();
+                    const tabStyleProps = getSpacingProps(tabStyle);
+                    const tabCssClass = getCssClass(tabStyle);
+
 
                     return (
                         <TabStyle
                             key={`${child.id}-${index}`}
                             style={tabStyle}
+                            styleProps={tabStyleProps}
+                            cssClass={tabCssClass}
                         />
                     );
                 })}

@@ -7,8 +7,13 @@ import { castMantineSize, castMantineRadius } from '../../../../utils/style-fiel
 /**
  * Props interface for InputStyle component
  */
+/**
+ * Props interface for IInputStyle component
+ */
 interface IInputStyleProps {
     style: IInputStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -16,7 +21,7 @@ interface IInputStyleProps {
  * Supports text, number, password, email, date, time, checkbox, color, etc.
  * Uses Mantine UI components for better theming and consistency
  */
-const InputStyle: React.FC<IInputStyleProps> = ({ style }) => {
+const InputStyle: React.FC<IInputStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const inputType = style.type_input?.content || 'text';
     const label = style.label?.content;
@@ -27,7 +32,6 @@ const InputStyle: React.FC<IInputStyleProps> = ({ style }) => {
     const min = style.min?.content;
     const max = style.max?.content;
     const format = style.format?.content;
-    const locked = style.locked_after_submit?.content === '1';
     const size = castMantineSize((style as any).mantine_size?.content);
     const radius = castMantineRadius((style as any).mantine_radius?.content);
     const variant = (style as any).mantine_variant?.content || 'default';
@@ -37,7 +41,7 @@ const InputStyle: React.FC<IInputStyleProps> = ({ style }) => {
     const use_mantine_style = (style as any).use_mantine_style?.content === '1';
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Build style object
     const styleObj: React.CSSProperties = {};
@@ -53,7 +57,7 @@ const InputStyle: React.FC<IInputStyleProps> = ({ style }) => {
         name,
         defaultValue: value,
         required,
-        disabled: disabled || locked,
+        disabled: disabled,
         size,
         radius,
         variant: variant as any,
@@ -69,14 +73,13 @@ const InputStyle: React.FC<IInputStyleProps> = ({ style }) => {
             <input
                 type={inputType}
                 name={name}
+                value={value}
                 placeholder={placeholder}
-                defaultValue={value}
                 required={required}
-                disabled={disabled || locked}
                 min={min}
                 max={max}
                 className={cssClass}
-                style={styleObj}
+                disabled={disabled}
             />
         );
     }
@@ -101,9 +104,9 @@ const InputStyle: React.FC<IInputStyleProps> = ({ style }) => {
                     name={name}
                     checked={value === '1'}
                     required={required}
-                    disabled={disabled || locked}
+                    disabled={disabled}
                     size={size}
-                    className={cssClass}
+                    {...styleProps} className={cssClass}
                     style={styleObj}
                 />
             );

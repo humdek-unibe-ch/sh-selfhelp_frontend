@@ -7,11 +7,16 @@ import parse from "html-react-parser";
 import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
 import { castMantineSize, castMantineRadius } from '../../../../../../utils/style-field-extractor';
 
+/**
+ * Props interface for ICheckboxStyle component
+ */
 interface ICheckboxStyleProps {
     style: ICheckboxStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
-const CheckboxStyle: React.FC<ICheckboxStyleProps> = ({ style }) => {
+const CheckboxStyle: React.FC<ICheckboxStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const label = style.label?.content;
     const name = style.name?.content || `section-${style.id}`;
@@ -30,7 +35,7 @@ const CheckboxStyle: React.FC<ICheckboxStyleProps> = ({ style }) => {
     const useInputWrapper = style.mantine_use_input_wrapper?.content === '1';
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Get icon component if specified
     const icon = iconName ? ({ indeterminate, className }: { indeterminate: boolean | undefined; className: string }) =>
@@ -82,7 +87,7 @@ const CheckboxStyle: React.FC<ICheckboxStyleProps> = ({ style }) => {
             color={color}
             icon={icon}
             labelPosition={labelPosition}
-            className={cssClass}
+            {...styleProps} className={cssClass}
             style={styleObj}
             label={useInputWrapper ? undefined : label}
             description={useInputWrapper ? undefined : parse(sanitizeHtmlForParsing(description))}

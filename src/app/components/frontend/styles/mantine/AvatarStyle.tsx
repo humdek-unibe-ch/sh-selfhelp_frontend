@@ -8,8 +8,13 @@ import IconComponent from '../../../shared/common/IconComponent';
 /**
  * Props interface for AvatarStyle component
  */
+/**
+ * Props interface for IAvatarStyle component
+ */
 interface IAvatarStyleProps {
     style: IAvatarStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -20,7 +25,7 @@ interface IAvatarStyleProps {
  * @param {IAvatarStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine Avatar with styled configuration
  */
-const AvatarStyle: React.FC<IAvatarStyleProps> = ({ style }) => {
+const AvatarStyle: React.FC<IAvatarStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const src = style.img_src?.content;
     const alt = style.alt?.content || 'Avatar';
@@ -33,7 +38,7 @@ const AvatarStyle: React.FC<IAvatarStyleProps> = ({ style }) => {
     const use_mantine_style = style.use_mantine_style?.content === '1';
 
     // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
+    
 
     // Build style object
     const styleObj: React.CSSProperties = {};
@@ -75,7 +80,7 @@ const AvatarStyle: React.FC<IAvatarStyleProps> = ({ style }) => {
                 size={size as TMantineSize}
                 radius={radius === 'none' ? 0 : radius}
                 color={color}
-                className={cssClass}
+                {...styleProps} className={cssClass}
                 style={styleObj}
             >
                 {avatarContent}
