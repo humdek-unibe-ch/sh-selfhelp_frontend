@@ -1,3 +1,248 @@
+// Mantine field value types for better type safety
+export type TMantineSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+export type TMantineRadius = 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+export type TMantineShadow = 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+export type TMantineVariant = 'filled' | 'light' | 'outline' | 'subtle' | 'default' | 'transparent' | 'white';
+export type TMantineColor = 'gray' | 'red' | 'grape' | 'violet' | 'blue' | 'cyan' | 'green' | 'lime' | 'yellow' | 'orange';
+export type TMantineBorderSize = '1' | '2' | '3' | '4' | '5';
+export type TMantineJustify = 'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around' | 'space-evenly';
+export type TMantineAlign = 'flex-start' | 'center' | 'flex-end' | 'stretch' | 'baseline';
+export type TMantineDirection = 'row' | 'column' | 'row-reverse' | 'column-reverse';
+export type TMantineWrap = 'wrap' | 'nowrap' | 'wrap-reverse';
+export type TMantineOrientation = 'horizontal' | 'vertical';
+export type TMantineTooltipPosition = 'top' | 'bottom' | 'left' | 'right' | 'top-start' | 'top-end' | 'bottom-start' | 'bottom-end' | 'left-start' | 'left-end' | 'right-start' | 'right-end';
+export type TMantineColorFormat = 'hex' | 'rgba' | 'hsla';
+export type TMantineNumericMin = '0' | '1' | '10' | '100' | string;
+export type TMantineNumericMax = '10' | '100' | '1000' | '10000' | string;
+export type TMantineNumericStep = '0.1' | '0.5' | '1' | '5' | '10' | string;
+export type TMantineWidth = '25%' | '50%' | '75%' | '100%' | 'auto' | 'fit-content' | 'max-content' | 'min-content' | string;
+export type TMantineHeight = '25%' | '50%' | '75%' | '100%' | 'auto' | 'fit-content' | 'max-content' | 'min-content' | string;
+export type TMantineLabelPosition = 'left' | 'right';
+export type TMantineSwitchValue = '0' | '1' | string;
+export type TMantineProgressTransition = '150' | '200' | '300' | '400' | '0' | string;
+export type TMantineCarouselAlign = 'start' | 'center' | 'end';
+export type TMantineCarouselContainScroll = 'auto' | 'trimSnaps' | 'keepSnaps';
+export type TMantineCarouselDuration = '10' | '25' | '50' | '100' | '150' | '200' | '0' | string;
+export type TMantineLineClamp = '2' | '3' | '4' | '5' | string;
+export type TMantineDecimalScale = '0' | '1' | '2' | '3' | '4' | '5' | string;
+export type TMantineClampBehavior = 'strict' | 'blur';
+export type TMantineImageFit = 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
+export type TMantineAvatarVariant = 'filled' | 'light' | 'outline' | 'transparent' | 'white' | 'gradient' | 'default';
+export type TMantineAccordionVariant = 'default' | 'contained' | 'filled' | 'separated';
+export type TMantineAccordionChevronPosition = 'left' | 'right';
+export type TMantineFieldsetVariant = 'default' | 'filled';
+export type TMantineSpoilerMaxHeight = '100' | '150' | '200' | '250' | '300' | string;
+export type TMantineRatingCount = '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | string;
+export type TMantineRatingFractions = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | string;
+export type TMantineRatingEmptyIcon = string; // Icon name
+export type TMantineRatingFullIcon = string; // Icon name
+export type TMantineRatingHighlightSelectedOnly = '0' | '1';
+export type TMantineChipVariant = 'filled' | 'light' | 'outline' | 'transparent';
+export type TMantineChipChecked = '0' | '1';
+export type TMantineChipMultiple = '0' | '1';
+export type TMantineUseInputWrapper = '0' | '1';
+export type TMantineAutoContrast = '0' | '1';
+export type TMantineFullWidth = '0' | '1';
+export type TMantineBorder = '0' | '1';
+export type TMantineCompact = '0' | '1';
+export type TMantineDisabled = '0' | '1';
+export type TMantineReadonly = '0' | '1';
+export type TMantineRequired = '0' | '1';
+export type TMantineWithCloseButton = '0' | '1';
+export type TMantineLoading = '0' | '1';
+export type TMantineInline = '0' | '1';
+export type TMantineProcessing = '0' | '1';
+export type TMantineWithPicker = '0' | '1';
+export type TMantineAsButton = '0' | '1';
+export type TMantineWithTimeGrid = '0' | '1';
+export type TMantineConsistentWeeks = '0' | '1';
+export type TMantineHideOutsideDates = '0' | '1';
+export type TMantineHideWeekends = '0' | '1';
+export type TMantineClearable = '0' | '1';
+export type TMantineAllowDeselect = '0' | '1';
+export type TMantineCardShadow = TMantineShadow;
+export type TMantineCardPadding = TMantineSize;
+export type TMantinePaperShadow = TMantineShadow;
+export type TMantinePaperPadding = TMantineSize;
+export type TMantineInputSize = TMantineSize;
+export type TMantineInputRadius = TMantineRadius;
+export type TMantineInputVariant = 'default' | 'filled' | 'unstyled';
+export type TMantineTextareaAutosize = '0' | '1';
+export type TMantineTextareaResize = 'none' | 'vertical' | 'horizontal' | 'both';
+export type TMantineSliderMarksValues = string; // JSON string
+export type TMantineSliderShowLabel = '0' | '1';
+export type TMantineSliderLabelsAlwaysOn = '0' | '1';
+export type TMantineSliderInverted = '0' | '1';
+export type TMantineSliderThumbSize = string; // number as string
+export type TMantineCheckboxIcon = string; // Icon name
+export type TMantineCheckboxLabelPosition = TMantineLabelPosition;
+export type TMantineCheckboxVariant = 'default' | 'outline';
+export type TMantineFileInputMultiple = '0' | '1';
+export type TMantineFileInputAccept = string; // comma-separated file types
+export type TMantineFileInputClearable = '0' | '1';
+export type TMantineFileInputMaxSize = string; // number as string
+export type TMantineFileInputMaxFiles = string; // number as string
+export type TMantineFileInputDragDrop = '0' | '1';
+export type TMantineColorPickerSwatchesPerRow = '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | string;
+export type TMantineColorPickerSwatches = string; // JSON string
+export type TMantineColorPickerWithPicker = TMantineWithPicker;
+export type TMantineColorPickerSaturationLabel = string;
+export type TMantineColorPickerHueLabel = string;
+export type TMantineColorPickerAlphaLabel = string;
+export type TMantineColorPickerAsButton = TMantineAsButton;
+export type TMantineColorPickerButtonLabel = string;
+export type TMantineSegmentedControlData = string; // JSON string
+export type TMantineComboboxData = string; // JSON string
+export type TMantineMultiSelectData = string; // JSON string
+export type TMantineMultiSelectMaxValues = string; // number as string
+export type TMantineBadgeVariant = TMantineVariant;
+export type TMantineBadgeSize = TMantineSize;
+export type TMantineBadgeRadius = TMantineRadius;
+export type TMantineBadgeColor = TMantineColor;
+export type TMantineBadgeAutoContrast = TMantineAutoContrast;
+export type TMantineAvatarSize = TMantineSize;
+export type TMantineAvatarRadius = TMantineRadius;
+export type TMantineAvatarColor = TMantineColor;
+export type TMantineTimelineBulletSize = string; // number as string
+export type TMantineTimelineLineWidth = string; // number as string
+export type TMantineTimelineActive = string; // number as string
+export type TMantineTimelineColor = TMantineColor;
+export type TMantineIndicatorSize = '6' | '8' | '10' | '12' | '14' | '16' | '18' | '20' | '22' | '24' | '26' | '28' | '30' | '32' | '34' | '36' | '38' | '40' | string;
+export type TMantineIndicatorPosition = 'top-start' | 'top-center' | 'top-end' | 'middle-start' | 'middle-center' | 'middle-end' | 'bottom-start' | 'bottom-center' | 'bottom-end';
+export type TMantineIndicatorOffset = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | string;
+export type TMantineIndicatorBorder = '0' | '1';
+export type TMantineKbdSize = TMantineSize;
+export type TMantineRatingSize = TMantineSize;
+export type TMantineRatingColor = TMantineColor;
+export type TMantineProgressSize = TMantineSize;
+export type TMantineProgressColor = TMantineColor;
+export type TMantineProgressRadius = TMantineRadius;
+export type TMantineProgressTransitionDuration = TMantineProgressTransition;
+export type TMantineProgressRootAutoContrast = '0' | '1';
+export type TMantineThemeIconSize = TMantineSize;
+export type TMantineThemeIconRadius = TMantineRadius;
+export type TMantineThemeIconColor = TMantineColor;
+export type TMantineThemeIconVariant = TMantineVariant;
+export type TMantineAccordionMultiple = '0' | '1';
+export type TMantineAccordionDisableChevronRotation = '0' | '1';
+export type TMantineAccordionLoop = '0' | '1';
+export type TMantineAccordionTransitionDuration = string; // number as string
+export type TMantineAccordionDefaultValue = string; // JSON string
+export type TMantineAccordionChevronSize = string; // creatable
+export type TMantineNotificationColor = TMantineColor;
+export type TMantineNotificationLoading = TMantineLoading;
+export type TMantineNotificationWithCloseButton = TMantineWithCloseButton;
+export type TMantineNotificationBorder = TMantineBorder;
+export type TMantineNotificationRadius = TMantineRadius;
+export type TMantineTitleSize = TMantineSize;
+export type TMantineTitleTextWrap = 'wrap' | 'balance' | 'nowrap';
+export type TMantineTitleLineClamp = TMantineLineClamp;
+export type TMantineTextSize = TMantineSize;
+export type TMantineTextColor = TMantineColor;
+export type TMantineTextTextDecoration = TMantineTextDecoration;
+export type TMantineTextTextTransform = TMantineTextTransform;
+export type TMantineTextLineClamp = TMantineLineClamp;
+export type TMantineTextInherit = '0' | '1';
+export type TMantineTextSpan = '0' | '1';
+export type TMantineCodeBlock = '0' | '1';
+export type TMantineHighlightHighlight = string; // translatable text
+export type TMantineBlockquoteIconSize = string; // number as string
+export type TMantineBackgroundImageSrc = string; // image path
+export type TMantineFieldsetRadius = TMantineRadius;
+export type TMantineFieldsetDisabled = TMantineDisabled;
+export type TMantineSpoilerShowLabel = string; // translatable
+export type TMantineSpoilerHideLabel = string; // translatable
+export type TMantineTypographyUseMantineStyle = '0' | '1';
+export type TMantineCardBorder = TMantineBorder;
+export type TMantineCardRadius = TMantineRadius;
+export type TMantineCardSegmentUseMantineStyle = '0' | '1';
+export type TMantineListSpacing = TMantineSize;
+export type TMantineListSize = TMantineSize;
+export type TMantineListWithPadding = '0' | '1';
+export type TMantineListCenter = '0' | '1';
+export type TMantineListItemContent = string; // translatable
+export type TMantineFlexGap = TMantineSize | '0';
+export type TMantineFlexJustify = TMantineJustify;
+export type TMantineFlexAlign = TMantineAlign;
+export type TMantineFlexDirection = TMantineDirection;
+export type TMantineFlexWrap = TMantineWrap;
+export type TMantineGroupGap = TMantineSize | '0';
+export type TMantineGroupJustify = TMantineJustify;
+export type TMantineGroupAlign = TMantineAlign;
+export type TMantineGroupWrap = TMantineWrap;
+export type TMantineGroupGrow = '0' | '1';
+export type TMantineSimpleGridCols = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | '11' | '12' | string;
+export type TMantineSimpleGridSpacing = TMantineSize | '0';
+export type TMantineSimpleGridVerticalSpacing = TMantineSize | '0';
+export type TMantineScrollAreaScrollbarSize = TMantineScrollAreaSize;
+export type TMantineScrollAreaOffsetScrollbars = '0' | '1';
+export type TMantineScrollAreaScrollHideDelay = string; // number as string
+export type TMantineSpaceSize = TMantineSize | '0';
+export type TMantineSpaceDirection = TMantineDirection;
+export type TMantineGridCols = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | '11' | '12' | string;
+export type TMantineGridGap = TMantineSize | '0';
+export type TMantineGridJustify = TMantineJustify;
+export type TMantineGridAlign = TMantineAlign;
+export type TMantineGridOverflow = 'visible' | 'hidden' | 'clip' | 'scroll' | 'auto';
+export type TMantineGridGrow = '0' | '1';
+export type TMantineStackGap = TMantineSize | '0';
+export type TMantineStackJustify = TMantineJustify;
+export type TMantineStackAlign = TMantineAlign;
+export type TMantineActionIconSize = TMantineSize;
+export type TMantineActionIconRadius = TMantineRadius;
+export type TMantineActionIconColor = TMantineColor;
+export type TMantineActionIconVariant = TMantineVariant;
+export type TMantineActionIconLoading = TMantineLoading;
+export type TMantineColorInputFormat = TMantineColorFormat;
+export type TMantineColorInputSwatches = TMantineColorPickerSwatches;
+export type TMantineColorPickerFormat = TMantineColorFormat;
+export type TMantineNumberInputMin = TMantineNumericMin;
+export type TMantineNumberInputMax = TMantineNumericMax;
+export type TMantineNumberInputStep = TMantineNumericStep;
+export type TMantineRadioOrientation = TMantineOrientation;
+export type TMantineRadioSize = TMantineSize;
+export type TMantineRadioColor = TMantineColor;
+export type TMantineRadioOptions = string; // JSON string
+export type TMantineRadioLabelPosition = TMantineLabelPosition;
+export type TMantineRadioVariant = 'default' | 'outline' | 'card';
+export type TMantineRadioCard = '0' | '1';
+export type TMantineRangeSliderMin = TMantineNumericMin;
+export type TMantineRangeSliderMax = TMantineNumericMax;
+export type TMantineRangeSliderStep = TMantineNumericStep;
+export type TMantineRangeSliderMarksValues = TMantineSliderMarksValues;
+export type TMantineRangeSliderShowLabel = TMantineSliderShowLabel;
+export type TMantineRangeSliderLabelsAlwaysOn = TMantineSliderLabelsAlwaysOn;
+export type TMantineRangeSliderInverted = TMantineSliderInverted;
+export type TMantineSegmentedControlOrientation = TMantineOrientation;
+export type TMantineSegmentedControlSize = TMantineSize;
+export type TMantineSegmentedControlRadius = TMantineRadius;
+export type TMantineSegmentedControlColor = TMantineColor;
+export type TMantineSegmentedControlFullWidth = TMantineFullWidth;
+export type TMantineSegmentedControlDisabled = TMantineDisabled;
+export type TMantineSegmentedControlReadonly = TMantineReadonly;
+export type TMantineSegmentedControlItemBorder = '0' | '1';
+export type TMantineSwitchSize = TMantineSize;
+export type TMantineSwitchColor = TMantineColor;
+export type TMantineSwitchRadius = TMantineRadius;
+export type TMantineSwitchOnLabel = string; // translatable
+export type TMantineSwitchOffLabel = string; // translatable
+export type TMantineSwitchOnValue = string;
+export type TMantineSwitchOffValue = string;
+export type TMantineSwitchLabelPosition = TMantineLabelPosition;
+export type TMantineComboboxOptions = string; // JSON string
+export type TMantineComboboxSeparator = string;
+export type TMantineComboboxMaxValues = TMantineMultiSelectMaxValues;
+export type TMantineTextFontWeight = '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900';
+export type TMantineTextFontStyle = 'normal' | 'italic';
+export type TMantineTextDecoration = 'none' | 'underline' | 'line-through';
+export type TMantineTextTransform = 'none' | 'uppercase' | 'capitalize' | 'lowercase';
+export type TMantineTextAlign = 'left' | 'center' | 'right' | 'justify';
+export type TMantineTextVariant = 'default' | 'gradient';
+export type TMantineTextTruncate = 'none' | 'end' | 'start';
+export type TMantineScrollAreaSize = '4' | '6' | '8' | '10' | '12' | '14' | '16' | '18' | '20' | string;
+export type TMantineListType = 'ordered' | 'unordered';
+export type TMantineListStyleType = 'none' | 'disc' | 'circle' | 'square' | 'decimal' | 'decimal-leading-zero' | 'lower-roman' | 'upper-roman' | 'lower-alpha' | 'upper-alpha' | string;
+
 // Style name literal types for type safety
 export type TStyleName =
     | 'login' | 'profile' | 'validate' | 'register' | 'resetPassword' | 'twoFactorAuth'
@@ -217,7 +462,7 @@ export interface IValidateStyle extends IStyleWithMarginAndPadding {
     mantine_btn_cancel_color?: IContentField<string>;
     mantine_card_shadow?: IContentField<string>;
     mantine_card_padding?: IContentField<string>;
-    mantine_radius?: IContentField<string>;
+    mantine_radius?: IContentField<TMantineRadius>;
     mantine_border?: IContentField<string>;
     mantine_padding_inline?: IContentField<string>;
     mantine_padding_block?: IContentField<string>;
@@ -265,7 +510,7 @@ export interface IContainerStyle extends IStyleWithMarginAndPadding {
     mantine_fluid?: IContentField<string>;           // Maps to Mantine 'fluid' prop
     mantine_px?: IContentField<string>;              // Maps to Mantine 'px' prop
     mantine_py?: IContentField<string>;              // Maps to Mantine 'py' prop
-    use_mantine_style?: IContentField<string>;       // Controls Mantine vs custom styling
+    use_mantine_style?: IContentField<TMantineFullWidth>;       // Controls Mantine vs custom styling
 }
 
 export interface ICenterStyle extends IBaseStyle {
@@ -282,35 +527,35 @@ export interface ICenterStyle extends IBaseStyle {
 export interface IDividerStyle extends IBaseStyle {
     style_name: 'divider';
     mantine_divider_variant?: IContentField<string>;
-    mantine_size?: IContentField<string>;
+    mantine_size?: IContentField<TMantineSize>;
     mantine_divider_label?: IContentField<string>;
     mantine_divider_label_position?: IContentField<string>;
     mantine_orientation?: IContentField<string>;
-    mantine_color?: IContentField<string>;
-    use_mantine_style?: IContentField<string>;
+    mantine_color?: IContentField<TMantineColor>;
+    use_mantine_style?: IContentField<TMantineFullWidth>;
 }
 
 export interface IPaperStyle extends IStyleWithMarginAndPadding {
     style_name: 'paper';
     mantine_paper_shadow?: IContentField<string>;
-    mantine_radius?: IContentField<string>;
+    mantine_radius?: IContentField<TMantineRadius>;
     mantine_px?: IContentField<string>;
     mantine_py?: IContentField<string>;
     mantine_border?: IContentField<string>;
-    use_mantine_style?: IContentField<string>;
+    use_mantine_style?: IContentField<TMantineFullWidth>;
 }
 
 export interface IAlertStyle extends IStyleWithMarginAndPadding {
     style_name: 'alert';
     mantine_alert_title?: IContentField<string>;
     close_button_label?: IContentField<string>;
-    mantine_variant?: IContentField<string>;
-    mantine_color?: IContentField<string>;
-    mantine_radius?: IContentField<string>;
+    mantine_variant?: IContentField<TMantineVariant>;
+    mantine_color?: IContentField<TMantineColor>;
+    mantine_radius?: IContentField<TMantineRadius>;
     mantine_left_icon?: IContentField<string>;
     mantine_with_close_button?: IContentField<string>;
     content?: IContentField<string>;
-    use_mantine_style?: IContentField<string>;
+    use_mantine_style?: IContentField<TMantineFullWidth>;
 }
 
 export interface IRefContainerStyle extends IBaseStyle {
@@ -345,7 +590,7 @@ export interface IFormStyle extends IStyleWithMarginAndPadding {
     btn_cancel_color?: IContentField<string>;
     buttons_variant?: IContentField<string>;
     buttons_position?: IContentField<string>;
-    use_mantine_style?: IContentField<string>;
+    use_mantine_style?: IContentField<TMantineFullWidth>;
 }
 
 export interface IFormLogStyle extends IFormStyle {
@@ -363,7 +608,7 @@ export interface IInputStyle extends IBaseStyle {
     label?: IContentField<string>;
     type_input?: IContentField<string>;
     placeholder?: IContentField<string>;
-    is_required?: IContentField<string>;
+    is_required?: IContentField<TMantineRequired>;
     name?: IContentField<string>;
     value?: IContentField<string>;
     min?: IContentField<string>;
@@ -378,38 +623,38 @@ export interface ITextInputStyle extends IStyleWithMargin {
     value?: IContentField<string>;
     placeholder?: IContentField<string>;
     description?: IContentField<string>;
-    is_required?: IContentField<string>;
-    disabled?: IContentField<string>;
+    is_required?: IContentField<TMantineRequired>;
+    disabled?: IContentField<TMantineDisabled>;
     mantine_left_icon?: IContentField<string>;
     mantine_right_icon?: IContentField<string>;
-    use_mantine_style?: IContentField<string>;
-    mantine_size?: IContentField<string>;
-    mantine_radius?: IContentField<string>;
-    mantine_text_input_variant?: IContentField<string>;
+    use_mantine_style?: IContentField<TMantineFullWidth>;
+    mantine_size?: IContentField<TMantineSize>;
+    mantine_radius?: IContentField<TMantineRadius>;
+    mantine_text_input_variant?: IContentField<TMantineInputVariant>;
 }
 
 export interface ITextareaStyle extends IStyleWithMargin {
     style_name: 'textarea';
     label?: IContentField<string>;
     placeholder?: IContentField<string>;
-    is_required?: IContentField<string>;
+    is_required?: IContentField<TMantineRequired>;
     name?: IContentField<string>;
     value?: IContentField<string>;
     min?: IContentField<string>;
     max?: IContentField<string>;
     markdown_editor?: IContentField<string>;
     description?: IContentField<string>;
-    disabled?: IContentField<string>;
+    disabled?: IContentField<TMantineDisabled>;
     mantine_left_icon?: IContentField<string>;
     mantine_right_icon?: IContentField<string>;
     mantine_textarea_autosize?: IContentField<string>;
     mantine_textarea_min_rows?: IContentField<string>;
     mantine_textarea_max_rows?: IContentField<string>;
     mantine_textarea_resize?: IContentField<string>;
-    mantine_size?: IContentField<string>;
-    mantine_radius?: IContentField<string>;
+    mantine_size?: IContentField<TMantineSize>;
+    mantine_radius?: IContentField<TMantineRadius>;
     mantine_textarea_variant?: IContentField<string>;
-    use_mantine_style?: IContentField<string>;
+    use_mantine_style?: IContentField<TMantineFullWidth>;
 }
 
 export interface IRichTextEditorStyle extends IStyleWithMargin {
@@ -419,28 +664,28 @@ export interface IRichTextEditorStyle extends IStyleWithMargin {
     value?: IContentField<string>;
     placeholder?: IContentField<string>;
     description?: IContentField<string>;
-    is_required?: IContentField<string>;
-    disabled?: IContentField<string>;
+    is_required?: IContentField<TMantineRequired>;
+    disabled?: IContentField<TMantineDisabled>;
     mantine_rich_text_editor_variant?: IContentField<string>;
     mantine_rich_text_editor_placeholder?: IContentField<string>;
     mantine_rich_text_editor_bubble_menu?: IContentField<string>;
     mantine_rich_text_editor_text_color?: IContentField<string>;
     mantine_rich_text_editor_task_list?: IContentField<string>;
-    use_mantine_style?: IContentField<string>;
+    use_mantine_style?: IContentField<TMantineFullWidth>;
 }
 
 export interface ISelectStyle extends IBaseStyle {
     style_name: 'select';
     label?: IContentField<string>;
     alt?: IContentField<string>;
-    is_required?: IContentField<string>;
+    is_required?: IContentField<TMantineRequired>;
     name?: IContentField<string>;
     value?: IContentField<string>;
     items?: IContentField<any[]>;
     is_multiple?: IContentField<string>;
     max?: IContentField<string>;
     live_search?: IContentField<string>;
-    disabled?: IContentField<string>;
+    disabled?: IContentField<TMantineDisabled>;
     image_selector?: IContentField<string>;    
     allow_clear?: IContentField<string>;
 }
@@ -448,7 +693,7 @@ export interface ISelectStyle extends IBaseStyle {
 export interface IRadioStyle extends IStyleWithMargin {
     style_name: 'radio';
     label?: IContentField<string>;
-    is_required?: IContentField<string>;
+    is_required?: IContentField<TMantineRequired>;
     name?: IContentField<string>;
     value?: IContentField<string>;
     items?: IContentField<any[]>;
@@ -467,11 +712,11 @@ export interface ISliderStyle extends IStyleWithMargin {
     mantine_numeric_max?: IContentField<string>;
     mantine_numeric_step?: IContentField<string>;
     // Mantine unified styling fields
-    mantine_size?: IContentField<string>;
-    mantine_color?: IContentField<string>;
-    mantine_radius?: IContentField<string>;
-    disabled?: IContentField<string>;
-    use_mantine_style?: IContentField<string>;
+    mantine_size?: IContentField<TMantineSize>;
+    mantine_color?: IContentField<TMantineColor>;
+    mantine_radius?: IContentField<TMantineRadius>;
+    disabled?: IContentField<TMantineDisabled>;
+    use_mantine_style?: IContentField<TMantineFullWidth>;
     // Slider-specific fields
     mantine_slider_marks_values?: IContentField<string>;
     mantine_slider_show_label?: IContentField<string>;
@@ -491,19 +736,19 @@ export interface ICheckboxStyle extends IStyleWithMargin {
     label?: IContentField<string>;
     name?: IContentField<string>;
     value?: IContentField<string>;
-    is_required?: IContentField<string>;
+    is_required?: IContentField<TMantineRequired>;
     checkbox_value?: IContentField<string>;
     // Mantine-specific fields
-    mantine_checkbox_icon?: IContentField<string>;
-    mantine_checkbox_labelPosition?: IContentField<string>;
+    mantine_checkbox_icon?: IContentField<TMantineCheckboxIcon>;
+    mantine_checkbox_labelPosition?: IContentField<TMantineCheckboxLabelPosition>;
     description?: IContentField<string>;
-    disabled?: IContentField<string>;
+    disabled?: IContentField<TMantineDisabled>;
     // Reusable Mantine fields
-    mantine_size?: IContentField<string>;
-    mantine_radius?: IContentField<string>;
-    mantine_color?: IContentField<string>;
-    use_mantine_style?: IContentField<string>;
-    mantine_use_input_wrapper?: IContentField<string>; // Checkbox field for using Input.Wrapper vs inline labels
+    mantine_size?: IContentField<TMantineSize>;
+    mantine_radius?: IContentField<TMantineRadius>;
+    mantine_color?: IContentField<TMantineColor>;
+    use_mantine_style?: IContentField<TMantineFullWidth>;
+    mantine_use_input_wrapper?: IContentField<TMantineUseInputWrapper>; // Checkbox field for using Input.Wrapper vs inline labels
 }
 
 // DatePicker Styles
@@ -513,8 +758,8 @@ export interface IDatePickerStyle extends IStyleWithMargin {
     label?: IContentField<string>;
     name?: IContentField<string>;
     value?: IContentField<string>;
-    is_required?: IContentField<string>;
-    disabled?: IContentField<string>;
+    is_required?: IContentField<TMantineRequired>;
+    disabled?: IContentField<TMantineDisabled>;
     description?: IContentField<string>;
     mantine_datepicker_type?: IContentField<string>;
     mantine_datepicker_format?: IContentField<string>;
@@ -537,9 +782,9 @@ export interface IDatePickerStyle extends IStyleWithMargin {
     mantine_datepicker_time_grid_config?: IContentField<string>;
     mantine_datepicker_with_seconds?: IContentField<string>;
     // Reusable Mantine fields
-    mantine_size?: IContentField<string>;
-    mantine_radius?: IContentField<string>;
-    use_mantine_style?: IContentField<string>;
+    mantine_size?: IContentField<TMantineSize>;
+    mantine_radius?: IContentField<TMantineRadius>;
+    use_mantine_style?: IContentField<TMantineFullWidth>;
 }
 
 // Media Styles
@@ -555,8 +800,8 @@ export interface IImageStyle extends IStyleWithMargin {
     mantine_image_fit?: IContentField<string>;
     mantine_width?: IContentField<string>;
     mantine_height?: IContentField<string>;
-    mantine_radius?: IContentField<string>;
-    use_mantine_style?: IContentField<string>;
+    mantine_radius?: IContentField<TMantineRadius>;
+    use_mantine_style?: IContentField<TMantineFullWidth>;
 }
 
 export interface IVideoStyle extends IBaseStyle {
@@ -600,7 +845,7 @@ export interface ICarouselStyle extends IStyleWithMarginAndPadding {
     mantine_carousel_in_view_threshold?: IContentField<string>;
     mantine_carousel_duration?: IContentField<string>;
     mantine_carousel_embla_options?: IContentField<string>;
-    use_mantine_style?: IContentField<string>;
+    use_mantine_style?: IContentField<TMantineFullWidth>;
 }
 
 
@@ -633,10 +878,10 @@ export interface ITabsStyle extends IStyleWithMargin {
     mantine_tabs_variant?: IContentField<string>;      // Select field for variant (default, outline, pills)
     mantine_tabs_orientation?: IContentField<string>;  // Segment field for orientation (horizontal, vertical)
     mantine_tabs_radius?: IContentField<string>;       // Slider field for radius (xs, sm, md, lg, xl)
-    mantine_color?: IContentField<string>;        // Select field for color (blue, gray, red, etc.)
+    mantine_color?: IContentField<TMantineColor>;        // Select field for color (blue, gray, red, etc.)
     mantine_width?: IContentField<string>;             // Select field for width
     mantine_height?: IContentField<string>;            // Select field for height
-    use_mantine_style?: IContentField<string>;         // Checkbox for Mantine vs custom styling
+    use_mantine_style?: IContentField<TMantineFullWidth>;         // Checkbox for Mantine vs custom styling
 }
 
 export interface ITabStyle extends IBaseStyle {
@@ -645,10 +890,10 @@ export interface ITabStyle extends IBaseStyle {
     label?: IContentField<string>;                     // Content field for tab label
     mantine_left_icon?: IContentField<string>;  // Select-icon field for left icon
     mantine_right_icon?: IContentField<string>; // Select-icon field for right icon
-    mantine_tab_disabled?: IContentField<string>;      // Checkbox field for disabled state
+    mantine_tab_disabled?: IContentField<TMantineDisabled>;      // Checkbox field for disabled state
     mantine_width?: IContentField<string>;             // Select field for width
     mantine_height?: IContentField<string>;            // Select field for height
-    use_mantine_style?: IContentField<string>;         // Checkbox for Mantine vs custom styling
+    use_mantine_style?: IContentField<TMantineFullWidth>;         // Checkbox for Mantine vs custom styling
     // Legacy fields for backward compatibility
     type?: IContentField<string>;
     is_active?: IContentField<string>;
@@ -714,7 +959,7 @@ export interface IScrollAreaStyle extends IStyleWithMarginAndPadding {
 export interface ISpaceStyle extends IStyleWithMarginAndPadding {
     style_name: 'space';
     // Space-specific fields
-    mantine_size?: IContentField<string>;      // Slider field for size
+    mantine_size?: IContentField<TMantineSize>;      // Slider field for size
     mantine_space_direction?: IContentField<string>;          // Segment field for direction
 }
 
@@ -728,7 +973,7 @@ export interface IGridStyle extends IStyleWithMarginAndPadding {
     mantine_grid_overflow?: IContentField<string>;    // Segment field for overflow
     mantine_width?: IContentField<string>;            // Select field for width
     mantine_height?: IContentField<string>;           // Select field for height
-    use_mantine_style?: IContentField<string>;        // Checkbox for Mantine vs custom styling
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox for Mantine vs custom styling
 }
 
 export interface IGridColumnStyle extends IStyleWithMarginAndPadding {
@@ -740,7 +985,7 @@ export interface IGridColumnStyle extends IStyleWithMarginAndPadding {
     mantine_grid_grow?: IContentField<string>;        // Checkbox field for grow
     mantine_width?: IContentField<string>;            // Select field for width
     mantine_height?: IContentField<string>;           // Select field for height
-    use_mantine_style?: IContentField<string>;        // Checkbox for Mantine vs custom styling
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox for Mantine vs custom styling
 }
 
 export interface IStackStyle extends IStyleWithMarginAndPadding {
@@ -760,19 +1005,19 @@ export interface IStackStyle extends IStyleWithMarginAndPadding {
 export interface IButtonStyle extends IStyleWithMargin {
     style_name: 'button';
     // Core button fields
-    mantine_variant?: IContentField<string>;          // Select field for variant
-    mantine_color?: IContentField<string>;            // Color picker field
-    mantine_size?: IContentField<string>;             // Select field for size
-    mantine_radius?: IContentField<string>;           // Select field for radius
+    mantine_variant?: IContentField<TMantineVariant>;          // Select field for variant
+    mantine_color?: IContentField<TMantineColor>;            // Color picker field
+    mantine_size?: IContentField<TMantineSize>;             // Select field for size
+    mantine_radius?: IContentField<TMantineRadius>;           // Select field for radius
     mantine_left_icon?: IContentField<string>;        // Select-icon field for left icon
     mantine_right_icon?: IContentField<string>;       // Select-icon field for right icon
-    mantine_fullwidth?: IContentField<string>;        // Checkbox field for full width
-    mantine_compact?: IContentField<string>;          // Checkbox field for compact
-    mantine_auto_contrast?: IContentField<string>;    // Checkbox field for auto contrast
-    is_link?: IContentField<string>;                  // Checkbox field for link behavior
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
-    disabled?: IContentField<string>;                 // Checkbox field for disabled state
-    open_in_new_tab?: IContentField<string>;          // Checkbox field for opening in new tab
+    mantine_fullwidth?: IContentField<TMantineFullWidth>;        // Checkbox field for full width
+    mantine_compact?: IContentField<TMantineCompact>;          // Checkbox field for compact
+    mantine_auto_contrast?: IContentField<TMantineAutoContrast>;    // Checkbox field for auto contrast
+    is_link?: IContentField<TMantineFullWidth>;                  // Checkbox field for link behavior
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
+    disabled?: IContentField<TMantineDisabled>;                 // Checkbox field for disabled state
+    open_in_new_tab?: IContentField<TMantineFullWidth>;          // Checkbox field for opening in new tab
     page_keyword?: IContentField<string>;             // Select field for page link
     url?: IContentField<string>;                      // Text input for URL
     // Translatable content fields
@@ -785,17 +1030,17 @@ export interface IButtonStyle extends IStyleWithMargin {
 
 export interface IColorInputStyle extends IStyleWithMargin {
     style_name: 'color-input';
-    mantine_color_format?: IContentField<string>;     // Segment field for color format
-    mantine_color_input_swatches?: IContentField<string>; // Checkbox field for swatches
-    mantine_size?: IContentField<string>;             // Select field for size
-    mantine_radius?: IContentField<string>;           // Select field for radius
+    mantine_color_format?: IContentField<TMantineColorFormat>;     // Segment field for color format
+    mantine_color_input_swatches?: IContentField<TMantineColorPickerSwatches>; // Checkbox field for swatches
+    mantine_size?: IContentField<TMantineSize>;             // Select field for size
+    mantine_radius?: IContentField<TMantineRadius>;           // Select field for radius
     placeholder?: IContentField<string>;              // Translatable placeholder
     name?: IContentField<string>;                     // Text field for form field name
     value?: IContentField<string>;                    // Text field for default value
     description?: IContentField<string>;              // Textarea field for description
-    is_required?: IContentField<string>;              // Checkbox field for required validation
-    disabled?: IContentField<string>;                 // Checkbox field for disabled state
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    is_required?: IContentField<TMantineRequired>;              // Checkbox field for required validation
+    disabled?: IContentField<TMantineDisabled>;                 // Checkbox field for disabled state
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
 }
 
 export interface IColorPickerStyle extends IStyleWithMargin {
@@ -809,13 +1054,13 @@ export interface IColorPickerStyle extends IStyleWithMargin {
     mantine_color_picker_alpha_label?: IContentField<string>; // Text field for alpha label
     mantine_color_picker_as_button?: IContentField<string>; // Checkbox field for button display mode
     mantine_color_picker_button_label?: IContentField<string>; // Text field for button label
-    mantine_size?: IContentField<string>;             // Select field for size
+    mantine_size?: IContentField<TMantineSize>;             // Select field for size
     mantine_fullwidth?: IContentField<string>;        // Checkbox field for full width
     name?: IContentField<string>;                     // Text field for form field name
     value?: IContentField<string>;                    // Text field for default value
     description?: IContentField<string>;              // Textarea field for description
-    is_required?: IContentField<string>;              // Checkbox field for required validation
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    is_required?: IContentField<TMantineRequired>;              // Checkbox field for required validation
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
 }
 
 export interface IFileInputStyle extends IStyleWithMargin {
@@ -826,14 +1071,14 @@ export interface IFileInputStyle extends IStyleWithMargin {
     mantine_file_input_max_size?: IContentField<string>; // Select field for max file size
     mantine_file_input_max_files?: IContentField<string>; // Select field for max number of files
     mantine_file_input_drag_drop?: IContentField<string>; // Checkbox field for drag and drop
-    mantine_size?: IContentField<string>;             // Select field for size
-    mantine_radius?: IContentField<string>;           // Select field for radius
+    mantine_size?: IContentField<TMantineSize>;             // Select field for size
+    mantine_radius?: IContentField<TMantineRadius>;           // Select field for radius
     mantine_left_icon?: IContentField<string>;        // Icon field for left section
     mantine_right_icon?: IContentField<string>;       // Icon field for right section
     placeholder?: IContentField<string>;              // Translatable placeholder
-    disabled?: IContentField<string>;                 // Checkbox field for disabled state
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
-    is_required?: IContentField<string>;              // Checkbox field for required validation
+    disabled?: IContentField<TMantineDisabled>;                 // Checkbox field for disabled state
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
+    is_required?: IContentField<TMantineRequired>;              // Checkbox field for required validation
     name?: IContentField<string>;                     // Text field for form field name
     label?: IContentField<string>;                    // Text field for label
     description?: IContentField<string>;              // Textarea field for description
@@ -846,16 +1091,16 @@ export interface INumberInputStyle extends IStyleWithMargin {
     mantine_numeric_step?: IContentField<string>;     // Select field for step value
     mantine_number_input_decimal_scale?: IContentField<string>; // Slider field for decimal places
     mantine_number_input_clamp_behavior?: IContentField<string>; // Segment field for clamp behavior
-    mantine_size?: IContentField<string>;             // Select field for size
-    mantine_radius?: IContentField<string>;           // Select field for radius
+    mantine_size?: IContentField<TMantineSize>;             // Select field for size
+    mantine_radius?: IContentField<TMantineRadius>;           // Select field for radius
     placeholder?: IContentField<string>;              // Translatable placeholder
     label?: IContentField<string>;                    // Text field for label
     description?: IContentField<string>;              // Textarea field for description
     name?: IContentField<string>;                     // Text field for form field name
     value?: IContentField<string>;                    // Text field for default value
-    is_required?: IContentField<string>;              // Checkbox field for required validation
-    disabled?: IContentField<string>;                 // Checkbox field for disabled state
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    is_required?: IContentField<TMantineRequired>;              // Checkbox field for required validation
+    disabled?: IContentField<TMantineDisabled>;                 // Checkbox field for disabled state
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
 }
 
 
@@ -865,18 +1110,18 @@ export interface IRadioStyle extends IStyleWithMargin {
     description?: IContentField<string>;              // Translatable description
     name?: IContentField<string>;                     // Form field name
     value?: IContentField<string>;                    // Form field value
-    is_required?: IContentField<string>;              // Required field flag
+    is_required?: IContentField<TMantineRequired>;              // Required field flag
     mantine_orientation?: IContentField<string>;      // Segment field for orientation (when options provided)
-    mantine_size?: IContentField<string>;             // Select field for size
-    mantine_color?: IContentField<string>;            // Color picker field
+    mantine_size?: IContentField<TMantineSize>;             // Select field for size
+    mantine_color?: IContentField<TMantineColor>;            // Color picker field
     mantine_radio_options?: IContentField<string>;    // Translatable JSON textarea for options (renders as group when provided)
     mantine_radio_label_position?: IContentField<string>; // Select field for label position (left/right)
     mantine_radio_variant?: IContentField<string>;    // Select field for radio variant (default/outline)
     mantine_radio_card?: IContentField<string>;       // Checkbox field for radio card option
     mantine_tooltip_label?: IContentField<string>;    // Textarea field for tooltip text
     mantine_tooltip_position?: IContentField<string>; // Select field for tooltip position
-    disabled?: IContentField<string>;                 // Checkbox field for disabled state
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    disabled?: IContentField<TMantineDisabled>;                 // Checkbox field for disabled state
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
     mantine_use_input_wrapper?: IContentField<string>; // Checkbox field for using Input.Wrapper vs inline labels
 }
 
@@ -893,29 +1138,29 @@ export interface IRangeSliderStyle extends IStyleWithMargin {
     mantine_range_slider_show_label?: IContentField<string>; // Checkbox field for show label on hover
     mantine_range_slider_labels_always_on?: IContentField<string>; // Checkbox field for labels always on
     mantine_range_slider_inverted?: IContentField<string>; // Checkbox field for inverted slider
-    mantine_size?: IContentField<string>;             // Select field for size
-    mantine_color?: IContentField<string>;            // Color picker field
-    mantine_radius?: IContentField<string>;           // Select field for border radius
-    disabled?: IContentField<string>;                 // Checkbox field for disabled state
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    mantine_size?: IContentField<TMantineSize>;             // Select field for size
+    mantine_color?: IContentField<TMantineColor>;            // Color picker field
+    mantine_radius?: IContentField<TMantineRadius>;           // Select field for border radius
+    disabled?: IContentField<TMantineDisabled>;                 // Checkbox field for disabled state
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
 }
 
 export interface ISegmentedControlStyle extends IStyleWithMargin {
     style_name: 'segmented-control';
     mantine_segmented_control_data?: IContentField<string>; // Translatable JSON textarea for data
     mantine_orientation?: IContentField<string>;      // Segment field for orientation
-    mantine_size?: IContentField<string>;             // Select field for size
-    mantine_radius?: IContentField<string>;           // Select field for radius
-    mantine_color?: IContentField<string>;            // Color picker field
+    mantine_size?: IContentField<TMantineSize>;             // Select field for size
+    mantine_radius?: IContentField<TMantineRadius>;           // Select field for radius
+    mantine_color?: IContentField<TMantineColor>;            // Color picker field
     fullwidth?: IContentField<string>;                // Checkbox field for full width
-    disabled?: IContentField<string>;                 // Checkbox field for disabled state
+    disabled?: IContentField<TMantineDisabled>;                 // Checkbox field for disabled state
     readonly?: IContentField<string>;                 // Checkbox field for readonly state
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
     mantine_segmented_control_item_border?: IContentField<string>; // Checkbox field for item border
     label?: IContentField<string>;                     // Text field for label
     description?: IContentField<string>;              // Text field for description
     value?: IContentField<string>;                    // Text field for default value
-    is_required?: IContentField<string>;              // Checkbox field for required validation
+    is_required?: IContentField<TMantineRequired>;              // Checkbox field for required validation
     name?: IContentField<string>;                     // Text field for form field name
 }
 
@@ -925,13 +1170,13 @@ export interface ISwitchStyle extends IStyleWithMargin {
     description?: IContentField<string>;              // Translatable description
     mantine_switch_on_label?: IContentField<string>;  // Translatable on label
     mantine_switch_off_label?: IContentField<string>; // Translatable off label
-    mantine_size?: IContentField<string>;             // Select field for size
-    mantine_color?: IContentField<string>;            // Color picker field
-    mantine_radius?: IContentField<string>;           // Select field for border radius
-    disabled?: IContentField<string>;                 // Checkbox field for disabled state
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    mantine_size?: IContentField<TMantineSize>;             // Select field for size
+    mantine_color?: IContentField<TMantineColor>;            // Color picker field
+    mantine_radius?: IContentField<TMantineRadius>;           // Select field for border radius
+    disabled?: IContentField<TMantineDisabled>;                 // Checkbox field for disabled state
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
     name?: IContentField<string>;                     // Text field for form field name
-    is_required?: IContentField<string>;              // Checkbox field for required validation
+    is_required?: IContentField<TMantineRequired>;              // Checkbox field for required validation
     mantine_label_position?: IContentField<string>;   // Segment field for label position
     value?: IContentField<string>;                    // Text field for current value
     mantine_switch_on_value?: IContentField<string>;  // Text field for on state value
@@ -943,14 +1188,14 @@ export interface IComboboxStyle extends IStyleWithMargin {
     style_name: 'combobox';
     placeholder?: IContentField<string>;              // Translatable placeholder
     mantine_combobox_options?: IContentField<string>; // Translatable JSON textarea for options
-    disabled?: IContentField<string>;                 // Checkbox field for disabled state
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    disabled?: IContentField<TMantineDisabled>;                 // Checkbox field for disabled state
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
     // Form integration fields
     label?: IContentField<string>;                    // Label for form integration
     description?: IContentField<string>;              // Description text
     name?: IContentField<string>;                     // Field name for form submission
     value?: IContentField<string>;                    // Default value
-    is_required?: IContentField<string>;              // Required field flag
+    is_required?: IContentField<TMantineRequired>;              // Required field flag
     // Combobox configuration (similar to CreatableSelectField)
     mantine_combobox_multi_select?: IContentField<string>; // Multi-select toggle
     mantine_combobox_searchable?: IContentField<string>;   // Searchable toggle
@@ -962,17 +1207,17 @@ export interface IComboboxStyle extends IStyleWithMargin {
 
 export interface IActionIconStyle extends IStyleWithMargin {
     style_name: 'action-icon';
-    mantine_variant?: IContentField<string>;          // Select field for variant
+    mantine_variant?: IContentField<TMantineVariant>;          // Select field for variant
     mantine_action_icon_loading?: IContentField<string>; // Checkbox field for loading
-    mantine_size?: IContentField<string>;             // Select field for size
-    mantine_radius?: IContentField<string>;           // Select field for radius
-    mantine_color?: IContentField<string>;            // Color picker field
+    mantine_size?: IContentField<TMantineSize>;             // Select field for size
+    mantine_radius?: IContentField<TMantineRadius>;           // Select field for radius
+    mantine_color?: IContentField<TMantineColor>;            // Color picker field
     mantine_left_icon?: IContentField<string>;        // Select-icon field for icon
     is_link?: IContentField<string>;                  // Checkbox field for link behavior
     page_keyword?: IContentField<string>;             // Select field for page link
     open_in_new_tab?: IContentField<string>;          // Checkbox field for opening in new tab
-    disabled?: IContentField<string>;                 // Checkbox field for disabled state
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    disabled?: IContentField<TMantineDisabled>;                 // Checkbox field for disabled state
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
 }
 
 // ===========================================
@@ -981,25 +1226,25 @@ export interface IActionIconStyle extends IStyleWithMargin {
 
 export interface IBadgeStyle extends IStyleWithMargin {
     style_name: 'badge';
-    mantine_variant?: IContentField<string>;          // Select field for variant
-    mantine_size?: IContentField<string>;             // Select field for size
+    mantine_variant?: IContentField<TMantineVariant>;          // Select field for variant
+    mantine_size?: IContentField<TMantineSize>;             // Select field for size
     mantine_left_icon?: IContentField<string>;        // Select-icon field for left icon
-    mantine_radius?: IContentField<string>;           // Select field for radius
-    mantine_color?: IContentField<string>;            // Color picker field
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    mantine_radius?: IContentField<TMantineRadius>;           // Select field for radius
+    mantine_color?: IContentField<TMantineColor>;            // Color picker field
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
     mantine_right_icon?: IContentField<string>;        // Select-icon field for right icon
-    mantine_auto_contrast?: IContentField<string>;    // Checkbox field for auto contrast
+    mantine_auto_contrast?: IContentField<TMantineAutoContrast>;    // Checkbox field for auto contrast
 }
 
 export interface IBoxStyle extends IStyleWithMarginAndPadding {
     style_name: 'box';
     content?: IContentField<string>;                 // Translatable content field
     mantine_background_color?: IContentField<string>; // Color picker field for background color
-    mantine_color?: IContentField<string>;            // Color picker field for text color
+    mantine_color?: IContentField<TMantineColor>;            // Color picker field for text color
     mantine_border?: IContentField<string>;           // Segment field for border style (none, solid, dashed, dotted)
     mantine_border_size?: IContentField<string>;      // Slider field for border size
     mantine_border_color?: IContentField<string>;     // Color picker field for border color
-    mantine_radius?: IContentField<string>;           // Select field for border radius
+    mantine_radius?: IContentField<TMantineRadius>;           // Select field for border radius
     mantine_shadow?: IContentField<string>;           // Slider field for shadow
     mantine_padding_inline?: IContentField<string>;   // Slider field for horizontal padding
     mantine_padding_block?: IContentField<string>;    // Slider field for vertical padding
@@ -1013,19 +1258,19 @@ export interface IBoxStyle extends IStyleWithMarginAndPadding {
     mantine_mb?: IContentField<string>;               // Slider field for bottom margin
     mantine_ml?: IContentField<string>;               // Slider field for left margin
     mantine_mr?: IContentField<string>;               // Slider field for right margin
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
 }
 
 export interface IChipStyle extends IStyleWithMargin {
     style_name: 'chip';
     mantine_chip_variant?: IContentField<string>;     // Select field for variant
-    mantine_size?: IContentField<string>;             // Select field for size
-    mantine_radius?: IContentField<string>;           // Select field for radius
-    mantine_color?: IContentField<string>;            // Color picker field
+    mantine_size?: IContentField<TMantineSize>;             // Select field for size
+    mantine_radius?: IContentField<TMantineRadius>;           // Select field for radius
+    mantine_color?: IContentField<TMantineColor>;            // Color picker field
     mantine_chip_checked?: IContentField<string>;     // Checkbox field for checked state
     mantine_chip_multiple?: IContentField<string>;    // Checkbox field for multiple selection
-    disabled?: IContentField<string>;                 // Checkbox field for disabled state
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    disabled?: IContentField<TMantineDisabled>;                 // Checkbox field for disabled state
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
     // Icon configuration fields
     mantine_left_icon?: IContentField<string>;        // Icon selection field
     mantine_icon_size?: IContentField<string>;        // Icon size field
@@ -1035,7 +1280,7 @@ export interface IChipStyle extends IStyleWithMargin {
     chip_value?: IContentField<string>;               // Legacy field - value to be submitted when checked
     mantine_chip_on_value?: IContentField<string>;    // Value when chip is checked
     mantine_chip_off_value?: IContentField<string>;   // Value when chip is unchecked
-    is_required?: IContentField<string>;              // Makes the chip field required
+    is_required?: IContentField<TMantineRequired>;              // Makes the chip field required
     tooltip?: IContentField<string>;                  // Tooltip field
     mantine_tooltip_position?: IContentField<string>;  // Select field for tooltip position
     chip_on_value?: IContentField<string>;            // Value when chip is checked
@@ -1048,10 +1293,10 @@ export interface IAvatarStyle extends IStyleWithMargin {
     src?: IContentField<string>;                      // Image source
     alt?: IContentField<string>;                      // Translatable alt text
     mantine_avatar_variant?: IContentField<string>;   // Select field for variant
-    mantine_size?: IContentField<string>;             // Select field for size
-    mantine_radius?: IContentField<string>;           // Select field for radius
-    mantine_color?: IContentField<string>;            // Color picker field
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    mantine_size?: IContentField<TMantineSize>;             // Select field for size
+    mantine_radius?: IContentField<TMantineRadius>;           // Select field for radius
+    mantine_color?: IContentField<TMantineColor>;            // Color picker field
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
     mantine_left_icon?: IContentField<string>;        // Icon selection field
     mantine_avatar_initials?: IContentField<string>;  // Text field for custom initials
     img_src?: IContentField<string>;                  // Image source
@@ -1063,31 +1308,31 @@ export interface ITimelineStyle extends IStyleWithMargin {
     mantine_timeline_line_width?: IContentField<string>; // Select field for line width
     mantine_timeline_active?: IContentField<string>; // Select field for active index
     mantine_timeline_align?: IContentField<string>; // Select field for alignment
-    mantine_color?: IContentField<string>;            // Color picker field
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    mantine_color?: IContentField<TMantineColor>;            // Color picker field
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
 }
 
 
 export interface IIndicatorStyle extends IBaseStyle {
     style_name: 'indicator';
     mantine_indicator_processing?: IContentField<string>; // Checkbox field for processing
-    mantine_indicator_disabled?: IContentField<string>; // Checkbox field for disabled
+    mantine_indicator_disabled?: IContentField<TMantineDisabled>; // Checkbox field for disabled
     mantine_indicator_size?: IContentField<string>;     // Slider field for size (6-40px)
     mantine_indicator_position?: IContentField<string>;  // Select field for position
     label?: IContentField<string>;    // Text field for label
     mantine_indicator_inline?: IContentField<string>;   // Checkbox field for inline
     mantine_indicator_offset?: IContentField<string>;   // Select field for offset
     mantine_border?: IContentField<string>; // Checkbox field for border
-    mantine_radius?: IContentField<string>;             // Select field for border radius
-    mantine_color?: IContentField<string>;              // Color picker field
-    use_mantine_style?: IContentField<string>;          // Checkbox field for Mantine styling
+    mantine_radius?: IContentField<TMantineRadius>;             // Select field for border radius
+    mantine_color?: IContentField<TMantineColor>;              // Color picker field
+    use_mantine_style?: IContentField<TMantineFullWidth>;          // Checkbox field for Mantine styling
 }
 
 export interface IKbdStyle extends IStyleWithMargin {
     style_name: 'kbd';
     label?: IContentField<string>;                    // Translatable label
-    mantine_size?: IContentField<string>;             // Select field for size
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    mantine_size?: IContentField<TMantineSize>;             // Select field for size
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
 }
 
 export interface IRatingStyle extends IStyleWithMargin {
@@ -1096,7 +1341,7 @@ export interface IRatingStyle extends IStyleWithMargin {
     label?: IContentField<string>;                       // Label text for the rating input field
     description?: IContentField<string>;                 // Description text for the rating input field
     name?: IContentField<string>;                        // Name attribute for the rating input field (required)
-    disabled?: IContentField<string>;                    // Checkbox field for disabled state
+    disabled?: IContentField<TMantineDisabled>;                    // Checkbox field for disabled state
     value?: IContentField<string>;                       // Initial value for the rating
     readonly?: IContentField<string>;                    // Checkbox field for readonly mode (moved from mantine-specific)
 
@@ -1109,49 +1354,49 @@ export interface IRatingStyle extends IStyleWithMargin {
     mantine_rating_highlight_selected_only?: IContentField<string>; // Checkbox field for highlighting selected only
 
     // Mantine styling fields
-    mantine_size?: IContentField<string>;               // Select field for size
-    mantine_color?: IContentField<string>;              // Color picker field
-    use_mantine_style?: IContentField<string>;          // Checkbox field for Mantine styling
+    mantine_size?: IContentField<TMantineSize>;               // Select field for size
+    mantine_color?: IContentField<TMantineColor>;              // Color picker field
+    use_mantine_style?: IContentField<TMantineFullWidth>;          // Checkbox field for Mantine styling
 }
 
 export interface IProgressStyle extends IStyleWithMargin {
     style_name: 'progress';
     value?: IContentField<string>;             // Number field for progress value (0-100)
-    mantine_color?: IContentField<string>;                      // Color picker field
-    mantine_radius?: IContentField<string>;                     // Select field for radius
-    mantine_size?: IContentField<string>;                       // Select field for size
+    mantine_color?: IContentField<TMantineColor>;                      // Color picker field
+    mantine_radius?: IContentField<TMantineRadius>;                     // Select field for radius
+    mantine_size?: IContentField<TMantineSize>;                       // Select field for size
     mantine_progress_striped?: IContentField<string>;           // Checkbox field for striped pattern
     mantine_progress_animated?: IContentField<string>;          // Checkbox field for animation
     mantine_progress_transition_duration?: IContentField<string>; // Select field for transition duration
-    use_mantine_style?: IContentField<string>;                  // Checkbox field for Mantine styling
+    use_mantine_style?: IContentField<TMantineFullWidth>;                  // Checkbox field for Mantine styling
 }
 
 export interface IProgressRootStyle extends IBaseStyle {
     style_name: 'progress-root';
-    mantine_size?: IContentField<string>;                       // Select field for size
+    mantine_size?: IContentField<TMantineSize>;                       // Select field for size
     mantine_progress_auto_contrast?: IContentField<string>;     // Checkbox field for auto contrast
-    use_mantine_style?: IContentField<string>;                  // Checkbox field for Mantine styling
+    use_mantine_style?: IContentField<TMantineFullWidth>;                  // Checkbox field for Mantine styling
 }
 
 export interface IProgressSectionStyle extends IBaseStyle {
     style_name: 'progress-section';
     value?: IContentField<string>;             // Number field for section value (0-100)
-    mantine_color?: IContentField<string>;                      // Color picker field
+    mantine_color?: IContentField<TMantineColor>;                      // Color picker field
     mantine_progress_striped?: IContentField<string>;           // Checkbox field for striped pattern
     mantine_progress_animated?: IContentField<string>;          // Checkbox field for animation
     label?: IContentField<string>;                              // Text field for section label
     mantine_tooltip_label?: IContentField<string>;              // Text field for tooltip label (display = 1)
     mantine_tooltip_position?: IContentField<string>;           // Select field for tooltip position
-    use_mantine_style?: IContentField<string>;                  // Checkbox field for Mantine styling
+    use_mantine_style?: IContentField<TMantineFullWidth>;                  // Checkbox field for Mantine styling
 }
 
 export interface IThemeIconStyle extends IStyleWithMargin {
     style_name: 'theme-icon';
-    mantine_variant?: IContentField<string>;          // Select field for variant
-    mantine_size?: IContentField<string>;             // Select field for size
-    mantine_radius?: IContentField<string>;           // Select field for radius
-    mantine_color?: IContentField<string>;            // Color picker field
-    use_mantine_style?: IContentField<string>; 
+    mantine_variant?: IContentField<TMantineVariant>;          // Select field for variant
+    mantine_size?: IContentField<TMantineSize>;             // Select field for size
+    mantine_radius?: IContentField<TMantineRadius>;           // Select field for radius
+    mantine_color?: IContentField<TMantineColor>;            // Color picker field
+    use_mantine_style?: IContentField<TMantineFullWidth>; 
     mantine_left_icon?: IContentField<string>;  // Select-icon field for icon
 }
 
@@ -1170,8 +1415,8 @@ export interface IAccordionStyle extends IStyleWithMarginAndPadding {
     mantine_accordion_loop?: IContentField<string>; // Checkbox field for loop navigation
     mantine_accordion_transition_duration?: IContentField<string>; // Text field for transition duration (creatable)
     mantine_accordion_default_value?: IContentField<string>; // Text field for default open items
-    mantine_radius?: IContentField<string>;           // Select field for radius
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling (hidden)
+    mantine_radius?: IContentField<TMantineRadius>;           // Select field for radius
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling (hidden)
 }
 
 export interface IAccordionItemStyle extends IStyleWithMarginAndPadding {
@@ -1179,8 +1424,8 @@ export interface IAccordionItemStyle extends IStyleWithMarginAndPadding {
     mantine_accordion_item_value?: IContentField<string>; // Text field for item value
     label?: IContentField<string>;                    // Translatable label text
     mantine_accordion_item_icon?: IContentField<string>; // Select-icon field for item icon
-    disabled?: IContentField<string>;                 // Checkbox field for disabled state
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    disabled?: IContentField<TMantineDisabled>;                 // Checkbox field for disabled state
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
 }
 
 // ===========================================
@@ -1192,12 +1437,12 @@ export interface INotificationStyle extends IStyleWithMarginAndPadding {
     title?: IContentField<string>;                    // Translatable title
     content?: IContentField<string>;                  // Translatable content/message
     mantine_left_icon?: IContentField<string>;        // Select-icon field for icon
-    mantine_color?: IContentField<string>;            // Color picker field
+    mantine_color?: IContentField<TMantineColor>;            // Color picker field
     mantine_notification_loading?: IContentField<string>; // Checkbox field for loading
     mantine_notification_with_close_button?: IContentField<string>; // Checkbox field for close button
     mantine_border?: IContentField<string>; // Checkbox field for border
-    mantine_radius?: IContentField<string>;           // Select field for radius
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    mantine_radius?: IContentField<TMantineRadius>;           // Select field for radius
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
 }
 
 // ===========================================
@@ -1208,36 +1453,36 @@ export interface ITitleStyle extends IStyleWithMargin {
     style_name: 'title';
     content?: IContentField<string>;                  // Translatable content field
     mantine_title_order?: IContentField<string>;      // Select field for heading level (1-6)
-    mantine_size?: IContentField<string>;             // Select field for size
+    mantine_size?: IContentField<TMantineSize>;             // Select field for size
     mantine_title_text_wrap?: IContentField<string>;  // Select field for text-wrap (wrap, balance, nowrap)
     mantine_title_line_clamp?: IContentField<string>; // Select field for line clamp (1-5 lines)
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
 }
 
 export interface ITextStyle extends IStyleWithMarginAndPadding {
     style_name: 'text';
     text?: IContentField<string>;                     // Translatable text content field
-    mantine_size?: IContentField<string>;             // Select field for size (xs, sm, md, lg, xl)
-    mantine_color?: IContentField<string>;            // Color picker field
-    mantine_text_font_weight?: IContentField<string>; // Select field for font weight (100-900)
-    mantine_text_font_style?: IContentField<string>;  // Segment field for font style (italic, normal)
-    mantine_text_text_decoration?: IContentField<string>; // Segment field for text decoration (underline, line-through, none)
-    mantine_text_text_transform?: IContentField<string>;    // Segment field for text transform (uppercase, capitalize, lowercase, none)
-    mantine_text_align?: IContentField<string>;       // Segment field for text alignment (left, center, right, justify)
-    mantine_text_variant?: IContentField<string>;     // Segment field for variant (default, gradient)
+    mantine_size?: IContentField<TMantineSize>;             // Select field for size (xs, sm, md, lg, xl)
+    mantine_color?: IContentField<TMantineColor>;            // Color picker field
+    mantine_text_font_weight?: IContentField<TMantineTextFontWeight>; // Select field for font weight (100-900)
+    mantine_text_font_style?: IContentField<TMantineTextFontStyle>;  // Segment field for font style (italic, normal)
+    mantine_text_text_decoration?: IContentField<TMantineTextDecoration>; // Segment field for text decoration (underline, line-through, none)
+    mantine_text_text_transform?: IContentField<TMantineTextTransform>;    // Segment field for text transform (uppercase, capitalize, lowercase, none)
+    mantine_text_align?: IContentField<TMantineTextAlign>;       // Segment field for text alignment (left, center, right, justify)
+    mantine_text_variant?: IContentField<TMantineTextVariant>;     // Segment field for variant (default, gradient)
     mantine_text_gradient?: IContentField<string>;    // Textarea field for gradient configuration
-    mantine_text_truncate?: IContentField<string>;    // Segment field for truncation (end, start)
-    mantine_text_line_clamp?: IContentField<string>;  // Select field for line clamp (2-5 lines)
-    mantine_text_inherit?: IContentField<string>;     // Checkbox field for inherit styles
-    mantine_text_span?: IContentField<string>;        // Checkbox field for span element
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    mantine_text_truncate?: IContentField<TMantineTextTruncate>;    // Segment field for truncation (end, start)
+    mantine_text_line_clamp?: IContentField<TMantineLineClamp>;  // Select field for line clamp (2-5 lines)
+    mantine_text_inherit?: IContentField<TMantineTextInherit>;     // Checkbox field for inherit styles
+    mantine_text_span?: IContentField<TMantineTextSpan>;        // Checkbox field for span element
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
 }
 
 export interface ICodeStyle extends IStyleWithMarginAndPadding {
     style_name: 'code';
     mantine_code_block?: IContentField<string>;       // Checkbox field for block display
-    mantine_color?: IContentField<string>;            // Color picker field
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    mantine_color?: IContentField<TMantineColor>;            // Color picker field
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
     content?: IContentField<string>;                  // Translatable content field
 }
 
@@ -1245,8 +1490,8 @@ export interface IHighlightStyle extends IStyleWithMarginAndPadding {
     style_name: 'highlight';
     text?: IContentField<string>;                     // Translatable main content to be highlighted
     mantine_highlight_highlight?: IContentField<string>; // Translatable text to highlight within content
-    mantine_color?: IContentField<string>;            // Color picker field
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    mantine_color?: IContentField<TMantineColor>;            // Color picker field
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
 }
 
 export interface IBlockquoteStyle extends IStyleWithMarginAndPadding {
@@ -1255,8 +1500,8 @@ export interface IBlockquoteStyle extends IStyleWithMarginAndPadding {
     cite?: IContentField<string>;                     // Translatable citation
     mantine_left_icon?: IContentField<string>;        // Select-icon field for icon
     mantine_icon_size?: IContentField<string>;        // Select field for icon size
-    mantine_color?: IContentField<string>;            // Color picker field
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    mantine_color?: IContentField<TMantineColor>;            // Color picker field
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
 }
 
 // ===========================================
@@ -1266,7 +1511,7 @@ export interface IBlockquoteStyle extends IStyleWithMarginAndPadding {
 export interface IAspectRatioStyle extends IBaseStyle {
     style_name: 'aspect-ratio';
     mantine_aspect_ratio?: IContentField<string>;     // Select field for aspect ratio
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
 }
 
 // ===========================================
@@ -1275,16 +1520,15 @@ export interface IAspectRatioStyle extends IBaseStyle {
 
 export interface ICardStyle extends IStyleWithMarginAndPadding {
     style_name: 'card';
-    mantine_card_shadow?: IContentField<string>;      // Select field for shadow
-    mantine_card_padding?: IContentField<string>;     // Select field for padding
-    mantine_border?: IContentField<string>; // Checkbox field for border
-    mantine_radius?: IContentField<string>;           // Select field for radius
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    mantine_card_shadow?: IContentField<TMantineCardShadow>;      // Select field for shadow
+    mantine_border?: IContentField<TMantineFullWidth>; // Checkbox field for border
+    mantine_radius?: IContentField<TMantineRadius>;           // Select field for radius
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
 }
 
 export interface ICardSegmentStyle extends IStyleWithMarginAndPadding {
     style_name: 'card-segment';
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
 }
 
 // ===========================================
@@ -1293,13 +1537,13 @@ export interface ICardSegmentStyle extends IStyleWithMarginAndPadding {
 
 export interface IListStyle extends IStyleWithMarginAndPadding {
     style_name: 'list';
-    mantine_list_type?: IContentField<string>;        // Segment field for list type
-    mantine_spacing?: IContentField<string>;     // Select field for spacing
-    mantine_size?: IContentField<string>;             // Select field for size
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
-    mantine_list_list_style_type?: IContentField<string>; // Select field for list style type
-    mantine_list_with_padding?: IContentField<string>; // Checkbox field for with padding
-    mantine_list_center?: IContentField<string>; // Checkbox field for center
+    mantine_list_type?: IContentField<TMantineListType>;        // Segment field for list type
+    mantine_spacing?: IContentField<TMantineSize>;     // Select field for spacing
+    mantine_size?: IContentField<TMantineSize>;             // Select field for size
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
+    mantine_list_list_style_type?: IContentField<TMantineListStyleType>; // Select field for list style type
+    mantine_list_with_padding?: IContentField<TMantineFullWidth>; // Checkbox field for with padding
+    mantine_list_center?: IContentField<TMantineFullWidth>; // Checkbox field for center
     mantine_list_icon?: IContentField<string>; // Select-icon field for icon
 }
 
@@ -1307,36 +1551,36 @@ export interface IListItemStyle extends IStyleWithMarginAndPadding {
     style_name: 'list-item';
     mantine_list_item_content?: IContentField<string>; // Textarea field for content (display = 1)
     mantine_list_item_icon?: IContentField<string>;    // Select-icon field for icon
-    use_mantine_style?: IContentField<string>;         // Checkbox field for Mantine styling
+    use_mantine_style?: IContentField<TMantineFullWidth>;         // Checkbox field for Mantine styling
 }
 
 export interface IBackgroundImageStyle extends IStyleWithMarginAndPadding {
     style_name: 'background-image';
     img_src?: IContentField<string>;                  // Image source
-    mantine_radius?: IContentField<string>;           // Select field for radius
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    mantine_radius?: IContentField<TMantineRadius>;           // Select field for radius
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
 }
 
 export interface IFieldsetStyle extends IStyleWithMarginAndPadding {
     style_name: 'fieldset';
     legend?: IContentField<string>;                   // Translatable legend
-    mantine_fieldset_variant?: IContentField<string>; // Select field for variant
-    mantine_radius?: IContentField<string>;           // Select field for radius
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
-    disabled?: IContentField<string>;                 // Checkbox field for disabled state
+    mantine_fieldset_variant?: IContentField<TMantineFieldsetVariant>; // Select field for variant
+    mantine_radius?: IContentField<TMantineRadius>;           // Select field for radius
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
+    disabled?: IContentField<TMantineDisabled>;                 // Checkbox field for disabled state
 }
 
 export interface ISpoilerStyle extends IStyleWithMarginAndPadding {
     style_name: 'spoiler';
-    mantine_height?: IContentField<string>; // Select field for max height
+    mantine_height?: IContentField<TMantineSpoilerMaxHeight>; // Select field for max height
     mantine_spoiler_show_label?: IContentField<string>; // Translatable show label
     mantine_spoiler_hide_label?: IContentField<string>; // Translatable hide label
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
 }
 
 export interface ITypographyStyle extends IStyleWithMarginAndPadding {
     style_name: 'typography';
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    use_mantine_style?: IContentField<TMantineTypographyUseMantineStyle>;        // Checkbox field for Mantine styling
 }
 
 export interface IUnknownStyle {
@@ -1349,7 +1593,7 @@ export interface IUnknownStyle {
     children?: TStyle[];
     fields: Record<string, IContentField<any>>;
     css?: string;
-    use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
+    use_mantine_style?: IContentField<TMantineFullWidth>;        // Checkbox field for Mantine styling
 }
 
 // Union type for all styles
