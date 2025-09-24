@@ -77,7 +77,7 @@ const NotificationStyle: React.FC<INotificationStyleProps> = ({ style }) => {
             radius={radius === 'none' ? 0 : radius}
             className={cssClass}
             style={styleObj}
-            icon={icon}
+            icon={icon}            
             onClose={withCloseButton ? handleClose : undefined}
         >
             {message}

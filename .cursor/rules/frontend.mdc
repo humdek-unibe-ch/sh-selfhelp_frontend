@@ -10,6 +10,8 @@ trigger: always_on
 Start every answer with: ❤️After the heart tell me who you are and what version.
 staleTime: for react query should be allways form the global react query config
 On design never use transform on hover. Never. 
+Proceed using the sequential thinking method
+USE MCP server when appropirate
 NEVER USE ANY, ALLWASY PROPERLY DEFINE TYPES AND INTERFACES.
 Never git commit and push unless i ask you. Never. NEVER GIT COMMIT UNLESS I SPECIFICLY ASK FOR IT
 Always check the import paths to be correct

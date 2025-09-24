@@ -90,7 +90,7 @@ const CarouselStyle: React.FC<ICarouselStyleProps> = ({ style }) => {
     if (use_mantine_style) {
         return (
             <Carousel
-                height={height}
+                height={height}                
                 slideSize={slideSize}
                 slideGap={slideGap}
                 orientation={orientation}

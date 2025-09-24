@@ -52,7 +52,7 @@ const AccordionStyle: React.FC<IAccordionStyleProps> = ({ style }) => {
         return (
             <Accordion
                 variant={variant as 'default' | 'contained' | 'filled' | 'separated'}
-                multiple={multiple}
+                multiple={multiple}                
                 chevronPosition={chevronPosition as 'left' | 'right'}
                 chevronIconSize={chevronSize}
                 disableChevronRotation={disableChevronRotation}

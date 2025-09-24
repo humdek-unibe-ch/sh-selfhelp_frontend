@@ -47,7 +47,7 @@ const AccordionItemStyle: React.FC<IAccordionItemStyleProps> = ({ style }) => {
             <Accordion.Item
                 value={value}
                 className={cssClass}
-                style={styleObj}
+                style={styleObj}                
             >
                 <Accordion.Control icon={icon} disabled={disabled}>
                     {label}

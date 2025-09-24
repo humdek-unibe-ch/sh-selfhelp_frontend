@@ -1,16 +1,14 @@
 // Style name literal types for type safety
 export type TStyleName =
     | 'login' | 'profile' | 'validate' | 'register' | 'resetPassword' | 'twoFactorAuth'
-    | 'container' | 'alert' | 'div' | 'refContainer' | 'dataContainer' | 'html-tag' | 'center' | 'box'
+    | 'container' | 'alert' | 'refContainer' | 'dataContainer' | 'html-tag' | 'center' | 'box'
     | 'flex' | 'group' | 'stack' | 'simple-grid' | 'scroll-area' | 'space' | 'grid' | 'grid-column' | 'divider' | 'paper'
-    | 'heading' | 'markdown' | 'markdownInline' | 'plaintext'
     | 'form-log' | 'form-record' | 'input' | 'text-input' | 'textarea' | 'select' | 'radio' | 'slider' | 'checkbox'
     | 'image' | 'video' | 'audio' | 'figure' | 'carousel'
     | 'button' | 'link'
     | 'entryList' | 'entryRecord' | 'entryRecordDelete'
     | 'tabs' | 'tab'
-    | 'table' | 'tableRow' | 'tableCell'
-    | 'progressBar' | 'showUserInput' | 'version' | 'loop'
+    | 'progressBar' | 'version' | 'loop'
     // Mantine form components
     | 'button' | 'color-input' | 'color-picker' | 'file-input' | 'number-input' | 'radio-group' | 'range-slider'
     | 'segmented-control' | 'switch' | 'combobox' | 'multiSelect' | 'action-icon' | 'rich-text-editor'
@@ -20,7 +18,7 @@ export type TStyleName =
     | 'badge' | 'chip' | 'avatar' | 'timeline' | 'indicator'
     | 'kbd' | 'rating' | 'theme-icon' | 'progress' | 'progress-root' | 'progress-section' | 'progress-label'
     // Mantine navigation components
-    | 'accordion' | 'accordion-Item'
+    | 'accordion' | 'accordion-item'
     // Mantine feedback components
     | 'notification'
     // Mantine typography components
@@ -69,8 +67,22 @@ export interface IBaseStyle {
     data_config: string | number | null;
 }
 
+export interface IStyleWithMargin extends IBaseStyle {
+    spacing_margin_top?: IContentField<'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'>;
+    spacing_margin_bottom?: IContentField<'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'>;
+    spacing_margin_left?: IContentField<'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'>;
+    spacing_margin_right?: IContentField<'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'>;    
+}
+
+export interface IStyleWithMarginAndPadding extends IStyleWithMargin {
+    spacing_padding_top?: IContentField<'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'>;
+    spacing_padding_bottom?: IContentField<'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'>;
+    spacing_padding_left?: IContentField<'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'>;
+    spacing_padding_right?: IContentField<'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'>;
+}
+
 // Authentication & User Management Styles
-export interface ILoginStyle extends IBaseStyle {
+export interface ILoginStyle extends IStyleWithMargin {
     style_name: 'login';
     label_user?: IContentField<string>;
     label_pw?: IContentField<string>;
@@ -81,7 +93,7 @@ export interface ILoginStyle extends IBaseStyle {
     type?: IContentField<string>;
 }
 
-export interface IProfileStyle extends IBaseStyle {
+export interface IProfileStyle extends IStyleWithMarginAndPadding {
     style_name: 'profile';
 
     // Profile Section Title
@@ -171,7 +183,7 @@ export interface IProfileStyle extends IBaseStyle {
     alert_success?: IContentField<string>;
 }
 
-export interface IValidateStyle extends IBaseStyle {
+export interface IValidateStyle extends IStyleWithMarginAndPadding {
     style_name: 'validate';
     label_pw?: IContentField<string>;
     label_login?: IContentField<string>;
@@ -213,7 +225,7 @@ export interface IValidateStyle extends IBaseStyle {
     mantine_margin_block?: IContentField<string>;
 }
 
-export interface IRegisterStyle extends IBaseStyle {
+export interface IRegisterStyle extends IStyleWithMarginAndPadding {
     style_name: 'register';
     label_user?: IContentField<string>;
     label_pw?: IContentField<string>;
@@ -224,7 +236,7 @@ export interface IRegisterStyle extends IBaseStyle {
     success?: IContentField<string>;
 }
 
-export interface IResetPasswordStyle extends IBaseStyle {
+export interface IResetPasswordStyle extends IStyleWithMarginAndPadding {
     style_name: 'resetPassword';
     label_pw_reset?: IContentField<string>;
     text_md?: IContentField<string>;
@@ -236,7 +248,7 @@ export interface IResetPasswordStyle extends IBaseStyle {
     is_html?: IContentField<string>;
 }
 
-export interface ITwoFactorAuthStyle extends IBaseStyle {
+export interface ITwoFactorAuthStyle extends IStyleWithMarginAndPadding {
     style_name: 'twoFactorAuth';
     label_code?: IContentField<string>;
     label_submit?: IContentField<string>;
@@ -247,7 +259,7 @@ export interface ITwoFactorAuthStyle extends IBaseStyle {
 }
 
 // Container & Layout Styles
-export interface IContainerStyle extends IBaseStyle {
+export interface IContainerStyle extends IStyleWithMarginAndPadding {
     style_name: 'container';
     mantine_slider_size?: IContentField<string>;     // Maps to Mantine 'size' prop
     mantine_fluid?: IContentField<string>;           // Maps to Mantine 'fluid' prop
@@ -278,7 +290,7 @@ export interface IDividerStyle extends IBaseStyle {
     use_mantine_style?: IContentField<string>;
 }
 
-export interface IPaperStyle extends IBaseStyle {
+export interface IPaperStyle extends IStyleWithMarginAndPadding {
     style_name: 'paper';
     mantine_paper_shadow?: IContentField<string>;
     mantine_radius?: IContentField<string>;
@@ -288,7 +300,7 @@ export interface IPaperStyle extends IBaseStyle {
     use_mantine_style?: IContentField<string>;
 }
 
-export interface IAlertStyle extends IBaseStyle {
+export interface IAlertStyle extends IStyleWithMarginAndPadding {
     style_name: 'alert';
     mantine_alert_title?: IContentField<string>;
     close_button_label?: IContentField<string>;
@@ -300,15 +312,6 @@ export interface IAlertStyle extends IBaseStyle {
     content?: IContentField<string>;
     use_mantine_style?: IContentField<string>;
 }
-
-
-export interface IDivStyle extends IBaseStyle {
-    style_name: 'div';
-    color_background?: IContentField<string>;
-    color_border?: IContentField<string>;
-    color_text?: IContentField<string>;
-}
-
 
 export interface IRefContainerStyle extends IBaseStyle {
     style_name: 'refContainer';
@@ -324,29 +327,9 @@ export interface IHtmlTagStyle extends IBaseStyle {
     html_tag_content?: IContentField<string>;
 }
 
-// Text & Content Styles
-export interface IHeadingStyle extends IBaseStyle {
-    style_name: 'heading';
-    level?: IContentField<string>;
-    title?: IContentField<string>;
-}
-
-export interface IMarkdownStyle extends IBaseStyle {
-    style_name: 'markdown';
-    text_md?: IContentField<string>;
-}
-
-
-export interface IPlaintextStyle extends IBaseStyle {
-    style_name: 'plaintext';
-    text?: IContentField<string>;
-    is_paragraph?: IContentField<string>;
-}
-
-
 // Form & Input Styles
 
-export interface IFormStyle extends IBaseStyle {
+export interface IFormStyle extends IStyleWithMarginAndPadding {
     style_name: 'form-log' | 'form-record';
     btn_save_label?: IContentField<string>;
     alert_success?: IContentField<string>;
@@ -386,10 +369,9 @@ export interface IInputStyle extends IBaseStyle {
     min?: IContentField<string>;
     max?: IContentField<string>;
     format?: IContentField<string>;
-    locked_after_submit?: IContentField<string>;
 }
 
-export interface ITextInputStyle extends IBaseStyle {
+export interface ITextInputStyle extends IStyleWithMargin {
     style_name: 'text-input';
     label?: IContentField<string>;
     name?: IContentField<string>;
@@ -406,7 +388,7 @@ export interface ITextInputStyle extends IBaseStyle {
     mantine_text_input_variant?: IContentField<string>;
 }
 
-export interface ITextareaStyle extends IBaseStyle {
+export interface ITextareaStyle extends IStyleWithMargin {
     style_name: 'textarea';
     label?: IContentField<string>;
     placeholder?: IContentField<string>;
@@ -430,7 +412,7 @@ export interface ITextareaStyle extends IBaseStyle {
     use_mantine_style?: IContentField<string>;
 }
 
-export interface IRichTextEditorStyle extends IBaseStyle {
+export interface IRichTextEditorStyle extends IStyleWithMargin {
     style_name: 'rich-text-editor';
     label?: IContentField<string>;
     name?: IContentField<string>;
@@ -459,12 +441,11 @@ export interface ISelectStyle extends IBaseStyle {
     max?: IContentField<string>;
     live_search?: IContentField<string>;
     disabled?: IContentField<string>;
-    image_selector?: IContentField<string>;
-    locked_after_submit?: IContentField<string>;
+    image_selector?: IContentField<string>;    
     allow_clear?: IContentField<string>;
 }
 
-export interface IRadioStyle extends IBaseStyle {
+export interface IRadioStyle extends IStyleWithMargin {
     style_name: 'radio';
     label?: IContentField<string>;
     is_required?: IContentField<string>;
@@ -472,10 +453,9 @@ export interface IRadioStyle extends IBaseStyle {
     value?: IContentField<string>;
     items?: IContentField<any[]>;
     is_inline?: IContentField<string>;
-    locked_after_submit?: IContentField<string>;
 }
 
-export interface ISliderStyle extends IBaseStyle {
+export interface ISliderStyle extends IStyleWithMargin {
     style_name: 'slider';
     // Standard input fields
     label?: IContentField<string>;
@@ -506,7 +486,7 @@ export interface ISliderStyle extends IBaseStyle {
     locked_after_submit?: IContentField<string>;
 }
 
-export interface ICheckboxStyle extends IBaseStyle {
+export interface ICheckboxStyle extends IStyleWithMargin {
     style_name: 'checkbox';
     label?: IContentField<string>;
     name?: IContentField<string>;
@@ -527,7 +507,7 @@ export interface ICheckboxStyle extends IBaseStyle {
 }
 
 // DatePicker Styles
-export interface IDatePickerStyle extends IBaseStyle {
+export interface IDatePickerStyle extends IStyleWithMargin {
     style_name: 'datepicker';
     // DatePicker-specific fields
     label?: IContentField<string>;
@@ -563,7 +543,7 @@ export interface IDatePickerStyle extends IBaseStyle {
 }
 
 // Media Styles
-export interface IImageStyle extends IBaseStyle {
+export interface IImageStyle extends IStyleWithMargin {
     style_name: 'image';
     title?: IContentField<string>;
     is_fluid?: IContentField<string>;
@@ -597,7 +577,7 @@ export interface IFigureStyle extends IBaseStyle {
     caption?: IContentField<string>;
 }
 
-export interface ICarouselStyle extends IBaseStyle {
+export interface ICarouselStyle extends IStyleWithMarginAndPadding {
     style_name: 'carousel';
     id_prefix?: IContentField<string>;
     has_controls?: IContentField<string>;
@@ -626,7 +606,7 @@ export interface ICarouselStyle extends IBaseStyle {
 
 // Navigation & Links Styles
 
-export interface ILinkStyle extends IBaseStyle {
+export interface ILinkStyle extends IStyleWithMargin {
     style_name: 'link';
     label?: IContentField<string>;
     url?: IContentField<string>;
@@ -647,7 +627,7 @@ export interface IEntryRecordDeleteStyle extends IBaseStyle {
 }
 
 // Tab Styles
-export interface ITabsStyle extends IBaseStyle {
+export interface ITabsStyle extends IStyleWithMargin {
     style_name: 'tabs';
     // Tabs-specific fields
     mantine_tabs_variant?: IContentField<string>;      // Select field for variant (default, outline, pills)
@@ -675,32 +655,6 @@ export interface ITabStyle extends IBaseStyle {
     icon?: IContentField<string>;
 }
 
-// Table Styles
-export interface ITableStyle extends IBaseStyle {
-    style_name: 'table';
-}
-
-export interface ITableRowStyle extends IBaseStyle {
-    style_name: 'tableRow';
-}
-
-export interface ITableCellStyle extends IBaseStyle {
-    style_name: 'tableCell';
-}
-
-export interface IShowUserInputStyle extends IBaseStyle {
-    style_name: 'showUserInput';
-    delete_title?: IContentField<string>;
-    label_delete?: IContentField<string>;
-    delete_content?: IContentField<string>;
-    is_log?: IContentField<string>;
-    anchor?: IContentField<string>;
-    form_name?: IContentField<string>;
-    is_expanded?: IContentField<string>;
-    column_names?: IContentField<string>;
-    load_as_table?: IContentField<string>;
-}
-
 export interface IVersionStyle extends IBaseStyle {
     style_name: 'version';
 }
@@ -711,7 +665,7 @@ export interface ILoopStyle extends IBaseStyle {
 }
 
 // Mantine Layout Components
-export interface IFlexStyle extends IBaseStyle {
+export interface IFlexStyle extends IStyleWithMarginAndPadding {
     style_name: 'flex';
     // Flex-specific fields
     mantine_gap?: IContentField<string>;              // Slider field for gap spacing
@@ -723,7 +677,7 @@ export interface IFlexStyle extends IBaseStyle {
     mantine_height?: IContentField<string>;           // Select field for height
 }
 
-export interface IGroupStyle extends IBaseStyle {
+export interface IGroupStyle extends IStyleWithMarginAndPadding {
     style_name: 'group';
     // Group-specific fields
     mantine_gap?: IContentField<string>;              // Slider field for gap spacing
@@ -735,7 +689,7 @@ export interface IGroupStyle extends IBaseStyle {
     mantine_height?: IContentField<string>;           // Select field for height
 }
 
-export interface ISimpleGridStyle extends IBaseStyle {
+export interface ISimpleGridStyle extends IStyleWithMarginAndPadding {
     style_name: 'simple-grid';
     // SimpleGrid-specific fields
     mantine_cols?: IContentField<string>;             // Slider field for number of columns
@@ -746,7 +700,7 @@ export interface ISimpleGridStyle extends IBaseStyle {
     mantine_height?: IContentField<string>;           // Select field for height
 }
 
-export interface IScrollAreaStyle extends IBaseStyle {
+export interface IScrollAreaStyle extends IStyleWithMarginAndPadding {
     style_name: 'scroll-area';
     // ScrollArea-specific fields
     mantine_scroll_area_scrollbar_size?: IContentField<string>;        // Select field for scrollbar size
@@ -757,14 +711,14 @@ export interface IScrollAreaStyle extends IBaseStyle {
     mantine_width?: IContentField<string>;                            // Select field for width
 }
 
-export interface ISpaceStyle extends IBaseStyle {
+export interface ISpaceStyle extends IStyleWithMarginAndPadding {
     style_name: 'space';
     // Space-specific fields
     mantine_size?: IContentField<string>;      // Slider field for size
     mantine_space_direction?: IContentField<string>;          // Segment field for direction
 }
 
-export interface IGridStyle extends IBaseStyle {
+export interface IGridStyle extends IStyleWithMarginAndPadding {
     style_name: 'grid';
     // Grid-specific fields
     mantine_cols?: IContentField<string>;             // Slider field for number of columns
@@ -777,7 +731,7 @@ export interface IGridStyle extends IBaseStyle {
     use_mantine_style?: IContentField<string>;        // Checkbox for Mantine vs custom styling
 }
 
-export interface IGridColumnStyle extends IBaseStyle {
+export interface IGridColumnStyle extends IStyleWithMarginAndPadding {
     style_name: 'grid-column';
     // GridColumn-specific fields
     mantine_grid_span?: IContentField<string>;        // Slider field for span (1-12, auto, content)
@@ -789,7 +743,7 @@ export interface IGridColumnStyle extends IBaseStyle {
     use_mantine_style?: IContentField<string>;        // Checkbox for Mantine vs custom styling
 }
 
-export interface IStackStyle extends IBaseStyle {
+export interface IStackStyle extends IStyleWithMarginAndPadding {
     style_name: 'stack';
     // Stack-specific fields
     mantine_gap?: IContentField<string>;              // Slider field for gap spacing
@@ -803,7 +757,7 @@ export interface IStackStyle extends IBaseStyle {
 // MANTINE FORM COMPONENTS
 // ===========================================
 
-export interface IButtonStyle extends IBaseStyle {
+export interface IButtonStyle extends IStyleWithMargin {
     style_name: 'button';
     // Core button fields
     mantine_variant?: IContentField<string>;          // Select field for variant
@@ -829,7 +783,7 @@ export interface IButtonStyle extends IBaseStyle {
     confirmation_message?: IContentField<string>;     // Confirmation message
 }
 
-export interface IColorInputStyle extends IBaseStyle {
+export interface IColorInputStyle extends IStyleWithMargin {
     style_name: 'color-input';
     mantine_color_format?: IContentField<string>;     // Segment field for color format
     mantine_color_input_swatches?: IContentField<string>; // Checkbox field for swatches
@@ -844,7 +798,7 @@ export interface IColorInputStyle extends IBaseStyle {
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
 
-export interface IColorPickerStyle extends IBaseStyle {
+export interface IColorPickerStyle extends IStyleWithMargin {
     style_name: 'color-picker';
     mantine_color_format?: IContentField<string>;     // Segment field for color format
     mantine_color_picker_swatches_per_row?: IContentField<string>; // Slider field for swatches per row
@@ -864,7 +818,7 @@ export interface IColorPickerStyle extends IBaseStyle {
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
 
-export interface IFileInputStyle extends IBaseStyle {
+export interface IFileInputStyle extends IStyleWithMargin {
     style_name: 'file-input';
     mantine_file_input_multiple?: IContentField<string>; // Checkbox field for multiple files
     mantine_file_input_accept?: IContentField<string>; // Select field for accepted file types
@@ -885,7 +839,7 @@ export interface IFileInputStyle extends IBaseStyle {
     description?: IContentField<string>;              // Textarea field for description
 }
 
-export interface INumberInputStyle extends IBaseStyle {
+export interface INumberInputStyle extends IStyleWithMargin {
     style_name: 'number-input';
     mantine_numeric_min?: IContentField<string>;      // Select field for minimum value
     mantine_numeric_max?: IContentField<string>;      // Select field for maximum value
@@ -905,7 +859,7 @@ export interface INumberInputStyle extends IBaseStyle {
 }
 
 
-export interface IRadioStyle extends IBaseStyle {
+export interface IRadioStyle extends IStyleWithMargin {
     style_name: 'radio';
     label?: IContentField<string>;                    // Translatable label
     description?: IContentField<string>;              // Translatable description
@@ -926,7 +880,7 @@ export interface IRadioStyle extends IBaseStyle {
     mantine_use_input_wrapper?: IContentField<string>; // Checkbox field for using Input.Wrapper vs inline labels
 }
 
-export interface IRangeSliderStyle extends IBaseStyle {
+export interface IRangeSliderStyle extends IStyleWithMargin {
     style_name: 'range-slider';
     label?: IContentField<string>;                     // Translatable label for the input field
     description?: IContentField<string>;              // Translatable description text
@@ -946,7 +900,7 @@ export interface IRangeSliderStyle extends IBaseStyle {
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
 
-export interface ISegmentedControlStyle extends IBaseStyle {
+export interface ISegmentedControlStyle extends IStyleWithMargin {
     style_name: 'segmented-control';
     mantine_segmented_control_data?: IContentField<string>; // Translatable JSON textarea for data
     mantine_orientation?: IContentField<string>;      // Segment field for orientation
@@ -965,7 +919,7 @@ export interface ISegmentedControlStyle extends IBaseStyle {
     name?: IContentField<string>;                     // Text field for form field name
 }
 
-export interface ISwitchStyle extends IBaseStyle {
+export interface ISwitchStyle extends IStyleWithMargin {
     style_name: 'switch';
     label?: IContentField<string>;                    // Translatable label
     description?: IContentField<string>;              // Translatable description
@@ -985,7 +939,7 @@ export interface ISwitchStyle extends IBaseStyle {
     mantine_switch_off_value?: IContentField<string>;  // Text field for off state value
 }
 
-export interface IComboboxStyle extends IBaseStyle {
+export interface IComboboxStyle extends IStyleWithMargin {
     style_name: 'combobox';
     placeholder?: IContentField<string>;              // Translatable placeholder
     mantine_combobox_options?: IContentField<string>; // Translatable JSON textarea for options
@@ -1006,7 +960,7 @@ export interface IComboboxStyle extends IBaseStyle {
     mantine_multi_select_max_values?: IContentField<string>; // Max values for multi-select
 }
 
-export interface IActionIconStyle extends IBaseStyle {
+export interface IActionIconStyle extends IStyleWithMargin {
     style_name: 'action-icon';
     mantine_variant?: IContentField<string>;          // Select field for variant
     mantine_action_icon_loading?: IContentField<string>; // Checkbox field for loading
@@ -1025,7 +979,7 @@ export interface IActionIconStyle extends IBaseStyle {
 // MANTINE DATA DISPLAY COMPONENTS
 // ===========================================
 
-export interface IBadgeStyle extends IBaseStyle {
+export interface IBadgeStyle extends IStyleWithMargin {
     style_name: 'badge';
     mantine_variant?: IContentField<string>;          // Select field for variant
     mantine_size?: IContentField<string>;             // Select field for size
@@ -1037,7 +991,7 @@ export interface IBadgeStyle extends IBaseStyle {
     mantine_auto_contrast?: IContentField<string>;    // Checkbox field for auto contrast
 }
 
-export interface IBoxStyle extends IBaseStyle {
+export interface IBoxStyle extends IStyleWithMarginAndPadding {
     style_name: 'box';
     content?: IContentField<string>;                 // Translatable content field
     mantine_background_color?: IContentField<string>; // Color picker field for background color
@@ -1062,7 +1016,7 @@ export interface IBoxStyle extends IBaseStyle {
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
 
-export interface IChipStyle extends IBaseStyle {
+export interface IChipStyle extends IStyleWithMargin {
     style_name: 'chip';
     mantine_chip_variant?: IContentField<string>;     // Select field for variant
     mantine_size?: IContentField<string>;             // Select field for size
@@ -1089,7 +1043,7 @@ export interface IChipStyle extends IBaseStyle {
     chip_checked?: IContentField<string>;              // Checkbox field for checked state
 }
 
-export interface IAvatarStyle extends IBaseStyle {
+export interface IAvatarStyle extends IStyleWithMargin {
     style_name: 'avatar';
     src?: IContentField<string>;                      // Image source
     alt?: IContentField<string>;                      // Translatable alt text
@@ -1103,7 +1057,7 @@ export interface IAvatarStyle extends IBaseStyle {
     img_src?: IContentField<string>;                  // Image source
 }
 
-export interface ITimelineStyle extends IBaseStyle {
+export interface ITimelineStyle extends IStyleWithMargin {
     style_name: 'timeline';
     mantine_timeline_bullet_size?: IContentField<string>; // Select field for bullet size
     mantine_timeline_line_width?: IContentField<string>; // Select field for line width
@@ -1129,14 +1083,14 @@ export interface IIndicatorStyle extends IBaseStyle {
     use_mantine_style?: IContentField<string>;          // Checkbox field for Mantine styling
 }
 
-export interface IKbdStyle extends IBaseStyle {
+export interface IKbdStyle extends IStyleWithMargin {
     style_name: 'kbd';
     label?: IContentField<string>;                    // Translatable label
     mantine_size?: IContentField<string>;             // Select field for size
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
 
-export interface IRatingStyle extends IBaseStyle {
+export interface IRatingStyle extends IStyleWithMargin {
     style_name: 'rating';
     // Standard input fields
     label?: IContentField<string>;                       // Label text for the rating input field
@@ -1160,7 +1114,7 @@ export interface IRatingStyle extends IBaseStyle {
     use_mantine_style?: IContentField<string>;          // Checkbox field for Mantine styling
 }
 
-export interface IProgressStyle extends IBaseStyle {
+export interface IProgressStyle extends IStyleWithMargin {
     style_name: 'progress';
     value?: IContentField<string>;             // Number field for progress value (0-100)
     mantine_color?: IContentField<string>;                      // Color picker field
@@ -1191,7 +1145,7 @@ export interface IProgressSectionStyle extends IBaseStyle {
     use_mantine_style?: IContentField<string>;                  // Checkbox field for Mantine styling
 }
 
-export interface IThemeIconStyle extends IBaseStyle {
+export interface IThemeIconStyle extends IStyleWithMargin {
     style_name: 'theme-icon';
     mantine_variant?: IContentField<string>;          // Select field for variant
     mantine_size?: IContentField<string>;             // Select field for size
@@ -1206,7 +1160,7 @@ export interface IThemeIconStyle extends IBaseStyle {
 // ===========================================
 
 
-export interface IAccordionStyle extends IBaseStyle {
+export interface IAccordionStyle extends IStyleWithMarginAndPadding {
     style_name: 'accordion';
     mantine_accordion_variant?: IContentField<string>; // Select field for variant
     mantine_accordion_multiple?: IContentField<string>; // Checkbox field for multiple
@@ -1220,8 +1174,8 @@ export interface IAccordionStyle extends IBaseStyle {
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling (hidden)
 }
 
-export interface IAccordionItemStyle extends IBaseStyle {
-    style_name: 'accordion-Item';
+export interface IAccordionItemStyle extends IStyleWithMarginAndPadding {
+    style_name: 'accordion-item';
     mantine_accordion_item_value?: IContentField<string>; // Text field for item value
     label?: IContentField<string>;                    // Translatable label text
     mantine_accordion_item_icon?: IContentField<string>; // Select-icon field for item icon
@@ -1233,7 +1187,7 @@ export interface IAccordionItemStyle extends IBaseStyle {
 // MANTINE FEEDBACK COMPONENTS
 // ===========================================
 
-export interface INotificationStyle extends IBaseStyle {
+export interface INotificationStyle extends IStyleWithMarginAndPadding {
     style_name: 'notification';
     title?: IContentField<string>;                    // Translatable title
     content?: IContentField<string>;                  // Translatable content/message
@@ -1250,7 +1204,7 @@ export interface INotificationStyle extends IBaseStyle {
 // MANTINE TYPOGRAPHY COMPONENTS
 // ===========================================
 
-export interface ITitleStyle extends IBaseStyle {
+export interface ITitleStyle extends IStyleWithMargin {
     style_name: 'title';
     content?: IContentField<string>;                  // Translatable content field
     mantine_title_order?: IContentField<string>;      // Select field for heading level (1-6)
@@ -1260,7 +1214,7 @@ export interface ITitleStyle extends IBaseStyle {
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
 
-export interface ITextStyle extends IBaseStyle {
+export interface ITextStyle extends IStyleWithMarginAndPadding {
     style_name: 'text';
     text?: IContentField<string>;                     // Translatable text content field
     mantine_size?: IContentField<string>;             // Select field for size (xs, sm, md, lg, xl)
@@ -1279,7 +1233,7 @@ export interface ITextStyle extends IBaseStyle {
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
 
-export interface ICodeStyle extends IBaseStyle {
+export interface ICodeStyle extends IStyleWithMarginAndPadding {
     style_name: 'code';
     mantine_code_block?: IContentField<string>;       // Checkbox field for block display
     mantine_color?: IContentField<string>;            // Color picker field
@@ -1287,7 +1241,7 @@ export interface ICodeStyle extends IBaseStyle {
     content?: IContentField<string>;                  // Translatable content field
 }
 
-export interface IHighlightStyle extends IBaseStyle {
+export interface IHighlightStyle extends IStyleWithMarginAndPadding {
     style_name: 'highlight';
     text?: IContentField<string>;                     // Translatable main content to be highlighted
     mantine_highlight_highlight?: IContentField<string>; // Translatable text to highlight within content
@@ -1295,7 +1249,7 @@ export interface IHighlightStyle extends IBaseStyle {
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
 
-export interface IBlockquoteStyle extends IBaseStyle {
+export interface IBlockquoteStyle extends IStyleWithMarginAndPadding {
     style_name: 'blockquote';
     content?: IContentField<string>;                  // Translatable blockquote content
     cite?: IContentField<string>;                     // Translatable citation
@@ -1319,7 +1273,7 @@ export interface IAspectRatioStyle extends IBaseStyle {
 // CARD COMPONENTS
 // ===========================================
 
-export interface ICardStyle extends IBaseStyle {
+export interface ICardStyle extends IStyleWithMarginAndPadding {
     style_name: 'card';
     mantine_card_shadow?: IContentField<string>;      // Select field for shadow
     mantine_card_padding?: IContentField<string>;     // Select field for padding
@@ -1328,7 +1282,7 @@ export interface ICardStyle extends IBaseStyle {
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
 
-export interface ICardSegmentStyle extends IBaseStyle {
+export interface ICardSegmentStyle extends IStyleWithMarginAndPadding {
     style_name: 'card-segment';
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
@@ -1337,7 +1291,7 @@ export interface ICardSegmentStyle extends IBaseStyle {
 // LIST COMPONENTS
 // ===========================================
 
-export interface IListStyle extends IBaseStyle {
+export interface IListStyle extends IStyleWithMarginAndPadding {
     style_name: 'list';
     mantine_list_type?: IContentField<string>;        // Segment field for list type
     mantine_spacing?: IContentField<string>;     // Select field for spacing
@@ -1349,21 +1303,21 @@ export interface IListStyle extends IBaseStyle {
     mantine_list_icon?: IContentField<string>; // Select-icon field for icon
 }
 
-export interface IListItemStyle extends IBaseStyle {
+export interface IListItemStyle extends IStyleWithMarginAndPadding {
     style_name: 'list-item';
     mantine_list_item_content?: IContentField<string>; // Textarea field for content (display = 1)
     mantine_list_item_icon?: IContentField<string>;    // Select-icon field for icon
     use_mantine_style?: IContentField<string>;         // Checkbox field for Mantine styling
 }
 
-export interface IBackgroundImageStyle extends IBaseStyle {
+export interface IBackgroundImageStyle extends IStyleWithMarginAndPadding {
     style_name: 'background-image';
     img_src?: IContentField<string>;                  // Image source
     mantine_radius?: IContentField<string>;           // Select field for radius
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
 
-export interface IFieldsetStyle extends IBaseStyle {
+export interface IFieldsetStyle extends IStyleWithMarginAndPadding {
     style_name: 'fieldset';
     legend?: IContentField<string>;                   // Translatable legend
     mantine_fieldset_variant?: IContentField<string>; // Select field for variant
@@ -1372,7 +1326,7 @@ export interface IFieldsetStyle extends IBaseStyle {
     disabled?: IContentField<string>;                 // Checkbox field for disabled state
 }
 
-export interface ISpoilerStyle extends IBaseStyle {
+export interface ISpoilerStyle extends IStyleWithMarginAndPadding {
     style_name: 'spoiler';
     mantine_height?: IContentField<string>; // Select field for max height
     mantine_spoiler_show_label?: IContentField<string>; // Translatable show label
@@ -1380,7 +1334,7 @@ export interface ISpoilerStyle extends IBaseStyle {
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
 
-export interface ITypographyStyle extends IBaseStyle {
+export interface ITypographyStyle extends IStyleWithMarginAndPadding {
     style_name: 'typography';
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
 }
@@ -1411,13 +1365,9 @@ export type TStyle =
     | IDividerStyle
     | IPaperStyle
     | IAlertStyle
-    | IDivStyle
     | IRefContainerStyle
     | IDataContainerStyle
     | IHtmlTagStyle
-    | IHeadingStyle
-    | IMarkdownStyle
-    | IPlaintextStyle
     | IInputStyle
     | ITextInputStyle
     | ITextareaStyle
@@ -1439,10 +1389,6 @@ export type TStyle =
     | IEntryRecordDeleteStyle
     | ITabsStyle
     | ITabStyle
-    | ITableStyle
-    | ITableRowStyle
-    | ITableCellStyle
-    | IShowUserInputStyle
     | IVersionStyle
     | ILoopStyle
     | IFlexStyle
