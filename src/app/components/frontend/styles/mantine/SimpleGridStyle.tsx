@@ -10,6 +10,8 @@ import { ISimpleGridStyle } from '../../../../../types/common/styles.types';
  */
 interface ISimpleGridStyleProps {
     style: ISimpleGridStyle;
+    styleProps: Record<string, any>;
+    cssClass: string;
 }
 
 /**
@@ -20,7 +22,7 @@ interface ISimpleGridStyleProps {
  * @param {ISimpleGridStyleProps} props - Component props
  * @returns {JSX.Element} Rendered Mantine SimpleGrid with styled children
  */
-const SimpleGridStyle: React.FC<ISimpleGridStyleProps> = ({ style }) => {
+const SimpleGridStyle: React.FC<ISimpleGridStyleProps> = ({ style, styleProps, cssClass }) => {
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
 
@@ -31,9 +33,6 @@ const SimpleGridStyle: React.FC<ISimpleGridStyleProps> = ({ style }) => {
     const verticalSpacing = style.mantine_vertical_spacing?.content;
     const width = style.mantine_width?.content;
     const height = style.mantine_height?.content;
-
-    // Handle CSS field - use direct property from API response
-    const cssClass = "section-" + style.id + " " + (style.css ?? '');
 
     // Build style object for sizing properties
     const styleObj: React.CSSProperties = {};
@@ -68,9 +67,10 @@ const SimpleGridStyle: React.FC<ISimpleGridStyleProps> = ({ style }) => {
 
     return (
         <SimpleGrid
+            {...styleProps}
             cols={gridCols}
-            spacing={spacing || 'md'}
-            verticalSpacing={verticalSpacing || spacing || 'md'}
+            spacing={spacing || 'sm'}
+            verticalSpacing={verticalSpacing || 'sm'}
             className={cssClass}
             style={styleObj}
         >

@@ -8,7 +8,7 @@ export type TStyleName =
     | 'button' | 'link'
     | 'entryList' | 'entryRecord' | 'entryRecordDelete'
     | 'tabs' | 'tab'
-    | 'progressBar' | 'version' | 'loop'
+    | 'version' | 'loop'
     // Mantine form components
     | 'button' | 'color-input' | 'color-picker' | 'file-input' | 'number-input' | 'radio-group' | 'range-slider'
     | 'segmented-control' | 'switch' | 'combobox' | 'multiSelect' | 'action-icon' | 'rich-text-editor'
@@ -70,15 +70,15 @@ export interface IBaseStyle {
 export interface IStyleWithMargin extends IBaseStyle {
     spacing_margin_top?: IContentField<'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'>;
     spacing_margin_bottom?: IContentField<'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'>;
-    spacing_margin_left?: IContentField<'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'>;
-    spacing_margin_right?: IContentField<'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'>;    
+    spacing_margin_start?: IContentField<'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'>;
+    spacing_margin_end?: IContentField<'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'>;    
 }
 
 export interface IStyleWithMarginAndPadding extends IStyleWithMargin {
     spacing_padding_top?: IContentField<'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'>;
     spacing_padding_bottom?: IContentField<'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'>;
-    spacing_padding_left?: IContentField<'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'>;
-    spacing_padding_right?: IContentField<'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'>;
+    spacing_padding_start?: IContentField<'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'>;
+    spacing_padding_end?: IContentField<'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'>;
 }
 
 // Authentication & User Management Styles

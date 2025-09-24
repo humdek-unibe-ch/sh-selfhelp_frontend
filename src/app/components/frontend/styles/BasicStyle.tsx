@@ -27,13 +27,12 @@ import {
 } from './SelfHelpStyles';
 import {
     ILoginStyle, IProfileStyle, IValidateStyle, IRegisterStyle, IResetPasswordStyle, ITwoFactorAuthStyle,
-    IContainerStyle, ICenterStyle, IDividerStyle, IPaperStyle, IAlertStyle, IDivStyle,
-    IRefContainerStyle, IDataContainerStyle, IHtmlTagStyle, IHeadingStyle, IMarkdownStyle,
-    IPlaintextStyle, IFormStyle, IInputStyle, ITextInputStyle, ITextareaStyle, IRichTextEditorStyle,
+    IContainerStyle, ICenterStyle, IDividerStyle, IPaperStyle, IAlertStyle,
+    IRefContainerStyle, IDataContainerStyle, IHtmlTagStyle,
+    IFormStyle, IInputStyle, ITextInputStyle, ITextareaStyle, IRichTextEditorStyle,
     ISelectStyle, IRadioStyle, ISliderStyle, ICheckboxStyle, IDatePickerStyle,
     IImageStyle, IVideoStyle, IAudioStyle, IFigureStyle, ICarouselStyle, ILinkStyle,
-    IEntryListStyle, IEntryRecordStyle, IEntryRecordDeleteStyle, ITabsStyle, ITabStyle,
-    ITableStyle, ITableRowStyle, ITableCellStyle, IShowUserInputStyle, IVersionStyle,
+    IEntryListStyle, IEntryRecordStyle, IEntryRecordDeleteStyle, ITabsStyle, ITabStyle, IVersionStyle,
     ILoopStyle, IFlexStyle, IGroupStyle, ISimpleGridStyle, IScrollAreaStyle, ISpaceStyle,
     IGridStyle, IGridColumnStyle, IStackStyle, IButtonStyle, IColorInputStyle,
     IColorPickerStyle, IFileInputStyle, INumberInputStyle, IRangeSliderStyle,
@@ -46,6 +45,88 @@ import {
     IBackgroundImageStyle, IFieldsetStyle, ISpoilerStyle, ITypographyStyle,
     TStyle
 } from '../../../../types/common/styles.types';
+
+/**
+ * Type guard to check if a style has margin spacing fields
+ */
+const hasMarginSpacing = (style: TStyle): style is TStyle & {
+    spacing_margin_top?: any;
+    spacing_margin_bottom?: any;
+    spacing_margin_start?: any;
+    spacing_margin_end?: any;
+} => {
+    return 'spacing_margin_top' in style ||
+           'spacing_margin_bottom' in style ||
+           'spacing_margin_start' in style ||
+           'spacing_margin_end' in style;
+};
+
+/**
+ * Type guard to check if a style has padding spacing fields
+ */
+const hasPaddingSpacing = (style: TStyle): style is TStyle & {
+    spacing_padding_top?: any;
+    spacing_padding_bottom?: any;
+    spacing_padding_start?: any;
+    spacing_padding_end?: any;
+} => {
+    return 'spacing_padding_top' in style ||
+           'spacing_padding_bottom' in style ||
+           'spacing_padding_start' in style ||
+           'spacing_padding_end' in style;
+};
+
+/**
+ * Convert spacing field value to Mantine spacing prop value
+ * Maps 'none' to undefined, and other values pass through
+ */
+const convertSpacingValue = (value: string | undefined): string | undefined => {
+    if (!value || value === 'none') {
+        return undefined;
+    }
+    return value;
+};
+
+/**
+ * Extract CSS class from a style object
+ */
+export const getCssClass = (style: TStyle): string => {
+    return "section-" + style.id + " " + (style.css ?? '');
+};
+
+/**
+ * Extract spacing props from a style object
+ */
+export const getSpacingProps = (style: TStyle) => {
+    const spacingProps: Record<string, any> = {};
+
+    if (hasMarginSpacing(style)) {
+        const mt = convertSpacingValue(style.spacing_margin_top?.content);
+        const mb = convertSpacingValue(style.spacing_margin_bottom?.content);
+        const ms = convertSpacingValue(style.spacing_margin_start?.content);
+        const me = convertSpacingValue(style.spacing_margin_end?.content);
+
+        if (mt) spacingProps.mt = mt;
+        if (mb) spacingProps.mb = mb;
+        if (ms) spacingProps.ms = ms;
+        if (me) spacingProps.me = me;
+    }
+
+    if (hasPaddingSpacing(style)) {
+        const pt = convertSpacingValue(style.spacing_padding_top?.content);
+        const pb = convertSpacingValue(style.spacing_padding_bottom?.content);
+        const ps = convertSpacingValue(style.spacing_padding_start?.content);
+        const pe = convertSpacingValue(style.spacing_padding_end?.content);
+
+        if (pt) spacingProps.pt = pt;
+        if (pb) spacingProps.pb = pb;
+        if (ps) spacingProps.ps = ps;
+        if (pe) spacingProps.pe = pe;
+    }
+
+    return spacingProps;
+};
+
 
 /**
  * Props interface for BasicStyle component
@@ -95,8 +176,6 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
             return <CardStyle style={style as ICardStyle} />;
         case 'card-segment':
             return <CardSegmentStyle style={style as ICardSegmentStyle} />;
-        case 'div':
-            return <DivStyle style={style as IDivStyle} />;
         case 'alert':
             return <AlertStyle style={style as IAlertStyle} />;
         case 'center':
@@ -108,7 +187,7 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
         case 'stack':
             return <StackStyle style={style as IStackStyle} />;
         case 'simple-grid':
-            return <SimpleGridStyle style={style as ISimpleGridStyle} />;
+            return <SimpleGridStyle style={style as ISimpleGridStyle}  styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'scroll-area':
             return <ScrollAreaStyle style={style as IScrollAreaStyle} />;
         case 'grid':
@@ -124,13 +203,6 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
         case 'paper':
             return <PaperStyle style={style as IPaperStyle} />;
 
-        // Text & Content Styles
-        case 'heading':
-            return <HeadingStyle style={style as IHeadingStyle} />;
-        case 'markdown':
-            return <MarkdownStyle style={style as IMarkdownStyle} />;
-        case 'plaintext':
-            return <PlaintextStyle style={style as IPlaintextStyle} />;
         case 'html-tag':
             return <HtmlTagStyle style={style as IHtmlTagStyle} />;
 
@@ -215,7 +287,7 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
         case 'badge':
             return <BadgeStyle style={style as IBadgeStyle} />;
         case 'box':
-            return <BoxStyle style={style as unknown as IBoxStyle} />;
+            return <BoxStyle style={style as unknown as IBoxStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'chip':
             return <ChipStyle style={style as IChipStyle} />;
         case 'timeline':
