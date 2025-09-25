@@ -20,6 +20,20 @@
   opacity: 0.8;
 }
 
+.marginLayer::before {
+  content: "Margin";
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: var(--mantine-color-orange-6);
+  color: white;
+  padding: 2px 6px;
+  border-radius: var(--mantine-radius-xs);
+  font-size: 0.6rem;
+  font-weight: 600;
+  z-index: 5;
+}
+
 /* Padding Layer */
 .paddingLayer {
   position: absolute;
@@ -31,6 +45,20 @@
   background: var(--mantine-color-blue-0);
   border-radius: var(--mantine-radius-sm);
   opacity: 0.8;
+}
+
+.paddingLayer::before {
+  content: "Padding";
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: var(--mantine-color-blue-6);
+  color: white;
+  padding: 2px 6px;
+  border-radius: var(--mantine-radius-xs);
+  font-size: 0.6rem;
+  font-weight: 600;
+  z-index: 5;
 }
 
 /* Content Area */
@@ -56,8 +84,17 @@
 
 /* Spacing Value Button */
 .spacingValue {
-  cursor: pointer;
-  transition: all 0.2s ease;
+  min-width: 36px !important;
+  height: 24px !important;
+  font-size: 0.7rem !important;
+  border-radius: var(--mantine-radius-sm) !important;
+  transition: all 0.2s ease !important;
+}
+
+.spacingValueActive {
+  background-color: var(--mantine-color-blue-6) !important;
+  color: var(--mantine-color-white) !important;
+  border-color: var(--mantine-color-blue-6) !important;
 }
 
 /* Margin controls positioning */

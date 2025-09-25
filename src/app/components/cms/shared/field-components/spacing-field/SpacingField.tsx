@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Box, Text, Group, Badge, Paper, Stack, UnstyledButton, Menu, ActionIcon } from '@mantine/core';
+import { Box, Text, Group, Badge, Paper, Stack, Button, Menu, ActionIcon } from '@mantine/core';
 import { IconChevronUp, IconChevronDown, IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
 import classes from './SpacingField.module.css';
 
@@ -158,26 +158,16 @@ export function SpacingField({
               width={80}
             >
               <Menu.Target>
-                <UnstyledButton
-                  className={classes.spacingValue}
+                <Button
+                  className={`${classes.spacingValue} ${isActive ? classes.spacingValueActive : ''}`}
                   title={`${label}: ${currentValue}`}
-                  bg={isActive ? 'blue.6' : 'white'}
-                  c={isActive ? 'white' : 'gray.7'}
-                  style={{
-                    border: `1px solid ${isActive ? 'var(--mantine-color-blue-6)' : 'var(--mantine-color-gray-4)'}`,
-                    borderRadius: 'var(--mantine-radius-sm)',
-                    padding: '3px 8px',
-                    fontSize: '0.7rem',
-                    fontWeight: 600,
-                    minWidth: '36px',
-                    textAlign: 'center',
-                    transition: 'all 0.2s ease',
-                  }}
+                  variant="outline"
+                  size="xs"
+                  px="xs"
+                  fw={600}
                 >
-                  <Text size="xs" fw={600}>
-                    {SPACING_LABELS[currentValue]}
-                  </Text>
-                </UnstyledButton>
+                  {SPACING_LABELS[currentValue]}
+                </Button>
               </Menu.Target>
               <Menu.Dropdown>
                 {SPACING_OPTIONS.map((option) => (
@@ -223,26 +213,16 @@ export function SpacingField({
               width={80}
             >
               <Menu.Target>
-                <UnstyledButton
-                  className={classes.spacingValue}
+                <Button
+                  className={`${classes.spacingValue} ${isActive ? classes.spacingValueActive : ''}`}
                   title={`${label}: ${currentValue}`}
-                  bg={isActive ? 'blue.6' : 'white'}
-                  c={isActive ? 'white' : 'gray.7'}
-                  style={{
-                    border: `1px solid ${isActive ? 'var(--mantine-color-blue-6)' : 'var(--mantine-color-gray-4)'}`,
-                    borderRadius: 'var(--mantine-radius-sm)',
-                    padding: '3px 8px',
-                    fontSize: '0.7rem',
-                    fontWeight: 600,
-                    minWidth: '36px',
-                    textAlign: 'center',
-                    transition: 'all 0.2s ease',
-                  }}
+                  variant="outline"
+                  size="xs"
+                  px="xs"
+                  fw={600}
                 >
-                  <Text size="xs" fw={600}>
-                    {SPACING_LABELS[currentValue]}
-                  </Text>
-                </UnstyledButton>
+                  {SPACING_LABELS[currentValue]}
+                </Button>
               </Menu.Target>
               <Menu.Dropdown>
                 {SPACING_OPTIONS.map((option) => (
@@ -280,26 +260,6 @@ export function SpacingField({
 
   return (
     <Stack gap="sm">
-      {/* Legend */}
-      <Group justify="center" gap="lg">
-        {showMargin && (
-          <Group gap="xs" align="center">
-            <Badge size="xs" color="orange" variant="filled">
-              ■
-            </Badge>
-            <Text size="xs">Margin</Text>
-          </Group>
-        )}
-        {showPadding && (
-          <Group gap="xs" align="center">
-            <Badge size="xs" color="blue" variant="filled">
-              ■
-            </Badge>
-            <Text size="xs">Padding</Text>
-          </Group>
-        )}
-      </Group>
-
       {/* Box Model Visualization */}
       <Paper withBorder p="md" bg="gray.0">
         <Box ref={boxModelRef} className={classes.boxModel}>
