@@ -1,8 +1,12 @@
 /* Box Model Visualization */
+.spacingHolder {
+  padding: 16px 24px !important;
+}
+
 .boxModel {
   position: relative;
   width: 100%;
-  height: 160px;
+  height: 200px;
   margin: 0 auto;
   overflow: visible;
 }
@@ -23,8 +27,8 @@
 .marginLayer::before {
   content: "Margin";
   position: absolute;
-  top: 4px;
-  left: 4px;
+  top: 6px;
+  left: 6px;
   background: var(--mantine-color-orange-6);
   color: white;
   padding: 2px 6px;
@@ -37,10 +41,10 @@
 /* Padding Layer */
 .paddingLayer {
   position: absolute;
-  top: 20px;
-  left: 30px;
-  right: 30px;
-  bottom: 20px;
+  top: 35px;
+  left: 55px;
+  right: 55px;
+  bottom: 35px;
   border: 2px solid var(--mantine-color-blue-4);
   background: var(--mantine-color-blue-0);
   border-radius: var(--mantine-radius-sm);
@@ -50,8 +54,8 @@
 .paddingLayer::before {
   content: "Padding";
   position: absolute;
-  top: 4px;
-  left: 4px;
+  top: 6px;
+  left: 6px;
   background: var(--mantine-color-blue-6);
   color: white;
   padding: 2px 6px;
@@ -64,10 +68,10 @@
 /* Content Area */
 .contentArea {
   position: absolute;
-  top: 60px;
-  left: 90px;
-  right: 90px;
-  bottom: 60px;
+  top: 75px;
+  left: 115px;
+  right: 115px;
+  bottom: 75px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -84,8 +88,8 @@
 
 /* Spacing Value Button */
 .spacingValue {
-  min-width: 36px !important;
-  height: 24px !important;
+  min-width: 40px !important;
+  height: 20px !important;
   font-size: 0.7rem !important;
   border-radius: var(--mantine-radius-sm) !important;
   transition: all 0.2s ease !important;
@@ -95,11 +99,12 @@
   background-color: var(--mantine-color-blue-6) !important;
   color: var(--mantine-color-white) !important;
   border-color: var(--mantine-color-blue-6) !important;
+  box-shadow: 0 0 0 1px var(--mantine-color-blue-6) !important;
 }
 
-/* Margin controls positioning */
+/* Margin controls positioning - centered on margin border */
 .marginTop {
-  top: -16px;
+  top: 6px;
   left: 50%;
   transform: translateX(-50%);
   flex-direction: row;
@@ -107,7 +112,7 @@
 }
 
 .marginBottom {
-  bottom: -16px;
+  bottom: 6px;
   left: 50%;
   transform: translateX(-50%);
   flex-direction: row;
@@ -115,7 +120,7 @@
 }
 
 .marginStart {
-  left: -16px;
+  left: 6px;
   top: 50%;
   transform: translateY(-50%);
   flex-direction: column;
@@ -123,16 +128,16 @@
 }
 
 .marginEnd {
-  right: -16px;
+  right: 6px;
   top: 50%;
   transform: translateY(-50%);
   flex-direction: column;
   gap: 2px;
 }
 
-/* Padding controls positioning */
+/* Padding controls positioning - centered between margin and padding borders */
 .paddingTop {
-  top: 4px;
+  top: 10px;
   left: 50%;
   transform: translateX(-50%);
   flex-direction: row;
@@ -140,7 +145,7 @@
 }
 
 .paddingBottom {
-  bottom: 4px;
+  bottom: 10px;
   left: 50%;
   transform: translateX(-50%);
   flex-direction: row;
@@ -148,7 +153,7 @@
 }
 
 .paddingStart {
-  left: 4px;
+  left: 10px;
   top: 50%;
   transform: translateY(-50%);
   flex-direction: column;
@@ -156,7 +161,7 @@
 }
 
 .paddingEnd {
-  right: 4px;
+  right: 10px;
   top: 50%;
   transform: translateY(-50%);
   flex-direction: column;
