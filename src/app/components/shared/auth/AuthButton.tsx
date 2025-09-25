@@ -23,10 +23,11 @@ const getPageTitle = (page: IAdminPage | { keyword: string; title?: string | nul
 
 export function AuthButton() {
     const { data: { authenticated } = {}, isLoading: isAuthLoading } = useIsAuthenticated();
-    const { mutate: logout, isLoading: isLoggingOut } = useLogout();
+    const { mutate: logout } = useLogout();
     const { profilePages } = useAppNavigation();
     const [stableAuthState, setStableAuthState] = useState<boolean | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
     const router = useRouter();
 
     // Create a more stable auth state that doesn't flicker during refresh
@@ -92,7 +93,8 @@ export function AuthButton() {
 
     const handleLogout = () => {
         setStableAuthState(false); // Immediately update UI
-        
+        setIsLoggingOut(true);
+
         // Use Refine's logout hook which will:
         // 1. Call the auth provider's logout method
         // 2. Handle the redirect automatically based on redirectTo

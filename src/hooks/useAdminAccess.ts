@@ -6,7 +6,7 @@
  * @module hooks/useAdminAccess
  */
 
-import { useNavigation, useIsAuthenticated } from '@refinedev/core';
+import { useGo, useIsAuthenticated } from '@refinedev/core';
 import { useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { useHasPermission } from './useUserData';
@@ -18,7 +18,7 @@ import { ROUTES } from '../config/routes.config';
  * @returns Object containing admin access status and query state
  */
 export function useAdminAccess() {
-    const { replace } = useNavigation();
+    const go = useGo();
     const { isLoading: isAuthLoading } = useIsAuthenticated();
     const { isAuthenticated, isLoading: isUserDataLoading } = useAuth();
     const hasPermission = useHasPermission();
@@ -32,13 +32,13 @@ export function useAdminAccess() {
         if (!isLoading) {
             if (!isAuthenticated) {
                 // Not logged in at all
-                replace(ROUTES.LOGIN);
+                go({ to: ROUTES.LOGIN, type: "replace" });
             } else if (!hasAccess) {
                 // Logged in but doesn't have admin access
-                replace(ROUTES.NO_ACCESS);
+                go({ to: ROUTES.NO_ACCESS, type: "replace" });
             }
         }
-    }, [isLoading, hasAccess, isAuthenticated, replace]);
+    }, [isLoading, hasAccess, isAuthenticated, go]);
 
     return {
         hasAccess,

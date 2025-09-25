@@ -18,33 +18,34 @@ const HtmlTagStyle: React.FC<IHtmlTagStyleProps> = ({ style, styleProps, cssClas
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
     // Handle CSS field - use direct property from API response
-    
 
-    // Create the element dynamically
-    const TagComponent = htmlTag as keyof JSX.IntrinsicElements;
-
-    console.log(htmlTag, content, cssClass);
+    // Create the element dynamically using React.createElement
+    const elementProps = {
+        ...styleProps,
+        className: cssClass
+    };
 
     // If there are children, render them instead of using dangerouslySetInnerHTML
     if (children.length > 0) {
-        return (
-            <TagComponent {...styleProps} className={cssClass}>
-                {children.map((childStyle, index) => (
-                    childStyle ? <BasicStyle key={`${childStyle.id}-${index}`} style={childStyle} /> : null
-                ))}
-            </TagComponent>
+        return React.createElement(
+            htmlTag,
+            elementProps,
+            children.map((childStyle, index) =>
+                childStyle ? <BasicStyle key={`${childStyle.id}-${index}`} style={childStyle} /> : null
+            )
         );
     }
 
     // If there's HTML content but no children, use dangerouslySetInnerHTML
     if (content) {
-        return (
-            <TagComponent {...styleProps} className={cssClass} dangerouslySetInnerHTML={{ __html: content }} />
-        );
+        return React.createElement(htmlTag, {
+            ...elementProps,
+            dangerouslySetInnerHTML: { __html: content }
+        });
     }
 
     // If neither children nor content, return empty tag
-    return <TagComponent {...styleProps} className={cssClass} />;
+    return React.createElement(htmlTag, elementProps);
 };
 
 export default HtmlTagStyle; 

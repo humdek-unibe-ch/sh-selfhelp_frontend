@@ -30,11 +30,6 @@ const BoxStyle: React.FC<IBoxStyleProps> = ({ style, styleProps, cssClass }) => 
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
 
-    console.log(style);
-    console.log('new spacing', getFieldContent(style, 'mantine_manitne_spacing'));
-
-    console.log('legacy spacing', styleProps);
-
     return (
         <Box
             {...styleProps}

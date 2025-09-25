@@ -28,7 +28,8 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const { mutate: login, isLoading } = useLogin();
+    const [isLoading, setIsLoading] = useState(false);
+    const { mutate: login } = useLogin();
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -44,9 +45,11 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
-        
+        setIsLoading(true);
+
         if (!email || !password) {
             setError('Please fill in all fields');
+            setIsLoading(false);
             return;
         }
 
@@ -54,19 +57,21 @@ const LoginStyle: React.FC<ILoginStyleProps> = ({ style, styleProps, cssClass })
             { email, password },
             {
                 onSuccess: (data) => {
+                    setIsLoading(false);
                     // Force redirect if Refine doesn't handle it automatically
                     // This ensures the redirect happens on the first try
                     if (data.success && data.redirectTo) {
                         let redirectUrl = data.redirectTo as string;
-                        
+
                         // No need to preserve language parameters in URL
-                        
+
                         setTimeout(() => {
                             router.push(redirectUrl);
                         }, 100);
                     }
                 },
                 onError: (error: any) => {
+                    setIsLoading(false);
                     // Display the error message from the server or use fallback
                     const errorMessage = error?.message || alertFail;
                     setError(errorMessage);

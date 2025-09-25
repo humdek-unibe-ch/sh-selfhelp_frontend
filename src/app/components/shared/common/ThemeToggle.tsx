@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 
 type ColorSchemeType = 'light' | 'dark' | 'auto';
 
-export function ThemeToggle(): JSX.Element {
+export function ThemeToggle(): React.JSX.Element {
     const { setColorScheme, colorScheme } = useMantineColorScheme();
 
     // Function to check system preference
@@ -26,7 +26,7 @@ export function ThemeToggle(): JSX.Element {
     // Listen for system theme changes when in auto mode
     useEffect(() => {
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        
+
         const handleChange = (e: MediaQueryListEvent) => {
             if (colorScheme === 'auto') {
                 setColorScheme(e.matches ? 'dark' : 'light');
@@ -37,7 +37,7 @@ export function ThemeToggle(): JSX.Element {
         return () => mediaQuery.removeEventListener('change', handleChange);
     }, [colorScheme, setColorScheme]);
 
-    const icons: Record<ColorSchemeType, JSX.Element> = {
+    const icons: Record<ColorSchemeType, React.JSX.Element> = {
         light: <IconSun size="1.2rem" stroke={1.5} />,
         dark: <IconMoon size="1.2rem" stroke={1.5} />,
         auto: <IconDeviceDesktop size="1.2rem" stroke={1.5} />
