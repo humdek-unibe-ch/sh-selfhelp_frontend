@@ -3,7 +3,14 @@
 ## Overview
 This document provides comprehensive instructions for AI models to generate **complete JSON array structures** that can be directly imported into the SH-SelfHelp CMS system. The system uses a hierarchical section-based architecture where each section has a specific style type and configurable fields.
 
-**CRITICAL**: Your final output must be valid JSON in array format `[]` containing all sections.
+**CRITICAL REQUIREMENTS**:
+1. Your final output must be valid JSON in array format `[]` containing all sections
+2. Section names use the style_name (e.g., "container", "card", "button")
+3. All content must be in both "en-GB" (English) and "de-CH" (German) for translatable fields
+4. Use real Mantine field names and values from the actual system (see examples below)
+5. Always include complete `global_fields` structure with `condition`, `data_config`, `css`, `css_mobile`, and `debug`
+6. Boolean values are ALWAYS strings: `"0"` (false) or `"1"` (true)
+7. **DARK AND LIGHT THEME COMPATIBILITY IS MANDATORY** - Every visual element MUST include dark mode variants using `dark:` prefix
 
 ## System Architecture
 
@@ -13,13 +20,46 @@ The entire page content must be wrapped in an array `[]` containing all sections
 ```json
 [
   {
-    "name": "section-name",
-    "style_name": "style_type",
-    "children": [],
+    "name": "container",
+    "style_name": "container",
+    "children": [
+      {
+        "name": "card",
+        "style_name": "card",
+        "children": [...],
+        "fields": {
+          "mantine_spacing_margin_padding": {
+            "all": {
+              "content": "{\"all\":\"xl\"}",
+              "meta": null
+            }
+          },
+          "use_mantine_style": {
+            "all": {
+              "content": "1",
+              "meta": null
+            }
+          }
+        },
+        "global_fields": {
+          "condition": null,
+          "data_config": null,
+          "css": "hover:shadow-lg transition-all",
+          "css_mobile": null,
+          "debug": false
+        }
+      }
+    ],
     "fields": {
-      "field_name": {
-        "language_code": {
-          "content": "field_value",
+      "mantine_size": {
+        "all": {
+          "content": "md",
+          "meta": null
+        }
+      },
+      "use_mantine_style": {
+        "all": {
+          "content": "1",
           "meta": null
         }
       }
@@ -27,21 +67,24 @@ The entire page content must be wrapped in an array `[]` containing all sections
     "global_fields": {
       "condition": null,
       "data_config": null,
-      "css": "tailwind-classes",
-      "css_mobile": "mobile-specific-classes",
+      "css": "py-16 px-4",
+      "css_mobile": null,
       "debug": false
     }
   }
 ]
 ```
 
-**CRITICAL**: Always generate the complete JSON array structure, not individual objects.
+**CRITICAL NAMING RULES**:
+- **Section Names**: Use descriptive names that reflect the content or style_name (e.g., "hero-section", "team-grid", "contact-form")
+- **No Spaces/Special Chars**: Only letters, numbers, hyphens, and underscores allowed
+- **Descriptive**: Choose meaningful names that make the structure clear in the admin interface
 
 **Important Notes:**
-- **Section Names**: Use format `style_name` (e.g., "html-tag")
-- **Fields**: Can be an empty array `[]` or an object with field definitions
-- **Boolean Values**: Always stored as strings `"0"` (false) or `"1"` (true)
-- **Language Codes**: Use specific codes like `"de-CH"`, `"en-GB"`, or `"all"` for non-translatable fields
+- **Fields Structure**: Can be empty object `{}` or object with field definitions, but NEVER empty array `[]`
+- **Boolean Values**: ALWAYS strings `"0"` (false) or `"1"` (true), never boolean literals
+- **Language Codes**: `"en-GB"` and `"de-CH"` for translatable content, `"all"` for technical fields
+- **Meta Field**: Always `"meta": null` in field content objects
 
 ### Key Principles
 1. **Hierarchical Structure**: Sections can contain child sections, creating nested layouts
@@ -69,6 +112,77 @@ All styling is applied through Tailwind CSS classes in the `css` field:
 ```json
 "css": "bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700"
 ```
+
+## Dark and Light Theme Compatibility - MANDATORY
+
+### **MANDATORY REQUIREMENT**
+**EVERY generated component MUST be fully compatible with both dark and light themes.** This is not optional - it is a critical system requirement.
+
+### Core Dark Mode Principles
+1. **Every visual element** must include dark mode variants using the `dark:` prefix
+2. **No exceptions** - all backgrounds, text colors, borders, and interactive states must have dark variants
+3. **Consistent color mapping** - use established dark mode color pairs
+4. **Test mentally** - visualize how each element looks in both themes before finalizing
+
+### Essential Dark Mode Color Mappings
+```css
+/* Backgrounds */
+bg-white dark:bg-gray-900          /* Primary backgrounds */
+bg-gray-50 dark:bg-gray-800        /* Secondary backgrounds */
+bg-gray-100 dark:bg-gray-700       /* Tertiary backgrounds */
+
+/* Text Colors */
+text-gray-900 dark:text-white      /* Primary text */
+text-gray-700 dark:text-gray-300   /* Secondary text */
+text-gray-600 dark:text-gray-400   /* Tertiary text */
+
+/* Borders */
+border-gray-200 dark:border-gray-700   /* Light borders */
+border-gray-300 dark:border-gray-600   /* Medium borders */
+
+/* Interactive Elements */
+hover:bg-gray-50 dark:hover:bg-gray-800    /* Hover states */
+focus:ring-gray-300 dark:focus:ring-gray-600  /* Focus states */
+```
+
+### Standard Tailwind Dark Mode Usage
+**Use standard Tailwind `dark:` prefix for all dark mode classes:**
+
+```json
+"css": "bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+```
+
+**How it works:**
+- `bg-white`: Light background (default)
+- `dark:bg-gray-900`: Dark background when `dark` class is on `<html>`
+- `text-gray-900`: Dark text (default)
+- `dark:text-white`: Light text when `dark` class is on `<html>`
+
+### Dark Mode Implementation Checklist
+**Before finalizing any component, verify:**
+- [ ] All background colors have `dark:` variants
+- [ ] All text colors have `dark:` variants
+- [ ] All border colors have `dark:` variants
+- [ ] All hover states have `dark:` variants
+- [ ] All focus states have `dark:` variants
+- [ ] All shadow colors have `dark:` variants
+- [ ] Container backgrounds are theme-aware
+- [ ] Card backgrounds are theme-aware
+- [ ] Button variants work in both themes
+
+### Common Dark Mode Mistakes to Avoid
+- ❌ Missing `dark:` variants on any visual elements
+- ❌ Using light-only colors (white, black) without variants
+- ❌ Inconsistent color mapping across components
+- ❌ Forgetting hover/focus states in dark mode
+- ❌ Using insufficient contrast in dark mode
+
+### Dark Mode Testing Visualization
+When generating components, mentally test:
+1. **Light Theme**: Does everything look good on white/light backgrounds?
+2. **Dark Theme**: Does everything maintain proper contrast and readability?
+3. **Transitions**: Do hover states and interactions work in both themes?
+4. **Consistency**: Are colors consistent with the established design system?
 
 #### Mobile-Specific Styling
 Use `css_mobile` for mobile-specific overrides:
@@ -960,683 +1074,544 @@ For a page with a header, image, and text content:
 5. **Styling**: Apply appropriate Tailwind classes for layout and appearance
 6. **Naming**: Ensure all section names use only letters, numbers, hyphens, and underscores
 
-## Sample JSON Structure
+## Real-World Examples (From Actual System Exports)
 
-Here's a complete example of a simple page section:
-
-```json
-{
-  "name": "hero-section",
-  "style_name": "container",
-  "children": [
-    {
-      "name": "main-heading",
-      "style_name": "heading",
-      "children": [],
-      "fields": {
-        "level": {
-          "all": {
-            "content": "1",
-            "meta": null
-          }
-        },
-        "title": {
-          "en-GB": {
-            "content": "Welcome to Our Service",
-            "meta": null
-          }
-        }
-      },
-      "global_fields": {
-        "condition": null,
-        "data_config": null,
-        "css": "text-4xl font-bold text-center mb-6",
-        "css_mobile": null,
-        "debug": false
-      }
-    },
-    {
-      "name": "hero-image",
-      "style_name": "image",
-      "children": [],
-      "fields": {
-        "img_src": {
-          "all": {
-            "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
-            "meta": null
-          }
-        },
-        "alt": {
-          "en-GB": {
-            "content": "Hero image showing our main service",
-            "meta": null
-          }
-        }
-      },
-      "global_fields": {
-        "condition": null,
-        "data_config": null,
-        "css": "w-full h-64 object-cover rounded-lg mb-6",
-        "css_mobile": null,
-        "debug": false
-      }
-    },
-    {
-      "name": "description-text",
-      "style_name": "markdown",
-      "children": [],
-      "fields": {
-        "text_md": {
-          "en-GB": {
-            "content": "This is a comprehensive description of our service. We provide **excellent solutions** for your needs with modern technology and professional support.\n\n- Feature 1: Advanced functionality\n- Feature 2: User-friendly interface\n- Feature 3: 24/7 support",
-            "meta": null
-          }
-        }
-      },
-      "global_fields": {
-        "condition": null,
-        "data_config": null,
-        "css": "prose max-w-none text-gray-700",
-        "css_mobile": null,
-        "debug": false
-      }
-    }
-  ],
-  "fields": {},
-  "global_fields": {
-    "condition": null,
-    "data_config": null,
-    "css": "container mx-auto px-4 py-8",
-    "css_mobile": null,
-    "debug": false
-  }
-}
-```
-
-## Practical Example: Real Page Export Analysis
-
-Based on the actual exported page data, here's how the system structures real content. Notice the naming patterns, field structures, and hierarchical relationships:
-
-### Key Patterns from Real Data:
-1. **Section Names**: Use style_name format (e.g., "html-tag")
-2. **Empty Fields**: Many sections have `[]` instead of `{}` for fields
-3. **Boolean Values**: Always strings "0" or "1"
-4. **Language Structure**: Multi-language support with "de-CH", "en-GB", "all"
-5. **HTML Content**: Rich text fields can contain HTML (like `<p>`, `<strong>`, etc.)
-6. **Global Fields**: Always present with consistent structure
-
-### Real Example Structure:
+### Example 1: Team Page Layout with Cards
 ```json
 [
   {
-    "name": "fieldset",
-    "style_name": "fieldset",
-    "children": [
-    {
-      "name": "datepicker",
-      "style_name": "datepicker",
-      "children": [],
-      "fields": {
-        "label": {
-          "de-CH": {
-            "content": "Date",
-            "meta": null
-          },
-          "en-GB": {
-            "content": "",
-            "meta": null
-          }
-        },
-        "is_required": {
-          "all": {
-            "content": "0",
-            "meta": null
-          }
-        },
-        "name": {
-          "all": {
-            "content": "date",
-            "meta": null
-          }
-        },
-        "value": {
-          "all": {
-            "content": "",
-            "meta": null
-          }
-        },
-        "description": {
-          "de-CH": {
-            "content": "",
-            "meta": null
-          },
-          "en-GB": {
-            "content": "",
-            "meta": null
-          }
-        },
-        "disabled": {
-          "all": {
-            "content": "0",
-            "meta": null
-          }
-        }
-      },
-      "global_fields": {
-        "condition": null,
-        "data_config": null,
-        "css": null,
-        "css_mobile": null,
-        "debug": false
-      }
-    }
-  ],
-  "fields": {
-    "label": {
-      "de-CH": {
-        "content": "Form",
-        "meta": null
-      },
-      "en-GB": {
-        "content": "",
-        "meta": null
-      }
-    },
-    "disabled": {
-      "all": {
-        "content": "0",
-        "meta": null
-      }
-    }
-  },
-  "global_fields": {
-    "condition": null,
-    "data_config": null,
-    "css": null,
-    "css_mobile": null,
-    "debug": false
-  }
-  }
-]
-```
-
-## Legacy Example: Travel Blog Layout
-
-Based on the provided image showing a travel blog layout with multiple articles, here's how to generate the JSON structure:
-
-```json
-[
-  {
-    "name": "Travel Blog Container",
+    "name": "team-container",
     "style_name": "container",
     "children": [
       {
-        "name": "Blog Grid",
-        "style_name": "div",
+        "name": "team-header",
+        "style_name": "stack",
         "children": [
           {
-            "name": "Norway Article Card",
-            "style_name": "card",
-            "children": [
-              {
-                "name": "Norway Image",
-                "style_name": "image",
-                "children": [],
-                "fields": {
-                  "img_src": {
-                    "all": {
-                      "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
-                      "meta": null
-                    }
-                  },
-                  "alt": {
-                    "en-GB": {
-                      "content": "Beautiful Norwegian landscape with red houses by the sea",
-                      "meta": null
-                    }
-                  },
-                  "css": {
-                    "all": {
-                      "content": "w-full h-48 object-cover rounded-t-lg",
-                      "meta": null
-                    }
-                  }
+            "name": "team-title",
+            "style_name": "title",
+            "children": [],
+            "fields": {
+              "use_mantine_style": {
+                "all": {
+                  "content": "1",
+                  "meta": null
                 }
               },
-              {
-                "name": "Norway Article Title",
-                "style_name": "heading",
-                "children": [],
-                "fields": {
-                  "level": {
-                    "all": {
-                      "content": "3",
-                      "meta": null
-                    }
-                  },
-                  "title": {
-                    "en-GB": {
-                      "content": "Top 10 places to visit in Norway this summer",
-                      "meta": null
-                    }
-                  },
-                  "css": {
-                    "all": {
-                      "content": "text-xl font-semibold p-4 pb-2",
-                      "meta": null
-                    }
-                  }
+              "content": {
+                "de-CH": {
+                  "content": "Lernen Sie unser Führungsteam kennen",
+                  "meta": null
+                },
+                "en-GB": {
+                  "content": "Meet Our Executive Team",
+                  "meta": null
                 }
-              }
-            ],
-            "fields": {
-              "css": {
+              },
+              "mantine_title_order": {
                 "all": {
-                  "content": "bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300",
+                  "content": "2",
                   "meta": null
                 }
               }
-            }
-          },
-          {
-            "name": "Forest Article Card",
-            "style_name": "card",
-            "children": [
-              {
-                "name": "Forest Image",
-                "style_name": "image",
-                "children": [],
-                "fields": {
-                  "img_src": {
-                    "all": {
-                      "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
-                      "meta": null
-                    }
-                  },
-                  "alt": {
-                    "en-GB": {
-                      "content": "Misty forest with sunlight streaming through trees",
-                      "meta": null
-                    }
-                  },
-                  "css": {
-                    "all": {
-                      "content": "w-full h-48 object-cover rounded-t-lg",
-                      "meta": null
-                    }
-                  }
-                }
-              },
-              {
-                "name": "Forest Article Title",
-                "style_name": "heading",
-                "children": [],
-                "fields": {
-                  "level": {
-                    "all": {
-                      "content": "3",
-                      "meta": null
-                    }
-                  },
-                  "title": {
-                    "en-GB": {
-                      "content": "Best forests to visit in North America",
-                      "meta": null
-                    }
-                  },
-                  "css": {
-                    "all": {
-                      "content": "text-xl font-semibold p-4 pb-2",
-                      "meta": null
-                    }
-                  }
-                }
-              }
-            ],
-            "fields": {
-              "css": {
-                "all": {
-                  "content": "bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300",
-                  "meta": null
-                }
-              }
-            }
-          },
-          {
-            "name": "Hawaii Article Card",
-            "style_name": "card",
-            "children": [
-              {
-                "name": "Hawaii Beach Image",
-                "style_name": "image",
-                "children": [],
-                "fields": {
-                  "img_src": {
-                    "all": {
-                      "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
-                      "meta": null
-                    }
-                  },
-                  "alt": {
-                    "en-GB": {
-                      "content": "Pristine Hawaiian beach with turquoise water",
-                      "meta": null
-                    }
-                  },
-                  "css": {
-                    "all": {
-                      "content": "w-full h-48 object-cover rounded-t-lg",
-                      "meta": null
-                    }
-                  }
-                }
-              },
-              {
-                "name": "Hawaii Article Title",
-                "style_name": "heading",
-                "children": [],
-                "fields": {
-                  "level": {
-                    "all": {
-                      "content": "3",
-                      "meta": null
-                    }
-                  },
-                  "title": {
-                    "en-GB": {
-                      "content": "Hawaii beaches review: better than you think",
-                      "meta": null
-                    }
-                  },
-                  "css": {
-                    "all": {
-                      "content": "text-xl font-semibold p-4 pb-2",
-                      "meta": null
-                    }
-                  }
-                }
-              }
-            ],
-            "fields": {
-              "css": {
-                "all": {
-                  "content": "bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300",
-                  "meta": null
-                }
-              }
-            }
-          },
-          {
-            "name": "Mountains Article Card",
-            "style_name": "card",
-            "children": [
-              {
-                "name": "Mountains Night Image",
-                "style_name": "image",
-                "children": [],
-                "fields": {
-                  "img_src": {
-                    "all": {
-                      "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
-                      "meta": null
-                    }
-                  },
-                  "alt": {
-                    "en-GB": {
-                      "content": "Mountain landscape at night with starry sky",
-                      "meta": null
-                    }
-                  },
-                  "css": {
-                    "all": {
-                      "content": "w-full h-48 object-cover rounded-t-lg",
-                      "meta": null
-                    }
-                  }
-                }
-              },
-              {
-                "name": "Mountains Article Title",
-                "style_name": "heading",
-                "children": [],
-                "fields": {
-                  "level": {
-                    "all": {
-                      "content": "3",
-                      "meta": null
-                    }
-                  },
-                  "title": {
-                    "en-GB": {
-                      "content": "Mountains at night: 12 best locations to enjoy the view",
-                      "meta": null
-                    }
-                  },
-                  "css": {
-                    "all": {
-                      "content": "text-xl font-semibold p-4 pb-2",
-                      "meta": null
-                    }
-                  }
-                }
-              }
-            ],
-            "fields": {
-              "css": {
-                "all": {
-                  "content": "bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300",
-                  "meta": null
-                }
-              }
+            },
+            "global_fields": {
+              "condition": null,
+              "data_config": null,
+              "css": "text-center",
+              "css_mobile": null,
+              "debug": false
             }
           }
         ],
         "fields": {
-          "css": {
+          "mantine_gap": {
             "all": {
-              "content": "grid grid-cols-1 md:grid-cols-2 gap-6",
+              "content": "lg",
+              "meta": null
+            }
+          },
+          "mantine_justify": {
+            "all": {
+              "content": "center",
+              "meta": null
+            }
+          },
+          "mantine_align": {
+            "all": {
+              "content": "center",
               "meta": null
             }
           }
+        },
+        "global_fields": {
+          "condition": null,
+          "data_config": null,
+          "css": "mb-16",
+          "css_mobile": "mb-12",
+          "debug": false
+        }
+      },
+      {
+        "name": "team-grid",
+        "style_name": "simple-grid",
+        "children": [
+          {
+            "name": "team-member-card",
+            "style_name": "card",
+            "children": [
+              {
+                "name": "member-image-container",
+                "style_name": "stack",
+                "children": [
+                  {
+                    "name": "member-image",
+                    "style_name": "image",
+                    "children": [],
+                    "fields": {
+                      "is_fluid": {
+                        "all": {
+                          "content": "1",
+                          "meta": null
+                        }
+                      },
+                      "alt": {
+                        "de-CH": {
+                          "content": "Dr. Sarah Müller - Geschäftsführerin & Gründerin",
+                          "meta": null
+                        },
+                        "en-GB": {
+                          "content": "Dr. Sarah Müller - CEO & Founder",
+                          "meta": null
+                        }
+                      },
+                      "img_src": {
+                        "all": {
+                          "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
+                          "meta": null
+                        }
+                      },
+                      "mantine_radius": {
+                        "all": {
+                          "content": "lg",
+                          "meta": null
+                        }
+                      },
+                      "use_mantine_style": {
+                        "all": {
+                          "content": "1",
+                          "meta": null
+                        }
+                      }
+                    },
+                    "global_fields": {
+                      "condition": null,
+                      "data_config": null,
+                      "css": "aspect-square object-cover",
+                      "css_mobile": null,
+                      "debug": false
+                    }
+                  }
+                ],
+                "fields": {
+                  "mantine_spacing_margin_padding": {
+                    "all": {
+                      "content": "{\"bottom\":\"lg\"}",
+                      "meta": null
+                    }
+                  }
+                },
+                "global_fields": {
+                  "condition": null,
+                  "data_config": null,
+                  "css": "",
+                  "css_mobile": null,
+                  "debug": false
+                }
+              }
+            ],
+            "fields": {
+              "mantine_spacing_margin_padding": {
+                "all": {
+                  "content": "{\"all\":\"xl\"}",
+                  "meta": null
+                }
+              },
+              "mantine_border": {
+                "all": {
+                  "content": "0",
+                  "meta": null
+                }
+              },
+              "mantine_radius": {
+                "all": {
+                  "content": "xl",
+                  "meta": null
+                }
+              },
+              "use_mantine_style": {
+                "all": {
+                  "content": "1",
+                  "meta": null
+                }
+              },
+              "mantine_card_shadow": {
+                "all": {
+                  "content": "md",
+                  "meta": null
+                }
+              }
+            },
+            "global_fields": {
+              "condition": null,
+              "data_config": null,
+              "css": "hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700",
+              "css_mobile": null,
+              "debug": false
+            }
+          }
+        ],
+        "fields": {
+          "use_mantine_style": {
+            "all": {
+              "content": "1",
+              "meta": null
+            }
+          },
+          "mantine_cols": {
+            "all": {
+              "content": "3",
+              "meta": null
+            }
+          },
+          "mantine_vertical_spacing": {
+            "all": {
+              "content": "xl",
+              "meta": null
+            }
+          }
+        },
+        "global_fields": {
+          "condition": null,
+          "data_config": null,
+          "css": "max-w-7xl",
+          "css_mobile": null,
+          "debug": false
         }
       }
     ],
     "fields": {
-      "css": {
+      "mantine_size": {
         "all": {
-          "content": "container mx-auto px-4 py-8 max-w-6xl",
+          "content": "md",
+          "meta": null
+        }
+      },
+      "use_mantine_style": {
+        "all": {
+          "content": "1",
+          "meta": null
+        }
+      },
+      "mantine_fluid": {
+        "all": {
+          "content": "0",
           "meta": null
         }
       }
+    },
+    "global_fields": {
+      "condition": null,
+      "data_config": null,
+      "css": "py-16 px-4 bg-gray-50 dark:bg-gray-900",
+      "css_mobile": "py-8 px-4",
+      "debug": false
     }
   }
 ]
 ```
 
-## Important Notes for AI Generation
-
-### System-Specific Requirements:
-1. **Section Naming**: Always use `style_name` format (e.g., "html-tag")
-2. **Boolean Values**: Always use string values `"0"` or `"1"`, never boolean `true`/`false`
-3. **Fields Structure**: Can be empty array `[]` or object with field definitions
-4. **Language Keys**: Use `"de-CH"`, `"en-GB"`, `"all"` - match the real export patterns
-5. **Meta Field**: Always set `"meta": null` in field content objects
-6. **Global Fields**: Always include the complete global_fields structure
-
-### Content Guidelines:
-1. **Image Sources**: Use real URLs or `uploads/assets/general/image-holder.png` for uploaded images
-2. **HTML Content**: Rich text fields can contain HTML tags like `<p>`, `<strong>`, `<hr>`
-3. **Form Fields**: Use the exact field names from real export data
-4. **CSS Classes**: Apply Tailwind classes in `global_fields.css` for styling
-5. **Dark Mode**: Include dark mode variants (`dark:`) for all color-related classes
-
-### Style Selection Guidelines:
-1. **Mantine First**: Prefer Mantine UI styles (`use_mantine_style: "1"`) for modern components
-2. **Form Components**: Use specific Mantine form styles (text-input, file-input, etc.)
-3. **Layout Components**: Use flex, grid, stack, container for modern layouts
-4. **Custom HTML**: Use `html-tag` style only for very custom layouts that Mantine cannot support
-5. **Legacy Styles**: Use legacy styles only when modern equivalents don't exist
-
-### Validation Checklist:
-- [ ] **Framework Specified**: First word is either "mantine" or "tailwind"
-- [ ] **Framework Compliance**:
-  - **Mantine**: Uses appropriate Mantine components, Mantine properties first, minimal Tailwind CSS
-  - **Tailwind**: Uses only core components (html-tag, image, button, form inputs), Tailwind CSS for all styling
-- [ ] **Spacing Fields**: Uses proper Mantine spacing fields (`mantine_gap`, `mantine_spacing_margin_padding`) instead of CSS margin/padding classes
-- [ ] **Complete JSON Array**: Output must be wrapped in `[]` containing all sections
-- [ ] **TypeScript Compliance**: Field names and values match `styles.types.ts` exactly
-- [ ] **Content Completeness**: All translatable fields have content in both "en-GB" and "de-CH" languages
-- [ ] **Content Quality**: Professional, comprehensive content (names, descriptions, contact info) suitable for business use
-- [ ] Section names follow style format
-- [ ] Boolean values are strings "0"/"1"
-- [ ] Language structure matches real exports
-- [ ] Global fields are complete for every section
-- [ ] **Framework-Specific Styling**:
-  - **Mantine**: Mantine properties used first, Tailwind only when absolutely necessary
-  - **Tailwind**: All styling through `global_fields.css` with Tailwind classes
-- [ ] CSS includes dark mode variants when using Tailwind
-- [ ] Form fields use correct naming conventions
-- [ ] Image sources use valid URLs or asset paths
-
-## Mantine Field Value Reference
-
-### Segment Field Values (Fixed Options)
-Segment fields provide mutually exclusive options and have predefined values:
-
-**mantine_orientation**: `horizontal`, `vertical`
-
-**mantine_color_format**: `hex`, `rgba`, `hsla`
-
-**mantine_direction**: `row`, `column`, `row-reverse`, `column-reverse`
-
-**mantine_wrap**: `wrap`, `nowrap`, `wrap-reverse`
-
-**mantine_group_wrap**: `wrap`, `nowrap`, `wrap-reverse`
-
-**mantine_space_direction**: `horizontal`, `vertical`
-
-**mantine_grid_overflow**: `visible`, `hidden`, `scroll`, `auto`
-
-**mantine_number_input_clamp_behavior**: `strict`, `blur`
-
-### Select Field Values (Fixed Options)
-Select fields provide dropdown choices with predefined and creatable options:
-
-**mantine_variant**: `filled`, `light`, `outline`, `subtle`, `default`, `transparent`, `white`
-
-**mantine_size**: `xs`, `sm`, `md`, `lg`, `xl`
-
-**mantine_radius**: `none`, `xs`, `sm`, `md`, `lg`, `xl`
-
-**mantine_gap**: `0`, `xs`, `sm`, `md`, `lg`, `xl`
-
-**mantine_justify**: `flex-start`, `center`, `flex-end`, `space-between`, `space-around`, `space-evenly`
-
-**mantine_align**: `flex-start`, `center`, `flex-end`, `stretch`, `baseline`
-
-**mantine_width**: `25%`, `50%`, `75%`, `100%`, `auto`, `fit-content`, `max-content`, `min-content` (+ creatable)
-
-**mantine_height**: `25%`, `50%`, `75%`, `100%`, `auto`, `fit-content`, `max-content`, `min-content` (+ creatable)
-
-**mantine_tooltip_position**: `top`, `bottom`, `left`, `right`, `top-start`, `top-end`, `bottom-start`, `bottom-end`, `left-start`, `left-end`, `right-start`, `right-end`
-
-**mantine_numeric_min**: `0`, `1`, `10`, `100` (+ creatable)
-
-**mantine_numeric_max**: `10`, `100`, `1000`, `10000` (+ creatable)
-
-**mantine_numeric_step**: `0.1`, `0.5`, `1`, `5`, `10` (+ creatable)
-
-**mantine_icon_size**: `14`, `16`, `18`, `20`, `24`, `32` (+ creatable)
-
-**mantine_control_size**: `14`, `16`, `18`, `20`, `24`, `32` (+ creatable)
-
-**mantine_tabs_variant**: `default`, `outline`, `pills`
-
-**mantine_aspect_ratio**: `1/1`, `4/3`, `16/9`, `21/9`, etc. (+ creatable)
-
-**mantine_chip_variant**: `filled`, `light`, `outline`, `dot`, `light-outline`
-
-**mantine_image_fit**: `contain`, `cover`, `fill`, `none`, `scale-down`
-
-**mantine_radio_label_position**: `right`, `left`
-
-**mantine_fieldset_variant**: `default`, `filled`
-
-**mantine_file_input_accept**: `image/*`, `audio/*`, `video/*`, `.pdf`, `.doc`, `.docx` (+ creatable)
-
-**mantine_file_input_max_size**: `1024`, `5242880`, `10485760`, `20971520` (+ creatable)
-
-**mantine_file_input_max_files**: `1`, `5`, `10`, `20` (+ creatable)
-
-### Slider Field Values (Range Options)
-Slider fields provide ranged values with predefined steps:
-
-**mantine_size**: `xs` (smallest) to `xl` (largest)
-
-**mantine_radius**: `none` (sharp) to `xl` (most rounded)
-
-**mantine_gap**: `0` (no gap) to `xl` (largest gap)
-
-### Color Field Values (Mantine Colors)
-**mantine_color**: `gray`, `red`, `grape`, `violet`, `blue`, `cyan`, `green`, `lime`, `yellow`, `orange`
-
-### Usage Guidelines for AI Generation
-
-#### When to Use Specific Values:
-1. **Size Fields**: Use `md` as default, `sm`/`lg` for smaller/larger variants
-2. **Color Fields**: Use `blue` as primary default, `gray` for neutral elements
-3. **Variant Fields**: Use `filled` as default for buttons, `light` for subtle elements
-4. **Layout Fields**: Use `center` for alignment, `flex-start` for left/top alignment
-5. **Spacing Fields**: Use `md` for standard spacing, `sm` for tight, `lg` for loose
-6. **Width/Height**: Use `100%` for full width, `auto` for content-based sizing
-
-#### Creatable Fields:
-Fields marked with "(+ creatable)" allow custom values beyond the predefined options. For example:
-- **mantine_width**: Can use custom percentages like `33.33%` or pixel values like `300px`
-- **mantine_numeric_min/max**: Can use any numeric value like `25`, `500`, etc.
-- **mantine_icon_size**: Can use any pixel value like `28`, `36`, etc.
-
-#### Common Field Combinations:
-```json
-// Standard button
-"mantine_variant": "filled",
-"mantine_color": "blue",
-"mantine_size": "md",
-"mantine_radius": "md"
-
-// Layout container
-"mantine_width": "100%",
-"mantine_gap": "md",
-"mantine_justify": "center",
-"mantine_align": "center"
-
-// Form input
-"mantine_size": "md",
-"mantine_radius": "md",
-"use_mantine_style": "1"
-```
-
-### JSON Generation Requirements
-**ALWAYS** generate the complete JSON array structure as your final output. The response should be valid JSON that can be directly imported into the SH-SelfHelp CMS system.
-
-**Framework-Specific Output Requirements:**
-
-#### Mantine Framework Output:
+### Example 2: Form with Multiple Input Types
 ```json
 [
   {
-    "name": "mantine-container",
-    "style_name": "container",
-    "children": [...],
+    "name": "contact-form",
+    "style_name": "fieldset",
+    "children": [
+      {
+        "name": "contact-form-record",
+        "style_name": "form-record",
+        "children": [
+          {
+            "name": "name-input",
+            "style_name": "text-input",
+            "children": [],
+            "fields": {
+              "label": {
+                "de-CH": {
+                  "content": "text",
+                  "meta": null
+                },
+                "en-GB": {
+                  "content": "",
+                  "meta": null
+                }
+              },
+              "placeholder": {
+                "de-CH": {
+                  "content": "",
+                  "meta": null
+                },
+                "en-GB": {
+                  "content": "",
+                  "meta": null
+                }
+              },
+              "is_required": {
+                "all": {
+                  "content": "0",
+                  "meta": null
+                }
+              },
+              "name": {
+                "all": {
+                  "content": "text",
+                  "meta": null
+                }
+              },
+              "value": {
+                "all": {
+                  "content": "",
+                  "meta": null
+                }
+              },
+              "description": {
+                "de-CH": {
+                  "content": "",
+                  "meta": null
+                },
+                "en-GB": {
+                  "content": "",
+                  "meta": null
+                }
+              },
+              "disabled": {
+                "all": {
+                  "content": "0",
+                  "meta": null
+                }
+              }
+            },
+            "global_fields": {
+              "condition": null,
+              "data_config": null,
+              "css": null,
+              "css_mobile": null,
+              "debug": false
+            }
+          },
+          {
+            "name": "newsletter-checkbox",
+            "style_name": "checkbox",
+            "children": [],
+            "fields": {
+              "label": {
+                "de-CH": {
+                  "content": "check",
+                  "meta": null
+                },
+                "en-GB": {
+                  "content": "",
+                  "meta": null
+                }
+              },
+              "is_required": {
+                "all": {
+                  "content": "0",
+                  "meta": null
+                }
+              },
+              "name": {
+                "all": {
+                  "content": "check",
+                  "meta": null
+                }
+              },
+              "value": {
+                "all": {
+                  "content": "",
+                  "meta": null
+                }
+              },
+              "description": {
+                "de-CH": {
+                  "content": "",
+                  "meta": null
+                },
+                "en-GB": {
+                  "content": "",
+                  "meta": null
+                }
+              },
+              "disabled": {
+                "all": {
+                  "content": "0",
+                  "meta": null
+                }
+              },
+              "checkbox_value": {
+                "all": {
+                  "content": "dfff",
+                  "meta": null
+                }
+              }
+            },
+            "global_fields": {
+              "condition": null,
+              "data_config": null,
+              "css": null,
+              "css_mobile": null,
+              "debug": false
+            }
+          },
+          {
+            "name": "notification-switch",
+            "style_name": "switch",
+            "children": [],
+            "fields": {
+              "label": {
+                "de-CH": {
+                  "content": "switch",
+                  "meta": null
+                },
+                "en-GB": {
+                  "content": "",
+                  "meta": null
+                }
+              },
+              "is_required": {
+                "all": {
+                  "content": "0",
+                  "meta": null
+                }
+              },
+              "name": {
+                "all": {
+                  "content": "switch",
+                  "meta": null
+                }
+              },
+              "value": {
+                "all": {
+                  "content": "",
+                  "meta": null
+                }
+              },
+              "description": {
+                "de-CH": {
+                  "content": "",
+                  "meta": null
+                },
+                "en-GB": {
+                  "content": "",
+                  "meta": null
+                }
+              },
+              "disabled": {
+                "all": {
+                  "content": "0",
+                  "meta": null
+                }
+              }
+            },
+            "global_fields": {
+              "condition": null,
+              "data_config": null,
+              "css": null,
+              "css_mobile": null,
+              "debug": false
+            }
+          }
+        ],
+        "fields": {
+          "alert_success": {
+            "de-CH": {
+              "content": "Record saved successfully!",
+              "meta": null
+            },
+            "en-GB": {
+              "content": "",
+              "meta": null
+            }
+          },
+          "name": {
+            "all": {
+              "content": "record",
+              "meta": null
+            }
+          },
+          "is_log": {
+            "all": {
+              "content": "0",
+              "meta": null
+            }
+          }
+        },
+        "global_fields": {
+          "condition": null,
+          "data_config": null,
+          "css": null,
+          "css_mobile": null,
+          "debug": false
+        }
+      }
+    ],
     "fields": {
-      "mantine_size": {"all": {"content": "md", "meta": null}},
-      "mantine_fluid": {"all": {"content": "0", "meta": null}},
-      "use_mantine_style": {"all": {"content": "1", "meta": null}}
+      "label": {
+        "de-CH": {
+          "content": "Form",
+          "meta": null
+        },
+        "en-GB": {
+          "content": "",
+          "meta": null
+        }
+      },
+      "disabled": {
+        "all": {
+          "content": "0",
+          "meta": null
+        }
+      },
+      "mantine_spacing_margin_padding": {
+        "all": {
+          "content": "{\"mt\":\"xl\",\"mb\":\"xl\",\"me\":\"xl\",\"ms\":\"xl\"}",
+          "meta": null
+        }
+      },
+      "mantine_radius": {
+        "all": {
+          "content": "sm",
+          "meta": null
+        }
+      },
+      "use_mantine_style": {
+        "all": {
+          "content": "1",
+          "meta": null
+        }
+      },
+      "mantine_fieldset_variant": {
+        "all": {
+          "content": "default",
+          "meta": null
+        }
+      }
     },
     "global_fields": {
       "condition": null,
       "data_config": null,
-      "css": null,
+      "css": "hover:shadow-lg",
       "css_mobile": null,
       "debug": false
     }
@@ -1644,40 +1619,47 @@ Fields marked with "(+ creatable)" allow custom values beyond the predefined opt
 ]
 ```
 
-#### Tailwind Framework Output:
-```json
-[
-  {
-    "name": "tailwind-container",
-    "style_name": "html-tag",
-    "children": [...],
-    "fields": {
-      "html_tag": {"all": {"content": "div", "meta": null}},
-      "html_tag_content": {"all": {"content": "<div>Custom content</div>", "meta": null}}
-    },
-    "global_fields": {
-      "condition": null,
-      "data_config": null,
-      "css": "container mx-auto px-4 py-8 bg-white dark:bg-gray-900",
-      "css_mobile": "px-2 py-4",
-      "debug": false
-    }
-  }
-]
-```
+## Real Data Patterns & Best Practices
 
-**Priority Order for Styling by Framework:**
+Based on the actual exported page data, here are the critical patterns to follow:
 
-#### Mantine Framework Priority:
-1. **Mantine Properties**: Always use Mantine component props first (mantine_size, mantine_color, mantine_variant, etc.)
-2. **Mantine Field Values**: Use the predefined values from `styles.types.ts`
-3. **Tailwind CSS**: Only in very rare cases when Mantine properties cannot achieve the required result
-4. **Custom HTML**: Never use `html-tag` for Mantine framework
+### Critical Patterns from Real Data:
+1. **Section Names**: MUST follow `{style_name}-{timestamp}` pattern (e.g., "fieldset-1757924762")
+2. **Fields Structure**: Can be `{}` (empty object) or object with fields, but NEVER `[]` (empty array)
+3. **Boolean Values**: ALWAYS strings `"0"` (false) or `"1"` (true), never boolean literals
+4. **Language Keys**: `"en-GB"` and `"de-CH"` for translatable content, `"all"` for technical fields
+5. **Meta Field**: Always `"meta": null` in every field content object
+6. **Global Fields**: Always include complete structure: `condition`, `data_config`, `css`, `css_mobile`, `debug`
+7. **Mantine Fields**: Use real field names like `mantine_spacing_margin_padding`, `mantine_card_shadow`, etc.
+8. **Spacing JSON**: Complex spacing uses JSON strings with specific structures
+9. **Descriptive Names**: Use meaningful section names for admin interface clarity
+10. **Form Fields**: Always include `is_required`, `disabled`, `name` for form inputs
 
-#### Tailwind Framework Priority:
-1. **Tailwind CSS**: Apply all styling through `global_fields.css` with Tailwind classes
-2. **Core Components**: Use only html-tag, image, button, and form inputs
-3. **Custom HTML**: Build layouts using html-tag with custom HTML content
-4. **Mantine Components**: Never use any Mantine-specific components
+### Essential Rules for AI Generation:
+- **NEVER use empty arrays `[]` for fields** - use empty objects `{}` or populated objects
+- **ALWAYS use string booleans** - `"0"` and `"1"` only, never `true`/`false`
+- **ALWAYS include both languages** - `en-GB` and `de-CH` for translatable fields
+- **ALWAYS include `meta: null`** - in every field content object
+- **ALWAYS use Mantine components** - `use_mantine_style: "1"` is preferred
+- **ALWAYS use descriptive naming** - Choose meaningful section names
+- **ALWAYS include complete global_fields** - all 5 fields required
 
-**CRITICAL**: Always reference `src/types/common/styles.types.ts` for exact field names and `docs/AI Prompts/ai_generate.md` for framework-specific guidelines when generating JSON structures.
+## Final Generation Checklist
+
+Before outputting your JSON, verify all requirements are met:
+
+- [ ] **Framework**: First word is "mantine" (Tailwind is legacy)
+- [ ] **Array Format**: Output is valid JSON array `[]`
+- [ ] **Section Names**: Descriptive names without timestamps (e.g., "hero-section", "contact-form")
+- [ ] **Languages**: Both "en-GB" and "de-CH" for translatable content
+- [ ] **Boolean Values**: Only string `"0"` and `"1"`, never boolean literals
+- [ ] **Meta Fields**: Every field content has `"meta": null`
+- [ ] **Global Fields**: All sections have complete global_fields structure
+- [ ] **Mantine Style**: `use_mantine_style` set to `"1"` for components
+- [ ] **Field Structure**: Never use empty arrays `[]` for fields
+- [ ] **Real Field Names**: Use actual Mantine field names from examples
+- [ ] **Spacing**: Use proper `mantine_spacing_margin_padding` JSON format
+- [ ] **Form Fields**: Include required form field properties
+- [ ] **DARK/LIGHT THEME COMPATIBILITY**: Every visual element has `dark:` variants - this is MANDATORY and cannot be skipped
+
+**REMEMBER**: The examples above are your primary reference. Study them carefully and replicate their exact patterns, field names, and structures in your generated JSON.

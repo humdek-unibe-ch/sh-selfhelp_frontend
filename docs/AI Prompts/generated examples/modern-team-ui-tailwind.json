@@ -1,0 +1,842 @@
+[
+  {
+    "name": "team-container",
+    "style_name": "html-tag",
+    "children": [
+      {
+        "name": "team-header",
+        "style_name": "html-tag",
+        "children": [
+          {
+            "name": "team-title",
+            "style_name": "html-tag",
+            "children": [],
+            "fields": {
+              "html_tag": {
+                "all": {
+                  "content": "h2",
+                  "meta": null
+                }
+              },
+              "html_tag_content": {
+                "en-GB": {
+                  "content": "Meet Our Team",
+                  "meta": null
+                },
+                "de-CH": {
+                  "content": "Lernen Sie unser Team kennen",
+                  "meta": null
+                }
+              }
+            },
+            "global_fields": {
+              "condition": null,
+              "data_config": null,
+              "css": "text-4xl font-bold text-center text-gray-900 dark:text-white mb-12",
+              "css_mobile": "text-3xl mb-8",
+              "debug": false
+            }
+          }
+        ],
+        "fields": {
+          "html_tag": {
+            "all": {
+              "content": "div",
+              "meta": null
+            }
+          }
+        },
+        "global_fields": {
+          "condition": null,
+          "data_config": null,
+          "css": "text-center mb-16",
+          "css_mobile": "mb-12",
+          "debug": false
+        }
+      },
+      {
+        "name": "team-grid",
+        "style_name": "html-tag",
+        "children": [
+          {
+            "name": "member-1-card",
+            "style_name": "html-tag",
+            "children": [
+              {
+                "name": "member-1-image",
+                "style_name": "image",
+                "children": [],
+                "fields": {
+                  "img_src": {
+                    "all": {
+                      "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
+                      "meta": null
+                    }
+                  },
+                  "alt": {
+                    "en-GB": {
+                      "content": "Dr. Sarah Müller - CEO & Founder",
+                      "meta": null
+                    },
+                    "de-CH": {
+                      "content": "Dr. Sarah Müller - Geschäftsführerin & Gründerin",
+                      "meta": null
+                    }
+                  },
+                  "is_fluid": {
+                    "all": {
+                      "content": "1",
+                      "meta": null
+                    }
+                  }
+                },
+                "global_fields": {
+                  "condition": null,
+                  "data_config": null,
+                  "css": "w-full h-64 object-cover rounded-t-lg",
+                  "css_mobile": "h-48",
+                  "debug": false
+                }
+              },
+              {
+                "name": "member-1-content",
+                "style_name": "html-tag",
+                "children": [
+                  {
+                    "name": "member-1-name",
+                    "style_name": "html-tag",
+                    "children": [],
+                    "fields": {
+                      "html_tag": {
+                        "all": {
+                          "content": "h3",
+                          "meta": null
+                        }
+                      },
+                      "html_tag_content": {
+                        "en-GB": {
+                          "content": "Dr. Sarah Müller",
+                          "meta": null
+                        },
+                        "de-CH": {
+                          "content": "Dr. Sarah Müller",
+                          "meta": null
+                        }
+                      }
+                    },
+                    "global_fields": {
+                      "condition": null,
+                      "data_config": null,
+                      "css": "text-xl font-bold text-gray-900 dark:text-white mb-2",
+                      "css_mobile": "text-lg",
+                      "debug": false
+                    }
+                  },
+                  {
+                    "name": "member-1-title",
+                    "style_name": "html-tag",
+                    "children": [],
+                    "fields": {
+                      "html_tag": {
+                        "all": {
+                          "content": "p",
+                          "meta": null
+                        }
+                      },
+                      "html_tag_content": {
+                        "en-GB": {
+                          "content": "CEO & Founder",
+                          "meta": null
+                        },
+                        "de-CH": {
+                          "content": "Geschäftsführerin & Gründerin",
+                          "meta": null
+                        }
+                      }
+                    },
+                    "global_fields": {
+                      "condition": null,
+                      "data_config": null,
+                      "css": "text-blue-600 dark:text-blue-400 font-medium mb-3",
+                      "css_mobile": null,
+                      "debug": false
+                    }
+                  },
+                  {
+                    "name": "member-1-contact",
+                    "style_name": "html-tag",
+                    "children": [
+                      {
+                        "name": "member-1-phone",
+                        "style_name": "html-tag",
+                        "children": [],
+                        "fields": {
+                          "html_tag": {
+                            "all": {
+                              "content": "p",
+                              "meta": null
+                            }
+                          },
+                          "html_tag_content": {
+                            "en-GB": {
+                              "content": "📞 +41 44 123 45 67",
+                              "meta": null
+                            },
+                            "de-CH": {
+                              "content": "📞 +41 44 123 45 67",
+                              "meta": null
+                            }
+                          }
+                        },
+                        "global_fields": {
+                          "condition": null,
+                          "data_config": null,
+                          "css": "text-sm text-gray-600 dark:text-gray-300 mb-1",
+                          "css_mobile": null,
+                          "debug": false
+                        }
+                      },
+                      {
+                        "name": "member-1-office",
+                        "style_name": "html-tag",
+                        "children": [],
+                        "fields": {
+                          "html_tag": {
+                            "all": {
+                              "content": "p",
+                              "meta": null
+                            }
+                          },
+                          "html_tag_content": {
+                            "en-GB": {
+                              "content": "🏢 Room 301, Main Building",
+                              "meta": null
+                            },
+                            "de-CH": {
+                              "content": "🏢 Raum 301, Hauptgebäude",
+                              "meta": null
+                            }
+                          }
+                        },
+                        "global_fields": {
+                          "condition": null,
+                          "data_config": null,
+                          "css": "text-sm text-gray-600 dark:text-gray-300 mb-3",
+                          "css_mobile": null,
+                          "debug": false
+                        }
+                      }
+                    ],
+                    "fields": {
+                      "html_tag": {
+                        "all": {
+                          "content": "div",
+                          "meta": null
+                        }
+                      }
+                    },
+                    "global_fields": {
+                      "condition": null,
+                      "data_config": null,
+                      "css": "mb-4",
+                      "css_mobile": null,
+                      "debug": false
+                    }
+                  },
+                  {
+                    "name": "member-1-description",
+                    "style_name": "html-tag",
+                    "children": [],
+                    "fields": {
+                      "html_tag": {
+                        "all": {
+                          "content": "p",
+                          "meta": null
+                        }
+                      },
+                      "html_tag_content": {
+                        "en-GB": {
+                          "content": "With over 15 years of experience in digital transformation, Sarah leads our company with a vision for innovative solutions that drive real business value.",
+                          "meta": null
+                        },
+                        "de-CH": {
+                          "content": "Mit über 15 Jahren Erfahrung in der digitalen Transformation leitet Sarah unser Unternehmen mit einer Vision für innovative Lösungen, die echten Geschäftswert schaffen.",
+                          "meta": null
+                        }
+                      }
+                    },
+                    "global_fields": {
+                      "condition": null,
+                      "data_config": null,
+                      "css": "text-gray-700 dark:text-gray-300 leading-relaxed",
+                      "css_mobile": null,
+                      "debug": false
+                    }
+                  }
+                ],
+                "fields": {
+                  "html_tag": {
+                    "all": {
+                      "content": "div",
+                      "meta": null
+                    }
+                  }
+                },
+                "global_fields": {
+                  "condition": null,
+                  "data_config": null,
+                  "css": "p-6",
+                  "css_mobile": "p-4",
+                  "debug": false
+                }
+              }
+            ],
+            "fields": {
+              "html_tag": {
+                "all": {
+                  "content": "div",
+                  "meta": null
+                }
+              }
+            },
+            "global_fields": {
+              "condition": null,
+              "data_config": null,
+              "css": "bg-white dark:bg-gray-800 rounded-lg shadow-lg hover:shadow-xl dark:shadow-2xl dark:hover:shadow-3xl transition-all duration-300 border border-gray-100 dark:border-gray-700",
+              "css_mobile": null,
+              "debug": false
+            }
+          },
+          {
+            "name": "member-2-card",
+            "style_name": "html-tag",
+            "children": [
+              {
+                "name": "member-2-image",
+                "style_name": "image",
+                "children": [],
+                "fields": {
+                  "img_src": {
+                    "all": {
+                      "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
+                      "meta": null
+                    }
+                  },
+                  "alt": {
+                    "en-GB": {
+                      "content": "Michael Chen - CTO & Technical Director",
+                      "meta": null
+                    },
+                    "de-CH": {
+                      "content": "Michael Chen - CTO & Technischer Direktor",
+                      "meta": null
+                    }
+                  },
+                  "is_fluid": {
+                    "all": {
+                      "content": "1",
+                      "meta": null
+                    }
+                  }
+                },
+                "global_fields": {
+                  "condition": null,
+                  "data_config": null,
+                  "css": "w-full h-64 object-cover rounded-t-lg",
+                  "css_mobile": "h-48",
+                  "debug": false
+                }
+              },
+              {
+                "name": "member-2-content",
+                "style_name": "html-tag",
+                "children": [
+                  {
+                    "name": "member-2-name",
+                    "style_name": "html-tag",
+                    "children": [],
+                    "fields": {
+                      "html_tag": {
+                        "all": {
+                          "content": "h3",
+                          "meta": null
+                        }
+                      },
+                      "html_tag_content": {
+                        "en-GB": {
+                          "content": "Michael Chen",
+                          "meta": null
+                        },
+                        "de-CH": {
+                          "content": "Michael Chen",
+                          "meta": null
+                        }
+                      }
+                    },
+                    "global_fields": {
+                      "condition": null,
+                      "data_config": null,
+                      "css": "text-xl font-bold text-gray-900 dark:text-white mb-2",
+                      "css_mobile": "text-lg",
+                      "debug": false
+                    }
+                  },
+                  {
+                    "name": "member-2-title",
+                    "style_name": "html-tag",
+                    "children": [],
+                    "fields": {
+                      "html_tag": {
+                        "all": {
+                          "content": "p",
+                          "meta": null
+                        }
+                      },
+                      "html_tag_content": {
+                        "en-GB": {
+                          "content": "CTO & Technical Director",
+                          "meta": null
+                        },
+                        "de-CH": {
+                          "content": "CTO & Technischer Direktor",
+                          "meta": null
+                        }
+                      }
+                    },
+                    "global_fields": {
+                      "condition": null,
+                      "data_config": null,
+                      "css": "text-green-600 dark:text-green-400 font-medium mb-3",
+                      "css_mobile": null,
+                      "debug": false
+                    }
+                  },
+                  {
+                    "name": "member-2-contact",
+                    "style_name": "html-tag",
+                    "children": [
+                      {
+                        "name": "member-2-phone",
+                        "style_name": "html-tag",
+                        "children": [],
+                        "fields": {
+                          "html_tag": {
+                            "all": {
+                              "content": "p",
+                              "meta": null
+                            }
+                          },
+                          "html_tag_content": {
+                            "en-GB": {
+                              "content": "📞 +41 44 123 45 68",
+                              "meta": null
+                            },
+                            "de-CH": {
+                              "content": "📞 +41 44 123 45 68",
+                              "meta": null
+                            }
+                          }
+                        },
+                        "global_fields": {
+                          "condition": null,
+                          "data_config": null,
+                          "css": "text-sm text-gray-600 dark:text-gray-300 mb-1",
+                          "css_mobile": null,
+                          "debug": false
+                        }
+                      },
+                      {
+                        "name": "member-2-office",
+                        "style_name": "html-tag",
+                        "children": [],
+                        "fields": {
+                          "html_tag": {
+                            "all": {
+                              "content": "p",
+                              "meta": null
+                            }
+                          },
+                          "html_tag_content": {
+                            "en-GB": {
+                              "content": "🏢 Room 205, Tech Wing",
+                              "meta": null
+                            },
+                            "de-CH": {
+                              "content": "🏢 Raum 205, Technikflügel",
+                              "meta": null
+                            }
+                          }
+                        },
+                        "global_fields": {
+                          "condition": null,
+                          "data_config": null,
+                          "css": "text-sm text-gray-600 dark:text-gray-300 mb-3",
+                          "css_mobile": null,
+                          "debug": false
+                        }
+                      }
+                    ],
+                    "fields": {
+                      "html_tag": {
+                        "all": {
+                          "content": "div",
+                          "meta": null
+                        }
+                      }
+                    },
+                    "global_fields": {
+                      "condition": null,
+                      "data_config": null,
+                      "css": "mb-4",
+                      "css_mobile": null,
+                      "debug": false
+                    }
+                  },
+                  {
+                    "name": "member-2-description",
+                    "style_name": "html-tag",
+                    "children": [],
+                    "fields": {
+                      "html_tag": {
+                        "all": {
+                          "content": "p",
+                          "meta": null
+                        }
+                      },
+                      "html_tag_content": {
+                        "en-GB": {
+                          "content": "Michael brings deep expertise in cloud architecture and scalable systems. He ensures our technical foundation supports our clients' growth and innovation goals.",
+                          "meta": null
+                        },
+                        "de-CH": {
+                          "content": "Michael bringt profundes Fachwissen in Cloud-Architektur und skalierbaren Systemen mit. Er stellt sicher, dass unsere technische Grundlage das Wachstum und die Innovationsziele unserer Kunden unterstützt.",
+                          "meta": null
+                        }
+                      }
+                    },
+                    "global_fields": {
+                      "condition": null,
+                      "data_config": null,
+                      "css": "text-gray-700 dark:text-gray-300 leading-relaxed",
+                      "css_mobile": null,
+                      "debug": false
+                    }
+                  }
+                ],
+                "fields": {
+                  "html_tag": {
+                    "all": {
+                      "content": "div",
+                      "meta": null
+                    }
+                  }
+                },
+                "global_fields": {
+                  "condition": null,
+                  "data_config": null,
+                  "css": "p-6",
+                  "css_mobile": "p-4",
+                  "debug": false
+                }
+              }
+            ],
+            "fields": {
+              "html_tag": {
+                "all": {
+                  "content": "div",
+                  "meta": null
+                }
+              }
+            },
+            "global_fields": {
+              "condition": null,
+              "data_config": null,
+              "css": "bg-white dark:bg-gray-800 rounded-lg shadow-lg hover:shadow-xl dark:shadow-2xl dark:hover:shadow-3xl transition-all duration-300 border border-gray-100 dark:border-gray-700",
+              "css_mobile": null,
+              "debug": false
+            }
+          },
+          {
+            "name": "member-3-card",
+            "style_name": "html-tag",
+            "children": [
+              {
+                "name": "member-3-image",
+                "style_name": "image",
+                "children": [],
+                "fields": {
+                  "img_src": {
+                    "all": {
+                      "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
+                      "meta": null
+                    }
+                  },
+                  "alt": {
+                    "en-GB": {
+                      "content": "Anna Kowalski - Head of Design & UX",
+                      "meta": null
+                    },
+                    "de-CH": {
+                      "content": "Anna Kowalski - Leiterin Design & UX",
+                      "meta": null
+                    }
+                  },
+                  "is_fluid": {
+                    "all": {
+                      "content": "1",
+                      "meta": null
+                    }
+                  }
+                },
+                "global_fields": {
+                  "condition": null,
+                  "data_config": null,
+                  "css": "w-full h-64 object-cover rounded-t-lg",
+                  "css_mobile": "h-48",
+                  "debug": false
+                }
+              },
+              {
+                "name": "member-3-content",
+                "style_name": "html-tag",
+                "children": [
+                  {
+                    "name": "member-3-name",
+                    "style_name": "html-tag",
+                    "children": [],
+                    "fields": {
+                      "html_tag": {
+                        "all": {
+                          "content": "h3",
+                          "meta": null
+                        }
+                      },
+                      "html_tag_content": {
+                        "en-GB": {
+                          "content": "Anna Kowalski",
+                          "meta": null
+                        },
+                        "de-CH": {
+                          "content": "Anna Kowalski",
+                          "meta": null
+                        }
+                      }
+                    },
+                    "global_fields": {
+                      "condition": null,
+                      "data_config": null,
+                      "css": "text-xl font-bold text-gray-900 dark:text-white mb-2",
+                      "css_mobile": "text-lg",
+                      "debug": false
+                    }
+                  },
+                  {
+                    "name": "member-3-title",
+                    "style_name": "html-tag",
+                    "children": [],
+                    "fields": {
+                      "html_tag": {
+                        "all": {
+                          "content": "p",
+                          "meta": null
+                        }
+                      },
+                      "html_tag_content": {
+                        "en-GB": {
+                          "content": "Head of Design & UX",
+                          "meta": null
+                        },
+                        "de-CH": {
+                          "content": "Leiterin Design & UX",
+                          "meta": null
+                        }
+                      }
+                    },
+                    "global_fields": {
+                      "condition": null,
+                      "data_config": null,
+                      "css": "text-purple-600 dark:text-purple-400 font-medium mb-3",
+                      "css_mobile": null,
+                      "debug": false
+                    }
+                  },
+                  {
+                    "name": "member-3-contact",
+                    "style_name": "html-tag",
+                    "children": [
+                      {
+                        "name": "member-3-phone",
+                        "style_name": "html-tag",
+                        "children": [],
+                        "fields": {
+                          "html_tag": {
+                            "all": {
+                              "content": "p",
+                              "meta": null
+                            }
+                          },
+                          "html_tag_content": {
+                            "en-GB": {
+                              "content": "📞 +41 44 123 45 69",
+                              "meta": null
+                            },
+                            "de-CH": {
+                              "content": "📞 +41 44 123 45 69",
+                              "meta": null
+                            }
+                          }
+                        },
+                        "global_fields": {
+                          "condition": null,
+                          "data_config": null,
+                          "css": "text-sm text-gray-600 dark:text-gray-300 mb-1",
+                          "css_mobile": null,
+                          "debug": false
+                        }
+                      },
+                      {
+                        "name": "member-3-office",
+                        "style_name": "html-tag",
+                        "children": [],
+                        "fields": {
+                          "html_tag": {
+                            "all": {
+                              "content": "p",
+                              "meta": null
+                            }
+                          },
+                          "html_tag_content": {
+                            "en-GB": {
+                              "content": "🏢 Room 102, Creative Studio",
+                              "meta": null
+                            },
+                            "de-CH": {
+                              "content": "🏢 Raum 102, Kreativstudio",
+                              "meta": null
+                            }
+                          }
+                        },
+                        "global_fields": {
+                          "condition": null,
+                          "data_config": null,
+                          "css": "text-sm text-gray-600 dark:text-gray-300 mb-3",
+                          "css_mobile": null,
+                          "debug": false
+                        }
+                      }
+                    ],
+                    "fields": {
+                      "html_tag": {
+                        "all": {
+                          "content": "div",
+                          "meta": null
+                        }
+                      }
+                    },
+                    "global_fields": {
+                      "condition": null,
+                      "data_config": null,
+                      "css": "mb-4",
+                      "css_mobile": null,
+                      "debug": false
+                    }
+                  },
+                  {
+                    "name": "member-3-description",
+                    "style_name": "html-tag",
+                    "children": [],
+                    "fields": {
+                      "html_tag": {
+                        "all": {
+                          "content": "p",
+                          "meta": null
+                        }
+                      },
+                      "html_tag_content": {
+                        "en-GB": {
+                          "content": "Anna combines creative vision with user-centered design principles. Her work ensures that our solutions are not only functional but also beautiful and intuitive to use.",
+                          "meta": null
+                        },
+                        "de-CH": {
+                          "content": "Anna verbindet kreative Vision mit nutzerzentrierten Designprinzipien. Ihre Arbeit stellt sicher, dass unsere Lösungen nicht nur funktional, sondern auch schön und intuitiv zu bedienen sind.",
+                          "meta": null
+                        }
+                      }
+                    },
+                    "global_fields": {
+                      "condition": null,
+                      "data_config": null,
+                      "css": "text-gray-700 dark:text-gray-300 leading-relaxed",
+                      "css_mobile": null,
+                      "debug": false
+                    }
+                  }
+                ],
+                "fields": {
+                  "html_tag": {
+                    "all": {
+                      "content": "div",
+                      "meta": null
+                    }
+                  }
+                },
+                "global_fields": {
+                  "condition": null,
+                  "data_config": null,
+                  "css": "p-6",
+                  "css_mobile": "p-4",
+                  "debug": false
+                }
+              }
+            ],
+            "fields": {
+              "html_tag": {
+                "all": {
+                  "content": "div",
+                  "meta": null
+                }
+              }
+            },
+            "global_fields": {
+              "condition": null,
+              "data_config": null,
+              "css": "bg-white dark:bg-gray-800 rounded-lg shadow-lg hover:shadow-xl dark:shadow-2xl dark:hover:shadow-3xl transition-all duration-300 border border-gray-100 dark:border-gray-700",
+              "css_mobile": null,
+              "debug": false
+            }
+          }
+        ],
+        "fields": {
+          "html_tag": {
+            "all": {
+              "content": "div",
+              "meta": null
+            }
+          }
+        },
+        "global_fields": {
+          "condition": null,
+          "data_config": null,
+          "css": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto",
+          "css_mobile": "gap-6",
+          "debug": false
+        }
+      }
+    ],
+    "fields": {
+      "html_tag": {
+        "all": {
+          "content": "div",
+          "meta": null
+        }
+      }
+    },
+    "global_fields": {
+      "condition": null,
+      "data_config": null,
+      "css": "py-16 px-4 bg-gray-50 dark:bg-gray-900",
+      "css_mobile": "py-8 px-4",
+      "debug": false
+    }
+  }
+]
