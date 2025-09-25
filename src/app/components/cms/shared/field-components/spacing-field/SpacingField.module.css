@@ -1,0 +1,145 @@
+/* Box Model Visualization */
+.boxModel {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+/* Margin Layer */
+.marginLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px solid var(--mantine-color-orange-4);
+  background: var(--mantine-color-orange-0);
+  border-radius: var(--mantine-radius-md);
+  opacity: 0.8;
+}
+
+/* Padding Layer */
+.paddingLayer {
+  position: absolute;
+  top: 20px;
+  left: 30px;
+  right: 30px;
+  bottom: 20px;
+  border: 2px solid var(--mantine-color-blue-4);
+  background: var(--mantine-color-blue-0);
+  border-radius: var(--mantine-radius-sm);
+  opacity: 0.8;
+}
+
+/* Content Area */
+.contentArea {
+  position: absolute;
+  top: 60px;
+  left: 90px;
+  right: 90px;
+  bottom: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Spacing Controls */
+.spacingControl {
+  position: absolute;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Spacing Value Button */
+.spacingValue {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Margin controls positioning */
+.marginTop {
+  top: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  flex-direction: row;
+  gap: 2px;
+}
+
+.marginBottom {
+  bottom: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  flex-direction: row;
+  gap: 2px;
+}
+
+.marginStart {
+  left: -16px;
+  top: 50%;
+  transform: translateY(-50%);
+  flex-direction: column;
+  gap: 2px;
+}
+
+.marginEnd {
+  right: -16px;
+  top: 50%;
+  transform: translateY(-50%);
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Padding controls positioning */
+.paddingTop {
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  flex-direction: row;
+  gap: 2px;
+}
+
+.paddingBottom {
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  flex-direction: row;
+  gap: 2px;
+}
+
+.paddingStart {
+  left: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  flex-direction: column;
+  gap: 2px;
+}
+
+.paddingEnd {
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  flex-direction: column;
+  gap: 2px;
+}
+
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .boxModel {
+    height: 140px;
+  }
+  
+  .spacingControl {
+    gap: 1px;
+  }
+  
+  .spacingValue {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    min-width: 32px;
+  }
+}

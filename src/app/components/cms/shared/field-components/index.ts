@@ -13,3 +13,4 @@ export { UnknownField } from './UnknownField';
 export { ConditionBuilderField } from './ConditionBuilderField';
 export { DataConfigField } from './DataConfigField';
 export { ColorPickerField } from './color-picker/ColorPickerField';
+export { SpacingField } from './spacing-field/SpacingField';

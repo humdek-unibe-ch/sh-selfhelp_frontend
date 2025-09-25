@@ -16,7 +16,8 @@ import {
     UnknownField,
     ConditionBuilderField,
     DataConfigField,
-    ColorPickerField
+    ColorPickerField,
+    SpacingField
 } from '../field-components';
 import type { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
 
@@ -132,6 +133,8 @@ export function FieldRenderer({
             case 'select-video': return 'orange';
             case 'color-picker': return 'pink';
             case 'slider': return 'yellow';
+            case 'spacing_margin': return 'orange';
+            case 'spacing_margin_padding': return 'blue';
             default: return 'red';
         }
     };
@@ -496,6 +499,21 @@ export function FieldRenderer({
                 value={fieldValue}
                 onChange={onChange}
                 placeholder={field.title || field.name}
+                disabled={disabled}
+            />
+        );
+    }
+
+    // Spacing fields (margin only or margin + padding)
+    if (field.type === 'spacing_margin' || field.type === 'spacing_margin_padding') {
+        return renderFieldWithBadge(
+            <SpacingField
+                fieldId={field.id}
+                fieldName={field.name}
+                fieldTitle={field.title || undefined}
+                fieldType={field.type}
+                value={fieldValue}
+                onChange={onChange}
                 disabled={disabled}
             />
         );

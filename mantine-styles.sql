@@ -77,6 +77,10 @@ INSERT IGNORE INTO `fieldType` (`id`, `name`, `position`) VALUES (NULL, 'textare
 -- Add new field type `text`
 INSERT IGNORE INTO `fieldType` (`id`, `name`, `position`) VALUES (NULL, 'text', '7');
 
+-- Add new field type `text`
+INSERT IGNORE INTO `fieldType` (`id`, `name`, `position`) VALUES (NULL, 'spacing_margin', '0');
+INSERT IGNORE INTO `fieldType` (`id`, `name`, `position`) VALUES (NULL, 'spacing_margin_padding', '0');
+
 -- ===========================================
 -- 2. FIELDS DEFINITIONS (ALL INSERTED FIRST)
 -- ==========================================
@@ -90,6 +94,10 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 {"value":"24","text":"XL (24px)"},
 {"value":"32","text":"XXL (32px)"}
 ]}');
+
+-- Add unified icon size field (reusable across components)
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_spacing_margin', get_field_type_id('spacing_margin'), 0, null);
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_spacing_margin_padding', get_field_type_id('spacing_margin_padding'), 0, null);
 
 -- Add unified loop field (reusable across components that support looping)
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_loop', get_field_type_id('checkbox'), 0, null);
@@ -1098,6 +1106,7 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
 -- Add spacing fields for box (IStyleWithMarginAndPadding)
+(get_style_id('box'), get_field_id('mantine_spacing_margin_padding'), 'none', 'Sets the margin and padding of the Box component', 0, 0, 'Margin and Padding'),
 (get_style_id('box'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Box component', 0, 0, 'Margin Top'),
 (get_style_id('box'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Box component', 0, 0, 'Margin Bottom'),
 (get_style_id('box'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Box component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
