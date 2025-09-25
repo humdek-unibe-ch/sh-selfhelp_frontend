@@ -134,7 +134,7 @@ export function FieldRenderer({
             case 'color-picker': return 'pink';
             case 'slider': return 'yellow';
             case 'spacing_margin': return 'orange';
-            case 'spacing_margin_padding': return 'blue';
+            case 'manitne_spacing': return 'blue';
             default: return 'red';
         }
     };
@@ -505,7 +505,7 @@ export function FieldRenderer({
     }
 
     // Spacing fields (margin only or margin + padding)
-    if (field.type === 'spacing_margin' || field.type === 'spacing_margin_padding') {
+    if (field.type === 'spacing_margin' || field.type === 'manitne_spacing') {
         return renderFieldWithBadge(
             <SpacingField
                 fieldId={field.id}

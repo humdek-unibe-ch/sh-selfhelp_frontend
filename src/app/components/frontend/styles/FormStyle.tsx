@@ -77,10 +77,6 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) =>
     // React Query hooks
     const submitFormMutation = useSubmitFormMutation();
     const updateFormMutation = useUpdateFormMutation();
-
-    console.log('style', style);
-
-    console.log('section_data',JSON.stringify(style.section_data));
     
     // For record types, derive existing data from section_data of this style
     const { existingRecordId, existingFormDataFromSection } = useMemo(() => {

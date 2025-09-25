@@ -18,7 +18,7 @@ export interface ISpacingValues {
     pe?: TSpacingValue; // padding-end
 }
 
-export type TSpacingFieldType = 'spacing_margin' | 'spacing_margin_padding';
+export type TSpacingFieldType = 'spacing_margin' | 'manitne_spacing';
 
 interface ISpacingFieldProps {
     fieldId: number;
@@ -255,8 +255,8 @@ export function SpacingField({
     };
 
     // Determine which controls to show based on field type
-    const showMargin = fieldType === 'spacing_margin' || fieldType === 'spacing_margin_padding';
-    const showPadding = fieldType === 'spacing_margin_padding';
+    const showMargin = fieldType === 'spacing_margin' || fieldType === 'manitne_spacing';
+    const showPadding = fieldType === 'manitne_spacing';
 
     return (
         <Stack gap="sm">

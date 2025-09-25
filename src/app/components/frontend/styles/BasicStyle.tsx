@@ -43,38 +43,9 @@ import {
     ITitleStyle, ITextStyle, ICodeStyle, IHighlightStyle, IBlockquoteStyle,
     IAspectRatioStyle, ICardStyle, ICardSegmentStyle, IListStyle, IListItemStyle,
     IBackgroundImageStyle, IFieldsetStyle, ISpoilerStyle, ITypographyStyle,
-    TStyle
+    TStyle,
+    IStyleWithSpacing
 } from '../../../../types/common/styles.types';
-
-/**
- * Type guard to check if a style has margin spacing fields
- */
-const hasMarginSpacing = (style: TStyle): style is TStyle & {
-    spacing_margin_top?: any;
-    spacing_margin_bottom?: any;
-    spacing_margin_start?: any;
-    spacing_margin_end?: any;
-} => {
-    return 'spacing_margin_top' in style ||
-           'spacing_margin_bottom' in style ||
-           'spacing_margin_start' in style ||
-           'spacing_margin_end' in style;
-};
-
-/**
- * Type guard to check if a style has padding spacing fields
- */
-const hasPaddingSpacing = (style: TStyle): style is TStyle & {
-    spacing_padding_top?: any;
-    spacing_padding_bottom?: any;
-    spacing_padding_start?: any;
-    spacing_padding_end?: any;
-} => {
-    return 'spacing_padding_top' in style ||
-           'spacing_padding_bottom' in style ||
-           'spacing_padding_start' in style ||
-           'spacing_padding_end' in style;
-};
 
 /**
  * Convert spacing field value to Mantine spacing prop value
@@ -96,32 +67,42 @@ export const getCssClass = (style: TStyle): string => {
 
 /**
  * Extract spacing props from a style object
+ * Priority: mantine_spacing_margin_padding field (new) > individual spacing fields (legacy)
  */
-export const getSpacingProps = (style: TStyle) => {
+export const getSpacingProps = (style: IStyleWithSpacing) => {
     const spacingProps: Record<string, any> = {};
 
-    if (hasMarginSpacing(style)) {
-        const mt = convertSpacingValue(style.spacing_margin_top?.content);
-        const mb = convertSpacingValue(style.spacing_margin_bottom?.content);
-        const ms = convertSpacingValue(style.spacing_margin_start?.content);
-        const me = convertSpacingValue(style.spacing_margin_end?.content);
+    // Check for new mantine_spacing_margin_padding field first
+    if (style.mantine_spacing) {
+        try {
+            const spacingJson = style.mantine_spacing?.content;
+            if (typeof spacingJson === 'string') {
+                const parsedSpacing = JSON.parse(spacingJson);
 
-        if (mt) spacingProps.mt = mt;
-        if (mb) spacingProps.mb = mb;
-        if (ms) spacingProps.ms = ms;
-        if (me) spacingProps.me = me;
-    }
+                // Extract and convert each spacing value
+                const mt = convertSpacingValue(parsedSpacing.mt);
+                const mb = convertSpacingValue(parsedSpacing.mb);
+                const ms = convertSpacingValue(parsedSpacing.ms);
+                const me = convertSpacingValue(parsedSpacing.me);
+                const pt = convertSpacingValue(parsedSpacing.pt);
+                const pb = convertSpacingValue(parsedSpacing.pb);
+                const ps = convertSpacingValue(parsedSpacing.ps);
+                const pe = convertSpacingValue(parsedSpacing.pe);
 
-    if (hasPaddingSpacing(style)) {
-        const pt = convertSpacingValue(style.spacing_padding_top?.content);
-        const pb = convertSpacingValue(style.spacing_padding_bottom?.content);
-        const ps = convertSpacingValue(style.spacing_padding_start?.content);
-        const pe = convertSpacingValue(style.spacing_padding_end?.content);
-
-        if (pt) spacingProps.pt = pt;
-        if (pb) spacingProps.pb = pb;
-        if (ps) spacingProps.ps = ps;
-        if (pe) spacingProps.pe = pe;
+                // Add to spacing props if they exist
+                if (mt) spacingProps.mt = mt;
+                if (mb) spacingProps.mb = mb;
+                if (ms) spacingProps.ms = ms;
+                if (me) spacingProps.me = me;
+                if (pt) spacingProps.pt = pt;
+                if (pb) spacingProps.pb = pb;
+                if (ps) spacingProps.ps = ps;
+                if (pe) spacingProps.pe = pe;
+            }
+        } catch (error) {
+            // If JSON parsing fails, fall back to legacy fields
+            console.warn('Failed to parse mantine_spacing_margin_padding JSON, falling back to legacy fields:', error);
+        }
     }
 
     return spacingProps;

@@ -4,6 +4,7 @@ import BasicStyle from '../BasicStyle';
 import { IBoxStyle } from '../../../../../types/common/styles.types';
 import parse from "html-react-parser";
 import DOMPurify from 'dompurify';
+import { getFieldContent } from '../../../../../utils/style-field-extractor';
 
 /**
  * Props interface for BoxStyle component
@@ -28,6 +29,11 @@ const BoxStyle: React.FC<IBoxStyleProps> = ({ style, styleProps, cssClass }) => 
     const content = parse(DOMPurify.sanitize(style.content?.content || ''));
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
+
+    console.log(style);
+    console.log('new spacing', getFieldContent(style, 'mantine_manitne_spacing'));
+
+    console.log('legacy spacing', styleProps);
 
     return (
         <Box

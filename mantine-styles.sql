@@ -79,7 +79,7 @@ INSERT IGNORE INTO `fieldType` (`id`, `name`, `position`) VALUES (NULL, 'text', 
 
 -- Add new field type `text`
 INSERT IGNORE INTO `fieldType` (`id`, `name`, `position`) VALUES (NULL, 'spacing_margin', '0');
-INSERT IGNORE INTO `fieldType` (`id`, `name`, `position`) VALUES (NULL, 'spacing_margin_padding', '0');
+INSERT IGNORE INTO `fieldType` (`id`, `name`, `position`) VALUES (NULL, 'manitne_spacing', '0');
 
 -- ===========================================
 -- 2. FIELDS DEFINITIONS (ALL INSERTED FIRST)
@@ -96,8 +96,7 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 ]}');
 
 -- Add unified icon size field (reusable across components)
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_spacing_margin', get_field_type_id('spacing_margin'), 0, null);
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_spacing_margin_padding', get_field_type_id('spacing_margin_padding'), 0, null);
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_spacing', get_field_type_id('manitne_spacing'), 0, null);
 
 -- Add unified loop field (reusable across components that support looping)
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_loop', get_field_type_id('checkbox'), 0, null);
@@ -1106,7 +1105,7 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
 -- Add spacing fields for box (IStyleWithMarginAndPadding)
-(get_style_id('box'), get_field_id('mantine_spacing_margin_padding'), 'none', 'Sets the margin and padding of the Box component', 0, 0, 'Margin and Padding'),
+(get_style_id('box'), get_field_id('mantine_spacing'), 'none', 'Sets the margin and padding of the Box component', 0, 0, 'Spacing'),
 (get_style_id('box'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Box component', 0, 0, 'Margin Top'),
 (get_style_id('box'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Box component', 0, 0, 'Margin Bottom'),
 (get_style_id('box'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Box component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
@@ -1418,18 +1417,6 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 {"value":"wrap-reverse","text":"Wrap Reverse"}
 ]}');
 
--- Add generic spacing field (reusable across components) - use slider
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_spacing', get_field_type_id('slider'), 0, '{
-	"options": [
-		{"value": "0", "text": "None"},
-		{"value": "xs", "text": "Extra Small"},
-		{"value": "sm", "text": "Small"},
-		{"value":"md","text":"Medium"},
-		{"value":"lg","text":"Large"},
-		{"value": "xl", "text": "Extra Large"}
-	]
-}');
-
 -- Add generic breakpoints field (reusable across components) - use slider
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_breakpoints', get_field_type_id('slider'), 0, '{
 	"options": [
@@ -1560,7 +1547,7 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 VALUES (get_style_id('simple-grid'), get_field_id('mantine_cols'), '3', 'Sets the number of columns in the grid (1-6). For more information check https://mantine.dev/core/simple-grid', 0, 0, 'Columns');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('simple-grid'), get_field_id('mantine_spacing'), 'sm', 'Sets the spacing between grid items. For more information check https://mantine.dev/core/simple-grid', 0, 0, 'Spacing');
+VALUES (get_style_id('simple-grid'), get_field_id('mantine_spacing'), '{}', 'Sets the spacing between grid items. For more information check https://mantine.dev/core/simple-grid', 0, 0, 'Spacing');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('simple-grid'), get_field_id('mantine_breakpoints'), NULL, 'Sets responsive breakpoints for different screen sizes. For more information check https://mantine.dev/core/simple-grid', 0, 0, 'Breakpoints');
@@ -3966,7 +3953,7 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 (get_style_id('list'), get_field_id('mantine_list_center'), '0', 'If set, centers the list item content with the icon. For more information check https://mantine.dev/core/list', 0, 0, 'Center Content'),
 (get_style_id('list'), get_field_id('mantine_list_icon'), NULL, 'Sets the default icon for all list items. For more information check https://mantine.dev/core/list', 0, 0, 'Default Icon'),
 (get_style_id('list'), get_field_id('mantine_size'), 'sm', 'Sets the size of the list. For more information check https://mantine.dev/core/list', 0, 0, 'Size'),
-(get_style_id('list'), get_field_id('mantine_spacing'), 'sm', 'Sets the spacing between list items. For more information check https://mantine.dev/core/list', 0, 0, 'Spacing'),
+(get_style_id('list'), get_field_id('mantine_spacing'), '', 'Sets the spacing between list items. For more information check https://mantine.dev/core/list', 0, 0, 'Spacing'),
 (get_style_id('list'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the list component', 0, 1, 'Use Mantine Style');
 
 -- Link fields to list-item style
