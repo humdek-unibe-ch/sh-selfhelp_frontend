@@ -164,7 +164,7 @@ For very custom layouts that Mantine UI cannot support, use the `html-tag` style
 
 This allows arbitrary HTML tags and content with full CSS customization.
 
-## Available Style Types
+## Comprehensive Style Guide & Capabilities
 
 ### Layout & Container Styles
 - **container**: Responsive container with Mantine fluid/fixed width options
@@ -809,21 +809,142 @@ All content fields must be wrapped in language objects. The structure is field n
 
 ## Generation Instructions
 
-When generating JSON structures based on an image:
+### CRITICAL: Framework Selection
+The first word of your request MUST be either "mantine" or "tailwind" to specify the framework approach:
 
-1. **Analyze the Layout**: Identify the main sections, their hierarchy, and relationships
-2. **Choose Appropriate Styles**: Select the most suitable style types for each element from the supported list
-3. **Structure Hierarchically**: Create parent-child relationships using the `children` array
-4. **Configure Fields**: Set appropriate field values based on the visual content
-5. **Apply Global Fields**: **CRITICAL** - Always include `global_fields` with condition, data_config, css, css_mobile, and debug for each section
-6. **Apply Styling**: Use Tailwind CSS classes in `global_fields.css` to match the visual appearance
-7. **Dark Mode Support**: **CRITICAL** - Always include dark mode variants (dark:) for all colors, backgrounds, borders, and shadows in global_fields.css
-8. **Use Placeholder Images**: Always use `http://127.0.0.1/selfhelp/assets/image-holder.png` for image sources
-9. **Multi-Language Structure**: Use field name first, then language code (field_name -> language_code -> content)
-10. **Required Languages**: Always include both "en-GB" (English) and "de-CH" (German) for all translatable text content
-11. **Language Codes**: Use "en-GB" and "de-CH" for translatable content, "all" for technical fields
-12. **Semantic Naming**: Give meaningful names to sections for admin interface
-13. **Naming Rules**: Section names can ONLY contain letters, numbers, hyphens (-), and underscores (_). No spaces, special characters, or other symbols are allowed.
+- **"mantine"**: Use Mantine UI v8 components with Mantine properties. Only in very rare cases add Tailwind CSS classes when Mantine properties cannot achieve the desired result.
+- **"tailwind"**: Use only core components (html-tag, image, button, form inputs like select, input, textarea) with Tailwind CSS classes for styling.
+
+### Framework-Specific Guidelines
+
+#### Mantine Framework Approach
+When "mantine" is specified as the first word:
+1. **Use Mantine Components**: Always prefer Mantine UI v8 components and their properties
+2. **Mantine Properties First**: Use Mantine component props (mantine_size, mantine_color, mantine_variant, etc.) for styling
+3. **Tailwind Only When Necessary**: Add Tailwind CSS classes in `global_fields.css` ONLY when Mantine properties cannot achieve the required styling
+4. **Component Availability**: Use all available Mantine components from the style types list (flex, grid, button, card, etc.)
+5. **Mantine Field Values**: Use the predefined Mantine field values from the reference section
+
+#### Tailwind Framework Approach
+When "tailwind" is specified as the first word:
+1. **Core Components Only**: Use only these components:
+   - `html-tag`: For custom HTML layouts and content
+   - `image`: For images with Tailwind styling
+   - `button`: For buttons with Tailwind styling
+   - `text-input`, `textarea`, `select`: For forms with Tailwind styling
+2. **Tailwind CSS Focus**: Apply all styling through `global_fields.css` with Tailwind classes
+3. **No Mantine Components**: Do NOT use any Mantine-specific components (card, flex, grid, etc.)
+4. **HTML Structure**: Build layouts using html-tag with custom HTML content and Tailwind classes
+
+### TypeScript Type Definitions Reference
+**CRITICAL**: Always reference `src/types/common/styles.types.ts` for accurate field names, types, and values:
+
+#### Mantine Field Types and Supported Values
+Use the exact field names and values defined in `styles.types.ts`. Here are the actual supported values for each type:
+
+**Sizes**: `'xs' | 'sm' | 'md' | 'lg' | 'xl'`
+
+**Colors**: `'gray' | 'red' | 'grape' | 'violet' | 'blue' | 'cyan' | 'green' | 'lime' | 'yellow' | 'orange'`
+
+**Variants**: `'filled' | 'light' | 'outline' | 'subtle' | 'default' | 'transparent' | 'white'`
+
+**Radii**: `'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'`
+
+**Spacing/Gaps**: `'0' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'`
+
+**Justify Content**: `'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around' | 'space-evenly'`
+
+**Align Items**: `'flex-start' | 'center' | 'flex-end' | 'stretch' | 'baseline'`
+
+**Width Values**: `'25%' | '50%' | '75%' | '100%' | 'auto' | 'fit-content' | 'max-content' | 'min-content'` (+ any custom string value)
+
+**Height Values**: `'25%' | '50%' | '75%' | '100%' | 'auto' | 'fit-content' | 'max-content' | 'min-content'` (+ any custom string value)
+
+**Boolean Fields**: Always use string values `'0'` (false) or `'1'` (true)
+
+#### Component-Specific Fields and Spacing
+For each component, use the exact field names from the corresponding interface in `styles.types.ts`. **ALWAYS prefer Mantine spacing fields over CSS classes for consistent theming:**
+
+**Spacing Fields (Available for most components):**
+- `mantine_spacing_margin_padding`: Combined margin and padding (JSON structure with top/bottom/left/right)
+- `mantine_spacing_margin`: Margin only (JSON structure with top/bottom/left/right)
+- `mantine_gap`: Gap between child elements
+- `mantine_spacing`: Grid/container spacing
+- `mantine_vertical_spacing`: Vertical spacing in grids
+
+**Example Spacing JSON Structure:**
+```json
+"mantine_spacing_margin_padding": {
+  "all": {
+    "content": "{\"top\":\"md\",\"bottom\":\"lg\",\"left\":\"sm\",\"right\":\"sm\"}",
+    "meta": null
+  }
+}
+```
+
+**Component-Specific Fields:**
+- `IButtonStyle`: `mantine_variant`, `mantine_color`, `mantine_size`, `mantine_radius`, etc.
+- `ICardStyle`: `mantine_card_shadow`, `mantine_border`, `mantine_radius`, etc.
+- `ITextInputStyle`: `mantine_size`, `mantine_radius`, `mantine_text_input_variant`, etc.
+- `IStackStyle`: `mantine_gap`, `mantine_justify`, `mantine_align`, `mantine_width`, `mantine_height`
+- `ISimpleGridStyle`: `mantine_cols`, `mantine_spacing`, `mantine_vertical_spacing`
+
+**Example - StackStyle Component Values:**
+```json
+{
+  "mantine_gap": {"all": {"content": "md", "meta": null}},           // '0' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+  "mantine_justify": {"all": {"content": "center", "meta": null}},   // 'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around' | 'space-evenly'
+  "mantine_align": {"all": {"content": "stretch", "meta": null}},    // 'flex-start' | 'center' | 'flex-end' | 'stretch' | 'baseline'
+  "mantine_width": {"all": {"content": "100%", "meta": null}},       // '25%' | '50%' | '75%' | '100%' | 'auto' | 'fit-content' | etc.
+  "mantine_height": {"all": {"content": "auto", "meta": null}}       // '25%' | '50%' | '75%' | '100%' | 'auto' | 'fit-content' | etc.
+}
+```
+
+#### Field Naming Convention and Value Mapping
+Always use the exact field names from `styles.types.ts` with the correct value types:
+
+**Mantine Properties**: `mantine_[component]_[property]` (e.g., `mantine_stack_gap`)
+- **Boolean fields**: Use `'0'` (false) or `'1'` (true) as string values
+- **Size fields**: Use TMantineSize values: `'xs' | 'sm' | 'md' | 'lg' | 'xl'`
+- **Color fields**: Use TMantineColor values: `'gray' | 'red' | 'grape' | 'violet' | 'blue' | 'cyan' | 'green' | 'lime' | 'yellow' | 'orange'`
+- **Gap/Spacing fields**: Use TMantineGap values: `'0' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'`
+- **Justify fields**: Use TMantineJustify values: `'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around' | 'space-evenly'`
+- **Align fields**: Use TMantineAlign values: `'flex-start' | 'center' | 'flex-end' | 'stretch' | 'baseline'`
+- **Width/Height fields**: Use TMantineWidth/TMantineHeight values with predefined options plus custom strings
+
+### Content Requirements
+**ALWAYS provide comprehensive content in both English ("en-GB") and German ("de-CH") languages for all translatable fields.** Each piece of content should be full, professional, and engaging:
+
+- **Names & Titles**: Use realistic, professional names and complete job titles
+- **Descriptions**: Provide detailed, meaningful bios (2-4 sentences minimum)
+- **Contact Information**: Include office location, phone number, and email
+- **Complete Coverage**: Every translatable field must have content in both languages
+- **Professional Quality**: Content should be suitable for a business website
+
+### Content Source
+After the framework word ("mantine" or "tailwind"), provide either:
+- **Image**: An image showing how the content should look
+- **Descriptive Text**: Clear text describing what should be built
+
+### General Generation Steps
+1. **Framework Recognition**: Identify if using Mantine or Tailwind approach from the first word
+2. **Content Analysis**: Analyze the provided image or descriptive text
+3. **Component Selection**:
+   - **Mantine**: Choose from all available Mantine components
+   - **Tailwind**: Choose only from core components (html-tag, image, button, form inputs)
+4. **Structure Hierarchically**: Create parent-child relationships using the `children` array
+5. **Configure Fields**: Set appropriate field values based on content and framework
+6. **Apply Global Fields**: **CRITICAL** - Always include `global_fields` with condition, data_config, css, css_mobile, and debug
+7. **Framework-Specific Styling**:
+   - **Mantine**: Use Mantine properties first, Tailwind classes only when absolutely necessary
+   - **Tailwind**: Use Tailwind CSS classes for all styling in `global_fields.css`
+8. **Dark Mode Support**: **CRITICAL** - Always include dark mode variants (dark:) for all colors, backgrounds, borders, and shadows
+9. **Use Placeholder Images**: Always use `http://127.0.0.1/selfhelp/assets/image-holder.png` for image sources
+10. **Multi-Language Structure**: Use field name first, then language code (field_name -> language_code -> content)
+11. **Required Languages**: Always include both "en-GB" (English) and "de-CH" (German) for all translatable text content
+12. **Language Codes**: Use "en-GB" and "de-CH" for translatable content, "all" for technical fields
+13. **Semantic Naming**: Give meaningful names to sections for admin interface
+14. **Naming Rules**: Section names can ONLY contain letters, numbers, hyphens (-), and underscores (_). No spaces, special characters, or other symbols are allowed.
 
 ### Naming Convention Examples:
 - ✅ **Correct**: "travel-blog-container", "norway_article_card", "hero-section", "main-heading"
@@ -1357,12 +1478,22 @@ Based on the provided image showing a travel blog layout with multiple articles,
 5. **Legacy Styles**: Use legacy styles only when modern equivalents don't exist
 
 ### Validation Checklist:
+- [ ] **Framework Specified**: First word is either "mantine" or "tailwind"
+- [ ] **Framework Compliance**:
+  - **Mantine**: Uses appropriate Mantine components, Mantine properties first, minimal Tailwind CSS
+  - **Tailwind**: Uses only core components (html-tag, image, button, form inputs), Tailwind CSS for all styling
+- [ ] **Spacing Fields**: Uses proper Mantine spacing fields (`mantine_gap`, `mantine_spacing_margin_padding`) instead of CSS margin/padding classes
 - [ ] **Complete JSON Array**: Output must be wrapped in `[]` containing all sections
+- [ ] **TypeScript Compliance**: Field names and values match `styles.types.ts` exactly
+- [ ] **Content Completeness**: All translatable fields have content in both "en-GB" and "de-CH" languages
+- [ ] **Content Quality**: Professional, comprehensive content (names, descriptions, contact info) suitable for business use
 - [ ] Section names follow style format
 - [ ] Boolean values are strings "0"/"1"
 - [ ] Language structure matches real exports
 - [ ] Global fields are complete for every section
-- [ ] **Mantine Properties First**: Use Mantine props before Tailwind CSS
+- [ ] **Framework-Specific Styling**:
+  - **Mantine**: Mantine properties used first, Tailwind only when absolutely necessary
+  - **Tailwind**: All styling through `global_fields.css` with Tailwind classes
 - [ ] CSS includes dark mode variants when using Tailwind
 - [ ] Form fields use correct naming conventions
 - [ ] Image sources use valid URLs or asset paths
@@ -1488,23 +1619,65 @@ Fields marked with "(+ creatable)" allow custom values beyond the predefined opt
 ### JSON Generation Requirements
 **ALWAYS** generate the complete JSON array structure as your final output. The response should be valid JSON that can be directly imported into the SH-SelfHelp CMS system.
 
-**Example Output Format:**
+**Framework-Specific Output Requirements:**
+
+#### Mantine Framework Output:
 ```json
 [
   {
-    "name": "container",
+    "name": "mantine-container",
     "style_name": "container",
     "children": [...],
-    "fields": {...},
-    "global_fields": {...}
+    "fields": {
+      "mantine_size": {"all": {"content": "md", "meta": null}},
+      "mantine_fluid": {"all": {"content": "0", "meta": null}},
+      "use_mantine_style": {"all": {"content": "1", "meta": null}}
+    },
+    "global_fields": {
+      "condition": null,
+      "data_config": null,
+      "css": null,
+      "css_mobile": null,
+      "debug": false
+    }
   }
 ]
 ```
 
-**Priority Order for Styling:**
-1. **Mantine Properties**: Always try Mantine component props first (mantine_size, mantine_color, etc.)
-2. **Mantine Field Values**: Use the predefined values from the reference above
-3. **Tailwind CSS**: Only when Mantine properties cannot achieve the desired result
-4. **Custom HTML**: Use `html-tag` style only as last resort for very specific layouts
+#### Tailwind Framework Output:
+```json
+[
+  {
+    "name": "tailwind-container",
+    "style_name": "html-tag",
+    "children": [...],
+    "fields": {
+      "html_tag": {"all": {"content": "div", "meta": null}},
+      "html_tag_content": {"all": {"content": "<div>Custom content</div>", "meta": null}}
+    },
+    "global_fields": {
+      "condition": null,
+      "data_config": null,
+      "css": "container mx-auto px-4 py-8 bg-white dark:bg-gray-900",
+      "css_mobile": "px-2 py-4",
+      "debug": false
+    }
+  }
+]
+```
 
-When generating JSON from requirements, always reference the real export patterns and field structures shown above to ensure compatibility with the SH-SelfHelp CMS system.
+**Priority Order for Styling by Framework:**
+
+#### Mantine Framework Priority:
+1. **Mantine Properties**: Always use Mantine component props first (mantine_size, mantine_color, mantine_variant, etc.)
+2. **Mantine Field Values**: Use the predefined values from `styles.types.ts`
+3. **Tailwind CSS**: Only in very rare cases when Mantine properties cannot achieve the required result
+4. **Custom HTML**: Never use `html-tag` for Mantine framework
+
+#### Tailwind Framework Priority:
+1. **Tailwind CSS**: Apply all styling through `global_fields.css` with Tailwind classes
+2. **Core Components**: Use only html-tag, image, button, and form inputs
+3. **Custom HTML**: Build layouts using html-tag with custom HTML content
+4. **Mantine Components**: Never use any Mantine-specific components
+
+**CRITICAL**: Always reference `src/types/common/styles.types.ts` for exact field names and `docs/AI Prompts/ai_generate.md` for framework-specific guidelines when generating JSON structures.
