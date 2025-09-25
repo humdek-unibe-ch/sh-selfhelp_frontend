@@ -200,7 +200,37 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 (get_style_id('theme-icon'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the ThemeIcon component', 0, 0, 'Margin'),
 
 -- title
-(get_style_id('title'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Title component', 0, 0, 'Margin');
+(get_style_id('title'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Title component', 0, 0, 'Margin'),
+
+-- tab
+(get_style_id('tab'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Tab component', 0, 0, 'Margin'),
+
+-- indicator
+(get_style_id('indicator'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Indicator component', 0, 0, 'Margin'),
+
+-- divider
+(get_style_id('divider'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Divider component', 0, 0, 'Margin'),
+
+-- progress-section
+(get_style_id('progress-section'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the ProgressSection component', 0, 0, 'Margin'),
+
+-- progress-root
+(get_style_id('progress-root'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the ProgressRoot component', 0, 0, 'Margin'),
+
+-- aspect-ratio
+(get_style_id('aspect-ratio'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the AspectRatio component', 0, 0, 'Margin'),
+
+-- text-input
+(get_style_id('text-input'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the TextInput component', 0, 0, 'Margin'),
+
+-- figure
+(get_style_id('figure'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Figure component', 0, 0, 'Margin'),
+
+-- video
+(get_style_id('video'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Video component', 0, 0, 'Margin'),
+
+-- audio
+(get_style_id('audio'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Audio component', 0, 0, 'Margin');
 
 -- Styles with margin and padding fields (IStyleWithMarginAndPadding)
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
@@ -301,7 +331,10 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 (get_style_id('box'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Box component', 0, 0, 'Spacing'),
 
 -- typography
-(get_style_id('typography'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Typography component', 0, 0, 'Spacing');
+(get_style_id('typography'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Typography component', 0, 0, 'Spacing'),
+
+-- center
+(get_style_id('center'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Center component', 0, 0, 'Spacing');
 
 -- Add global tooltip field (reusable across all components)
 
@@ -802,11 +835,8 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 VALUES (get_style_id('button'), get_field_id('mantine_variant'), 'filled', 'Select a variant for the button. For more information check https://mantine.dev/core/button', 0, 0, 'Variant');
 
 -- Add spacing fields for button (IStyleWithMargin)
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
-(get_style_id('button'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Button component', 0, 0, 'Margin Top'),
-(get_style_id('button'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Button component', 0, 0, 'Margin Bottom'),
-(get_style_id('button'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Button component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('button'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Button component (right in LTR, left in RTL)', 0, 0, 'Margin End');
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
+VALUES (get_style_id('button'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Button component', 0, 0, 'Margin');
 
 DELETE FROM styles_fields
 WHERE id_fields = get_field_id('url') and id_styles = get_style_id('button');
@@ -4201,11 +4231,6 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 (get_style_id('text-input'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the text-input component', 0, 1, 'Use Mantine Style');
 
 -- Add spacing fields for text-input (IStyleWithMargin)
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
-(get_style_id('text-input'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the TextInput component', 0, 0, 'Margin Top'),
-(get_style_id('text-input'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the TextInput component', 0, 0, 'Margin Bottom'),
-(get_style_id('text-input'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the TextInput component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('text-input'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the TextInput component (right in LTR, left in RTL)', 0, 0, 'Margin End');
 
 -- Create textarea-specific fields
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_textarea_autosize', get_field_type_id('checkbox'), 0, null);
@@ -4836,14 +4861,7 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 (get_style_id('profile'), get_field_id('use_mantine_style'), '1', 'Use Mantine style for the profile container', 0, 1, 'Use Mantine Style'),
 
 -- Add spacing fields for profile (IStyleWithMarginAndPadding)
-(get_style_id('profile'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Profile component', 0, 0, 'Margin Top'),
-(get_style_id('profile'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Profile component', 0, 0, 'Margin Bottom'),
-(get_style_id('profile'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Profile component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('profile'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Profile component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('profile'), get_field_id('spacing_padding_top'), 'md', 'Sets the top padding of the Profile component', 0, 0, 'Padding Top'),
-(get_style_id('profile'), get_field_id('spacing_padding_bottom'), 'md', 'Sets the bottom padding of the Profile component', 0, 0, 'Padding Bottom'),
-(get_style_id('profile'), get_field_id('spacing_padding_start'), 'md', 'Sets the start padding of the Profile component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('profile'), get_field_id('spacing_padding_end'), 'md', 'Sets the end padding of the Profile component (right in LTR, left in RTL)', 0, 0, 'Padding End');
+(get_style_id('profile'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Profile component', 0, 0, 'Spacing');
 
 
 -- ===========================================
@@ -4939,14 +4957,7 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 (get_style_id('validate'), get_field_id('mantine_radius'), 'sm', 'Border radius for the validation card', 0, 0, 'Card Radius'),
 
 -- Add spacing fields for validate (IStyleWithMarginAndPadding)
-(get_style_id('validate'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Validate component', 0, 0, 'Margin Top'),
-(get_style_id('validate'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Validate component', 0, 0, 'Margin Bottom'),
-(get_style_id('validate'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Validate component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('validate'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Validate component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('validate'), get_field_id('spacing_padding_top'), 'sm', 'Sets the top padding of the Validate component', 0, 0, 'Padding Top'),
-(get_style_id('validate'), get_field_id('spacing_padding_bottom'), 'sm', 'Sets the bottom padding of the Validate component', 0, 0, 'Padding Bottom'),
-(get_style_id('validate'), get_field_id('spacing_padding_start'), 'sm', 'Sets the start padding of the Validate component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('validate'), get_field_id('spacing_padding_end'), 'sm', 'Sets the end padding of the Validate component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('validate'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Validate component', 0, 0, 'Spacing'),
 
 -- Mantine style toggle
 (get_style_id('validate'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the validation form component', 0, 1, 'Use Mantine Style');
