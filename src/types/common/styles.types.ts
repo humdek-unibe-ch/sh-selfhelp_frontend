@@ -331,7 +331,8 @@ export interface IBaseStyle {
 }
 
 export interface IStyleWithSpacing extends IBaseStyle {
-    mantine_spacing?: IContentField<string>;
+    mantine_spacing_margin_padding?: IContentField<string>;
+    mantine_spacing_margin?: IContentField<string>;
 }
 
 // Authentication & User Management Styles

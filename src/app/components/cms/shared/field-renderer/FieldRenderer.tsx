@@ -505,7 +505,7 @@ export function FieldRenderer({
     }
 
     // Spacing fields (margin only or margin + padding)
-    if (field.type === 'spacing_margin' || field.type === 'manitne_spacing') {
+    if (field.type === 'mantine_spacing_margin_padding' || field.type === 'mantine_spacing_margin') {
         return renderFieldWithBadge(
             <SpacingField
                 fieldId={field.id}

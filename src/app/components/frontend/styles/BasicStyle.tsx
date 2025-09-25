@@ -73,35 +73,30 @@ export const getSpacingProps = (style: IStyleWithSpacing) => {
     const spacingProps: Record<string, any> = {};
 
     // Check for new mantine_spacing_margin_padding field first
-    if (style.mantine_spacing) {
-        try {
-            const spacingJson = style.mantine_spacing?.content;
-            if (typeof spacingJson === 'string') {
-                const parsedSpacing = JSON.parse(spacingJson);
+    if (style.mantine_spacing_margin_padding || style.mantine_spacing_margin) {
+        const spacingJson = style.mantine_spacing_margin_padding?.content ?? style.mantine_spacing_margin?.content;
+        if (typeof spacingJson === 'string' && spacingJson !== '') {
+            const parsedSpacing = JSON.parse(spacingJson);
 
-                // Extract and convert each spacing value
-                const mt = convertSpacingValue(parsedSpacing.mt);
-                const mb = convertSpacingValue(parsedSpacing.mb);
-                const ms = convertSpacingValue(parsedSpacing.ms);
-                const me = convertSpacingValue(parsedSpacing.me);
-                const pt = convertSpacingValue(parsedSpacing.pt);
-                const pb = convertSpacingValue(parsedSpacing.pb);
-                const ps = convertSpacingValue(parsedSpacing.ps);
-                const pe = convertSpacingValue(parsedSpacing.pe);
+            // Extract and convert each spacing value
+            const mt = convertSpacingValue(parsedSpacing.mt);
+            const mb = convertSpacingValue(parsedSpacing.mb);
+            const ms = convertSpacingValue(parsedSpacing.ms);
+            const me = convertSpacingValue(parsedSpacing.me);
+            const pt = convertSpacingValue(parsedSpacing.pt);
+            const pb = convertSpacingValue(parsedSpacing.pb);
+            const ps = convertSpacingValue(parsedSpacing.ps);
+            const pe = convertSpacingValue(parsedSpacing.pe);
 
-                // Add to spacing props if they exist
-                if (mt) spacingProps.mt = mt;
-                if (mb) spacingProps.mb = mb;
-                if (ms) spacingProps.ms = ms;
-                if (me) spacingProps.me = me;
-                if (pt) spacingProps.pt = pt;
-                if (pb) spacingProps.pb = pb;
-                if (ps) spacingProps.ps = ps;
-                if (pe) spacingProps.pe = pe;
-            }
-        } catch (error) {
-            // If JSON parsing fails, fall back to legacy fields
-            console.warn('Failed to parse mantine_spacing_margin_padding JSON, falling back to legacy fields:', error);
+            // Add to spacing props if they exist
+            if (mt) spacingProps.mt = mt;
+            if (mb) spacingProps.mb = mb;
+            if (ms) spacingProps.ms = ms;
+            if (me) spacingProps.me = me;
+            if (pt) spacingProps.pt = pt;
+            if (pb) spacingProps.pb = pb;
+            if (ps) spacingProps.ps = ps;
+            if (pe) spacingProps.pe = pe;
         }
     }
 
@@ -217,7 +212,7 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
         case 'input':
             return <InputStyle style={style as IInputStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'select':
-            return <SelectStyle style={style as ISelectStyle}  cssClass={getCssClass(style)} />;
+            return <SelectStyle style={style as ISelectStyle} cssClass={getCssClass(style)} />;
         case 'radio':
             return <RadioStyle style={style as IRadioStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'checkbox':

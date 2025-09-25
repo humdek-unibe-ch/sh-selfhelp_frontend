@@ -78,8 +78,8 @@ INSERT IGNORE INTO `fieldType` (`id`, `name`, `position`) VALUES (NULL, 'textare
 INSERT IGNORE INTO `fieldType` (`id`, `name`, `position`) VALUES (NULL, 'text', '7');
 
 -- Add new field type `text`
-INSERT IGNORE INTO `fieldType` (`id`, `name`, `position`) VALUES (NULL, 'spacing_margin', '0');
-INSERT IGNORE INTO `fieldType` (`id`, `name`, `position`) VALUES (NULL, 'manitne_spacing', '0');
+INSERT IGNORE INTO `fieldType` (`id`, `name`, `position`) VALUES (NULL, 'mantine_spacing_margin', '0');
+INSERT IGNORE INTO `fieldType` (`id`, `name`, `position`) VALUES (NULL, 'mantine_spacing_margin_padding', '0');
 
 -- ===========================================
 -- 2. FIELDS DEFINITIONS (ALL INSERTED FIRST)
@@ -96,7 +96,8 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 ]}');
 
 -- Add unified icon size field (reusable across components)
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_spacing', get_field_type_id('manitne_spacing'), 0, null);
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_spacing_margin_padding', get_field_type_id('mantine_spacing_margin_padding'), 0, null);
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_spacing_margin', get_field_type_id('mantine_spacing_margin'), 0, null);
 
 -- Add unified loop field (reusable across components that support looping)
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_loop', get_field_type_id('checkbox'), 0, null);
@@ -111,79 +112,6 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 {"value":"32","text":"XXL (32px)"}
 ]}');
 
--- Add global standardized spacing fields
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'spacing_margin_top', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
-{"value":"none","text":"None"},
-{"value":"xs","text":"Extra Small"},
-{"value":"sm","text":"Small"},
-{"value":"md","text":"Medium"},
-{"value":"lg","text":"Large"},
-{"value":"xl","text":"Extra Large"}
-]}');
-
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'spacing_margin_bottom', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
-{"value":"none","text":"None"},
-{"value":"xs","text":"Extra Small"},
-{"value":"sm","text":"Small"},
-{"value":"md","text":"Medium"},
-{"value":"lg","text":"Large"},
-{"value":"xl","text":"Extra Large"}
-]}');
-
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'spacing_margin_start', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
-{"value":"none","text":"None"},
-{"value":"xs","text":"Extra Small"},
-{"value":"sm","text":"Small"},
-{"value":"md","text":"Medium"},
-{"value":"lg","text":"Large"},
-{"value":"xl","text":"Extra Large"}
-]}');
-
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'spacing_margin_end', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
-{"value":"none","text":"None"},
-{"value":"xs","text":"Extra Small"},
-{"value":"sm","text":"Small"},
-{"value":"md","text":"Medium"},
-{"value":"lg","text":"Large"},
-{"value":"xl","text":"Extra Large"}
-]}');
-
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'spacing_padding_top', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
-{"value":"none","text":"None"},
-{"value":"xs","text":"Extra Small"},
-{"value":"sm","text":"Small"},
-{"value":"md","text":"Medium"},
-{"value":"lg","text":"Large"},
-{"value":"xl","text":"Extra Large"}
-]}');
-
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'spacing_padding_bottom', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
-{"value":"none","text":"None"},
-{"value":"xs","text":"Extra Small"},
-{"value":"sm","text":"Small"},
-{"value":"md","text":"Medium"},
-{"value":"lg","text":"Large"},
-{"value":"xl","text":"Extra Large"}
-]}');
-
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'spacing_padding_start', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
-{"value":"none","text":"None"},
-{"value":"xs","text":"Extra Small"},
-{"value":"sm","text":"Small"},
-{"value":"md","text":"Medium"},
-{"value":"lg","text":"Large"},
-{"value":"xl","text":"Extra Large"}
-]}');
-
-INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'spacing_padding_end', get_field_type_id('slider'), 0, '{"creatable": false, "searchable": false, "clearable": true, "placeholder": "none", "options":[
-{"value":"none","text":"None"},
-{"value":"xs","text":"Extra Small"},
-{"value":"sm","text":"Small"},
-{"value":"md","text":"Medium"},
-{"value":"lg","text":"Large"},
-{"value":"xl","text":"Extra Large"}
-]}');
-
 -- ===========================================
 -- ADD SPACING FIELDS TO ALL STYLES
 -- ===========================================
@@ -191,494 +119,189 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 -- Styles with only margin fields (IStyleWithMargin)
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
 -- login
-(get_style_id('login'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Login component', 0, 0, 'Margin Top'),
-(get_style_id('login'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Login component', 0, 0, 'Margin Bottom'),
-(get_style_id('login'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Login component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('login'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Login component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('login'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Login component', 0, 0, 'Margin'),
 
 -- textarea
-(get_style_id('textarea'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Textarea component', 0, 0, 'Margin Top'),
-(get_style_id('textarea'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Textarea component', 0, 0, 'Margin Bottom'),
-(get_style_id('textarea'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Textarea component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('textarea'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Textarea component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('textarea'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Textarea component', 0, 0, 'Margin'),
 
 -- rich-text-editor
-(get_style_id('rich-text-editor'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the RichTextEditor component', 0, 0, 'Margin Top'),
-(get_style_id('rich-text-editor'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the RichTextEditor component', 0, 0, 'Margin Bottom'),
-(get_style_id('rich-text-editor'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the RichTextEditor component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('rich-text-editor'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the RichTextEditor component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('rich-text-editor'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the RichTextEditor component', 0, 0, 'Margin'),
 
 -- radio
-(get_style_id('radio'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Radio component', 0, 0, 'Margin Top'),
-(get_style_id('radio'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Radio component', 0, 0, 'Margin Bottom'),
-(get_style_id('radio'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Radio component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('radio'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Radio component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('radio'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Radio component', 0, 0, 'Margin'),
 
 -- slider
-(get_style_id('slider'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Slider component', 0, 0, 'Margin Top'),
-(get_style_id('slider'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Slider component', 0, 0, 'Margin Bottom'),
-(get_style_id('slider'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Slider component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('slider'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Slider component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('slider'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Slider component', 0, 0, 'Margin'),
 
 -- checkbox
-(get_style_id('checkbox'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Checkbox component', 0, 0, 'Margin Top'),
-(get_style_id('checkbox'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Checkbox component', 0, 0, 'Margin Bottom'),
-(get_style_id('checkbox'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Checkbox component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('checkbox'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Checkbox component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('checkbox'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Checkbox component', 0, 0, 'Margin'),
 
 -- datepicker
-(get_style_id('datepicker'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the DatePicker component', 0, 0, 'Margin Top'),
-(get_style_id('datepicker'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the DatePicker component', 0, 0, 'Margin Bottom'),
-(get_style_id('datepicker'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the DatePicker component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('datepicker'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the DatePicker component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('datepicker'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the DatePicker component', 0, 0, 'Margin'),
 
 -- image
-(get_style_id('image'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Image component', 0, 0, 'Margin Top'),
-(get_style_id('image'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Image component', 0, 0, 'Margin Bottom'),
-(get_style_id('image'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Image component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('image'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Image component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('image'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Image component', 0, 0, 'Margin'),
 
 -- link
-(get_style_id('link'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Link component', 0, 0, 'Margin Top'),
-(get_style_id('link'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Link component', 0, 0, 'Margin Bottom'),
-(get_style_id('link'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Link component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('link'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Link component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('link'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Link component', 0, 0, 'Margin'),
 
 -- tabs
-(get_style_id('tabs'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Tabs component', 0, 0, 'Margin Top'),
-(get_style_id('tabs'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Tabs component', 0, 0, 'Margin Bottom'),
-(get_style_id('tabs'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Tabs component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('tabs'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Tabs component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('tabs'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Tabs component', 0, 0, 'Margin'),
 
 -- color-input
-(get_style_id('color-input'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the ColorInput component', 0, 0, 'Margin Top'),
-(get_style_id('color-input'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the ColorInput component', 0, 0, 'Margin Bottom'),
-(get_style_id('color-input'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the ColorInput component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('color-input'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the ColorInput component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('color-input'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the ColorInput component', 0, 0, 'Margin'),
 
 -- color-picker
-(get_style_id('color-picker'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the ColorPicker component', 0, 0, 'Margin Top'),
-(get_style_id('color-picker'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the ColorPicker component', 0, 0, 'Margin Bottom'),
-(get_style_id('color-picker'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the ColorPicker component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('color-picker'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the ColorPicker component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('color-picker'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the ColorPicker component', 0, 0, 'Margin'),
 
 -- file-input
-(get_style_id('file-input'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the FileInput component', 0, 0, 'Margin Top'),
-(get_style_id('file-input'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the FileInput component', 0, 0, 'Margin Bottom'),
-(get_style_id('file-input'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the FileInput component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('file-input'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the FileInput component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('file-input'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the FileInput component', 0, 0, 'Margin'),
 
 -- number-input
-(get_style_id('number-input'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the NumberInput component', 0, 0, 'Margin Top'),
-(get_style_id('number-input'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the NumberInput component', 0, 0, 'Margin Bottom'),
-(get_style_id('number-input'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the NumberInput component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('number-input'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the NumberInput component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('number-input'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the NumberInput component', 0, 0, 'Margin'),
 
 -- range-slider
-(get_style_id('range-slider'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the RangeSlider component', 0, 0, 'Margin Top'),
-(get_style_id('range-slider'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the RangeSlider component', 0, 0, 'Margin Bottom'),
-(get_style_id('range-slider'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the RangeSlider component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('range-slider'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the RangeSlider component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('range-slider'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the RangeSlider component', 0, 0, 'Margin'),
 
 -- segmented-control
-(get_style_id('segmented-control'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the SegmentedControl component', 0, 0, 'Margin Top'),
-(get_style_id('segmented-control'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the SegmentedControl component', 0, 0, 'Margin Bottom'),
-(get_style_id('segmented-control'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the SegmentedControl component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('segmented-control'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the SegmentedControl component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('segmented-control'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the SegmentedControl component', 0, 0, 'Margin'),
 
 -- switch
-(get_style_id('switch'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Switch component', 0, 0, 'Margin Top'),
-(get_style_id('switch'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Switch component', 0, 0, 'Margin Bottom'),
-(get_style_id('switch'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Switch component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('switch'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Switch component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('switch'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Switch component', 0, 0, 'Margin'),
 
 -- combobox
-(get_style_id('combobox'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Combobox component', 0, 0, 'Margin Top'),
-(get_style_id('combobox'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Combobox component', 0, 0, 'Margin Bottom'),
-(get_style_id('combobox'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Combobox component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('combobox'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Combobox component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('combobox'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Combobox component', 0, 0, 'Margin'),
 
 -- action-icon
-(get_style_id('action-icon'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the ActionIcon component', 0, 0, 'Margin Top'),
-(get_style_id('action-icon'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the ActionIcon component', 0, 0, 'Margin Bottom'),
-(get_style_id('action-icon'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the ActionIcon component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('action-icon'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the ActionIcon component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('action-icon'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the ActionIcon component', 0, 0, 'Margin'),
 
 -- badge
-(get_style_id('badge'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Badge component', 0, 0, 'Margin Top'),
-(get_style_id('badge'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Badge component', 0, 0, 'Margin Bottom'),
-(get_style_id('badge'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Badge component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('badge'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Badge component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('badge'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Badge component', 0, 0, 'Margin'),
 
 -- chip
-(get_style_id('chip'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Chip component', 0, 0, 'Margin Top'),
-(get_style_id('chip'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Chip component', 0, 0, 'Margin Bottom'),
-(get_style_id('chip'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Chip component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('chip'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Chip component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('chip'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Chip component', 0, 0, 'Margin'),
 
 -- avatar
-(get_style_id('avatar'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Avatar component', 0, 0, 'Margin Top'),
-(get_style_id('avatar'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Avatar component', 0, 0, 'Margin Bottom'),
-(get_style_id('avatar'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Avatar component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('avatar'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Avatar component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('avatar'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Avatar component', 0, 0, 'Margin'),
 
 -- timeline
-(get_style_id('timeline'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Timeline component', 0, 0, 'Margin Top'),
-(get_style_id('timeline'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Timeline component', 0, 0, 'Margin Bottom'),
-(get_style_id('timeline'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Timeline component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('timeline'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Timeline component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('timeline'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Timeline component', 0, 0, 'Margin'),
 
 -- kbd
-(get_style_id('kbd'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Kbd component', 0, 0, 'Margin Top'),
-(get_style_id('kbd'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Kbd component', 0, 0, 'Margin Bottom'),
-(get_style_id('kbd'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Kbd component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('kbd'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Kbd component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('kbd'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Kbd component', 0, 0, 'Margin'),
 
 -- rating
-(get_style_id('rating'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Rating component', 0, 0, 'Margin Top'),
-(get_style_id('rating'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Rating component', 0, 0, 'Margin Bottom'),
-(get_style_id('rating'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Rating component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('rating'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Rating component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('rating'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Rating component', 0, 0, 'Margin'),
 
 -- progress
-(get_style_id('progress'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Progress component', 0, 0, 'Margin Top'),
-(get_style_id('progress'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Progress component', 0, 0, 'Margin Bottom'),
-(get_style_id('progress'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Progress component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('progress'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Progress component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('progress'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Progress component', 0, 0, 'Margin'),
 
 -- theme-icon
-(get_style_id('theme-icon'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the ThemeIcon component', 0, 0, 'Margin Top'),
-(get_style_id('theme-icon'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the ThemeIcon component', 0, 0, 'Margin Bottom'),
-(get_style_id('theme-icon'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the ThemeIcon component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('theme-icon'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the ThemeIcon component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
+(get_style_id('theme-icon'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the ThemeIcon component', 0, 0, 'Margin'),
 
 -- title
-(get_style_id('title'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Title component', 0, 0, 'Margin Top'),
-(get_style_id('title'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Title component', 0, 0, 'Margin Bottom'),
-(get_style_id('title'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Title component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('title'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Title component (right in LTR, left in RTL)', 0, 0, 'Margin End');
+(get_style_id('title'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Title component', 0, 0, 'Margin');
 
 -- Styles with margin and padding fields (IStyleWithMarginAndPadding)
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
 -- register
-(get_style_id('register'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Register component', 0, 0, 'Margin Top'),
-(get_style_id('register'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Register component', 0, 0, 'Margin Bottom'),
-(get_style_id('register'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Register component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('register'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Register component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('register'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the Register component', 0, 0, 'Padding Top'),
-(get_style_id('register'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the Register component', 0, 0, 'Padding Bottom'),
-(get_style_id('register'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the Register component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('register'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the Register component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('register'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Register component', 0, 0, 'Spacing'),
 
 -- resetPassword
-(get_style_id('resetPassword'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the ResetPassword component', 0, 0, 'Margin Top'),
-(get_style_id('resetPassword'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the ResetPassword component', 0, 0, 'Margin Bottom'),
-(get_style_id('resetPassword'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the ResetPassword component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('resetPassword'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the ResetPassword component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('resetPassword'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the ResetPassword component', 0, 0, 'Padding Top'),
-(get_style_id('resetPassword'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the ResetPassword component', 0, 0, 'Padding Bottom'),
-(get_style_id('resetPassword'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the ResetPassword component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('resetPassword'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the ResetPassword component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('resetPassword'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the ResetPassword component', 0, 0, 'Spacing'),
 
 -- twoFactorAuth
-(get_style_id('twoFactorAuth'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the TwoFactorAuth component', 0, 0, 'Margin Top'),
-(get_style_id('twoFactorAuth'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the TwoFactorAuth component', 0, 0, 'Margin Bottom'),
-(get_style_id('twoFactorAuth'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the TwoFactorAuth component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('twoFactorAuth'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the TwoFactorAuth component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('twoFactorAuth'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the TwoFactorAuth component', 0, 0, 'Padding Top'),
-(get_style_id('twoFactorAuth'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the TwoFactorAuth component', 0, 0, 'Padding Bottom'),
-(get_style_id('twoFactorAuth'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the TwoFactorAuth component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('twoFactorAuth'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the TwoFactorAuth component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('twoFactorAuth'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the TwoFactorAuth component', 0, 0, 'Spacing'),
 
 -- container
-(get_style_id('container'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Container component', 0, 0, 'Margin Top'),
-(get_style_id('container'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Container component', 0, 0, 'Margin Bottom'),
-(get_style_id('container'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Container component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('container'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Container component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('container'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the Container component', 0, 0, 'Padding Top'),
-(get_style_id('container'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the Container component', 0, 0, 'Padding Bottom'),
-(get_style_id('container'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the Container component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('container'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the Container component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('container'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Container component', 0, 0, 'Spacing'),
 
 -- paper
-(get_style_id('paper'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Paper component', 0, 0, 'Margin Top'),
-(get_style_id('paper'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Paper component', 0, 0, 'Margin Bottom'),
-(get_style_id('paper'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Paper component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('paper'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Paper component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('paper'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the Paper component', 0, 0, 'Padding Top'),
-(get_style_id('paper'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the Paper component', 0, 0, 'Padding Bottom'),
-(get_style_id('paper'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the Paper component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('paper'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the Paper component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('paper'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Paper component', 0, 0, 'Spacing'),
 
 -- alert
-(get_style_id('alert'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Alert component', 0, 0, 'Margin Top'),
-(get_style_id('alert'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Alert component', 0, 0, 'Margin Bottom'),
-(get_style_id('alert'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Alert component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('alert'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Alert component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('alert'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the Alert component', 0, 0, 'Padding Top'),
-(get_style_id('alert'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the Alert component', 0, 0, 'Padding Bottom'),
-(get_style_id('alert'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the Alert component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('alert'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the Alert component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('alert'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Alert component', 0, 0, 'Spacing'),
 
 -- form-log
-(get_style_id('form-log'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the FormLog component', 0, 0, 'Margin Top'),
-(get_style_id('form-log'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the FormLog component', 0, 0, 'Margin Bottom'),
-(get_style_id('form-log'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the FormLog component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('form-log'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the FormLog component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('form-log'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the FormLog component', 0, 0, 'Padding Top'),
-(get_style_id('form-log'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the FormLog component', 0, 0, 'Padding Bottom'),
-(get_style_id('form-log'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the FormLog component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('form-log'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the FormLog component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('form-log'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the FormLog component', 0, 0, 'Spacing'),
 
 -- form-record
-(get_style_id('form-record'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the FormRecord component', 0, 0, 'Margin Top'),
-(get_style_id('form-record'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the FormRecord component', 0, 0, 'Margin Bottom'),
-(get_style_id('form-record'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the FormRecord component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('form-record'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the FormRecord component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('form-record'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the FormRecord component', 0, 0, 'Padding Top'),
-(get_style_id('form-record'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the FormRecord component', 0, 0, 'Padding Bottom'),
-(get_style_id('form-record'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the FormRecord component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('form-record'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the FormRecord component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('form-record'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the FormRecord component', 0, 0, 'Spacing'),
 
 -- carousel
-(get_style_id('carousel'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Carousel component', 0, 0, 'Margin Top'),
-(get_style_id('carousel'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Carousel component', 0, 0, 'Margin Bottom'),
-(get_style_id('carousel'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Carousel component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('carousel'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Carousel component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('carousel'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the Carousel component', 0, 0, 'Padding Top'),
-(get_style_id('carousel'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the Carousel component', 0, 0, 'Padding Bottom'),
-(get_style_id('carousel'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the Carousel component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('carousel'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the Carousel component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('carousel'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Carousel component', 0, 0, 'Spacing'),
 
 -- flex
-(get_style_id('flex'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Flex component', 0, 0, 'Margin Top'),
-(get_style_id('flex'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Flex component', 0, 0, 'Margin Bottom'),
-(get_style_id('flex'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Flex component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('flex'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Flex component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('flex'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the Flex component', 0, 0, 'Padding Top'),
-(get_style_id('flex'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the Flex component', 0, 0, 'Padding Bottom'),
-(get_style_id('flex'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the Flex component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('flex'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the Flex component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('flex'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Flex component', 0, 0, 'Spacing'),
 
 -- group
-(get_style_id('group'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Group component', 0, 0, 'Margin Top'),
-(get_style_id('group'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Group component', 0, 0, 'Margin Bottom'),
-(get_style_id('group'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Group component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('group'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Group component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('group'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the Group component', 0, 0, 'Padding Top'),
-(get_style_id('group'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the Group component', 0, 0, 'Padding Bottom'),
-(get_style_id('group'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the Group component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('group'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the Group component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('group'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Group component', 0, 0, 'Spacing'),
 
 -- simple-grid
-(get_style_id('simple-grid'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the SimpleGrid component', 0, 0, 'Margin Top'),
-(get_style_id('simple-grid'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the SimpleGrid component', 0, 0, 'Margin Bottom'),
-(get_style_id('simple-grid'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the SimpleGrid component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('simple-grid'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the SimpleGrid component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('simple-grid'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the SimpleGrid component', 0, 0, 'Padding Top'),
-(get_style_id('simple-grid'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the SimpleGrid component', 0, 0, 'Padding Bottom'),
-(get_style_id('simple-grid'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the SimpleGrid component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('simple-grid'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the SimpleGrid component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('simple-grid'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the SimpleGrid component', 0, 0, 'Spacing'),
 
 -- scroll-area
-(get_style_id('scroll-area'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the ScrollArea component', 0, 0, 'Margin Top'),
-(get_style_id('scroll-area'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the ScrollArea component', 0, 0, 'Margin Bottom'),
-(get_style_id('scroll-area'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the ScrollArea component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('scroll-area'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the ScrollArea component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('scroll-area'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the ScrollArea component', 0, 0, 'Padding Top'),
-(get_style_id('scroll-area'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the ScrollArea component', 0, 0, 'Padding Bottom'),
-(get_style_id('scroll-area'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the ScrollArea component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('scroll-area'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the ScrollArea component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('scroll-area'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the ScrollArea component', 0, 0, 'Spacing'),
 
 -- grid
-(get_style_id('grid'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Grid component', 0, 0, 'Margin Top'),
-(get_style_id('grid'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Grid component', 0, 0, 'Margin Bottom'),
-(get_style_id('grid'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Grid component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('grid'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Grid component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('grid'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the Grid component', 0, 0, 'Padding Top'),
-(get_style_id('grid'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the Grid component', 0, 0, 'Padding Bottom'),
-(get_style_id('grid'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the Grid component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('grid'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the Grid component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('grid'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Grid component', 0, 0, 'Spacing'),
 
 -- grid-column
-(get_style_id('grid-column'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the GridColumn component', 0, 0, 'Margin Top'),
-(get_style_id('grid-column'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the GridColumn component', 0, 0, 'Margin Bottom'),
-(get_style_id('grid-column'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the GridColumn component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('grid-column'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the GridColumn component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('grid-column'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the GridColumn component', 0, 0, 'Padding Top'),
-(get_style_id('grid-column'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the GridColumn component', 0, 0, 'Padding Bottom'),
-(get_style_id('grid-column'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the GridColumn component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('grid-column'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the GridColumn component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('grid-column'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the GridColumn component', 0, 0, 'Spacing'),
 
 -- space
-(get_style_id('space'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Space component', 0, 0, 'Margin Top'),
-(get_style_id('space'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Space component', 0, 0, 'Margin Bottom'),
-(get_style_id('space'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Space component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('space'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Space component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('space'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the Space component', 0, 0, 'Padding Top'),
-(get_style_id('space'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the Space component', 0, 0, 'Padding Bottom'),
-(get_style_id('space'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the Space component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('space'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the Space component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('space'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Space component', 0, 0, 'Spacing'),
 
 -- stack
-(get_style_id('stack'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Stack component', 0, 0, 'Margin Top'),
-(get_style_id('stack'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Stack component', 0, 0, 'Margin Bottom'),
-(get_style_id('stack'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Stack component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('stack'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Stack component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('stack'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the Stack component', 0, 0, 'Padding Top'),
-(get_style_id('stack'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the Stack component', 0, 0, 'Padding Bottom'),
-(get_style_id('stack'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the Stack component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('stack'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the Stack component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('stack'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Stack component', 0, 0, 'Spacing'),
 
 -- accordion
-(get_style_id('accordion'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Accordion component', 0, 0, 'Margin Top'),
-(get_style_id('accordion'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Accordion component', 0, 0, 'Margin Bottom'),
-(get_style_id('accordion'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Accordion component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('accordion'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Accordion component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('accordion'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the Accordion component', 0, 0, 'Padding Top'),
-(get_style_id('accordion'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the Accordion component', 0, 0, 'Padding Bottom'),
-(get_style_id('accordion'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the Accordion component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('accordion'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the Accordion component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('accordion'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Accordion component', 0, 0, 'Spacing'),
 
 -- accordion-item
-(get_style_id('accordion-item'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the AccordionItem component', 0, 0, 'Margin Top'),
-(get_style_id('accordion-item'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the AccordionItem component', 0, 0, 'Margin Bottom'),
-(get_style_id('accordion-item'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the AccordionItem component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('accordion-item'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the AccordionItem component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('accordion-item'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the AccordionItem component', 0, 0, 'Padding Top'),
-(get_style_id('accordion-item'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the AccordionItem component', 0, 0, 'Padding Bottom'),
-(get_style_id('accordion-item'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the AccordionItem component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('accordion-item'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the AccordionItem component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('accordion-item'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the AccordionItem component', 0, 0, 'Spacing'),
 
 -- notification
-(get_style_id('notification'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Notification component', 0, 0, 'Margin Top'),
-(get_style_id('notification'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Notification component', 0, 0, 'Margin Bottom'),
-(get_style_id('notification'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Notification component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('notification'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Notification component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('notification'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the Notification component', 0, 0, 'Padding Top'),
-(get_style_id('notification'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the Notification component', 0, 0, 'Padding Bottom'),
-(get_style_id('notification'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the Notification component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('notification'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the Notification component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('notification'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Notification component', 0, 0, 'Spacing'),
 
 -- text
-(get_style_id('text'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Text component', 0, 0, 'Margin Top'),
-(get_style_id('text'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Text component', 0, 0, 'Margin Bottom'),
-(get_style_id('text'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Text component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('text'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Text component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('text'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the Text component', 0, 0, 'Padding Top'),
-(get_style_id('text'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the Text component', 0, 0, 'Padding Bottom'),
-(get_style_id('text'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the Text component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('text'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the Text component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('text'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Text component', 0, 0, 'Spacing'),
 
 -- code
-(get_style_id('code'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Code component', 0, 0, 'Margin Top'),
-(get_style_id('code'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Code component', 0, 0, 'Margin Bottom'),
-(get_style_id('code'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Code component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('code'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Code component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('code'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the Code component', 0, 0, 'Padding Top'),
-(get_style_id('code'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the Code component', 0, 0, 'Padding Bottom'),
-(get_style_id('code'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the Code component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('code'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the Code component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('code'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Code component', 0, 0, 'Spacing'),
 
 -- highlight
-(get_style_id('highlight'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Highlight component', 0, 0, 'Margin Top'),
-(get_style_id('highlight'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Highlight component', 0, 0, 'Margin Bottom'),
-(get_style_id('highlight'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Highlight component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('highlight'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Highlight component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('highlight'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the Highlight component', 0, 0, 'Padding Top'),
-(get_style_id('highlight'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the Highlight component', 0, 0, 'Padding Bottom'),
-(get_style_id('highlight'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the Highlight component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('highlight'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the Highlight component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('highlight'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Highlight component', 0, 0, 'Spacing'),
 
 -- blockquote
-(get_style_id('blockquote'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Blockquote component', 0, 0, 'Margin Top'),
-(get_style_id('blockquote'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Blockquote component', 0, 0, 'Margin Bottom'),
-(get_style_id('blockquote'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Blockquote component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('blockquote'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Blockquote component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('blockquote'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the Blockquote component', 0, 0, 'Padding Top'),
-(get_style_id('blockquote'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the Blockquote component', 0, 0, 'Padding Bottom'),
-(get_style_id('blockquote'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the Blockquote component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('blockquote'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the Blockquote component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('blockquote'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Blockquote component', 0, 0, 'Spacing'),
 
 -- card
-(get_style_id('card'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Card component', 0, 0, 'Margin Top'),
-(get_style_id('card'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Card component', 0, 0, 'Margin Bottom'),
-(get_style_id('card'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Card component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('card'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Card component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('card'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the Card component', 0, 0, 'Padding Top'),
-(get_style_id('card'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the Card component', 0, 0, 'Padding Bottom'),
-(get_style_id('card'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the Card component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('card'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the Card component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('card'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Card component', 0, 0, 'Spacing'),
 
 -- card-segment
-(get_style_id('card-segment'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the CardSegment component', 0, 0, 'Margin Top'),
-(get_style_id('card-segment'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the CardSegment component', 0, 0, 'Margin Bottom'),
-(get_style_id('card-segment'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the CardSegment component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('card-segment'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the CardSegment component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('card-segment'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the CardSegment component', 0, 0, 'Padding Top'),
-(get_style_id('card-segment'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the CardSegment component', 0, 0, 'Padding Bottom'),
-(get_style_id('card-segment'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the CardSegment component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('card-segment'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the CardSegment component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('card-segment'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the CardSegment component', 0, 0, 'Spacing'),
 
 -- list
-(get_style_id('list'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the List component', 0, 0, 'Margin Top'),
-(get_style_id('list'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the List component', 0, 0, 'Margin Bottom'),
-(get_style_id('list'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the List component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('list'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the List component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('list'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the List component', 0, 0, 'Padding Top'),
-(get_style_id('list'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the List component', 0, 0, 'Padding Bottom'),
-(get_style_id('list'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the List component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('list'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the List component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('list'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the List component', 0, 0, 'Spacing'),
 
 -- list-item
-(get_style_id('list-item'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the ListItem component', 0, 0, 'Margin Top'),
-(get_style_id('list-item'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the ListItem component', 0, 0, 'Margin Bottom'),
-(get_style_id('list-item'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the ListItem component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('list-item'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the ListItem component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('list-item'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the ListItem component', 0, 0, 'Padding Top'),
-(get_style_id('list-item'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the ListItem component', 0, 0, 'Padding Bottom'),
-(get_style_id('list-item'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the ListItem component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('list-item'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the ListItem component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('list-item'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the ListItem component', 0, 0, 'Spacing'),
 
 -- background-image
-(get_style_id('background-image'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the BackgroundImage component', 0, 0, 'Margin Top'),
-(get_style_id('background-image'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the BackgroundImage component', 0, 0, 'Margin Bottom'),
-(get_style_id('background-image'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the BackgroundImage component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('background-image'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the BackgroundImage component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('background-image'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the BackgroundImage component', 0, 0, 'Padding Top'),
-(get_style_id('background-image'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the BackgroundImage component', 0, 0, 'Padding Bottom'),
-(get_style_id('background-image'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the BackgroundImage component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('background-image'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the BackgroundImage component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('background-image'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the BackgroundImage component', 0, 0, 'Spacing'),
 
 -- fieldset
-(get_style_id('fieldset'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Fieldset component', 0, 0, 'Margin Top'),
-(get_style_id('fieldset'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Fieldset component', 0, 0, 'Margin Bottom'),
-(get_style_id('fieldset'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Fieldset component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('fieldset'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Fieldset component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('fieldset'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the Fieldset component', 0, 0, 'Padding Top'),
-(get_style_id('fieldset'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the Fieldset component', 0, 0, 'Padding Bottom'),
-(get_style_id('fieldset'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the Fieldset component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('fieldset'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the Fieldset component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('fieldset'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Fieldset component', 0, 0, 'Spacing'),
 
 -- spoiler
-(get_style_id('spoiler'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Spoiler component', 0, 0, 'Margin Top'),
-(get_style_id('spoiler'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Spoiler component', 0, 0, 'Margin Bottom'),
-(get_style_id('spoiler'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Spoiler component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('spoiler'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Spoiler component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('spoiler'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the Spoiler component', 0, 0, 'Padding Top'),
-(get_style_id('spoiler'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the Spoiler component', 0, 0, 'Padding Bottom'),
-(get_style_id('spoiler'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the Spoiler component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('spoiler'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the Spoiler component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
+(get_style_id('spoiler'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Spoiler component', 0, 0, 'Spacing'),
+
+-- box
+(get_style_id('box'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Box component', 0, 0, 'Spacing'),
 
 -- typography
-(get_style_id('typography'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Typography component', 0, 0, 'Margin Top'),
-(get_style_id('typography'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Typography component', 0, 0, 'Margin Bottom'),
-(get_style_id('typography'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Typography component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('typography'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Typography component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('typography'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the Typography component', 0, 0, 'Padding Top'),
-(get_style_id('typography'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the Typography component', 0, 0, 'Padding Bottom'),
-(get_style_id('typography'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the Typography component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('typography'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the Typography component (right in LTR, left in RTL)', 0, 0, 'Padding End');
+(get_style_id('typography'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Typography component', 0, 0, 'Spacing');
 
 -- Add global tooltip field (reusable across all components)
 
@@ -1104,16 +727,6 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
 );
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
--- Add spacing fields for box (IStyleWithMarginAndPadding)
-(get_style_id('box'), get_field_id('mantine_spacing'), 'none', 'Sets the margin and padding of the Box component', 0, 0, 'Spacing'),
-(get_style_id('box'), get_field_id('spacing_margin_top'), 'none', 'Sets the top margin of the Box component', 0, 0, 'Margin Top'),
-(get_style_id('box'), get_field_id('spacing_margin_bottom'), 'none', 'Sets the bottom margin of the Box component', 0, 0, 'Margin Bottom'),
-(get_style_id('box'), get_field_id('spacing_margin_start'), 'none', 'Sets the start margin of the Box component (left in LTR, right in RTL)', 0, 0, 'Margin Start'),
-(get_style_id('box'), get_field_id('spacing_margin_end'), 'none', 'Sets the end margin of the Box component (right in LTR, left in RTL)', 0, 0, 'Margin End'),
-(get_style_id('box'), get_field_id('spacing_padding_top'), 'none', 'Sets the top padding of the Box component', 0, 0, 'Padding Top'),
-(get_style_id('box'), get_field_id('spacing_padding_bottom'), 'none', 'Sets the bottom padding of the Box component', 0, 0, 'Padding Bottom'),
-(get_style_id('box'), get_field_id('spacing_padding_start'), 'none', 'Sets the start padding of the Box component (left in LTR, right in RTL)', 0, 0, 'Padding Start'),
-(get_style_id('box'), get_field_id('spacing_padding_end'), 'none', 'Sets the end padding of the Box component (right in LTR, left in RTL)', 0, 0, 'Padding End'),
 (get_style_id('box'), get_field_id('content'), '', 'Set text content over the children. For more information check https://mantine.dev/core/box', 0, 0, 'Content'),
 (get_style_id('box'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the Box component. For more information check https://mantine.dev/core/box', 0, 1, 'Use Mantine Style');
 
@@ -1545,9 +1158,6 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
 -- Add simple-grid-specific fields
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('simple-grid'), get_field_id('mantine_cols'), '3', 'Sets the number of columns in the grid (1-6). For more information check https://mantine.dev/core/simple-grid', 0, 0, 'Columns');
-
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
-VALUES (get_style_id('simple-grid'), get_field_id('mantine_spacing'), '{}', 'Sets the spacing between grid items. For more information check https://mantine.dev/core/simple-grid', 0, 0, 'Spacing');
 
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`)
 VALUES (get_style_id('simple-grid'), get_field_id('mantine_breakpoints'), NULL, 'Sets responsive breakpoints for different screen sizes. For more information check https://mantine.dev/core/simple-grid', 0, 0, 'Breakpoints');
@@ -3953,7 +3563,6 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 (get_style_id('list'), get_field_id('mantine_list_center'), '0', 'If set, centers the list item content with the icon. For more information check https://mantine.dev/core/list', 0, 0, 'Center Content'),
 (get_style_id('list'), get_field_id('mantine_list_icon'), NULL, 'Sets the default icon for all list items. For more information check https://mantine.dev/core/list', 0, 0, 'Default Icon'),
 (get_style_id('list'), get_field_id('mantine_size'), 'sm', 'Sets the size of the list. For more information check https://mantine.dev/core/list', 0, 0, 'Size'),
-(get_style_id('list'), get_field_id('mantine_spacing'), '', 'Sets the spacing between list items. For more information check https://mantine.dev/core/list', 0, 0, 'Spacing'),
 (get_style_id('list'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the list component', 0, 1, 'Use Mantine Style');
 
 -- Link fields to list-item style

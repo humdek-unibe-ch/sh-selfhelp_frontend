@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Box, Text, Group, Badge, Paper, Stack, Button, Menu, ActionIcon } from '@mantine/core';
+import React, { useState, useCallback, useRef } from 'react';
+import { Box, Text, Group, Paper, Stack, Button, Menu, ActionIcon } from '@mantine/core';
 import { IconChevronUp, IconChevronDown, IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
 import classes from './SpacingField.module.css';
 
@@ -18,7 +18,7 @@ export interface ISpacingValues {
     pe?: TSpacingValue; // padding-end
 }
 
-export type TSpacingFieldType = 'spacing_margin' | 'manitne_spacing';
+export type TSpacingFieldType = 'mantine_spacing_margin_padding' | 'mantine_spacing_margin';
 
 interface ISpacingFieldProps {
     fieldId: number;
@@ -255,8 +255,8 @@ export function SpacingField({
     };
 
     // Determine which controls to show based on field type
-    const showMargin = fieldType === 'spacing_margin' || fieldType === 'manitne_spacing';
-    const showPadding = fieldType === 'manitne_spacing';
+    const showMargin = fieldType === 'mantine_spacing_margin_padding' || fieldType === 'mantine_spacing_margin';
+    const showPadding = fieldType === 'mantine_spacing_margin_padding';
 
     return (
         <Stack gap="sm">
