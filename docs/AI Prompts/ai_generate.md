@@ -95,6 +95,7 @@ The entire page content must be wrapped in an array `[]` containing all sections
 6. **CSS Classes**: Styling is applied using Tailwind CSS classes through the `css` field
 7. **Mantine UI Integration**: Most styles support both Mantine UI components and custom implementations
 8. **Global Style Components**: Form elements (buttons, inputs, etc.) are global and can be used anywhere
+9. **CRITICAL - Form Labeling**: `text-input` and `select` components render ONLY the form control without labels. You MUST add separate label components (using `text` style) before each form field for proper accessibility and user experience. `textarea` includes built-in label support when using Mantine UI (`use_mantine_style: "1"`)
 
 ### CSS and Styling System
 
@@ -282,8 +283,6 @@ This allows arbitrary HTML tags and content with full CSS customization.
 
 ### Layout & Container Styles
 - **container**: Responsive container with Mantine fluid/fixed width options
-- **card**: Card component with segments, shadows, and padding
-- **card-segment**: Card content sections
 - **center**: Centers content horizontally and vertically
 - **flex**: Flexbox layout with direction, justify, align controls
 - **group**: Horizontal group layout with spacing
@@ -297,6 +296,9 @@ This allows arbitrary HTML tags and content with full CSS customization.
 - **divider**: Visual divider with variants and orientation
 - **paper**: Elevated surface with shadow and radius
 - **fieldset**: Form fieldset with legend
+- **box**: Basic container with background, border, and text colors
+- **card**: Card component with segments, shadows, and padding
+- **card-segment**: Card content sections
 
 ### Content & Text Styles
 - **heading**: Headings (h1-h6) - Note: Uses `title` field, not `text`
@@ -307,6 +309,7 @@ This allows arbitrary HTML tags and content with full CSS customization.
 - **highlight**: Text highlighting with customizable colors - Uses `text` and `mantine_highlight_highlight` fields
 - **blockquote**: Blockquote with optional icon and citation
 - **title**: Large title component with size and alignment
+- **typography**: Typography wrapper
 
 ### Media Styles
 - **image**: Responsive images with alt text and sizing
@@ -325,13 +328,16 @@ This allows arbitrary HTML tags and content with full CSS customization.
   - Supports both Mantine and custom HTML rendering
 - **link**: Navigation link (custom implementation)
 - **actionIcon**: Icon button with navigation
+- **action-icon**: Alternative action icon component
 
 ### Form Elements
 - **form-record**: Record creation/editing form container
   - Uses `alert_success`, `name`, `is_log` fields
+- **form-log**: Form logging container
 - **text-input**: Text input field with Mantine styling
 - **textarea**: Multi-line text with rich editor option
 - **select**: Dropdown selection with search
+- **input**: Legacy input field (use text-input instead)
 - **radio**: Radio button group
 - **checkbox**: Checkbox with custom values
 - **switch**: Toggle switch
@@ -342,7 +348,8 @@ This allows arbitrary HTML tags and content with full CSS customization.
 - **chip**: Chip/toggle component
 - **slider**: Range slider with marks and labels
 - **range-slider**: Dual-handle range slider
-- **number-input**: Numeric input with validation
+- **numberInput**: Numeric input with validation
+- **number-input**: Alternative numeric input component
 - **color-input**: Color picker input
 - **color-picker**: Standalone color picker
 
@@ -365,6 +372,8 @@ This allows arbitrary HTML tags and content with full CSS customization.
 - **kbd**: Keyboard key display
 - **rating**: Star rating component
 - **theme-icon**: Themed icon container
+- **avatar**: User avatar with image and alt text
+- **chip**: Chip/toggle component
 
 ### Feedback Components
 - **alert**: Alert/notification box with variants
@@ -374,11 +383,12 @@ This allows arbitrary HTML tags and content with full CSS customization.
 - **html-tag**: Custom HTML with arbitrary tags and content
 - **scroll-area**: Scrollable container
 - **spoiler**: Collapsible content spoiler
+- **segmented-control**: Segmented control component
 - **typography**: Typography wrapper
 
 ### Legacy/Custom Styles
 - **div**: Basic div container (legacy)
-- **input**: Basic input field (legacy)
+- **input**: Basic input field (legacy - use text-input instead)
 - **video**: Basic video player (legacy)
 - **audio**: Basic audio player (legacy)
 - **figure**: Basic figure with caption (legacy)
@@ -388,69 +398,16 @@ This allows arbitrary HTML tags and content with full CSS customization.
 - **version**: Version display (legacy)
 - **loop**: Content loop (legacy)
 - **dataContainer**: Data container (legacy)
+- **refContainer**: Reference container for data relationships
+- **validate**: Form validation component
+- **profile**: User profile management form
 - **showUserInput**: User input display (legacy)
 
 ### Authentication Styles (Legacy)
 - **login**: User login form
 - **register**: User registration form
-- **validate**: User validation form
 - **resetPassword**: Password reset form
 - **twoFactorAuth**: Two-factor authentication form
-- **profile**: User profile management form
-
-### Container & Layout Styles
-- **container**: Main container with optional fluid layout
-- **div**: Generic div container with background, border, and text colors
-
-### Text & Content Styles
-- **heading**: Headings h1-h6 with configurable level and title
-- **markdown**: Full markdown content with GitHub Flavored Markdown support
-- **plaintext**: Plain text with optional paragraph wrapping
-
-### Media Styles
-- **image**: Images with src, alt, title, width, height
-- **video**: Video player with multiple sources
-- **audio**: Audio player with multiple sources
-- **carousel**: Image carousel with controls and indicators
-- **figure**: Image with caption
-
-### Interactive Elements
-- **button**: Buttons with labels, URLs, types, confirmation dialogs
-- **link**: Links with labels, URLs, new tab options
-
-### Form Elements
-- **form**: Form containers with action URLs and labels
-- **input**: Text inputs with types, placeholders, validation
-- **textarea**: Multi-line text inputs with markdown editor option
-- **select**: Dropdown selects with options and search
-- **radio**: Radio button groups with options
-- **checkbox**: Checkboxes with values and validation
-- **slider**: Range sliders with labels and min/max values
-- **validate**: Form validation component
-
-### Navigation & Lists
-- **tabs**: Tab containers for organizing content (requires tab children)
-- **tab**: Individual tab component (used within tabs)
-
-### Tables
-- **table**: Table container
-- **tableRow**: Table row
-- **tableCell**: Table cell
-
-### Advanced Elements
-- **progressBar**: Progress indicators with counts and styling
-- **showUserInput**: Display user input data
-- **alert**: Alert boxes with types (primary/secondary/success/danger/warning/info/light/dark)
-- **version**: Version information display
-- **entryList**: List of data entries
-- **entryRecord**: Individual data record display
-- **entryRecordDelete**: Delete confirmation for data records
-- **refContainer**: Reference container for data relationships
-- **formUserInputLog**: User input logging form
-- **formUserInputRecord**: User input record form
-- **loop**: Loop container for repeating content
-- **dataContainer**: Generic data container
-- **htmlTag**: Custom HTML tag wrapper
 
 ## Field Reference by Style Type
 
@@ -564,8 +521,8 @@ All sections include these global_fields:
 - `label_cancel`: Cancel button label
 - `url_cancel`: Cancel button URL
 
-**input**:
-- `label`: Input label
+**text-input**:
+- **IMPORTANT**: This component renders only the input field without any label. You must add a separate label element (using `text` style) before the input field for accessibility and user experience.
 - `type_input`: Input type (text/email/password/number/date/etc.)
 - `placeholder`: Placeholder text
 - `is_required`: "1" if required
@@ -575,9 +532,10 @@ All sections include these global_fields:
 - `max`: Maximum value (for numbers/dates)
 - `format`: Input format validation
 - `locked_after_submit`: "1" if locked after form submission
+- **Usage Pattern**: Always pair with a separate label component (e.g., `text` style) for proper form labeling
 
 **textarea**:
-- `label`: Textarea label
+- `label`: Textarea label (when using Mantine UI - `use_mantine_style: "1"`)
 - `placeholder`: Placeholder text
 - `is_required`: "1" if required
 - `name`: Form field name
@@ -586,14 +544,15 @@ All sections include these global_fields:
 - `max`: Maximum character count
 - `locked_after_submit`: "1" if locked after form submission
 - `markdown_editor`: "1" to enable markdown editor
+- **Note**: Unlike `text-input` and `select`, `textarea` includes built-in label support when using Mantine UI (`use_mantine_style: "1"`)
 
 **select**:
-- `label`: Select label
-- `alt`: Placeholder text for select
+- **IMPORTANT**: This component renders only the select dropdown without any label. You must add a separate label element (using `text` style) before the select field for accessibility and user experience.
+- `alt`: Placeholder text for select (shown as first empty option when not required)
 - `is_required`: "1" if required
 - `name`: Form field name
-- `value`: Default selected value
-- `items`: JSON string array of options (e.g., "[{\"value\": \"val\", \"text\": \"Label\"}]")
+- `value`: Default selected value (comma-separated for multiple selection)
+- `options`: JSON string array of options (e.g., "[{\"value\": \"val\", \"label\": \"Display Text\"}]")
 - `is_multiple`: "1" for multiple selection
 - `max`: Maximum number of selections (for multiple)
 - `live_search`: "1" to enable search
@@ -601,6 +560,7 @@ All sections include these global_fields:
 - `image_selector`: "1" for image selection mode
 - `locked_after_submit`: "1" if locked after form submission
 - `allow_clear`: "1" to allow clearing selection
+- **Usage Pattern**: Always pair with a separate label component (e.g., `text` style) for proper form labeling
 
 **radio**:
 - `label`: Radio group label
@@ -1331,7 +1291,8 @@ For a page with a header, image, and text content:
 ]
 ```
 
-### Example 2: Form with Multiple Input Types
+### Example 2: Form with Multiple Input Types (Properly Labeled)
+**IMPORTANT**: This example shows the CORRECT way to create forms with input/select components. Each input/select MUST have a separate label component for accessibility and proper form structure.
 ```json
 [
   {
@@ -1660,6 +1621,7 @@ Before outputting your JSON, verify all requirements are met:
 - [ ] **Real Field Names**: Use actual Mantine field names from examples
 - [ ] **Spacing**: Use proper `mantine_spacing_margin_padding` JSON format
 - [ ] **Form Fields**: Include required form field properties
+- [ ] **CRITICAL - Form Labels**: `text-input` and `select` components have separate label components (using `text` style) for accessibility; `textarea` has built-in labels when using Mantine UI
 - [ ] **DARK/LIGHT THEME COMPATIBILITY**: Every visual element has `dark:` variants - this is MANDATORY and cannot be skipped
 
 **REMEMBER**: The examples above are your primary reference. Study them carefully and replicate their exact patterns, field names, and structures in your generated JSON.
