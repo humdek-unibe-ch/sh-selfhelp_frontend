@@ -298,20 +298,857 @@ The system has hundreds of pre-existing fields that should be reused when possib
 | 55 | size_select | Size selection (xs, sm, md, lg, xl) |
 | 233 | image_url | Image URL input |
 
-### Current Text Styles Available
+## Complete Style Reference (Matching styles.types.ts)
 
-Instead of a single markdown component, the system now provides specialized text components:
+This section documents every style defined in `styles.types.ts` with their exact fields and allowed values.
 
-#### Text Content Styles (`display = 1`):
-- **`text`**: Plain text with typography controls and optional paragraph wrapping. Uses `text` field. Perfect for simple content, labels, and descriptions.
-- **`title`**: Large title component with size variants and alignment options. Uses `content` and `mantine_title_order` fields. Perfect for page titles, hero headings, and prominent text displays.
-- **`blockquote`**: Blockquote with optional icon and citation. Uses `text` field with optional citation. Perfect for testimonials, quotes, and highlighted content.
-- **`code`**: Inline and block code with syntax highlighting. Supports multiple programming languages. Perfect for code examples, technical content, and developer documentation.
-- **`highlight`**: Text highlighting with customizable colors and marks. Uses `text` and `mantine_highlight_highlight` fields. Perfect for emphasizing important text, search results, and key terms.
-- **`typography`**: Typography wrapper for consistent text styling and theming across content blocks.
+### Authentication & User Management Styles
 
-#### Rich Content Styles:
-- **`rich-text-editor`**: WYSIWYG editor for rich content creation. Perfect for content management and formatted text input. Supports bold, italic, links, lists, etc.
+#### ILoginStyle (`login`)
+**Fields:**
+- `label_user?`: IContentField<string> - Username/email field label
+- `label_pw?`: IContentField<string> - Password field label
+- `label_login?`: IContentField<string> - Login button label
+- `label_pw_reset?`: IContentField<string> - Password reset link label
+- `alert_fail?`: IContentField<string> - Login failure message
+- `login_title?`: IContentField<string> - Login form title
+- `type?`: IContentField<string> - Login type identifier
+- `use_mantine_style?`: IContentField<TMantineFullWidth> - Enable Mantine styling
+
+#### IProfileStyle (`profile`)
+**Fields:**
+- Profile Title: `profile_title?`: IContentField<string>
+- Account Info: `profile_account_info_title?`: IContentField<string>
+- User Labels: `profile_label_email?`, `profile_label_username?`, `profile_label_name?`, `profile_label_created?`, `profile_label_last_login?`: IContentField<string>
+- Name Change: `profile_name_change_title?`, `profile_name_change_description?`, `profile_name_change_label?`, `profile_name_change_placeholder?`, `profile_name_change_button?`: IContentField<string>
+- Name Change Messages: `profile_name_change_success?`, `profile_name_change_error_required?`, `profile_name_change_error_invalid?`, `profile_name_change_error_general?`: IContentField<string>
+- Password Reset: `profile_password_reset_title?`, `profile_password_reset_description?`, `profile_password_reset_label_current?`, `profile_password_reset_label_new?`, `profile_password_reset_label_confirm?`, `profile_password_reset_placeholder_current?`, `profile_password_reset_placeholder_new?`, `profile_password_reset_placeholder_confirm?`, `profile_password_reset_button?`: IContentField<string>
+- Password Reset Messages: `profile_password_reset_success?`, `profile_password_reset_error_*?`: IContentField<string>
+- Account Deletion: `profile_delete_title?`, `profile_delete_description?`, `profile_delete_alert_text?`, `profile_delete_modal_warning?`, `profile_delete_label_email?`, `profile_delete_placeholder_email?`, `profile_delete_button?`: IContentField<string>
+- Account Deletion Messages: `profile_delete_success?`, `profile_delete_error_*?`: IContentField<string>
+- UI Config: `profile_gap?`, `profile_use_accordion?`, `profile_accordion_multiple?`, `profile_accordion_default_opened?`: IContentField<string>
+- Styling: `profile_variant?`, `profile_radius?`, `profile_shadow?`: IContentField<string>
+- Layout: `profile_columns?`: IContentField<string>
+- Legacy: `alert_fail?`, `alert_del_fail?`, `alert_del_success?`, `alert_success?`: IContentField<string>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### IValidateStyle (`validate`)
+**Fields:**
+- User Info: `label_pw?`, `label_login?`, `title?`, `subtitle?`, `label_name?`, `name_placeholder?`, `name_description?`, `label_activate?`, `pw_placeholder?`, `success?`, `name?`, `page_keyword?`, `value_name?`, `anonymous_user_name_description?`: IContentField<string>
+- Messages: `alert_fail?`, `alert_success?`: IContentField<string>
+- Form Config: `redirect_at_end?`, `cancel_url?`, `label_save?`, `label_update?`, `label_cancel?`: IContentField<string>
+- Buttons: `mantine_buttons_size?`, `mantine_buttons_radius?`, `mantine_buttons_variant?`, `mantine_buttons_position?`, `mantine_buttons_order?`, `mantine_btn_save_color?`, `mantine_btn_cancel_color?`: IContentField<string>
+- Styling: `mantine_card_shadow?`, `mantine_card_padding?`, `mantine_radius?`: IContentField<TMantineRadius>, `mantine_border?`: IContentField<string>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### IRegisterStyle (`register`)
+**Fields:**
+- `label_user?`, `label_pw?`, `label_submit?`, `alert_fail?`, `alert_success?`, `title?`, `success?`: IContentField<string>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### IResetPasswordStyle (`resetPassword`)
+**Fields:**
+- `label_pw_reset?`, `text_md?`, `type?`, `alert_success?`, `placeholder?`, `email_user?`, `subject_user?`, `is_html?`: IContentField<string>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### ITwoFactorAuthStyle (`twoFactorAuth`)
+**Fields:**
+- `label_code?`, `label_submit?`, `alert_fail?`, `title?`, `text_md?`, `label_expiration_2fa?`: IContentField<string>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+### Container & Layout Styles
+
+#### IContainerStyle (`container`)
+**Fields:**
+- `mantine_size?`: IContentField<TMantineSize> - Container size (xs, sm, md, lg, xl)
+- `mantine_fluid?`: IContentField<TMantineFullWidth> - Fluid layout toggle
+- `mantine_px?`: IContentField<TMantineSpacing> - Horizontal padding (none, xs, sm, md, lg, xl)
+- `mantine_py?`: IContentField<TMantineSpacing> - Vertical padding (none, xs, sm, md, lg, xl)
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### ICenterStyle (`center`)
+**Fields:**
+- `mantine_center_inline?`: IContentField<TMantineFullWidth> - Center inline content
+- `mantine_width?`: IContentField<TMantineWidth> - Width constraint (25%, 50%, 75%, 100%, auto, etc.)
+- `mantine_height?`: IContentField<TMantineHeight> - Height constraint
+- `mantine_miw?`: IContentField<TMantineWidth> - Minimum inline width
+- `mantine_mih?`: IContentField<TMantineHeight> - Minimum inline height
+- `mantine_maw?`: IContentField<TMantineWidth> - Maximum width
+- `mantine_mah?`: IContentField<TMantineHeight> - Maximum height
+
+#### IDividerStyle (`divider`)
+**Fields:**
+- `mantine_divider_variant?`: IContentField<TMantineDividerVariant> - solid, dashed, dotted
+- `mantine_size?`: IContentField<TMantineSize> - Size (xs, sm, md, lg, xl)
+- `mantine_divider_label?`: IContentField<string> - Label text
+- `mantine_divider_label_position?`: IContentField<string> - left, center, right
+- `mantine_orientation?`: IContentField<TMantineOrientation> - horizontal, vertical
+- `mantine_color?`: IContentField<TMantineColor> - Color (gray, red, etc.)
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### IPaperStyle (`paper`)
+**Fields:**
+- `mantine_paper_shadow?`: IContentField<TMantinePaperShadow> - none, xs, sm, md, lg, xl
+- `mantine_radius?`: IContentField<TMantineRadius> - none, xs, sm, md, lg, xl
+- `mantine_px?`: IContentField<TMantineSpacing> - Horizontal padding
+- `mantine_py?`: IContentField<TMantineSpacing> - Vertical padding
+- `mantine_border?`: IContentField<TMantineBorder> - 0, 1
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### IAlertStyle (`alert`)
+**Fields:**
+- `mantine_alert_title?`: IContentField<string> - Alert title
+- `close_button_label?`: IContentField<string> - Close button label
+- `mantine_variant?`: IContentField<TMantineVariant> - filled, light, outline, etc.
+- `mantine_color?`: IContentField<TMantineColor> - Color
+- `mantine_radius?`: IContentField<TMantineRadius> - Border radius
+- `mantine_left_icon?`: IContentField<string> - Left icon
+- `mantine_with_close_button?`: IContentField<TMantineWithCloseButton> - Show close button
+- `content?`: IContentField<string> - Alert content
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### IRefContainerStyle (`refContainer`)
+**Fields:** None specific (base style only)
+
+#### IDataContainerStyle (`dataContainer`)
+**Fields:** None specific (base style only)
+
+#### IHtmlTagStyle (`html-tag`)
+**Fields:**
+- `html_tag?`: IContentField<string> - HTML tag name
+- `html_tag_content?`: IContentField<string> - HTML content
+
+#### IBoxStyle (`box`)
+**Fields:**
+- `content?`: IContentField<string> - Box content
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+### Layout Components
+
+#### IFlexStyle (`flex`)
+**Fields:**
+- `mantine_gap?`: IContentField<TMantineGap> - Gap between items (0, xs, sm, md, lg, xl)
+- `mantine_justify?`: IContentField<TMantineJustify> - Justify content (flex-start, center, etc.)
+- `mantine_align?`: IContentField<TMantineAlign> - Align items (flex-start, center, etc.)
+- `mantine_direction?`: IContentField<TMantineDirection> - Flex direction
+- `mantine_wrap?`: IContentField<TMantineWrap> - Flex wrap
+- `mantine_width?`: IContentField<TMantineWidth> - Width
+- `mantine_height?`: IContentField<TMantineHeight> - Height
+
+#### IGroupStyle (`group`)
+**Fields:**
+- `mantine_gap?`: IContentField<TMantineGap> - Gap between items
+- `mantine_justify?`: IContentField<TMantineJustify> - Justify content
+- `mantine_align?`: IContentField<TMantineAlign> - Align items
+- `mantine_group_wrap?`: IContentField<'0' | '1'> - Wrap toggle
+- `mantine_group_grow?`: IContentField<'0' | '1'> - Grow toggle
+- `mantine_width?`: IContentField<TMantineWidth> - Width
+- `mantine_height?`: IContentField<TMantineHeight> - Height
+
+#### IStackStyle (`stack`)
+**Fields:**
+- `mantine_gap?`: IContentField<TMantineGap> - Gap between items
+- `mantine_justify?`: IContentField<TMantineJustify> - Justify content
+- `mantine_align?`: IContentField<TMantineAlign> - Align items
+- `mantine_width?`: IContentField<TMantineWidth> - Width
+- `mantine_height?`: IContentField<TMantineHeight> - Height
+
+#### ISimpleGridStyle (`simple-grid`)
+**Fields:**
+- `mantine_cols?`: IContentField<TMantineCols> - Number of columns (1-12, string)
+- `mantine_spacing?`: IContentField<TMantineSpacing> - Spacing
+- `mantine_breakpoints?`: IContentField<string> - Breakpoints config
+- `mantine_vertical_spacing?`: IContentField<TMantineSpacing> - Vertical spacing
+- `mantine_width?`: IContentField<TMantineWidth> - Width
+- `mantine_height?`: IContentField<TMantineHeight> - Height
+
+#### IScrollAreaStyle (`scroll-area`)
+**Fields:**
+- `mantine_scroll_area_scrollbar_size?`: IContentField<TMantineScrollAreaSize> - Scrollbar size
+- `mantine_scroll_area_type?`: IContentField<TMantineScrollAreaType> - hover, always, never, scroll
+- `mantine_scroll_area_offset_scrollbars?`: IContentField<TMantineFullWidth> - Offset scrollbars
+- `mantine_scroll_area_scroll_hide_delay?`: IContentField<string> - Hide delay
+- `mantine_height?`: IContentField<TMantineHeight> - Height
+- `mantine_width?`: IContentField<TMantineWidth> - Width
+
+#### ISpaceStyle (`space`)
+**Fields:**
+- `mantine_size?`: IContentField<TMantineSize> - Space size
+- `mantine_space_direction?`: IContentField<string> - Direction
+
+#### IGridStyle (`grid`)
+**Fields:**
+- `mantine_cols?`: IContentField<TMantineCols> - Number of columns
+- `mantine_gap?`: IContentField<TMantineGap> - Gap/spacing
+- `mantine_justify?`: IContentField<TMantineJustify> - Justify content
+- `mantine_align?`: IContentField<TMantineAlign> - Align items
+- `mantine_grid_overflow?`: IContentField<string> - Overflow handling
+- `mantine_width?`: IContentField<TMantineWidth> - Width
+- `mantine_height?`: IContentField<TMantineHeight> - Height
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### IGridColumnStyle (`grid-column`)
+**Fields:**
+- `mantine_grid_span?`: IContentField<TMantineGridSpan> - Column span (1-12, auto, content)
+- `mantine_grid_offset?`: IContentField<TMantineGridOffset> - Column offset (0-11)
+- `mantine_grid_order?`: IContentField<TMantineGridOrder> - Column order (1-12)
+- `mantine_grid_grow?`: IContentField<TMantineFullWidth> - Grow toggle
+- `mantine_width?`: IContentField<TMantineWidth> - Width
+- `mantine_height?`: IContentField<TMantineHeight> - Height
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+### Form & Input Styles
+
+#### IFormStyle (`form-log`, `form-record`)
+**Fields:**
+- `btn_save_label?`, `alert_success?`, `name?`, `is_log?`, `redirect_at_end?`, `btn_cancel_url?`, `btn_cancel_label?`, `alert_error?`, `buttons_size?`, `buttons_radius?`, `btn_save_color?`, `btn_cancel_color?`, `buttons_variant?`, `buttons_position?`: IContentField<string>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### IInputStyle (`input`)
+**Fields:**
+- `type_input?`, `placeholder?`, `name?`, `value?`, `min?`, `max?`: IContentField<string>
+- `is_required?`: IContentField<TMantineRequired>
+- `disabled?`: IContentField<TMantineDisabled>
+
+#### ITextInputStyle (`text-input`)
+**Fields:**
+- `label?`, `name?`, `value?`, `placeholder?`, `description?`: IContentField<string>
+- `is_required?`: IContentField<TMantineRequired>
+- `disabled?`: IContentField<TMantineDisabled>
+- `mantine_left_icon?`, `mantine_right_icon?`: IContentField<string>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+- `mantine_size?`: IContentField<TMantineSize>
+- `mantine_radius?`: IContentField<TMantineRadius>
+- `mantine_text_input_variant?`: IContentField<TMantineTextInputVariant>
+
+#### ITextareaStyle (`textarea`)
+**Fields:**
+- `label?`, `placeholder?`, `name?`, `value?`, `min?`, `max?`, `description?`: IContentField<string>
+- `is_required?`: IContentField<TMantineRequired>
+- `disabled?`: IContentField<TMantineDisabled>
+- `mantine_left_icon?`, `mantine_right_icon?`: IContentField<string>
+- `markdown_editor?`: IContentField<string>
+- `mantine_textarea_autosize?`: IContentField<TMantineTextareaAutosize>
+- `mantine_textarea_min_rows?`: IContentField<string>
+- `mantine_textarea_max_rows?`: IContentField<string>
+- `mantine_textarea_resize?`: IContentField<TMantineTextareaResize>
+- `mantine_size?`: IContentField<TMantineSize>
+- `mantine_radius?`: IContentField<TMantineRadius>
+- `mantine_textarea_variant?`: IContentField<TMantineTextareaVariant>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### IRichTextEditorStyle (`rich-text-editor`)
+**Fields:**
+- `label?`, `name?`, `value?`, `placeholder?`, `description?`: IContentField<string>
+- `is_required?`: IContentField<TMantineRequired>
+- `disabled?`: IContentField<TMantineDisabled>
+- `mantine_rich_text_editor_variant?`, `mantine_rich_text_editor_placeholder?`, `mantine_rich_text_editor_bubble_menu?`, `mantine_rich_text_editor_text_color?`, `mantine_rich_text_editor_task_list?`: IContentField<string>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### ISelectStyle (`select`)
+**Fields:**
+- `alt?`, `name?`, `value?`, `placeholder?`: IContentField<string>
+- `is_required?`: IContentField<TMantineRequired>
+- `options?`: IContentField<string>
+- `is_multiple?`, `live_search?`, `allow_clear?`: IContentField<string>
+- `max?`: IContentField<string>
+- `disabled?`: IContentField<TMantineDisabled>
+- `image_selector?`: IContentField<string>
+
+#### IRadioStyle (`radio`)
+**Fields:**
+- `label?`, `description?`, `name?`, `value?`: IContentField<string>
+- `is_required?`: IContentField<TMantineRequired>
+- `mantine_orientation?`: IContentField<string>
+- `mantine_size?`: IContentField<TMantineSize>
+- `mantine_color?`: IContentField<TMantineColor>
+- `mantine_radio_options?`: IContentField<string>
+- `mantine_radio_label_position?`: IContentField<string>
+- `mantine_radio_variant?`: IContentField<string>
+- `mantine_radio_card?`: IContentField<string>
+- `mantine_tooltip_label?`, `mantine_tooltip_position?`: IContentField<string>
+- `disabled?`: IContentField<TMantineDisabled>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+- `mantine_use_input_wrapper?`: IContentField<string>
+
+#### ISliderStyle (`slider`)
+**Fields:**
+- `label?`, `description?`, `name?`, `value?`: IContentField<string>
+- `mantine_numeric_min?`, `mantine_numeric_max?`, `mantine_numeric_step?`: IContentField<string>
+- `mantine_size?`: IContentField<TMantineSize>
+- `mantine_color?`: IContentField<TMantineColor>
+- `mantine_radius?`: IContentField<TMantineRadius>
+- `disabled?`: IContentField<TMantineDisabled>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+- `mantine_slider_marks_values?`, `mantine_slider_show_label?`, `mantine_slider_labels_always_on?`, `mantine_slider_inverted?`, `mantine_slider_thumb_size?`, `mantine_slider_required?`: IContentField<string>
+- Legacy: `labels?`: IContentField<any[]>, `min?`, `max?`: IContentField<string>, `locked_after_submit?`: IContentField<string>
+
+#### ICheckboxStyle (`checkbox`)
+**Fields:**
+- `label?`, `name?`, `value?`, `checkbox_value?`: IContentField<string>
+- `is_required?`: IContentField<TMantineRequired>
+- `mantine_checkbox_icon?`: IContentField<TMantineCheckboxIcon>
+- `mantine_checkbox_labelPosition?`: IContentField<TMantineCheckboxLabelPosition>
+- `description?`: IContentField<string>
+- `disabled?`: IContentField<TMantineDisabled>
+- `mantine_size?`: IContentField<TMantineSize>
+- `mantine_radius?`: IContentField<TMantineRadius>
+- `mantine_color?`: IContentField<TMantineColor>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+- `mantine_use_input_wrapper?`: IContentField<TMantineUseInputWrapper>
+
+#### IDatePickerStyle (`datepicker`)
+**Fields:**
+- `label?`, `name?`, `value?`, `description?`: IContentField<string>
+- `is_required?`: IContentField<TMantineRequired>
+- `disabled?`: IContentField<TMantineDisabled>
+- `mantine_datepicker_type?`, `mantine_datepicker_format?`, `mantine_datepicker_locale?`, `mantine_datepicker_placeholder?`: IContentField<string>
+- `mantine_datepicker_min_date?`, `mantine_datepicker_max_date?`, `mantine_datepicker_first_day_of_week?`, `mantine_datepicker_weekend_days?`: IContentField<string>
+- `mantine_datepicker_clearable?`, `mantine_datepicker_allow_deselect?`, `mantine_datepicker_readonly?`: IContentField<string>
+- `mantine_datepicker_with_time_grid?`, `mantine_datepicker_consistent_weeks?`, `mantine_datepicker_hide_outside_dates?`, `mantine_datepicker_hide_weekends?`: IContentField<string>
+- `mantine_datepicker_time_step?`, `mantine_datepicker_time_format?`, `mantine_datepicker_date_format?`, `mantine_datepicker_time_grid_config?`: IContentField<string>
+- `mantine_datepicker_with_seconds?`: IContentField<string>
+- `mantine_size?`: IContentField<TMantineSize>
+- `mantine_radius?`: IContentField<TMantineRadius>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+### Navigation & Links Styles
+
+#### IButtonStyle (`button`)
+**Fields:**
+- `mantine_variant?`: IContentField<TMantineVariant>
+- `mantine_color?`: IContentField<TMantineColor>
+- `mantine_size?`: IContentField<TMantineSize>
+- `mantine_radius?`: IContentField<TMantineRadius>
+- `mantine_left_icon?`, `mantine_right_icon?`: IContentField<string>
+- `mantine_fullwidth?`: IContentField<TMantineFullWidth>
+- `mantine_compact?`: IContentField<TMantineCompact>
+- `mantine_auto_contrast?`: IContentField<TMantineAutoContrast>
+- `is_link?`: IContentField<TMantineFullWidth>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+- `disabled?`: IContentField<TMantineDisabled>
+- `open_in_new_tab?`: IContentField<TMantineFullWidth>
+- `page_keyword?`: IContentField<string>
+- `url?`: IContentField<string>
+- `label?`: IContentField<string>
+- `label_cancel?`: IContentField<string>
+- `confirmation_title?`, `confirmation_continue?`, `confirmation_message?`: IContentField<string>
+
+#### ILinkStyle (`link`)
+**Fields:**
+- `label?`: IContentField<string>
+- `url?`: IContentField<string>
+- `open_in_new_tab?`: IContentField<string>
+
+#### ITabsStyle (`tabs`)
+**Fields:**
+- `mantine_tabs_variant?`: IContentField<string>
+- `mantine_tabs_orientation?`: IContentField<TMantineOrientation>
+- `mantine_tabs_radius?`: IContentField<TMantineRadius>
+- `mantine_color?`: IContentField<TMantineColor>
+- `mantine_width?`: IContentField<TMantineWidth>
+- `mantine_height?`: IContentField<TMantineHeight>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### ITabStyle (`tab`)
+**Fields:**
+- `label?`: IContentField<string>
+- `mantine_left_icon?`, `mantine_right_icon?`: IContentField<string>
+- `mantine_tab_disabled?`: IContentField<TMantineDisabled>
+- `mantine_width?`: IContentField<TMantineWidth>
+- `mantine_height?`: IContentField<TMantineHeight>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+- Legacy: `type?`, `is_active?`, `icon?`: IContentField<string>
+
+#### IEntryListStyle (`entryList`)
+**Fields:** None specific (base style only)
+
+#### IEntryRecordStyle (`entryRecord`)
+**Fields:** None specific (base style only)
+
+#### IEntryRecordDeleteStyle (`entryRecordDelete`)
+**Fields:** None specific (base style only)
+
+#### IVersionStyle (`version`)
+**Fields:** None specific (base style only)
+
+#### ILoopStyle (`loop`)
+**Fields:**
+- `loop?`: IContentField<any[]>
+
+### Mantine Form Components
+
+#### IColorInputStyle (`color-input`)
+**Fields:**
+- `mantine_color_format?`: IContentField<TMantineColorFormat>
+- `mantine_color_input_swatches?`: IContentField<TMantineColorPickerSwatches>
+- `mantine_size?`: IContentField<TMantineSize>
+- `mantine_radius?`: IContentField<TMantineRadius>
+- `placeholder?`: IContentField<string>
+- `name?`: IContentField<string>
+- `value?`: IContentField<string>
+- `description?`: IContentField<string>
+- `is_required?`: IContentField<TMantineRequired>
+- `disabled?`: IContentField<TMantineDisabled>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### IColorPickerStyle (`color-picker`)
+**Fields:**
+- `mantine_color_format?`: IContentField<string>
+- `mantine_color_picker_swatches_per_row?`: IContentField<string>
+- `mantine_color_picker_swatches?`: IContentField<string>
+- `mantine_color_picker_with_picker?`: IContentField<string>
+- `mantine_color_picker_saturation_label?`, `mantine_color_picker_hue_label?`, `mantine_color_picker_alpha_label?`: IContentField<string>
+- `mantine_color_picker_as_button?`: IContentField<string>
+- `mantine_color_picker_button_label?`: IContentField<string>
+- `mantine_size?`: IContentField<TMantineSize>
+- `mantine_fullwidth?`: IContentField<string>
+- `name?`: IContentField<string>
+- `value?`: IContentField<string>
+- `description?`: IContentField<string>
+- `is_required?`: IContentField<TMantineRequired>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### IFileInputStyle (`file-input`)
+**Fields:**
+- `mantine_file_input_multiple?`: IContentField<string>
+- `mantine_file_input_accept?`: IContentField<string>
+- `mantine_file_input_clearable?`: IContentField<string>
+- `mantine_file_input_max_size?`: IContentField<string>
+- `mantine_file_input_max_files?`: IContentField<string>
+- `mantine_file_input_drag_drop?`: IContentField<string>
+- `mantine_size?`: IContentField<TMantineSize>
+- `mantine_radius?`: IContentField<TMantineRadius>
+- `mantine_left_icon?`, `mantine_right_icon?`: IContentField<string>
+- `placeholder?`: IContentField<string>
+- `disabled?`: IContentField<TMantineDisabled>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+- `is_required?`: IContentField<TMantineRequired>
+- `name?`: IContentField<string>
+- `label?`: IContentField<string>
+- `description?`: IContentField<string>
+
+#### INumberInputStyle (`number-input`)
+**Fields:**
+- `mantine_numeric_min?`, `mantine_numeric_max?`, `mantine_numeric_step?`: IContentField<string>
+- `mantine_number_input_decimal_scale?`: IContentField<string>
+- `mantine_number_input_clamp_behavior?`: IContentField<string>
+- `mantine_size?`: IContentField<TMantineSize>
+- `mantine_radius?`: IContentField<TMantineRadius>
+- `placeholder?`: IContentField<string>
+- `label?`: IContentField<string>
+- `description?`: IContentField<string>
+- `name?`: IContentField<string>
+- `value?`: IContentField<string>
+- `is_required?`: IContentField<TMantineRequired>
+- `disabled?`: IContentField<TMantineDisabled>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### IRangeSliderStyle (`range-slider`)
+**Fields:**
+- `label?`, `description?`, `name?`, `value?`: IContentField<string>
+- `mantine_numeric_min?`, `mantine_numeric_max?`, `mantine_numeric_step?`: IContentField<string>
+- `mantine_range_slider_marks_values?`: IContentField<string>
+- `mantine_range_slider_show_label?`, `mantine_range_slider_labels_always_on?`, `mantine_range_slider_inverted?`: IContentField<string>
+- `mantine_size?`: IContentField<TMantineSize>
+- `mantine_color?`: IContentField<TMantineColor>
+- `mantine_radius?`: IContentField<TMantineRadius>
+- `disabled?`: IContentField<TMantineDisabled>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### ISegmentedControlStyle (`segmented-control`)
+**Fields:**
+- `mantine_segmented_control_data?`: IContentField<string>
+- `mantine_orientation?`: IContentField<string>
+- `mantine_size?`: IContentField<TMantineSize>
+- `mantine_radius?`: IContentField<TMantineRadius>
+- `mantine_color?`: IContentField<TMantineColor>
+- `fullwidth?`: IContentField<string>
+- `disabled?`: IContentField<TMantineDisabled>
+- `readonly?`: IContentField<string>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+- `mantine_segmented_control_item_border?`: IContentField<string>
+- `label?`, `description?`, `value?`: IContentField<string>
+- `is_required?`: IContentField<TMantineRequired>
+- `name?`: IContentField<string>
+
+#### ISwitchStyle (`switch`)
+**Fields:**
+- `label?`, `description?`: IContentField<string>
+- `mantine_switch_on_label?`, `mantine_switch_off_label?`: IContentField<string>
+- `mantine_size?`: IContentField<TMantineSize>
+- `mantine_color?`: IContentField<TMantineColor>
+- `mantine_radius?`: IContentField<TMantineRadius>
+- `disabled?`: IContentField<TMantineDisabled>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+- `name?`: IContentField<string>
+- `is_required?`: IContentField<TMantineRequired>
+- `mantine_label_position?`: IContentField<string>
+- `value?`: IContentField<string>
+- `mantine_switch_on_value?`, `mantine_switch_off_value?`: IContentField<string>
+- `mantine_use_input_wrapper?`: IContentField<string>
+
+#### IComboboxStyle (`combobox`)
+**Fields:**
+- `placeholder?`: IContentField<string>
+- `mantine_combobox_options?`: IContentField<string>
+- `disabled?`: IContentField<TMantineDisabled>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+- `label?`, `description?`, `name?`, `value?`: IContentField<string>
+- `is_required?`: IContentField<TMantineRequired>
+- `mantine_combobox_multi_select?`, `mantine_combobox_searchable?`, `mantine_combobox_creatable?`, `mantine_combobox_clearable?`, `mantine_combobox_separator?`: IContentField<string>
+- `mantine_multi_select_max_values?`: IContentField<string>
+
+#### IActionIconStyle (`action-icon`)
+**Fields:**
+- `mantine_variant?`: IContentField<TMantineVariant>
+- `mantine_action_icon_loading?`: IContentField<string>
+- `mantine_size?`: IContentField<TMantineSize>
+- `mantine_radius?`: IContentField<TMantineRadius>
+- `mantine_color?`: IContentField<TMantineColor>
+- `mantine_left_icon?`: IContentField<string>
+- `is_link?`: IContentField<string>
+- `page_keyword?`: IContentField<string>
+- `open_in_new_tab?`: IContentField<string>
+- `disabled?`: IContentField<TMantineDisabled>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+### Mantine Typography Components
+
+#### ITitleStyle (`title`)
+**Fields:**
+- `content?`: IContentField<string>
+- `mantine_title_order?`: IContentField<TMantineTitleOrder>
+- `mantine_size?`: IContentField<TMantineSize>
+- `mantine_title_text_wrap?`: IContentField<TMantineTitleTextWrap>
+- `mantine_title_line_clamp?`: IContentField<TMantineTitleLineClamp>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### ITextStyle (`text`)
+**Fields:**
+- `text?`: IContentField<string>
+- `mantine_size?`: IContentField<TMantineSize>
+- `mantine_color?`: IContentField<TMantineColor>
+- `mantine_text_font_weight?`: IContentField<TMantineTextFontWeight>
+- `mantine_text_font_style?`: IContentField<TMantineTextFontStyle>
+- `mantine_text_text_decoration?`: IContentField<TMantineTextDecoration>
+- `mantine_text_text_transform?`: IContentField<TMantineTextTransform>
+- `mantine_text_align?`: IContentField<TMantineTextAlign>
+- `mantine_text_variant?`: IContentField<TMantineTextVariant>
+- `mantine_text_gradient?`: IContentField<string>
+- `mantine_text_truncate?`: IContentField<TMantineTextTruncate>
+- `mantine_text_line_clamp?`: IContentField<TMantineLineClamp>
+- `mantine_text_inherit?`: IContentField<TMantineTextInherit>
+- `mantine_text_span?`: IContentField<TMantineTextSpan>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### ICodeStyle (`code`)
+**Fields:**
+- `mantine_code_block?`: IContentField<string>
+- `mantine_color?`: IContentField<TMantineColor>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+- `content?`: IContentField<string>
+
+#### IHighlightStyle (`highlight`)
+**Fields:**
+- `text?`: IContentField<string>
+- `mantine_highlight_highlight?`: IContentField<string>
+- `mantine_color?`: IContentField<TMantineColor>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### IBlockquoteStyle (`blockquote`)
+**Fields:**
+- `content?`: IContentField<string>
+- `cite?`: IContentField<string>
+- `mantine_left_icon?`: IContentField<string>
+- `mantine_icon_size?`: IContentField<TMantineIconSize>
+- `mantine_color?`: IContentField<TMantineColor>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+### Mantine Data Display Components
+
+#### IBadgeStyle (`badge`)
+**Fields:**
+- `mantine_variant?`: IContentField<TMantineVariant>
+- `mantine_size?`: IContentField<TMantineSize>
+- `mantine_left_icon?`, `mantine_right_icon?`: IContentField<string>
+- `mantine_radius?`: IContentField<TMantineRadius>
+- `mantine_color?`: IContentField<TMantineColor>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+- `mantine_auto_contrast?`: IContentField<TMantineAutoContrast>
+
+#### IChipStyle (`chip`)
+**Fields:**
+- `mantine_chip_variant?`: IContentField<TMantineChipVariant>
+- `mantine_size?`: IContentField<TMantineSize>
+- `mantine_radius?`: IContentField<TMantineRadius>
+- `mantine_color?`: IContentField<TMantineColor>
+- `mantine_chip_checked?`: IContentField<TMantineChipChecked>
+- `mantine_chip_multiple?`: IContentField<TMantineChipMultiple>
+- `disabled?`: IContentField<TMantineDisabled>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+- `mantine_left_icon?`: IContentField<string>
+- `mantine_icon_size?`: IContentField<TMantineIconSize>
+- `name?`: IContentField<string>
+- `value?`: IContentField<string>
+- `chip_value?`: IContentField<string>
+- `mantine_chip_on_value?`, `mantine_chip_off_value?`: IContentField<string>
+- `is_required?`: IContentField<TMantineRequired>
+- `tooltip?`: IContentField<string>
+- `mantine_tooltip_position?`: IContentField<string>
+- `chip_on_value?`, `chip_off_value?`: IContentField<string>
+- `chip_checked?`: IContentField<string>
+
+#### IAvatarStyle (`avatar`)
+**Fields:**
+- `src?`: IContentField<string>
+- `alt?`: IContentField<string>
+- `mantine_avatar_variant?`: IContentField<TMantineAvatarVariant>
+- `mantine_size?`: IContentField<TMantineSize>
+- `mantine_radius?`: IContentField<TMantineRadius>
+- `mantine_color?`: IContentField<TMantineColor>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+- `mantine_left_icon?`: IContentField<string>
+- `mantine_avatar_initials?`: IContentField<string>
+- `img_src?`: IContentField<string>
+
+#### ITimelineStyle (`timeline`)
+**Fields:**
+- `mantine_timeline_bullet_size?`: IContentField<TMantineTimelineBulletSize>
+- `mantine_timeline_line_width?`: IContentField<TMantineTimelineLineWidth>
+- `mantine_timeline_active?`: IContentField<TMantineTimelineActive>
+- `mantine_timeline_align?`: IContentField<TMantineTimelineAlign>
+- `mantine_color?`: IContentField<TMantineColor>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### IIndicatorStyle (`indicator`)
+**Fields:**
+- `mantine_indicator_processing?`: IContentField<string>
+- `mantine_indicator_disabled?`: IContentField<TMantineDisabled>
+- `mantine_indicator_size?`: IContentField<string>
+- `mantine_indicator_position?`: IContentField<string>
+- `label?`: IContentField<string>
+- `mantine_indicator_inline?`: IContentField<string>
+- `mantine_indicator_offset?`: IContentField<string>
+- `mantine_border?`: IContentField<string>
+- `mantine_radius?`: IContentField<TMantineRadius>
+- `mantine_color?`: IContentField<TMantineColor>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### IKbdStyle (`kbd`)
+**Fields:**
+- `label?`: IContentField<string>
+- `mantine_size?`: IContentField<TMantineSize>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### IRatingStyle (`rating`)
+**Fields:**
+- `label?`, `description?`, `name?`: IContentField<string>
+- `disabled?`: IContentField<TMantineDisabled>
+- `value?`: IContentField<string>
+- `readonly?`: IContentField<string>
+- `mantine_rating_count?`: IContentField<string>
+- `mantine_rating_fractions?`: IContentField<string>
+- `mantine_rating_use_smiles?`: IContentField<string>
+- `mantine_rating_empty_icon?`, `mantine_rating_full_icon?`: IContentField<string>
+- `mantine_rating_highlight_selected_only?`: IContentField<string>
+- `mantine_size?`: IContentField<TMantineSize>
+- `mantine_color?`: IContentField<TMantineColor>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### IProgressStyle (`progress`)
+**Fields:**
+- `value?`: IContentField<string>
+- `mantine_color?`: IContentField<TMantineColor>
+- `mantine_radius?`: IContentField<TMantineRadius>
+- `mantine_size?`: IContentField<TMantineSize>
+- `mantine_progress_striped?`: IContentField<TMantineFullWidth>
+- `mantine_progress_animated?`: IContentField<TMantineFullWidth>
+- `mantine_progress_transition_duration?`: IContentField<TMantineProgressTransitionDuration>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### IProgressRootStyle (`progress-root`)
+**Fields:**
+- `mantine_size?`: IContentField<TMantineSize>
+- `mantine_progress_auto_contrast?`: IContentField<TMantineFullWidth>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### IProgressSectionStyle (`progress-section`)
+**Fields:**
+- `value?`: IContentField<string>
+- `mantine_color?`: IContentField<TMantineColor>
+- `mantine_progress_striped?`: IContentField<TMantineFullWidth>
+- `mantine_progress_animated?`: IContentField<TMantineFullWidth>
+- `label?`: IContentField<string>
+- `mantine_tooltip_label?`: IContentField<string>
+- `mantine_tooltip_position?`: IContentField<string>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### IThemeIconStyle (`theme-icon`)
+**Fields:**
+- `mantine_variant?`: IContentField<TMantineVariant>
+- `mantine_size?`: IContentField<TMantineSize>
+- `mantine_radius?`: IContentField<TMantineRadius>
+- `mantine_color?`: IContentField<TMantineColor>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+- `mantine_left_icon?`: IContentField<string>
+
+### Mantine Navigation Components
+
+#### IAccordionStyle (`accordion`)
+**Fields:**
+- `mantine_accordion_variant?`: IContentField<TMantineAccordionVariant>
+- `mantine_accordion_multiple?`: IContentField<TMantineAccordionMultiple>
+- `mantine_accordion_chevron_position?`: IContentField<TMantineAccordionChevronPosition>
+- `mantine_accordion_chevron_size?`: IContentField<TMantineAccordionChevronSize>
+- `mantine_accordion_disable_chevron_rotation?`: IContentField<TMantineAccordionDisableChevronRotation>
+- `mantine_accordion_loop?`: IContentField<TMantineAccordionLoop>
+- `mantine_accordion_transition_duration?`: IContentField<TMantineAccordionTransitionDuration>
+- `mantine_accordion_default_value?`: IContentField<TMantineAccordionDefaultValue>
+- `mantine_radius?`: IContentField<TMantineRadius>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### IAccordionItemStyle (`accordion-item`)
+**Fields:**
+- `mantine_accordion_item_value?`: IContentField<string>
+- `label?`: IContentField<string>
+- `mantine_accordion_item_icon?`: IContentField<string>
+- `disabled?`: IContentField<TMantineDisabled>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+### Mantine Feedback Components
+
+#### INotificationStyle (`notification`)
+**Fields:**
+- `title?`: IContentField<string>
+- `content?`: IContentField<string>
+- `mantine_left_icon?`: IContentField<string>
+- `mantine_color?`: IContentField<TMantineColor>
+- `mantine_notification_loading?`: IContentField<string>
+- `mantine_notification_with_close_button?`: IContentField<string>
+- `mantine_border?`: IContentField<string>
+- `mantine_radius?`: IContentField<TMantineRadius>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+### Card Components
+
+#### ICardStyle (`card`)
+**Fields:**
+- `mantine_card_shadow?`: IContentField<TMantineCardShadow>
+- `mantine_border?`: IContentField<TMantineBorder>
+- `mantine_radius?`: IContentField<TMantineRadius>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### ICardSegmentStyle (`card-segment`)
+**Fields:**
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+### List Components
+
+#### IListStyle (`list`)
+**Fields:**
+- `mantine_list_type?`: IContentField<TMantineListType>
+- `mantine_spacing?`: IContentField<TMantineSpacing>
+- `mantine_size?`: IContentField<TMantineSize>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+- `mantine_list_list_style_type?`: IContentField<TMantineListStyleType>
+- `mantine_list_with_padding?`: IContentField<TMantineListWithPadding>
+- `mantine_list_center?`: IContentField<TMantineListCenter>
+- `mantine_list_icon?`: IContentField<string>
+
+#### IListItemStyle (`list-item`)
+**Fields:**
+- `mantine_list_item_content?`: IContentField<string>
+- `mantine_list_item_icon?`: IContentField<string>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+### Utility Components
+
+#### IAspectRatioStyle (`aspect-ratio`)
+**Fields:**
+- `mantine_aspect_ratio?`: IContentField<string>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### IBackgroundImageStyle (`background-image`)
+**Fields:**
+- `img_src?`: IContentField<string>
+- `mantine_radius?`: IContentField<TMantineRadius>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### IFieldsetStyle (`fieldset`)
+**Fields:**
+- `legend?`: IContentField<string>
+- `mantine_fieldset_variant?`: IContentField<TMantineFieldsetVariant>
+- `mantine_radius?`: IContentField<TMantineRadius>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+- `disabled?`: IContentField<TMantineDisabled>
+
+#### ISpoilerStyle (`spoiler`)
+**Fields:**
+- `mantine_height?`: IContentField<TMantineSpoilerMaxHeight>
+- `mantine_spoiler_show_label?`: IContentField<string>
+- `mantine_spoiler_hide_label?`: IContentField<string>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### ITypographyStyle (`typography`)
+**Fields:**
+- `use_mantine_style?`: IContentField<TMantineTypographyUseMantineStyle>
+
+### Media Components
+
+#### IImageStyle (`image`)
+**Fields:**
+- `title?`: IContentField<string>
+- `is_fluid?`: IContentField<string>
+- `alt?`: IContentField<string>
+- `img_src?`: IContentField<string>
+- `height?`: IContentField<string>
+- `width?`: IContentField<string>
+- `mantine_image_fit?`: IContentField<TMantineImageFit>
+- `mantine_width?`: IContentField<TMantineWidth>
+- `mantine_height?`: IContentField<TMantineHeight>
+- `mantine_radius?`: IContentField<TMantineRadius>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
+
+#### IVideoStyle (`video`)
+**Fields:**
+- `is_fluid?`: IContentField<string>
+- `alt?`: IContentField<string>
+- `sources?`: IContentField<any[]>
+
+#### IAudioStyle (`audio`)
+**Fields:**
+- `sources?`: IContentField<any[]>
+
+#### IFigureStyle (`figure`)
+**Fields:**
+- `caption_title?`: IContentField<string>
+- `caption?`: IContentField<string>
+
+#### ICarouselStyle (`carousel`)
+**Fields:**
+- `id_prefix?`: IContentField<string>
+- `has_controls?`: IContentField<string>
+- `has_indicators?`: IContentField<string>
+- `has_crossfade?`: IContentField<string>
+- `sources?`: IContentField<any[]>
+- `mantine_height?`: IContentField<string>
+- `mantine_carousel_slide_size?`: IContentField<string>
+- `mantine_carousel_slide_gap?`: IContentField<string>
+- `mantine_orientation?`: IContentField<string>
+- `mantine_control_size?`: IContentField<string>
+- `mantine_carousel_controls_offset?`: IContentField<string>
+- `mantine_carousel_next_control_icon?`: IContentField<string>
+- `mantine_carousel_previous_control_icon?`: IContentField<string>
+- `mantine_loop?`: IContentField<string>
+- `drag_free?`: IContentField<string>
+- `mantine_carousel_align?`: IContentField<string>
+- `mantine_carousel_contain_scroll?`: IContentField<string>
+- `skip_snaps?`: IContentField<string>
+- `mantine_carousel_in_view_threshold?`: IContentField<string>
+- `mantine_carousel_duration?`: IContentField<string>
+- `mantine_carousel_embla_options?`: IContentField<string>
+- `use_mantine_style?`: IContentField<TMantineFullWidth>
 
 ### Data Collection Checklist
 
