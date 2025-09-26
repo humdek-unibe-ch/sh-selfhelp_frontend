@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { IInputStyle } from '../../../../types/common/styles.types';
+import { FormFieldValueContext } from './FormStyle';
 
 /**
  * Props interface for InputStyle component
@@ -28,11 +29,36 @@ const InputStyle: React.FC<IInputStyleProps> = ({ style, cssClass }) => {
     const max = style.max?.content;
     const disabled = style.disabled?.content === '1';
 
-    const [value, setValue] = useState(initialValue);
+    // Get form context for pre-populated values
+    const formContext = useContext(FormFieldValueContext);
+    const formValue = formContext && name ? formContext.getFieldValue(name) : null;
+
+    // Use form value if available, otherwise use initial value from style
+    const [value, setValue] = useState(formValue || initialValue);
+
+    // Update value when form context changes (for record editing)
+    useEffect(() => {
+        if (formValue !== null) {
+            setValue(formValue);
+        }
+    }, [formValue]);
 
     // Handle CSS field - use direct property from API response
     const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setValue(event.target.value);
+        if (inputType === 'checkbox') {
+            setValue(event.target.checked ? '1' : '0');
+        } else {
+            setValue(event.target.value);
+        }
+    };
+
+    // For checkboxes, use checked instead of value
+    const checkboxProps = inputType === 'checkbox' ? {
+        checked: value === '1',
+        value: undefined
+    } : {
+        value: value,
+        checked: undefined
     };
 
     return (
@@ -40,13 +66,13 @@ const InputStyle: React.FC<IInputStyleProps> = ({ style, cssClass }) => {
             onChange={onChange}
             type={inputType}
             name={name}
-            value={value}
             placeholder={placeholder}
             required={required}
             min={min}
             max={max}
             className={cssClass}
             disabled={disabled}
+            {...checkboxProps}
         />
     );
 };
