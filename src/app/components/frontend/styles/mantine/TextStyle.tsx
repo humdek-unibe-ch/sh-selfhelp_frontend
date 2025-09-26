@@ -73,12 +73,11 @@ const TextStyle: React.FC<ITextStyleProps> = ({ style, styleProps, cssClass }) =
     }
 
     // Handle CSS field - use direct property from API response
-    
 
     return (
         <Text
-            size={size as any}
-            c={color as any}
+            size={size}
+            c={color}
             fw={fontWeight ? parseInt(fontWeight) : undefined}
             fs={fontStyle as 'italic' | 'normal' | undefined}
             td={textDecoration as 'underline' | 'line-through' | 'none' | undefined}

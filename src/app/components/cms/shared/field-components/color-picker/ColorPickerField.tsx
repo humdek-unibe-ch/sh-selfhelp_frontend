@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
-import { ColorSwatch, Group, CheckIcon, UnstyledButton, Popover, ColorPicker as MantineColorPicker, TextInput, rem } from '@mantine/core';
+import React, { useState, useEffect, useMemo } from 'react';
+import { ColorSwatch, Group, CheckIcon, UnstyledButton, Popover, ColorPicker as MantineColorPicker, TextInput, rem, Checkbox } from '@mantine/core';
 import classes from './ColorPickerField.module.css';
 import { IFieldConfig } from '../../../../../../types/requests/admin/fields.types';
+
 
 export function ColorWheelIcon() {
   return (
@@ -83,15 +84,50 @@ export function ColorPickerField({
     config,
     disabled = false
 }: IColorPickerFieldProps) {
+
+
+    // Extract colors from config options
+    const colors = useMemo(() => config?.options?.map(option => option.value) || [], [config?.options]);
+
     const [colorPickerColor, setColorPickerColor] = useState('#fff');
+    const [isColorEnabled, setIsColorEnabled] = useState(!!value);
+    const [userInteracted, setUserInteracted] = useState(false);
+
+    // Sync checkbox state with value changes
+    useEffect(() => {
+        const hasColorValue = !!value && value.trim() !== '';
+        setIsColorEnabled(hasColorValue);
+        // Always set the color picker to the current value for proper initialization
+        // This ensures both predefined colors and custom colors work correctly
+        if (value) {
+            setColorPickerColor(value);
+            // Reset user interaction flag when value changes externally
+            setUserInteracted(false);
+        }
+    }, [value, colors]);
 
     const handleColorPickerChange = (color: string) => {
         setColorPickerColor(color);
-        onChange(color);
+
+        // Only call onChange when user has actually interacted with the color picker
+        // This prevents automatic RGBA conversion from overriding named colors
+        if (userInteracted) {
+            onChange(color);
+        }
     };
 
-    // Extract colors from config options
-    const colors = config?.options?.map(option => option.value) || [];
+    const handleColorPickerInteraction = () => {
+        setUserInteracted(true);
+    };
+
+    const handleCheckboxChange = (checked: boolean) => {
+        setIsColorEnabled(checked);
+        if (!checked) {
+            // Always send empty string when disabling color selection to overwrite any existing color
+            onChange('');
+        }
+        // When checked, don't send any value - user will select from palette
+    };
 
     // Map configuration color values to Mantine CSS variables
     const getMantineColor = (color: string) => {
@@ -110,53 +146,98 @@ export function ColorPickerField({
         return color.startsWith('#') ? color : `var(--mantine-color-${color}-filled)`;
     };
 
-    const colorSwatches = colors.map((color) => (
-        <ColorSwatch
-            color={getMantineColor(color)}
-            component="button"
-            key={color}
-            onClick={() => onChange(color)}
-            radius="sm"
-            className={classes.swatch}
-            aria-label={color}
-            style={{
-                backgroundImage: color === 'transparent' ? 'linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)' : undefined,
-                backgroundSize: color === 'transparent' ? '4px 4px' : undefined,
-                backgroundColor: color === 'transparent' ? 'transparent' : undefined,
-                border: color === 'transparent' ? '1px solid #ccc' : undefined,
-                borderRadius: 'var(--mantine-radius-sm)'
-            }}
-        >
-            {value === color && <CheckIcon className={classes.check} />}
-        </ColorSwatch>
-    ));
+    const colorSwatches = colors.map((color) => {
+        // Check if the current value matches this color
+        const isSelected = value === color;
+
+        return (
+            <ColorSwatch
+                color={getMantineColor(color)}
+                component="button"
+                key={color}
+                onClick={() => isColorEnabled && onChange(color)}
+                radius="sm"
+                className={classes.swatch}
+                aria-label={color}
+                style={{
+                    backgroundImage: color === 'transparent' ? 'linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)' : undefined,
+                    backgroundSize: color === 'transparent' ? '4px 4px' : undefined,
+                    backgroundColor: color === 'transparent' ? 'transparent' : undefined,
+                    border: color === 'transparent' ? '1px solid #ccc' : undefined,
+                    borderRadius: 'var(--mantine-radius-sm)',
+                    cursor: isColorEnabled ? 'pointer' : 'not-allowed',
+                    // Apply disabled styling manually to keep check icon visible
+                    opacity: isColorEnabled ? 1 : 0.4,
+                    filter: isColorEnabled ? 'none' : 'grayscale(50%)'
+                }}
+                // Keep component enabled so check icon remains visible
+                disabled={false}
+            >
+                {isSelected && <CheckIcon className={classes.check} />}
+            </ColorSwatch>
+        );
+    });
+
+    // Check if current value is a custom color (not matching any predefined colors)
+    const isCustomColor = value && !colors.includes(value);
 
     return (
-        <Group gap={2} mt={2} wrap="wrap">
-            {colorSwatches}
-            <Popover radius="md" position="bottom-end" shadow="md">
-                <Popover.Target>
-                    <UnstyledButton className={classes.colorControl} aria-label="Pick color">
-                        <ColorWheelIcon />
-                    </UnstyledButton>
-                </Popover.Target>
+        <Group gap={2} mt={2} wrap="wrap" align="center">
+            <Checkbox
+                checked={isColorEnabled}
+                onChange={(event) => handleCheckboxChange(event.currentTarget.checked)}
+                size="sm"
+                disabled={disabled}
+                aria-label="Enable color selection"
+            />
+            <div style={{
+                transition: 'all 0.2s ease'
+            }}>
+                <Group gap={2} wrap="wrap">
+                    {colorSwatches}
+                    <Popover radius="md" position="bottom-end" shadow="md" disabled={!isColorEnabled}>
+                        <Popover.Target>
+                            <UnstyledButton
+                                className={classes.colorControl}
+                                aria-label="Pick custom color"
+                                disabled={!isColorEnabled}
+                                style={{ cursor: isColorEnabled ? 'pointer' : 'not-allowed' }}
+                            >
+                                {isCustomColor ? (
+                                    <ColorSwatch
+                                        color={value}
+                                        size={18}
+                                        radius="sm"
+                                        style={{ border: '1px solid var(--mantine-color-gray-3)' }}
+                                    />
+                                ) : (
+                                    <ColorWheelIcon />
+                                )}
+                            </UnstyledButton>
+                        </Popover.Target>
 
-                <Popover.Dropdown p={8}>
-                    <MantineColorPicker
-                        value={colorPickerColor}
-                        onChange={handleColorPickerChange}
-                        format="rgba"
-                    />
-                    <TextInput
-                        value={colorPickerColor}
-                        onChange={(event) => handleColorPickerChange(event.currentTarget.value)}
-                        placeholder="Enter color"
-                        radius="md"
-                        size="xs"
-                        mt="xs"
-                    />
-                </Popover.Dropdown>
-            </Popover>
+                        <Popover.Dropdown p={8}>
+                            <MantineColorPicker
+                                value={colorPickerColor}
+                                onChange={handleColorPickerChange}
+                                onMouseDown={handleColorPickerInteraction}
+                                format="rgba"
+                            />
+                            <TextInput
+                                value={colorPickerColor}
+                                onChange={(event) => {
+                                    handleColorPickerInteraction();
+                                    handleColorPickerChange(event.currentTarget.value);
+                                }}
+                                placeholder="Enter color"
+                                radius="md"
+                                size="xs"
+                                mt="xs"
+                            />
+                        </Popover.Dropdown>
+                    </Popover>
+                </Group>
+            </div>
         </Group>
     );
 }

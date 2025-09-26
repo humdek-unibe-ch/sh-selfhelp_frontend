@@ -4022,7 +4022,7 @@ INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`,
 INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
 (get_style_id('text'), get_field_id('text'), NULL, 'The text content to display. For more information check https://mantine.dev/core/text', 0, 0, 'Text Content'),
 (get_style_id('text'), get_field_id('mantine_size'), 'sm', 'Sets the font size of the text. For more information check https://mantine.dev/core/text', 0, 0, 'Size'),
-(get_style_id('text'), get_field_id('mantine_color'), 'dark', 'Sets the color of the text. For more information check https://mantine.dev/core/text', 0, 0, 'Color'),
+(get_style_id('text'), get_field_id('mantine_color'), '', 'Sets the color of the text. For more information check https://mantine.dev/core/text', 0, 0, 'Color'),
 (get_style_id('text'), get_field_id('mantine_text_font_weight'), NULL, 'Sets the font weight of the text. Choose from preset weights or enter a custom value (100-900). For more information check https://mantine.dev/core/text', 0, 0, 'Font Weight'),
 (get_style_id('text'), get_field_id('mantine_text_font_style'), 'normal', 'Sets the font style of the text. For more information check https://mantine.dev/core/text', 0, 0, 'Font Style'),
 (get_style_id('text'), get_field_id('mantine_text_text_decoration'), 'none', 'Sets the text decoration of the text. For more information check https://mantine.dev/core/text', 0, 0, 'Text Decoration'),
