@@ -114,6 +114,39 @@ All styling is applied through Tailwind CSS classes in the `css` field:
 "css": "bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700"
 ```
 
+## Form Composition and Structure
+
+### How Forms Work
+Forms in this system are created by combining multiple components within a `form-record` container:
+
+1. **Form Container**: Use `form-record` as the main wrapper
+2. **Labels**: Use `text` style components for field labels (required for `text-input`, `select`, `datepicker`)
+3. **Form Inputs**: Any form input component (`text-input`, `textarea`, `select`, `datepicker`, etc.)
+4. **Buttons**: Use `button` components within the form for submit/reset actions
+5. **Layout**: Use layout components (`stack`, `group`, `flex`) to organize form elements
+
+### Form Field Labeling Rules
+- **`text-input`**: REQUIRES separate `text` style label component above it
+- **`select`**: REQUIRES separate `text` style label component above it
+- **`datepicker`**: REQUIRES separate `text` style label component above it
+- **`textarea`**: INCLUDES built-in label when using Mantine UI (`use_mantine_style: "1"`)
+- **`radio`, `checkbox`, `switch`**: Include their own labels
+- **`button`**: Uses its own `label` field for button text
+
+### Date Input Best Practices
+**ALWAYS use `datepicker` component instead of `text-input` with `type_input: "date"`** for:
+- Better user experience with calendar popup
+- Proper date formatting and validation
+- Localization support
+- Consistent cross-browser behavior
+
+### Form Submission
+Forms automatically handle submission when `button` components with appropriate actions are included. The form will:
+- Validate required fields
+- Submit data to the configured endpoint
+- Show success messages
+- Handle errors gracefully
+
 ## Dark and Light Theme Compatibility - MANDATORY
 
 ### **MANDATORY REQUIREMENT**
@@ -282,126 +315,125 @@ This allows arbitrary HTML tags and content with full CSS customization.
 ## Comprehensive Style Guide & Capabilities
 
 ### Layout & Container Styles
-- **container**: Responsive container with Mantine fluid/fixed width options
-- **center**: Centers content horizontally and vertically
-- **flex**: Flexbox layout with direction, justify, align controls
-- **group**: Horizontal group layout with spacing
-- **stack**: Vertical stack layout with spacing
-- **simple-grid**: CSS Grid with responsive columns
-- **grid**: Advanced CSS Grid with column spans
-- **grid-column**: Grid column with span/offset controls
-- **space**: Spacing component
-- **aspect-ratio**: Maintains aspect ratio for content
-- **background-image**: Background image container
-- **divider**: Visual divider with variants and orientation
-- **paper**: Elevated surface with shadow and radius
-- **fieldset**: Form fieldset with legend
-- **box**: Basic container with background, border, and text colors
-- **card**: Card component with segments, shadows, and padding
-- **card-segment**: Card content sections
+- **container**: Responsive container with Mantine fluid/fixed width options. Perfect for page layouts, content wrappers, and responsive design. Supports fluid width for full-width layouts or fixed max-width containers. Use for main content areas and page structure.
+- **center**: Centers content horizontally and vertically. Ideal for hero sections, loading states, empty states, and centered content blocks. Automatically centers both inline and block content.
+- **flex**: Flexbox layout with direction, justify, align controls. Advanced flexbox container supporting all flex properties. Use for horizontal/vertical layouts, navigation bars, button groups, and complex alignments.
+- **group**: Horizontal group layout with spacing. Simple horizontal layout with consistent spacing between child elements. Perfect for button groups, navigation items, and inline element collections.
+- **stack**: Vertical stack layout with spacing. Vertical layout container with customizable gaps. Ideal for forms, content sections, and vertical content flows.
+- **simple-grid**: CSS Grid with responsive columns. Responsive grid system that automatically adjusts columns based on screen size. Perfect for card layouts, galleries, and responsive content grids.
+- **grid**: Advanced CSS Grid with column spans. Full-featured CSS Grid supporting custom column spans, row spans, and complex grid layouts. For advanced grid-based designs.
+- **grid-column**: Grid column with span/offset controls. Individual grid column component for custom grid layouts within grid containers.
+- **space**: Spacing component. Invisible spacing element for adding gaps between components without visual elements.
+- **aspect-ratio**: Maintains aspect ratio for content. Forces content to maintain specific aspect ratios (16:9, 4:3, square, etc.). Perfect for video containers, image placeholders, and responsive media.
+- **background-image**: Background image container. Container with background image support. Use for hero banners, section backgrounds, and image overlays.
+- **divider**: Visual divider with variants and orientation. Horizontal/vertical dividers with different styles. Perfect for separating content sections, form groups, and navigation items.
+- **paper**: Elevated surface with shadow and radius. Material Design-style elevated surface with customizable shadows and border radius. Use for cards, panels, and elevated content.
+- **fieldset**: Form fieldset with legend. Form grouping component with legend/label. Perfect for organizing form sections and grouping related fields.
+- **box**: Basic container with background, border, and text colors. Simple container with customizable background, borders, and text colors. Use for custom styling and basic containers.
+- **card**: Card component with segments, shadows, and padding. Material Design card with header, body, and footer sections. Perfect for content cards, product cards, and information displays.
+- **card-segment**: Card content sections. Individual sections within cards for header, body, and footer content.
 
 ### Content & Text Styles
-- **heading**: Headings (h1-h6) - Note: Uses `title` field, not `text`
-- **markdown**: Markdown content renderer - Uses `text_md` field
-- **text**: Plain text with typography controls - Uses `text` field
-- **plaintext**: Simple text display - Uses `text` field
-- **code**: Inline/block code with syntax highlighting
-- **highlight**: Text highlighting with customizable colors - Uses `text` and `mantine_highlight_highlight` fields
-- **blockquote**: Blockquote with optional icon and citation
-- **title**: Large title component with size and alignment
-- **typography**: Typography wrapper
+- **heading**: Headings (h1-h6) with semantic HTML structure. Uses `level` (1-6) and `title` fields. Perfect for page titles, section headers, and content hierarchy. Supports all heading levels with proper semantic markup.
+- **markdown**: Full markdown content renderer with GitHub Flavored Markdown support. Uses `text_md` field. Renders headings, lists, links, code blocks, tables, and more. Perfect for rich content, documentation, and formatted text.
+- **text**: Plain text with typography controls and optional paragraph wrapping. Uses `text` field. Simple text display with customizable typography. Use for labels, descriptions, and plain content.
+- **plaintext**: Simple text display without additional formatting. Uses `text` field. Basic text component for simple content display. Minimal styling, maximum compatibility.
+- **code**: Inline and block code with syntax highlighting. Supports multiple programming languages. Perfect for code examples, technical content, and developer documentation.
+- **highlight**: Text highlighting with customizable colors and marks. Uses `text` and `mantine_highlight_highlight` fields. Perfect for emphasizing important text, search results, and key terms.
+- **blockquote**: Blockquote with optional icon and citation. Elegant quote styling with author attribution. Perfect for testimonials, quotes, and highlighted content.
+- **title**: Large title component with size variants and alignment options. Uses `content` and `mantine_title_order` fields. Perfect for page titles, hero headings, and prominent text displays.
+- **typography**: Typography wrapper for consistent text styling. Applies consistent typography rules across content blocks.
 
 ### Media Styles
-- **image**: Responsive images with alt text and sizing
-  - Uses `img_src`, `alt`, `title`, `is_fluid` fields
-  - Supports external URLs and uploaded assets
-- **carousel**: Image carousel with controls and indicators
-- **video**: Video player (custom implementation)
-- **audio**: Audio player (custom implementation)
-- **figure**: Image with caption
-- **avatar**: User avatar with image and alt text
-- **background-image**: Background image component
+- **image**: Responsive images with alt text, titles, and sizing controls. Uses `img_src`, `alt`, `title`, `is_fluid` fields. Supports external URLs, uploaded assets, and responsive sizing. Perfect for hero images, content images, and visual content. Includes lazy loading and optimization.
+- **carousel**: Image carousel with navigation controls, indicators, and autoplay. Uses `sources` array for multiple images. Supports crossfade effects, custom controls, and responsive design. Perfect for image galleries, product showcases, and testimonials.
+- **video**: Video player with multiple source support and responsive design. Uses `sources` array for different video formats. Includes custom controls, poster images, and accessibility features. Perfect for video content, tutorials, and media-rich pages.
+- **audio**: Audio player with multiple source support and custom controls. Uses `sources` array for different audio formats. Includes playback controls, progress bars, and volume controls. Perfect for podcasts, music, and audio content.
+- **figure**: Image with caption and optional figcaption. Combines image display with descriptive text. Perfect for diagrams, illustrations, and images that need explanation.
+- **avatar**: User avatar with image, alt text, and fallback initials. Supports various sizes and shapes. Perfect for user profiles, comments, and user identification.
+- **background-image**: Background image container with overlay support. Uses for hero sections, banners, and background imagery with content overlays.
 
 ### Interactive Elements
-- **button**: Action button with navigation and confirmations
-  - Uses `label`, `page_keyword`, `open_in_new_tab`, `disabled`, `confirmation_*` fields
-  - Supports both Mantine and custom HTML rendering
-- **link**: Navigation link (custom implementation)
-- **actionIcon**: Icon button with navigation
-- **action-icon**: Alternative action icon component
+- **button**: Action button with navigation, confirmations, and multiple styles. Uses `label`, `page_keyword`, `open_in_new_tab`, `disabled`, `confirmation_*` fields. Supports variants (filled, light, outline, subtle), colors, sizes, and custom confirmation dialogs. Perfect for form submissions, navigation, and user actions. Supports both Mantine UI and custom HTML rendering.
+- **link**: Navigation link with custom styling and target options. Uses `label`, `url`, `open_in_new_tab` fields. Perfect for external links, internal navigation, and text-based navigation elements.
+- **actionIcon**: Icon button with navigation and actions. Compact icon-only buttons with hover states and accessibility. Perfect for toolbar actions, card actions, and compact interfaces.
+- **action-icon**: Alternative action icon component with extended functionality. Enhanced icon buttons with additional customization options.
 
 ### Form Elements
-- **form-record**: Record creation/editing form container
-  - Uses `alert_success`, `name`, `is_log` fields
-- **form-log**: Form logging container
-- **text-input**: Text input field with Mantine styling
-- **textarea**: Multi-line text with rich editor option
-- **select**: Dropdown selection with search
-- **input**: Legacy input field (use text-input instead)
-- **radio**: Radio button group
-- **checkbox**: Checkbox with custom values
-- **switch**: Toggle switch
-- **datepicker**: Date picker with localization
-- **file-input**: File upload with drag & drop
-- **rich-text-editor**: WYSIWYG editor
-- **combobox**: Advanced select with create/search
-- **chip**: Chip/toggle component
-- **slider**: Range slider with marks and labels
-- **range-slider**: Dual-handle range slider
-- **numberInput**: Numeric input with validation
-- **number-input**: Alternative numeric input component
-- **color-input**: Color picker input
-- **color-picker**: Standalone color picker
+**IMPORTANT**: Form elements can be combined within `form-record` containers to create complete forms. Forms automatically include submit/reset functionality and can contain any combination of form inputs plus `button` components for actions. Always use `text` style for labels above form inputs.**
+
+- **form-record**: Record creation/editing form container. Wraps multiple form inputs and buttons. Uses `alert_success`, `name`, `is_log` fields. Automatically handles form submission, validation, and success messages. Can contain any form inputs plus button components.
+- **form-log**: Form logging container for tracking user interactions and form submissions.
+- **text-input**: Text input field with Mantine styling. Renders only the input field without label. **REQUIRES separate `text` style label component**. Supports all HTML input types (text, email, password, number, tel, url, etc.) via `type_input` field.
+- **textarea**: Multi-line text input with rich editor option. **INCLUDES built-in label when using Mantine UI** (`use_mantine_style: "1"`). Supports markdown editing and plain text modes.
+- **select**: Dropdown selection with search and multiple selection. Renders only the select field without label. **REQUIRES separate `text` style label component**. Supports single/multiple selection, search, and custom options arrays.
+- **input**: Legacy input field (deprecated - use text-input instead).
+- **radio**: Radio button group with custom options. Perfect for single-choice selections from multiple options.
+- **checkbox**: Single checkbox with custom values and labels. Perfect for boolean inputs and optional selections.
+- **switch**: Toggle switch component. Modern alternative to checkboxes for boolean values.
+- **datepicker**: **DEDICATED DATE PICKER COMPONENT** - Use this instead of text-input with type="date". Provides calendar popup, localization, and proper date formatting. **REQUIRES separate `text` style label component**.
+- **file-input**: File upload with drag & drop support. Supports single/multiple file uploads with validation.
+- **rich-text-editor**: WYSIWYG editor for rich content creation. Perfect for content management and formatted text input.
+- **combobox**: Advanced select with create/search functionality. Combines dropdown with text input for dynamic option creation.
+- **chip**: Chip/toggle component for tag-like selections.
+- **slider**: Range slider with marks and labels. Perfect for numeric ranges and value selection.
+- **range-slider**: Dual-handle range slider for min/max value selection.
+- **numberInput**: Numeric input with validation and increment/decrement controls.
+- **number-input**: Alternative numeric input component with extended functionality.
+- **color-input**: Color picker input with palette and custom color selection.
+- **color-picker**: Standalone color picker component.
 
 ### Navigation & Lists
-- **tabs**: Tab container with tab children
-- **tab**: Individual tab with label and content
-- **accordion**: Collapsible sections
-- **accordion-Item**: Accordion item with content
-- **list**: Ordered/unordered lists
-- **list-item**: List item with optional icon and content
+- **tabs**: Tab container that organizes content into tabbed sections. Requires child `tab` components. Perfect for organizing related content, settings panels, and multi-step processes.
+- **tab**: Individual tab component with label and associated content. Used within `tabs` containers. Each tab can contain any type of content or components.
+- **accordion**: Collapsible sections for organizing content hierarchically. Perfect for FAQs, documentation, and progressive disclosure of information.
+- **accordion-Item**: Individual accordion item with header and collapsible content. Used within accordion containers for expandable sections.
+- **list**: Ordered and unordered lists with customizable styling. Supports nested lists and various bullet/number styles.
+- **list-item**: Individual list item with optional icons and rich content. Supports text, images, and complex content within list structures.
 
 ### Data Display
-- **timeline**: Timeline with items and bullets
-- **timeline-item**: Timeline entry with title
-- **progress**: Progress bar
-- **progress-root**: Progress container
-- **progress-section**: Multi-section progress
-- **badge**: Status badge with variants
-- **indicator**: Notification indicator
-- **kbd**: Keyboard key display
-- **rating**: Star rating component
-- **theme-icon**: Themed icon container
-- **avatar**: User avatar with image and alt text
-- **chip**: Chip/toggle component
+- **timeline**: Timeline component with chronological items and connecting bullets. Perfect for displaying events, history, and step-by-step processes in chronological order.
+- **timeline-item**: Individual timeline entry with title, content, and bullet styling. Used within timeline containers to represent specific events or milestones.
+- **progress**: Progress bar showing completion percentage. Supports various styles, colors, and animation options.
+- **progress-root**: Progress container for custom progress implementations and complex progress displays.
+- **progress-section**: Multi-section progress bar for displaying progress across multiple stages or categories.
+- **badge**: Status badge with variants and colors. Perfect for displaying status indicators, labels, and small information badges.
+- **indicator**: Notification indicator for showing counts, status, or alerts. Perfect for unread messages, notifications, and status updates.
+- **kbd**: Keyboard key display component. Perfect for displaying keyboard shortcuts and key combinations.
+- **rating**: Star rating component with interactive rating selection. Perfect for reviews, feedback, and rating systems.
+- **theme-icon**: Themed icon container with consistent sizing and theming. Perfect for icon collections and themed icon displays.
+- **avatar**: User avatar with image, alt text, and fallback initials. Supports various sizes and shapes for user identification.
+- **chip**: Chip/toggle component for selections and tags. Perfect for filtering, selections, and tag displays.
 
 ### Feedback Components
-- **alert**: Alert/notification box with variants
-- **notification**: Toast-style notification
+- **alert**: Alert/notification box with multiple variants (primary, secondary, success, danger, warning, info, light, dark). Perfect for displaying important messages, warnings, and status updates.
+- **notification**: Toast-style notification system. Perfect for temporary messages, success confirmations, and non-intrusive alerts.
 
 ### Utility & Advanced
-- **html-tag**: Custom HTML with arbitrary tags and content
-- **scroll-area**: Scrollable container
-- **spoiler**: Collapsible content spoiler
-- **segmented-control**: Segmented control component
-- **typography**: Typography wrapper
+- **html-tag**: Custom HTML with arbitrary tags and content. For advanced layouts that need specific HTML structure. Use `html_tag` and `html_tag_content` fields for custom markup.
+- **scroll-area**: Scrollable container with custom scrollbar styling. Perfect for content that exceeds container height and needs scrolling.
+- **spoiler**: Collapsible content spoiler with show/hide functionality. Perfect for hiding spoilers, additional details, or expandable content.
+- **segmented-control**: Segmented control for option selection. Perfect for switching between related options or views.
+- **typography**: Typography wrapper for consistent text styling and theming across content blocks.
 
 ### Legacy/Custom Styles
-- **div**: Basic div container (legacy)
-- **input**: Basic input field (legacy - use text-input instead)
-- **video**: Basic video player (legacy)
-- **audio**: Basic audio player (legacy)
-- **figure**: Basic figure with caption (legacy)
-- **entryList**: Data list display (legacy)
-- **entryRecord**: Data record display (legacy)
-- **entryRecordDelete**: Delete confirmation (legacy)
-- **version**: Version display (legacy)
-- **loop**: Content loop (legacy)
-- **dataContainer**: Data container (legacy)
-- **refContainer**: Reference container for data relationships
-- **validate**: Form validation component
-- **profile**: User profile management form
-- **showUserInput**: User input display (legacy)
+**Note**: These are legacy components. Prefer modern Mantine UI equivalents when possible.**
+
+- **div**: Basic div container with background, border, and text colors (legacy - use `box` or `container` instead)
+- **input**: Basic input field (legacy - use `text-input` instead for better Mantine integration)
+- **video**: Basic video player (legacy - use modern `video` component instead)
+- **audio**: Basic audio player (legacy - use modern `audio` component instead)
+- **figure**: Basic figure with caption (legacy - use modern `figure` component instead)
+- **entryList**: Data list display for showing collections of records (legacy data component)
+- **entryRecord**: Data record display for individual record viewing (legacy data component)
+- **entryRecordDelete**: Delete confirmation for data records (legacy data component)
+- **version**: Version information display component (legacy utility)
+- **loop**: Content loop for repeating content based on data (legacy data component)
+- **dataContainer**: Generic data container for dynamic content (legacy data component)
+- **refContainer**: Reference container for data relationships and linked content (legacy data component)
+- **validate**: Form validation component for input validation (legacy form component)
+- **profile**: User profile management form component (legacy auth component)
+- **showUserInput**: User input display for showing submitted form data (legacy data component)
 
 ### Authentication Styles (Legacy)
 - **login**: User login form
@@ -1292,27 +1324,228 @@ For a page with a header, image, and text content:
 ```
 
 ### Example 2: Form with Multiple Input Types (Properly Labeled)
-**IMPORTANT**: This example shows the CORRECT way to create forms with input/select components. Each input/select MUST have a separate label component for accessibility and proper form structure.
+**IMPORTANT**: This example shows the CORRECT way to create forms with input/select components. Each input/select MUST have a separate label component for accessibility and proper form structure. **Note**: This example has some issues - see the improved Example 3 below for better practices.**
+
+### Example 3: Improved Task Form (Correct Implementation)
+**This example shows the proper way to create forms with labels, datepicker, and button integration.**
+
+**Best Practices Demonstrated:**
+- Use `text` style for labels above `text-input`, `select`, and `datepicker` fields
+- Use `datepicker` component (not `text-input` with `type_input: "date"`)
+- Include `button` components within `form-record` for form submission
+- Use proper form field naming with `name` field for each input
+- Set `is_required: "1"` for mandatory fields
+- Always include `use_mantine_style: "1"` for modern UI components
+
 ```json
 [
   {
-    "name": "contact-form",
-    "style_name": "fieldset",
+    "name": "task-form-container",
+    "style_name": "container",
     "children": [
       {
-        "name": "contact-form-record",
-        "style_name": "form-record",
+        "name": "task-form-card",
+        "style_name": "card",
         "children": [
           {
-            "name": "name-input",
-            "style_name": "text-input",
-            "children": [],
-            "fields": {
-              "label": {
-                "de-CH": {
-                  "content": "text",
-                  "meta": null
+            "name": "form-stack",
+            "style_name": "stack",
+            "children": [
+              {
+                "name": "form-title",
+                "style_name": "title",
+                "children": [],
+                "fields": {
+                  "content": {
+                    "en-GB": { "content": "Create Task", "meta": null },
+                    "de-CH": { "content": "Aufgabe erstellen", "meta": null }
+                  },
+                  "mantine_title_order": { "all": { "content": "2", "meta": null } },
+                  "use_mantine_style": { "all": { "content": "1", "meta": null } }
                 },
+                "global_fields": {
+                  "condition": null,
+                  "data_config": null,
+                  "css": "text-center mb-6",
+                  "css_mobile": null,
+                  "debug": false
+                }
+              },
+              {
+                "name": "task-form-record",
+                "style_name": "form-record",
+                "children": [
+                  {
+                    "name": "class-label",
+                    "style_name": "text",
+                    "children": [],
+                    "fields": {
+                      "text": {
+                        "en-GB": { "content": "Class *", "meta": null },
+                        "de-CH": { "content": "Klasse *", "meta": null }
+                      }
+                    },
+                    "global_fields": {
+                      "condition": null,
+                      "data_config": null,
+                      "css": "font-medium mb-2",
+                      "css_mobile": null,
+                      "debug": false
+                    }
+                  },
+                  {
+                    "name": "class-select",
+                    "style_name": "select",
+                    "children": [],
+                    "fields": {
+                      "alt": {
+                        "en-GB": { "content": "Select class...", "meta": null },
+                        "de-CH": { "content": "Klasse wählen...", "meta": null }
+                      },
+                      "is_required": { "all": { "content": "1", "meta": null } },
+                      "name": { "all": { "content": "class", "meta": null } },
+                      "options": {
+                        "all": {
+                          "content": "[{\"value\":\"9a\",\"label\":\"9a\"},{\"value\":\"9b\",\"label\":\"9b\"}]",
+                          "meta": null
+                        }
+                      },
+                      "use_mantine_style": { "all": { "content": "1", "meta": null } }
+                    },
+                    "global_fields": {
+                      "condition": null,
+                      "data_config": null,
+                      "css": "mb-4",
+                      "css_mobile": null,
+                      "debug": false
+                    }
+                  },
+                  {
+                    "name": "date-label",
+                    "style_name": "text",
+                    "children": [],
+                    "fields": {
+                      "text": {
+                        "en-GB": { "content": "Due Date *", "meta": null },
+                        "de-CH": { "content": "Fälligkeitsdatum *", "meta": null }
+                      }
+                    },
+                    "global_fields": {
+                      "condition": null,
+                      "data_config": null,
+                      "css": "font-medium mb-2",
+                      "css_mobile": null,
+                      "debug": false
+                    }
+                  },
+                  {
+                    "name": "date-datepicker",
+                    "style_name": "datepicker",
+                    "children": [],
+                    "fields": {
+                      "placeholder": {
+                        "en-GB": { "content": "Select due date", "meta": null },
+                        "de-CH": { "content": "Datum wählen", "meta": null }
+                      },
+                      "name": { "all": { "content": "due_date", "meta": null } },
+                      "is_required": { "all": { "content": "1", "meta": null } },
+                      "use_mantine_style": { "all": { "content": "1", "meta": null } }
+                    },
+                    "global_fields": {
+                      "condition": null,
+                      "data_config": null,
+                      "css": "mb-6",
+                      "css_mobile": null,
+                      "debug": false
+                    }
+                  },
+                  {
+                    "name": "submit-button",
+                    "style_name": "button",
+                    "children": [],
+                    "fields": {
+                      "label": {
+                        "en-GB": { "content": "Create Task", "meta": null },
+                        "de-CH": { "content": "Aufgabe erstellen", "meta": null }
+                      },
+                      "mantine_variant": { "all": { "content": "filled", "meta": null } },
+                      "mantine_color": { "all": { "content": "green", "meta": null } },
+                      "mantine_size": { "all": { "content": "md", "meta": null } },
+                      "use_mantine_style": { "all": { "content": "1", "meta": null } }
+                    },
+                    "global_fields": {
+                      "condition": null,
+                      "data_config": null,
+                      "css": "w-full",
+                      "css_mobile": null,
+                      "debug": false
+                    }
+                  }
+                ],
+                "fields": {
+                  "alert_success": {
+                    "en-GB": { "content": "Task created successfully!", "meta": null },
+                    "de-CH": { "content": "Aufgabe erfolgreich erstellt!", "meta": null }
+                  },
+                  "name": { "all": { "content": "task_form", "meta": null } },
+                  "is_log": { "all": { "content": "0", "meta": null } }
+                },
+                "global_fields": {
+                  "condition": null,
+                  "data_config": null,
+                  "css": "space-y-4",
+                  "css_mobile": null,
+                  "debug": false
+                }
+              }
+            ],
+            "fields": {
+              "mantine_gap": { "all": { "content": "lg", "meta": null } },
+              "use_mantine_style": { "all": { "content": "1", "meta": null } }
+            },
+            "global_fields": {
+              "condition": null,
+              "data_config": null,
+              "css": "",
+              "css_mobile": null,
+              "debug": false
+            }
+          }
+        ],
+        "fields": {
+          "mantine_spacing_margin_padding": { "all": { "content": "{\"all\":\"xl\"}", "meta": null } },
+          "mantine_card_shadow": { "all": { "content": "md", "meta": null } },
+          "mantine_radius": { "all": { "content": "lg", "meta": null } },
+          "use_mantine_style": { "all": { "content": "1", "meta": null } }
+        },
+        "global_fields": {
+          "condition": null,
+          "data_config": null,
+          "css": "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md",
+          "css_mobile": null,
+          "debug": false
+        }
+      }
+    ],
+    "fields": {
+      "mantine_size": { "all": { "content": "md", "meta": null } },
+      "use_mantine_style": { "all": { "content": "1", "meta": null } },
+      "mantine_fluid": { "all": { "content": "0", "meta": null } }
+    },
+    "global_fields": {
+      "condition": null,
+      "data_config": null,
+      "css": "max-w-2xl mx-auto py-12 px-6",
+      "css_mobile": "px-4 py-6",
+      "debug": false
+    }
+  }
+]
+```
+
+## Real-World Examples (From Actual System Exports)
+
+Based on the actual exported page data, here are the critical patterns to follow:
                 "en-GB": {
                   "content": "",
                   "meta": null
@@ -1621,7 +1854,9 @@ Before outputting your JSON, verify all requirements are met:
 - [ ] **Real Field Names**: Use actual Mantine field names from examples
 - [ ] **Spacing**: Use proper `mantine_spacing_margin_padding` JSON format
 - [ ] **Form Fields**: Include required form field properties
-- [ ] **CRITICAL - Form Labels**: `text-input` and `select` components have separate label components (using `text` style) for accessibility; `textarea` has built-in labels when using Mantine UI
+- [ ] **CRITICAL - Form Labels**: `text-input`, `select`, and `datepicker` components require separate `text` style label components; `textarea` has built-in labels when using Mantine UI
+- [ ] **Form Composition**: Forms use `form-record` containers with proper label + input pairs and `button` components for actions
+- [ ] **Date Inputs**: Use `datepicker` component instead of `text-input` with `type_input: "date"`
 - [ ] **DARK/LIGHT THEME COMPATIBILITY**: Every visual element has `dark:` variants - this is MANDATORY and cannot be skipped
 
 **REMEMBER**: The examples above are your primary reference. Study them carefully and replicate their exact patterns, field names, and structures in your generated JSON.
