@@ -20,17 +20,29 @@ The entire page content must be wrapped in an array `[]` containing all sections
 ```json
 [
   {
-    "name": "container",
+    "name": "page-container",
     "style_name": "container",
     "children": [
       {
-        "name": "card",
+        "name": "main-card",
         "style_name": "card",
         "children": [...],
         "fields": {
           "mantine_spacing_margin_padding": {
             "all": {
               "content": "{\"all\":\"xl\"}",
+              "meta": null
+            }
+          },
+          "mantine_card_shadow": {
+            "all": {
+              "content": "md",
+              "meta": null
+            }
+          },
+          "mantine_radius": {
+            "all": {
+              "content": "lg",
               "meta": null
             }
           },
@@ -44,7 +56,7 @@ The entire page content must be wrapped in an array `[]` containing all sections
         "global_fields": {
           "condition": null,
           "data_config": null,
-          "css": "hover:shadow-lg transition-all",
+          "css": "hover:shadow-lg dark:hover:shadow-2xl transition-all bg-white dark:bg-gray-800",
           "css_mobile": null,
           "debug": false
         }
@@ -54,6 +66,12 @@ The entire page content must be wrapped in an array `[]` containing all sections
       "mantine_size": {
         "all": {
           "content": "md",
+          "meta": null
+        }
+      },
+      "mantine_fluid": {
+        "all": {
+          "content": "0",
           "meta": null
         }
       },
@@ -67,8 +85,8 @@ The entire page content must be wrapped in an array `[]` containing all sections
     "global_fields": {
       "condition": null,
       "data_config": null,
-      "css": "py-16 px-4",
-      "css_mobile": null,
+      "css": "py-16 px-4 bg-gray-50 dark:bg-gray-900",
+      "css_mobile": "py-8 px-4",
       "debug": false
     }
   }
@@ -273,8 +291,8 @@ Many components support toggling between Mantine UI and custom implementations:
 #### Style Router (BasicStyle.tsx)
 The `BasicStyle` component acts as a router, mapping `style_name` to specific components:
 - Authentication: `login`, `register`, `profile`, `validate`, `resetPassword`, `twoFactorAuth`
-- Layout: `container`, `div`, `flex`, `grid`, `stack`, `center`, etc.
-- Content: `heading`, `markdown`, `plaintext`, `image`, `video`
+- Layout: `container`, `flex`, `grid`, `stack`, `center`, etc.
+- Content: `text`, `image`, `video`
 - Forms: `input`, `textarea`, `select`, `radio`, `checkbox`, `button`
 - Advanced: `tabs`, `accordion`, `timeline`, `carousel`, etc.
 
@@ -314,47 +332,48 @@ This allows arbitrary HTML tags and content with full CSS customization.
 
 ## Comprehensive Style Guide & Capabilities
 
+**CRITICAL**: All style names and field names MUST match exactly those defined in `src/types/common/styles.types.ts`. Use only the interfaces and types defined there.
+
 ### Layout & Container Styles
-- **container**: Responsive container with Mantine fluid/fixed width options. Perfect for page layouts, content wrappers, and responsive design. Supports fluid width for full-width layouts or fixed max-width containers. Use for main content areas and page structure.
-- **center**: Centers content horizontally and vertically. Ideal for hero sections, loading states, empty states, and centered content blocks. Automatically centers both inline and block content.
-- **flex**: Flexbox layout with direction, justify, align controls. Advanced flexbox container supporting all flex properties. Use for horizontal/vertical layouts, navigation bars, button groups, and complex alignments.
-- **group**: Horizontal group layout with spacing. Simple horizontal layout with consistent spacing between child elements. Perfect for button groups, navigation items, and inline element collections.
-- **stack**: Vertical stack layout with spacing. Vertical layout container with customizable gaps. Ideal for forms, content sections, and vertical content flows.
-- **simple-grid**: CSS Grid with responsive columns. Responsive grid system that automatically adjusts columns based on screen size. Perfect for card layouts, galleries, and responsive content grids.
-- **grid**: Advanced CSS Grid with column spans. Full-featured CSS Grid supporting custom column spans, row spans, and complex grid layouts. For advanced grid-based designs.
-- **grid-column**: Grid column with span/offset controls. Individual grid column component for custom grid layouts within grid containers.
-- **space**: Spacing component. Invisible spacing element for adding gaps between components without visual elements.
-- **aspect-ratio**: Maintains aspect ratio for content. Forces content to maintain specific aspect ratios (16:9, 4:3, square, etc.). Perfect for video containers, image placeholders, and responsive media.
-- **background-image**: Background image container. Container with background image support. Use for hero banners, section backgrounds, and image overlays.
-- **divider**: Visual divider with variants and orientation. Horizontal/vertical dividers with different styles. Perfect for separating content sections, form groups, and navigation items.
-- **paper**: Elevated surface with shadow and radius. Material Design-style elevated surface with customizable shadows and border radius. Use for cards, panels, and elevated content.
-- **fieldset**: Form fieldset with legend. Form grouping component with legend/label. Perfect for organizing form sections and grouping related fields.
-- **box**: Basic container with background, border, and text colors. Simple container with customizable background, borders, and text colors. Use for custom styling and basic containers.
-- **card**: Card component with segments, shadows, and padding. Material Design card with header, body, and footer sections. Perfect for content cards, product cards, and information displays.
-- **card-segment**: Card content sections. Individual sections within cards for header, body, and footer content.
+- **container** (IContainerStyle): Responsive container with Mantine sizing. Fields: `mantine_size` (xs|sm|md|lg|xl), `mantine_fluid` (0|1), `mantine_px/py` (none|xs|sm|md|lg|xl), `use_mantine_style` (0|1).
+- **center** (ICenterStyle): Centers content horizontally and vertically. Fields: `mantine_center_inline` (0|1), `mantine_width/height`, `mantine_miw/mih/maw/mah`.
+- **flex** (IFlexStyle): Flexbox layout container. Fields: `mantine_gap` (0|xs|sm|md|lg|xl), `mantine_justify` (flex-start|center|flex-end|space-between|space-around|space-evenly), `mantine_align` (flex-start|center|flex-end|stretch|baseline), `mantine_direction` (row|column|row-reverse|column-reverse), `mantine_wrap` (wrap|nowrap|wrap-reverse), `mantine_width/height`.
+- **group** (IGroupStyle): Horizontal group layout. Fields: `mantine_gap`, `mantine_justify`, `mantine_align`, `mantine_group_wrap/grow` (0|1), `mantine_width/height`.
+- **stack** (IStackStyle): Vertical stack layout. Fields: `mantine_gap`, `mantine_justify`, `mantine_align`, `mantine_width/height`.
+- **simple-grid** (ISimpleGridStyle): Responsive grid system. Fields: `mantine_cols` (1-12|string), `mantine_spacing/vertical_spacing` (0|xs|sm|md|lg|xl), `mantine_breakpoints` (string), `mantine_width/height`.
+- **grid** (IGridStyle): Advanced CSS Grid. Fields: `mantine_cols` (1-12|string), `mantine_gap`, `mantine_justify/align`, `mantine_grid_overflow` (visible|hidden), `mantine_width/height`, `use_mantine_style` (0|1).
+- **grid-column** (IGridColumnStyle): Grid column component. Fields: `mantine_grid_span` (1-12|auto|content|string), `mantine_grid_offset` (0-11), `mantine_grid_order` (1-12), `mantine_grid_grow` (0|1), `mantine_width/height`, `use_mantine_style` (0|1).
+- **space** (ISpaceStyle): Spacing component. Fields: `mantine_size` (xs|sm|md|lg|xl), `mantine_space_direction` (string).
+- **scroll-area** (IScrollAreaStyle): Scrollable container. Fields: `mantine_scroll_area_scrollbar_size`, `mantine_scroll_area_type` (hover|always|never|scroll), `mantine_scroll_area_offset_scrollbars` (0|1), `mantine_height/width`.
+- **aspect-ratio** (IAspectRatioStyle): Aspect ratio container. Fields: `mantine_aspect_ratio` (string), `use_mantine_style` (0|1).
+- **background-image** (IBackgroundImageStyle): Background image container. Fields: `img_src` (string), `mantine_radius`.
+- **divider** (IDividerStyle): Visual divider. Fields: `mantine_divider_variant` (solid|dashed|dotted), `mantine_size`, `mantine_divider_label` (translatable), `mantine_orientation` (horizontal|vertical), `mantine_color`, `use_mantine_style` (0|1).
+- **paper** (IPaperStyle): Elevated surface. Fields: `mantine_paper_shadow` (none|xs|sm|md|lg|xl), `mantine_radius`, `mantine_px/py`, `mantine_border` (0|1), `use_mantine_style` (0|1).
+- **fieldset** (IFieldsetStyle): Form grouping component. Fields: `legend` (translatable), `mantine_fieldset_variant` (default|filled), `mantine_radius`, `disabled` (0|1), `use_mantine_style` (0|1).
+- **box** (IBoxStyle): Basic container. Fields: `content` (translatable), `use_mantine_style` (0|1).
+- **card** (ICardStyle): Card container. Fields: `mantine_card_shadow` (none|xs|sm|md|lg|xl), `mantine_border` (0|1), `mantine_radius`, `use_mantine_style` (0|1).
+- **card-segment** (ICardSegmentStyle): Card section. Fields: `use_mantine_style` (0|1).
 
-### Content & Text Styles
-- **text**: Plain text with typography controls and optional paragraph wrapping. Uses `text` field. Simple text display with customizable typography. Use for labels, descriptions, and plain content.
-- **code**: Inline and block code with syntax highlighting. Supports multiple programming languages. Perfect for code examples, technical content, and developer documentation.
-- **highlight**: Text highlighting with customizable colors and marks. Uses `text` and `mantine_highlight_highlight` fields. Perfect for emphasizing important text, search results, and key terms.
-- **blockquote**: Blockquote with optional icon and citation. Elegant quote styling with author attribution. Perfect for testimonials, quotes, and highlighted content.
-- **title**: Large title component with size variants and alignment options. Uses `content` and `mantine_title_order` fields. Perfect for page titles, hero headings, and prominent text displays.
-- **typography**: Typography wrapper for consistent text styling. Applies consistent typography rules across content blocks.
+### Typography & Content Styles
+- **text** (ITextStyle): Versatile text component. Fields: `text` (translatable), `mantine_size` (xs|sm|md|lg|xl), `mantine_color`, `mantine_text_font_weight` (100-900), `mantine_text_font_style` (normal|italic), `mantine_text_text_decoration` (none|underline|line-through), `mantine_text_text_transform` (none|uppercase|capitalize|lowercase), `mantine_text_align` (left|center|right|justify), `mantine_text_variant` (default|gradient), `mantine_text_line_clamp` (2-5|string), `mantine_text_inherit/span` (0|1), `use_mantine_style` (0|1).
+- **title** (ITitleStyle): Heading component. Fields: `content` (translatable), `mantine_title_order` (1-6), `mantine_size`, `mantine_title_text_wrap` (wrap|balance|nowrap), `mantine_title_line_clamp` (1-5|string), `use_mantine_style` (0|1).
+- **code** (ICodeStyle): Code display component. Fields: `content` (translatable), `mantine_code_block` (0|1), `mantine_color`, `use_mantine_style` (0|1).
+- **highlight** (IHighlightStyle): Text highlighting component. Fields: `text` (translatable main content), `mantine_highlight_highlight` (translatable text to highlight), `mantine_color`, `use_mantine_style` (0|1).
+- **blockquote** (IBlockquoteStyle): Quote component. Fields: `content` (translatable quote), `cite` (translatable citation), `mantine_left_icon`, `mantine_icon_size`, `mantine_color`, `use_mantine_style` (0|1).
+- **typography** (ITypographyStyle): Typography wrapper. Fields: `use_mantine_style` (0|1).
 
-### Media Styles
-- **image**: Responsive images with alt text, titles, and sizing controls. Uses `img_src`, `alt`, `title`, `is_fluid` fields. Supports external URLs, uploaded assets, and responsive sizing. Perfect for hero images, content images, and visual content. Includes lazy loading and optimization.
-- **carousel**: Image carousel with navigation controls, indicators, and autoplay. Uses `sources` array for multiple images. Supports crossfade effects, custom controls, and responsive design. Perfect for image galleries, product showcases, and testimonials.
-- **video**: Video player with multiple source support and responsive design. Uses `sources` array for different video formats. Includes custom controls, poster images, and accessibility features. Perfect for video content, tutorials, and media-rich pages.
-- **audio**: Audio player with multiple source support and custom controls. Uses `sources` array for different audio formats. Includes playback controls, progress bars, and volume controls. Perfect for podcasts, music, and audio content.
-- **figure**: Image with caption and optional figcaption. Combines image display with descriptive text. Perfect for diagrams, illustrations, and images that need explanation.
-- **avatar**: User avatar with image, alt text, and fallback initials. Supports various sizes and shapes. Perfect for user profiles, comments, and user identification.
-- **background-image**: Background image container with overlay support. Uses for hero sections, banners, and background imagery with content overlays.
+### Media & Visual Components
+- **image** (IImageStyle): Responsive image component. Fields: `img_src` (use http://127.0.0.1/selfhelp/assets/image-holder.png for placeholders), `alt/title` (translatable), `width/height` (dimensions), `is_fluid` (0|1), `mantine_image_fit` (contain|cover|fill|none|scale-down), `mantine_width/height`, `mantine_radius`, `use_mantine_style` (0|1).
+- **avatar** (IAvatarStyle): User avatar component. Fields: `src/img_src`, `alt` (translatable), `mantine_avatar_variant` (filled|light|outline|transparent|white|gradient|default), `mantine_size/radius/color`, `mantine_left_icon`, `mantine_avatar_initials`, `use_mantine_style` (0|1).
+- **figure** (IFigureStyle): Image with caption. Fields: `caption_title/caption` (translatable).
+- **video** (IVideoStyle): Video player. Fields: `sources` (JSON array), `is_fluid` (0|1), `alt` (translatable).
+- **audio** (IAudioStyle): Audio player. Fields: `sources` (JSON array).
+- **carousel** (ICarouselStyle): Image carousel. Fields: `sources` (JSON array), `id_prefix`, `has_controls/indicators/crossfade` (0|1), `mantine_height`, `mantine_carousel_slide_size/gap`, `mantine_orientation`, `mantine_control_size`, `mantine_loop` (0|1), `mantine_carousel_align` (start|center|end), `mantine_carousel_duration`, `use_mantine_style` (0|1).
 
-### Interactive Elements
-- **button**: Action button with navigation, confirmations, and multiple styles. Uses `label`, `page_keyword`, `open_in_new_tab`, `disabled`, `confirmation_*` fields. Supports variants (filled, light, outline, subtle), colors, sizes, and custom confirmation dialogs. Perfect for form submissions, navigation, and user actions. Supports both Mantine UI and custom HTML rendering.
-- **link**: Navigation link with custom styling and target options. Uses `label`, `url`, `open_in_new_tab` fields. Perfect for external links, internal navigation, and text-based navigation elements.
-- **actionIcon**: Icon button with navigation and actions. Compact icon-only buttons with hover states and accessibility. Perfect for toolbar actions, card actions, and compact interfaces.
-- **action-icon**: Alternative action icon component with extended functionality. Enhanced icon buttons with additional customization options.
+### Interactive Components
+- **button** (IButtonStyle): Primary action button. Fields: `label` (translatable), `mantine_variant` (filled|light|outline|subtle|default|transparent|white), `mantine_color`, `mantine_size/radius`, `mantine_left_icon/right_icon`, `mantine_fullwidth/compact/auto_contrast` (0|1), `is_link/disabled/open_in_new_tab` (0|1), `page_keyword`, `url`, `confirmation_title/message/continue` (translatable), `use_mantine_style` (0|1).
+- **action-icon** (IActionIconStyle): Icon-only button. Fields: `mantine_variant/size/radius/color`, `mantine_action_icon_loading` (0|1), `mantine_left_icon`, `is_link/disabled/open_in_new_tab` (0|1), `page_keyword`, `use_mantine_style` (0|1).
+- **link** (ILinkStyle): Text link component. Fields: `label` (translatable), `url`, `open_in_new_tab` (0|1).
 
 ### Form Elements
 **IMPORTANT**: Form elements can be combined within `form-record` containers to create complete forms. Forms automatically include submit/reset functionality and can contain any combination of form inputs plus `button` components for actions. Always use `text` style for labels above form inputs.**
@@ -362,7 +381,7 @@ This allows arbitrary HTML tags and content with full CSS customization.
 - **form-record**: Record creation/editing form container. Wraps multiple form inputs and buttons. Uses `alert_success`, `name`, `is_log` fields. Automatically handles form submission, validation, and success messages. Can contain any form inputs plus button components.
 - **form-log**: Form logging container for tracking user interactions and form submissions.
 - **text-input**: Text input field with Mantine styling. Renders only the input field without label. **REQUIRES separate `text` style label component**. Supports all HTML input types (text, email, password, number, tel, url, etc.) via `type_input` field.
-- **textarea**: Multi-line text input with rich editor option. **INCLUDES built-in label when using Mantine UI** (`use_mantine_style: "1"`). Supports markdown editing and plain text modes.
+- **textarea**: Multi-line text input with rich editor option. **INCLUDES built-in label when using Mantine UI** (`use_mantine_style: "1"`). Supports html editing and plain text modes.
 - **select**: Dropdown selection with search and multiple selection. Renders only the select field without label. **REQUIRES separate `text` style label component**. Supports single/multiple selection, search, and custom options arrays.
 - **input**: Legacy input field (deprecated - use text-input instead).
 - **radio**: Radio button group with custom options. Perfect for single-choice selections from multiple options.
@@ -472,27 +491,6 @@ All sections include these global_fields:
 - `email_label`: Email field label
 - `submit_label`: Submit button text
 
-### Container Styles Fields
-**container**:
-- `is_fluid`: "1" for fluid container, "0" for fixed width
-
-**div**:
-- `color_background`: Background color
-- `color_border`: Border color
-- `color_text`: Text color
-
-### Text Styles Fields
-**heading**:
-- `level`: Heading level (1-6)
-- `title`: Heading text
-
-**markdown**:
-- `text_md`: Markdown content
-
-**plaintext**:
-- `text`: Plain text content
-- `is_paragraph`: "1" to wrap in paragraph tags
-
 ### Media Styles Fields
 **image**:
 - `img_src`: Image source URL (use: http://127.0.0.1/selfhelp/assets/image-holder.png)
@@ -564,8 +562,6 @@ All sections include these global_fields:
 - `value`: Default value
 - `min`: Minimum character count
 - `max`: Maximum character count
-- `locked_after_submit`: "1" if locked after form submission
-- `markdown_editor`: "1" to enable markdown editor
 - **Note**: Unlike `text-input` and `select`, `textarea` includes built-in label support when using Mantine UI (`use_mantine_style: "1"`)
 
 **select**:
@@ -938,25 +934,31 @@ When "tailwind" is specified as the first word:
 #### Mantine Field Types and Supported Values
 Use the exact field names and values defined in `styles.types.ts`. Here are the actual supported values for each type:
 
-**Sizes**: `'xs' | 'sm' | 'md' | 'lg' | 'xl'`
+**TMantineSize**: `'xs' | 'sm' | 'md' | 'lg' | 'xl'`
 
-**Colors**: `'gray' | 'red' | 'grape' | 'violet' | 'blue' | 'cyan' | 'green' | 'lime' | 'yellow' | 'orange'`
+**TMantineColor**: `'gray' | 'red' | 'grape' | 'violet' | 'blue' | 'cyan' | 'green' | 'lime' | 'yellow' | 'orange'`
 
-**Variants**: `'filled' | 'light' | 'outline' | 'subtle' | 'default' | 'transparent' | 'white'`
+**TMantineVariant**: `'filled' | 'light' | 'outline' | 'subtle' | 'default' | 'transparent' | 'white'`
 
-**Radii**: `'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'`
+**TMantineRadius**: `'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'`
 
-**Spacing/Gaps**: `'0' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'`
+**TMantineGap/TMantineSpacing**: `'0' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'`
 
-**Justify Content**: `'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around' | 'space-evenly'`
+**TMantineJustify**: `'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around' | 'space-evenly'`
 
-**Align Items**: `'flex-start' | 'center' | 'flex-end' | 'stretch' | 'baseline'`
+**TMantineAlign**: `'flex-start' | 'center' | 'flex-end' | 'stretch' | 'baseline'`
 
-**Width Values**: `'25%' | '50%' | '75%' | '100%' | 'auto' | 'fit-content' | 'max-content' | 'min-content'` (+ any custom string value)
+**TMantineWidth/TMantineHeight**: `'25%' | '50%' | '75%' | '100%' | 'auto' | 'fit-content' | 'max-content' | 'min-content'` (+ any custom string value)
 
-**Height Values**: `'25%' | '50%' | '75%' | '100%' | 'auto' | 'fit-content' | 'max-content' | 'min-content'` (+ any custom string value)
+**TMantineShadow**: `'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'`
 
-**Boolean Fields**: Always use string values `'0'` (false) or `'1'` (true)
+**Boolean Fields**: Always use string values `'0'` (false) or `'1'` (true) - NEVER boolean literals
+
+**TMantineRequired/TMantineDisabled/TMantineFullWidth**: `'0' | '1'`
+
+**TMantineTitleOrder**: `'1' | '2' | '3' | '4' | '5' | '6'`
+
+**TMantineOrientation**: `'horizontal' | 'vertical'`
 
 #### Component-Specific Fields and Spacing
 For each component, use the exact field names from the corresponding interface in `styles.types.ts`. **ALWAYS prefer Mantine spacing fields over CSS classes for consistent theming:**
@@ -1043,16 +1045,15 @@ After the framework word ("mantine" or "tailwind"), provide either:
 14. **Naming Rules**: Section names can ONLY contain letters, numbers, hyphens (-), and underscores (_). No spaces, special characters, or other symbols are allowed.
 
 ### Naming Convention Examples:
-- ✅ **Correct**: "travel-blog-container", "norway_article_card", "hero-section", "main-heading"
-- ❌ **Incorrect**: "Travel Blog Container", "Norway Article (Card)", "Hero Section!", "Main Heading & Content"
+- ✅ **Correct**: "travel-blog-container", "norway_article_card", "hero-section"
+- ❌ **Incorrect**: "Travel Blog Container", "Norway Article (Card)", "Hero Section!"
 
 ### Example Generation Process:
 For a page with a header, image, and text content:
 
-1. **Root Container**: Use `container` style for the main wrapper (name: "page-container")
-2. **Header Section**: Use `heading` style with appropriate level (name: "page-header" or "main-heading")
+1. **Root Container**: Use layout stylse for the main wrapper (name: "page-container")
 3. **Image Section**: Use `image` style with placeholder URL (name: "hero-image" or "feature-image")
-4. **Content Section**: Use `markdown` or `plaintext` for text content (name: "main-content" or "description-text")
+4. **Content Section**: Use `text` or `htmlTag` with a proper tag  for text content (name: "main-content" or "description-text")
 5. **Styling**: Apply appropriate Tailwind classes for layout and appearance
 6. **Naming**: Ensure all section names use only letters, numbers, hyphens, and underscores
 
