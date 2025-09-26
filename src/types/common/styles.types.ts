@@ -318,8 +318,6 @@ export interface IBaseStyle {
     path: string;
     children?: TStyle[];
     name?: IContentField<string>;
-    label?: IContentField<string>;
-    label_cancel?: IContentField<string>;
     section_data?: any[];
     fields: Record<string, IContentField<any>>;
     // Direct fields from API response (not nested in global_fields)
@@ -604,7 +602,6 @@ export interface IFormRecordStyle extends IFormStyle {
 
 export interface IInputStyle extends IBaseStyle {
     style_name: 'input';
-    label?: IContentField<string>;
     type_input?: IContentField<string>;
     placeholder?: IContentField<string>;
     is_required?: IContentField<TMantineRequired>;
@@ -612,7 +609,7 @@ export interface IInputStyle extends IBaseStyle {
     value?: IContentField<string>;
     min?: IContentField<string>;
     max?: IContentField<string>;
-    format?: IContentField<string>;
+    disabled?: IContentField<TMantineDisabled>;
 }
 
 export interface ITextInputStyle extends IStyleWithSpacing {
@@ -675,17 +672,17 @@ export interface IRichTextEditorStyle extends IStyleWithSpacing {
 
 export interface ISelectStyle extends IBaseStyle {
     style_name: 'select';
-    label?: IContentField<string>;
     alt?: IContentField<string>;
     is_required?: IContentField<TMantineRequired>;
     name?: IContentField<string>;
     value?: IContentField<string>;
-    items?: IContentField<any[]>;
+    placeholder?: IContentField<string>;
+    options?: IContentField<string>;
     is_multiple?: IContentField<string>;
     max?: IContentField<string>;
     live_search?: IContentField<string>;
     disabled?: IContentField<TMantineDisabled>;
-    image_selector?: IContentField<string>;    
+    image_selector?: IContentField<string>;
     allow_clear?: IContentField<string>;
 }
 

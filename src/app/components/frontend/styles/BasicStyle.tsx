@@ -210,7 +210,7 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
         case 'textarea':
             return <TextareaStyle style={style as ITextareaStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
         case 'input':
-            return <InputStyle style={style as IInputStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />;
+            return <InputStyle style={style as IInputStyle} cssClass={getCssClass(style)} />;
         case 'select':
             return <SelectStyle style={style as ISelectStyle} cssClass={getCssClass(style)} />;
         case 'radio':

@@ -647,6 +647,23 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 -- Add mantine_use_input_wrapper field for switch, checkbox, and radio components
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_use_input_wrapper', get_field_type_id('checkbox'), 0, null);
 
+-- Create type_input field for input component
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'type_input', get_field_type_id('select'), 0, '{"searchable": false, "clearable": false, "options": [
+{"value": "text", "text": "Text"},
+{"value": "email", "text": "Email"},
+{"value": "password", "text": "Password"},
+{"value": "number", "text": "Number"},
+{"value": "checkbox", "text": "Checkbox"},
+{"value": "color", "text": "Color"},
+{"value": "date", "text": "Date"},
+{"value": "time", "text": "Time"},
+{"value": "tel", "text": "Telephone"},
+{"value": "url", "text": "URL"}
+]}');
+
+-- Create options field for select component
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'options', get_field_type_id('json'), 1, '{"rows": 5, "placeholder": "Enter JSON array of select options"}');
+
 -- Create new fields for Progress components
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES
 (NULL, 'mantine_progress_striped', get_field_type_id('checkbox'), 0, null),
@@ -4275,6 +4292,56 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 (get_style_id('textarea'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the textarea field. For more information check https://mantine.dev/core/textarea', 0, 0, 'Radius'),
 (get_style_id('textarea'), get_field_id('mantine_textarea_variant'), 'default', 'Sets the variant of the textarea field. For more information check https://mantine.dev/core/textarea', 0, 0, 'Variant'),
 (get_style_id('textarea'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the textarea component', 0, 0, 'Use Mantine Style');
+
+-- ===========================================
+-- INPUT STYLE DEFINITIONS
+-- ===========================================
+
+-- Add input style (HTML input tag, not Mantine)
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+    NULL,
+    'input',
+    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    get_style_group_id('input'),
+    'HTML input component for various input types (text, email, password, etc.). Renders as standard HTML input tag.',
+    0
+);
+
+-- Link fields to input style
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
+(get_style_id('input'), get_field_id('type_input'), 'text', 'Sets the input type (text, email, password, number, checkbox, color, date, time, tel, url)', 0, 0, 'Input Type'),
+(get_style_id('input'), get_field_id('name'), NULL, 'Sets the name attribute for form submission', 0, 0, 'Name'),
+(get_style_id('input'), get_field_id('value'), NULL, 'Sets the initial value of the input field', 0, 0, 'Value'),
+(get_style_id('input'), get_field_id('placeholder'), NULL, 'Sets the placeholder text for the input field', 0, 0, 'Placeholder'),
+(get_style_id('input'), get_field_id('is_required'), '0', 'If set, the input field will be required for form submission', 0, 0, 'Required'),
+(get_style_id('input'), get_field_id('disabled'), '0', 'If set, the input field will be disabled', 0, 0, 'Disabled'),
+(get_style_id('input'), get_field_id('min'), NULL, 'Sets the minimum value (for number inputs) or minimum length (for text inputs)', 0, 0, 'Min Value'),
+(get_style_id('input'), get_field_id('max'), NULL, 'Sets the maximum value (for number inputs) or maximum length (for text inputs)', 0, 0, 'Max Value');
+
+-- ===========================================
+-- SELECT STYLE DEFINITIONS
+-- ===========================================
+
+-- Add select style (HTML select tag, not Mantine)
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+    NULL,
+    'select',
+    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    get_style_group_id('input'),
+    'HTML select component for dropdown selections. Supports single and multiple selections.',
+    0
+);
+
+-- Link fields to select style
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
+(get_style_id('select'), get_field_id('name'), NULL, 'Sets the name attribute for form submission', 0, 0, 'Name'),
+(get_style_id('select'), get_field_id('value'), NULL, 'Sets the initial selected value of the select field', 0, 0, 'Value'),
+(get_style_id('select'), get_field_id('placeholder'), 'Select an option', 'Sets the placeholder text for the select field', 0, 0, 'Placeholder'),
+(get_style_id('select'), get_field_id('is_required'), '0', 'If set, the select field will be required for form submission', 0, 0, 'Required'),
+(get_style_id('select'), get_field_id('disabled'), '0', 'If set, the select field will be disabled', 0, 0, 'Disabled'),
+(get_style_id('select'), get_field_id('options'), '[{"value":"option1","label":"Option 1"}, {"value":"option2","label":"Option 2"}]', 'Sets the options for the select field as JSON array. Format: [{"value":"option1","label":"Option 1"}]', 0, 0, 'Options'),
+(get_style_id('select'), get_field_id('is_multiple'), '0', 'If set, allows multiple selections', 0, 0, 'Multiple Selection'),
+(get_style_id('select'), get_field_id('max'), NULL, 'Sets the maximum number of selections allowed when multiple is enabled', 0, 0, 'Max Selections');
 
 -- ===========================================
 -- RICH TEXT EDITOR STYLE DEFINITIONS
