@@ -334,10 +334,7 @@ This allows arbitrary HTML tags and content with full CSS customization.
 - **card-segment**: Card content sections. Individual sections within cards for header, body, and footer content.
 
 ### Content & Text Styles
-- **heading**: Headings (h1-h6) with semantic HTML structure. Uses `level` (1-6) and `title` fields. Perfect for page titles, section headers, and content hierarchy. Supports all heading levels with proper semantic markup.
-- **markdown**: Full markdown content renderer with GitHub Flavored Markdown support. Uses `text_md` field. Renders headings, lists, links, code blocks, tables, and more. Perfect for rich content, documentation, and formatted text.
 - **text**: Plain text with typography controls and optional paragraph wrapping. Uses `text` field. Simple text display with customizable typography. Use for labels, descriptions, and plain content.
-- **plaintext**: Simple text display without additional formatting. Uses `text` field. Basic text component for simple content display. Minimal styling, maximum compatibility.
 - **code**: Inline and block code with syntax highlighting. Supports multiple programming languages. Perfect for code examples, technical content, and developer documentation.
 - **highlight**: Text highlighting with customizable colors and marks. Uses `text` and `mantine_highlight_highlight` fields. Perfect for emphasizing important text, search results, and key terms.
 - **blockquote**: Blockquote with optional icon and citation. Elegant quote styling with author attribution. Perfect for testimonials, quotes, and highlighted content.
@@ -419,11 +416,7 @@ This allows arbitrary HTML tags and content with full CSS customization.
 ### Legacy/Custom Styles
 **Note**: These are legacy components. Prefer modern Mantine UI equivalents when possible.**
 
-- **div**: Basic div container with background, border, and text colors (legacy - use `box` or `container` instead)
 - **input**: Basic input field (legacy - use `text-input` instead for better Mantine integration)
-- **video**: Basic video player (legacy - use modern `video` component instead)
-- **audio**: Basic audio player (legacy - use modern `audio` component instead)
-- **figure**: Basic figure with caption (legacy - use modern `figure` component instead)
 - **entryList**: Data list display for showing collections of records (legacy data component)
 - **entryRecord**: Data record display for individual record viewing (legacy data component)
 - **entryRecordDelete**: Delete confirmation for data records (legacy data component)
@@ -433,13 +426,10 @@ This allows arbitrary HTML tags and content with full CSS customization.
 - **refContainer**: Reference container for data relationships and linked content (legacy data component)
 - **validate**: Form validation component for input validation (legacy form component)
 - **profile**: User profile management form component (legacy auth component)
-- **showUserInput**: User input display for showing submitted form data (legacy data component)
+- **login**: User login form component (legacy auth component)
+- **register**: User registration form component (legacy auth component)
+- **twoFactorAuth**: Two-factor authentication form component (legacy auth component)
 
-### Authentication Styles (Legacy)
-- **login**: User login form
-- **register**: User registration form
-- **resetPassword**: Password reset form
-- **twoFactorAuth**: Two-factor authentication form
 
 ## Field Reference by Style Type
 
