@@ -59,7 +59,7 @@ The system has hundreds of pre-existing fields that should be reused when possib
 | 20 | alert_del_success | 1 | Delete success alert |
 | 22 | title | 7 | Generic title field |
 | 24 | text | 2 | Generic text content |
-| 25 | text_md | 4 | Markdown text content |
+| 25 | text_md | 4 | Legacy markdown field (deprecated - use rich-text-editor style) |
 | 30 | alt | 1 | Image alt text |
 | 34 | subtitle | 1 | Subtitle field |
 | 35 | alert_success | 1 | Success alert message |
@@ -275,7 +275,7 @@ The system has hundreds of pre-existing fields that should be reused when possib
 | 1 | text | Single line text input |
 | 2 | textarea | Multi-line text input |
 | 3 | checkbox | Boolean toggle |
-| 4 | markdown | Markdown editor |
+| 4 | markdown | Legacy markdown editor (deprecated - use rich-text-editor style) |
 | 5 | number | Numeric input |
 | 7 | rich_text | Rich text editor |
 | 8 | json | JSON data input |
@@ -298,6 +298,21 @@ The system has hundreds of pre-existing fields that should be reused when possib
 | 55 | size_select | Size selection (xs, sm, md, lg, xl) |
 | 233 | image_url | Image URL input |
 
+### Current Text Styles Available
+
+Instead of a single markdown component, the system now provides specialized text components:
+
+#### Text Content Styles (`display = 1`):
+- **`text`**: Plain text with typography controls and optional paragraph wrapping. Uses `text` field. Perfect for simple content, labels, and descriptions.
+- **`title`**: Large title component with size variants and alignment options. Uses `content` and `mantine_title_order` fields. Perfect for page titles, hero headings, and prominent text displays.
+- **`blockquote`**: Blockquote with optional icon and citation. Uses `text` field with optional citation. Perfect for testimonials, quotes, and highlighted content.
+- **`code`**: Inline and block code with syntax highlighting. Supports multiple programming languages. Perfect for code examples, technical content, and developer documentation.
+- **`highlight`**: Text highlighting with customizable colors and marks. Uses `text` and `mantine_highlight_highlight` fields. Perfect for emphasizing important text, search results, and key terms.
+- **`typography`**: Typography wrapper for consistent text styling and theming across content blocks.
+
+#### Rich Content Styles:
+- **`rich-text-editor`**: WYSIWYG editor for rich content creation. Perfect for content management and formatted text input. Supports bold, italic, links, lists, etc.
+
 ### Data Collection Checklist
 
 #### 1. Component Structure Analysis
@@ -317,22 +332,24 @@ For each prop, document:
 
 #### 3. Field Type Mapping
 Map Mantine prop types to system field types:
-- [ ] `string` → `text` or `textarea`
+- [ ] `string` → `text` (for short strings), `textarea` (for longer content)
 - [ ] `number` → `select` with `{"creatable": true}` for sizes/durations (provides presets + custom input), `select` for predefined options only
 - [ ] `boolean` → `checkbox`
 - [ ] `enum` → `segment` or `select`
-- [ ] `ReactNode` → `text` (for content)
+- [ ] `ReactNode` → `text` (for content) or appropriate text style
 - [ ] Arrays → `textarea` with JSON validation
 - [ ] Objects → `textarea` with JSON validation
 - [ ] **Icon fields** → `select-icon` (always use this for Mantine icon props)
 - [ ] **Size values (px)** → `select` with creatable: true and preset options (14px, 16px, 18px, 20px, 24px, 32px)
 - [ ] **Duration values (ms)** → `select` with creatable: true and preset options (150ms, 200ms, 300ms, 400ms, 0ms, 500ms)
+- [ ] **Rich text content** → Use `rich-text-editor` style instead of markdown
 
 #### 4. Special Field Requirements
 - [ ] **Display Field**: `display = 1` for content fields (translatable)
 - [ ] **Property Fields**: `display = 0` for configuration (non-translatable)
 - [ ] **Custom Fields**: New fields that need to be created in the system
 - [ ] **Field Configuration**: JSON config for select/segment options
+- [ ] **Text Content**: Choose appropriate text style (`text`, `title`, `blockquote`, `code`, `highlight`, `typography`) based on content type
 
 ## Phase 2: SQL Structure Implementation
 
@@ -670,11 +687,18 @@ To use this process for a new component:
 
 1. **Replace `{COMPONENT_NAME}`** with the actual component name (e.g., "accordion")
 2. **Review the Mantine documentation** at `https://mantine.dev/core/{COMPONENT_NAME}`
-3. **Follow the checklists** in order, checking off completed items
-4. **Execute SQL changes** in the correct order (style group → styles → fields → styles_fields → relationships)
-5. **Implement the frontend component** using the provided templates
-6. **CRITICAL**: Add the component to BasicStyle.tsx (see detailed instructions in Post-Implementation section)
-7. **Test thoroughly** before marking as complete
+3. **For text content**: Choose the appropriate text style from the available options:
+   - `text` for simple paragraphs and descriptions
+   - `title` for headings and prominent text
+   - `blockquote` for quotes and testimonials
+   - `code` for code examples and technical content
+   - `highlight` for emphasized text and search results
+   - `rich-text-editor` for rich formatted content (WYSIWYG)
+4. **Follow the checklists** in order, checking off completed items
+5. **Execute SQL changes** in the correct order (style group → styles → fields → styles_fields → relationships)
+6. **Implement the frontend component** using the provided templates
+7. **CRITICAL**: Add the component to BasicStyle.tsx (see detailed instructions in Post-Implementation section)
+8. **Test thoroughly** before marking as complete
 
 ## Common Patterns and Best Practices
 
@@ -684,6 +708,8 @@ To use this process for a new component:
 - Use `segment` for mutually exclusive options
 - Use `textarea` for JSON data or long text
 - Use `text` for short strings and URLs
+- Use `rich-text-editor` for rich formatted content
+- Use appropriate text styles (`text`, `title`, `blockquote`, `code`, `highlight`, `typography`) based on content type and presentation needs
 
 ### Default Value Strategy
 - Match Mantine's actual defaults when possible
