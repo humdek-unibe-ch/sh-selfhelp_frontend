@@ -44,7 +44,7 @@ const AvatarStyle: React.FC<IAvatarStyleProps> = ({ style, styleProps, cssClass 
     const styleObj: React.CSSProperties = {};
 
     // Get initials from name, label, or src (if src is text-based)
-    const name = style.name?.content || style.label?.content;
+    const name = style.name?.content;
 
     // Check if src is a text name (not a URL)
     const isUrl = src && (src.startsWith('http') || src.startsWith('https') || src.includes('.'));

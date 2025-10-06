@@ -44,7 +44,6 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) =>
     const alertSuccess = style.alert_success?.content;
     const alertError = style.alert_error?.content;
     const redirectUrl = style.redirect_at_end?.content;
-    const buttonLabel = style.label?.content || 'Submit';
 
     // Extract button configuration
     const saveLabel = style.btn_save_label?.content || 'Save';

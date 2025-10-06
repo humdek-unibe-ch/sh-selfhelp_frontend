@@ -1031,6 +1031,7 @@ export interface IButtonStyle extends IStyleWithSpacing {
 
 export interface IColorInputStyle extends IStyleWithSpacing {
     style_name: 'color-input';
+    label?: IContentField<string>;                     // Text field for label
     mantine_color_format?: IContentField<TMantineColorFormat>;     // Segment field for color format
     mantine_color_input_swatches?: IContentField<TMantineColorPickerSwatches>; // Checkbox field for swatches
     mantine_size?: IContentField<TMantineSize>;             // Select field for size
@@ -1046,6 +1047,7 @@ export interface IColorInputStyle extends IStyleWithSpacing {
 
 export interface IColorPickerStyle extends IStyleWithSpacing {
     style_name: 'color-picker';
+    label?: IContentField<string>;                     // Text field for label
     mantine_color_format?: IContentField<string>;     // Segment field for color format
     mantine_color_picker_swatches_per_row?: IContentField<string>; // Slider field for swatches per row
     mantine_color_picker_swatches?: IContentField<string>; // Textarea field for swatches array
@@ -1227,6 +1229,7 @@ export interface IActionIconStyle extends IStyleWithSpacing {
 
 export interface IBadgeStyle extends IStyleWithSpacing {
     style_name: 'badge';
+    label?: IContentField<string>;                     // Text field for label
     mantine_variant?: IContentField<TMantineVariant>;          // Select field for variant
     mantine_size?: IContentField<TMantineSize>;             // Select field for size
     mantine_left_icon?: IContentField<string>;        // Select-icon field for left icon
@@ -1245,6 +1248,7 @@ export interface IBoxStyle extends IStyleWithSpacing {
 
 export interface IChipStyle extends IStyleWithSpacing {
     style_name: 'chip';
+    label?: IContentField<string>;                     // Text field for label
     mantine_chip_variant?: IContentField<TMantineChipVariant>;     // Select field for variant
     mantine_size?: IContentField<TMantineSize>;             // Select field for size
     mantine_radius?: IContentField<TMantineRadius>;           // Select field for radius
@@ -1545,6 +1549,7 @@ export interface IBackgroundImageStyle extends IStyleWithSpacing {
 
 export interface IFieldsetStyle extends IStyleWithSpacing {
     style_name: 'fieldset';
+    label?: IContentField<string>;                   // Translatable legend
     legend?: IContentField<string>;                   // Translatable legend
     mantine_fieldset_variant?: IContentField<TMantineFieldsetVariant>; // Select field for variant
     mantine_radius?: IContentField<TMantineRadius>;           // Select field for radius
