@@ -1,6 +1,8 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { IInputStyle } from '../../../../types/common/styles.types';
 import { FormFieldValueContext } from './FormStyle';
+import LanguageTabsWrapper from './shared/LanguageTabsWrapper';
+import { getSpacingProps } from './BasicStyle';
 
 /**
  * Props interface for InputStyle component
@@ -28,13 +30,14 @@ const InputStyle: React.FC<IInputStyleProps> = ({ style, cssClass }) => {
     const min = style.min?.content;
     const max = style.max?.content;
     const disabled = style.disabled?.content === '1';
+    const translatable = style.translatable?.content === '1';
 
     // Get form context for pre-populated values
     const formContext = useContext(FormFieldValueContext);
     const formValue = formContext && name ? formContext.getFieldValue(name) : null;
 
     // Use form value if available, otherwise use initial value from style
-    const [value, setValue] = useState(formValue || initialValue);
+    const [value, setValue] = useState<string | Array<{ language_id: number; value: string }> | null>(formValue || initialValue);
 
     // Update value when form context changes (for record editing)
     useEffect(() => {
@@ -43,37 +46,58 @@ const InputStyle: React.FC<IInputStyleProps> = ({ style, cssClass }) => {
         }
     }, [formValue]);
 
-    // Handle CSS field - use direct property from API response
-    const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (inputType === 'checkbox') {
-            setValue(event.target.checked ? '1' : '0');
-        } else {
-            setValue(event.target.value);
-        }
+    // Handle value change - for LanguageTabsWrapper
+    const handleValueChange = (fieldName: string, newValue: string | Array<{ language_id: number; value: string }> | null) => {
+        // Update local state
+        setValue(newValue);
+        // The LanguageTabsWrapper handles the actual form submission via hidden inputs
     };
 
-    // For checkboxes, use checked instead of value
-    const checkboxProps = inputType === 'checkbox' ? {
-        checked: value === '1',
-        value: undefined
-    } : {
-        value: value,
-        checked: undefined
+    // Render input for a specific language
+    const renderInput = (language: any, currentValue: string, onValueChange: (value: string) => void) => {
+        // For checkboxes, use checked instead of value
+        const checkboxProps = inputType === 'checkbox' ? {
+            checked: currentValue === '1',
+            value: undefined
+        } : {
+            value: currentValue,
+            checked: undefined
+        };
+
+        const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+            if (inputType === 'checkbox') {
+                onValueChange(event.target.checked ? '1' : '0');
+            } else {
+                onValueChange(event.target.value);
+            }
+        };
+
+        return (
+            <input
+                onChange={handleChange}
+                type={inputType}
+                name={translatable ? undefined : name} // Don't set name for translatable fields - handled by wrapper
+                placeholder={placeholder}
+                required={required}
+                min={min}
+                max={max}
+                className={cssClass}
+                disabled={disabled}
+                {...checkboxProps}
+            />
+        );
     };
 
     return (
-        <input
-            onChange={onChange}
-            type={inputType}
-            name={name}
-            placeholder={placeholder}
-            required={required}
-            min={min}
-            max={max}
+        <LanguageTabsWrapper
+            translatable={translatable}
+            name={name || ''}
+            value={value}
+            onChange={handleValueChange}
             className={cssClass}
-            disabled={disabled}
-            {...checkboxProps}
-        />
+        >
+            {renderInput}
+        </LanguageTabsWrapper>
     );
 };
 

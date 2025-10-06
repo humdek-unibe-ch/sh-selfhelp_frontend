@@ -62,6 +62,7 @@ export type TMantineCompact = '0' | '1';
 export type TMantineDisabled = '0' | '1';
 export type TMantineReadonly = '0' | '1';
 export type TMantineRequired = '0' | '1';
+export type TMantineTranslatable = '0' | '1';
 export type TMantineWithCloseButton = '0' | '1';
 export type TMantineLoading = '0' | '1';
 export type TMantineInline = '0' | '1';
@@ -610,6 +611,7 @@ export interface IInputStyle extends IBaseStyle {
     min?: IContentField<string>;
     max?: IContentField<string>;
     disabled?: IContentField<TMantineDisabled>;
+    translatable?: IContentField<TMantineTranslatable>;
 }
 
 export interface ITextInputStyle extends IStyleWithSpacing {
@@ -627,6 +629,7 @@ export interface ITextInputStyle extends IStyleWithSpacing {
     mantine_size?: IContentField<TMantineSize>;
     mantine_radius?: IContentField<TMantineRadius>;
     mantine_text_input_variant?: IContentField<TMantineTextInputVariant>;
+    translatable?: IContentField<TMantineTranslatable>;
 }
 
 export interface ITextareaStyle extends IStyleWithSpacing {
@@ -651,6 +654,7 @@ export interface ITextareaStyle extends IStyleWithSpacing {
     mantine_radius?: IContentField<TMantineRadius>;
     mantine_textarea_variant?: IContentField<TMantineTextareaVariant>;
     use_mantine_style?: IContentField<TMantineFullWidth>;
+    translatable?: IContentField<TMantineTranslatable>;
 }
 
 export interface IRichTextEditorStyle extends IStyleWithSpacing {
@@ -668,6 +672,7 @@ export interface IRichTextEditorStyle extends IStyleWithSpacing {
     mantine_rich_text_editor_text_color?: IContentField<string>;
     mantine_rich_text_editor_task_list?: IContentField<string>;
     use_mantine_style?: IContentField<TMantineFullWidth>;
+    translatable?: IContentField<TMantineTranslatable>;
 }
 
 export interface ISelectStyle extends IBaseStyle {

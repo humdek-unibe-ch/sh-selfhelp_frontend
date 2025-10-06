@@ -459,6 +459,7 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 ]}');
 
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'readonly', get_field_type_id('checkbox'), 0, null);
+INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'translatable', get_field_type_id('checkbox'), 0, null);
 
 -- Add global tooltip position field (reusable across all components)
 INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUES (NULL, 'mantine_tooltip_position', get_field_type_id('select'), 0, '{"searchable": false, "clearable": true, "options":[
@@ -4245,6 +4246,7 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 (get_style_id('text-input'), get_field_id('mantine_text_input_variant'), 'default', 'Sets the variant of the input field. For more information check https://mantine.dev/core/text-input', 0, 0, 'Variant'),
 (get_style_id('text-input'), get_field_id('mantine_size'), 'sm', 'Sets the size of the input field. For more information check https://mantine.dev/core/text-input', 0, 0, 'Size'),
 (get_style_id('text-input'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the input field. For more information check https://mantine.dev/core/text-input', 0, 0, 'Radius'),
+(get_style_id('text-input'), get_field_id('translatable'), '0', 'If enabled, this input field will support multi-language translations. When enabled, users can enter values for different languages using tabs.', 0, 0, 'Translatable'),
 (get_style_id('text-input'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the text-input component', 0, 1, 'Use Mantine Style');
 
 -- Add spacing fields for text-input (IStyleWithMargin)
@@ -4291,6 +4293,7 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 (get_style_id('textarea'), get_field_id('mantine_size'), 'sm', 'Sets the size of the textarea field. For more information check https://mantine.dev/core/textarea', 0, 0, 'Size'),
 (get_style_id('textarea'), get_field_id('mantine_radius'), 'sm', 'Sets the border radius of the textarea field. For more information check https://mantine.dev/core/textarea', 0, 0, 'Radius'),
 (get_style_id('textarea'), get_field_id('mantine_textarea_variant'), 'default', 'Sets the variant of the textarea field. For more information check https://mantine.dev/core/textarea', 0, 0, 'Variant'),
+(get_style_id('textarea'), get_field_id('translatable'), '0', 'If enabled, this textarea field will support multi-language translations. When enabled, users can enter values for different languages using tabs.', 0, 0, 'Translatable'),
 (get_style_id('textarea'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the textarea component', 0, 0, 'Use Mantine Style');
 
 -- ===========================================
@@ -4316,7 +4319,8 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 (get_style_id('input'), get_field_id('is_required'), '0', 'If set, the input field will be required for form submission', 0, 0, 'Required'),
 (get_style_id('input'), get_field_id('disabled'), '0', 'If set, the input field will be disabled', 0, 0, 'Disabled'),
 (get_style_id('input'), get_field_id('min'), NULL, 'Sets the minimum value (for number inputs) or minimum length (for text inputs)', 0, 0, 'Min Value'),
-(get_style_id('input'), get_field_id('max'), NULL, 'Sets the maximum value (for number inputs) or maximum length (for text inputs)', 0, 0, 'Max Value');
+(get_style_id('input'), get_field_id('max'), NULL, 'Sets the maximum value (for number inputs) or maximum length (for text inputs)', 0, 0, 'Max Value'),
+(get_style_id('input'), get_field_id('translatable'), '0', 'If enabled, this input field will support multi-language translations. When enabled, users can enter values for different languages using tabs.', 0, 0, 'Translatable');
 
 -- ===========================================
 -- SELECT STYLE DEFINITIONS
@@ -4392,6 +4396,7 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 (get_style_id('rich-text-editor'), get_field_id('mantine_rich_text_editor_bubble_menu'), '0', 'If set, enables a bubble menu that appears when text is selected for quick formatting. For more information check https://tiptap.dev/docs/editor/extensions/functionality/bubble-menu', 0, 0, 'Enable Bubble Menu'),
 (get_style_id('rich-text-editor'), get_field_id('mantine_rich_text_editor_text_color'), '0', 'If set, enables text color controls in the toolbar. For more information check https://tiptap.dev/docs/editor/extensions/functionality/color', 0, 0, 'Enable Text Color'),
 (get_style_id('rich-text-editor'), get_field_id('mantine_rich_text_editor_task_list'), '0', 'If set, enables task list functionality with checkboxes. For more information check https://tiptap.dev/docs/editor/extensions/functionality/task-list', 0, 0, 'Enable Task Lists'),
+(get_style_id('rich-text-editor'), get_field_id('translatable'), '0', 'If enabled, this rich text editor field will support multi-language translations. When enabled, users can enter values for different languages using tabs.', 0, 0, 'Translatable'),
 
 -- Mantine style toggle
 (get_style_id('rich-text-editor'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the rich text editor component', 0, 1, 'Use Mantine Style');

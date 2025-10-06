@@ -219,11 +219,28 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) =>
         const formDataObject = Object.fromEntries(cleanFormData.entries());
 
         // Convert empty strings to null for better data handling, but keep files as-is
-        const processedFormData: Record<string, any> = {};
+        const processedFormData: Record<string, string | File | null | Array<{ language_id: number; value: string }>> = {};
         Object.keys(formDataObject).forEach(key => {
             const value = formDataObject[key];
             // Keep File objects as-is, convert empty strings to null for other fields
-            processedFormData[key] = (value instanceof File) ? value : (value === '' ? null : value);
+            let processedValue: string | File | null | Array<{ language_id: number; value: string }> = (value instanceof File) ? value : (value === '' ? null : value);
+
+            // Check if this is a JSON string representing multi-language data
+            if (typeof processedValue === 'string' && processedValue.startsWith('[') && processedValue.endsWith(']')) {
+                try {
+                    const parsed = JSON.parse(processedValue) as unknown;
+                    // If it's an array of objects with language_id and value properties, it's multi-language data
+                    if (Array.isArray(parsed) && parsed.length > 0 &&
+                        typeof parsed[0] === 'object' && parsed[0] !== null &&
+                        'language_id' in parsed[0] && 'value' in parsed[0]) {
+                        processedValue = parsed as Array<{ language_id: number; value: string }>;
+                    }
+                } catch (e) {
+                    // Not valid JSON, keep as string
+                }
+            }
+
+            processedFormData[key] = processedValue;
         });
 
         try {

@@ -20,6 +20,8 @@ import { IRichTextEditorStyle } from '../../../../../../../types/common/styles.t
 import { FormFieldValueContext } from '../../../FormStyle';
 import parse from "html-react-parser";
 import { sanitizeHtmlForInline, sanitizeHtmlForParsing } from '../../../../../../../utils/html-sanitizer.utils';
+import LanguageTabsWrapper from '../../../shared/LanguageTabsWrapper';
+import { getSpacingProps } from '../../../BasicStyle';
 
 /**
  * Props interface for IRichTextEditorStyle component
@@ -35,6 +37,7 @@ const RichTextEditorStyle: React.FC<IRichTextEditorStyleProps> = ({ style, style
     const use_mantine_style = style.use_mantine_style?.content === '1';
 
     const name = style.name?.content;
+    const translatable = style.translatable?.content === '1';
     const label = style.label?.content;
     const description = style.description?.content || '';
     const placeholder = style.placeholder?.content;
@@ -52,14 +55,14 @@ const RichTextEditorStyle: React.FC<IRichTextEditorStyleProps> = ({ style, style
     const taskListEnabled = style.mantine_rich_text_editor_task_list?.content === '1';
 
     // Handle CSS field - use direct property from API response
-    
+
 
     // Get form context for pre-populated values
     const formContext = useContext(FormFieldValueContext);
     const formValue = formContext && name ? formContext.getFieldValue(name) : null;
 
     // Use form value if available, otherwise use initial value from style
-    const [value, setValue] = useState(formValue || initialValue);
+    const [value, setValue] = useState<string | Array<{ language_id: number; value: string }> | null>(formValue || initialValue || '');
 
     // Update value when form context changes (for record editing)
     useEffect(() => {
@@ -68,192 +71,219 @@ const RichTextEditorStyle: React.FC<IRichTextEditorStyleProps> = ({ style, style
         }
     }, [formValue]);
 
-    // Create Tiptap editor instance
-    const editor = useEditor({
-        extensions: [
-            StarterKit.configure({ link: false }),
-            Link,
-            Superscript,
-            SubScript,
-            Highlight,
-            Underline,
-            TextAlign.configure({ types: ['heading', 'paragraph'] }),
-            Placeholder.configure({
-                placeholder: editorPlaceholder,
-            }),
-            // Conditionally add extensions based on configuration
-            ...(textColorEnabled ? [
-                TextStyle,
-                Color,
-            ] : []),
-            ...(taskListEnabled ? [
-                getTaskListExtension(TipTapTaskList),
-                TaskItem.configure({
-                    nested: true,
-                    HTMLAttributes: {
-                        class: 'test-item',
-                    },
+    // Handle value change - for LanguageTabsWrapper
+    const handleValueChange = (fieldName: string, newValue: string | Array<{ language_id: number; value: string }> | null) => {
+        // Update local state
+        setValue(newValue);
+        // The LanguageTabsWrapper handles the actual form submission via hidden inputs
+    };
+
+    // Extract spacing props
+    const spacingProps = getSpacingProps(style);
+
+    // Render rich text editor for a specific language
+    const renderRichTextEditor = (language: any, currentValue: string, onValueChange: (value: string) => void) => {
+        // Create Tiptap editor instance for this language
+        const languageEditor = useEditor({
+            extensions: [
+                StarterKit.configure({ link: false }),
+                Link,
+                Superscript,
+                SubScript,
+                Highlight,
+                Underline,
+                TextAlign.configure({ types: ['heading', 'paragraph'] }),
+                Placeholder.configure({
+                    placeholder: editorPlaceholder,
                 }),
-            ] : []),
-        ],
-        content: value, // Use dynamic value for initial content
-        onUpdate: ({ editor }) => {
-            const html = editor.getHTML();
-            setValue(html);
-        },
-        editable: !disabled,
-        immediatelyRender: false, // Fix SSR hydration mismatch
-    });
+                // Conditionally add extensions based on configuration
+                ...(textColorEnabled ? [
+                    TextStyle,
+                    Color,
+                ] : []),
+                ...(taskListEnabled ? [
+                    getTaskListExtension(TipTapTaskList),
+                    TaskItem.configure({
+                        nested: true,
+                        HTMLAttributes: {
+                            class: 'test-item',
+                        },
+                    }),
+                ] : []),
+            ],
+            content: currentValue, // Use dynamic value for initial content
+            onUpdate: ({ editor }) => {
+                const html = editor.getHTML();
+                onValueChange(html);
+            },
+            editable: !disabled,
+            immediatelyRender: false, // Fix SSR hydration mismatch
+        });
 
-    // Update editor content when value changes (for controlled behavior and form context updates)
-    useEffect(() => {
-        if (editor && value !== editor.getHTML()) {
-            editor.commands.setContent(value);
-            setValue(value);
+        // Update editor content when currentValue changes (for controlled behavior)
+        useEffect(() => {
+            if (languageEditor && currentValue !== languageEditor.getHTML()) {
+                languageEditor.commands.setContent(currentValue);
+            }
+        }, [languageEditor, currentValue]);
+
+        // Fallback: Render basic textarea with only CSS and name when Mantine styling is disabled
+        if (!use_mantine_style) {
+            return (
+                <Input.Wrapper
+                    label={label}
+                    description={parse(sanitizeHtmlForParsing(description))}
+                    required={required}
+                    {...styleProps} className={cssClass}
+                >
+                    <textarea
+                        name={translatable ? undefined : name} // Don't set name for translatable fields - handled by wrapper
+                        className="basic-textarea"
+                        value={currentValue}
+                        onChange={(e) => onValueChange(e.target.value)}
+                        disabled={disabled}
+                        required={required}
+                        placeholder={placeholder}
+                        rows={10}
+                        style={{
+                            width: '100%',
+                            padding: '8px',
+                            border: '1px solid #ccc',
+                            borderRadius: '4px',
+                            fontFamily: 'inherit',
+                            minHeight: '200px',
+                            resize: 'vertical'
+                        }}
+                    />
+                </Input.Wrapper>
+            );
         }
-    }, [editor, value]);
 
-    // Fallback: Render basic textarea with only CSS and name when Mantine styling is disabled
-    if (!use_mantine_style) {
+        if (!languageEditor) {
+            return <div>Loading editor...</div>;
+        }
+
         return (
             <Input.Wrapper
                 label={label}
-                description={parse(sanitizeHtmlForParsing(description))}
+                description={parse(sanitizeHtmlForInline(description))}
                 required={required}
                 {...styleProps} className={cssClass}
             >
-                <textarea
-                    name={name}
-                    className="basic-textarea"
-                    value={value}
-                    onChange={(e) => setValue(e.target.value)}
-                    disabled={disabled}
-                    required={required}
-                    placeholder={placeholder}
-                    rows={10}
-                    style={{
-                        width: '100%',
-                        padding: '8px',
-                        border: '1px solid #ccc',
-                        borderRadius: '4px',
-                        fontFamily: 'inherit',
-                        minHeight: '200px',
-                        resize: 'vertical'
-                    }}
-                />
-            </Input.Wrapper>
-        );
-    }
-
-    if (!editor) {
-        return <div>Loading editor...</div>;
-    }
-
-    return (
-        <Input.Wrapper
-            label={label}
-            description={parse(sanitizeHtmlForInline(description))}
-            required={required}
-            {...styleProps} className={cssClass}
-        >
-            <MantineRichTextEditor
-                editor={editor}
-                variant={variant as 'default' | 'subtle'}
-            >
-                <MantineRichTextEditor.Toolbar sticky stickyOffset="60px">
-                    <MantineRichTextEditor.ControlsGroup>
-                        <MantineRichTextEditor.Bold />
-                        <MantineRichTextEditor.Italic />
-                        <MantineRichTextEditor.Underline />
-                        <MantineRichTextEditor.Strikethrough />
-                        <MantineRichTextEditor.ClearFormatting />
-                        <MantineRichTextEditor.Code />
-                        <MantineRichTextEditor.Highlight />
-                    </MantineRichTextEditor.ControlsGroup>
-
-                    <MantineRichTextEditor.ControlsGroup>
-                        <MantineRichTextEditor.H1 />
-                        <MantineRichTextEditor.H2 />
-                        <MantineRichTextEditor.H3 />
-                        <MantineRichTextEditor.H4 />
-                    </MantineRichTextEditor.ControlsGroup>
-
-                    <MantineRichTextEditor.ControlsGroup>
-                        <MantineRichTextEditor.Blockquote />
-                        <MantineRichTextEditor.Hr />
-                        <MantineRichTextEditor.BulletList />
-                        <MantineRichTextEditor.OrderedList />
-                        {taskListEnabled && (
-                            <>
-                                <MantineRichTextEditor.TaskList />
-                                <MantineRichTextEditor.TaskListLift />
-                                <MantineRichTextEditor.TaskListSink />
-                            </>
-                        )}
-                    </MantineRichTextEditor.ControlsGroup>
-
-                    <MantineRichTextEditor.ControlsGroup>
-                        <MantineRichTextEditor.Link />
-                        <MantineRichTextEditor.Unlink />
-                    </MantineRichTextEditor.ControlsGroup>
-
-                    <MantineRichTextEditor.ControlsGroup>
-                        <MantineRichTextEditor.AlignLeft />
-                        <MantineRichTextEditor.AlignCenter />
-                        <MantineRichTextEditor.AlignJustify />
-                        <MantineRichTextEditor.AlignRight />
-                    </MantineRichTextEditor.ControlsGroup>
-
-                    {textColorEnabled && (
-                        <MantineRichTextEditor.ControlsGroup>
-                            <MantineRichTextEditor.ColorPicker
-                                colors={[
-                                    '#25262b', '#868e96', '#fa5252', '#e64980', '#be4bdb', '#7950f2', '#4c6ef5',
-                                    '#228be6', '#15aabf', '#12b886', '#40c057', '#82c91e', '#fab005', '#fd7e14'
-                                ]}
-                            />
-                            <MantineRichTextEditor.UnsetColor />
-                        </MantineRichTextEditor.ControlsGroup>
-                    )}
-
-                    <MantineRichTextEditor.ControlsGroup>
-                        <MantineRichTextEditor.Undo />
-                        <MantineRichTextEditor.Redo />
-                    </MantineRichTextEditor.ControlsGroup>
-                </MantineRichTextEditor.Toolbar>
-
-                {/* Bubble menu for quick formatting when text is selected */}
-                {bubbleMenuEnabled && editor && (
-                    <BubbleMenu editor={editor}>
+                <MantineRichTextEditor
+                    editor={languageEditor}
+                    variant={variant as 'default' | 'subtle'}
+                >
+                    <MantineRichTextEditor.Toolbar sticky stickyOffset="60px">
                         <MantineRichTextEditor.ControlsGroup>
                             <MantineRichTextEditor.Bold />
                             <MantineRichTextEditor.Italic />
                             <MantineRichTextEditor.Underline />
                             <MantineRichTextEditor.Strikethrough />
-                            {taskListEnabled && <MantineRichTextEditor.TaskList />}
-                            {textColorEnabled && <MantineRichTextEditor.ColorPicker colors={['#25262b', '#fa5252', '#e64980', '#7950f2', '#4c6ef5', '#228be6', '#12b886', '#40c057', '#fab005', '#fd7e14']} />}
-                            <MantineRichTextEditor.Link />
+                            <MantineRichTextEditor.ClearFormatting />
+                            <MantineRichTextEditor.Code />
+                            <MantineRichTextEditor.Highlight />
                         </MantineRichTextEditor.ControlsGroup>
-                    </BubbleMenu>
+
+                        <MantineRichTextEditor.ControlsGroup>
+                            <MantineRichTextEditor.H1 />
+                            <MantineRichTextEditor.H2 />
+                            <MantineRichTextEditor.H3 />
+                            <MantineRichTextEditor.H4 />
+                        </MantineRichTextEditor.ControlsGroup>
+
+                        <MantineRichTextEditor.ControlsGroup>
+                            <MantineRichTextEditor.Blockquote />
+                            <MantineRichTextEditor.Hr />
+                            <MantineRichTextEditor.BulletList />
+                            <MantineRichTextEditor.OrderedList />
+                            {taskListEnabled && (
+                                <>
+                                    <MantineRichTextEditor.TaskList />
+                                    <MantineRichTextEditor.TaskListLift />
+                                    <MantineRichTextEditor.TaskListSink />
+                                </>
+                            )}
+                        </MantineRichTextEditor.ControlsGroup>
+
+                        <MantineRichTextEditor.ControlsGroup>
+                            <MantineRichTextEditor.Link />
+                            <MantineRichTextEditor.Unlink />
+                        </MantineRichTextEditor.ControlsGroup>
+
+                        <MantineRichTextEditor.ControlsGroup>
+                            <MantineRichTextEditor.AlignLeft />
+                            <MantineRichTextEditor.AlignCenter />
+                            <MantineRichTextEditor.AlignJustify />
+                            <MantineRichTextEditor.AlignRight />
+                        </MantineRichTextEditor.ControlsGroup>
+
+                        {textColorEnabled && (
+                            <MantineRichTextEditor.ControlsGroup>
+                                <MantineRichTextEditor.ColorPicker
+                                    colors={[
+                                        '#25262b', '#868e96', '#fa5252', '#e64980', '#be4bdb', '#7950f2', '#4c6ef5',
+                                        '#228be6', '#15aabf', '#12b886', '#40c057', '#82c91e', '#fab005', '#fd7e14'
+                                    ]}
+                                />
+                                <MantineRichTextEditor.UnsetColor />
+                            </MantineRichTextEditor.ControlsGroup>
+                        )}
+
+                        <MantineRichTextEditor.ControlsGroup>
+                            <MantineRichTextEditor.Undo />
+                            <MantineRichTextEditor.Redo />
+                        </MantineRichTextEditor.ControlsGroup>
+                    </MantineRichTextEditor.Toolbar>
+
+                    {/* Bubble menu for quick formatting when text is selected */}
+                    {bubbleMenuEnabled && languageEditor && (
+                        <BubbleMenu editor={languageEditor}>
+                            <MantineRichTextEditor.ControlsGroup>
+                                <MantineRichTextEditor.Bold />
+                                <MantineRichTextEditor.Italic />
+                                <MantineRichTextEditor.Underline />
+                                <MantineRichTextEditor.Strikethrough />
+                                {taskListEnabled && <MantineRichTextEditor.TaskList />}
+                                {textColorEnabled && <MantineRichTextEditor.ColorPicker colors={['#25262b', '#fa5252', '#e64980', '#7950f2', '#4c6ef5', '#228be6', '#12b886', '#40c057', '#fab005', '#fd7e14']} />}
+                                <MantineRichTextEditor.Link />
+                            </MantineRichTextEditor.ControlsGroup>
+                        </BubbleMenu>
+                    )}
+
+                    <MantineRichTextEditor.Content
+                        className={styles.editorContent}
+                        style={{
+                            minHeight: '200px',
+                            padding: '16px'
+                        }}
+                    />
+                </MantineRichTextEditor>
+
+                {/* Hidden input for form submission - only for non-translatable fields */}
+                {!translatable && (
+                    <input
+                        type="hidden"
+                        name={name}
+                        value={currentValue}
+                        required={required}
+                    />
                 )}
+            </Input.Wrapper>
+        );
+    };
 
-                <MantineRichTextEditor.Content
-                    className={styles.editorContent}
-                    style={{
-                        minHeight: '200px',
-                        padding: '16px'
-                    }}
-                />
-            </MantineRichTextEditor>
-
-            {/* Hidden input for form submission */}
-            <input
-                type="hidden"
-                name={name}
-                value={value}
-                required={required}
-            />
-        </Input.Wrapper>
+    return (
+        <LanguageTabsWrapper
+            translatable={translatable}
+            name={name || ''}
+            value={value}
+            onChange={handleValueChange}
+            className={cssClass}
+            styleProps={{ ...styleProps, ...spacingProps }}
+        >
+            {renderRichTextEditor}
+        </LanguageTabsWrapper>
     );
 };
 
