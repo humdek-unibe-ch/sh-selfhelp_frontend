@@ -39,16 +39,17 @@ interface ISingleDataTableProps {
   displayName: string;
   selectedUserId: number; // -1 means all users
   showDeleted: boolean;
+  selectedLanguageId: number;
 }
 
-export default function SingleDataTable({ formId, tableName, displayName, selectedUserId, showDeleted }: ISingleDataTableProps) {
+export default function SingleDataTable({ formId, tableName, displayName, selectedUserId, showDeleted, selectedLanguageId }: ISingleDataTableProps) {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isDeleteRowOpen, setIsDeleteRowOpen] = useState<null | { id: number; label: string }>(null);
   const [isDeleteTableOpen, setIsDeleteTableOpen] = useState(false);
   const deleteRecord = useDeleteRecord();
   const deleteTable = useDeleteTable();
 
-  const { data, isLoading } = useDataRows({ table_name: tableName, user_id: selectedUserId !== -1 ? selectedUserId : undefined, exclude_deleted: !showDeleted });
+  const { data, isLoading } = useDataRows({ table_name: tableName, user_id: selectedUserId !== -1 ? selectedUserId : undefined, exclude_deleted: !showDeleted, language_id: selectedLanguageId });
 
   const rows = data?.rows || [];
   const columns = useMemo<ColumnDef<Record<string, any>>[]>(() => {

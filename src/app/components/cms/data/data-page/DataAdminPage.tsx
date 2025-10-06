@@ -1,24 +1,44 @@
 "use client";
 
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Box, Button, Card, Checkbox, Group, MultiSelect, Select, Stack, Text, Title } from '@mantine/core';
 import { IconDatabaseSearch, IconSettings } from '@tabler/icons-react';
 import { useDataTables, useDataRows, DATA_QUERY_KEYS } from '../../../../../hooks/useData';
 import { useUsers } from '../../../../../hooks/useUsers';
+import { useAdminLanguages } from '../../../../../hooks/useLanguages';
 import type { IUserBasic } from '../../../../../types/responses/admin/users.types';
 import { DataTablesViewer } from '../tables/DataTablesViewer';
 
 export function DataAdminPage() {
-  const [selectedUserId, setSelectedUserId] = useState<number | null>(-1);
-  const [selectedTableIds, setSelectedTableIds] = useState<number[]>([]);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Initialize state from URL parameters
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(() => {
+    const userId = searchParams.get('userId');
+    return userId ? parseInt(userId, 10) : -1;
+  });
+  const [selectedTableIds, setSelectedTableIds] = useState<number[]>(() => {
+    const tableIds = searchParams.get('tableIds');
+    return tableIds ? tableIds.split(',').map(id => parseInt(id, 10)).filter(id => !isNaN(id)) : [];
+  });
   const [activeTableIds, setActiveTableIds] = useState<number[]>([]);
-  const [showDeleted, setShowDeleted] = useState(false);
+  const [showDeleted, setShowDeleted] = useState<boolean>(() => {
+    return searchParams.get('showDeleted') === 'true';
+  });
   const [activeSelectedUserId, setActiveSelectedUserId] = useState<number>(-1);
   const [activeShowDeleted, setActiveShowDeleted] = useState<boolean>(false);
+  const [selectedLanguageId, setSelectedLanguageId] = useState<number | null>(() => {
+    const languageId = searchParams.get('languageId');
+    return languageId ? parseInt(languageId, 10) : 1; // Default to 1 (internal)
+  });
+  const [activeSelectedLanguageId, setActiveSelectedLanguageId] = useState<number>(1);
 
   // Users - fetch reasonable amount for dropdown, can be searched if needed
   const { data: usersResp } = useUsers({ page: 1, pageSize: 100, sort: 'email', sortDirection: 'asc' });
   const { data: tablesResp } = useDataTables();
+  const { languages } = useAdminLanguages();
 
   const userOptions = useMemo(() => {
     const users: IUserBasic[] = usersResp?.users || [];
@@ -31,13 +51,76 @@ export function DataAdminPage() {
     return tables.map((t) => ({ value: String(t.id), label: t.displayName || t.name }));
   }, [tablesResp]);
 
+  const languageOptions = useMemo(() => {
+    return languages.map((lang) => ({ value: String(lang.id), label: `${lang.language} (${lang.locale})` }));
+  }, [languages]);
+
+  // Update URL parameters when filter state changes
+  const updateUrlParams = useCallback((params: {
+    userId?: number | null;
+    tableIds?: number[];
+    showDeleted?: boolean;
+    languageId?: number | null;
+  }) => {
+    const url = new URL(window.location.href);
+    const searchParams = new URLSearchParams(url.search);
+
+    if (params.userId !== undefined && params.userId !== null && params.userId !== -1) {
+      searchParams.set('userId', params.userId.toString());
+    } else {
+      searchParams.delete('userId');
+    }
+
+    if (params.tableIds !== undefined && params.tableIds.length > 0) {
+      searchParams.set('tableIds', params.tableIds.join(','));
+    } else {
+      searchParams.delete('tableIds');
+    }
+
+    if (params.showDeleted !== undefined && params.showDeleted) {
+      searchParams.set('showDeleted', 'true');
+    } else {
+      searchParams.delete('showDeleted');
+    }
+
+    if (params.languageId !== undefined && params.languageId !== null && params.languageId !== 1) {
+      searchParams.set('languageId', params.languageId.toString());
+    } else {
+      searchParams.delete('languageId');
+    }
+
+    const newUrl = `${url.pathname}${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+    router.replace(newUrl, { scroll: false });
+  }, [router]);
+
   const handleSearch = useCallback(() => {
     // Apply filters only when Search is pressed
-    setActiveSelectedUserId(selectedUserId ?? -1);
+    const userId = selectedUserId ?? -1;
+    const languageId = selectedLanguageId ?? 1;
+    const tableIds = selectedTableIds.includes(-1) ? [-1] : [...selectedTableIds];
+
+    setActiveSelectedUserId(userId);
     setActiveShowDeleted(showDeleted);
-    if (selectedTableIds.includes(-1)) { setActiveTableIds([-1]); return; }
-    setActiveTableIds([...selectedTableIds]);
-  }, [selectedTableIds, selectedUserId, showDeleted]);
+    setActiveSelectedLanguageId(languageId);
+    setActiveTableIds(tableIds);
+
+    // Update URL with current filter state
+    updateUrlParams({
+      userId: userId !== -1 ? userId : undefined,
+      tableIds: tableIds.length > 0 && !tableIds.includes(-1) ? tableIds : undefined,
+      showDeleted: showDeleted || undefined,
+      languageId: languageId !== 1 ? languageId : undefined,
+    });
+  }, [selectedTableIds, selectedUserId, showDeleted, selectedLanguageId, updateUrlParams]);
+
+  // Auto-search when URL contains parameters on page load
+  useEffect(() => {
+    const hasUrlParams = searchParams.get('userId') || searchParams.get('tableIds') || searchParams.get('showDeleted') || searchParams.get('languageId');
+    if (hasUrlParams && activeTableIds.length === 0) {
+      // Only auto-search if we haven't applied filters yet
+      handleSearch();
+    }
+  }, []); // Empty dependency array - only run once on mount
 
   return (
     <Stack gap="lg">
@@ -60,10 +143,28 @@ export function DataAdminPage() {
             placeholder="Select user"
             data={userOptions}
             value={selectedUserId !== null ? String(selectedUserId) : null}
-            onChange={(val) => setSelectedUserId(val ? parseInt(val, 10) : null)}
+            onChange={(val) => {
+              const newValue = val ? parseInt(val, 10) : null;
+              setSelectedUserId(newValue);
+              updateUrlParams({ userId: newValue });
+            }}
             searchable
             clearable
             w={320}
+          />
+          <Select
+            label="Language"
+            placeholder="Select language"
+            data={languageOptions}
+            value={selectedLanguageId !== null ? String(selectedLanguageId) : null}
+            onChange={(val) => {
+              const newValue = val ? parseInt(val, 10) : null;
+              setSelectedLanguageId(newValue);
+              updateUrlParams({ languageId: newValue });
+            }}
+            searchable
+            clearable
+            w={200}
           />
           <MultiSelect
             label="Data tables"
@@ -73,7 +174,9 @@ export function DataAdminPage() {
             onChange={(vals) => {
               const parsed = vals.map((v) => parseInt(v, 10));
               // If -1 (All) is chosen, keep only -1
-              setSelectedTableIds(parsed.includes(-1) ? [-1] : parsed);
+              const newTableIds = parsed.includes(-1) ? [-1] : parsed;
+              setSelectedTableIds(newTableIds);
+              updateUrlParams({ tableIds: newTableIds });
             }}
             searchable
             clearable
@@ -82,7 +185,11 @@ export function DataAdminPage() {
           <Checkbox
             label="Show deleted rows"
             checked={showDeleted}
-            onChange={(e) => setShowDeleted(e.currentTarget.checked)}
+            onChange={(e) => {
+              const newValue = e.currentTarget.checked;
+              setShowDeleted(newValue);
+              updateUrlParams({ showDeleted: newValue });
+            }}
           />
           <Button leftSection={<IconDatabaseSearch size={16} />} onClick={handleSearch}>
             Search
@@ -94,6 +201,7 @@ export function DataAdminPage() {
         activeTableIds={activeTableIds}
         selectedUserId={activeSelectedUserId}
         showDeleted={activeShowDeleted}
+        selectedLanguageId={activeSelectedLanguageId}
       />
     </Stack>
   );

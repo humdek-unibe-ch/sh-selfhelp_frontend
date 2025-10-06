@@ -9,17 +9,29 @@ interface IDataTablesViewerProps {
   activeTableIds: number[]; // includes -1 for all
   selectedUserId: number; // -1 means all
   showDeleted: boolean;
+  selectedLanguageId: number;
 }
 
-export function DataTablesViewer({ activeTableIds, selectedUserId, showDeleted }: IDataTablesViewerProps) {
+export function DataTablesViewer({ activeTableIds, selectedUserId, showDeleted, selectedLanguageId }: IDataTablesViewerProps) {
   const { data: tablesResp, isLoading } = useDataTables();
   const tables = tablesResp?.dataTables || [];
   const [opened, setOpened] = useState<string[]>([]);
 
-  // Reset opened panels when selection changes to prevent mass mounting
+  // Only reset opened panels when the actual selected tables change, not when filters change
   useEffect(() => {
-    setOpened([]);
-  }, [activeTableIds, selectedUserId, showDeleted]);
+    // Keep previously opened panels that are still in the current selection
+    setOpened(prevOpened => {
+      if (activeTableIds.length === 0) return [];
+      if (activeTableIds.includes(-1)) {
+        // If "all tables" is selected, keep all previously opened panels that still exist
+        return prevOpened.filter(id => tables.some(t => String(t.id) === id));
+      } else {
+        // Filter to only keep panels that are still in the current selection
+        const currentTableIds = new Set(activeTableIds.map(String));
+        return prevOpened.filter(id => currentTableIds.has(id));
+      }
+    });
+  }, [activeTableIds, tables]); // Only depend on activeTableIds and tables, not filter parameters
 
   const selectedTables = useMemo(() => {
     if (!tables.length) return [] as { id: number; name: string; displayName: string }[];
@@ -58,6 +70,7 @@ export function DataTablesViewer({ activeTableIds, selectedUserId, showDeleted }
                 displayName={t.displayName}
                 selectedUserId={selectedUserId}
                 showDeleted={showDeleted}
+                selectedLanguageId={selectedLanguageId}
               />
             ) : (
               <Text c="dimmed" size="sm">Expand to load data…</Text>

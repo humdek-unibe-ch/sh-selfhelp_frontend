@@ -15,10 +15,10 @@ import type {
 export const DATA_QUERY_KEYS = {
   all: ['admin', 'data'] as const,
   tables: () => [...DATA_QUERY_KEYS.all, 'tables'] as const,
-  rows: (tableName: string, userId?: number, excludeDeleted: boolean = true) => [
+  rows: (tableName: string, userId?: number, excludeDeleted: boolean = true, languageId?: number) => [
     ...DATA_QUERY_KEYS.all,
     'rows',
-    { tableName, userId: userId ?? -1, excludeDeleted },
+    { tableName, userId: userId ?? -1, excludeDeleted, languageId: languageId ?? 1 },
   ] as const,
   columns: (tableName: string) => [...DATA_QUERY_KEYS.all, 'columns', tableName] as const,
   columnNames: (tableName: string) => [...DATA_QUERY_KEYS.all, 'column-names', tableName] as const,
@@ -35,11 +35,11 @@ export function useDataTables() {
   });
 }
 
-export function useDataRows(params: { table_name: string; user_id?: number; exclude_deleted?: boolean }) {
-  const { table_name, user_id, exclude_deleted } = params;
+export function useDataRows(params: { table_name: string; user_id?: number; exclude_deleted?: boolean; language_id?: number }) {
+  const { table_name, user_id, exclude_deleted, language_id } = params;
   return useQuery<IDataRowsResponse>({
-    queryKey: DATA_QUERY_KEYS.rows(table_name, user_id, exclude_deleted ?? true),
-    queryFn: () => AdminDataApi.getDataRows({ table_name, user_id, exclude_deleted }),
+    queryKey: DATA_QUERY_KEYS.rows(table_name, user_id, exclude_deleted ?? true, language_id),
+    queryFn: () => AdminDataApi.getDataRows({ table_name, user_id, exclude_deleted, language_id }),
     enabled: !!table_name,
     staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.REAL_TIME.staleTime,
     gcTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.REAL_TIME.gcTime,

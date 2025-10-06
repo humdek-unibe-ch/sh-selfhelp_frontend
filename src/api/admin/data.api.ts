@@ -18,12 +18,13 @@ export const AdminDataApi = {
     return response.data.data;
   },
 
-  async getDataRows(params: { table_name: string; user_id?: number; exclude_deleted?: boolean }): Promise<IDataRowsResponse> {
+  async getDataRows(params: { table_name: string; user_id?: number; exclude_deleted?: boolean; language_id?: number }): Promise<IDataRowsResponse> {
     const search = new URLSearchParams();
     search.append('table_name', params.table_name);
     if (params.user_id !== undefined) search.append('user_id', String(params.user_id));
     // Always request all rows and handle deleted visibility on client by hiding delete action when already deleted
     if (params.exclude_deleted !== undefined) search.append('exclude_deleted', String(params.exclude_deleted));
+    if (params.language_id !== undefined) search.append('language_id', String(params.language_id));
     const url = `${API_CONFIG.ENDPOINTS.ADMIN_DATA_ROWS_GET}?${search.toString()}`;
     const response = await apiClient.get<IBaseApiResponse<IDataRowsResponse>>(url);
     return response.data.data;

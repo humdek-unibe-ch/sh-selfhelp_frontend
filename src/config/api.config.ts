@@ -149,7 +149,7 @@ export const API_CONFIG = {
 
         // Admin data management endpoints
         ADMIN_DATA_TABLES_LIST: '/admin/data/tables',
-        ADMIN_DATA_ROWS_GET: '/admin/data', // query params: form_id, user_id?, exclude_deleted?
+        ADMIN_DATA_ROWS_GET: '/admin/data', // query params: table_name, user_id?, exclude_deleted?, language_id?
         ADMIN_DATA_TABLE_COLUMNS_GET: (tableName: string) => `/admin/data/tables/${tableName}/columns`,
         ADMIN_DATA_TABLE_COLUMN_NAMES_GET: (tableName: string) => `/admin/data/tables/${tableName}/column-names`,
         ADMIN_DATA_TABLE_COLUMNS_DELETE: (tableName: string) => `/admin/data/tables/${tableName}/columns`,
