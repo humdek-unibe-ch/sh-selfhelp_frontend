@@ -134,7 +134,7 @@ const RichTextEditorStyle: React.FC<IRichTextEditorStyleProps> = ({ style, style
                     label={label}
                     description={parse(sanitizeHtmlForParsing(description))}
                     required={required}
-                    {...styleProps} className={cssClass}
+                    {...(translatable ? undefined : { ...styleProps, ...spacingProps })} className={translatable ? undefined : cssClass}
                 >
                     <textarea
                         name={translatable ? undefined : name} // Don't set name for translatable fields - handled by wrapper
@@ -168,7 +168,7 @@ const RichTextEditorStyle: React.FC<IRichTextEditorStyleProps> = ({ style, style
                 label={label}
                 description={parse(sanitizeHtmlForInline(description))}
                 required={required}
-                {...styleProps} className={cssClass}
+                {...(translatable ? undefined : { ...styleProps, ...spacingProps })} className={translatable ? undefined : cssClass}
             >
                 <MantineRichTextEditor
                     editor={languageEditor}
@@ -279,8 +279,8 @@ const RichTextEditorStyle: React.FC<IRichTextEditorStyleProps> = ({ style, style
             name={name || ''}
             value={value}
             onChange={handleValueChange}
-            className={cssClass}
-            styleProps={{ ...styleProps, ...spacingProps }}
+            className={translatable ? cssClass : undefined}
+            styleProps={translatable ? { ...styleProps, ...spacingProps } : styleProps}
         >
             {renderRichTextEditor}
         </LanguageTabsWrapper>

@@ -81,7 +81,7 @@ const InputStyle: React.FC<IInputStyleProps> = ({ style, cssClass }) => {
                 required={required}
                 min={min}
                 max={max}
-                className={cssClass}
+                className={translatable ? undefined : cssClass}
                 disabled={disabled}
                 {...checkboxProps}
             />
@@ -94,7 +94,7 @@ const InputStyle: React.FC<IInputStyleProps> = ({ style, cssClass }) => {
             name={name || ''}
             value={value}
             onChange={handleValueChange}
-            className={cssClass}
+            className={translatable ? cssClass : undefined}
         >
             {renderInput}
         </LanguageTabsWrapper>

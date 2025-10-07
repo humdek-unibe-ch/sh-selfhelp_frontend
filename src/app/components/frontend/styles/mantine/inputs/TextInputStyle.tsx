@@ -69,7 +69,7 @@ const TextInputStyle: React.FC<ITextInputStyleProps> = ({ style, styleProps, css
 
         return (
             <TextInput
-                {...styleProps} className={cssClass}
+                {...(translatable ? undefined : { ...styleProps, ...spacingProps })} className={translatable ? undefined : cssClass}
                 placeholder={placeholder}
                 required={required}
                 value={currentValue}
@@ -93,8 +93,8 @@ const TextInputStyle: React.FC<ITextInputStyleProps> = ({ style, styleProps, css
             name={name || ''}
             value={value}
             onChange={handleValueChange}
-            className={cssClass}
-            styleProps={{ ...styleProps, ...spacingProps }}
+            className={translatable ? cssClass : undefined}
+            styleProps={translatable ? { ...styleProps, ...spacingProps } : styleProps}
         >
             {renderTextInput}
         </LanguageTabsWrapper>

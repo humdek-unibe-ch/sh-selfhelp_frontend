@@ -79,13 +79,14 @@ const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style, styleProps, cssCl
             return (
                 <textarea
                     name={translatable ? undefined : name} // Don't set name for translatable fields - handled by wrapper
-                    className={cssClass}
+                    className={translatable ? undefined : cssClass}
                     value={currentValue}
                     onChange={handleChange}
                     disabled={disabled}
                     rows={minRows}
                     required={required}
                     placeholder={placeholder}
+                    style={translatable ? undefined : spacingProps}
                 />
             );
         }
@@ -95,8 +96,8 @@ const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style, styleProps, cssCl
                 label={label}
                 description={parse(sanitizeHtmlForParsing(description))}
                 required={required}
-                className={cssClass}
-                {...styleProps}
+                className={translatable ? undefined : cssClass}
+                {...(translatable ? undefined : { ...styleProps, ...spacingProps })}
             >
                 <Textarea
                     placeholder={placeholder}
@@ -125,8 +126,8 @@ const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style, styleProps, cssCl
             name={name || ''}
             value={value}
             onChange={handleValueChange}
-            className={cssClass}
-            styleProps={{ ...styleProps, ...spacingProps }}
+            className={translatable ? cssClass : undefined}
+            styleProps={translatable ? { ...styleProps, ...spacingProps } : styleProps}
         >
             {renderTextarea}
         </LanguageTabsWrapper>
