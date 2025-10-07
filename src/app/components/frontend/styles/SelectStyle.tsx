@@ -43,13 +43,13 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style, cssClass }) => {
     // Use form value if available, otherwise use initial value from style
     const [selectedValue, setSelectedValue] = useState<string | string[]>(
         isMultiple
-            ? (formValue ? formValue.split(',') : (value ? value.split(',') : []))
-            : (formValue || value || '')
+            ? (formValue && typeof formValue === 'string' ? formValue.split(',') : (value ? value.split(',') : []))
+            : (formValue && typeof formValue === 'string' ? formValue : (value || ''))
     );
 
     // Update value when form context changes (for record editing)
     useEffect(() => {
-        if (formValue !== null) {
+        if (formValue !== null && typeof formValue === 'string') {
             setSelectedValue(isMultiple ? formValue.split(',') : formValue);
         }
     }, [formValue, isMultiple]);

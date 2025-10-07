@@ -24,7 +24,7 @@ const FileInputRegistrationContext = React.createContext<{
  * Context for sharing form field values with child components
  */
 const FormFieldValueContext = React.createContext<{
-    getFieldValue: (fieldName: string) => string | null;
+    getFieldValue: (fieldName: string) => string | Array<{ language_id: number; value: string }> | null;
 } | null>(null);
 
 export { FileInputRegistrationContext, FormFieldValueContext };
@@ -82,14 +82,68 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) =>
         if (!isRecord) return { existingRecordId: null as number | null, existingFormDataFromSection: null as Record<string, any> | null };
 
         // The record form's section_data lives on the parent form style (`style.section_data`)
-        // and contains key-value pairs where keys match input names inside the form.
+        // and contains records with translations for different languages.
         const sectionDataArray: any[] | undefined = style.section_data;
-        const firstRecord = Array.isArray(sectionDataArray) && sectionDataArray.length > 0 ? sectionDataArray[0] : null;
+        if (!Array.isArray(sectionDataArray) || sectionDataArray.length === 0) {
+            return { existingRecordId: null, existingFormDataFromSection: null };
+        }
 
-        if (!firstRecord) return { existingRecordId: null, existingFormDataFromSection: null };
+        // Group data by record_id
+        const recordGroups: Record<number, Record<string, any>> = {};
 
-        const { record_id, ...rest } = firstRecord as Record<string, any>;
-        return { existingRecordId: record_id ?? null, existingFormDataFromSection: rest };
+        sectionDataArray.forEach((record: any) => {
+            const recordId = record.record_id;
+            if (!recordId) return;
+
+            if (!recordGroups[recordId]) {
+                recordGroups[recordId] = {};
+            }
+
+            // For each field in the record (excluding metadata fields)
+            Object.entries(record).forEach(([fieldName, fieldValue]) => {
+                // Skip metadata fields that are not form data
+                const skipFields = ['record_id', 'entry_date', 'id_users', 'user_name', 'user_code', 'id_actionTriggerTypes', 'triggerType', 'id_languages', 'language_locale', 'language_name'];
+                if (skipFields.includes(fieldName)) return;
+
+                const languageId = record.id_languages;
+                const value = fieldValue as string;
+
+                // Check if this field is translatable by looking at the child components
+                const childComponent = style.children?.find((child: any) => child.name?.content === fieldName);
+                const isTranslatable = (childComponent as any)?.translatable?.content === '1';
+
+                if (isTranslatable) {
+                    // For translatable fields, collect values from all languages except 1
+                    if (languageId !== 1) {
+                        if (!recordGroups[recordId][fieldName]) {
+                            recordGroups[recordId][fieldName] = [];
+                        }
+
+                        // Add or update the language-specific value
+                        const existingIndex = recordGroups[recordId][fieldName].findIndex((v: any) => v.language_id === languageId);
+                        if (existingIndex >= 0) {
+                            recordGroups[recordId][fieldName][existingIndex] = { language_id: languageId, value };
+                        } else {
+                            recordGroups[recordId][fieldName].push({ language_id: languageId, value });
+                        }
+                    }
+                } else {
+                    // For non-translatable fields, use value from language_id: 1 (or any language if 1 is not available)
+                    if (languageId === 1 || !recordGroups[recordId][fieldName]) {
+                        recordGroups[recordId][fieldName] = value;
+                    }
+                }
+            });
+        });
+
+        // Get the first record group (assuming single record forms)
+        const firstRecordId = Object.keys(recordGroups)[0];
+        if (!firstRecordId) return { existingRecordId: null, existingFormDataFromSection: null };
+
+        const recordId = parseInt(firstRecordId);
+        const formData = recordGroups[recordId];
+
+        return { existingRecordId: recordId, existingFormDataFromSection: formData };
     }, [isRecord, style]);
 
     // Function to collect files from all FileInput components
@@ -449,18 +503,22 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) =>
     ]);
 
     // Function to get field value from existing form data
-    const getFieldValue = useCallback((fieldName: string): string | null => {
+    const getFieldValue = useCallback((fieldName: string): string | Array<{ language_id: number; value: string }> | null => {
         if (!isRecord || !existingFormDataFromSection) return null;
         const value = existingFormDataFromSection[fieldName];
-        return value !== null && value !== undefined ? String(value) : null;
+        return value !== null && value !== undefined ? value : null;
     }, [isRecord, existingFormDataFromSection]);
 
     // Pre-populate form fields for record types with existing data from section_data
+    // Note: Translatable fields are handled by LanguageTabsWrapper, so we skip them here
     useEffect(() => {
         if (isRecord && existingFormDataFromSection) {
             const form = formRef.current as HTMLFormElement | null;
             if (form) {
                 Object.entries(existingFormDataFromSection).forEach(([fieldName, value]) => {
+                    // Skip translatable fields (arrays) as they are handled by LanguageTabsWrapper
+                    if (Array.isArray(value)) return;
+
                     const field = form.querySelector(`[name="${fieldName}"]`) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
                     if (field && value !== null && value !== undefined) {
                         field.value = String(value);

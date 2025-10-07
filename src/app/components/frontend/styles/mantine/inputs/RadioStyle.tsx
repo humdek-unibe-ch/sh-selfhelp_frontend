@@ -73,12 +73,12 @@ const RadioStyle: React.FC<IRadioStyleProps> = ({ style, styleProps, cssClass })
 
     // State for controlled component - use form value if available, otherwise use style value
     const [selectedValue, setSelectedValue] = useState<string>(() => {
-        return formValue || value || '';
+        return (formValue && typeof formValue === 'string') ? formValue : (value || '');
     });
 
     // Update state when form context or value prop changes
     useEffect(() => {
-        if (formValue !== null) {
+        if (formValue !== null && typeof formValue === 'string') {
             setSelectedValue(formValue);
         } else {
             setSelectedValue(value || '');

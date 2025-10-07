@@ -57,11 +57,11 @@ const NumberInputStyle: React.FC<INumberInputStyleProps> = ({ style, styleProps,
     const formValue = formContext && name ? formContext.getFieldValue(name) : null;
 
     // Use form value if available, otherwise use initial value from style
-    const [selectedValue, setSelectedValue] = useState(formValue || defaultValue);
+    const [selectedValue, setSelectedValue] = useState(formValue && typeof formValue === 'string' ? formValue : defaultValue);
 
     // Update value when form context changes (for record editing)
     useEffect(() => {
-        if (formValue !== null) {
+        if (formValue !== null && typeof formValue === 'string') {
             setSelectedValue(formValue);
         }
     }, [formValue]);

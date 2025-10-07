@@ -122,8 +122,8 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style, styleProps, c
 
     // Initialize state from form context or style configuration
     const [currentValue, setCurrentValue] = useState<Date | null>(() => {
-        if (formContextValue !== null) {
-            // Use form value if available
+        if (formContextValue !== null && typeof formContextValue === 'string') {
+            // Use form value if available and it's a string
             try {
                 return dayjs(formContextValue).toDate();
             } catch (error) {
@@ -137,7 +137,7 @@ const DatePickerStyle: React.FC<IDatePickerStyleProps> = ({ style, styleProps, c
 
     // Update value when form context changes (for record editing)
     useEffect(() => {
-        if (formContextValue !== null) {
+        if (formContextValue !== null && typeof formContextValue === 'string') {
             try {
                 setCurrentValue(dayjs(formContextValue).toDate());
             } catch (error) {

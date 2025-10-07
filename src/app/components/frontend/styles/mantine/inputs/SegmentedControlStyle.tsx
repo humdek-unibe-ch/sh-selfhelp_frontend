@@ -47,12 +47,12 @@ const SegmentedControlStyle: React.FC<ISegmentedControlStyleProps> = ({ style, s
 
     // Initialize selected value from form context or style configuration
     const [selectedValue, setSelectedValue] = useState<string>(() => {
-        return formValue || styleValue || '';
+        return (formValue && typeof formValue === 'string') ? formValue : (styleValue || '');
     });
 
     // Update selected value when form context changes (for record editing)
     useEffect(() => {
-        if (formValue !== null) {
+        if (formValue !== null && typeof formValue === 'string') {
             setSelectedValue(formValue);
         }
     }, [formValue]);

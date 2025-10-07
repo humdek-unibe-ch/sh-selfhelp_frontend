@@ -76,14 +76,10 @@ const RangeSliderStyle: React.FC<IRangeSliderStyleProps> = ({ style, styleProps,
 
     // Initialize value from form context or style configuration
     const [value, setValue] = useState<[number, number]>(() => {
-        if (formValue !== null) {
-            // Use form value if available - might be JSON string or already parsed array
+        if (formValue !== null && typeof formValue === 'string') {
+            // Use form value if available and it's a string - might be JSON string
             try {
-                if (typeof formValue === 'string') {
-                    return JSON.parse(formValue) as [number, number];
-                } else if (Array.isArray(formValue)) {
-                    return formValue as [number, number];
-                }
+                return JSON.parse(formValue) as [number, number];
             } catch (error) {
                 console.warn('Failed to parse range slider form value:', formValue);
             }
@@ -100,16 +96,9 @@ const RangeSliderStyle: React.FC<IRangeSliderStyleProps> = ({ style, styleProps,
 
     // Update value when form context changes (for record editing)
     useEffect(() => {
-        if (formValue !== null) {
+        if (formValue !== null && typeof formValue === 'string') {
             try {
-                let parsedValue: [number, number];
-                if (typeof formValue === 'string') {
-                    parsedValue = JSON.parse(formValue) as [number, number];
-                } else if (Array.isArray(formValue)) {
-                    parsedValue = formValue as [number, number];
-                } else {
-                    return; // Invalid format
-                }
+                const parsedValue = JSON.parse(formValue) as [number, number];
                 setValue(parsedValue);
             } catch (error) {
                 console.warn('Failed to parse updated range slider form value:', formValue);

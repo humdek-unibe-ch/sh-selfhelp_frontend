@@ -1,6 +1,9 @@
 delete from fields
 where id > 233;
 
+-- Create 'mantine' style group for Mantine-specific components
+INSERT IGNORE INTO `styleGroup` (`id`, `name`, `description`, `position`) VALUES (NULL, 'mantine', 'Mantine UI components for modern web interfaces', 10);
+
 -- ===========================================
 -- STYLES.SQL - MANTINE COMPONENTS DEFINITION
 -- ===========================================
@@ -111,230 +114,6 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 {"value":"24","text":"XL (24px)"},
 {"value":"32","text":"XXL (32px)"}
 ]}');
-
--- ===========================================
--- ADD SPACING FIELDS TO ALL STYLES
--- ===========================================
-
--- Styles with only margin fields (IStyleWithMargin)
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
--- login
-(get_style_id('login'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Login component', 0, 0, 'Margin'),
-
--- textarea
-(get_style_id('textarea'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Textarea component', 0, 0, 'Margin'),
-
--- rich-text-editor
-(get_style_id('rich-text-editor'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the RichTextEditor component', 0, 0, 'Margin'),
-
--- radio
-(get_style_id('radio'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Radio component', 0, 0, 'Margin'),
-
--- slider
-(get_style_id('slider'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Slider component', 0, 0, 'Margin'),
-
--- checkbox
-(get_style_id('checkbox'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Checkbox component', 0, 0, 'Margin'),
-
--- datepicker
-(get_style_id('datepicker'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the DatePicker component', 0, 0, 'Margin'),
-
--- image
-(get_style_id('image'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Image component', 0, 0, 'Margin'),
-
--- link
-(get_style_id('link'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Link component', 0, 0, 'Margin'),
-
--- tabs
-(get_style_id('tabs'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Tabs component', 0, 0, 'Margin'),
-
--- color-input
-(get_style_id('color-input'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the ColorInput component', 0, 0, 'Margin'),
-
--- color-picker
-(get_style_id('color-picker'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the ColorPicker component', 0, 0, 'Margin'),
-
--- file-input
-(get_style_id('file-input'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the FileInput component', 0, 0, 'Margin'),
-
--- number-input
-(get_style_id('number-input'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the NumberInput component', 0, 0, 'Margin'),
-
--- range-slider
-(get_style_id('range-slider'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the RangeSlider component', 0, 0, 'Margin'),
-
--- segmented-control
-(get_style_id('segmented-control'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the SegmentedControl component', 0, 0, 'Margin'),
-
--- switch
-(get_style_id('switch'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Switch component', 0, 0, 'Margin'),
-
--- combobox
-(get_style_id('combobox'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Combobox component', 0, 0, 'Margin'),
-
--- action-icon
-(get_style_id('action-icon'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the ActionIcon component', 0, 0, 'Margin'),
-
--- badge
-(get_style_id('badge'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Badge component', 0, 0, 'Margin'),
-
--- chip
-(get_style_id('chip'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Chip component', 0, 0, 'Margin'),
-
--- avatar
-(get_style_id('avatar'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Avatar component', 0, 0, 'Margin'),
-
--- timeline
-(get_style_id('timeline'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Timeline component', 0, 0, 'Margin'),
-
--- kbd
-(get_style_id('kbd'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Kbd component', 0, 0, 'Margin'),
-
--- rating
-(get_style_id('rating'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Rating component', 0, 0, 'Margin'),
-
--- progress
-(get_style_id('progress'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Progress component', 0, 0, 'Margin'),
-
--- theme-icon
-(get_style_id('theme-icon'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the ThemeIcon component', 0, 0, 'Margin'),
-
--- title
-(get_style_id('title'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Title component', 0, 0, 'Margin'),
-
--- tab
-(get_style_id('tab'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Tab component', 0, 0, 'Margin'),
-
--- indicator
-(get_style_id('indicator'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Indicator component', 0, 0, 'Margin'),
-
--- divider
-(get_style_id('divider'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Divider component', 0, 0, 'Margin'),
-
--- progress-section
-(get_style_id('progress-section'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the ProgressSection component', 0, 0, 'Margin'),
-
--- progress-root
-(get_style_id('progress-root'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the ProgressRoot component', 0, 0, 'Margin'),
-
--- aspect-ratio
-(get_style_id('aspect-ratio'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the AspectRatio component', 0, 0, 'Margin'),
-
--- text-input
-(get_style_id('text-input'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the TextInput component', 0, 0, 'Margin'),
-
--- figure
-(get_style_id('figure'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Figure component', 0, 0, 'Margin'),
-
--- video
-(get_style_id('video'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Video component', 0, 0, 'Margin'),
-
--- audio
-(get_style_id('audio'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Audio component', 0, 0, 'Margin');
-
--- Styles with margin and padding fields (IStyleWithMarginAndPadding)
-INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
--- register
-(get_style_id('register'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Register component', 0, 0, 'Spacing'),
-
--- resetPassword
-(get_style_id('resetPassword'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the ResetPassword component', 0, 0, 'Spacing'),
-
--- twoFactorAuth
-(get_style_id('twoFactorAuth'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the TwoFactorAuth component', 0, 0, 'Spacing'),
-
--- container
-(get_style_id('container'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Container component', 0, 0, 'Spacing'),
-
--- paper
-(get_style_id('paper'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Paper component', 0, 0, 'Spacing'),
-
--- alert
-(get_style_id('alert'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Alert component', 0, 0, 'Spacing'),
-
--- form-log
-(get_style_id('form-log'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the FormLog component', 0, 0, 'Spacing'),
-
--- form-record
-(get_style_id('form-record'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the FormRecord component', 0, 0, 'Spacing'),
-
--- carousel
-(get_style_id('carousel'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Carousel component', 0, 0, 'Spacing'),
-
--- flex
-(get_style_id('flex'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Flex component', 0, 0, 'Spacing'),
-
--- group
-(get_style_id('group'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Group component', 0, 0, 'Spacing'),
-
--- simple-grid
-(get_style_id('simple-grid'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the SimpleGrid component', 0, 0, 'Spacing'),
-
--- scroll-area
-(get_style_id('scroll-area'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the ScrollArea component', 0, 0, 'Spacing'),
-
--- grid
-(get_style_id('grid'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Grid component', 0, 0, 'Spacing'),
-
--- grid-column
-(get_style_id('grid-column'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the GridColumn component', 0, 0, 'Spacing'),
-
--- space
-(get_style_id('space'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Space component', 0, 0, 'Spacing'),
-
--- stack
-(get_style_id('stack'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Stack component', 0, 0, 'Spacing'),
-
--- accordion
-(get_style_id('accordion'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Accordion component', 0, 0, 'Spacing'),
-
--- accordion-item
-(get_style_id('accordion-item'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the AccordionItem component', 0, 0, 'Spacing'),
-
--- notification
-(get_style_id('notification'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Notification component', 0, 0, 'Spacing'),
-
--- text
-(get_style_id('text'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Text component', 0, 0, 'Spacing'),
-
--- code
-(get_style_id('code'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Code component', 0, 0, 'Spacing'),
-
--- highlight
-(get_style_id('highlight'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Highlight component', 0, 0, 'Spacing'),
-
--- blockquote
-(get_style_id('blockquote'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Blockquote component', 0, 0, 'Spacing'),
-
--- card
-(get_style_id('card'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Card component', 0, 0, 'Spacing'),
-
--- card-segment
-(get_style_id('card-segment'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the CardSegment component', 0, 0, 'Spacing'),
-
--- list
-(get_style_id('list'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the List component', 0, 0, 'Spacing'),
-
--- list-item
-(get_style_id('list-item'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the ListItem component', 0, 0, 'Spacing'),
-
--- background-image
-(get_style_id('background-image'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the BackgroundImage component', 0, 0, 'Spacing'),
-
--- fieldset
-(get_style_id('fieldset'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Fieldset component', 0, 0, 'Spacing'),
-
--- spoiler
-(get_style_id('spoiler'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Spoiler component', 0, 0, 'Spacing'),
-
--- box
-(get_style_id('box'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Box component', 0, 0, 'Spacing'),
-
--- typography
-(get_style_id('typography'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Typography component', 0, 0, 'Spacing'),
-
--- center
-(get_style_id('center'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Center component', 0, 0, 'Spacing');
 
 -- Add global tooltip field (reusable across all components)
 
@@ -768,10 +547,10 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 -- ===========================================
 
 -- Add new style 'box' based on Mantine Box component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'box',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Box component as a base for all Mantine components with style props support',
     1
@@ -863,10 +642,10 @@ WHERE id_fields = get_field_id('url') and id_styles = get_style_id('button');
 INSERT IGNORE INTO `styleGroup` (`id`, `name`, `description`, `position`) VALUES (NULL, 'mantine', 'Mantine UI components for modern web interfaces', 15);
 
 -- Add new style 'center' based on Mantine Center component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'center',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Center component for centering content',
     1
@@ -976,10 +755,10 @@ VALUES (get_style_id('center'), get_field_id('mantine_mah'), NULL, 'Sets the max
 
 
 -- Add new style 'container' based on Mantine Container component (core props only)
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'container',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Container component for responsive layout containers',
     1
@@ -1106,10 +885,10 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 -- ===========================================
 
 -- Add new style 'flex' based on Mantine Flex component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'flex',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Flex component for flexible layouts',
     1
@@ -1146,10 +925,10 @@ VALUES (get_style_id('flex'), get_field_id('use_mantine_style'), 1, 'If `useMant
 -- ===========================================
 
 -- Add new style 'group' based on Mantine Group component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'group',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Group component for horizontal layouts',
     1
@@ -1194,10 +973,10 @@ VALUES (get_style_id('group'), get_field_id('use_mantine_style'), 1, 'If `useMan
 -- ===========================================
 
 -- Add new style 'simple-grid' based on Mantine simple-grid component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'simple-grid',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine simple-grid component for responsive grid layouts',
     1
@@ -1240,10 +1019,10 @@ VALUES (get_style_id('simple-grid'), get_field_id('use_mantine_style'), 1, 'If `
 -- ===========================================
 
 -- Add new style 'space' based on Mantine Space component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'space',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Space component for adding spacing',
     0
@@ -1269,10 +1048,10 @@ VALUES (get_style_id('space'), get_field_id('use_mantine_style'), 1, 'If `useMan
 -- ===========================================
 
 -- Add new style 'stack' based on Mantine Stack component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'stack',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Stack component for vertical layouts',
     1
@@ -1303,10 +1082,10 @@ VALUES (get_style_id('stack'), get_field_id('use_mantine_style'), 1, 'If `useMan
 -- ===========================================
 
 -- Add new style 'grid' based on Mantine Grid component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'grid',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Grid component for responsive 12 columns grid system',
     0
@@ -1349,10 +1128,10 @@ VALUES (get_style_id('grid'), get_field_id('use_mantine_style'), 1, 'If `useMant
 -- ===========================================
 
 -- Add new style 'grid-column' based on Mantine Grid.Col component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'grid-column',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Grid.Col component for grid column with span, offset, and order controls',
     1
@@ -1442,10 +1221,10 @@ VALUES (get_style_id('grid-column'), get_field_id('use_mantine_style'), 1, 'If `
 -- ===========================================
 
 -- Add new style 'tabs' based on Mantine Tabs component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'tabs',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Tabs component for switching between different views',
     0
@@ -1496,10 +1275,10 @@ VALUES (get_style_id('tabs'), get_field_id('use_mantine_style'), 1, 'If `useMant
 -- ===========================================
 
 -- Add new style 'tab' based on Mantine Tabs.Tab component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'tab',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Tabs.Tab component for individual tab items within a tabs component. Can contain child components for tab panel content.',
     1
@@ -1545,10 +1324,10 @@ WHERE s1.name = 'grid' AND s2.name = 'grid-column';
 -- ===========================================
 
 -- Add new style 'aspect-ratio' based on Mantine AspectRatio component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'aspect-ratio',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine AspectRatio component for maintaining aspect ratios',
     1
@@ -1576,10 +1355,10 @@ VALUES (get_style_id('aspect-ratio'), get_field_id('use_mantine_style'), 1, 'If 
 -- ===========================================
 
 -- Add new style 'chip' based on Mantine Chip component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'chip',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Chip component for selectable tags',
     0
@@ -1659,20 +1438,20 @@ VALUES (get_style_id('chip'), get_field_id('mantine_tooltip_position'), 'top', '
 -- ===========================================
 
 -- Add new style 'color-input' based on Mantine color-input component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'color-input',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine color-input component for color selection',
     0
 );
 
 -- Add new style 'image' based on Mantine Image component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'image',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Image component for displaying images with various fit options and fallback support',
     0
@@ -1796,10 +1575,10 @@ VALUES (get_style_id('color-input'), get_field_id('description'), '', 'Descripti
 -- ===========================================
 
 -- Add new style 'color-picker' based on Mantine color-picker component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'color-picker',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine color-picker component for color selection',
     0
@@ -1876,10 +1655,10 @@ VALUES (get_style_id('color-picker'), get_field_id('use_mantine_style'), 1, 'If 
 -- ===========================================
 
 -- Add new style 'fieldset' based on Mantine Fieldset component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'fieldset',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Fieldset component for grouping form elements',
     1
@@ -1914,10 +1693,10 @@ VALUES (get_style_id('fieldset'), get_field_id('use_mantine_style'), 1, 'If `use
 -- ===========================================
 
 -- Add new style 'file-input' based on Mantine FileInput component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'file-input',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine FileInput component for file uploads',
     0
@@ -2032,10 +1811,10 @@ VALUES (get_style_id('file-input'), get_field_id('use_mantine_style'), 1, 'If `u
 -- ===========================================
 
 -- Add new style 'number-input' based on Mantine NumberInput component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'number-input',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine NumberInput component for numeric input',
     0
@@ -2132,10 +1911,10 @@ VALUES (get_style_id('number-input'), get_field_id('use_mantine_style'), 1, 'If 
 -- ===========================================
 
 -- Add new style 'radio' based on Mantine Radio component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'radio',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Unified Radio component that can render as single radio or radio group based on options',
     1
@@ -2205,10 +1984,10 @@ VALUES (get_style_id('radio'), get_field_id('use_mantine_style'), 1, 'If `useMan
 -- ===========================================
 
 -- Add new style 'range-slider' based on Mantine range-slider component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'range-slider',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine range-slider component for range selection',
     0
@@ -2284,10 +2063,10 @@ VALUES (get_style_id('range-slider'), get_field_id('value'), '', 'Sets the value
 -- ===========================================
 
 -- Add new style 'slider' based on Mantine slider component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'slider',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine slider component for single value selection',
     0
@@ -2375,10 +2154,10 @@ VALUES (get_style_id('slider'), get_field_id('value'), '', 'Sets the value attri
 -- ===========================================
 
 -- Add new style 'rating' based on Mantine Rating component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'rating',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Rating component for star ratings',
     0
@@ -2469,10 +2248,10 @@ VALUES (get_style_id('rating'), get_field_id('use_mantine_style'), 1, 'If `useMa
 -- ===========================================
 
 -- Add new style 'segmented-control' based on Mantine segmented-control component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'segmented-control',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine segmented-control component for segmented controls',
     0
@@ -2540,10 +2319,10 @@ VALUES (get_style_id('segmented-control'), get_field_id('name'), NULL, 'Sets the
 -- ===========================================
 
 -- Add new style 'switch' based on Mantine Switch component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'switch',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Switch component for toggle switches',
     0
@@ -2617,10 +2396,10 @@ VALUES (get_style_id('switch'), get_field_id('mantine_use_input_wrapper'), 0,'Wh
 -- ===========================================
 
 -- Add new style 'combobox' based on Mantine Combobox component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'combobox',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Combobox component for advanced select inputs',
     0
@@ -2677,10 +2456,10 @@ VALUES (get_style_id('combobox'), get_field_id('mantine_multi_select_max_values'
 -- ===========================================
 
 -- Add new style 'action-icon' based on Mantine ActionIcon component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'action-icon',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine ActionIcon component for interactive icons',
     0
@@ -2730,10 +2509,10 @@ VALUES (get_style_id('action-icon'), get_field_id('open_in_new_tab'), '0', 'If `
 -- ===========================================
 
 -- Add new style 'notification' based on Mantine Notification component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'notification',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Notification component for alerts and messages',
     0
@@ -2779,10 +2558,10 @@ VALUES (get_style_id('notification'), get_field_id('use_mantine_style'), 1, 'If 
 -- ===========================================
 
 -- Add new style 'alert' based on Mantine Alert component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'alert',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Alert component for displaying important messages and notifications',
     1
@@ -2823,10 +2602,10 @@ VALUES (get_style_id('alert'), get_field_id('use_mantine_style'), '1', 'Use Mant
 -- ===========================================
 
 -- Add new style 'accordion' based on Mantine Accordion component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'accordion',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Accordion component for collapsible content',
     1
@@ -2919,10 +2698,10 @@ VALUES (get_style_id('accordion'), get_field_id('use_mantine_style'), '1', 'Use 
 -- ===========================================
 
 -- Add new style 'accordion-item' based on Mantine Accordion.Item component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'accordion-item',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Accordion.Item component for individual accordion items (accepts all children, panels handled in frontend)',
     1
@@ -2956,10 +2735,10 @@ VALUES (get_style_id('accordion-item'), get_field_id('use_mantine_style'), '1', 
 -- ===========================================
 
 -- Add new style 'avatar' based on Mantine Avatar component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'avatar',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Avatar component for user profile images',
     0
@@ -3002,10 +2781,10 @@ VALUES (get_style_id('avatar'), get_field_id('use_mantine_style'), 1, 'If `useMa
 -- ===========================================
 
 -- Add new style 'background-image' based on Mantine background-image component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'background-image',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine background-image component for background images',
     1
@@ -3027,10 +2806,10 @@ VALUES (get_style_id('background-image'), get_field_id('use_mantine_style'), 1, 
 -- ===========================================
 
 -- Add new style 'badge' based on Mantine Badge component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'badge',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Badge component for status indicators and labels',
     0
@@ -3079,10 +2858,10 @@ WHERE s1.name = 'accordion' AND s2.name = 'accordion-item';
 -- ===========================================
 
 -- Add new style 'indicator' based on Mantine Indicator component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'indicator',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Indicator component for status indicators',
     1
@@ -3203,10 +2982,10 @@ VALUES (get_style_id('indicator'), get_field_id('mantine_radius'), 'xl', 'Sets t
 -- ===========================================
 
 -- Add new style 'kbd' based on Mantine Kbd component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'kbd',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Kbd component for keyboard key display',
     0
@@ -3227,10 +3006,10 @@ VALUES (get_style_id('kbd'), get_field_id('label'), '', 'Sets the label text dis
 -- ===========================================
 
 -- Add new style 'spoiler' based on Mantine Spoiler component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'spoiler',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Spoiler component for collapsible text',
     1
@@ -3258,10 +3037,10 @@ VALUES (get_style_id('spoiler'), get_field_id('use_mantine_style'), 1, 'If `useM
 -- ===========================================
 
 -- Add new style 'theme-icon' based on Mantine ThemeIcon component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'theme-icon',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine ThemeIcon component for themed icon containers',
     0
@@ -3293,10 +3072,10 @@ VALUES (get_style_id('theme-icon'), get_field_id('mantine_left_icon'), NULL, 'Se
 -- ===========================================
 
 -- Add new style 'timeline' based on Mantine Timeline component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'timeline',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Timeline component for chronological displays',
     0
@@ -3356,10 +3135,10 @@ VALUES (get_style_id('timeline'), get_field_id('use_mantine_style'), 1, 'If `use
 -- ===========================================
 
 -- Add new style 'timeline-item' based on Mantine Timeline.Item component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'timeline-item',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Timeline.Item component for individual timeline entries',
     1
@@ -3395,10 +3174,10 @@ VALUES (get_style_id('timeline-item'), get_field_id('use_mantine_style'), 1, 'If
 -- ===========================================
 
 -- Add new style 'blockquote' based on Mantine Blockquote component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'blockquote',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Blockquote component for quoted text',
     0
@@ -3432,10 +3211,10 @@ VALUES (get_style_id('blockquote'), get_field_id('use_mantine_style'), 1, 'If `u
 -- ===========================================
 
 -- Add new style 'code' based on Mantine Code component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'code',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Code component for inline code display',
     0
@@ -3462,10 +3241,10 @@ VALUES (get_style_id('code'), get_field_id('use_mantine_style'), 1, 'If `useMant
 -- ===========================================
 
 -- Add new style 'highlight' based on Mantine Highlight component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'highlight',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Highlight component for text highlighting',
     0
@@ -3493,10 +3272,10 @@ VALUES (get_style_id('highlight'), get_field_id('use_mantine_style'), 1, 'If `us
 -- ===========================================
 
 -- Add new style 'title' based on Mantine Title component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'title',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Title component for headings and titles',
     0
@@ -3563,20 +3342,20 @@ VALUES (get_style_id('title'), get_field_id('use_mantine_style'), 1, 'If `useMan
 -- ===========================================
 
 -- Add new style 'list' based on Mantine List component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'list',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine List component for displaying ordered or unordered lists',
     0
 );
 
 -- Add new style 'list-item' based on Mantine List.Item component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'list-item',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine List.Item component for individual list items',
     1
@@ -3630,10 +3409,10 @@ WHERE s1.name = 'list' AND s2.name = 'list-item';
 -- ===========================================
 
 -- Add new style 'typography' based on Mantine Typography component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'typography',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Typography component for consistent typography styles',
     1
@@ -3657,10 +3436,10 @@ WHERE s1.name = 'tabs' AND s2.name = 'tab';
 -- ===========================================
 
 -- Add new style 'divider' based on Mantine Divider component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'divider',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Divider component for visual separation',
     0
@@ -3710,10 +3489,10 @@ VALUES (get_style_id('divider'), get_field_id('use_mantine_style'), 1, 'If `useM
 -- ===========================================
 
 -- Add new style 'paper' based on Mantine Paper component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'paper',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Paper component for elevated surfaces',
     1
@@ -3755,10 +3534,10 @@ VALUES (get_style_id('paper'), get_field_id('use_mantine_style'), 1, 'If `useMan
 -- ===========================================
 
 -- Add new style 'scroll-area' based on Mantine scroll-area component
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'scroll-area',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine scroll-area component for custom scrollbars',
     1
@@ -3816,10 +3595,10 @@ VALUES (get_style_id('scroll-area'), get_field_id('mantine_scroll_area_scroll_hi
 -- ===========================================
 
 -- Add card style
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'card',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Card container component with Mantine styling',
     1
@@ -3851,10 +3630,10 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 -- Removed: mantine_card_with_border (replaced with global mantine_border field)
 
 -- Add card-segment style for child components
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'card-segment',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Card segment component for organizing card content',
     1
@@ -3945,30 +3724,30 @@ WHERE s1.name = 'card' AND s2.name = 'card-segment';
 -- ===========================================
 
 -- Add progress-root style (compound progress component)
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'progress-root',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Progress.Root component for compound progress bars with multiple sections',
     0
 );
 
 -- Add progress style (basic progress component)
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'progress',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Progress component for basic progress bars',
     0
 );
 
 -- Add progress-section style (section within compound progress)
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'progress-section',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Progress.Section component for individual progress sections',
     0
@@ -4027,10 +3806,10 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 (NULL, 'mantine_text_span', get_field_type_id('checkbox'), 0, null);
 
 -- Add text style
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'text',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Text component for displaying text with various styling options',
     0
@@ -4078,10 +3857,10 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 (NULL, 'mantine_carousel_embla_options', get_field_type_id('json'), 0, NULL);
 
 -- Add carousel style
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'carousel',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Carousel component for displaying content in a slideshow format',
     1
@@ -4120,10 +3899,10 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 (NULL, 'mantine_checkbox_labelPosition', get_field_type_id('segment'), 0, '{"options":[{"value":"right","text":"Right"},{"value":"left","text":"Left"}]}');
 
 -- Add checkbox style
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'checkbox',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine Checkbox component for boolean input with customizable styling',
     0
@@ -4174,10 +3953,10 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 (NULL, 'mantine_datepicker_with_seconds', get_field_type_id('checkbox'), 0, null);
 
 -- Add datepicker style
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'datepicker',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine DatePicker component for date, time, and datetime input with comprehensive formatting options',
     0
@@ -4223,10 +4002,10 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 }');
 
 -- Add text-input style
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'text-input',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Mantine TextInput component for controlled text input with validation and sections',
     0
@@ -4266,10 +4045,10 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 }');
 
 -- Add textarea style
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'textarea',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('input'),
     'Textarea component for multi-line text input with autosize and resize options. It supports Mantine styling.',
     0
@@ -4301,10 +4080,10 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 -- ===========================================
 
 -- Add input style (HTML input tag, not Mantine)
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'input',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('input'),
     'HTML input component for various input types (text, email, password, etc.). Renders as standard HTML input tag.',
     0
@@ -4327,10 +4106,10 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 -- ===========================================
 
 -- Add select style (HTML select tag, not Mantine)
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'select',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('input'),
     'HTML select component for dropdown selections. Supports single and multiple selections.',
     0
@@ -4372,10 +4151,10 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 (NULL, 'mantine_rich_text_editor_task_list', get_field_type_id('checkbox'), 0, null);
 
 -- Add rich text editor style
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'rich-text-editor',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('mantine'),
     'Rich text editor component based on Tiptap with toolbar controls for formatting. It supports controlled input for form submission.',
     0
@@ -4533,20 +4312,20 @@ INSERT IGNORE INTO `fields` (`id`, `name`, `id_type`, `display`, `config`) VALUE
 (NULL, 'alert_error', get_field_type_id('textarea'), 1, null);
 
 -- Add form-log style
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'form-log',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('form'),
     'Log form component that clears data after successful submission. Supports multiple entries and form validation.',
     1
 );
 
 -- Add form-record style
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'form-record',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('form'),
     'Record form component that preserves data and updates existing records. Pre-populates fields with existing data.',
     1
@@ -4615,10 +4394,10 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 -- ===========================================
 
 -- Add html-tag style (can have children for flexible custom UI)
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'html-tag',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('wrapper'),
     'Raw HTML tag component for custom flexible UI designs - allows rendering any HTML element with children',
     1
@@ -4729,10 +4508,10 @@ WHERE name = 'confirmation_message';
 -- ===========================================
 
 -- Add new style 'profile' for user profile management
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'profile',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('Admin'),
     'User profile management component with account settings, password reset, and account deletion',
     0
@@ -4941,10 +4720,10 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 -- ===========================================
 
 -- Add validate style (internal form for account validation with token)
-INSERT IGNORE INTO `styles` (`id`, `name`, `id_type`, `id_group`, `description`, `can_have_children`) VALUES (
+INSERT IGNORE INTO `styles` (`id`, `name`, `id_group`, `description`, `can_have_children`) VALUES (
     NULL,
     'validate',
-    (SELECT id FROM lookups WHERE type_code = 'styleType' AND lookup_code = 'component' LIMIT 1),
+    
     get_style_group_id('Admin'),
     'User account validation form that accepts user ID and token from URL, validates and activates account. Can have children for additional form fields.',
     1
@@ -5033,3 +4812,227 @@ INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `
 
 -- Mantine style toggle
 (get_style_id('validate'), get_field_id('use_mantine_style'), '1', 'Use Mantine styling for the validation form component', 0, 1, 'Use Mantine Style');
+
+-- ===========================================
+-- ADD SPACING FIELDS TO ALL STYLES
+-- ===========================================
+
+-- Styles with only margin fields (IStyleWithMargin)
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
+-- login
+(get_style_id('login'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Login component', 0, 0, 'Margin'),
+
+-- textarea
+(get_style_id('textarea'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Textarea component', 0, 0, 'Margin'),
+
+-- rich-text-editor
+(get_style_id('rich-text-editor'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the RichTextEditor component', 0, 0, 'Margin'),
+
+-- radio
+(get_style_id('radio'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Radio component', 0, 0, 'Margin'),
+
+-- slider
+(get_style_id('slider'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Slider component', 0, 0, 'Margin'),
+
+-- checkbox
+(get_style_id('checkbox'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Checkbox component', 0, 0, 'Margin'),
+
+-- datepicker
+(get_style_id('datepicker'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the DatePicker component', 0, 0, 'Margin'),
+
+-- image
+(get_style_id('image'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Image component', 0, 0, 'Margin'),
+
+-- link
+(get_style_id('link'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Link component', 0, 0, 'Margin'),
+
+-- tabs
+(get_style_id('tabs'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Tabs component', 0, 0, 'Margin'),
+
+-- color-input
+(get_style_id('color-input'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the ColorInput component', 0, 0, 'Margin'),
+
+-- color-picker
+(get_style_id('color-picker'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the ColorPicker component', 0, 0, 'Margin'),
+
+-- file-input
+(get_style_id('file-input'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the FileInput component', 0, 0, 'Margin'),
+
+-- number-input
+(get_style_id('number-input'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the NumberInput component', 0, 0, 'Margin'),
+
+-- range-slider
+(get_style_id('range-slider'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the RangeSlider component', 0, 0, 'Margin'),
+
+-- segmented-control
+(get_style_id('segmented-control'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the SegmentedControl component', 0, 0, 'Margin'),
+
+-- switch
+(get_style_id('switch'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Switch component', 0, 0, 'Margin'),
+
+-- combobox
+(get_style_id('combobox'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Combobox component', 0, 0, 'Margin'),
+
+-- action-icon
+(get_style_id('action-icon'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the ActionIcon component', 0, 0, 'Margin'),
+
+-- badge
+(get_style_id('badge'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Badge component', 0, 0, 'Margin'),
+
+-- chip
+(get_style_id('chip'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Chip component', 0, 0, 'Margin'),
+
+-- avatar
+(get_style_id('avatar'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Avatar component', 0, 0, 'Margin'),
+
+-- timeline
+(get_style_id('timeline'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Timeline component', 0, 0, 'Margin'),
+
+-- kbd
+(get_style_id('kbd'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Kbd component', 0, 0, 'Margin'),
+
+-- rating
+(get_style_id('rating'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Rating component', 0, 0, 'Margin'),
+
+-- progress
+(get_style_id('progress'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Progress component', 0, 0, 'Margin'),
+
+-- theme-icon
+(get_style_id('theme-icon'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the ThemeIcon component', 0, 0, 'Margin'),
+
+-- title
+(get_style_id('title'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Title component', 0, 0, 'Margin'),
+
+-- tab
+(get_style_id('tab'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Tab component', 0, 0, 'Margin'),
+
+-- indicator
+(get_style_id('indicator'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Indicator component', 0, 0, 'Margin'),
+
+-- divider
+(get_style_id('divider'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Divider component', 0, 0, 'Margin'),
+
+-- progress-section
+(get_style_id('progress-section'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the ProgressSection component', 0, 0, 'Margin'),
+
+-- progress-root
+(get_style_id('progress-root'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the ProgressRoot component', 0, 0, 'Margin'),
+
+-- aspect-ratio
+(get_style_id('aspect-ratio'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the AspectRatio component', 0, 0, 'Margin'),
+
+-- text-input
+(get_style_id('text-input'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the TextInput component', 0, 0, 'Margin'),
+
+-- figure
+(get_style_id('figure'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Figure component', 0, 0, 'Margin'),
+
+-- video
+(get_style_id('video'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Video component', 0, 0, 'Margin'),
+
+-- audio
+(get_style_id('audio'), get_field_id('mantine_spacing_margin'), '', 'Sets the margin of the Audio component', 0, 0, 'Margin');
+
+-- Styles with margin and padding fields (IStyleWithMarginAndPadding)
+INSERT IGNORE INTO `styles_fields` (`id_styles`, `id_fields`, `default_value`, `help`, `disabled`, `hidden`, `title`) VALUES
+-- register
+(get_style_id('register'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Register component', 0, 0, 'Spacing'),
+
+-- resetPassword
+(get_style_id('resetPassword'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the ResetPassword component', 0, 0, 'Spacing'),
+
+-- twoFactorAuth
+(get_style_id('twoFactorAuth'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the TwoFactorAuth component', 0, 0, 'Spacing'),
+
+-- container
+(get_style_id('container'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Container component', 0, 0, 'Spacing'),
+
+-- paper
+(get_style_id('paper'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Paper component', 0, 0, 'Spacing'),
+
+-- alert
+(get_style_id('alert'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Alert component', 0, 0, 'Spacing'),
+
+-- form-log
+(get_style_id('form-log'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the FormLog component', 0, 0, 'Spacing'),
+
+-- form-record
+(get_style_id('form-record'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the FormRecord component', 0, 0, 'Spacing'),
+
+-- carousel
+(get_style_id('carousel'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Carousel component', 0, 0, 'Spacing'),
+
+-- flex
+(get_style_id('flex'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Flex component', 0, 0, 'Spacing'),
+
+-- group
+(get_style_id('group'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Group component', 0, 0, 'Spacing'),
+
+-- simple-grid
+(get_style_id('simple-grid'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the SimpleGrid component', 0, 0, 'Spacing'),
+
+-- scroll-area
+(get_style_id('scroll-area'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the ScrollArea component', 0, 0, 'Spacing'),
+
+-- grid
+(get_style_id('grid'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Grid component', 0, 0, 'Spacing'),
+
+-- grid-column
+(get_style_id('grid-column'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the GridColumn component', 0, 0, 'Spacing'),
+
+-- space
+(get_style_id('space'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Space component', 0, 0, 'Spacing'),
+
+-- stack
+(get_style_id('stack'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Stack component', 0, 0, 'Spacing'),
+
+-- accordion
+(get_style_id('accordion'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Accordion component', 0, 0, 'Spacing'),
+
+-- accordion-item
+(get_style_id('accordion-item'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the AccordionItem component', 0, 0, 'Spacing'),
+
+-- notification
+(get_style_id('notification'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Notification component', 0, 0, 'Spacing'),
+
+-- text
+(get_style_id('text'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Text component', 0, 0, 'Spacing'),
+
+-- code
+(get_style_id('code'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Code component', 0, 0, 'Spacing'),
+
+-- highlight
+(get_style_id('highlight'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Highlight component', 0, 0, 'Spacing'),
+
+-- blockquote
+(get_style_id('blockquote'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Blockquote component', 0, 0, 'Spacing'),
+
+-- card
+(get_style_id('card'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Card component', 0, 0, 'Spacing'),
+
+-- card-segment
+(get_style_id('card-segment'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the CardSegment component', 0, 0, 'Spacing'),
+
+-- list
+(get_style_id('list'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the List component', 0, 0, 'Spacing'),
+
+-- list-item
+(get_style_id('list-item'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the ListItem component', 0, 0, 'Spacing'),
+
+-- background-image
+(get_style_id('background-image'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the BackgroundImage component', 0, 0, 'Spacing'),
+
+-- fieldset
+(get_style_id('fieldset'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Fieldset component', 0, 0, 'Spacing'),
+
+-- spoiler
+(get_style_id('spoiler'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Spoiler component', 0, 0, 'Spacing'),
+
+-- box
+(get_style_id('box'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Box component', 0, 0, 'Spacing'),
+
+-- typography
+(get_style_id('typography'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Typography component', 0, 0, 'Spacing'),
+
+-- center
+(get_style_id('center'), get_field_id('mantine_spacing_margin_padding'), '', 'Sets the margin and padding of the Center component', 0, 0, 'Spacing');

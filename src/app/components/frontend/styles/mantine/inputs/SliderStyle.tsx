@@ -80,8 +80,8 @@ const SliderStyle: React.FC<ISliderStyleProps> = ({ style, styleProps, cssClass 
     // Initialize value from form context or style configuration
     const defaultValue = parseFloat(styleValue) || ((min + max) / 2);
     const [value, setValue] = useState<number>(() => {
-        if (formValue !== null) {
-            // Use form value if available
+        if (formValue !== null && typeof formValue === 'string') {
+            // Use form value if available and it's a string
             return parseFloat(formValue) || defaultValue;
         }
         // Fallback to style configuration
@@ -90,7 +90,7 @@ const SliderStyle: React.FC<ISliderStyleProps> = ({ style, styleProps, cssClass 
 
     // Update value when form context changes (for record editing)
     useEffect(() => {
-        if (formValue !== null) {
+        if (formValue !== null && typeof formValue === 'string') {
             const parsedValue = parseFloat(formValue);
             if (!isNaN(parsedValue)) {
                 setValue(parsedValue);

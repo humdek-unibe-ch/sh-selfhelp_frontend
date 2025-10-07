@@ -54,8 +54,8 @@ const ColorInputStyle: React.FC<IColorInputStyleProps> = ({ style, styleProps, c
 
     // Initialize selected color state from form context or style configuration
     const [selectedColor, setSelectedColor] = useState(() => {
-        if (formValue !== null) {
-            // Use form value if available
+        if (formValue !== null && typeof formValue === 'string') {
+            // Use form value if available and it's a string
             return formValue;
         }
 
@@ -65,7 +65,7 @@ const ColorInputStyle: React.FC<IColorInputStyleProps> = ({ style, styleProps, c
 
     // Update selected color when form context changes (for record editing)
     useEffect(() => {
-        if (formValue !== null) {
+        if (formValue !== null && typeof formValue === 'string') {
             setSelectedColor(formValue);
         }
     }, [formValue]);

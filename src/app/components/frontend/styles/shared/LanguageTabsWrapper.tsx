@@ -43,7 +43,11 @@ const LanguageTabsWrapper: React.FC<ILanguageTabsWrapperProps> = ({
     // Initialize active tab when languages are loaded
     useEffect(() => {
         if (languages.length > 0 && !activeTab) {
-            setActiveTab(languages[0].locale);
+            // Use first public language (excluding internal language id: 1)
+            const firstPublicLanguage = languages.find(lang => lang.id !== 1);
+            if (firstPublicLanguage) {
+                setActiveTab(firstPublicLanguage.locale);
+            }
         }
     }, [languages, activeTab]);
 
@@ -56,15 +60,18 @@ const LanguageTabsWrapper: React.FC<ILanguageTabsWrapperProps> = ({
                 // For non-translatable fields with string value, return empty array
                 return [];
             } else {
-                // For translatable fields with string value, initialize all languages with this value
-                return languages.map(lang => ({
-                    language_id: lang.id,
-                    value: value
-                }));
+                // For translatable fields with string value, initialize all public languages (excluding internal language_id: 1)
+                return languages
+                    .filter(lang => lang.id !== 1) // Exclude internal language
+                    .map(lang => ({
+                        language_id: lang.id,
+                        value: value
+                    }));
             }
         }
 
-        return value;
+        // Filter out internal language from existing values too
+        return (value as Array<{ language_id: number; value: string }>).filter(lang => lang.language_id !== 1);
     };
 
     const [languageValues, setLanguageValues] = useState<Array<{ language_id: number; value: string }>>([]);
@@ -131,23 +138,26 @@ const LanguageTabsWrapper: React.FC<ILanguageTabsWrapperProps> = ({
         return <Text>Loading languages...</Text>;
     }
 
-    // No languages available
-    if (languages.length === 0) {
+    // Filter out internal language (id: 1) for display
+    const publicLanguages = languages.filter(lang => lang.id !== 1);
+
+    // No public languages available
+    if (publicLanguages.length === 0) {
         return <Text>No languages available</Text>;
     }
 
     return (
         <Box className={className} {...(styleProps || {})}>
-            <Tabs value={activeTab} onChange={(value) => setActiveTab(value || languages[0].locale)}>
+            <Tabs value={activeTab} onChange={(value) => setActiveTab(value || publicLanguages[0].locale)}>
                 <Tabs.List>
-                    {languages.map(lang => (
+                    {publicLanguages.map(lang => (
                         <Tabs.Tab key={lang.id} value={lang.locale}>
                             {lang.locale.toUpperCase()}
                         </Tabs.Tab>
                     ))}
                 </Tabs.List>
 
-                {languages.map(lang => (
+                {publicLanguages.map(lang => (
                     <Tabs.Panel key={lang.id} value={lang.locale} pt="md">
                         {children(
                             lang,

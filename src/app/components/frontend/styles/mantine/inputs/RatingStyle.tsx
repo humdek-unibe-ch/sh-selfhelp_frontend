@@ -152,8 +152,8 @@ const RatingStyle: React.FC<IRatingStyleProps> = ({ style, styleProps, cssClass 
 
     // Initialize rating value from form context or style configuration
     const [ratingValue, setRatingValue] = useState<number>(() => {
-        if (formValue !== null) {
-            // Use form value if available
+        if (formValue !== null && typeof formValue === 'string') {
+            // Use form value if available and it's a string
             return parseFloat(formValue) || initialValue;
         }
         // Fallback to style configuration
@@ -162,7 +162,7 @@ const RatingStyle: React.FC<IRatingStyleProps> = ({ style, styleProps, cssClass 
 
     // Update rating value when form context changes (for record editing)
     useEffect(() => {
-        if (formValue !== null) {
+        if (formValue !== null && typeof formValue === 'string') {
             const parsedValue = parseFloat(formValue);
             if (!isNaN(parsedValue)) {
                 setRatingValue(parsedValue);
