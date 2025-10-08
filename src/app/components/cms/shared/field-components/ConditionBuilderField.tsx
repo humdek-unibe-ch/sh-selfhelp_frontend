@@ -13,6 +13,8 @@ interface IConditionBuilderFieldProps {
     onChange: (value: string) => void;
     disabled?: boolean;
     placeholder?: string;
+    addLabel?: string;
+    editLabel?: string;
 }
 
 export function ConditionBuilderField({
@@ -21,7 +23,9 @@ export function ConditionBuilderField({
     value,
     onChange,
     disabled = false,
-    placeholder
+    placeholder,
+    addLabel = 'Add Condition',
+    editLabel = 'Edit Condition'
 }: IConditionBuilderFieldProps) {
     const [modalOpened, setModalOpened] = useState(false);
 
@@ -67,14 +71,14 @@ export function ConditionBuilderField({
                 variant: 'light' as const,
                 color: 'yellow',
                 leftSection: <IconEdit size={16} />,
-                children: 'Edit Condition'
+                children: editLabel
             };
         } else {
             return {
                 variant: 'light' as const,
                 color: 'blue',
                 leftSection: <IconPlus size={16} />,
-                children: 'Add Condition'
+                children: addLabel
             };
         }
     };

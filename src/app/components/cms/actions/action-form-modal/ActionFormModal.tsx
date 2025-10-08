@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Button, Group, LoadingOverlay, Modal, ScrollArea, Select, Stack, Text, TextInput, NumberInput } from '@mantine/core';
+import { Alert, Button, Group, LoadingOverlay, ScrollArea, Select, Stack, Text, TextInput, NumberInput } from '@mantine/core';
 import { IconInfoCircle } from '@tabler/icons-react';
 import classes from './ActionFormModal.module.css';
 import { useCreateAction, useActionDetails, useUpdateAction } from '../../../../../hooks/useActions';
+import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';
 import type { ICreateActionRequest, IUpdateActionRequest, IActionTranslationRequest } from '../../../../../types/requests/admin/actions.types';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { ACTION_TRIGGER_TYPES } from '../../../../../constants/lookups.constants';
@@ -99,27 +100,29 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
   };
 
   return (
-    <Modal
+    <ModalWrapper
       opened={opened}
       onClose={onClose}
-      title={<Text size="lg" fw={600}>{mode === 'create' ? 'Create Action' : 'Edit Action'}</Text>}
-      size="80%"
-      className={classes.modal}
-      scrollAreaComponent={ScrollArea.Autosize}
-      centered
+      title={mode === 'create' ? 'Create Action' : 'Edit Action'}
+      size="xl"
+      scrollAreaHeight="70vh"
+      onSave={handleSave}
+      onCancel={onClose}
+      isLoading={isSaving}
+      saveLabel="Save"
+      cancelLabel="Cancel"
     >
       <LoadingOverlay visible={isSaving || (mode === 'edit' && isDetailsLoading)} />
-      <ScrollArea.Autosize mah="100%" style={{ flex: 1 }}>
-      <Stack gap="md" style={{ padding: 8 }}>
+      <Stack gap="md">
         <div className={classes.formGrid}>
           <div className={classes.gridCol6}>
             <TextInput label="Action name" placeholder="Enter action name" value={name} onChange={(e) => setName(e.currentTarget.value)} required />
           </div>
           <div className={classes.gridCol6}>
-            <Select label="Trigger type" data={triggerData} value={trigger} onChange={(v) => setTrigger(v || '')} placeholder="Select trigger" searchable clearable />
+            <Select label="Trigger type" data={triggerData} value={trigger} onChange={(v) => setTrigger(v || '')} placeholder="Select trigger" searchable />
           </div>
           <div className={classes.gridCol6}>
-            <Select label="Data table" data={dataTablesOptions} value={dataTableId} onChange={(v) => setDataTableId(v || '')} placeholder="Select data table" searchable clearable required />
+            <Select label="Data table" data={dataTablesOptions} value={dataTableId} onChange={(v) => setDataTableId(v || '')} placeholder="Select data table" searchable required />
           </div>
           <div className={classes.gridCol12}>
             <Alert variant="light" icon={<IconInfoCircle size={16} />}>Use the visual builder to configure blocks and jobs, or switch to JSON tab inside the builder.</Alert>
@@ -139,14 +142,8 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
             />
           </div>
         </div>
-
       </Stack>
-      </ScrollArea.Autosize>
-      <Group justify="flex-end" gap="sm" style={{ paddingTop: 8 }}>
-        <Button variant="outline" onClick={onClose} disabled={isSaving}>Cancel</Button>
-        <Button onClick={handleSave} loading={isSaving} disabled={!name || !trigger}>Save</Button>
-      </Group>
-    </Modal>
+    </ModalWrapper>
   );
 }
 

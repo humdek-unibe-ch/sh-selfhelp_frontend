@@ -1,0 +1,1 @@
+export { GroupedTranslationInput } from './GroupedTranslationInput';

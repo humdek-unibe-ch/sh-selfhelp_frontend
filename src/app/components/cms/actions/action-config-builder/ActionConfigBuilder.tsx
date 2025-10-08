@@ -11,9 +11,8 @@ import { AdminAssetApi } from '../../../../../api/admin/asset.api';
 import { ConditionBuilderField } from '../../shared/field-components/ConditionBuilderField';
 import dynamic from 'next/dynamic';
 import { DateTimePicker, TimeInput } from '@mantine/dates';
-import { useAdminLanguages } from '../../../../../hooks/useLanguages';
 import { useActionTranslations } from '../../../../../hooks/useActionTranslations';
-import { LocalizableInput } from '../localizable-input/LocalizableInput';
+import { GroupedTranslationInput } from '../grouped-translation-input/GroupedTranslationInput';
 
 const MonacoFieldEditor = dynamic(() => import('../../shared/monaco-field-editor/MonacoFieldEditor').then(m => m.MonacoFieldEditor), { ssr: false });
 
@@ -323,7 +322,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
     return (
       <Card withBorder>
         <Stack gap="xs">
-          <Select label="Schedule type" data={scheduleTypeData} value={st.job_schedule_types || null} onChange={(v) => onPatch({ schedule_time: { ...st, job_schedule_types: v || undefined } })} searchable clearable />
+          <Select label="Schedule type" data={scheduleTypeData} value={st.job_schedule_types || null} onChange={(v) => onPatch({ schedule_time: { ...st, job_schedule_types: v || undefined } })} searchable />
           {st.job_schedule_types === 'after_period' && (
             <Group grow>
               <NumberInput label="Send after" min={1} value={st.send_after ?? 1} onChange={(v) => onPatch({ schedule_time: { ...st, send_after: Number(v) || 1 } })} />
@@ -383,11 +382,10 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
               </Group>
               <MultiSelect label="Attachments" data={assetOptions} value={n.attachments || []} onChange={(v) => onPatch({ notification: { ...n, attachments: v } })} searchable clearable />
 
-              <LocalizableInput
-                label="Subject"
-                placeholder="Enter email subject"
-                value={localTranslations[`block_${blockIndex}.job_${jobIndex}.notification.subject`] || {}}
-                onChange={(translations) => {
+              <GroupedTranslationInput
+                subjectValue={localTranslations[`block_${blockIndex}.job_${jobIndex}.notification.subject`] || {}}
+                bodyValue={localTranslations[`block_${blockIndex}.job_${jobIndex}.notification.body`] || {}}
+                onSubjectChange={(translations) => {
                   setLocalTranslations(prev => ({
                     ...prev,
                     [`block_${blockIndex}.job_${jobIndex}.notification.subject`]: translations
@@ -400,13 +398,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                     }
                   });
                 }}
-                required
-              />
-              <LocalizableInput
-                label="Body"
-                placeholder="Enter email body"
-                value={localTranslations[`block_${blockIndex}.job_${jobIndex}.notification.body`] || {}}
-                onChange={(translations) => {
+                onBodyChange={(translations) => {
                   setLocalTranslations(prev => ({
                     ...prev,
                     [`block_${blockIndex}.job_${jobIndex}.notification.body`]: translations
@@ -419,8 +411,6 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                     }
                   });
                 }}
-                multiline
-                minRows={4}
                 required
               />
             </>
@@ -467,7 +457,14 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                 <Tabs.Panel key={bIndex} value={String(bIndex)}>
                   <Stack gap="sm">
                     <TextInput label="Block name" value={block.block_name || ''} onChange={(e) => setBlock(bIndex, { block_name: e.currentTarget.value })} />
-                    <ConditionBuilderField fieldId={1000 + bIndex} fieldName={`blocks.${bIndex}.condition`} value={block.condition || ''} onChange={(v) => setBlock(bIndex, { condition: v })} />
+                    <ConditionBuilderField
+                        fieldId={1000 + bIndex}
+                        fieldName={`blocks.${bIndex}.condition`}
+                        value={block.condition || ''}
+                        onChange={(v) => setBlock(bIndex, { condition: v })}
+                        addLabel="Add Block Condition"
+                        editLabel="Edit Block Condition"
+                    />
 
                     {/* Jobs Tabs */}
                     <Card withBorder>
@@ -500,7 +497,23 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                     { value: 'notification', label: 'Schedule notification' },
                                     { value: 'notification_with_reminder', label: 'Schedule notification with reminders' },
                                     { value: 'notification_with_reminder_for_diary', label: 'Schedule notification with reminders for a diary' },
-                                  ]} value={job.job_type || null} onChange={(v) => setJob(bIndex, jIndex, { job_type: v || undefined })} />
+                                  ]} value={job.job_type || null} onChange={(v) => {
+                                    const newJobType = v || undefined;
+                                    const isNotificationType = newJobType && newJobType.includes('notification');
+                                    const wasNotificationType = job.job_type && job.job_type.includes('notification');
+
+                                    // Initialize notification object when switching to notification type
+                                    if (isNotificationType && !wasNotificationType) {
+                                      setJob(bIndex, jIndex, {
+                                        job_type: newJobType,
+                                        notification: {
+                                          notification_types: 'email'
+                                        }
+                                      });
+                                    } else {
+                                      setJob(bIndex, jIndex, { job_type: newJobType });
+                                    }
+                                  }} />
                                   {['notification_with_reminder', 'notification_with_reminder_for_diary'].includes(job.job_type) && (
                                     <Select label="Reminder for" data={formOptions} value={job.reminder_form_id || null} onChange={(v) => setJob(bIndex, jIndex, { reminder_form_id: v || undefined })} placeholder="Select data table" />
                                   )}
@@ -520,7 +533,14 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                 )}
 
                                 {/* On execute condition */}
-                                <ConditionBuilderField fieldId={2000 + bIndex * 100 + jIndex} fieldName={`blocks.${bIndex}.jobs.${jIndex}.on_job_execute.condition`} value={job.on_job_execute?.condition || ''} onChange={(v) => setJob(bIndex, jIndex, { on_job_execute: { ...(job.on_job_execute || {}), condition: v } })} />
+                                <ConditionBuilderField
+                                    fieldId={2000 + bIndex * 100 + jIndex}
+                                    fieldName={`blocks.${bIndex}.jobs.${jIndex}.on_job_execute.condition`}
+                                    value={job.on_job_execute?.condition || ''}
+                                    onChange={(v) => setJob(bIndex, jIndex, { on_job_execute: { ...(job.on_job_execute || {}), condition: v } })}
+                                    addLabel="Add Job Condition"
+                                    editLabel="Edit Job Condition"
+                                />
                               </Stack>
                             </Card>
                           </Tabs.Panel>
