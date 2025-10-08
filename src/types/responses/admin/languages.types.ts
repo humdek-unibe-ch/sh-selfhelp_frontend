@@ -1,6 +1,6 @@
 /**
  * TypeScript interfaces for admin languages API responses.
- * 
+ *
  * @module types/responses/admin/languages.types
  */
 
@@ -13,4 +13,5 @@ export interface ILanguage {
     csvSeparator: string;
 }
 
-export type TLanguagesResponse = IBaseApiResponse<ILanguage[]>; 
+export type TLanguagesResponse = IBaseApiResponse<ILanguage[]>;
+export type TLanguageResponse = IBaseApiResponse<ILanguage>; 

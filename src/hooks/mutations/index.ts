@@ -13,6 +13,13 @@ export { useDeletePageMutation } from './useDeletePageMutation';
 // Section mutations
 export * from './sections';
 
+// Language mutations
+export {
+    useCreateLanguageMutation,
+    useUpdateLanguageMutation,
+    useDeleteLanguageMutation
+} from './useLanguageMutations';
+
 // Profile mutations
 export {
     useUpdateUsernameMutation,

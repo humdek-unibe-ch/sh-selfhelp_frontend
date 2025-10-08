@@ -2,18 +2,19 @@
 
 import { useMemo, useState } from 'react';
 import { ScrollArea, Group, Code, Box } from '@mantine/core';
-import { 
+import {
     IconDashboard,
-    IconUsers, 
-    IconFiles, 
-    IconSettingsAutomation, 
-    IconPhoto, 
-    IconSettings, 
-    IconClock, 
+    IconUsers,
+    IconFiles,
+    IconSettingsAutomation,
+    IconPhoto,
+    IconSettings,
+    IconClock,
     IconDatabase,
     IconPlayerPlay,
     IconFileText,
-    IconPlus
+    IconPlus,
+    IconLanguage
 } from '@tabler/icons-react';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { LinksGroup } from './components/LinksGroup';
@@ -215,6 +216,7 @@ export function AdminNavbar() {
                 label: 'System Tools',
                 icon: <IconDatabase size={16} />,
                 links: [
+                    { label: 'Languages', link: '/admin/languages' },
                     { label: 'Data Browser', link: '/admin/data' },
                     { label: 'CMS Preferences', link: '/admin/preferences' },
                     { label: 'Cache Management', link: '/admin/cache' },
