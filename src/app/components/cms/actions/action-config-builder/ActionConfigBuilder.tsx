@@ -13,6 +13,7 @@ import dynamic from 'next/dynamic';
 import { DateTimePicker, TimeInput } from '@mantine/dates';
 import { useActionTranslations } from '../../../../../hooks/useActionTranslations';
 import { GroupedTranslationInput } from '../grouped-translation-input/GroupedTranslationInput';
+import { SelectField } from '../../shared/field-components';
 // Removed custom CSS import - using Mantine and Tailwind instead
 
 // Global rule: Use Mantine components if any styles are needed, create module CSS
@@ -93,6 +94,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
     const [groupsOptions, setGroupsOptions] = useState<{ value: string; label: string }[]>([]);
     const [formOptions, setFormOptions] = useState<{ value: string; label: string }[]>([]);
     const [assetOptions, setAssetOptions] = useState<{ value: string; label: string }[]>([]);
+    const [pageKeywordOptions, setPageKeywordOptions] = useState<{ value: string; label: string }[]>([]);
 
     useEffect(() => {
         (async () => {
@@ -102,6 +104,13 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
             setFormOptions((tables.dataTables || []).map((t: any) => ({ value: String(t.id), label: t.displayName || t.name })));
             const assets = await AdminAssetApi.getAssets({ page: 1, pageSize: 1000 });
             setAssetOptions(assets.assets.map(a => ({ value: a.file_name, label: a.original_name || a.file_name })));
+
+            // Load page keywords for redirect field
+            const pages = await AdminDataApi.listDataTables();
+            setPageKeywordOptions((pages.dataTables || []).map((p: any) => ({
+                value: `page:${p.id}`,
+                label: p.displayName || p.name
+            })));
         })();
     }, []);
 
@@ -752,13 +761,18 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                 />
                             </div>
                             <div className="flex-1">
-                                <TextInput
-                                    label="Redirect to URL"
-                                    description="Enter URL or select page keyword"
-                                    placeholder="Enter URL or select page keyword"
+                                <SelectField
+                                    fieldId={0} // Using 0 since this is not a real field ID
+                                    config={{
+                                        options: pageKeywordOptions.map(opt => ({ value: opt.value, text: opt.label })),
+                                        creatable: true,
+                                        clearable: true,
+                                        searchable: true
+                                    }}
                                     value={n.redirect_url || ''}
-                                    onChange={(e) => onPatch({ notification: { ...n, redirect_url: e.currentTarget.value } })}
-                                    size="sm"
+                                    onChange={(value: string) => onPatch({ notification: { ...n, redirect_url: value } })}
+                                    placeholder="Search and select page keyword..."
+                                    disabled={false}
                                 />
                             </div>
                         </div>
