@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActionIcon, Button, Card, Group, MultiSelect, NumberInput, Select, Stack, Switch, Tabs, Text, TextInput, Textarea, Badge } from '@mantine/core';
+import { ActionIcon, Button, Card, Group, Grid, MultiSelect, NumberInput, Select, Stack, Switch, Tabs, Text, TextInput, Textarea, Badge } from '@mantine/core';
 import { IconPlus, IconTrash } from '@tabler/icons-react';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { ACTION_SCHEDULE_TYPES, TIME_PERIOD, WEEKDAYS } from '../../../../../constants/lookups.constants';
@@ -13,7 +13,7 @@ import dynamic from 'next/dynamic';
 import { DateTimePicker, TimeInput } from '@mantine/dates';
 import { useActionTranslations } from '../../../../../hooks/useActionTranslations';
 import { GroupedTranslationInput } from '../grouped-translation-input/GroupedTranslationInput';
-import classes from './ActionConfigBuilder.module.css';
+// Removed custom CSS import - using Mantine and Tailwind instead
 
 // Global rule: Use Mantine components if any styles are needed, create module CSS
 // This ensures consistent styling and better maintainability
@@ -302,10 +302,10 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
       </Card>
 
       {/* Conditional Configuration Sections */}
-      <div className={classes.gridContainer}>
+      <Grid>
         {/* Randomization Options */}
         {config.randomize && (
-          <div className={classes.gridCol6}>
+          <Grid.Col span={6}>
             <Card withBorder>
               <Stack gap="sm">
                 <Text fw={600} size="sm">Randomization</Text>
@@ -326,12 +326,12 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                 </Group>
               </Stack>
             </Card>
-          </div>
+          </Grid.Col>
         )}
 
         {/* Target Groups */}
         {config.target_groups && (
-          <div className={config.randomize ? classes.gridCol6 : classes.gridCol12}>
+          <Grid.Col span={config.randomize ? 6 : 12}>
             <Card withBorder>
               <Stack gap="sm">
                 <Text fw={600} size="sm">Target Groups</Text>
@@ -346,12 +346,12 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                 />
               </Stack>
             </Card>
-          </div>
+          </Grid.Col>
         )}
 
         {/* Overwrite Variables */}
         {config.overwrite_variables && (
-          <div className={classes.gridCol12}>
+          <Grid.Col span={12}>
             <Card withBorder>
               <Stack gap="sm">
                 <Text fw={600} size="sm">Variable Overrides</Text>
@@ -372,9 +372,9 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                 />
               </Stack>
             </Card>
-          </div>
+          </Grid.Col>
         )}
-      </div>
+      </Grid>
 
       {/* Scheduling Options */}
       {(config.repeat || config.repeat_until_date) && (
@@ -385,8 +385,8 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
             {config.repeat && (
               <div>
                 <Text fw={500} size="sm" mb="xs">Standard Repeat</Text>
-                <div className={classes.gridContainerTight}>
-                  <div className={classes.gridCol3}>
+                <Grid gutter="sm" align="end">
+                  <Grid.Col span={3}>
                     <NumberInput
                       label="Occurrences"
                       min={1}
@@ -394,8 +394,8 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                       onChange={(v) => setConfig({ ...config, repeater: { ...(config.repeater||{}), occurrences: Number(v)||1 } })}
                       size="sm"
                     />
-                  </div>
-                  <div className={classes.gridCol3}>
+                  </Grid.Col>
+                  <Grid.Col span={3}>
                     <Select
                       label="Frequency"
                       data={[{value:'day',label:'Day'},{value:'week',label:'Week'},{value:'month',label:'Month'}]}
@@ -403,9 +403,9 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                       onChange={(v)=> setConfig({ ...config, repeater: { ...(config.repeater||{}), frequency: v||undefined } })}
                       size="sm"
                     />
-                  </div>
+                  </Grid.Col>
                   {config.repeater?.frequency === 'week' && (
-                    <div className={classes.gridCol6}>
+                    <Grid.Col span={6}>
                       <MultiSelect
                         label="Week days"
                         data={weekdaysData}
@@ -415,10 +415,10 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                         clearable
                         size="sm"
                       />
-                    </div>
+                    </Grid.Col>
                   )}
                   {config.repeater?.frequency === 'month' && (
-                    <div className={classes.gridCol6}>
+                    <Grid.Col span={6}>
                       <MultiSelect
                         label="Month days"
                         data={daysOfMonthOptions}
@@ -428,17 +428,17 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                         clearable
                         size="sm"
                       />
-                    </div>
+                    </Grid.Col>
                   )}
-                </div>
+                </Grid>
               </div>
             )}
 
             {config.repeat_until_date && (
               <div>
                 <Text fw={500} size="sm" mb="xs">Repeat Until Deadline</Text>
-                <div className={classes.gridContainerTight}>
-                  <div className={classes.gridCol4}>
+                <Grid gutter="sm" align="end">
+                  <Grid.Col span={4}>
                     <DateTimePicker
                       label="Deadline"
                       value={deadlineDate}
@@ -451,16 +451,16 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                       })}
                       size="sm"
                     />
-                  </div>
-                  <div className={classes.gridCol2}>
+                  </Grid.Col>
+                  <Grid.Col span={2}>
                     <TimeInput
                       label="Schedule at"
                       value={config.repeater_until_date?.schedule_at || ''}
                       onChange={(e)=> setConfig({ ...config, repeater_until_date: { ...(config.repeater_until_date||{}), schedule_at: (e.currentTarget as any).value } })}
                       size="sm"
                     />
-                  </div>
-                  <div className={classes.gridCol3}>
+                  </Grid.Col>
+                  <Grid.Col span={3}>
                     <Select
                       label="Repeat every"
                       data={repeatEveryOptions}
@@ -468,8 +468,8 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                       onChange={(v)=> setConfig({ ...config, repeater_until_date: { ...(config.repeater_until_date||{}), repeat_every: Number(v)||1 } })}
                       size="sm"
                     />
-                  </div>
-                  <div className={classes.gridCol3}>
+                  </Grid.Col>
+                  <Grid.Col span={3}>
                     <Select
                       label="Frequency"
                       data={[{value:'day',label:'Day'},{value:'week',label:'Week'},{value:'month',label:'Month'}]}
@@ -477,13 +477,13 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                       onChange={(v)=> setConfig({ ...config, repeater_until_date: { ...(config.repeater_until_date||{}), frequency: v||undefined } })}
                       size="sm"
                     />
-                  </div>
-                </div>
+                  </Grid.Col>
+                </Grid>
 
                 {(config.repeater_until_date?.frequency === 'week' || config.repeater_until_date?.frequency === 'month') && (
-                  <div className={`${classes.gridContainerTight} ${classes.marginTop4}`}>
+                  <Grid gutter="sm" mt="sm">
                     {config.repeater_until_date?.frequency === 'week' && (
-                      <div className={classes.gridCol6}>
+                      <Grid.Col span={6}>
                         <MultiSelect
                           label="Week days"
                           data={weekdaysData}
@@ -493,10 +493,10 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                           clearable
                           size="sm"
                         />
-                      </div>
+                      </Grid.Col>
                     )}
                     {config.repeater_until_date?.frequency === 'month' && (
-                      <div className={classes.gridCol6}>
+                      <Grid.Col span={6}>
                         <MultiSelect
                           label="Month days"
                           data={daysOfMonthOptions}
@@ -506,9 +506,9 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                           clearable
                           size="sm"
                         />
-                      </div>
+                      </Grid.Col>
                     )}
-                  </div>
+                  </Grid>
                 )}
               </div>
             )}
@@ -532,9 +532,9 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
               onChange={(v) => onPatch({ schedule_time: { ...st, job_schedule_types: v || undefined } })}
               searchable
               size="sm"
-              className={classes.flex1}
+              flex={1}
             />
-            <div className={classes.conditionContainer}>
+            <div style={{ width: 220 }}>
               <ConditionBuilderField
                 fieldId={2000 + blockIndex * 100 + jobIndex}
                 fieldName={`blocks.${blockIndex}.jobs.${jobIndex}.condition`}
@@ -544,7 +544,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                 editLabel="Edit Job Condition"
               />
             </div>
-            <div className={classes.conditionContainer}>
+            <div style={{ width: 220 }}>
               <ConditionBuilderField
                 fieldId={2500 + blockIndex * 100 + jobIndex}
                 fieldName={`blocks.${blockIndex}.jobs.${jobIndex}.on_job_execute.condition`}
@@ -557,8 +557,8 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
           </Group>
 
           {st.job_schedule_types === 'after_period' && (
-            <div className={classes.gridContainerTight}>
-              <div className={classes.gridCol4}>
+            <Grid gutter="sm">
+              <Grid.Col span={4}>
                 <NumberInput
                   label="Send after"
                   min={1}
@@ -566,8 +566,8 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                   onChange={(v) => onPatch({ schedule_time: { ...st, send_after: Number(v) || 1 } })}
                   size="sm"
                 />
-              </div>
-              <div className={classes.gridCol4}>
+              </Grid.Col>
+              <Grid.Col span={4}>
                 <Select
                   label="Unit"
                   data={timePeriodData}
@@ -575,8 +575,8 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                   onChange={(v) => onPatch({ schedule_time: { ...st, send_after_type: v || 'days' } })}
                   size="sm"
                 />
-              </div>
-              <div className={classes.gridCol4}>
+              </Grid.Col>
+              <Grid.Col span={4}>
                 <TimeInput
                   label="at"
                   value={st.send_on_day_at || ''}
@@ -584,13 +584,13 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                   withSeconds={false}
                   size="sm"
                 />
-              </div>
-            </div>
+              </Grid.Col>
+            </Grid>
           )}
 
           {st.job_schedule_types === 'after_period_on_day_at_time' && (
-            <div className={classes.gridContainerTight}>
-              <div className={classes.gridCol4}>
+            <Grid gutter="sm">
+              <Grid.Col span={4}>
                 <Select
                   label="Send on"
                   data={ordinal20Options}
@@ -598,8 +598,8 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                   onChange={(v) => onPatch({ schedule_time: { ...st, send_on: v || undefined } })}
                   size="sm"
                 />
-              </div>
-              <div className={classes.gridCol4}>
+              </Grid.Col>
+              <Grid.Col span={4}>
                 <Select
                   label="Week day"
                   data={weekdaysData}
@@ -607,8 +607,8 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                   onChange={(v) => onPatch({ schedule_time: { ...st, send_on_day: v || undefined } })}
                   size="sm"
                 />
-              </div>
-              <div className={classes.gridCol4}>
+              </Grid.Col>
+              <Grid.Col span={4}>
                 <TimeInput
                   label="at"
                   value={st.send_on_day_at || ''}
@@ -616,8 +616,8 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                   withSeconds={false}
                   size="sm"
                 />
-              </div>
-            </div>
+              </Grid.Col>
+            </Grid>
           )}
 
           {st.job_schedule_types === 'on_fixed_datetime' && (
@@ -649,8 +649,8 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
 
           {/* Email-specific fields */}
           {(n.notification_types || 'email') === 'email' && (
-            <div className={classes.gridContainerTight}>
-              <div className={classes.gridCol6}>
+            <Grid gutter="sm">
+              <Grid.Col span={6}>
                 <TextInput
                   label="Send To (recipient)"
                   description="Enter recipient email address"
@@ -660,8 +660,8 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                   required
                   size="sm"
                 />
-              </div>
-              <div className={classes.gridCol6}>
+              </Grid.Col>
+              <Grid.Col span={6}>
                 <MultiSelect
                   label="Attachments"
                   data={assetOptions}
@@ -671,14 +671,14 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                   clearable
                   size="sm"
                 />
-              </div>
-            </div>
+              </Grid.Col>
+            </Grid>
           )}
 
           {/* Push notification specific fields */}
           {n.notification_types === 'push_notification' && (
-            <div className={classes.gridContainerTight}>
-              <div className={classes.gridCol6}>
+            <Grid gutter="sm">
+              <Grid.Col span={6}>
                 <TextInput
                   label="Send To (recipient)"
                   description="Use @users for all users, or specify individual recipients"
@@ -688,8 +688,8 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                   required
                   size="sm"
                 />
-              </div>
-              <div className={classes.gridCol6}>
+              </Grid.Col>
+              <Grid.Col span={6}>
                 <TextInput
                   label="Redirect to URL"
                   placeholder="Enter URL or select page keyword"
@@ -697,8 +697,8 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                   onChange={(e) => onPatch({ notification: { ...n, redirect_url: e.currentTarget.value } })}
                   size="sm"
                 />
-              </div>
-            </div>
+              </Grid.Col>
+            </Grid>
           )}
 
           {/* Subject and Body fields for both email and push notifications */}
@@ -755,7 +755,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
               value={st.send_after ?? 1}
               onChange={(v) => onPatch({ schedule_time: { ...st, send_after: Number(v) || 1 } })}
               size="sm"
-              className={classes.flex1}
+              flex={1}
             />
             <Select
               label="&nbsp;"
@@ -763,7 +763,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
               value={st.send_after_type || 'days'}
               onChange={(v) => onPatch({ schedule_time: { ...st, send_after_type: v || 'days' } })}
               size="sm"
-              className={classes.width120}
+              w={120}
             />
           </Group>
 
@@ -777,7 +777,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                   value={st.valid ?? 1}
                   onChange={(v) => onPatch({ schedule_time: { ...st, valid: Number(v) || 1 } })}
                   size="sm"
-                  className={classes.validForInput}
+                  flex={1}
                 />
                 <Select
                   label="&nbsp;"
@@ -785,10 +785,10 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                   value={st.valid_type || 'hours'}
                   onChange={(v) => onPatch({ schedule_time: { ...st, valid_type: v || 'hours' } })}
                   size="sm"
-                  className={classes.validForSelect}
+                  w={120}
                 />
               </Group>
-              <Text size="xs" c="dimmed" className={classes.validForDescription}>
+              <Text size="xs" c="dimmed" mt="xs">
                 For how much time the reminder is valid after it was sent
               </Text>
             </div>
@@ -802,7 +802,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
     return (
       <Stack gap="sm">
         {/* Reminder conditions on same row */}
-        <div className={classes.jobConditionsRow}>
+        <Group gap="sm" align="end">
           <ConditionBuilderField
             fieldId={3000 + blockIndex * 100 + jobIndex * 10 + reminderIndex}
             fieldName={`blocks.${blockIndex}.jobs.${jobIndex}.reminders.${reminderIndex}.condition`}
@@ -819,7 +819,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
             addLabel="Add Reminder Execute Condition"
             editLabel="Edit Reminder Execute Condition"
           />
-        </div>
+        </Group>
 
         {/* Reminder schedule time */}
         {renderReminderScheduleTime(reminder, onPatch, parentJobType)}
@@ -872,9 +872,9 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                         value={block.block_name || ''}
                         onChange={(e) => setBlock(bIndex, { block_name: e.currentTarget.value })}
                         size="sm"
-                        className={classes.flex1}
+                        flex={1}
                       />
-                      <div className={classes.conditionContainer}>
+                      <div style={{ width: 220 }}>
                         <ConditionBuilderField
                             fieldId={1000 + bIndex}
                             fieldName={`blocks.${bIndex}.condition`}
@@ -910,13 +910,13 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                             <Card withBorder>
                               <Stack gap="sm">
                                 {/* Job Name and Type Row */}
-                                <div className={classes.jobRow}>
+                                <Group align="end" gap="sm">
                                   <TextInput
                                     label="Job name"
                                     value={job.job_name || ''}
                                     onChange={(e) => setJob(bIndex, jIndex, { job_name: e.currentTarget.value })}
                                     size="sm"
-                                    className={['notification_with_reminder', 'notification_with_reminder_for_diary'].includes(job.job_type) ? classes.jobInputThree : classes.jobInputTwo}
+                                    flex={1}
                                   />
                                   <Select
                                     label="Job type"
@@ -946,7 +946,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                       }
                                     }}
                                     size="sm"
-                                    className={['notification_with_reminder', 'notification_with_reminder_for_diary'].includes(job.job_type) ? classes.jobInputThree : classes.jobInputTwo}
+                                    flex={1}
                                   />
                                   {['notification_with_reminder', 'notification_with_reminder_for_diary'].includes(job.job_type) && (
                                     <Select
@@ -956,10 +956,10 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                       onChange={(v) => setJob(bIndex, jIndex, { reminder_form_id: v || undefined })}
                                       placeholder="Select data table"
                                       size="sm"
-                                      className={classes.jobInputThree}
+                                      flex={1}
                                     />
                                   )}
-                                </div>
+                                </Group>
 
                                 {/* Schedule time */}
                                 {renderScheduleTime(job, (patch) => setJob(bIndex, jIndex, patch), bIndex, jIndex)}
