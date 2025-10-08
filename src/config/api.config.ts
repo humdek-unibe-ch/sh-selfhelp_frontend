@@ -120,6 +120,7 @@ export const API_CONFIG = {
         ADMIN_ACTIONS_CREATE: '/admin/actions',
         ADMIN_ACTIONS_UPDATE: (actionId: number) => `/admin/actions/${actionId}`,
         ADMIN_ACTIONS_DELETE: (actionId: number) => `/admin/actions/${actionId}`,
+        ADMIN_ACTIONS_TRANSLATIONS_GET_ALL: (actionId: number) => `/admin/actions/${actionId}/translations`,
 
         // Frontend CSS classes endpoint
         FRONTEND_CSS_CLASSES: '/frontend/css-classes',

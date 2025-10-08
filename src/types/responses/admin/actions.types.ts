@@ -1,3 +1,21 @@
+export interface IActionTranslationResult {
+  id: number;
+  translation_key: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  language: {
+    id: number;
+    locale: string;
+    language: string;
+  };
+}
+
+export interface IActionTranslationsResult {
+  created: IActionTranslationResult[];
+  updated: IActionTranslationResult[];
+}
+
 export interface IActionDetails {
   id: number;
   name: string;
@@ -16,6 +34,7 @@ export interface IActionDetails {
   id_actionTriggerTypes?: number | string; // for compatibility when posting/putting
   id_dataTables?: number | null;           // for compatibility when posting/putting
   config: any | null; // JSON schema-based config
+  translations?: IActionTranslationsResult; // translation results from create/update operations
   created_at?: string;
   updated_at?: string;
 }

@@ -1,1 +1,0 @@
-export { TranslationInput } from './TranslationInput';

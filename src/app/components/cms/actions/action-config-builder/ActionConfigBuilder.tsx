@@ -12,9 +12,8 @@ import { ConditionBuilderField } from '../../shared/field-components/ConditionBu
 import dynamic from 'next/dynamic';
 import { DateTimePicker, TimeInput } from '@mantine/dates';
 import { useAdminLanguages } from '../../../../../hooks/useLanguages';
-import { TranslationInput } from '../translation-input/TranslationInput';
-import { LocalizableInput } from '../localizable-input/LocalizableInput';
 import { useActionTranslations } from '../../../../../hooks/useActionTranslations';
+import { LocalizableInput } from '../localizable-input/LocalizableInput';
 
 const MonacoFieldEditor = dynamic(() => import('../../shared/monaco-field-editor/MonacoFieldEditor').then(m => m.MonacoFieldEditor), { ssr: false });
 
@@ -45,14 +44,33 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
 
   // Translation-related state
   const [localTranslations, setLocalTranslations] = useState<{ [key: string]: { [languageId: number]: string } }>({});
-  const { getTranslationWithFallback } = useActionTranslations(actionId || 0);
+
+  // Load translations when editing an existing action
+  const { data: actionTranslations } = useActionTranslations(actionId || 0);
+
+  // Transform fetched translations to local format
+  useEffect(() => {
+    if (actionTranslations && actionTranslations.length > 0) {
+      const transformed: { [key: string]: { [languageId: number]: string } } = {};
+
+      actionTranslations.forEach((translation) => {
+        if (!transformed[translation.translation_key]) {
+          transformed[translation.translation_key] = {};
+        }
+        // Use translation.language.id instead of translation.id_languages
+        transformed[translation.translation_key][translation.language.id] = translation.content;
+      });
+
+      setLocalTranslations(transformed);
+    }
+  }, [actionTranslations]);
 
   // Notify parent when local translations change
   useEffect(() => {
-    if (onTranslationsChange && !actionId) {
+    if (onTranslationsChange) {
       onTranslationsChange(localTranslations);
     }
-  }, [localTranslations, onTranslationsChange, actionId]);
+  }, [localTranslations, onTranslationsChange]);
 
   // Sync from parent value (edit or external JSON changes) with loop prevention
   useEffect(() => {
@@ -101,13 +119,30 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
     ...prev,
     blocks: [
       ...ensureArray(prev.blocks),
-      { block_name: 'Block', jobs: [{ job_name: 'Job', job_type: 'notification', schedule_time: {} }] }
+      {
+        block_name: 'Block',
+        jobs: [{
+          job_name: 'Job',
+          job_type: 'notification',
+          schedule_time: {},
+          notification: {
+            notification_types: 'email'
+          }
+        }]
+      }
     ]
   }));
   const removeBlock = (index: number) => setConfig((prev: any) => ({ ...prev, blocks: ensureArray(prev.blocks).filter((_: any, i: number) => i !== index) }));
   const setBlock = (index: number, patch: any) => setConfig((prev: any) => ({ ...prev, blocks: ensureArray(prev.blocks).map((b: any, i: number) => i === index ? { ...b, ...patch } : b) }));
 
-  const addJob = (bIndex: number) => setBlock(bIndex, { jobs: [...ensureArray(config.blocks?.[bIndex]?.jobs), { job_name: 'Job', job_type: 'notification', schedule_time: {} }] });
+  const addJob = (bIndex: number) => setBlock(bIndex, { jobs: [...ensureArray(config.blocks?.[bIndex]?.jobs), {
+    job_name: 'Job',
+    job_type: 'notification',
+    schedule_time: {},
+    notification: {
+      notification_types: 'email'
+    }
+  }] });
   const removeJob = (bIndex: number, jIndex: number) => setBlock(bIndex, { jobs: ensureArray(config.blocks?.[bIndex]?.jobs).filter((_: any, i: number) => i !== jIndex) });
   const setJob = (bIndex: number, jIndex: number, patch: any) => setBlock(bIndex, { jobs: ensureArray(config.blocks?.[bIndex]?.jobs).map((j: any, i: number) => i === jIndex ? { ...j, ...patch } : j) });
 
@@ -337,74 +372,53 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
               <TextInput label="Send To (recipient)" value={n.recipient || ''} onChange={(e) => onPatch({ notification: { ...n, recipient: e.currentTarget.value } })} />
             </Group>
           )}
-          {n.notification_types === 'email' && (
+          {(n.notification_types || 'email') === 'email' && (
             <>
-              {actionId ? (
-                <>
-                  <TranslationInput
-                    actionId={actionId}
-                    translationKey={`block_${blockIndex}.job_${jobIndex}.notification.from_name`}
-                    label="From name"
-                    placeholder="Enter sender name"
-                  />
-                  <TranslationInput
-                    actionId={actionId}
-                    translationKey={`block_${blockIndex}.job_${jobIndex}.notification.from_email`}
-                    label="From email"
-                    placeholder="Enter sender email"
-                  />
-                </>
-              ) : (
-                <Group grow>
-                  <TextInput label="From email" value={n.from_email || ''} onChange={(e) => onPatch({ notification: { ...n, from_email: e.currentTarget.value } })} />
-                  <TextInput label="From name" value={n.from_name || ''} onChange={(e) => onPatch({ notification: { ...n, from_name: e.currentTarget.value } })} />
-                </Group>
-              )}
+              <Group grow>
+                <TextInput label="From email" value={n.from_email || ''} onChange={(e) => onPatch({ notification: { ...n, from_email: e.currentTarget.value } })} />
+                <TextInput label="From name" value={n.from_name || ''} onChange={(e) => onPatch({ notification: { ...n, from_name: e.currentTarget.value } })} />
+              </Group>
               <Group grow>
                 <TextInput label="Reply to" value={n.reply_to || ''} onChange={(e) => onPatch({ notification: { ...n, reply_to: e.currentTarget.value } })} />
               </Group>
               <MultiSelect label="Attachments" data={assetOptions} value={n.attachments || []} onChange={(v) => onPatch({ notification: { ...n, attachments: v } })} searchable clearable />
-            </>
-          )}
-          {actionId ? (
-            <>
-              <TranslationInput
-                actionId={actionId}
-                translationKey={`block_${blockIndex}.job_${jobIndex}.notification.subject`}
-                label="Subject"
-                placeholder="Enter email subject"
-                required
-              />
-              <TranslationInput
-                actionId={actionId}
-                translationKey={`block_${blockIndex}.job_${jobIndex}.notification.body`}
-                label="Body"
-                placeholder="Enter email body"
-                multiline
-                minRows={4}
-                required
-              />
-            </>
-          ) : (
-            <>
+
               <LocalizableInput
                 label="Subject"
                 placeholder="Enter email subject"
                 value={localTranslations[`block_${blockIndex}.job_${jobIndex}.notification.subject`] || {}}
-                onChange={(translations) => setLocalTranslations(prev => ({
-                  ...prev,
-                  [`block_${blockIndex}.job_${jobIndex}.notification.subject`]: translations
-                }))}
+                onChange={(translations) => {
+                  setLocalTranslations(prev => ({
+                    ...prev,
+                    [`block_${blockIndex}.job_${jobIndex}.notification.subject`]: translations
+                  }));
+                  // Also store the translation key in the config
+                  setJob(blockIndex, jobIndex, {
+                    notification: {
+                      ...n,
+                      subject: `block_${blockIndex}.job_${jobIndex}.notification.subject`
+                    }
+                  });
+                }}
                 required
               />
               <LocalizableInput
                 label="Body"
                 placeholder="Enter email body"
                 value={localTranslations[`block_${blockIndex}.job_${jobIndex}.notification.body`] || {}}
-                onChange={(translations) => setLocalTranslations(prev => ({
-                  ...prev,
-                  [`block_${blockIndex}.job_${jobIndex}.notification.body`]: translations
-                }))}
+                onChange={(translations) => {
+                  setLocalTranslations(prev => ({
+                    ...prev,
+                    [`block_${blockIndex}.job_${jobIndex}.notification.body`]: translations
+                  }));
+                  // Also store the translation key in the config
+                  setJob(blockIndex, jobIndex, {
+                    notification: {
+                      ...n,
+                      body: `block_${blockIndex}.job_${jobIndex}.notification.body`
+                    }
+                  });
+                }}
                 multiline
                 minRows={4}
                 required
