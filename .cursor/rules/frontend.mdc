@@ -12,6 +12,7 @@ staleTime: for react query should be allways form the global react query config
 On design never use transform on hover. Never. 
 Proceed using the sequential thinking method
 USE MCP server when appropirate
+Use Mantine components if any styles are needed use tailwindcss and then if not possible use custom css in module file
 NEVER USE ANY, ALLWASY PROPERLY DEFINE TYPES AND INTERFACES.
 Never git commit and push unless i ask you. Never. NEVER GIT COMMIT UNLESS I SPECIFICLY ASK FOR IT
 Always check the import paths to be correct

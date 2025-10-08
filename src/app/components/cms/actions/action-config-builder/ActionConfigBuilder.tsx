@@ -363,11 +363,11 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
             </Card>
 
             {/* Conditional Configuration Sections */}
-            <Grid style={{ overflowX: 'hidden' }}>
+            <Grid className="overflow-x-hidden overflow-y-hidden">
                 {/* Randomization Options */}
                 {config.randomize && (
                     <Grid.Col span={6}>
-                        <Card withBorder style={{ overflowY: 'hidden' }}>
+                        <Card withBorder className="overflow-y-hidden">
                             <Stack gap="sm">
                                 <Text fw={600} size="sm">Randomization</Text>
                                 <Group grow>
@@ -393,7 +393,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                 {/* Target Groups */}
                 {config.target_groups && (
                     <Grid.Col span={config.randomize ? 6 : 12}>
-                        <Card withBorder style={{ overflowY: 'hidden' }}>
+                        <Card withBorder className="overflow-y-hidden">
                             <Stack gap="sm">
                                 <Text fw={600} size="sm">Target Groups</Text>
                                 <MultiSelect
@@ -413,7 +413,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                 {/* Overwrite Variables */}
                 {config.overwrite_variables && (
                     <Grid.Col span={12}>
-                        <Card withBorder style={{ overflowY: 'hidden' }}>
+                        <Card withBorder className="overflow-y-hidden">
                             <Stack gap="sm">
                                 <Text fw={600} size="sm">Variable Overrides</Text>
                                 <MultiSelect
@@ -595,7 +595,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                             size="sm"
                             flex={1}
                         />
-                        <div style={{ width: 220 }}>
+                        <div className="w-[220px]">
                             <ConditionBuilderField
                                 fieldId={2000 + blockIndex * 100 + jobIndex}
                                 fieldName={`blocks.${blockIndex}.jobs.${jobIndex}.condition`}
@@ -605,7 +605,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                 editLabel="Edit Job Condition"
                             />
                         </div>
-                        <div style={{ width: 220 }}>
+                        <div className="w-[220px]">
                             <ConditionBuilderField
                                 fieldId={2500 + blockIndex * 100 + jobIndex}
                                 fieldName={`blocks.${blockIndex}.jobs.${jobIndex}.on_job_execute.condition`}
@@ -710,8 +710,8 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
 
                     {/* Email-specific fields */}
                     {(n.notification_types || 'email') === 'email' && (
-                        <Group align="flex-start" gap="lg">
-                            <div style={{ flex: 1 }}>
+                        <div className="flex gap-4 items-start">
+                            <div className="flex-1">
                                 <TextInput
                                     label="Send To (recipient)"
                                     description="Enter recipient email address"
@@ -722,7 +722,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                     size="sm"
                                 />
                             </div>
-                            <div style={{ flex: 1 }}>
+                            <div className="flex-1">
                                 <MultiSelect
                                     label="Attachments"
                                     data={assetOptions}
@@ -733,13 +733,13 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                     size="sm"
                                 />
                             </div>
-                        </Group>
+                        </div>
                     )}
 
                     {/* Push notification specific fields */}
                     {n.notification_types === 'push_notification' && (
-                        <Group align="flex-start" gap="lg">
-                            <div style={{ flex: 1 }}>
+                        <div className="flex gap-4 items-start">
+                            <div className="flex-1">
                                 <TextInput
                                     label="Send To (recipient)"
                                     description="Use @users for all users, or specify individual recipients"
@@ -750,7 +750,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                     size="sm"
                                 />
                             </div>
-                            <div style={{ flex: 1 }}>
+                            <div className="flex-1">
                                 <TextInput
                                     label="Redirect to URL"
                                     placeholder="Enter URL or select page keyword"
@@ -759,7 +759,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                     size="sm"
                                 />
                             </div>
-                        </Group>
+                        </div>
                     )}
 
                     {/* Subject and Body fields for both email and push notifications */}
@@ -944,7 +944,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                                 size="sm"
                                                 flex={1}
                                             />
-                                            <div style={{ width: 220 }}>
+                                            <div className="w-[220px]">
                                                 <ConditionBuilderField
                                                     fieldId={1000 + bIndex}
                                                     fieldName={`blocks.${bIndex}.condition`}
