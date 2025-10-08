@@ -295,7 +295,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
           {/* Configuration Layout */}
           <Grid align="flex-start">
             {/* Left side - Switches */}
-            <Grid.Col span={8}>
+            <Grid.Col span={9}>
               <Stack gap="sm">
                 {/* Core Options Row */}
                 <Group gap="lg" align="center">
@@ -357,7 +357,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
             </Grid.Col>
 
             {/* Right side - Global Condition */}
-            <Grid.Col span={4}>
+            <Grid.Col span={3}>
               <Stack gap="sm">
                 <Text fw={600} size="sm">Global Condition</Text>
                 <ConditionBuilderField fieldId={1} fieldName="root.condition" value={config.condition || ''} onChange={(v) => setConfig((p: any) => ({ ...p, condition: v }))} />
