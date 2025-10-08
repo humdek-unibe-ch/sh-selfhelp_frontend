@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActionIcon, Button, Card, Group, Grid, MultiSelect, NumberInput, Select, Stack, Switch, Tabs, Text, TextInput, Textarea, Badge } from '@mantine/core';
+import { ActionIcon, Button, Card, Group, Grid, MultiSelect, NumberInput, Select, Stack, Switch, Tabs, Text, TextInput, Textarea, Badge, Combobox } from '@mantine/core';
 import { IconPlus, IconTrash, IconCopy } from '@tabler/icons-react';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { ACTION_SCHEDULE_TYPES, TIME_PERIOD, WEEKDAYS } from '../../../../../constants/lookups.constants';
@@ -13,7 +13,7 @@ import dynamic from 'next/dynamic';
 import { DateTimePicker, TimeInput } from '@mantine/dates';
 import { useActionTranslations } from '../../../../../hooks/useActionTranslations';
 import { GroupedTranslationInput } from '../grouped-translation-input/GroupedTranslationInput';
-import { SelectField } from '../../shared/field-components';
+import { usePageKeywords } from '../../../../../hooks/usePageKeywords';
 // Removed custom CSS import - using Mantine and Tailwind instead
 
 // Global rule: Use Mantine components if any styles are needed, create module CSS
@@ -94,7 +94,9 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
     const [groupsOptions, setGroupsOptions] = useState<{ value: string; label: string }[]>([]);
     const [formOptions, setFormOptions] = useState<{ value: string; label: string }[]>([]);
     const [assetOptions, setAssetOptions] = useState<{ value: string; label: string }[]>([]);
-    const [pageKeywordOptions, setPageKeywordOptions] = useState<{ value: string; label: string }[]>([]);
+
+    // Load page keywords for redirect field
+    const { data: pageKeywords } = usePageKeywords();
 
     useEffect(() => {
         (async () => {
@@ -104,13 +106,6 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
             setFormOptions((tables.dataTables || []).map((t: any) => ({ value: String(t.id), label: t.displayName || t.name })));
             const assets = await AdminAssetApi.getAssets({ page: 1, pageSize: 1000 });
             setAssetOptions(assets.assets.map(a => ({ value: a.file_name, label: a.original_name || a.file_name })));
-
-            // Load page keywords for redirect field
-            const pages = await AdminDataApi.listDataTables();
-            setPageKeywordOptions((pages.dataTables || []).map((p: any) => ({
-                value: `page:${p.id}`,
-                label: p.displayName || p.name
-            })));
         })();
     }, []);
 
@@ -761,18 +756,19 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                 />
                             </div>
                             <div className="flex-1">
-                                <SelectField
-                                    fieldId={0} // Using 0 since this is not a real field ID
-                                    config={{
-                                        options: pageKeywordOptions.map(opt => ({ value: opt.value, text: opt.label })),
-                                        creatable: true,
-                                        clearable: true,
-                                        searchable: true
-                                    }}
+                                <Select
+                                    label="Redirect to URL"
+                                    description="Select page keyword"
+                                    data={(pageKeywords || []).map(keyword => ({
+                                        value: keyword.value,
+                                        label: keyword.text
+                                    }))}
                                     value={n.redirect_url || ''}
-                                    onChange={(value: string) => onPatch({ notification: { ...n, redirect_url: value } })}
+                                    onChange={(value) => onPatch({ notification: { ...n, redirect_url: value || '' } })}
                                     placeholder="Search and select page keyword..."
-                                    disabled={false}
+                                    searchable
+                                    clearable
+                                    size="sm"
                                 />
                             </div>
                         </div>

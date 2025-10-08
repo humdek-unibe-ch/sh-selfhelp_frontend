@@ -132,6 +132,9 @@ export const API_CONFIG = {
         ADMIN_SCHEDULED_JOBS_DELETE: (jobId: number) => `/admin/scheduled-jobs/${jobId}`,
         ADMIN_SCHEDULED_JOBS_TRANSACTIONS: (jobId: number) => `/admin/scheduled-jobs/${jobId}/transactions`,
 
+        // Admin page keywords endpoints
+        ADMIN_PAGE_KEYWORDS_GET_ALL: '/admin/page-keywords',
+
         // Admin cache endpoints
         ADMIN_CACHE_STATS: '/admin/cache/stats',
         ADMIN_CACHE_CLEAR_ALL: '/admin/cache/clear/all',
