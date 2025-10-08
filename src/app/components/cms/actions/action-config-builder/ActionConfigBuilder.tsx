@@ -725,6 +725,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                             <div className="flex-1">
                                 <MultiSelect
                                     label="Attachments"
+                                    description="Select attachments"
                                     data={assetOptions}
                                     value={n.attachments || []}
                                     onChange={(v) => onPatch({ notification: { ...n, attachments: v } })}
@@ -753,6 +754,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                             <div className="flex-1">
                                 <TextInput
                                     label="Redirect to URL"
+                                    description="Enter URL or select page keyword"
                                     placeholder="Enter URL or select page keyword"
                                     value={n.redirect_url || ''}
                                     onChange={(e) => onPatch({ notification: { ...n, redirect_url: e.currentTarget.value } })}
