@@ -117,8 +117,10 @@ export const AuthApi = {
             );
 
             if (response.data.error) {
-                // Clear tokens on error
-                this.clearAuthData();
+                // Only clear tokens if user is not logged in
+                if (response.data.logged_in === false) {
+                    this.clearAuthData();
+                }
                 throw new Error(response.data.error);
             }
 
@@ -131,9 +133,11 @@ export const AuthApi = {
             
             return response.data;
         } catch (error: any) {
-            // Clear tokens and update navigation regardless of error type
-            this.clearAuthData();
-            
+            // Only clear tokens if the error response indicates user is not logged in
+            if (error.response?.data?.logged_in === false) {
+                this.clearAuthData();
+            }
+
             // Rethrow the error for the caller to handle
             throw error;
         }

@@ -62,18 +62,15 @@ const handleTokenRefreshSuccess = (accessToken: string, refreshToken?: string) =
 };
 
 // Helper function to handle token refresh failure
-const handleTokenRefreshFailure = () => {
-    removeTokens();
-    delete apiClient.defaults.headers.common.Authorization;
-    if (typeof window !== 'undefined' && !window.location.pathname.startsWith(ROUTES.LOGIN)) {
-        // Use Next.js router for client-side navigation
-        import('next/navigation').then(({ redirect }) => {
-            redirect(ROUTES.LOGIN);
-        }).catch(() => {
-            // Fallback for edge cases
-            window.location.href = ROUTES.LOGIN;
-        });
+const handleTokenRefreshFailure = (clearTokens: boolean = false) => {
+    if (clearTokens) {
+        // Only clear tokens when explicitly requested (e.g., when logged_in is false)
+        removeTokens();
+        delete apiClient.defaults.headers.common.Authorization;
     }
+
+    // Note: We don't redirect here anymore to prevent unwanted logouts
+    // The auth provider will handle navigation when it detects the user is not authenticated
 };
 
 const processQueue = (error: any, token: string | null = null) => {
@@ -115,7 +112,8 @@ const performTokenRefresh = async (): Promise<string> => {
             }
         } catch (refreshError) {
             error('Token refresh failed', 'BaseApi', refreshError);
-            handleTokenRefreshFailure();
+            // AuthApi.refreshToken() already handles token clearing when logged_in is false
+            handleTokenRefreshFailure(false);
             reject(refreshError);
         } finally {
             // Reset refresh state
@@ -233,7 +231,8 @@ apiClient.interceptors.response.use(
 
                 // Prevent infinite loops
                 if (originalRequest._loggedInRetry) {
-                    handleTokenRefreshFailure();
+                    // Since we got logged_in: false and refresh failed, clear tokens
+                    handleTokenRefreshFailure(true);
                     return response;
                 }
 
@@ -295,7 +294,8 @@ apiClient.interceptors.response.use(
 
                     // Prevent infinite loops
                     if (originalRequest._loggedInRetry) {
-                        handleTokenRefreshFailure();
+                        // Since we got logged_in: false and refresh failed, clear tokens
+                        handleTokenRefreshFailure(true);
                         return error;
                     }
 
@@ -351,18 +351,8 @@ apiClient.interceptors.response.use(
         } catch (refreshError) {
             error('Token refresh failed for 401 error', 'BaseApi', refreshError);
 
-            // Use Refine's logout method which handles navigation properly
-            authProvider.logout({ redirectPath: ROUTES.LOGIN }).catch(() => {
-                // Fallback if Refine logout fails
-                if (typeof window !== 'undefined' && !window.location.pathname.startsWith(ROUTES.LOGIN)) {
-                    import('next/navigation').then(({ redirect }) => {
-                        redirect(ROUTES.LOGIN);
-                    }).catch(() => {
-                        // Final fallback for edge cases
-                        window.location.href = ROUTES.LOGIN;
-                    });
-                }
-            });
+            // Don't automatically logout here - let the auth provider handle it
+            // This prevents unwanted logouts when token refresh fails due to temporary issues
 
             return Promise.reject(refreshError);
         }

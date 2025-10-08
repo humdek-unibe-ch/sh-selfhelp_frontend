@@ -152,8 +152,10 @@ export const authProvider: AuthProvider = {
                     message: "Not authenticated",
                     name: "Not authenticated",
                 },
-                logout: true,
-                redirectTo: ROUTES.LOGIN,
+                // Don't automatically logout/redirect - let the app handle navigation
+                // This prevents unwanted redirects when tokens are cleared due to API errors
+                // logout: true,
+                // redirectTo: ROUTES.LOGIN,
             };
         }
         
@@ -168,8 +170,10 @@ export const authProvider: AuthProvider = {
                     message: "Session expired",
                     name: "Not authenticated",
                 },
-                logout: true,
-                redirectTo: ROUTES.LOGIN,
+                // Don't automatically logout/redirect - let the app handle navigation
+                // This prevents unwanted redirects when tokens expire due to API errors
+                // logout: true,
+                // redirectTo: ROUTES.LOGIN,
             };
         }
 
@@ -194,17 +198,20 @@ export const authProvider: AuthProvider = {
     },
 
     onError: async (error) => {
-        // Check if the error is an authentication error (401)
-        if (error.response?.status === 401) {
-            return {
-                error: {
-                    message: "Authentication failed. Please login again.",
-                    name: "Auth Error"
-                },
-                logout: true,
-                redirectTo: ROUTES.LOGIN
-            };
+        // Only logout for clear authentication failures that can't be resolved
+        // The base API interceptor handles token refresh for 401 errors automatically
+        // This onError should only handle non-recoverable auth errors
+
+        // Check if it's a 401 that wasn't already handled by token refresh
+        // (indicated by the error not having a _retry flag set by the interceptor)
+        if (error.response?.status === 401 && !error.config?._retry) {
+            // This is likely a fresh 401 that should be handled by token refresh first
+            // Don't logout immediately, let the interceptor handle it
+            return { error };
         }
+
+        // For other auth-related errors (403, etc.) or repeated 401s, don't auto-logout
+        // Let the user see the error and decide what to do
 
         return { error };
     },
