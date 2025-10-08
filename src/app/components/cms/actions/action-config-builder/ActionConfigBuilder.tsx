@@ -287,73 +287,88 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
 
   const top = (
     <Stack gap="md">
-      {/* Global Condition */}
-      <Card withBorder>
-        <Stack gap="sm">
-          <Text fw={600}>Global Condition</Text>
-          <ConditionBuilderField fieldId={1} fieldName="root.condition" value={config.condition || ''} onChange={(v) => setConfig((p: any) => ({ ...p, condition: v }))} />
-        </Stack>
-      </Card>
-
       {/* Main Configuration Options */}
       <Card withBorder>
-        <Stack gap="sm">
+        <Stack gap="md">
           <Text fw={600}>Configuration Options</Text>
 
-          {/* Core Options Row */}
-          <Group gap="lg" align="center">
-            <Switch
-              checked={!!config.randomize}
-              onChange={(e) => setConfig({ ...config, randomize: e.currentTarget.checked })}
-              label="Randomize"
-              size="sm"
-            />
-            <Switch
-              checked={!!config.repeat}
-              onChange={(e) => setConfig({ ...config, repeat: e.currentTarget.checked })}
-              label="Repeat"
-              size="sm"
-            />
-            <Switch
-              checked={!!config.repeat_until_date}
-              onChange={(e) => setConfig({ ...config, repeat_until_date: e.currentTarget.checked })}
-              label="Repeat until date"
-              size="sm"
-            />
-            <Switch
-              checked={!!config.target_groups}
-              onChange={(e) => setConfig({ ...config, target_groups: e.currentTarget.checked })}
-              label="Target groups"
-              size="sm"
-            />
-            <Switch
-              checked={!!config.overwrite_variables}
-              onChange={(e) => setConfig({ ...config, overwrite_variables: e.currentTarget.checked })}
-              label="Overwrite vars"
-              size="sm"
-            />
-          </Group>
+          {/* Configuration Layout */}
+          <Grid align="flex-start">
+            {/* Left side - Switches */}
+            <Grid.Col span={8}>
+              <Stack gap="sm">
+                {/* Core Options Row */}
+                <Group gap="lg" align="center">
+                  <Switch
+                    checked={!!config.randomize}
+                    onChange={(e) => setConfig({ ...config, randomize: e.currentTarget.checked })}
+                    label="Randomize"
+                    size="sm"
+                  />
+                  <Switch
+                    checked={!!config.repeat}
+                    onChange={(e) => setConfig({ ...config, repeat: e.currentTarget.checked })}
+                    label="Repeat"
+                    size="sm"
+                  />
+                  <Switch
+                    checked={!!config.repeat_until_date}
+                    onChange={(e) => setConfig({ ...config, repeat_until_date: e.currentTarget.checked })}
+                    label="Repeat until date"
+                    size="sm"
+                  />
+                </Group>
 
-          {/* Cleanup Options Row */}
-          <Group gap="lg" align="center">
-            <Switch
-              checked={!!config.clear_existing_jobs_for_action}
-              onChange={(e) => setConfig({ ...config, clear_existing_jobs_for_action: e.currentTarget.checked })}
-              label="Clear Scheduled Jobs for This Action"
-              size="sm"
-            />
-            <Switch
-              checked={!!config.clear_existing_jobs_for_record_and_action}
-              onChange={(e) => setConfig({ ...config, clear_existing_jobs_for_record_and_action: e.currentTarget.checked })}
-              label="Clear Scheduled Jobs for This Action & Record"
-              size="sm"
-            />
-          </Group>
+                {/* Second Row */}
+                <Group gap="lg" align="center">
+                  <Switch
+                    checked={!!config.target_groups}
+                    onChange={(e) => setConfig({ ...config, target_groups: e.currentTarget.checked })}
+                    label="Target groups"
+                    size="sm"
+                  />
+                  <Switch
+                    checked={!!config.overwrite_variables}
+                    onChange={(e) => setConfig({ ...config, overwrite_variables: e.currentTarget.checked })}
+                    label="Overwrite vars"
+                    size="sm"
+                  />
+                </Group>
+
+                {/* Cleanup Options Row */}
+                <Group gap="lg" align="center">
+                  <Switch
+                    checked={!!config.clear_existing_jobs_for_action}
+                    onChange={(e) => setConfig({ ...config, clear_existing_jobs_for_action: e.currentTarget.checked })}
+                    label="Clear Scheduled Jobs for This Action"
+                    size="sm"
+                  />
+                </Group>
+
+                <Group gap="lg" align="center">
+                  <Switch
+                    checked={!!config.clear_existing_jobs_for_record_and_action}
+                    onChange={(e) => setConfig({ ...config, clear_existing_jobs_for_record_and_action: e.currentTarget.checked })}
+                    label="Clear Scheduled Jobs for This Action & Record"
+                    size="sm"
+                  />
+                </Group>
+              </Stack>
+            </Grid.Col>
+
+            {/* Right side - Global Condition */}
+            <Grid.Col span={4}>
+              <Stack gap="sm">
+                <Text fw={600} size="sm">Global Condition</Text>
+                <ConditionBuilderField fieldId={1} fieldName="root.condition" value={config.condition || ''} onChange={(v) => setConfig((p: any) => ({ ...p, condition: v }))} />
+              </Stack>
+            </Grid.Col>
+          </Grid>
         </Stack>
       </Card>
 
       {/* Conditional Configuration Sections */}
-      <Grid>
+      <Grid style={{ overflowX: 'hidden' }}>
         {/* Randomization Options */}
         {config.randomize && (
           <Grid.Col span={6}>
