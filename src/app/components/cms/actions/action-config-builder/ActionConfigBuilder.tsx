@@ -105,7 +105,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
             const tables = await AdminDataApi.listDataTables();
             setFormOptions((tables.dataTables || []).map((t: any) => ({ value: String(t.id), label: t.displayName || t.name })));
             const assets = await AdminAssetApi.getAssets({ page: 1, pageSize: 1000 });
-            setAssetOptions(assets.assets.map(a => ({ value: a.file_name, label: a.original_name || a.file_name })));
+            setAssetOptions(assets.assets.map(a => ({ value: a.file_path, label: a.original_name || a.file_name })));
         })();
     }, []);
 
@@ -164,19 +164,24 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
     const removeBlock = (index: number) => setConfig((prev: any) => ({ ...prev, blocks: ensureArray(prev.blocks).filter((_: any, i: number) => i !== index) }));
     const setBlock = (index: number, patch: any) => setConfig((prev: any) => ({ ...prev, blocks: ensureArray(prev.blocks).map((b: any, i: number) => i === index ? { ...b, ...patch } : b) }));
 
-    const addJob = (bIndex: number) => setBlock(bIndex, {
-        jobs: [...ensureArray(config.blocks?.[bIndex]?.jobs), {
-            job_name: 'Job',
-            job_type: 'notification',
-            schedule_time: {
-                job_schedule_types: 'immediately'
-            },
-            notification: {
-                notification_types: 'email',
-                recipient: '@user'
-            }
-        }]
-    });
+    const addJob = (bIndex: number) => {
+        const newJobIndex = ensureArray(config.blocks?.[bIndex]?.jobs).length;
+        setBlock(bIndex, {
+            jobs: [...ensureArray(config.blocks?.[bIndex]?.jobs), {
+                job_name: 'Job',
+                job_type: 'notification',
+                schedule_time: {
+                    job_schedule_types: 'immediately'
+                },
+                notification: {
+                    notification_types: 'email',
+                    recipient: '@user',
+                    subject: `block_${bIndex}.job_${newJobIndex}.notification.subject`,
+                    body: `block_${bIndex}.job_${newJobIndex}.notification.body`
+                }
+            }]
+        });
+    };
     const copyJob = (bIndex: number, jIndex: number) => setBlock(bIndex, {
         jobs: (() => {
             const jobs = ensureArray(config.blocks?.[bIndex]?.jobs);
@@ -785,28 +790,31 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                 ...prev,
                                 [`block_${blockIndex}.job_${jobIndex}.notification.subject`]: translations
                             }));
-                            // Also store the translation key in the config
-                            setJob(blockIndex, jobIndex, {
-                                notification: {
-                                    ...n,
-                                    subject: `block_${blockIndex}.job_${jobIndex}.notification.subject`
-                                }
-                            });
+                            // Only store the translation key if it doesn't exist
+                            if (!n.subject) {
+                                setJob(blockIndex, jobIndex, {
+                                    notification: {
+                                        ...n,
+                                        subject: `block_${blockIndex}.job_${jobIndex}.notification.subject`
+                                    }
+                                });
+                            }
                         }}
                         onBodyChange={(translations) => {
                             setLocalTranslations(prev => ({
                                 ...prev,
                                 [`block_${blockIndex}.job_${jobIndex}.notification.body`]: translations
                             }));
-                            // Also store the translation key in the config
-                            setJob(blockIndex, jobIndex, {
-                                notification: {
-                                    ...n,
-                                    body: `block_${blockIndex}.job_${jobIndex}.notification.body`
-                                }
-                            });
+                            // Only store the translation key if it doesn't exist
+                            if (!n.body) {
+                                setJob(blockIndex, jobIndex, {
+                                    notification: {
+                                        ...n,
+                                        body: `block_${blockIndex}.job_${jobIndex}.notification.body`
+                                    }
+                                });
+                            }
                         }}
-                        required
                     />
                 </Stack>
             </Card>
@@ -1029,7 +1037,10 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                                                                 setJob(bIndex, jIndex, {
                                                                                     job_type: newJobType,
                                                                                     notification: {
-                                                                                        notification_types: 'email'
+                                                                                        notification_types: 'email',
+                                                                                        recipient: '@user',
+                                                                                        subject: `block_${bIndex}.job_${jIndex}.notification.subject`,
+                                                                                        body: `block_${bIndex}.job_${jIndex}.notification.body`
                                                                                     }
                                                                                 });
                                                                             } else {

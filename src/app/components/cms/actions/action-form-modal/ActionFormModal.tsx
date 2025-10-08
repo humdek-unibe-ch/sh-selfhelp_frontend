@@ -45,7 +45,9 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
         },
         notification: {
           notification_types: 'email',
-          recipient: '@user'
+          recipient: '@user',
+          subject: 'block_0.job_0.notification.subject',
+          body: 'block_0.job_0.notification.body'
         }
       }]
     }]
@@ -62,7 +64,9 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
         },
         notification: {
           notification_types: 'email',
-          recipient: '@user'
+          recipient: '@user',
+          subject: 'block_0.job_0.notification.subject',
+          body: 'block_0.job_0.notification.body'
         }
       }]
     }]
@@ -96,7 +100,9 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
             },
             notification: {
               notification_types: 'email',
-              recipient: '@user'
+              recipient: '@user',
+              subject: 'block_0.job_0.notification.subject',
+              body: 'block_0.job_0.notification.body'
             }
           }]
         }]
@@ -138,14 +144,13 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
         if (['notification', 'notification_with_reminder', 'notification_with_reminder_for_diary'].includes(job.job_type)) {
           const notification = job.notification || {};
           if (!notification.recipient?.trim()) return false;
-          // Note: Subject and body validation is handled by the GroupedTranslationInput component
-          // We assume that if the user has progressed this far, the translations are valid
+          // Subject and body translations are optional for saving
         }
       }
     }
 
     return true;
-  }, [name, trigger, dataTableId, configObj]);
+  }, [name, trigger, dataTableId, configObj, actionTranslations]);
 
   const handleSave = async () => {
     let parsed: any = configObj || null;
