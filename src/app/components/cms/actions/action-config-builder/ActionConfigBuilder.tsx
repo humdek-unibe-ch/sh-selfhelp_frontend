@@ -13,6 +13,10 @@ import dynamic from 'next/dynamic';
 import { DateTimePicker, TimeInput } from '@mantine/dates';
 import { useActionTranslations } from '../../../../../hooks/useActionTranslations';
 import { GroupedTranslationInput } from '../grouped-translation-input/GroupedTranslationInput';
+import classes from './ActionConfigBuilder.module.css';
+
+// Global rule: Use Mantine components if any styles are needed, create module CSS
+// This ensures consistent styling and better maintainability
 
 const MonacoFieldEditor = dynamic(() => import('../../shared/monaco-field-editor/MonacoFieldEditor').then(m => m.MonacoFieldEditor), { ssr: false });
 
@@ -155,7 +159,10 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
     reminders: [...ensureArray(config.blocks?.[bIndex]?.jobs?.[jIndex]?.reminders), {
       condition: '',
       on_job_execute: { condition: '' },
-      schedule_time: { job_schedule_types: 'immediately' },
+      schedule_time: {
+        send_after: 1,
+        send_after_type: 'days'
+      },
       notification: { notification_types: 'email', recipient: '@user' }
     }]
   });
@@ -171,18 +178,53 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
   // active tabs
   const [activeBlock, setActiveBlock] = useState<string>('0');
   const [activeJobByBlock, setActiveJobByBlock] = useState<Record<number, string>>({ 0: '0' });
+  const [activeReminderByJobAndBlock, setActiveReminderByJobAndBlock] = useState<Record<string, string>>({ '0-0': '0' });
   useEffect(() => {
     // keep active indices in bounds
     const blocks = ensureArray(config.blocks);
     const bi = Number(activeBlock) || 0;
     if (bi >= blocks.length) setActiveBlock('0');
+
+    let needsJobUpdate = false;
+    const newJobMap = { ...activeJobByBlock };
+
     blocks.forEach((_, i) => {
       const jobs = ensureArray((blocks[i] as any).jobs);
-      const map = activeJobByBlock as Record<number, string>;
-      const aj = Number(map[i] || '0');
-      if (aj >= jobs.length) setActiveJobByBlock((prev) => ({ ...prev, [i]: '0' }));
+      const aj = Number(newJobMap[i] || '0');
+      if (aj >= jobs.length) {
+        newJobMap[i] = '0';
+        needsJobUpdate = true;
+      }
     });
-  }, [config.blocks, activeBlock, activeJobByBlock]);
+
+    if (needsJobUpdate) {
+      setActiveJobByBlock(newJobMap);
+    }
+  }, [config.blocks, activeBlock]);
+
+  useEffect(() => {
+    // Keep reminder indices in bounds - separate effect to avoid circular dependencies
+    const blocks = ensureArray(config.blocks);
+    let needsReminderUpdate = false;
+    const newReminderMap = { ...activeReminderByJobAndBlock };
+
+    blocks.forEach((_, i) => {
+      const jobs = ensureArray((blocks[i] as any).jobs);
+      jobs.forEach((_, j) => {
+        const reminders = ensureArray((jobs[j] as any).reminders);
+        const key = `${i}-${j}`;
+        const ar = Number(newReminderMap[key] || '0');
+        if (ar >= reminders.length) {
+          newReminderMap[key] = '0';
+          needsReminderUpdate = true;
+        }
+      });
+    });
+
+    if (needsReminderUpdate) {
+      setActiveReminderByJobAndBlock(newReminderMap);
+    }
+  }, [config.blocks]);
 
   // memoized date value for Mantine component, avoids TS complaints
   const deadlineDate = useMemo<Date | null>(() => {
@@ -194,6 +236,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
 
   const top = (
     <Stack gap="md">
+      {/* Global Condition */}
       <Card withBorder>
         <Stack gap="sm">
           <Text fw={600}>Global Condition</Text>
@@ -201,180 +244,388 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
         </Stack>
       </Card>
 
+      {/* Main Configuration Options */}
       <Card withBorder>
         <Stack gap="sm">
-          <Text fw={600}>Options</Text>
-          <Group>
-            <Switch checked={!!config.randomize} onChange={(e) => setConfig({ ...config, randomize: e.currentTarget.checked })} label="Randomize" />
-            <Switch checked={!!config.repeat} onChange={(e) => setConfig({ ...config, repeat: e.currentTarget.checked })} label="Repeat" />
-            <Switch checked={!!config.repeat_until_date} onChange={(e) => setConfig({ ...config, repeat_until_date: e.currentTarget.checked })} label="Repeat until date" />
-            <Switch checked={!!config.target_groups} onChange={(e) => setConfig({ ...config, target_groups: e.currentTarget.checked })} label="Target groups" />
-            <Switch checked={!!config.overwrite_variables} onChange={(e) => setConfig({ ...config, overwrite_variables: e.currentTarget.checked })} label="Overwrite variables" />
+          <Text fw={600}>Configuration Options</Text>
+
+          {/* Core Options Row */}
+          <Group gap="lg" align="center">
+            <Switch
+              checked={!!config.randomize}
+              onChange={(e) => setConfig({ ...config, randomize: e.currentTarget.checked })}
+              label="Randomize"
+              size="sm"
+            />
+            <Switch
+              checked={!!config.repeat}
+              onChange={(e) => setConfig({ ...config, repeat: e.currentTarget.checked })}
+              label="Repeat"
+              size="sm"
+            />
+            <Switch
+              checked={!!config.repeat_until_date}
+              onChange={(e) => setConfig({ ...config, repeat_until_date: e.currentTarget.checked })}
+              label="Repeat until date"
+              size="sm"
+            />
+            <Switch
+              checked={!!config.target_groups}
+              onChange={(e) => setConfig({ ...config, target_groups: e.currentTarget.checked })}
+              label="Target groups"
+              size="sm"
+            />
+            <Switch
+              checked={!!config.overwrite_variables}
+              onChange={(e) => setConfig({ ...config, overwrite_variables: e.currentTarget.checked })}
+              label="Overwrite vars"
+              size="sm"
+            />
+          </Group>
+
+          {/* Cleanup Options Row */}
+          <Group gap="lg" align="center">
+            <Switch
+              checked={!!config.clear_existing_jobs_for_action}
+              onChange={(e) => setConfig({ ...config, clear_existing_jobs_for_action: e.currentTarget.checked })}
+              label="Clear Scheduled Jobs for This Action"
+              size="sm"
+            />
+            <Switch
+              checked={!!config.clear_existing_jobs_for_record_and_action}
+              onChange={(e) => setConfig({ ...config, clear_existing_jobs_for_record_and_action: e.currentTarget.checked })}
+              label="Clear Scheduled Jobs for This Action & Record"
+              size="sm"
+            />
           </Group>
         </Stack>
       </Card>
-      {config.randomize && (
+
+      {/* Conditional Configuration Sections */}
+      <div className={classes.gridContainer}>
+        {/* Randomization Options */}
+        {config.randomize && (
+          <div className={classes.gridCol6}>
+            <Card withBorder>
+              <Stack gap="sm">
+                <Text fw={600} size="sm">Randomization</Text>
+                <Group grow>
+                  <Switch
+                    checked={!!(config.randomizer?.even_presentation)}
+                    onChange={(e) => setConfig({ ...config, randomizer: { ...(config.randomizer||{}), even_presentation: e.currentTarget.checked } })}
+                    label="Even presentation"
+                    size="sm"
+                  />
+                  <NumberInput
+                    label="Random elements"
+                    min={1}
+                    value={config.randomizer?.random_elements ?? 1}
+                    onChange={(v) => setConfig({ ...config, randomizer: { ...(config.randomizer||{}), random_elements: Number(v)||1 } })}
+                    size="sm"
+                  />
+                </Group>
+              </Stack>
+            </Card>
+          </div>
+        )}
+
+        {/* Target Groups */}
+        {config.target_groups && (
+          <div className={config.randomize ? classes.gridCol6 : classes.gridCol12}>
+            <Card withBorder>
+              <Stack gap="sm">
+                <Text fw={600} size="sm">Target Groups</Text>
+                <MultiSelect
+                  label="Select groups"
+                  data={groupsOptions}
+                  value={config.selected_target_groups || []}
+                  onChange={(v) => setConfig({ ...config, selected_target_groups: v })}
+                  searchable
+                  clearable
+                  size="sm"
+                />
+              </Stack>
+            </Card>
+          </div>
+        )}
+
+        {/* Overwrite Variables */}
+        {config.overwrite_variables && (
+          <div className={classes.gridCol12}>
+            <Card withBorder>
+              <Stack gap="sm">
+                <Text fw={600} size="sm">Variable Overrides</Text>
+                <MultiSelect
+                  label="Variables to override"
+                  data={[
+                    { value: 'send_after', label: 'send_after' },
+                    { value: 'send_after_type', label: 'send_after_type' },
+                    { value: 'send_on_day_at', label: 'send_on_day_at' },
+                    { value: 'custom_time', label: 'custom_time' },
+                    { value: 'impersonate_user_code', label: 'impersonate_user_code' },
+                  ]}
+                  value={config.selected_overwrite_variables || []}
+                  onChange={(v)=> setConfig({ ...config, selected_overwrite_variables: v })}
+                  searchable
+                  clearable
+                  size="sm"
+                />
+              </Stack>
+            </Card>
+          </div>
+        )}
+      </div>
+
+      {/* Scheduling Options */}
+      {(config.repeat || config.repeat_until_date) && (
         <Card withBorder>
-          <Stack gap="sm">
-            <Text fw={600}>Randomizer</Text>
-            <Group grow>
-              <Switch checked={!!(config.randomizer?.even_presentation)} onChange={(e) => setConfig({ ...config, randomizer: { ...(config.randomizer||{}), even_presentation: e.currentTarget.checked } })} label="Evenly present blocks" />
-              <NumberInput label="Randomly present" min={1} value={config.randomizer?.random_elements ?? 1} onChange={(v) => setConfig({ ...config, randomizer: { ...(config.randomizer||{}), random_elements: Number(v)||1 } })} />
-            </Group>
-          </Stack>
-        </Card>
-      )}
-      <Card withBorder>
-        <Stack gap="sm">
-          <Text fw={600}>Cleanup</Text>
-          <Group>
-            <Switch checked={!!config.clear_existing_jobs_for_action} onChange={(e) => setConfig({ ...config, clear_existing_jobs_for_action: e.currentTarget.checked })} label="Clear Scheduled Jobs for This Action" />
-            <Switch checked={!!config.clear_existing_jobs_for_record_and_action} onChange={(e) => setConfig({ ...config, clear_existing_jobs_for_record_and_action: e.currentTarget.checked })} label="Clear Scheduled Jobs for This Action & Record" />
-          </Group>
-        </Stack>
-      </Card>
-      {config.repeat && (
-        <Card withBorder>
-          <Stack gap="sm">
-            <Text fw={600}>Repeater</Text>
-            <Group grow>
-              <NumberInput label="Occurrences" min={1} value={config.repeater?.occurrences ?? 1} onChange={(v) => setConfig({ ...config, repeater: { ...(config.repeater||{}), occurrences: Number(v)||1 } })} />
-              <Select label="Repeat every" data={[{value:'day',label:'Day'},{value:'week',label:'Week'},{value:'month',label:'Month'}]} value={config.repeater?.frequency || null} onChange={(v)=> setConfig({ ...config, repeater: { ...(config.repeater||{}), frequency: v||undefined } })} />
-            </Group>
-            {config.repeater?.frequency === 'week' && (
-              <MultiSelect
-                label="Select week days"
-                data={weekdaysData}
-                value={ensureArray(config.repeater?.daysOfWeek)}
-                onChange={(v)=> setConfig({ ...config, repeater: { ...(config.repeater||{}), daysOfWeek: v } })}
-                searchable
-                clearable
-              />
+          <Stack gap="md">
+            <Text fw={600}>Scheduling Configuration</Text>
+
+            {config.repeat && (
+              <div>
+                <Text fw={500} size="sm" mb="xs">Standard Repeat</Text>
+                <div className={classes.gridContainerTight}>
+                  <div className={classes.gridCol3}>
+                    <NumberInput
+                      label="Occurrences"
+                      min={1}
+                      value={config.repeater?.occurrences ?? 1}
+                      onChange={(v) => setConfig({ ...config, repeater: { ...(config.repeater||{}), occurrences: Number(v)||1 } })}
+                      size="sm"
+                    />
+                  </div>
+                  <div className={classes.gridCol3}>
+                    <Select
+                      label="Frequency"
+                      data={[{value:'day',label:'Day'},{value:'week',label:'Week'},{value:'month',label:'Month'}]}
+                      value={config.repeater?.frequency || null}
+                      onChange={(v)=> setConfig({ ...config, repeater: { ...(config.repeater||{}), frequency: v||undefined } })}
+                      size="sm"
+                    />
+                  </div>
+                  {config.repeater?.frequency === 'week' && (
+                    <div className={classes.gridCol6}>
+                      <MultiSelect
+                        label="Week days"
+                        data={weekdaysData}
+                        value={ensureArray(config.repeater?.daysOfWeek)}
+                        onChange={(v)=> setConfig({ ...config, repeater: { ...(config.repeater||{}), daysOfWeek: v } })}
+                        searchable
+                        clearable
+                        size="sm"
+                      />
+                    </div>
+                  )}
+                  {config.repeater?.frequency === 'month' && (
+                    <div className={classes.gridCol6}>
+                      <MultiSelect
+                        label="Month days"
+                        data={daysOfMonthOptions}
+                        value={ensureArray(config.repeater?.daysOfMonth)}
+                        onChange={(v)=> setConfig({ ...config, repeater: { ...(config.repeater||{}), daysOfMonth: v } })}
+                        searchable
+                        clearable
+                        size="sm"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
-            {config.repeater?.frequency === 'month' && (
-              <MultiSelect
-                label="Select days of month"
-                data={daysOfMonthOptions}
-                value={ensureArray(config.repeater?.daysOfMonth)}
-                onChange={(v)=> setConfig({ ...config, repeater: { ...(config.repeater||{}), daysOfMonth: v } })}
-                searchable
-                clearable
-              />
+
+            {config.repeat_until_date && (
+              <div>
+                <Text fw={500} size="sm" mb="xs">Repeat Until Deadline</Text>
+                <div className={classes.gridContainerTight}>
+                  <div className={classes.gridCol4}>
+                    <DateTimePicker
+                      label="Deadline"
+                      value={deadlineDate}
+                      onChange={(val) => setConfig({
+                        ...config,
+                        repeater_until_date: {
+                          ...(config.repeater_until_date || {}),
+                          deadline: val ? (val as unknown as Date).toISOString() : ''
+                        }
+                      })}
+                      size="sm"
+                    />
+                  </div>
+                  <div className={classes.gridCol2}>
+                    <TimeInput
+                      label="Schedule at"
+                      value={config.repeater_until_date?.schedule_at || ''}
+                      onChange={(e)=> setConfig({ ...config, repeater_until_date: { ...(config.repeater_until_date||{}), schedule_at: (e.currentTarget as any).value } })}
+                      size="sm"
+                    />
+                  </div>
+                  <div className={classes.gridCol3}>
+                    <Select
+                      label="Repeat every"
+                      data={repeatEveryOptions}
+                      value={String(config.repeater_until_date?.repeat_every ?? 1)}
+                      onChange={(v)=> setConfig({ ...config, repeater_until_date: { ...(config.repeater_until_date||{}), repeat_every: Number(v)||1 } })}
+                      size="sm"
+                    />
+                  </div>
+                  <div className={classes.gridCol3}>
+                    <Select
+                      label="Frequency"
+                      data={[{value:'day',label:'Day'},{value:'week',label:'Week'},{value:'month',label:'Month'}]}
+                      value={config.repeater_until_date?.frequency || null}
+                      onChange={(v)=> setConfig({ ...config, repeater_until_date: { ...(config.repeater_until_date||{}), frequency: v||undefined } })}
+                      size="sm"
+                    />
+                  </div>
+                </div>
+
+                {(config.repeater_until_date?.frequency === 'week' || config.repeater_until_date?.frequency === 'month') && (
+                  <div className={`${classes.gridContainerTight} ${classes.marginTop4}`}>
+                    {config.repeater_until_date?.frequency === 'week' && (
+                      <div className={classes.gridCol6}>
+                        <MultiSelect
+                          label="Week days"
+                          data={weekdaysData}
+                          value={ensureArray(config.repeater_until_date?.daysOfWeek)}
+                          onChange={(v)=> setConfig({ ...config, repeater_until_date: { ...(config.repeater_until_date||{}), daysOfWeek: v } })}
+                          searchable
+                          clearable
+                          size="sm"
+                        />
+                      </div>
+                    )}
+                    {config.repeater_until_date?.frequency === 'month' && (
+                      <div className={classes.gridCol6}>
+                        <MultiSelect
+                          label="Month days"
+                          data={daysOfMonthOptions}
+                          value={ensureArray(config.repeater_until_date?.daysOfMonth)}
+                          onChange={(v)=> setConfig({ ...config, repeater_until_date: { ...(config.repeater_until_date||{}), daysOfMonth: v } })}
+                          searchable
+                          clearable
+                          size="sm"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
-          </Stack>
-        </Card>
-      )}
-      {config.repeat_until_date && (
-        <Card withBorder>
-          <Stack gap="sm">
-            <Text fw={600}>Repeat until date</Text>
-            <Group grow>
-              <DateTimePicker
-                label="Until deadline"
-                value={deadlineDate}
-                onChange={(val) => setConfig({
-                  ...config,
-                  repeater_until_date: {
-                    ...(config.repeater_until_date || {}),
-                    deadline: val ? (val as unknown as Date).toISOString() : ''
-                  }
-                })}
-              />
-              <TimeInput label="Schedule at" value={config.repeater_until_date?.schedule_at || ''} onChange={(e)=> setConfig({ ...config, repeater_until_date: { ...(config.repeater_until_date||{}), schedule_at: (e.currentTarget as any).value } })} />
-            </Group>
-            <Group grow>
-              <Select
-                label="Repeat"
-                data={repeatEveryOptions}
-                value={String(config.repeater_until_date?.repeat_every ?? 1)}
-                onChange={(v)=> setConfig({ ...config, repeater_until_date: { ...(config.repeater_until_date||{}), repeat_every: Number(v)||1 } })}
-              />
-              <Select label="Frequency" data={[{value:'day',label:'Day'},{value:'week',label:'Week'},{value:'month',label:'Month'}]} value={config.repeater_until_date?.frequency || null} onChange={(v)=> setConfig({ ...config, repeater_until_date: { ...(config.repeater_until_date||{}), frequency: v||undefined } })} />
-            </Group>
-            {config.repeater_until_date?.frequency === 'week' && (
-              <MultiSelect
-                label="Select week days"
-                data={weekdaysData}
-                value={ensureArray(config.repeater_until_date?.daysOfWeek)}
-                onChange={(v)=> setConfig({ ...config, repeater_until_date: { ...(config.repeater_until_date||{}), daysOfWeek: v } })}
-                searchable
-                clearable
-              />
-            )}
-            {config.repeater_until_date?.frequency === 'month' && (
-              <MultiSelect
-                label="Select days of month"
-                data={daysOfMonthOptions}
-                value={ensureArray(config.repeater_until_date?.daysOfMonth)}
-                onChange={(v)=> setConfig({ ...config, repeater_until_date: { ...(config.repeater_until_date||{}), daysOfMonth: v } })}
-                searchable
-                clearable
-              />
-            )}
-          </Stack>
-        </Card>
-      )}
-      {config.target_groups && (
-        <Card withBorder>
-          <Stack gap="sm">
-            <Text fw={600}>Targets</Text>
-            <MultiSelect label="Select target groups" data={groupsOptions} value={config.selected_target_groups || []} onChange={(v) => setConfig({ ...config, selected_target_groups: v })} searchable clearable />
-          </Stack>
-        </Card>
-      )}
-      {config.overwrite_variables && (
-        <Card withBorder>
-          <Stack gap="sm">
-            <Text fw={600}>Overwrite variables</Text>
-            <MultiSelect label="Variables" data={[
-              { value: 'send_after', label: 'send_after' },
-              { value: 'send_after_type', label: 'send_after_type' },
-              { value: 'send_on_day_at', label: 'send_on_day_at' },
-              { value: 'custom_time', label: 'custom_time' },
-              { value: 'impersonate_user_code', label: 'impersonate_user_code' },
-            ]} value={config.selected_overwrite_variables || []} onChange={(v)=> setConfig({ ...config, selected_overwrite_variables: v })} searchable clearable />
           </Stack>
         </Card>
       )}
     </Stack>
   );
 
-  const renderScheduleTime = (job: any, onPatch: (patch: any) => void) => {
+  const renderScheduleTime = (job: any, onPatch: (patch: any) => void, blockIndex: number, jobIndex: number) => {
     const st = job.schedule_time || {};
     const customDate: Date | null = st.custom_time ? new Date(String(st.custom_time)) : null;
     return (
       <Card withBorder>
-        <Stack gap="xs">
-          <Select label="Schedule type" data={scheduleTypeData} value={st.job_schedule_types || null} onChange={(v) => onPatch({ schedule_time: { ...st, job_schedule_types: v || undefined } })} searchable />
+        <Stack gap="sm">
+          <Group align="end" gap="sm">
+            <Select
+              label="Schedule type"
+              data={scheduleTypeData}
+              value={st.job_schedule_types || null}
+              onChange={(v) => onPatch({ schedule_time: { ...st, job_schedule_types: v || undefined } })}
+              searchable
+              size="sm"
+              className={classes.flex1}
+            />
+            <div className={classes.conditionContainer}>
+              <ConditionBuilderField
+                fieldId={2000 + blockIndex * 100 + jobIndex}
+                fieldName={`blocks.${blockIndex}.jobs.${jobIndex}.condition`}
+                value={job.condition || ''}
+                onChange={(v) => onPatch({ condition: v })}
+                addLabel="Job Condition"
+                editLabel="Edit Job Condition"
+              />
+            </div>
+            <div className={classes.conditionContainer}>
+              <ConditionBuilderField
+                fieldId={2500 + blockIndex * 100 + jobIndex}
+                fieldName={`blocks.${blockIndex}.jobs.${jobIndex}.on_job_execute.condition`}
+                value={job.on_job_execute?.condition || ''}
+                onChange={(v) => onPatch({ on_job_execute: { ...(job.on_job_execute || {}), condition: v } })}
+                addLabel="Job Condition on Execute"
+                editLabel="Edit Job Condition on Execute"
+              />
+            </div>
+          </Group>
+
           {st.job_schedule_types === 'after_period' && (
-            <Group grow>
-              <NumberInput label="Send after" min={1} value={st.send_after ?? 1} onChange={(v) => onPatch({ schedule_time: { ...st, send_after: Number(v) || 1 } })} />
-              <Select label="Unit" data={timePeriodData} value={st.send_after_type || 'days'} onChange={(v) => onPatch({ schedule_time: { ...st, send_after_type: v || 'days' } })} />
-              <TimeInput
-                label="at"
-                value={st.send_on_day_at || ''}
-                onChange={(e) => onPatch({ schedule_time: { ...st, send_on_day_at: (e.currentTarget as HTMLInputElement).value || '' } })}
-                withSeconds={false}
-              />
-            </Group>
+            <div className={classes.gridContainerTight}>
+              <div className={classes.gridCol4}>
+                <NumberInput
+                  label="Send after"
+                  min={1}
+                  value={st.send_after ?? 1}
+                  onChange={(v) => onPatch({ schedule_time: { ...st, send_after: Number(v) || 1 } })}
+                  size="sm"
+                />
+              </div>
+              <div className={classes.gridCol4}>
+                <Select
+                  label="Unit"
+                  data={timePeriodData}
+                  value={st.send_after_type || 'days'}
+                  onChange={(v) => onPatch({ schedule_time: { ...st, send_after_type: v || 'days' } })}
+                  size="sm"
+                />
+              </div>
+              <div className={classes.gridCol4}>
+                <TimeInput
+                  label="at"
+                  value={st.send_on_day_at || ''}
+                  onChange={(e) => onPatch({ schedule_time: { ...st, send_on_day_at: (e.currentTarget as HTMLInputElement).value || '' } })}
+                  withSeconds={false}
+                  size="sm"
+                />
+              </div>
+            </div>
           )}
+
           {st.job_schedule_types === 'after_period_on_day_at_time' && (
-            <Group grow>
-              <Select label="Send on" data={ordinal20Options} value={st.send_on || null} onChange={(v) => onPatch({ schedule_time: { ...st, send_on: v || undefined } })} />
-              <Select label="Week day" data={weekdaysData} value={st.send_on_day || null} onChange={(v) => onPatch({ schedule_time: { ...st, send_on_day: v || undefined } })} />
-              <TimeInput
-                label="at"
-                value={st.send_on_day_at || ''}
-                onChange={(e) => onPatch({ schedule_time: { ...st, send_on_day_at: (e.currentTarget as HTMLInputElement).value || '' } })}
-                withSeconds={false}
-              />
-            </Group>
+            <div className={classes.gridContainerTight}>
+              <div className={classes.gridCol4}>
+                <Select
+                  label="Send on"
+                  data={ordinal20Options}
+                  value={st.send_on || null}
+                  onChange={(v) => onPatch({ schedule_time: { ...st, send_on: v || undefined } })}
+                  size="sm"
+                />
+              </div>
+              <div className={classes.gridCol4}>
+                <Select
+                  label="Week day"
+                  data={weekdaysData}
+                  value={st.send_on_day || null}
+                  onChange={(v) => onPatch({ schedule_time: { ...st, send_on_day: v || undefined } })}
+                  size="sm"
+                />
+              </div>
+              <div className={classes.gridCol4}>
+                <TimeInput
+                  label="at"
+                  value={st.send_on_day_at || ''}
+                  onChange={(e) => onPatch({ schedule_time: { ...st, send_on_day_at: (e.currentTarget as HTMLInputElement).value || '' } })}
+                  withSeconds={false}
+                  size="sm"
+                />
+              </div>
+            </div>
           )}
+
           {st.job_schedule_types === 'on_fixed_datetime' && (
             <DateTimePicker
               label="Select date and time"
               value={customDate ?? null}
               onChange={(val) => onPatch({ schedule_time: { ...st, custom_time: val ? new Date(val as unknown as string).toISOString() : '' } })}
+              size="sm"
             />
           )}
         </Stack>
@@ -386,36 +637,68 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
     const n = job.notification || {};
     return (
       <Card withBorder>
-        <Stack gap="xs">
-          <Select label="Notification type" data={[{ value: 'email', label: 'Email' }, { value: 'push_notification', label: 'Push notification' }]} value={n.notification_types || 'email'} onChange={(v) => onPatch({ notification: { ...n, notification_types: v || 'email' } })} />
-
-          {/* Common fields for both email and push notifications */}
-          <TextInput
-            label="Send To (recipient)"
-            description={n.notification_types === 'email'
-              ? "Enter recipient email address"
-              : "Use @users for all users, or specify individual recipients"}
-            placeholder={n.notification_types === 'push_notification' ? "@users" : "user@example.com"}
-            value={n.recipient || (n.notification_types === 'push_notification' ? "@users" : "@user")}
-            onChange={(e) => onPatch({ notification: { ...n, recipient: e.currentTarget.value } })}
-            required
+        <Stack gap="sm">
+          <Select
+            label="Notification type"
+            data={[{ value: 'email', label: 'Email' }, { value: 'push_notification', label: 'Push notification' }]}
+            value={n.notification_types || 'email'}
+            onChange={(v) => onPatch({ notification: { ...n, notification_types: v || 'email' } })}
+            size="sm"
           />
+
 
           {/* Email-specific fields */}
           {(n.notification_types || 'email') === 'email' && (
-            <>
-              <Group grow>
-                <TextInput label="From email" value={n.from_email || ''} onChange={(e) => onPatch({ notification: { ...n, from_email: e.currentTarget.value } })} />
-                <TextInput label="From name" value={n.from_name || ''} onChange={(e) => onPatch({ notification: { ...n, from_name: e.currentTarget.value } })} />
-              </Group>
-              <TextInput label="Reply to" value={n.reply_to || ''} onChange={(e) => onPatch({ notification: { ...n, reply_to: e.currentTarget.value } })} />
-              <MultiSelect label="Attachments" data={assetOptions} value={n.attachments || []} onChange={(v) => onPatch({ notification: { ...n, attachments: v } })} searchable clearable />
-            </>
+            <div className={classes.gridContainerTight}>
+              <div className={classes.gridCol6}>
+                <TextInput
+                  label="Send To (recipient)"
+                  description="Enter recipient email address"
+                  placeholder="user@example.com"
+                  value={n.recipient || "@user"}
+                  onChange={(e) => onPatch({ notification: { ...n, recipient: e.currentTarget.value } })}
+                  required
+                  size="sm"
+                />
+              </div>
+              <div className={classes.gridCol6}>
+                <MultiSelect
+                  label="Attachments"
+                  data={assetOptions}
+                  value={n.attachments || []}
+                  onChange={(v) => onPatch({ notification: { ...n, attachments: v } })}
+                  searchable
+                  clearable
+                  size="sm"
+                />
+              </div>
+            </div>
           )}
 
           {/* Push notification specific fields */}
           {n.notification_types === 'push_notification' && (
-            <TextInput label="Redirect to URL" value={n.redirect_url || ''} onChange={(e) => onPatch({ notification: { ...n, redirect_url: e.currentTarget.value } })} />
+            <div className={classes.gridContainerTight}>
+              <div className={classes.gridCol6}>
+                <TextInput
+                  label="Send To (recipient)"
+                  description="Use @users for all users, or specify individual recipients"
+                  placeholder="@users"
+                  value={n.recipient || "@users"}
+                  onChange={(e) => onPatch({ notification: { ...n, recipient: e.currentTarget.value } })}
+                  required
+                  size="sm"
+                />
+              </div>
+              <div className={classes.gridCol6}>
+                <TextInput
+                  label="Redirect to URL"
+                  placeholder="Enter URL or select page keyword"
+                  value={n.redirect_url || ''}
+                  onChange={(e) => onPatch({ notification: { ...n, redirect_url: e.currentTarget.value } })}
+                  size="sm"
+                />
+              </div>
+            </div>
           )}
 
           {/* Subject and Body fields for both email and push notifications */}
@@ -457,12 +740,69 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
     );
   };
 
-  const renderReminder = (reminder: any, onPatch: (patch: any) => void, blockIndex: number, jobIndex: number, reminderIndex: number) => {
+  const renderReminderScheduleTime = (reminder: any, onPatch: (patch: any) => void, parentJobType: string) => {
+    const st = reminder.schedule_time || {};
     return (
       <Card withBorder>
         <Stack gap="sm">
-          <Text size="sm" fw={500}>Reminder {reminderIndex + 1}</Text>
+          <Text size="sm" fw={600}>Reminder schedule time</Text>
+          <Text size="xs" c="dimmed">Define how much time after the notification, the reminder will be sent</Text>
 
+          <Group align="end" gap="sm">
+            <NumberInput
+              label="Send after"
+              min={1}
+              value={st.send_after ?? 1}
+              onChange={(v) => onPatch({ schedule_time: { ...st, send_after: Number(v) || 1 } })}
+              size="sm"
+              className={classes.flex1}
+            />
+            <Select
+              label="&nbsp;"
+              data={timePeriodData}
+              value={st.send_after_type || 'days'}
+              onChange={(v) => onPatch({ schedule_time: { ...st, send_after_type: v || 'days' } })}
+              size="sm"
+              className={classes.width120}
+            />
+          </Group>
+
+          {/* Additional fields for diary reminders */}
+          {parentJobType === 'notification_with_reminder_for_diary' && (
+            <div>
+              <Group align="end" gap="sm">
+                <NumberInput
+                  label="Valid for"
+                  min={1}
+                  value={st.valid ?? 1}
+                  onChange={(v) => onPatch({ schedule_time: { ...st, valid: Number(v) || 1 } })}
+                  size="sm"
+                  className={classes.validForInput}
+                />
+                <Select
+                  label="&nbsp;"
+                  data={timePeriodData}
+                  value={st.valid_type || 'hours'}
+                  onChange={(v) => onPatch({ schedule_time: { ...st, valid_type: v || 'hours' } })}
+                  size="sm"
+                  className={classes.validForSelect}
+                />
+              </Group>
+              <Text size="xs" c="dimmed" className={classes.validForDescription}>
+                For how much time the reminder is valid after it was sent
+              </Text>
+            </div>
+          )}
+        </Stack>
+      </Card>
+    );
+  };
+
+  const renderReminder = (reminder: any, onPatch: (patch: any) => void, blockIndex: number, jobIndex: number, reminderIndex: number, parentJobType: string) => {
+    return (
+      <Stack gap="sm">
+        {/* Reminder conditions on same row */}
+        <div className={classes.jobConditionsRow}>
           <ConditionBuilderField
             fieldId={3000 + blockIndex * 100 + jobIndex * 10 + reminderIndex}
             fieldName={`blocks.${blockIndex}.jobs.${jobIndex}.reminders.${reminderIndex}.condition`}
@@ -471,7 +811,6 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
             addLabel="Add Reminder Condition"
             editLabel="Edit Reminder Condition"
           />
-
           <ConditionBuilderField
             fieldId={4000 + blockIndex * 100 + jobIndex * 10 + reminderIndex}
             fieldName={`blocks.${blockIndex}.jobs.${jobIndex}.reminders.${reminderIndex}.on_job_execute.condition`}
@@ -480,14 +819,14 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
             addLabel="Add Reminder Execute Condition"
             editLabel="Edit Reminder Execute Condition"
           />
+        </div>
 
-          {/* Reminder schedule time */}
-          {renderScheduleTime(reminder, onPatch)}
+        {/* Reminder schedule time */}
+        {renderReminderScheduleTime(reminder, onPatch, parentJobType)}
 
-          {/* Reminder notification */}
-          {renderNotification(reminder, onPatch, blockIndex, jobIndex)}
-        </Stack>
-      </Card>
+        {/* Reminder notification */}
+        {renderNotification(reminder, onPatch, blockIndex, jobIndex)}
+      </Stack>
     );
   };
 
@@ -527,15 +866,25 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
               {blocks.map((block: any, bIndex: number) => (
                 <Tabs.Panel key={bIndex} value={String(bIndex)}>
                   <Stack gap="sm">
-                    <TextInput label="Block name" value={block.block_name || ''} onChange={(e) => setBlock(bIndex, { block_name: e.currentTarget.value })} />
-                    <ConditionBuilderField
-                        fieldId={1000 + bIndex}
-                        fieldName={`blocks.${bIndex}.condition`}
-                        value={block.condition || ''}
-                        onChange={(v) => setBlock(bIndex, { condition: v })}
-                        addLabel="Add Block Condition"
-                        editLabel="Edit Block Condition"
-                    />
+                    <Group align="end" gap="sm">
+                      <TextInput
+                        label="Block name"
+                        value={block.block_name || ''}
+                        onChange={(e) => setBlock(bIndex, { block_name: e.currentTarget.value })}
+                        size="sm"
+                        className={classes.flex1}
+                      />
+                      <div className={classes.conditionContainer}>
+                        <ConditionBuilderField
+                            fieldId={1000 + bIndex}
+                            fieldName={`blocks.${bIndex}.condition`}
+                            value={block.condition || ''}
+                            onChange={(v) => setBlock(bIndex, { condition: v })}
+                            addLabel="Add Block Condition"
+                            editLabel="Edit Block Condition"
+                        />
+                      </div>
+                    </Group>
 
                     {/* Jobs Tabs */}
                     <Card withBorder>
@@ -560,42 +909,71 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                           <Tabs.Panel key={jIndex} value={String(jIndex)}>
                             <Card withBorder>
                               <Stack gap="sm">
-                                <TextInput label="Job name" value={job.job_name || ''} onChange={(e) => setJob(bIndex, jIndex, { job_name: e.currentTarget.value })} />
-                                <Group grow>
-                                  <Select label="Job type" data={[
-                                    { value: 'add_group', label: 'Add group' },
-                                    { value: 'remove_group', label: 'Remove group' },
-                                    { value: 'notification', label: 'Schedule notification' },
-                                    { value: 'notification_with_reminder', label: 'Schedule notification with reminders' },
-                                    { value: 'notification_with_reminder_for_diary', label: 'Schedule notification with reminders for a diary' },
-                                  ]} value={job.job_type || null} onChange={(v) => {
-                                    const newJobType = v || undefined;
-                                    const isNotificationType = newJobType && newJobType.includes('notification');
-                                    const wasNotificationType = job.job_type && job.job_type.includes('notification');
+                                {/* Job Name and Type Row */}
+                                <div className={classes.jobRow}>
+                                  <TextInput
+                                    label="Job name"
+                                    value={job.job_name || ''}
+                                    onChange={(e) => setJob(bIndex, jIndex, { job_name: e.currentTarget.value })}
+                                    size="sm"
+                                    className={['notification_with_reminder', 'notification_with_reminder_for_diary'].includes(job.job_type) ? classes.jobInputThree : classes.jobInputTwo}
+                                  />
+                                  <Select
+                                    label="Job type"
+                                    data={[
+                                      { value: 'add_group', label: 'Add group' },
+                                      { value: 'remove_group', label: 'Remove group' },
+                                      { value: 'notification', label: 'Schedule notification' },
+                                      { value: 'notification_with_reminder', label: 'Schedule notification with reminders' },
+                                      { value: 'notification_with_reminder_for_diary', label: 'Schedule notification with reminders for a diary' },
+                                    ]}
+                                    value={job.job_type || null}
+                                    onChange={(v) => {
+                                      const newJobType = v || undefined;
+                                      const isNotificationType = newJobType && newJobType.includes('notification');
+                                      const wasNotificationType = job.job_type && job.job_type.includes('notification');
 
-                                    // Initialize notification object when switching to notification type
-                                    if (isNotificationType && !wasNotificationType) {
-                                      setJob(bIndex, jIndex, {
-                                        job_type: newJobType,
-                                        notification: {
-                                          notification_types: 'email'
-                                        }
-                                      });
-                                    } else {
-                                      setJob(bIndex, jIndex, { job_type: newJobType });
-                                    }
-                                  }} />
+                                      // Initialize notification object when switching to notification type
+                                      if (isNotificationType && !wasNotificationType) {
+                                        setJob(bIndex, jIndex, {
+                                          job_type: newJobType,
+                                          notification: {
+                                            notification_types: 'email'
+                                          }
+                                        });
+                                      } else {
+                                        setJob(bIndex, jIndex, { job_type: newJobType });
+                                      }
+                                    }}
+                                    size="sm"
+                                    className={['notification_with_reminder', 'notification_with_reminder_for_diary'].includes(job.job_type) ? classes.jobInputThree : classes.jobInputTwo}
+                                  />
                                   {['notification_with_reminder', 'notification_with_reminder_for_diary'].includes(job.job_type) && (
-                                    <Select label="Reminder for" data={formOptions} value={job.reminder_form_id || null} onChange={(v) => setJob(bIndex, jIndex, { reminder_form_id: v || undefined })} placeholder="Select data table" />
+                                    <Select
+                                      label="Reminder for"
+                                      data={formOptions}
+                                      value={job.reminder_form_id || null}
+                                      onChange={(v) => setJob(bIndex, jIndex, { reminder_form_id: v || undefined })}
+                                      placeholder="Select data table"
+                                      size="sm"
+                                      className={classes.jobInputThree}
+                                    />
                                   )}
-                                </Group>
+                                </div>
 
                                 {/* Schedule time */}
-                                {renderScheduleTime(job, (patch) => setJob(bIndex, jIndex, patch))}
+                                {renderScheduleTime(job, (patch) => setJob(bIndex, jIndex, patch), bIndex, jIndex)}
 
                                 {/* Group add/remove */}
                                 {['add_group', 'remove_group'].includes(job.job_type) && (
-                                  <MultiSelect label="Group" data={groupsOptions} value={job.job_add_remove_groups || []} onChange={(v) => setJob(bIndex, jIndex, { job_add_remove_groups: v })} searchable />
+                                  <MultiSelect
+                                    label="Group"
+                                    data={groupsOptions}
+                                    value={job.job_add_remove_groups || []}
+                                    onChange={(v) => setJob(bIndex, jIndex, { job_add_remove_groups: v })}
+                                    searchable
+                                    size="sm"
+                                  />
                                 )}
 
                                 {/* Notification */}
@@ -606,29 +984,40 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                 {/* Reminders */}
                                 {['notification_with_reminder', 'notification_with_reminder_for_diary'].includes(job.job_type) && (
                                   <Card withBorder>
-                                    <Stack gap="sm">
-                                      <Group justify="space-between" align="center">
-                                        <Text size="sm" fw={500}>Reminders</Text>
-                                        <Button leftSection={<IconPlus size={16} />} variant="light" size="xs" onClick={() => addReminder(bIndex, jIndex)}>
-                                          Add Reminder
-                                        </Button>
+                                    <Tabs
+                                      value={activeReminderByJobAndBlock[`${bIndex}-${jIndex}`] || '0'}
+                                      onChange={(v) => setActiveReminderByJobAndBlock((prev) => ({ ...prev, [`${bIndex}-${jIndex}`]: v || '0' }))}
+                                    >
+                                      <Group justify="space-between" mb="sm">
+                                        <Tabs.List>
+                                          {ensureArray(job.reminders).map((reminder: any, rIndex: number) => (
+                                            <Tabs.Tab key={rIndex} value={String(rIndex)}>
+                                              {`Reminder ${rIndex + 1}`}
+                                            </Tabs.Tab>
+                                          ))}
+                                        </Tabs.List>
+                                        <Group gap="xs">
+                                          <Button leftSection={<IconPlus size={16} />} variant="light" onClick={() => addReminder(bIndex, jIndex)}>
+                                            Add Reminder
+                                          </Button>
+                                          {ensureArray(job.reminders).length > 0 && (
+                                            <ActionIcon
+                                              variant="subtle"
+                                              color="red"
+                                              onClick={() => removeReminder(bIndex, jIndex, Number(activeReminderByJobAndBlock[`${bIndex}-${jIndex}`] || '0'))}
+                                            >
+                                              <IconTrash size={16} />
+                                            </ActionIcon>
+                                          )}
+                                        </Group>
                                       </Group>
 
                                       {ensureArray(job.reminders).map((reminder: any, rIndex: number) => (
-                                        <Group key={rIndex} align="flex-start">
-                                          <div style={{ flex: 1 }}>
-                                            {renderReminder(reminder, (patch) => setReminder(bIndex, jIndex, rIndex, patch), bIndex, jIndex, rIndex)}
-                                          </div>
-                                          <ActionIcon
-                                            variant="subtle"
-                                            color="red"
-                                            size="sm"
-                                            onClick={() => removeReminder(bIndex, jIndex, rIndex)}
-                                            style={{ marginTop: 8 }}
-                                          >
-                                            <IconTrash size={16} />
-                                          </ActionIcon>
-                                        </Group>
+                                        <Tabs.Panel key={rIndex} value={String(rIndex)}>
+                                          <Stack gap="sm">
+                                            {renderReminder(reminder, (patch) => setReminder(bIndex, jIndex, rIndex, patch), bIndex, jIndex, rIndex, job.job_type)}
+                                          </Stack>
+                                        </Tabs.Panel>
                                       ))}
 
                                       {(!job.reminders || job.reminders.length === 0) && (
@@ -636,19 +1025,9 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                           No reminders configured
                                         </Text>
                                       )}
-                                    </Stack>
+                                    </Tabs>
                                   </Card>
                                 )}
-
-                                {/* On execute condition */}
-                                <ConditionBuilderField
-                                    fieldId={2000 + bIndex * 100 + jIndex}
-                                    fieldName={`blocks.${bIndex}.jobs.${jIndex}.on_job_execute.condition`}
-                                    value={job.on_job_execute?.condition || ''}
-                                    onChange={(v) => setJob(bIndex, jIndex, { on_job_execute: { ...(job.on_job_execute || {}), condition: v } })}
-                                    addLabel="Add Job Condition"
-                                    editLabel="Edit Job Condition"
-                                />
                               </Stack>
                             </Card>
                           </Tabs.Panel>

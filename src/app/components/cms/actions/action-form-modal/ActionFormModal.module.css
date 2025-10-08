@@ -19,6 +19,7 @@
   gap: 1rem;
 }
 
+.gridCol4 { grid-column: span 4; }
 .gridCol6 { grid-column: span 6; }
 .gridCol12 { grid-column: span 12; }
 

@@ -36,7 +36,7 @@ interface ModalWrapperProps {
     onClose: () => void;
     title: string;
     children: ReactNode;
-    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | string | number;
     centered?: boolean;
 
     // Action buttons

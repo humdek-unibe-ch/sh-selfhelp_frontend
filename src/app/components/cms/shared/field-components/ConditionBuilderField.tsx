@@ -119,12 +119,6 @@ export function ConditionBuilderField({
                     disabled={disabled}
                     size="sm"
                 />
-                
-                {hasCondition && (
-                    <Text size="xs" c="dimmed">
-                        {getConditionSummary()}
-                    </Text>
-                )}
             </Group>
 
             {/* Hidden input to store the actual value */}

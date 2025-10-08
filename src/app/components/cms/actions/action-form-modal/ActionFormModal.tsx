@@ -191,7 +191,7 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
       opened={opened}
       onClose={onClose}
       title={mode === 'create' ? 'Create Action' : 'Edit Action'}
-      size="xl"
+      size="95%"
       scrollAreaHeight="70vh"
       onSave={handleSave}
       onCancel={onClose}
@@ -203,17 +203,14 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
       <LoadingOverlay visible={isSaving || (mode === 'edit' && isDetailsLoading)} />
       <Stack gap="md">
         <div className={classes.formGrid}>
-          <div className={classes.gridCol6}>
-            <TextInput label="Action name" placeholder="Enter action name" value={name} onChange={(e) => setName(e.currentTarget.value)} required />
+          <div className={classes.gridCol4}>
+            <TextInput label="Action name" placeholder="Enter action name" value={name} onChange={(e) => setName(e.currentTarget.value)} required size="sm" />
           </div>
-          <div className={classes.gridCol6}>
-            <Select label="Trigger type" data={triggerData} value={trigger} onChange={(v) => setTrigger(v || 'finished')} placeholder="Select trigger" searchable required />
+          <div className={classes.gridCol4}>
+            <Select label="Trigger type" data={triggerData} value={trigger} onChange={(v) => setTrigger(v || 'finished')} placeholder="Select trigger" searchable required size="sm" />
           </div>
-          <div className={classes.gridCol6}>
-            <Select label="Data table" data={dataTablesOptions} value={dataTableId} onChange={(v) => setDataTableId(v || '')} placeholder="Select data table" searchable required />
-          </div>
-          <div className={classes.gridCol12}>
-            <Alert variant="light" icon={<IconInfoCircle size={16} />}>Use the visual builder to configure blocks and jobs, or switch to JSON tab inside the builder.</Alert>
+          <div className={classes.gridCol4}>
+            <Select label="Data table" data={dataTablesOptions} value={dataTableId} onChange={(v) => setDataTableId(v || '')} placeholder="Select data table" searchable required size="sm" />
           </div>
           <div className={classes.gridCol12}>
             <ActionConfigBuilder
