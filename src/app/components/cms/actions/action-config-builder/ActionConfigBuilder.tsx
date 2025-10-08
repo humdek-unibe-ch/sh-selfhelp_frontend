@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActionIcon, Button, Card, Group, Grid, MultiSelect, NumberInput, Select, Stack, Switch, Tabs, Text, TextInput, Textarea, Badge } from '@mantine/core';
-import { IconPlus, IconTrash } from '@tabler/icons-react';
+import { IconPlus, IconTrash, IconCopy } from '@tabler/icons-react';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { ACTION_SCHEDULE_TYPES, TIME_PERIOD, WEEKDAYS } from '../../../../../constants/lookups.constants';
 import { AdminGroupApi } from '../../../../../api/admin/group.api';
@@ -138,6 +138,25 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
       }
     ]
   }));
+  const copyBlock = (index: number) => setConfig((prev: any) => {
+    const blocks = ensureArray(prev.blocks);
+    const blockToCopy = blocks[index];
+    if (!blockToCopy) return prev;
+
+    const copiedBlock = {
+      ...blockToCopy,
+      block_name: `${(blockToCopy as any).block_name || 'Block'} (Copy)`
+    };
+
+    return {
+      ...prev,
+      blocks: [
+        ...blocks.slice(0, index + 1),
+        copiedBlock,
+        ...blocks.slice(index + 1)
+      ]
+    };
+  });
   const removeBlock = (index: number) => setConfig((prev: any) => ({ ...prev, blocks: ensureArray(prev.blocks).filter((_: any, i: number) => i !== index) }));
   const setBlock = (index: number, patch: any) => setConfig((prev: any) => ({ ...prev, blocks: ensureArray(prev.blocks).map((b: any, i: number) => i === index ? { ...b, ...patch } : b) }));
 
@@ -152,6 +171,24 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
       recipient: '@user'
     }
   }] });
+  const copyJob = (bIndex: number, jIndex: number) => setBlock(bIndex, {
+    jobs: (() => {
+      const jobs = ensureArray(config.blocks?.[bIndex]?.jobs);
+      const jobToCopy = jobs[jIndex];
+      if (!jobToCopy) return jobs;
+
+      const copiedJob = {
+        ...jobToCopy,
+        job_name: `${(jobToCopy as any).job_name || 'Job'} (Copy)`
+      };
+
+      return [
+        ...jobs.slice(0, jIndex + 1),
+        copiedJob,
+        ...jobs.slice(jIndex + 1)
+      ];
+    })()
+  });
   const removeJob = (bIndex: number, jIndex: number) => setBlock(bIndex, { jobs: ensureArray(config.blocks?.[bIndex]?.jobs).filter((_: any, i: number) => i !== jIndex) });
   const setJob = (bIndex: number, jIndex: number, patch: any) => setBlock(bIndex, { jobs: ensureArray(config.blocks?.[bIndex]?.jobs).map((j: any, i: number) => i === jIndex ? { ...j, ...patch } : j) });
 
@@ -165,6 +202,20 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
       },
       notification: { notification_types: 'email', recipient: '@user' }
     }]
+  });
+
+  const copyReminder = (bIndex: number, jIndex: number, rIndex: number) => setJob(bIndex, jIndex, {
+    reminders: (() => {
+      const reminders = ensureArray(config.blocks?.[bIndex]?.jobs?.[jIndex]?.reminders);
+      const reminderToCopy = reminders[rIndex];
+      if (!reminderToCopy) return reminders;
+
+      return [
+        ...reminders.slice(0, rIndex + 1),
+        { ...reminderToCopy },
+        ...reminders.slice(rIndex + 1)
+      ];
+    })()
   });
 
   const removeReminder = (bIndex: number, jIndex: number, rIndex: number) => setJob(bIndex, jIndex, {
@@ -858,7 +909,14 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                 <Group gap="xs">
                   <Button leftSection={<IconPlus size={16} />} variant="light" onClick={addBlock}>Add Block</Button>
                   {blocks.length > 0 && (
-                    <ActionIcon variant="subtle" color="red" onClick={() => removeBlock(Number(activeBlock)||0)}><IconTrash size={16} /></ActionIcon>
+                    <>
+                      <ActionIcon variant="subtle" color="blue" onClick={() => copyBlock(Number(activeBlock)||0)} title="Copy Block">
+                        <IconCopy size={16} />
+                      </ActionIcon>
+                      <ActionIcon variant="subtle" color="red" onClick={() => removeBlock(Number(activeBlock)||0)} title="Remove Block">
+                        <IconTrash size={16} />
+                      </ActionIcon>
+                    </>
                   )}
                 </Group>
               </Group>
@@ -900,7 +958,14 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                           <Group gap="xs">
                             <Button leftSection={<IconPlus size={16} />} variant="light" onClick={() => addJob(bIndex)}>Add Job</Button>
                             {ensureArray(block.jobs).length > 0 && (
-                              <ActionIcon variant="subtle" color="red" onClick={() => removeJob(bIndex, Number(activeJobByBlock[bIndex]||'0'))}><IconTrash size={16} /></ActionIcon>
+                              <>
+                                <ActionIcon variant="subtle" color="blue" onClick={() => copyJob(bIndex, Number(activeJobByBlock[bIndex]||'0'))} title="Copy Job">
+                                  <IconCopy size={16} />
+                                </ActionIcon>
+                                <ActionIcon variant="subtle" color="red" onClick={() => removeJob(bIndex, Number(activeJobByBlock[bIndex]||'0'))} title="Remove Job">
+                                  <IconTrash size={16} />
+                                </ActionIcon>
+                              </>
                             )}
                           </Group>
                         </Group>
@@ -1001,13 +1066,24 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                             Add Reminder
                                           </Button>
                                           {ensureArray(job.reminders).length > 0 && (
-                                            <ActionIcon
-                                              variant="subtle"
-                                              color="red"
-                                              onClick={() => removeReminder(bIndex, jIndex, Number(activeReminderByJobAndBlock[`${bIndex}-${jIndex}`] || '0'))}
-                                            >
-                                              <IconTrash size={16} />
-                                            </ActionIcon>
+                                            <>
+                                              <ActionIcon
+                                                variant="subtle"
+                                                color="blue"
+                                                onClick={() => copyReminder(bIndex, jIndex, Number(activeReminderByJobAndBlock[`${bIndex}-${jIndex}`] || '0'))}
+                                                title="Copy Reminder"
+                                              >
+                                                <IconCopy size={16} />
+                                              </ActionIcon>
+                                              <ActionIcon
+                                                variant="subtle"
+                                                color="red"
+                                                onClick={() => removeReminder(bIndex, jIndex, Number(activeReminderByJobAndBlock[`${bIndex}-${jIndex}`] || '0'))}
+                                                title="Remove Reminder"
+                                              >
+                                                <IconTrash size={16} />
+                                              </ActionIcon>
+                                            </>
                                           )}
                                         </Group>
                                       </Group>
