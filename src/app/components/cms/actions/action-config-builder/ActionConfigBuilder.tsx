@@ -123,9 +123,12 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
         jobs: [{
           job_name: 'Job',
           job_type: 'notification',
-          schedule_time: {},
+          schedule_time: {
+            job_schedule_types: 'immediately'
+          },
           notification: {
-            notification_types: 'email'
+            notification_types: 'email',
+            recipient: '@user'
           }
         }]
       }
@@ -137,13 +140,33 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
   const addJob = (bIndex: number) => setBlock(bIndex, { jobs: [...ensureArray(config.blocks?.[bIndex]?.jobs), {
     job_name: 'Job',
     job_type: 'notification',
-    schedule_time: {},
+    schedule_time: {
+      job_schedule_types: 'immediately'
+    },
     notification: {
-      notification_types: 'email'
+      notification_types: 'email',
+      recipient: '@user'
     }
   }] });
   const removeJob = (bIndex: number, jIndex: number) => setBlock(bIndex, { jobs: ensureArray(config.blocks?.[bIndex]?.jobs).filter((_: any, i: number) => i !== jIndex) });
   const setJob = (bIndex: number, jIndex: number, patch: any) => setBlock(bIndex, { jobs: ensureArray(config.blocks?.[bIndex]?.jobs).map((j: any, i: number) => i === jIndex ? { ...j, ...patch } : j) });
+
+  const addReminder = (bIndex: number, jIndex: number) => setJob(bIndex, jIndex, {
+    reminders: [...ensureArray(config.blocks?.[bIndex]?.jobs?.[jIndex]?.reminders), {
+      condition: '',
+      on_job_execute: { condition: '' },
+      schedule_time: { job_schedule_types: 'immediately' },
+      notification: { notification_types: 'email', recipient: '@user' }
+    }]
+  });
+
+  const removeReminder = (bIndex: number, jIndex: number, rIndex: number) => setJob(bIndex, jIndex, {
+    reminders: ensureArray(config.blocks?.[bIndex]?.jobs?.[jIndex]?.reminders).filter((_: any, idx: number) => idx !== rIndex)
+  });
+
+  const setReminder = (bIndex: number, jIndex: number, rIndex: number, patch: any) => setJob(bIndex, jIndex, {
+    reminders: ensureArray(config.blocks?.[bIndex]?.jobs?.[jIndex]?.reminders).map((r: any, idx: number) => idx === rIndex ? { ...r, ...patch } : r)
+  });
 
   // active tabs
   const [activeBlock, setActiveBlock] = useState<string>('0');
@@ -365,56 +388,104 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
       <Card withBorder>
         <Stack gap="xs">
           <Select label="Notification type" data={[{ value: 'email', label: 'Email' }, { value: 'push_notification', label: 'Push notification' }]} value={n.notification_types || 'email'} onChange={(v) => onPatch({ notification: { ...n, notification_types: v || 'email' } })} />
-          {n.notification_types === 'push_notification' && (
-            <Group grow>
-              <TextInput label="Redirect to URL" value={n.redirect_url || ''} onChange={(e) => onPatch({ notification: { ...n, redirect_url: e.currentTarget.value } })} />
-              <TextInput label="Send To (recipient)" value={n.recipient || ''} onChange={(e) => onPatch({ notification: { ...n, recipient: e.currentTarget.value } })} />
-            </Group>
-          )}
+
+          {/* Common fields for both email and push notifications */}
+          <TextInput
+            label="Send To (recipient)"
+            description={n.notification_types === 'email'
+              ? "Enter recipient email address"
+              : "Use @users for all users, or specify individual recipients"}
+            placeholder={n.notification_types === 'push_notification' ? "@users" : "user@example.com"}
+            value={n.recipient || (n.notification_types === 'push_notification' ? "@users" : "@user")}
+            onChange={(e) => onPatch({ notification: { ...n, recipient: e.currentTarget.value } })}
+            required
+          />
+
+          {/* Email-specific fields */}
           {(n.notification_types || 'email') === 'email' && (
             <>
               <Group grow>
                 <TextInput label="From email" value={n.from_email || ''} onChange={(e) => onPatch({ notification: { ...n, from_email: e.currentTarget.value } })} />
                 <TextInput label="From name" value={n.from_name || ''} onChange={(e) => onPatch({ notification: { ...n, from_name: e.currentTarget.value } })} />
               </Group>
-              <Group grow>
-                <TextInput label="Reply to" value={n.reply_to || ''} onChange={(e) => onPatch({ notification: { ...n, reply_to: e.currentTarget.value } })} />
-              </Group>
+              <TextInput label="Reply to" value={n.reply_to || ''} onChange={(e) => onPatch({ notification: { ...n, reply_to: e.currentTarget.value } })} />
               <MultiSelect label="Attachments" data={assetOptions} value={n.attachments || []} onChange={(v) => onPatch({ notification: { ...n, attachments: v } })} searchable clearable />
-
-              <GroupedTranslationInput
-                subjectValue={localTranslations[`block_${blockIndex}.job_${jobIndex}.notification.subject`] || {}}
-                bodyValue={localTranslations[`block_${blockIndex}.job_${jobIndex}.notification.body`] || {}}
-                onSubjectChange={(translations) => {
-                  setLocalTranslations(prev => ({
-                    ...prev,
-                    [`block_${blockIndex}.job_${jobIndex}.notification.subject`]: translations
-                  }));
-                  // Also store the translation key in the config
-                  setJob(blockIndex, jobIndex, {
-                    notification: {
-                      ...n,
-                      subject: `block_${blockIndex}.job_${jobIndex}.notification.subject`
-                    }
-                  });
-                }}
-                onBodyChange={(translations) => {
-                  setLocalTranslations(prev => ({
-                    ...prev,
-                    [`block_${blockIndex}.job_${jobIndex}.notification.body`]: translations
-                  }));
-                  // Also store the translation key in the config
-                  setJob(blockIndex, jobIndex, {
-                    notification: {
-                      ...n,
-                      body: `block_${blockIndex}.job_${jobIndex}.notification.body`
-                    }
-                  });
-                }}
-                required
-              />
             </>
           )}
+
+          {/* Push notification specific fields */}
+          {n.notification_types === 'push_notification' && (
+            <TextInput label="Redirect to URL" value={n.redirect_url || ''} onChange={(e) => onPatch({ notification: { ...n, redirect_url: e.currentTarget.value } })} />
+          )}
+
+          {/* Subject and Body fields for both email and push notifications */}
+          <GroupedTranslationInput
+            subjectValue={localTranslations[`block_${blockIndex}.job_${jobIndex}.notification.subject`] || {}}
+            bodyValue={localTranslations[`block_${blockIndex}.job_${jobIndex}.notification.body`] || {}}
+            subjectPlaceholder={n.notification_types === 'email' ? "Enter email subject" : "Enter notification title"}
+            bodyPlaceholder={n.notification_types === 'email' ? "Enter email body content" : "Enter notification message"}
+            onSubjectChange={(translations) => {
+              setLocalTranslations(prev => ({
+                ...prev,
+                [`block_${blockIndex}.job_${jobIndex}.notification.subject`]: translations
+              }));
+              // Also store the translation key in the config
+              setJob(blockIndex, jobIndex, {
+                notification: {
+                  ...n,
+                  subject: `block_${blockIndex}.job_${jobIndex}.notification.subject`
+                }
+              });
+            }}
+            onBodyChange={(translations) => {
+              setLocalTranslations(prev => ({
+                ...prev,
+                [`block_${blockIndex}.job_${jobIndex}.notification.body`]: translations
+              }));
+              // Also store the translation key in the config
+              setJob(blockIndex, jobIndex, {
+                notification: {
+                  ...n,
+                  body: `block_${blockIndex}.job_${jobIndex}.notification.body`
+                }
+              });
+            }}
+            required
+          />
+        </Stack>
+      </Card>
+    );
+  };
+
+  const renderReminder = (reminder: any, onPatch: (patch: any) => void, blockIndex: number, jobIndex: number, reminderIndex: number) => {
+    return (
+      <Card withBorder>
+        <Stack gap="sm">
+          <Text size="sm" fw={500}>Reminder {reminderIndex + 1}</Text>
+
+          <ConditionBuilderField
+            fieldId={3000 + blockIndex * 100 + jobIndex * 10 + reminderIndex}
+            fieldName={`blocks.${blockIndex}.jobs.${jobIndex}.reminders.${reminderIndex}.condition`}
+            value={reminder.condition || ''}
+            onChange={(v) => onPatch({ condition: v })}
+            addLabel="Add Reminder Condition"
+            editLabel="Edit Reminder Condition"
+          />
+
+          <ConditionBuilderField
+            fieldId={4000 + blockIndex * 100 + jobIndex * 10 + reminderIndex}
+            fieldName={`blocks.${blockIndex}.jobs.${jobIndex}.reminders.${reminderIndex}.on_job_execute.condition`}
+            value={reminder.on_job_execute?.condition || ''}
+            onChange={(v) => onPatch({ on_job_execute: { ...(reminder.on_job_execute || {}), condition: v } })}
+            addLabel="Add Reminder Execute Condition"
+            editLabel="Edit Reminder Execute Condition"
+          />
+
+          {/* Reminder schedule time */}
+          {renderScheduleTime(reminder, onPatch)}
+
+          {/* Reminder notification */}
+          {renderNotification(reminder, onPatch, blockIndex, jobIndex)}
         </Stack>
       </Card>
     );
@@ -530,6 +601,43 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                 {/* Notification */}
                                 {['notification', 'notification_with_reminder', 'notification_with_reminder_for_diary'].includes(job.job_type) && (
                                   renderNotification(job, (patch) => setJob(bIndex, jIndex, patch), bIndex, jIndex)
+                                )}
+
+                                {/* Reminders */}
+                                {['notification_with_reminder', 'notification_with_reminder_for_diary'].includes(job.job_type) && (
+                                  <Card withBorder>
+                                    <Stack gap="sm">
+                                      <Group justify="space-between" align="center">
+                                        <Text size="sm" fw={500}>Reminders</Text>
+                                        <Button leftSection={<IconPlus size={16} />} variant="light" size="xs" onClick={() => addReminder(bIndex, jIndex)}>
+                                          Add Reminder
+                                        </Button>
+                                      </Group>
+
+                                      {ensureArray(job.reminders).map((reminder: any, rIndex: number) => (
+                                        <Group key={rIndex} align="flex-start">
+                                          <div style={{ flex: 1 }}>
+                                            {renderReminder(reminder, (patch) => setReminder(bIndex, jIndex, rIndex, patch), bIndex, jIndex, rIndex)}
+                                          </div>
+                                          <ActionIcon
+                                            variant="subtle"
+                                            color="red"
+                                            size="sm"
+                                            onClick={() => removeReminder(bIndex, jIndex, rIndex)}
+                                            style={{ marginTop: 8 }}
+                                          >
+                                            <IconTrash size={16} />
+                                          </ActionIcon>
+                                        </Group>
+                                      ))}
+
+                                      {(!job.reminders || job.reminders.length === 0) && (
+                                        <Text size="xs" c="dimmed" ta="center" py="md">
+                                          No reminders configured
+                                        </Text>
+                                      )}
+                                    </Stack>
+                                  </Card>
                                 )}
 
                                 {/* On execute condition */}

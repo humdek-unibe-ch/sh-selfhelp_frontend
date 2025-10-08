@@ -48,6 +48,7 @@ interface ModalWrapperProps {
 
     // Button states
     isLoading?: boolean;
+    disabled?: boolean;
     saveLabel?: string;
     updateLabel?: string;
     deleteLabel?: string;
@@ -77,6 +78,7 @@ export const ModalWrapper = ({
     onCancel,
     customActions,
     isLoading = false,
+    disabled = false,
     saveLabel = 'Save',
     updateLabel = 'Update',
     deleteLabel = 'Delete',
@@ -149,6 +151,7 @@ export const ModalWrapper = ({
                                 color="red"
                                 onClick={onDelete}
                                 loading={isLoading}
+                                disabled={disabled}
                                 size="sm"
                             >
                                 {deleteLabel}
@@ -174,6 +177,7 @@ export const ModalWrapper = ({
                                 variant={saveVariant}
                                 onClick={onSave || onUpdate}
                                 loading={isLoading}
+                                disabled={disabled}
                                 size="sm"
                             >
                                 {onSave ? saveLabel : updateLabel}

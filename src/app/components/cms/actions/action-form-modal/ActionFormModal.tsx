@@ -32,11 +32,41 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
   const triggerData = useMemo(() => triggerLookups.map(l => ({ value: String(l.id), label: l.lookupValue })), [triggerLookups]);
 
   const [name, setName] = useState('');
-  const [trigger, setTrigger] = useState<string>('');
+  const [trigger, setTrigger] = useState<string>('finished'); // Default to "finished"
   const [dataTableId, setDataTableId] = useState<string>('');
-  const [configObj, setConfigObj] = useState<any>({ blocks: [] });
+  const [configObj, setConfigObj] = useState<any>({
+    blocks: [{
+      block_name: 'Block',
+      jobs: [{
+        job_name: 'Job',
+        job_type: 'notification',
+        schedule_time: {
+          job_schedule_types: 'immediately'
+        },
+        notification: {
+          notification_types: 'email',
+          recipient: '@user'
+        }
+      }]
+    }]
+  });
   const [actionTranslations, setActionTranslations] = useState<{ [key: string]: { [languageId: number]: string } }>({});
-  const lastBuilderJsonRef = useRef<string>(JSON.stringify({ blocks: [] }));
+  const lastBuilderJsonRef = useRef<string>(JSON.stringify({
+    blocks: [{
+      block_name: 'Block',
+      jobs: [{
+        job_name: 'Job',
+        job_type: 'notification',
+        schedule_time: {
+          job_schedule_types: 'immediately'
+        },
+        notification: {
+          notification_types: 'email',
+          recipient: '@user'
+        }
+      }]
+    }]
+  }));
 
   const { data: tables } = useDataTables();
   const dataTablesOptions = useMemo(
@@ -48,17 +78,74 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
     if (mode === 'edit' && details && opened) {
       setName(details.name || '');
       const triggerId = (details.action_trigger_type?.id ?? details.id_actionTriggerTypes) as any;
-      setTrigger(triggerId ? String(triggerId) : '');
+      setTrigger(triggerId ? String(triggerId) : 'finished');
       try { setConfigObj(details.config || { blocks: [] }); lastBuilderJsonRef.current = JSON.stringify(details.config || { blocks: [] }); } catch { setConfigObj({ blocks: [] }); lastBuilderJsonRef.current = JSON.stringify({ blocks: [] }); }
       const dtId = (details.data_table?.id ?? details.id_dataTables) as any;
       setDataTableId(dtId ? String(dtId) : '');
     }
     if (mode === 'create' && opened) {
-      setName(''); setTrigger(''); setDataTableId(''); setConfigObj({ blocks: [] }); lastBuilderJsonRef.current = JSON.stringify({ blocks: [] });
+      setName(''); setTrigger('finished'); setDataTableId('');
+      const defaultConfig = {
+        blocks: [{
+          block_name: 'Block',
+          jobs: [{
+            job_name: 'Job',
+            job_type: 'notification',
+            schedule_time: {
+              job_schedule_types: 'immediately'
+            },
+            notification: {
+              notification_types: 'email',
+              recipient: '@user'
+            }
+          }]
+        }]
+      };
+      setConfigObj(defaultConfig);
+      lastBuilderJsonRef.current = JSON.stringify(defaultConfig);
     }
   }, [mode, details, opened]);
 
   const isSaving = createMutation.isPending || updateMutation.isPending;
+
+  // Form validation
+  const isFormValid = useMemo(() => {
+    // Basic required fields
+    if (!name.trim()) return false;
+    if (!trigger) return false;
+    if (!dataTableId) return false;
+
+    // Check if action config has required fields
+    const blocks = configObj?.blocks || [];
+    if (blocks.length === 0) return false;
+
+    // Check each block has jobs
+    for (const block of blocks) {
+      if (!block.jobs || block.jobs.length === 0) return false;
+
+      // Check each job has required fields
+      for (const job of block.jobs) {
+        // Job name is required
+        if (!job.job_name?.trim()) return false;
+
+        // Job type is required
+        if (!job.job_type) return false;
+
+        // Schedule time with schedule type is required
+        if (!job.schedule_time?.job_schedule_types) return false;
+
+        // For notification jobs, check notification fields
+        if (['notification', 'notification_with_reminder', 'notification_with_reminder_for_diary'].includes(job.job_type)) {
+          const notification = job.notification || {};
+          if (!notification.recipient?.trim()) return false;
+          // Note: Subject and body validation is handled by the GroupedTranslationInput component
+          // We assume that if the user has progressed this far, the translations are valid
+        }
+      }
+    }
+
+    return true;
+  }, [name, trigger, dataTableId, configObj]);
 
   const handleSave = async () => {
     let parsed: any = configObj || null;
@@ -109,6 +196,7 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
       onSave={handleSave}
       onCancel={onClose}
       isLoading={isSaving}
+      disabled={!isFormValid}
       saveLabel="Save"
       cancelLabel="Cancel"
     >
@@ -119,7 +207,7 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
             <TextInput label="Action name" placeholder="Enter action name" value={name} onChange={(e) => setName(e.currentTarget.value)} required />
           </div>
           <div className={classes.gridCol6}>
-            <Select label="Trigger type" data={triggerData} value={trigger} onChange={(v) => setTrigger(v || '')} placeholder="Select trigger" searchable />
+            <Select label="Trigger type" data={triggerData} value={trigger} onChange={(v) => setTrigger(v || 'finished')} placeholder="Select trigger" searchable required />
           </div>
           <div className={classes.gridCol6}>
             <Select label="Data table" data={dataTablesOptions} value={dataTableId} onChange={(v) => setDataTableId(v || '')} placeholder="Select data table" searchable required />

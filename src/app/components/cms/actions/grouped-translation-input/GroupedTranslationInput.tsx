@@ -8,6 +8,8 @@ import { RichTextField } from '../../shared/field-components/RichTextField';
 interface IGroupedTranslationInputProps {
   subjectValue?: { [languageId: number]: string };
   bodyValue?: { [languageId: number]: string };
+  subjectPlaceholder?: string;
+  bodyPlaceholder?: string;
   onSubjectChange: (translations: { [languageId: number]: string }) => void;
   onBodyChange: (translations: { [languageId: number]: string }) => void;
   required?: boolean;
@@ -16,6 +18,8 @@ interface IGroupedTranslationInputProps {
 export function GroupedTranslationInput({
   subjectValue = {},
   bodyValue = {},
+  subjectPlaceholder,
+  bodyPlaceholder,
   onSubjectChange,
   onBodyChange,
   required = false,
@@ -67,7 +71,7 @@ export function GroupedTranslationInput({
     <Stack gap="xs">
       <Group justify="space-between" align="flex-end">
         <Text size="sm" fw={500}>
-          Email Content Translations
+          Content Translations
           {required && <span style={{ color: 'red' }}> *</span>}
         </Text>
 
@@ -105,7 +109,7 @@ export function GroupedTranslationInput({
             <TextInput
               value={subjectValue[activeLanguageData.id] || ''}
               onChange={(e) => handleSubjectChange(e.currentTarget.value)}
-              placeholder={`Enter email subject for ${activeLanguageData.language}`}
+              placeholder={subjectPlaceholder || `Enter subject for ${activeLanguageData.language}`}
               required={required}
             />
           </Stack>
@@ -122,7 +126,7 @@ export function GroupedTranslationInput({
               fieldId={parseInt(activeLanguage) * 1000 + 2} // Unique field ID
               value={bodyValue[activeLanguageData.id] || ''}
               onChange={handleBodyChange}
-              placeholder={`Enter email body for ${activeLanguageData.language}`}
+              placeholder={bodyPlaceholder || `Enter body content for ${activeLanguageData.language}`}
               label=""
               required={required}
             />
