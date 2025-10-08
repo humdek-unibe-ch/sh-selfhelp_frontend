@@ -1,0 +1,2 @@
+export { LocalizableInput } from './LocalizableInput';
+

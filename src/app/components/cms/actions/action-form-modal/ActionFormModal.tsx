@@ -5,6 +5,7 @@ import { Alert, Button, Group, LoadingOverlay, Modal, ScrollArea, Select, Stack,
 import { IconInfoCircle } from '@tabler/icons-react';
 import classes from './ActionFormModal.module.css';
 import { useCreateAction, useActionDetails, useUpdateAction } from '../../../../../hooks/useActions';
+import { useActionTranslations } from '../../../../../hooks/useActionTranslations';
 import type { ICreateActionRequest, IUpdateActionRequest } from '../../../../../types/requests/admin/actions.types';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { ACTION_TRIGGER_TYPES } from '../../../../../constants/lookups.constants';
@@ -26,6 +27,7 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
   const { data: details, isLoading: isDetailsLoading } = useActionDetails(actionId || 0);
   const createMutation = useCreateAction();
   const updateMutation = useUpdateAction(actionId || 0);
+  const { bulkMutation } = useActionTranslations(0); // We don't have actionId yet for create mode
 
   const triggerLookups = useLookupsByType(ACTION_TRIGGER_TYPES);
   const triggerData = useMemo(() => triggerLookups.map(l => ({ value: String(l.id), label: l.lookupValue })), [triggerLookups]);
@@ -34,6 +36,7 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
   const [trigger, setTrigger] = useState<string>('');
   const [dataTableId, setDataTableId] = useState<string>('');
   const [configObj, setConfigObj] = useState<any>({ blocks: [] });
+  const [actionTranslations, setActionTranslations] = useState<{ [key: string]: { [languageId: number]: string } }>({});
   const lastBuilderJsonRef = useRef<string>(JSON.stringify({ blocks: [] }));
 
   const { data: tables } = useDataTables();
@@ -56,7 +59,7 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
     }
   }, [mode, details, opened]);
 
-  const isSaving = createMutation.isPending || updateMutation.isPending;
+  const isSaving = createMutation.isPending || updateMutation.isPending || bulkMutation.isPending;
 
   const handleSave = async () => {
     let parsed: any = configObj || null;
@@ -65,7 +68,23 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
 
     if (mode === 'create') {
       const payload: ICreateActionRequest = { name, id_actionTriggerTypes: Number(trigger) || trigger, id_dataTables, config: parsed || undefined };
-      await createMutation.mutateAsync(payload);
+      const createdAction = await createMutation.mutateAsync(payload);
+
+      // Save translations if any exist
+      if (Object.keys(actionTranslations).length > 0 && createdAction.id) {
+        const translations = Object.entries(actionTranslations).flatMap(([key, langTranslations]) =>
+          Object.entries(langTranslations).map(([langId, content]) => ({
+            translation_key: key,
+            id_languages: Number(langId),
+            content
+          }))
+        );
+
+        if (translations.length > 0) {
+          await bulkMutation.mutateAsync({ translations });
+        }
+      }
+
       onClose();
     } else if (mode === 'edit' && actionId) {
       const payload: IUpdateActionRequest = { name, id_actionTriggerTypes: Number(trigger) || trigger, id_dataTables, config: parsed || undefined };
@@ -102,6 +121,7 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
           </div>
           <div className={classes.gridCol12}>
             <ActionConfigBuilder
+              actionId={mode === 'edit' ? actionId : undefined}
               value={configObj}
               onChange={(cfg) => {
                 const next = JSON.stringify(cfg);
@@ -110,6 +130,7 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
                   setConfigObj(cfg);
                 }
               }}
+              onTranslationsChange={setActionTranslations}
             />
           </div>
         </div>

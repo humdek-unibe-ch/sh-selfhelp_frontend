@@ -21,7 +21,7 @@ import {
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSectionDetails } from '../../../../../hooks/useSectionDetails';
-import { useLanguages } from '../../../../../hooks/useLanguages';
+import { useAdminLanguages } from '../../../../../hooks/useLanguages';
 import { useUpdateSectionMutation, useDeleteSectionMutation } from '../../../../../hooks/mutations';
 import { ISectionField } from '../../../../../types/responses/admin/admin.types';
 import {
@@ -131,7 +131,7 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
     } = useSectionDetails(pageId, sectionId, !!pageId && !!sectionId);
 
     // Fetch available languages
-    const { languages, isLoading: languagesLoading } = useLanguages();
+    const { languages: languagesData, isLoading: languagesLoading } = useAdminLanguages();
     
     // Section update mutation
     const updateSectionMutation = useUpdateSectionMutation({
@@ -194,15 +194,15 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
 
     // Set default active language tab when languages are loaded
     useEffect(() => {
-        if (languages.length > 0 && !activeLanguageTab) {
-            const firstLangId = languages[0].id.toString();
+        if (languagesData.length > 0 && !activeLanguageTab) {
+            const firstLangId = languagesData[0].id.toString();
             setActiveLanguageTab(firstLangId);
         }
-    }, [languages, activeLanguageTab]);
+    }, [languagesData, activeLanguageTab]);
 
     // Update form when section data changes
     useEffect(() => {
-        if (sectionDetailsData && languages.length > 0) {
+        if (sectionDetailsData && languagesData.length > 0) {
             const { section, fields } = sectionDetailsData;
             const globalFields = section.global_fields || {
                 condition: null,
@@ -222,7 +222,7 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                 contentFieldsObject[field.name] = {};
 
                 // Initialize all languages with default values first
-                languages.forEach(lang => {
+                languagesData.forEach(lang => {
                     contentFieldsObject[field.name][lang.id] = field.default_value || '';
                 });
 
@@ -230,7 +230,7 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                     // Content fields: populate based on actual language_id from translations if available
                     if (field.translations && field.translations.length > 0) {
                         field.translations.forEach(translation => {
-                            const language = languages.find(l => l.id === translation.language_id);
+                            const language = languagesData.find(l => l.id === translation.language_id);
                             if (language) {
                                 contentFieldsObject[field.name][language.id] = translation.content || field.default_value || '';
                             }
@@ -249,7 +249,7 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                     }
 
                     // Replicate property field content to all language tabs for editing convenience
-                    languages.forEach(language => {
+                    languagesData.forEach(language => {
                         contentFieldsObject[field.name][language.id] = propertyContent;
                     });
                 }
@@ -311,10 +311,10 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
             setFormValues(resetValues);
             setOriginalValues(resetValues);
         }
-    }, [sectionDetailsData, languages]);
+    }, [sectionDetailsData, languagesData]);
 
     const handleSave = async () => {
-        if (!sectionId || !sectionDetailsData || !languages.length || !pageId) return;
+        if (!sectionId || !sectionDetailsData || !languagesData.length || !pageId) return;
         
         // Validate section name if it has changed
         if (formValues.sectionName !== originalValues.sectionName) {
@@ -356,7 +356,7 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
         contentFields.forEach(field => {
             const currentFieldValues = formValues.fields[field.name] || {};
 
-            languages.forEach(language => {
+            languagesData.forEach(language => {
                 const currentValue = currentFieldValues[language.id] || '';
 
                 submitData.contentFields.push({
@@ -462,7 +462,7 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
 
     // Render content field based on type and language
     const renderContentField = (field: ISectionField, languageId: number) => {
-        const currentLanguage = languages.find(lang => lang.id === languageId);
+        const currentLanguage = languagesData.find(lang => lang.id === languageId);
         const locale = currentLanguage?.locale;
         const fieldValue = formValues.fields?.[field.name]?.[languageId] ?? '';
 
@@ -482,7 +482,7 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
 
     // Render property field (single-language, uses first language ID)
     const renderPropertyField = (field: ISectionField) => {
-        const langId = languages[0]?.id || 1;
+        const langId = languagesData[0]?.id || 1;
         const fieldValue = formValues.properties?.[field.name] ?? '';
 
         const fieldData: IFieldData = convertToFieldData(field);
@@ -503,8 +503,8 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
 
     // Check if we have multiple languages for content fields
     const hasMultipleLanguages = useMemo(() => {
-        return languages.length > 1;
-    }, [languages]);
+        return languagesData.length > 1;
+    }, [languagesData]);
 
     if (!sectionId) {
         return (
@@ -696,9 +696,9 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                 >
                     {fields.filter(field => field.display).length > 0 ? (
                         hasMultipleLanguages ? (
-                            <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || (languages[0]?.id.toString() || ''))}>
+                            <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || (languagesData[0]?.id.toString() || ''))}>
                                 <Tabs.List>
-                                    {languages.map(lang => {
+                                    {languagesData.map(lang => {
                                         const langId = lang.id.toString();
                                         return (
                                             <Tabs.Tab key={langId} value={langId}>
@@ -708,7 +708,7 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                                     })}
                                 </Tabs.List>
 
-                                {languages.map(lang => {
+                                {languagesData.map(lang => {
                                     const langId = lang.id.toString();
                                     return (
                                         <Tabs.Panel key={langId} value={langId} pt="md">
@@ -724,7 +724,7 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                         ) : (
                             <Stack gap="md">
                                 {fields.filter(field => field.display).map(field =>
-                                    renderContentField(field, languages[0]?.id || 1)
+                                    renderContentField(field, languagesData[0]?.id || 1)
                                 )}
                             </Stack>
                         )

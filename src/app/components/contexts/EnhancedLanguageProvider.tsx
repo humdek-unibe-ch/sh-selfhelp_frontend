@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { useLanguageContext } from './LanguageContext';
 import { useAuthUser } from '../../../hooks/useUserData';
-import { useLanguages } from '../../../hooks/useLanguages';
+import { usePublicLanguages, useAdminLanguages } from '../../../hooks/useLanguages';
 
 interface IEnhancedLanguageProviderProps {
     children: React.ReactNode;
@@ -14,6 +14,7 @@ interface IEnhancedLanguageProviderProps {
  * - Loads languages from API (public or admin based on auth status)
  * - Syncs language from JWT token for authenticated users
  * - Clears localStorage language preference when user logs in
+ * - Uses specific language hooks (usePublicLanguages/useAdminLanguages) instead of deprecated useLanguages
  */
 export function EnhancedLanguageProvider({ children }: IEnhancedLanguageProviderProps) {
     const { user, isLoading: isAuthLoading } = useAuthUser();
@@ -23,9 +24,9 @@ export function EnhancedLanguageProvider({ children }: IEnhancedLanguageProvider
     const hasInitializedFromUserData = useRef(false);
     const lastUserId = useRef<number | null>(null);
     
-    // Use consolidated language hook with auth-aware behavior
-    const { languages: publicLanguages, isLoading: publicLanguagesLoading } = useLanguages({ publicOnly: true });
-    const { languages: adminLanguages, isLoading: adminLanguagesLoading } = useLanguages({ adminOnly: true });
+    // Use specific language hooks
+    const { languages: publicLanguages, isLoading: publicLanguagesLoading } = usePublicLanguages();
+    const { languages: adminLanguages, isLoading: adminLanguagesLoading } = useAdminLanguages();
 
     // Determine which language data to use
     const languages = user ? adminLanguages : publicLanguages;

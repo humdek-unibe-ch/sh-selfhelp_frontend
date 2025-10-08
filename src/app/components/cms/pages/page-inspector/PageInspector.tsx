@@ -36,7 +36,7 @@ import { usePageFields } from '../../../../../hooks/usePageDetails';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { useDeletePageMutation } from '../../../../../hooks/mutations/useDeletePageMutation';
 import { useUpdatePageMutation } from '../../../../../hooks/mutations/useUpdatePageMutation';
-import { useLanguages } from '../../../../../hooks/useLanguages';
+import { useAdminLanguages } from '../../../../../hooks/useLanguages';
 import { LockedField } from '../../ui/locked-field/LockedField';
 import { DragDropMenuPositioner } from '../../ui/drag-drop-menu-positioner/DragDropMenuPositioner';
 import { FieldLabelWithTooltip } from '../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
@@ -105,7 +105,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
     const pageAccessTypes = useLookupsByType(PAGE_ACCESS_TYPES);
 
     // Fetch available languages
-    const { languages, isLoading: languagesLoading } = useLanguages();
+    const { languages: languagesData, isLoading: languagesLoading } = useAdminLanguages();
 
     // Fetch admin pages for parent context
     const { pages: adminPages } = useAdminPages();
@@ -118,11 +118,11 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
 
     // Set default active language tab when languages are loaded
     useEffect(() => {
-        if (languages.length > 0 && !activeLanguageTab) {
-            const firstLangId = languages[0].id.toString();
+        if (languagesData.length > 0 && !activeLanguageTab) {
+            const firstLangId = languagesData[0].id.toString();
             setActiveLanguageTab(firstLangId);
         }
-    }, [languages, activeLanguageTab]);
+    }, [languagesData, activeLanguageTab]);
 
     // Update page mutation
     const updatePageMutation = useUpdatePageMutation({
@@ -176,10 +176,10 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
 
     // Update form when page or pageFieldsData changes
     useEffect(() => {
-        if (page && pageFieldsData && languages.length > 0) {
+        if (page && pageFieldsData && languagesData.length > 0) {
 
             // Use the modular field initialization utility that handles content vs property fields correctly
-            const fieldsObject = initializeFieldFormValues(pageFieldsData.fields, languages);
+            const fieldsObject = initializeFieldFormValues(pageFieldsData.fields, languagesData);
 
             const pageDetails = pageFieldsData.page;
             
@@ -211,7 +211,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                 fields: {}
             });
         }
-    }, [page, pageFieldsData, languages]);
+    }, [page, pageFieldsData, languagesData]);
 
     // Save hotkey (Ctrl+S)
     useHotkeys([
@@ -233,7 +233,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
         const processedFields = processAllFields({
             fields: fields,
             formValues: form.values.fields || {},
-            languages: languages
+            languages: languagesData
         });
 
         const updateData: IUpdatePageRequest = {
@@ -311,8 +311,8 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
 
     // Check if we have multiple languages for content fields
     const hasMultipleLanguages = useMemo(() => {
-        return languages.length > 1;
-    }, [languages]);
+        return languagesData.length > 1;
+    }, [languagesData]);
 
     // Helper function to get field label (use title when available, fallback to name)
     const getFieldLabel = (field: IPageField) => {
@@ -321,7 +321,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
 
     // Render content field based on type and language
     const renderContentField = (field: IPageField, languageId: number) => {
-        const currentLanguage = languages.find(lang => lang.id === languageId);
+        const currentLanguage = languagesData.find(lang => lang.id === languageId);
         const locale = currentLanguage?.locale;
         const fieldValue = form.values.fields?.[field.name]?.[languageId] ?? '';
         
@@ -360,7 +360,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
 
     // Render property field (single-language, uses first language ID)
     const renderPropertyField = (field: IPageField) => {
-        const langId = languages[0]?.id || 1;
+        const langId = languagesData[0]?.id || 1;
         const fieldValue = form.values.fields?.[field.name]?.[langId] ?? '';
 
         const fieldData: IFieldData = {
@@ -509,9 +509,9 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                     >
                         {contentFields.length > 0 ? (
                             hasMultipleLanguages ? (
-                                <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || (languages[0]?.id.toString() || ''))}>
+                                <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || (languagesData[0]?.id.toString() || ''))}>
                                     <Tabs.List>
-                                        {languages.map(lang => {
+                                        {languagesData.map(lang => {
                                             const langId = lang.id.toString();
                                             return (
                                                 <Tabs.Tab key={langId} value={langId}>
@@ -521,7 +521,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                         })}
                                     </Tabs.List>
 
-                                    {languages.map(lang => {
+                                    {languagesData.map(lang => {
                                         const langId = lang.id.toString();
                                         return (
                                             <Tabs.Panel key={langId} value={langId} pt="md">
@@ -537,7 +537,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                             ) : (
                                 <Stack gap="md">
                                     {contentFields.map(field =>
-                                        renderContentField(field, languages[0]?.id || 1) // Default to first language
+                                        renderContentField(field, languagesData[0]?.id || 1) // Default to first language
                                     )}
                                 </Stack>
                             )

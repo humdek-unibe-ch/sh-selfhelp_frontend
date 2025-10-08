@@ -30,7 +30,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { usePageFields } from '../../../../../hooks/usePageDetails';
 import { useUpdatePageMutation } from '../../../../../hooks/mutations/useUpdatePageMutation';
-import { useLanguages } from '../../../../../hooks/useLanguages';
+import { useAdminLanguages } from '../../../../../hooks/useLanguages';
 import { IUpdatePageData, IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
 import { notifications } from '@mantine/notifications';
 import styles from './ConfigurationPageEditor.module.css';
@@ -68,15 +68,15 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
     } = usePageFields(page.id_pages, true);
 
     // Fetch available languages
-    const { languages, isLoading: languagesLoading } = useLanguages();
+    const { languages: languagesData, isLoading: languagesLoading } = useAdminLanguages();
 
     // Set default active language tab when languages are loaded
     useEffect(() => {
-        if (languages.length > 0 && !activeLanguageTab) {
-            const firstLangId = languages[0].id.toString();
+        if (languagesData.length > 0 && !activeLanguageTab) {
+            const firstLangId = languagesData[0].id.toString();
             setActiveLanguageTab(firstLangId);
         }
-    }, [languages, activeLanguageTab]);
+    }, [languagesData, activeLanguageTab]);
 
     // Update page mutation
     const updatePageMutation = useUpdatePageMutation({
@@ -113,16 +113,16 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
 
     // Get description field value
     const descriptionValue = useMemo(() => {
-        if (!pageFieldsData?.fields || !languages.length) return '';
+        if (!pageFieldsData?.fields || !languagesData.length) return '';
 
         const descriptionField = pageFieldsData.fields.find(f => f.name.toLowerCase() === 'description');
         if (!descriptionField) return '';
 
         // Get the first language's description
-        const firstLang = languages[0];
+        const firstLang = languagesData[0];
         const translation = descriptionField.translations.find(t => t.language_id === firstLang.id);
         return translation?.content || '';
-    }, [pageFieldsData, languages]);
+    }, [pageFieldsData, languagesData]);
 
     // Filter out system fields (title and description) from content fields
     const contentFields = useMemo(() => {
@@ -140,25 +140,25 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
 
     // Check if we have multiple languages for content fields
     const hasMultipleLanguages = useMemo(() => {
-        return languages.length > 1;
-    }, [languages]);
+        return languagesData.length > 1;
+    }, [languagesData]);
 
     // Update form when page data changes
     useEffect(() => {
-        if (pageFieldsData && languages.length > 0) {
+        if (pageFieldsData && languagesData.length > 0) {
             // Use the modular field initialization utility that handles content vs property fields correctly
-            const fieldsObject = initializeFieldFormValues(pageFieldsData.fields, languages);
+            const fieldsObject = initializeFieldFormValues(pageFieldsData.fields, languagesData);
 
             form.setValues({ fields: fieldsObject });
         }
-    }, [pageFieldsData, languages]);
+    }, [pageFieldsData, languagesData]);
 
     // Debug: Monitor form value changes for CSS fields
     useEffect(() => {
         if (pageFieldsData?.fields && form.values.fields) {
             const cssFields = pageFieldsData.fields.filter(f => f.type === 'css');
         }
-    }, [form.values.fields, pageFieldsData?.fields, languages]);
+    }, [form.values.fields, pageFieldsData?.fields, languagesData]);
 
     // Save hotkey (Ctrl+S)
     useHotkeys([
@@ -193,7 +193,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
         const processedFields = processAllFields({
             fields: pageFieldsData?.fields || [],
             formValues: form.values.fields || {},
-            languages: languages
+            languages: languagesData
         });
 
         const backendPayload: IUpdatePageRequest = {
@@ -215,7 +215,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
 
     // Render content field
     const renderContentField = (field: IPageField, languageId: number) => {
-        const currentLanguage = languages.find(lang => lang.id === languageId);
+        const currentLanguage = languagesData.find(lang => lang.id === languageId);
         const locale = hasMultipleLanguages && currentLanguage ? currentLanguage.locale : undefined;
         const fieldValue = form.values.fields?.[field.name]?.[languageId] ?? '';
         
@@ -249,7 +249,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
     // Render property field
     const renderPropertyField = (field: IPageField, languageId?: number) => {
         // If languageId is provided, use it; otherwise use the first language
-        const langId = languageId || languages[0]?.id || 1;
+        const langId = languageId || languagesData[0]?.id || 1;
         const fieldValue = form.values.fields?.[field.name]?.[langId] ?? '';
         
         // Convert IPageField to IFieldData
@@ -366,9 +366,9 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                             <Collapse in={contentExpanded}>
                                 <Card.Section p="lg">
                                     {hasMultipleLanguages ? (
-                                        <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || languages[0]?.id.toString() || '')}>
+                                        <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || languagesData[0]?.id.toString() || '')}>
                                             <Tabs.List mb="md">
-                                                {languages.map(lang => {
+                                                {languagesData.map(lang => {
                                                     const langId = lang.id.toString();
                                                     return (
                                                         <Tabs.Tab key={langId} value={langId} fw={500}>
@@ -378,7 +378,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                                                 })}
                                             </Tabs.List>
 
-                                            {languages.map(lang => {
+                                            {languagesData.map(lang => {
                                                 const langId = lang.id.toString();
                                                 return (
                                                     <Tabs.Panel key={langId} value={langId}>
@@ -397,7 +397,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                                         <div className={styles.fieldGrid}>
                                             {contentFields.map(field => (
                                                 <div key={field.id}>
-                                                    {renderContentField(field, languages[0]?.id || 1)}
+                                                    {renderContentField(field, languagesData[0]?.id || 1)}
                                                 </div>
                                             ))}
                                         </div>
@@ -430,9 +430,9 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                             <Collapse in={propertiesExpanded}>
                                 <Card.Section p="lg">
                                     {hasMultipleLanguages ? (
-                                        <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || languages[0]?.id.toString() || '')}>
+                                        <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || languagesData[0]?.id.toString() || '')}>
                                             <Tabs.List mb="md">
-                                                {languages.map(lang => {
+                                                {languagesData.map(lang => {
                                                     const langId = lang.id.toString();
                                                     return (
                                                         <Tabs.Tab key={langId} value={langId} fw={500}>
@@ -442,7 +442,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                                                 })}
                                             </Tabs.List>
 
-                                            {languages.map(lang => {
+                                            {languagesData.map(lang => {
                                                 const langId = lang.id.toString();
                                                 return (
                                                     <Tabs.Panel key={langId} value={langId}>

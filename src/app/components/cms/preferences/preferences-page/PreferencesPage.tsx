@@ -21,13 +21,13 @@ import {
 } from '@mantine/core';
 import { IconSettings, IconInfoCircle, IconDeviceFloppy } from '@tabler/icons-react';
 import { useCmsPreferences, useUpdateCmsPreferences } from '../../../../../hooks/usePreferences';
-import { useLanguages } from '../../../../../hooks/useLanguages';
+import { useAdminLanguages } from '../../../../../hooks/useLanguages';
 import { ICMSPreferences } from '../../../../../api/admin/preferences.api';
 import { notifications } from '@mantine/notifications';
 
 export function PreferencesPage() {
     const { data: preferences, isLoading, error } = useCmsPreferences();
-    const { languages, isLoading: languagesLoading } = useLanguages();
+    const { languages: languagesData, isLoading: languagesLoading } = useAdminLanguages();
     const updateMutation = useUpdateCmsPreferences();
 
     const [formData, setFormData] = useState<ICMSPreferences>({
@@ -93,7 +93,7 @@ export function PreferencesPage() {
     }
 
     // Prepare language options for select
-    const languageOptions = languages?.map(lang => ({
+    const languageOptions = languagesData?.map(lang => ({
         value: lang.id.toString(),
         label: `${lang.locale} (${lang.language})`
     })) || [];

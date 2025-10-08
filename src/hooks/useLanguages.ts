@@ -16,12 +16,6 @@ import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useAuth } from './useAuth';
 import { getAccessToken } from '../utils/auth.utils';
 
-interface IUseLanguagesOptions {
-  /** Force public access even if authenticated */
-  publicOnly?: boolean;
-  /** Force admin access (requires authentication) */
-  adminOnly?: boolean;
-}
 
 /**
  * Hook for fetching admin languages from /admin/languages endpoint
@@ -75,32 +69,6 @@ export function usePublicLanguages() {
     };
 }
 
-/**
- * Hook for fetching languages data with auth-aware endpoint selection
- * @param options Configuration options for language fetching
- * @returns Object containing languages data and query state
- * @deprecated Use useAdminLanguages() or usePublicLanguages() for better separation
- */
-export function useLanguages(options: IUseLanguagesOptions = {}) {
-    const { publicOnly = false, adminOnly = false } = options;
-
-    if (publicOnly) {
-        return usePublicLanguages();
-    }
-
-    if (adminOnly) {
-        return useAdminLanguages();
-    }
-
-    // Default behavior: use admin if authenticated, otherwise public
-    const { isAuthenticated } = useAuth();
-
-    if (isAuthenticated && getAccessToken()) {
-        return useAdminLanguages();
-    } else {
-        return usePublicLanguages();
-    }
-}
 
 /**
  * Debug hook to test authentication state and token refresh
