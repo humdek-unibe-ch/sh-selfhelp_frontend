@@ -328,7 +328,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                     <Switch
                                         checked={!!config.overwrite_variables}
                                         onChange={(e) => setConfig({ ...config, overwrite_variables: e.currentTarget.checked })}
-                                        label="Overwrite vars"
+                                        label="Overwrite variables"
                                         size="sm"
                                     />
                                 </Group>
@@ -367,7 +367,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                 {/* Randomization Options */}
                 {config.randomize && (
                     <Grid.Col span={6}>
-                        <Card withBorder>
+                        <Card withBorder style={{ overflowY: 'hidden' }}>
                             <Stack gap="sm">
                                 <Text fw={600} size="sm">Randomization</Text>
                                 <Group grow>
@@ -393,7 +393,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                 {/* Target Groups */}
                 {config.target_groups && (
                     <Grid.Col span={config.randomize ? 6 : 12}>
-                        <Card withBorder>
+                        <Card withBorder style={{ overflowY: 'hidden' }}>
                             <Stack gap="sm">
                                 <Text fw={600} size="sm">Target Groups</Text>
                                 <MultiSelect
@@ -413,7 +413,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                 {/* Overwrite Variables */}
                 {config.overwrite_variables && (
                     <Grid.Col span={12}>
-                        <Card withBorder>
+                        <Card withBorder style={{ overflowY: 'hidden' }}>
                             <Stack gap="sm">
                                 <Text fw={600} size="sm">Variable Overrides</Text>
                                 <MultiSelect
@@ -710,8 +710,8 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
 
                     {/* Email-specific fields */}
                     {(n.notification_types || 'email') === 'email' && (
-                        <Grid gutter="sm">
-                            <Grid.Col span={6}>
+                        <Group align="flex-start" gap="lg">
+                            <div style={{ flex: 1 }}>
                                 <TextInput
                                     label="Send To (recipient)"
                                     description="Enter recipient email address"
@@ -721,8 +721,8 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                     required
                                     size="sm"
                                 />
-                            </Grid.Col>
-                            <Grid.Col span={6}>
+                            </div>
+                            <div style={{ flex: 1 }}>
                                 <MultiSelect
                                     label="Attachments"
                                     data={assetOptions}
@@ -732,14 +732,14 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                     clearable
                                     size="sm"
                                 />
-                            </Grid.Col>
-                        </Grid>
+                            </div>
+                        </Group>
                     )}
 
                     {/* Push notification specific fields */}
                     {n.notification_types === 'push_notification' && (
-                        <Grid gutter="sm">
-                            <Grid.Col span={6}>
+                        <Group align="flex-start" gap="lg">
+                            <div style={{ flex: 1 }}>
                                 <TextInput
                                     label="Send To (recipient)"
                                     description="Use @users for all users, or specify individual recipients"
@@ -749,8 +749,8 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                     required
                                     size="sm"
                                 />
-                            </Grid.Col>
-                            <Grid.Col span={6}>
+                            </div>
+                            <div style={{ flex: 1 }}>
                                 <TextInput
                                     label="Redirect to URL"
                                     placeholder="Enter URL or select page keyword"
@@ -758,8 +758,8 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                     onChange={(e) => onPatch({ notification: { ...n, redirect_url: e.currentTarget.value } })}
                                     size="sm"
                                 />
-                            </Grid.Col>
-                        </Grid>
+                            </div>
+                        </Group>
                     )}
 
                     {/* Subject and Body fields for both email and push notifications */}
@@ -917,7 +917,9 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                     ))}
                                 </Tabs.List>
                                 <Group gap="xs">
-                                    <Button leftSection={<IconPlus size={16} />} variant="light" onClick={addBlock} title="Add Block">Add Block</Button>
+                                    <ActionIcon variant="light" onClick={addBlock} title="Add Block">
+                                        <IconPlus size={16} />
+                                    </ActionIcon>
                                     {blocks.length > 0 && (
                                         <>
                                             <ActionIcon variant="subtle" color="blue" onClick={() => copyBlock(Number(activeBlock) || 0)} title="Copy Block">
@@ -966,7 +968,9 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                                         ))}
                                                     </Tabs.List>
                                                     <Group gap="xs">
-                                                        <Button leftSection={<IconPlus size={16} />} variant="light" onClick={() => addJob(bIndex)} title="Add Job">Add Job</Button>
+                                                        <ActionIcon variant="light" onClick={() => addJob(bIndex)} title="Add Job">
+                                                            <IconPlus size={16} />
+                                                        </ActionIcon>
                                                         {ensureArray(block.jobs).length > 0 && (
                                                             <>
                                                                 <ActionIcon variant="subtle" color="blue" onClick={() => copyJob(bIndex, Number(activeJobByBlock[bIndex] || '0'))} title="Copy Job">
