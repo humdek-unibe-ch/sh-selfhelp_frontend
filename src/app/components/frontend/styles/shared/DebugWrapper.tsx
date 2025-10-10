@@ -1,8 +1,9 @@
-import React from 'react';
-import { Indicator, HoverCard, Text, ScrollArea, Badge, Group, Divider, Box, useMantineColorScheme, ActionIcon } from '@mantine/core';
-import { IconBug } from '@tabler/icons-react';
+import React, { useState } from 'react';
+import { Indicator, Popover, Text, ScrollArea, Badge, Group, Box, useMantineColorScheme, ActionIcon, TextInput, Stack } from '@mantine/core';
+import { IconBug, IconSearch, IconX } from '@tabler/icons-react';
 import { JsonEditor, githubLightTheme, githubDarkTheme } from 'json-edit-react';
 import type { TStyle } from '../../../../../types/common/styles.types';
+import styles from './DebugWrapper.module.css';
 
 /**
  * Props interface for DebugWrapper component
@@ -15,9 +16,12 @@ interface IDebugWrapperProps {
 /**
  * DebugWrapper component that wraps elements with debug indicators and JSON inspection
  * Uses Mantine's Indicator for clean corner positioning and minimal border styling
+ * Opens on hover, stays open until clicked outside
  */
 const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
     const { colorScheme } = useMantineColorScheme();
+    const [opened, setOpened] = useState(false);
+    const [searchText, setSearchText] = useState('');
 
     // Check if debug is enabled (debug field is truthy)
     const isDebugEnabled = style.debug && style.debug > 0;
@@ -36,50 +40,91 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
             color='transparent'
             m="xs"
             label={
-                <HoverCard shadow="md">
-                    <HoverCard.Target>
-                        <ActionIcon variant='filled' size='xs' color='orange'>
+                <Popover
+                    opened={opened}
+                    onChange={setOpened}
+                    withArrow
+                    shadow="md"
+                    closeOnClickOutside={true}
+                    closeOnEscape={true}
+                    width={500}
+                >
+                    <Popover.Target>
+                        <ActionIcon
+                            variant='filled'
+                            size='xs'
+                            color='orange'
+                            onMouseEnter={() => setOpened(true)}
+                            style={{ cursor: 'pointer' }}
+                        >
                             <IconBug size={10} />
                         </ActionIcon>
-                    </HoverCard.Target>
+                    </Popover.Target>
 
-                    <HoverCard.Dropdown>
-                        <Group justify="space-between" mb="xs">
-                            <Text size="sm" fw={600} c="orange">
-                                Style Debug Info
-                            </Text>
-                            <Badge size="sm" variant="light" color="orange">
-                                ID: {style.id}
-                            </Badge>
-                        </Group>
-
-                        <Divider mb="sm" />
-
-                        <Group mb="sm">
-                            <Badge size="sm" color="orange">
-                                {style.style_name}
-                            </Badge>
-                            {style.section_name && (
-                                <Badge size="sm" variant="outline" color="orange">
-                                    {style.section_name}
+                    <Popover.Dropdown>
+                        <Stack gap="md">
+                            <Group justify="space-between">
+                                <Text size="sm" fw={600} c="orange">
+                                    Style Debug Info
+                                </Text>
+                                <Badge size="sm" variant="light" color="orange">
+                                    ID: {style.id}
                                 </Badge>
-                            )}
-                        </Group>
+                            </Group>
 
-                        <ScrollArea h={400} type="auto">
-                            <Box p="xs" style={{ fontSize: '12px' }}>
-                                <JsonEditor
-                                    data={style}
-                                    theme={colorScheme === 'dark' ? githubDarkTheme : githubLightTheme}
-                                    collapse={1}
-                                    enableClipboard={true}
-                                    showErrorMessages={false}
-                                    viewOnly={true}
-                                />
-                            </Box>
-                        </ScrollArea>
-                    </HoverCard.Dropdown>
-                </HoverCard>
+                            <Group>
+                                <Badge size="sm" color="orange">
+                                    {style.style_name}
+                                </Badge>
+                                {style.section_name && (
+                                    <Badge size="sm" variant="outline" color="orange">
+                                        {style.section_name}
+                                    </Badge>
+                                )}
+                            </Group>
+
+                            <TextInput
+                                placeholder="Search properties..."
+                                leftSection={<IconSearch size={16} />}
+                                rightSection={
+                                    searchText ? (
+                                        <ActionIcon
+                                            variant="transparent"
+                                            size="sm"
+                                            color="orange"
+                                            onClick={() => setSearchText('')}
+                                            style={{ cursor: 'pointer' }}
+                                        >
+                                            <IconX size={14} />
+                                        </ActionIcon>
+                                    ) : null
+                                }
+                                classNames={{
+                                    input: styles.searchInput,
+                                }}
+                                value={searchText}
+                                onChange={(event) => setSearchText(event.currentTarget.value)}
+                                size="sm"
+                            />
+
+                            <ScrollArea h={400} type="auto">
+                                <Box p="xs" style={{ fontSize: '12px' }}>
+                                    <JsonEditor
+                                        data={style}
+                                        theme={colorScheme === 'dark' ? githubDarkTheme : githubLightTheme}
+                                        collapse={1}
+                                        enableClipboard={true}
+                                        showErrorMessages={false}
+                                        viewOnly={true}
+                                        searchText={searchText}
+                                        searchFilter="all"
+                                        searchDebounceTime={150}
+                                    />
+                                </Box>
+                            </ScrollArea>
+                        </Stack>
+                    </Popover.Dropdown>
+                </Popover>
             }
         >
             <Box

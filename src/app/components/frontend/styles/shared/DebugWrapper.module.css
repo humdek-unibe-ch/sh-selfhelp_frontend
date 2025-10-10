@@ -1,0 +1,3 @@
+.searchInput:focus {
+    border: 1px solid var(--mantine-color-orange-5);
+}
