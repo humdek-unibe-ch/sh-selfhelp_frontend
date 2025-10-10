@@ -58,6 +58,7 @@
     "embla-carousel": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
     "html-react-parser": "^5.2.6",
+    "json-edit-react": "^1.29.0",
     "jwt-decode": "^4.0.0",
     "lowlight": "^3.3.0",
     "memoize-one": "^6.0.0",

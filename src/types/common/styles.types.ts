@@ -318,7 +318,7 @@ export interface IBaseStyle {
     position: number;
     path: string;
     children?: TStyle[];
-    name?: IContentField<string>;
+    section_name: string;
     section_data?: any[];
     fields: Record<string, IContentField<any>>;
     // Direct fields from API response (not nested in global_fields)
