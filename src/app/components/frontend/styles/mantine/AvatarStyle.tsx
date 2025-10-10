@@ -43,14 +43,9 @@ const AvatarStyle: React.FC<IAvatarStyleProps> = ({ style, styleProps, cssClass 
     // Build style object
     const styleObj: React.CSSProperties = {};
 
-    // Get initials from name, label, or src (if src is text-based)
-    const name = style.name?.content;
 
     // Check if src is a text name (not a URL)
     const isUrl = src && (src.startsWith('http') || src.startsWith('https') || src.includes('.'));
-    const textSource = !isUrl && src ? src : name;
-
-    const initials = textSource ? textSource.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
 
     // Determine avatar content with priority: URL > text initials > icon > custom initials
     const avatarSrc = src ? getAssetUrl(src) : null;
@@ -60,10 +55,7 @@ const AvatarStyle: React.FC<IAvatarStyleProps> = ({ style, styleProps, cssClass 
     if (avatarSrc) {
         // src is a URL - image will be shown, no content needed
         avatarContent = null;
-    } else if (src && !isUrl) {
-        // src is text (not URL) - show generated initials from text
-        avatarContent = initials;
-    } else if (avatarIcon) {
+    }  else if (avatarIcon) {
         // no src but icon is set - show icon
         avatarContent = avatarIcon;
     } else {

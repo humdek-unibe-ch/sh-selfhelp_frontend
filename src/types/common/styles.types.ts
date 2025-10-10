@@ -1276,7 +1276,6 @@ export interface IChipStyle extends IStyleWithSpacing {
 
 export interface IAvatarStyle extends IStyleWithSpacing {
     style_name: 'avatar';
-    src?: IContentField<string>;                      // Image source
     alt?: IContentField<string>;                      // Translatable alt text
     mantine_avatar_variant?: IContentField<TMantineAvatarVariant>;   // Select field for variant
     mantine_size?: IContentField<TMantineSize>;             // Select field for size
