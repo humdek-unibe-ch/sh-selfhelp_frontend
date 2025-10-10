@@ -1,24 +1,4 @@
-/* Data Config Modal Styles */
-.modal {
-    --modal-size: 80vw;
-}
-
-.modal :global(.mantine-Modal-content) {
-    height: 80vh;
-    max-height: 80vh;
-}
-
-.modal :global(.mantine-Modal-body) {
-    height: calc(100% - 60px); /* Subtract header height */
-    display: flex;
-    flex-direction: column;
-}
-
-.modal :global(.mantine-ScrollArea-root) {
-    flex: 1;
-}
-
-/* Form layout improvements */
+/* Data Config Modal Content Styles */
 .formGrid {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
@@ -44,19 +24,10 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-    .modal {
-        --modal-size: 95vw;
-    }
-    
-    .modal :global(.mantine-Modal-content) {
-        height: 90vh;
-        max-height: 90vh;
-    }
-    
     .formGrid {
         grid-template-columns: 1fr;
     }
-    
+
     .gridCol2,
     .gridCol4,
     .gridCol6,
@@ -66,11 +37,11 @@
 }
 
 /* Tab styling */
-.modal :global(.mantine-Tabs-tab) {
+.tabs :global(.mantine-Tabs-tab) {
     padding: 0.5rem 1rem;
 }
 
-.modal :global(.mantine-Tabs-tabLabel) {
+.tabs :global(.mantine-Tabs-tabLabel) {
     font-weight: 500;
 }
 

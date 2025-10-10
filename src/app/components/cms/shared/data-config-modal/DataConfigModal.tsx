@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import {
-    Modal,
     Button,
     Group,
     Stack,
@@ -12,11 +11,11 @@ import {
     Tabs,
     Card,
     Badge,
-    ActionIcon,
-    ScrollArea
+    ActionIcon
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconAlertTriangle, IconCheck, IconX, IconPlus, IconTrash } from '@tabler/icons-react';
+import { ModalWrapper } from '../../../shared/common/CustomModal';
 import { DataSourceForm } from './DataSourceForm';
 import classes from './DataConfigModal.module.css';
   import { formatQuery } from 'react-querybuilder';
@@ -183,23 +182,28 @@ export function DataConfigModal({
     };
 
     return (
-        <Modal
+        <ModalWrapper
             opened={opened}
             onClose={handleClose}
             title={title}
             size="80%"
-            className={classes.modal}
-            scrollAreaComponent={ScrollArea.Autosize}
+            onSave={handleSave}
+            onCancel={handleClose}
+            isLoading={isSaving}
+            saveLabel="Save Configuration"
+            cancelLabel="Cancel"
+            disabled={dataSources.length === 0}
+            scrollAreaHeight="60vh"
         >
             <LoadingOverlay visible={isSaving} />
-            
+
             <Stack gap="md">
                 {dataSources.length === 0 ? (
                     <Alert variant="light" color="blue" icon={<IconPlus size={16} />}>
                         <Text>No data sources configured. Click &quot;Add Data Source&quot; to get started.</Text>
                     </Alert>
                 ) : (
-                    <Tabs value={activeTab} onChange={(value) => setActiveTab(value || '0')}>
+                    <Tabs value={activeTab} onChange={(value) => setActiveTab(value || '0')} className={classes.tabs}>
                         <Group justify="space-between" mb="sm">
                             <Tabs.List>
                                 {dataSources.map((source, index) => (
@@ -252,7 +256,7 @@ export function DataConfigModal({
                     </Tabs>
                 )}
 
-                <Group justify="space-between">
+                <Group justify="flex-start">
                     <Button
                         variant="light"
                         leftSection={<IconPlus size={16} />}
@@ -260,21 +264,8 @@ export function DataConfigModal({
                     >
                         Add Data Source
                     </Button>
-
-                    <Group gap="sm">
-                        <Button variant="outline" onClick={handleClose}>
-                            Cancel
-                        </Button>
-                        <Button
-                            onClick={handleSave}
-                            disabled={dataSources.length === 0}
-                            loading={isSaving}
-                        >
-                            Save Configuration
-                        </Button>
-                    </Group>
                 </Group>
             </Stack>
-        </Modal>
+        </ModalWrapper>
     );
 }
