@@ -203,9 +203,9 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                                     size="xs"
                                     fw={500}
                                     className={styles.sectionName}
-                                    title={section.name}
+                                    title={section.section_name}
                                 >
-                                    {section.name}
+                                    {section.section_name}
                                 </Text>
                                 <Badge 
                                     size="xs" 

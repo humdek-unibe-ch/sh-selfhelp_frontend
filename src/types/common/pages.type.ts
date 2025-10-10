@@ -17,7 +17,7 @@ import { IFieldConfig } from '../requests/admin/fields.types';
 
 export interface IBasePageSection {
     id: number;
-    name: string;
+    section_name: string;
     id_styles: number;
     style_name: TStyleName;
     position: number;

@@ -226,7 +226,7 @@ const SectionItem = memo(function SectionItem({
                 dropType: 'above',
                 newParentId: parentId,
                 newPosition,
-                targetSectionName: section.name
+                targetSectionName: section.section_name
             };
         } else if (isNearBottomEdge) {
             // Dropping below this section
@@ -237,7 +237,7 @@ const SectionItem = memo(function SectionItem({
                 dropType: 'below',
                 newParentId: parentId,
                 newPosition,
-                targetSectionName: section.name
+                targetSectionName: section.section_name
             };
         } else if (hasChildren && canHaveChildren) {
             // Dropping inside this section
@@ -247,7 +247,7 @@ const SectionItem = memo(function SectionItem({
                 dropType: 'inside',
                 newParentId: section.id,
                 newPosition: -1, // First child
-                targetSectionName: section.name
+                targetSectionName: section.section_name
             };
         } else {
             // Default to below
@@ -258,7 +258,7 @@ const SectionItem = memo(function SectionItem({
                 dropType: 'below',
                 newParentId: parentId,
                 newPosition,
-                targetSectionName: section.name
+                targetSectionName: section.section_name
             };
         }
     }, [section, parentId, allSections, hasChildren, canHaveChildren]);
@@ -329,7 +329,7 @@ const SectionItem = memo(function SectionItem({
             getInitialData: () => ({
                 type: 'section-item',
                 sectionId: section.id,
-                sectionName: section.name,
+                sectionName: section.section_name,
                 level,
                 parentId,
                 index,
@@ -347,7 +347,7 @@ const SectionItem = memo(function SectionItem({
                     render: ({ container }) => {
                         const preview = document.createElement('div');
                         preview.className = styles.dragPreview;
-                        preview.textContent = `📄 ${section.name}`;
+                        preview.textContent = `📄 ${section.section_name}`;
                         container.appendChild(preview);
                     },
                 });
@@ -428,7 +428,7 @@ const SectionItem = memo(function SectionItem({
                     const data = {
                         type: 'section-drop-target',
                         sectionId: section.id,
-                        sectionName: section.name,
+                        sectionName: section.section_name,
                         level,
                         parentId,
                         index,
@@ -447,7 +447,7 @@ const SectionItem = memo(function SectionItem({
                     return {
                         type: 'container-drop-target',
                         sectionId: section.id,
-                        sectionName: section.name,
+                        sectionName: section.section_name,
                         level,
                         parentId,
                         canHaveChildren: true
@@ -458,7 +458,7 @@ const SectionItem = memo(function SectionItem({
                 const data = {
                     type: 'section-drop-target',
                     sectionId: section.id,
-                    sectionName: section.name,
+                    sectionName: section.section_name,
                     level,
                     parentId,
                     index,
@@ -544,7 +544,7 @@ const SectionItem = memo(function SectionItem({
             getData: () => ({
                 type: 'drop-zone-target',
                 sectionId: section.id,
-                sectionName: section.name,
+                sectionName: section.section_name,
                 level,
                 parentId,
                 canHaveChildren: true
@@ -685,7 +685,7 @@ const SectionItem = memo(function SectionItem({
     // Custom comparison for memoization
     return (
         prevProps.section.id === nextProps.section.id &&
-        prevProps.section.name === nextProps.section.name &&
+        prevProps.section.section_name === nextProps.section.section_name &&
         prevProps.section.position === nextProps.section.position &&
         prevProps.level === nextProps.level &&
         prevProps.index === nextProps.index &&

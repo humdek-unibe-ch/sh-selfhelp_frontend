@@ -22,11 +22,6 @@ interface IRemoveSectionModalProps {
 
 export function RemoveSectionModal({ opened, onClose, onConfirm, section, isLoading = false }: IRemoveSectionModalProps) {
 
-    const getSectionTitle = (section: IPageSectionWithFields) => {
-        const nameParts = section.name.split('-');
-        return nameParts.length > 1 ? nameParts[1] : section.name;
-    };
-
     if (!section) return null;
 
     return (
@@ -52,7 +47,7 @@ export function RemoveSectionModal({ opened, onClose, onConfirm, section, isLoad
                 </Alert>
                 
                 <Text size="sm">
-                    Are you sure you want to remove section: <Text span fw={700}>{getSectionTitle(section)}</Text>?
+                    Are you sure you want to remove section: <Text span fw={700}>{section.section_name}</Text>?
                 </Text>
                 
                 <Group justify="flex-end" gap="sm">
