@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import {
-    Modal,
     Button,
     Group,
     Stack,
@@ -19,6 +18,7 @@ import { IconAlertTriangle, IconCheck, IconX, IconLock, IconLockOpen } from '@ta
 import { defaultValidator, QueryBuilder, RuleGroupType } from 'react-querybuilder';
 import { QueryBuilderMantine } from '@react-querybuilder/mantine';
 import 'react-querybuilder/dist/query-builder.css';
+import { ModalWrapper } from '../../../shared/common/CustomModal';
 import { useConditionBuilderData } from '../../../../../hooks/useConditionBuilderData';
 import { rulesToJsonLogic, jsonLogicToRules, isValidJsonLogic } from '../../../../../utils/json-logic-conversion.utils';
 import { createConditionFields } from './conditionFields';
@@ -221,12 +221,13 @@ export function ConditionBuilderModal({
 
     if (isError) {
         return (
-            <Modal
+            <ModalWrapper
                 opened={opened}
                 onClose={handleClose}
                 title={title}
-                size="xl"
-                centered
+                size="80%"
+                onCancel={handleClose}
+                cancelLabel="Close"
             >
                 <Alert
                     icon={<IconAlertTriangle size={16} />}
@@ -236,19 +237,25 @@ export function ConditionBuilderModal({
                 >
                     Failed to load condition builder data. Please try again.
                 </Alert>
-            </Modal>
+            </ModalWrapper>
         );
     }
 
     return (
-        <Modal
+        <ModalWrapper
             opened={opened}
             onClose={handleClose}
             title={title}
-            size="xl"
-            centered
+            size="80%"
+            onSave={handleSave}
+            onCancel={handleCancel}
+            isLoading={isSaving}
+            saveLabel="Save Condition"
+            cancelLabel="Cancel"
+            disabled={isLoading}
             closeOnClickOutside={false}
             closeOnEscape={false}
+            scrollAreaHeight="60vh"
         >
             <LoadingOverlay visible={isLoading} />
 
@@ -281,24 +288,7 @@ export function ConditionBuilderModal({
                         />
                     </QueryBuilderMantine>
                 </div>
-
-                <Group justify="flex-end" gap="sm">
-                    <Button
-                        variant="outline"
-                        onClick={handleCancel}
-                        disabled={isSaving}
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        onClick={handleSave}
-                        loading={isSaving}
-                        disabled={isLoading}
-                    >
-                        Save Condition
-                    </Button>
-                </Group>
             </Stack>
-        </Modal>
+        </ModalWrapper>
     );
 }
