@@ -9,12 +9,12 @@ import {
     Text,
     LoadingOverlay,
     Alert,
-    Combobox,
+    Select,
     TextInput,
-    useCombobox
+    ActionIcon
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconAlertTriangle, IconCheck, IconX } from '@tabler/icons-react';
+import { IconAlertTriangle, IconCheck, IconX, IconPlus } from '@tabler/icons-react';
 import { defaultValidator, QueryBuilder, RuleGroupType } from 'react-querybuilder';
 import { QueryBuilderMantine } from '@react-querybuilder/mantine';
 import 'react-querybuilder/dist/query-builder.css';
@@ -36,78 +36,89 @@ const initialQuery: RuleGroupType = {
     rules: []
 };
 
-// Custom field selector that allows creatable input
+// Custom field selector with toggle between dropdown and custom input
 function CreatableFieldSelector(props: any) {
-    // Debug what props are actually passed
-    console.log('CreatableFieldSelector props:', props);
-
     const { value, options, onChange, handleOnChange, ...otherProps } = props;
 
     // react-querybuilder might use handleOnChange instead of onChange
     const changeHandler = onChange || handleOnChange;
 
     if (!changeHandler) {
-        console.error('No change handler found in props:', props);
         return <div>Error: No change handler</div>;
     }
 
-    const combobox = useCombobox({
-        onDropdownClose: () => combobox.resetSelectedOption(),
-    });
+    const [isCustomMode, setIsCustomMode] = useState(false);
+
+    // Check if current value is a custom variable (starts and ends with {{ }})
+    const isCustomVariable = value && typeof value === 'string' && value.startsWith('{{') && value.endsWith('}}');
+
+    // If we have a custom variable, automatically switch to custom mode
+    useEffect(() => {
+        if (isCustomVariable && !isCustomMode) {
+            setIsCustomMode(true);
+        }
+    }, [isCustomVariable, isCustomMode]);
 
     const fieldOptions = options.map((opt: any) => ({
         value: opt.name,
         label: opt.label
     }));
 
-    const filteredOptions = fieldOptions.filter((item: any) =>
-        item.label.toLowerCase().includes((value || '').toLowerCase().trim())
-    );
-
-    const exactOptionMatch = fieldOptions.find((item: any) => item.value === value);
-
-    const handleOptionSubmit = (val: string) => {
-        changeHandler(val);
-        combobox.closeDropdown();
+    const handleToggleMode = () => {
+        if (isCustomMode) {
+            // Switching from custom mode to dropdown mode
+            // Clear the custom variable and return to empty state
+            changeHandler('');
+        }
+        setIsCustomMode(!isCustomMode);
     };
 
-    return (
-        <Combobox
-            store={combobox}
-            withinPortal={false}
-            onOptionSubmit={handleOptionSubmit}
-        >
-            <Combobox.Target>
+    if (isCustomMode) {
+        // Custom variable input mode
+        return (
+            <Group gap={0} wrap="nowrap">
                 <TextInput
                     value={value || ''}
-                    onChange={(event) => {
-                        const newValue = event.currentTarget.value;
-                        changeHandler(newValue);
-                        combobox.openDropdown();
-                    }}
-                    onClick={() => combobox.openDropdown()}
-                    onFocus={() => combobox.openDropdown()}
-                    onBlur={() => combobox.closeDropdown()}
-                    placeholder="Select or type field name"
+                    onChange={(event) => changeHandler(event.currentTarget.value)}
+                    placeholder="Enter custom variable (e.g. {{my_var}})"
                     size="xs"
+                    style={{ flex: 1 }}
                 />
-            </Combobox.Target>
+                <ActionIcon
+                    variant="subtle"
+                    color="red"
+                    size="xs"
+                    onClick={handleToggleMode}
+                    title="Remove custom variable"
+                >
+                    <IconX size={14} />
+                </ActionIcon>
+            </Group>
+        );
+    }
 
-            <Combobox.Dropdown>
-                <Combobox.Options>
-                    {filteredOptions.map((option: any) => (
-                        <Combobox.Option value={option.value} key={option.value}>
-                            {option.label}
-                        </Combobox.Option>
-                    ))}
-                    {(value || '').trim().length > 0 && !exactOptionMatch && (
-                        <Combobox.Option value={value}>
-                            + Create field "{value}"
-                        </Combobox.Option>
-                    )}
-                </Combobox.Options>
-            </Combobox.Dropdown>
-        </Combobox>
+    // Normal dropdown mode
+    return (
+        <Group gap={0} wrap="nowrap">
+            <Select
+                value={value || null}
+                onChange={(newValue) => changeHandler(newValue)}
+                data={fieldOptions}
+                placeholder="Select field"
+                size="xs"
+                clearable
+                style={{ flex: 1 }}
+            />
+            <ActionIcon
+                variant="subtle"
+                color="blue"
+                size="xs"
+                onClick={handleToggleMode}
+                title="Add custom variable"
+            >
+                <IconPlus size={14} />
+            </ActionIcon>
+        </Group>
     );
 }
 
