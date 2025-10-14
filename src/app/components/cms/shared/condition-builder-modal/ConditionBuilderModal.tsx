@@ -9,12 +9,13 @@ import {
     Text,
     LoadingOverlay,
     Alert,
-    Select,
     TextInput,
-    ActionIcon
+    ActionIcon,
+    Tooltip,
+    Select
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconAlertTriangle, IconCheck, IconX, IconPlus } from '@tabler/icons-react';
+import { IconAlertTriangle, IconCheck, IconX, IconLock, IconLockOpen } from '@tabler/icons-react';
 import { defaultValidator, QueryBuilder, RuleGroupType } from 'react-querybuilder';
 import { QueryBuilderMantine } from '@react-querybuilder/mantine';
 import 'react-querybuilder/dist/query-builder.css';
@@ -36,7 +37,7 @@ const initialQuery: RuleGroupType = {
     rules: []
 };
 
-// Custom field selector with toggle between dropdown and custom input
+// Custom field selector with LockedField-style design
 function CreatableFieldSelector(props: any) {
     const { value, options, onChange, handleOnChange, ...otherProps } = props;
 
@@ -73,52 +74,62 @@ function CreatableFieldSelector(props: any) {
         setIsCustomMode(!isCustomMode);
     };
 
+    const toggleTooltip = isCustomMode ? "Lock to field selection" : "Unlock for custom variable";
+
     if (isCustomMode) {
-        // Custom variable input mode
+        // Custom variable input mode - matches other field styling
         return (
-            <Group gap={0} wrap="nowrap">
-                <TextInput
-                    value={value || ''}
-                    onChange={(event) => changeHandler(event.currentTarget.value)}
-                    placeholder="Enter custom variable (e.g. {{my_var}})"
-                    size="xs"
-                    style={{ flex: 1 }}
-                />
-                <ActionIcon
-                    variant="subtle"
-                    color="red"
-                    size="xs"
-                    onClick={handleToggleMode}
-                    title="Remove custom variable"
-                >
-                    <IconX size={14} />
-                </ActionIcon>
-            </Group>
+            <TextInput
+                value={value || ''}
+                onChange={(event) => changeHandler(event.currentTarget.value)}
+                placeholder="{{my_var}}"
+                size="sm"
+                rightSection={
+                    <Tooltip label={toggleTooltip} position="left">
+                        <ActionIcon
+                            variant="filled"
+                            color="blue"
+                            size="sm"
+                            onClick={handleToggleMode}
+                            style={{ cursor: 'pointer' }}
+                        >
+                            <IconLockOpen size="1rem" />
+                        </ActionIcon>
+                    </Tooltip>
+                }
+            />
         );
     }
 
-    // Normal dropdown mode
+    // Normal dropdown mode - using Mantine Select
     return (
-        <Group gap={0} wrap="nowrap">
-            <Select
-                value={value || null}
-                onChange={(newValue) => changeHandler(newValue)}
-                data={fieldOptions}
-                placeholder="Select field"
-                size="xs"
-                clearable
-                style={{ flex: 1 }}
-            />
-            <ActionIcon
-                variant="subtle"
-                color="blue"
-                size="xs"
-                onClick={handleToggleMode}
-                title="Add custom variable"
-            >
-                <IconPlus size={14} />
-            </ActionIcon>
-        </Group>
+        <Select
+            value={value || null}
+            onChange={(newValue) => changeHandler(newValue)}
+            data={fieldOptions}
+            placeholder="Select field"
+            size="sm"
+            searchable
+            rightSection={
+                <div onClick={handleToggleMode} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                    <Tooltip label={toggleTooltip} position="left">
+                        <ActionIcon
+                            variant="subtle"
+                            color="gray"
+                            size="sm"
+                            component="div"
+                        >
+                            <IconLock size="1rem" />
+                        </ActionIcon>
+                    </Tooltip>
+                </div>
+            }
+            rightSectionPointerEvents="all"
+            styles={{
+                wrapper: { width: '100%' },
+                input: { width: '100%' }
+            }}
+        />
     );
 }
 

@@ -44,14 +44,48 @@
     color: color-mix(in srgb, rebeccapurple, white 30%);
 }
 
-/* Minimum width for all inputs */
+/* Fixed widths for all rule components */
+.queryBuilder :global(.rule-fields) {
+    min-width: 180px !important;
+    /* width: 180px !important; */
+}
+
+.queryBuilder :global(.rule-fields select),
+.queryBuilder :global(.rule-fields) > div {
+    width: 100% !important;
+}
+
+.queryBuilder :global(.rule-operators) {
+    min-width: 140px !important;
+    width: 140px !important;
+}
+
+.queryBuilder :global(.rule-operators select) {
+    width: 100% !important;
+}
+
+.queryBuilder :global(.rule-value) {
+    min-width: 200px !important;
+    flex: 1;
+}
+
 .queryBuilder :global(.rule-value input),
 .queryBuilder :global(.rule-value select),
 .queryBuilder :global(.rule-value .mantine-MultiSelect-input),
-.queryBuilder :global(.rule-value .mantine-DatePickerInput-input),
-.queryBuilder :global(.rule-fields select),
-.queryBuilder :global(.rule-operators select) {
-    min-width: 100px !important;
+.queryBuilder :global(.rule-value .mantine-DatePickerInput-input) {
+    width: 100% !important;
+}
+
+/* Consistent remove button sizing */
+.queryBuilder :global(.rule-remove),
+.queryBuilder :global(.ruleGroup-remove) {
+    min-width: 36px !important;
+    width: 36px !important;
+    height: 36px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 .queryBuilder :global(.queryBuilder-branches .rule::after) {
