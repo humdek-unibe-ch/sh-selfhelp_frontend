@@ -34,16 +34,6 @@ export function createConditionFields(
             valueSources: ['value'],
         },
         {
-            name: 'field_name',
-            label: 'Field Name',
-            inputType: 'text',
-            operators: defaultOperators.filter(op =>
-                ['=', '!=', '>', '<', '>=', '<=', 'contains', 'beginsWith', 'endsWith','between'].includes(op.name)
-            ),
-            validator,
-            placeholder: 'Enter field name',
-        },
-        {
             name: 'current_date',
             label: 'Current Date',
             inputType: 'date',

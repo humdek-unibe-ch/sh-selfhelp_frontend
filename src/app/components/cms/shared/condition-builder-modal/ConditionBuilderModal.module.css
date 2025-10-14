@@ -56,8 +56,8 @@
 }
 
 .queryBuilder :global(.rule-operators) {
-    min-width: 140px !important;
-    width: 140px !important;
+    min-width: 200px !important;
+    width: 200px !important;
 }
 
 .queryBuilder :global(.rule-operators select) {
