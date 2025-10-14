@@ -1,7 +1,7 @@
 /**
  * Field definitions for the condition builder.
  * Uses only built-in React Query Builder operators for maximum compatibility.
- * 
+ *
  * @module components/admin/shared/condition-builder-modal/conditionFields
  */
 
@@ -12,6 +12,7 @@ import { defaultOperators, toFullOption } from 'react-querybuilder';
  * Validator function to ensure rules have values
  */
 const validator = (rule: any) => !!rule.value;
+
 
 /**
  * Creates field definitions with dynamic data using only built-in operators
@@ -36,7 +37,7 @@ export function createConditionFields(
             name: 'field_name',
             label: 'Field Name',
             inputType: 'text',
-            operators: defaultOperators.filter(op => 
+            operators: defaultOperators.filter(op =>
                 ['=', '!=', '>', '<', '>=', '<=', 'contains', 'beginsWith', 'endsWith','between'].includes(op.name)
             ),
             validator,

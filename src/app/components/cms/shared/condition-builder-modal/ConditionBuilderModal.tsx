@@ -8,7 +8,10 @@ import {
     Stack,
     Text,
     LoadingOverlay,
-    Alert
+    Alert,
+    Combobox,
+    TextInput,
+    useCombobox
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconAlertTriangle, IconCheck, IconX } from '@tabler/icons-react';
@@ -32,6 +35,81 @@ const initialQuery: RuleGroupType = {
     combinator: 'and',
     rules: []
 };
+
+// Custom field selector that allows creatable input
+function CreatableFieldSelector(props: any) {
+    // Debug what props are actually passed
+    console.log('CreatableFieldSelector props:', props);
+
+    const { value, options, onChange, handleOnChange, ...otherProps } = props;
+
+    // react-querybuilder might use handleOnChange instead of onChange
+    const changeHandler = onChange || handleOnChange;
+
+    if (!changeHandler) {
+        console.error('No change handler found in props:', props);
+        return <div>Error: No change handler</div>;
+    }
+
+    const combobox = useCombobox({
+        onDropdownClose: () => combobox.resetSelectedOption(),
+    });
+
+    const fieldOptions = options.map((opt: any) => ({
+        value: opt.name,
+        label: opt.label
+    }));
+
+    const filteredOptions = fieldOptions.filter((item: any) =>
+        item.label.toLowerCase().includes((value || '').toLowerCase().trim())
+    );
+
+    const exactOptionMatch = fieldOptions.find((item: any) => item.value === value);
+
+    const handleOptionSubmit = (val: string) => {
+        changeHandler(val);
+        combobox.closeDropdown();
+    };
+
+    return (
+        <Combobox
+            store={combobox}
+            withinPortal={false}
+            onOptionSubmit={handleOptionSubmit}
+        >
+            <Combobox.Target>
+                <TextInput
+                    value={value || ''}
+                    onChange={(event) => {
+                        const newValue = event.currentTarget.value;
+                        changeHandler(newValue);
+                        combobox.openDropdown();
+                    }}
+                    onClick={() => combobox.openDropdown()}
+                    onFocus={() => combobox.openDropdown()}
+                    onBlur={() => combobox.closeDropdown()}
+                    placeholder="Select or type field name"
+                    size="xs"
+                />
+            </Combobox.Target>
+
+            <Combobox.Dropdown>
+                <Combobox.Options>
+                    {filteredOptions.map((option: any) => (
+                        <Combobox.Option value={option.value} key={option.value}>
+                            {option.label}
+                        </Combobox.Option>
+                    ))}
+                    {(value || '').trim().length > 0 && !exactOptionMatch && (
+                        <Combobox.Option value={value}>
+                            + Create field "{value}"
+                        </Combobox.Option>
+                    )}
+                </Combobox.Options>
+            </Combobox.Dropdown>
+        </Combobox>
+    );
+}
 
 export function ConditionBuilderModal({
     opened,
@@ -163,7 +241,10 @@ export function ConditionBuilderModal({
                             query={query}
                             onQueryChange={setQuery}
                             validator={defaultValidator}
-                            controlClassnames={{ 
+                            controlElements={{
+                                fieldSelector: CreatableFieldSelector
+                            }}
+                            controlClassnames={{
                                 queryBuilder: 'queryBuilder-justified queryBuilder-branches',
                                 ruleGroup: 'ruleGroup',
                                 rule: 'rule',
