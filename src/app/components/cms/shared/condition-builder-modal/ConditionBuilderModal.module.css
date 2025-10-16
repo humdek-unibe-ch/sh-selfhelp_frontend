@@ -44,10 +44,16 @@
     color: color-mix(in srgb, rebeccapurple, white 30%);
 }
 
-/* Fixed widths for all rule components */
+/* Flexible layout for rule components */
+.queryBuilder :global(.rule) {
+    display: flex !important;
+    align-items: center !important;
+    gap: var(--mantine-spacing-sm) !important;
+}
+
 .queryBuilder :global(.rule-fields) {
-    min-width: 180px !important;
-    /* width: 180px !important; */
+    min-width: 150px !important;
+    flex-shrink: 0 !important;
 }
 
 .queryBuilder :global(.rule-fields select),
@@ -56,8 +62,8 @@
 }
 
 .queryBuilder :global(.rule-operators) {
-    min-width: 200px !important;
-    width: 200px !important;
+    min-width: 120px !important;
+    flex-shrink: 0 !important;
 }
 
 .queryBuilder :global(.rule-operators select) {
@@ -65,8 +71,8 @@
 }
 
 .queryBuilder :global(.rule-value) {
-    min-width: 200px !important;
-    flex: 1;
+    flex: 1 !important;
+    min-width: 150px !important;
 }
 
 .queryBuilder :global(.rule-value input),
