@@ -1,3 +1,19 @@
 .searchInput:focus {
     border: 1px solid var(--mantine-color-orange-5);
 }
+
+.jsonEditor {
+    position: relative;
+}
+
+.jsonEditor[data-search-text]:not([data-search-text=""]) ::selection {
+    background-color: rgba(255, 117, 120, 0.3);
+}
+
+/* Highlight search matches with orange background */
+.searchHighlight {
+    background-color: rgba(255, 117, 120, 0.4);
+    border-radius: 2px;
+    padding: 1px 2px;
+    color: inherit;
+}

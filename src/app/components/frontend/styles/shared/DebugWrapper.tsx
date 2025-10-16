@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Indicator, Popover, Text, ScrollArea, Badge, Group, Box, useMantineColorScheme, ActionIcon, TextInput, Stack } from '@mantine/core';
 import { IconBug, IconSearch, IconX, IconChevronsDown, IconChevronsUp } from '@tabler/icons-react';
 import { JsonEditor, githubLightTheme, githubDarkTheme } from 'json-edit-react';
@@ -23,9 +23,72 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
     const [opened, setOpened] = useState(false);
     const [searchText, setSearchText] = useState('');
     const [isExpanded, setIsExpanded] = useState(false);
+    const jsonEditorRef = useRef<HTMLDivElement>(null);
 
     // Check if debug is enabled (debug field is truthy)
     const isDebugEnabled = style.debug && style.debug > 0;
+
+    // Function to highlight search text in DOM elements
+    const highlightSearchText = (element: HTMLElement, searchText: string) => {
+        if (!searchText.trim()) return;
+
+        // Remove existing highlights
+        const existingHighlights = element.querySelectorAll('.searchHighlight');
+        existingHighlights.forEach(highlight => {
+            const parent = highlight.parentNode;
+            if (parent) {
+                parent.replaceChild(document.createTextNode(highlight.textContent || ''), highlight);
+            }
+        });
+
+        // Function to recursively traverse and highlight text nodes
+        const traverseAndHighlight = (node: Node) => {
+            if (node.nodeType === Node.TEXT_NODE) {
+                const text = node.textContent || '';
+                const regex = new RegExp(`(${searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                const matches = text.match(regex);
+
+                if (matches) {
+                    const parts = text.split(regex);
+                    const fragment = document.createDocumentFragment();
+
+                    parts.forEach((part, index) => {
+                        if (part) {
+                            if (index % 2 === 1) { // This is a match (odd indices after split)
+                                const highlightSpan = document.createElement('span');
+                                highlightSpan.className = styles.searchHighlight;
+                                highlightSpan.textContent = part;
+                                fragment.appendChild(highlightSpan);
+                            } else {
+                                fragment.appendChild(document.createTextNode(part));
+                            }
+                        }
+                    });
+
+                    node.parentNode?.replaceChild(fragment, node);
+                }
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+                // Skip highlighting in certain elements
+                const element = node as Element;
+                if (element.tagName !== 'SCRIPT' && element.tagName !== 'STYLE' && !element.classList.contains('searchHighlight')) {
+                    Array.from(node.childNodes).forEach(traverseAndHighlight);
+                }
+            }
+        };
+
+        traverseAndHighlight(element);
+    };
+
+    // Apply highlighting when search text changes
+    useEffect(() => {
+        if (jsonEditorRef.current && searchText.trim()) {
+            // Use setTimeout to ensure JsonEditor has rendered
+            const timer = setTimeout(() => {
+                highlightSearchText(jsonEditorRef.current!, searchText);
+            }, 200);
+            return () => clearTimeout(timer);
+        }
+    }, [searchText, isExpanded]); // Also re-run when expand/collapse changes
 
     // If debug is not enabled, just return children
     if (!isDebugEnabled) {
@@ -123,7 +186,13 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
                             </Group>
 
                             <ScrollArea h={400} type="auto">
-                                <Box p="xs" style={{ fontSize: '12px' }}>
+                                <Box
+                                    ref={jsonEditorRef}
+                                    p="xs"
+                                    style={{ fontSize: '12px' }}
+                                    className={styles.jsonEditor}
+                                    data-search-text={searchText}
+                                >
                                     <JsonEditor
                                         data={style}
                                         theme={colorScheme === 'dark' ? githubDarkTheme : githubLightTheme}
