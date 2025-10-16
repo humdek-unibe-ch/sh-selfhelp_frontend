@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Indicator, Popover, Text, ScrollArea, Badge, Group, Box, useMantineColorScheme, ActionIcon, TextInput, Stack } from '@mantine/core';
-import { IconBug, IconSearch, IconX } from '@tabler/icons-react';
+import { IconBug, IconSearch, IconX, IconChevronsDown, IconChevronsUp } from '@tabler/icons-react';
 import { JsonEditor, githubLightTheme, githubDarkTheme } from 'json-edit-react';
 import type { TStyle } from '../../../../../types/common/styles.types';
 import styles from './DebugWrapper.module.css';
@@ -22,6 +22,7 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
     const { colorScheme } = useMantineColorScheme();
     const [opened, setOpened] = useState(false);
     const [searchText, setSearchText] = useState('');
+    const [isExpanded, setIsExpanded] = useState(false);
 
     // Check if debug is enabled (debug field is truthy)
     const isDebugEnabled = style.debug && style.debug > 0;
@@ -83,36 +84,50 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
                                 )}
                             </Group>
 
-                            <TextInput
-                                placeholder="Search properties..."
-                                leftSection={<IconSearch size={16} />}
-                                rightSection={
-                                    searchText ? (
-                                        <ActionIcon
-                                            variant="transparent"
-                                            size="sm"
-                                            color="orange"
-                                            onClick={() => setSearchText('')}
-                                            style={{ cursor: 'pointer' }}
-                                        >
-                                            <IconX size={14} />
-                                        </ActionIcon>
-                                    ) : null
-                                }
-                                classNames={{
-                                    input: styles.searchInput,
-                                }}
-                                value={searchText}
-                                onChange={(event) => setSearchText(event.currentTarget.value)}
-                                size="sm"
-                            />
+                            <Group justify="space-between" align="center">
+                                <TextInput
+                                    placeholder="Search properties..."
+                                    leftSection={<IconSearch size={16} />}
+                                    rightSection={
+                                        searchText ? (
+                                            <ActionIcon
+                                                variant="transparent"
+                                                size="sm"
+                                                color="orange"
+                                                onClick={() => setSearchText('')}
+                                                style={{ cursor: 'pointer' }}
+                                            >
+                                                <IconX size={14} />
+                                            </ActionIcon>
+                                        ) : null
+                                    }
+                                    classNames={{
+                                        input: styles.searchInput,
+                                    }}
+                                    value={searchText}
+                                    onChange={(event) => setSearchText(event.currentTarget.value)}
+                                    size="sm"
+                                    style={{ flex: 1 }}
+                                />
+
+                                <ActionIcon
+                                    variant="light"
+                                    size="sm"
+                                    color="orange"
+                                    onClick={() => setIsExpanded(!isExpanded)}
+                                    title={isExpanded ? 'Collapse all' : 'Expand all'}
+                                    style={{ cursor: 'pointer' }}
+                                >
+                                    {isExpanded ? <IconChevronsUp size={16} /> : <IconChevronsDown size={16} />}
+                                </ActionIcon>
+                            </Group>
 
                             <ScrollArea h={400} type="auto">
                                 <Box p="xs" style={{ fontSize: '12px' }}>
                                     <JsonEditor
                                         data={style}
                                         theme={colorScheme === 'dark' ? githubDarkTheme : githubLightTheme}
-                                        collapse={1}
+                                        collapse={isExpanded ? false : 1}
                                         enableClipboard={true}
                                         showErrorMessages={false}
                                         viewOnly={true}
