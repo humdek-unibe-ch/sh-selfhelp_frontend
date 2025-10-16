@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import {
-    Button,
-    Group,
     Stack,
     Text,
     LoadingOverlay,
@@ -16,7 +14,7 @@ import {
 import { notifications } from '@mantine/notifications';
 import { IconAlertTriangle, IconCheck, IconX, IconLock, IconLockOpen } from '@tabler/icons-react';
 import { defaultValidator, QueryBuilder, RuleGroupType } from 'react-querybuilder';
-import { QueryBuilderMantine } from '@react-querybuilder/mantine';
+import { MantineValueEditor, QueryBuilderMantine } from '@react-querybuilder/mantine';
 import 'react-querybuilder/dist/query-builder.css';
 import { ModalWrapper } from '../../../shared/common/CustomModal';
 import { useConditionBuilderData } from '../../../../../hooks/useConditionBuilderData';
@@ -131,6 +129,54 @@ function CreatableFieldSelector(props: any) {
             }}
         />
     );
+}
+
+// Custom value editor that makes select fields searchable
+// Returns null for all other types to let QueryBuilderMantine use default editors
+function SearchableValueEditor(props: any) {
+    const {
+        value,
+        values,
+        onChange,
+        handleOnChange,
+        fieldData,
+        type,
+        ...otherProps
+    } = props;
+
+    // react-querybuilder might use handleOnChange instead of onChange
+    const changeHandler = onChange || handleOnChange;
+
+    if (!changeHandler) {
+        return <div>Error: No change handler</div>;
+    }
+
+    // Only handle select fields with values (make them searchable)
+    const isSelectType = type === 'select' || fieldData?.valueEditorType === 'select';
+    if (isSelectType && values && Array.isArray(values) && values.length > 0) {
+        const valueOptions = values.map((opt: any) => ({
+            value: opt.name,
+            label: opt.label
+        }));
+
+        return (
+            <Select
+                value={value || null}
+                onChange={(newValue) => changeHandler(newValue)}
+                data={valueOptions}
+                placeholder="Select value"
+                size="sm"
+                searchable
+                styles={{
+                    wrapper: { width: '100%' },
+                    input: { width: '100%' }
+                }}
+            />
+        );
+    }
+
+    // Return undefined for all other types to let QueryBuilderMantine use its default editors
+    return <MantineValueEditor  {...props} />;
 }
 
 export function ConditionBuilderModal({
@@ -271,7 +317,8 @@ export function ConditionBuilderModal({
                             onQueryChange={setQuery}
                             validator={defaultValidator}
                             controlElements={{
-                                fieldSelector: CreatableFieldSelector
+                                fieldSelector: CreatableFieldSelector,
+                                valueEditor: SearchableValueEditor
                             }}
                             controlClassnames={{
                                 queryBuilder: 'queryBuilder-justified queryBuilder-branches',
