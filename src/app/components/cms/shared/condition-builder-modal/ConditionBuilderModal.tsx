@@ -20,7 +20,6 @@ import { ModalWrapper } from '../../../shared/common/CustomModal';
 import { useConditionBuilderData } from '../../../../../hooks/useConditionBuilderData';
 import { rulesToJsonLogic, jsonLogicToRules, isValidJsonLogic } from '../../../../../utils/json-logic-conversion.utils';
 import { createConditionFields } from './conditionFields';
-import classes from './ConditionBuilderModal.module.css';
 
 interface IConditionBuilderModalProps {
     opened: boolean;
@@ -309,7 +308,7 @@ export function ConditionBuilderModal({
                 <Text size="sm" c="dimmed">
                     Build conditions using the query builder below. Use AND/OR for groups.
                 </Text>
-                <div className={`${classes.queryBuilder} validateQuery`}>
+                <div className="validateQuery">
                     <QueryBuilderMantine>
                         <QueryBuilder
                             fields={fields}
