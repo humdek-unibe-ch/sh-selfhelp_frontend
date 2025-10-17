@@ -16,105 +16,7 @@ import { Extension } from '@tiptap/core';
 import { ReactRenderer } from '@tiptap/react';
 import tippy from 'tippy.js';
 import styles from './RichTextField.module.css';
-
-interface IVariableSuggestion {
-    id: string;
-    label: string;
-}
-
-interface IVariableListProps {
-    items: IVariableSuggestion[];
-    command: (item: IVariableSuggestion) => void;
-}
-
-interface IKeyboardHandler {
-    onKeyDown: (params: { event: KeyboardEvent }) => boolean;
-}
-
-// Function to sanitize HTML by removing mention styling but keeping text
-const sanitizeForDatabase = (html: string): string => {
-    if (!html) return html;
-
-    // Create a temporary DOM element to parse HTML
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = html;
-
-    // Find all mention spans and replace them with plain text
-    const mentionSpans = tempDiv.querySelectorAll('[data-type="mention"]');
-    mentionSpans.forEach(span => {
-        const textNode = document.createTextNode(span.textContent || '');
-        span.parentNode?.replaceChild(textNode, span);
-    });
-
-    return tempDiv.innerHTML;
-};
-
-// Variable suggestion component - following official TipTap pattern
-const VariableList = React.forwardRef<IKeyboardHandler, IVariableListProps>((props, ref) => {
-    const [selectedIndex, setSelectedIndex] = React.useState(0);
-
-    const selectItem = (index: number) => {
-        const item = props.items[index];
-        if (item) {
-            // Wrap with {{ }} when selecting
-            const wrappedItem = { ...item, label: `{{${item.label}}}` };
-            props.command(wrappedItem);
-        }
-    };
-
-    const upHandler = () => {
-        setSelectedIndex((selectedIndex + props.items.length - 1) % props.items.length);
-    };
-
-    const downHandler = () => {
-        setSelectedIndex((selectedIndex + 1) % props.items.length);
-    };
-
-    const enterHandler = () => {
-        selectItem(selectedIndex);
-    };
-
-    React.useEffect(() => setSelectedIndex(0), [props.items]);
-
-    React.useImperativeHandle(ref, () => ({
-        onKeyDown: ({ event }: { event: KeyboardEvent }) => {
-            if (event.key === 'ArrowUp') {
-                upHandler();
-                return true;
-            }
-
-            if (event.key === 'ArrowDown') {
-                downHandler();
-                return true;
-            }
-
-            if (event.key === 'Enter') {
-                enterHandler();
-                return true;
-            }
-
-            return false;
-        },
-    }));
-
-    return (
-        <Paper shadow="md" className={styles.suggestionPopup}>
-            {props.items.length ? (
-                props.items.map((item, index) => (
-                    <button
-                        key={item.id}
-                        className={`${styles.suggestionItem} ${index === selectedIndex ? styles.selected : ''}`}
-                        onClick={() => selectItem(index)}
-                    >
-                        <Text size="sm">{item.label}</Text>
-                    </button>
-                ))
-            ) : (
-                <Text size="sm" c="dimmed" p="xs">No result</Text>
-            )}
-        </Paper>
-    );
-});
+import { IVariableSuggestion, IVariableListProps, IKeyboardHandler, sanitizeForDatabase, VariableList, DEFAULT_VARIABLES } from '../../../../../utils/mentions.utils';
 
 interface IRichTextFieldProps {
     fieldId: number;
@@ -231,22 +133,8 @@ export function RichTextField({
         );
     }
 
-    // Default variables for quick testing - replace with dynamic data later
-    const defaultVariables: IVariableSuggestion[] = [
-        { id: 'user_name', label: 'user_name' },
-        { id: 'user_email', label: 'user_email' },
-        { id: 'user_id', label: 'user_id' },
-        { id: 'page_title', label: 'page_title' },
-        { id: 'page_url', label: 'page_url' },
-        { id: 'current_date', label: 'current_date' },
-        { id: 'site_name', label: 'site_name' },
-        { id: 'site_url', label: 'site_url' },
-        { id: 'current_year', label: 'current_year' },
-    ];
-
     // Use provided variables or fall back to defaults for testing
-    // const activeVariables = variables && variables.length > 0 ? variables : defaultVariables;
-    const activeVariables = variables;
+    const activeVariables = variables && variables.length > 0 ? variables : DEFAULT_VARIABLES;
     // Add mention extension only if we have variables to suggest
     if (activeVariables && activeVariables.length > 0) {
         extensions.push(

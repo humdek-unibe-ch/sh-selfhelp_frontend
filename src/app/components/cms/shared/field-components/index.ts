@@ -3,6 +3,7 @@ export { CreatableSelectField } from './CreatableSelectField';
 export { TextInputField } from './TextInputField';
 export { TextareaField } from './TextareaField';
 export { RichTextField } from './RichTextField';
+export { TextInputWithMentions } from './TextInputWithMentions';
 export { CheckboxField } from './CheckboxField';
 export { MonacoEditorField } from './MonacoEditorField';
 export { SelectField } from './SelectField';

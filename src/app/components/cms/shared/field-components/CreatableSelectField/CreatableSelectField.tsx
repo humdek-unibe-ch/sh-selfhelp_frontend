@@ -7,7 +7,6 @@ import {
     Button,
     ActionIcon,
     TextInput,
-    Paper,
     ScrollArea,
     Pill,
     Loader,
@@ -16,6 +15,8 @@ import {
     useCombobox,
     Textarea
 } from '@mantine/core';
+import { TextInputWithMentions } from '../TextInputWithMentions';
+import { IVariableSuggestion, DEFAULT_VARIABLES } from '../../../../../../utils/mentions.utils';
 import classes from './CreatableSelectField.module.css';
 import { IconPlus, IconX, IconCheck, IconChevronDown } from '@tabler/icons-react';
 import { useState, useCallback } from 'react';
@@ -46,6 +47,9 @@ export interface ICreatableSelectFieldProps {
     validateSingle?: (input: string) => boolean;
     validateMultiple?: (input: string) => boolean;
     validationErrorMessage?: string;
+
+    // Variables for mentions in custom input fields
+    variables?: IVariableSuggestion[];
 }
 
 export function CreatableSelectField({
@@ -68,7 +72,8 @@ export function CreatableSelectField({
     cancelButtonText = 'Cancel',
     validateSingle = (input: string) => input.trim().length > 0,
     validateMultiple = (input: string) => input.trim().length > 0,
-    validationErrorMessage = 'Invalid value'
+    validationErrorMessage = 'Invalid value',
+    variables
 }: ICreatableSelectFieldProps) {
     const [showCreateInput, setShowCreateInput] = useState(false);
     const [showMultiInput, setShowMultiInput] = useState(false);
@@ -281,14 +286,17 @@ export function CreatableSelectField({
                             </Group>
                         ) : showCreateInput ? (
                             <Group gap="xs">
-                                <TextInput
-                                    placeholder={singleCreatePlaceholder}
-                                    value={newValue}
-                                    onChange={(event) => setNewValue(event.currentTarget.value)}
-                                    size="xs"
-                                    style={{ flex: 1 }}
-                                    error={newValue && !validateSingle(newValue) ? validationErrorMessage : null}
-                                />
+                                <div style={{ flex: 1 }}>
+                                    <TextInputWithMentions
+                                        fieldId={fieldId}
+                                        value={newValue}
+                                        onChange={setNewValue}
+                                        placeholder={singleCreatePlaceholder}
+                                        disabled={false}
+                                        validator={newValue ? (value) => ({ isValid: validateSingle(value), error: validateSingle(value) ? undefined : validationErrorMessage }) : undefined}
+                                        variables={variables && variables.length > 0 ? variables : DEFAULT_VARIABLES}
+                                    />
+                                </div>
                                 <ActionIcon
                                     variant="light"
                                     color="green"

@@ -1,11 +1,10 @@
 'use client';
 
-import { Box, Text, Stack, Badge, Group } from '@mantine/core';
+import { Box, Text, Stack, Group } from '@mantine/core';
 import { FieldLabelWithTooltip } from '../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
 import {
     GlobalCreatableSelectField,
     TextInputField,
-    TextareaField,
     RichTextField,
     CheckboxField,
     MonacoEditorField,
@@ -21,12 +20,6 @@ import {
 } from '../field-components';
 import type { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
 
-// Variable suggestion interface
-export interface IVariableSuggestion {
-    id: string;
-    label: string;
-}
-
 // Global field types for section-level properties
 export type GlobalFieldType = 'condition' | 'data_config' | 'css' | 'css_mobile' | 'debug';
 
@@ -38,6 +31,7 @@ export interface IGlobalFieldRendererProps {
     disabled?: boolean;
 }
 import { sanitizeName, validateName } from '../../../../../utils/name-validation.utils';
+import { IVariableSuggestion, DEFAULT_VARIABLES } from '../../../../../utils/mentions.utils';
 
 // Use the actual field structure from API response
 export interface IFieldData {
@@ -211,12 +205,6 @@ export function FieldRenderer({
     
     // Textarea field - now uses rich text editor
     if (field.type === 'textarea') {
-        const textInputVariables: IVariableSuggestion[] = [
-            { id: 'user_name', label: 'user_name' },
-            { id: 'user_email', label: 'user_email' },
-            { id: 'page_title', label: 'page_title' },
-            { id: 'current_date', label: 'current_date' },
-        ];
         return renderFieldWithBadge(
             <RichTextField
                 fieldId={field.id}
@@ -224,22 +212,14 @@ export function FieldRenderer({
                 onChange={onChange}
                 placeholder={field.default_value || ''}
                 disabled={disabled}
-                variables={textInputVariables}
-                textInputMode={false}
+                variables={DEFAULT_VARIABLES}
                 {...(field.name === 'name' ? { validator: validateName, sanitize: sanitizeName } : {})}
             />
         );
     }
     
-    // Text and markdown-inline fields - now use RichTextField for variable support
+    // Text and markdown-inline fields - use RichTextField in text input mode for variable support
     if (field.type === 'text' || field.type === 'markdown-inline') {
-        // Default variables for text inputs - can be expanded based on context
-        const textInputVariables: IVariableSuggestion[] = [
-            { id: 'user_name', label: 'user_name' },
-            { id: 'user_email', label: 'user_email' },
-            { id: 'page_title', label: 'page_title' },
-            { id: 'current_date', label: 'current_date' },
-        ];
 
         return renderFieldWithBadge(
             <RichTextField
@@ -248,8 +228,8 @@ export function FieldRenderer({
                 onChange={onChange}
                 placeholder={field.default_value || ''}
                 disabled={disabled}
-                variables={textInputVariables}
-                textInputMode={true} // New prop to style as text input
+                variables={DEFAULT_VARIABLES}
+                textInputMode={true}
                 {...(field.name === 'name' ? { validator: validateName, sanitize: sanitizeName } : {})}
             />
         );
