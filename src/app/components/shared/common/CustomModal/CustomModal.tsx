@@ -63,6 +63,7 @@ interface ModalWrapperProps {
     closeOnEscape?: boolean;
     withCloseButton?: boolean;
     scrollAreaHeight?: number | string;
+    modalStyles?: ModalProps['styles'];
 }
 
 export const ModalWrapper = ({
@@ -89,6 +90,7 @@ export const ModalWrapper = ({
     closeOnEscape = true,
     withCloseButton = true,
     scrollAreaHeight = 400,
+    modalStyles,
 }: ModalWrapperProps) => {
     // Determine which actions to show
     const hasPrimaryAction = onSave || onUpdate;
@@ -104,9 +106,11 @@ export const ModalWrapper = ({
             closeOnClickOutside={closeOnClickOutside}
             closeOnEscape={closeOnEscape}
             withCloseButton={false} // We'll handle this in the header
+            styles={modalStyles}
             classNames={{
                 content: styles.modalContent,
                 body: styles.modalBody,
+                header: styles.modalHeader,
             }}
         >
             {/* Header */}

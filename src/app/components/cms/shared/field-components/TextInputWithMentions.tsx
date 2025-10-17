@@ -35,7 +35,6 @@ export function TextInputWithMentions({
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [suggestions, setSuggestions] = useState<IVariableSuggestion[]>([]);
     const [cursorPosition, setCursorPosition] = useState(0);
-    const [suggestionPosition, setSuggestionPosition] = useState({ top: 0, left: 0 });
     const inputRef = useRef<HTMLInputElement>(null);
     const suggestionRef = useRef<HTMLDivElement>(null);
     const variableListRef = useRef<any>(null);
@@ -69,16 +68,6 @@ export function TextInputWithMentions({
             if (filteredSuggestions.length > 0) {
                 setSuggestions(filteredSuggestions);
                 setShowSuggestions(true);
-
-                // Calculate position for suggestions
-                if (inputRef.current) {
-                    const inputRect = inputRef.current.getBoundingClientRect();
-                    const cursorX = getCursorPosition(inputRef.current, cursorPos);
-                    setSuggestionPosition({
-                        top: inputRect.bottom + 4,
-                        left: inputRect.left + cursorX,
-                    });
-                }
             } else {
                 setShowSuggestions(false);
             }
@@ -109,12 +98,10 @@ export function TextInputWithMentions({
             const sanitizedValue = sanitize ? sanitize(newValue) : newValue;
             onChange(sanitizedValue);
 
-            // Focus back to input and set cursor position
+            // Focus back to input
             setTimeout(() => {
                 if (inputRef.current) {
                     inputRef.current.focus();
-                    const newCursorPos = beforeMention.length + `{{${suggestion.label}}}`.length;
-                    inputRef.current.setSelectionRange(newCursorPos, newCursorPos);
                 }
             }, 0);
         }
@@ -132,18 +119,6 @@ export function TextInputWithMentions({
         }
     };
 
-    // Helper function to get cursor position in pixels
-    const getCursorPosition = (input: HTMLInputElement, position: number): number => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return 0;
-
-        const computedStyle = window.getComputedStyle(input);
-        ctx.font = `${computedStyle.fontSize} ${computedStyle.fontFamily}`;
-
-        const textBeforeCursor = input.value.substring(0, position);
-        return ctx.measureText(textBeforeCursor).width;
-    };
 
     return (
         <Input.Wrapper
@@ -168,10 +143,17 @@ export function TextInputWithMentions({
                     <div
                         ref={suggestionRef}
                         style={{
-                            position: 'fixed',
-                            top: suggestionPosition.top,
-                            left: suggestionPosition.left,
-                            zIndex: 1000,
+                            position: 'absolute',
+                            top: '100%',
+                            left: '0',
+                            right: '0',
+                            zIndex: 20000, // Very high z-index for modal contexts
+                            maxHeight: '200px',
+                            overflowY: 'auto',
+                            background: 'white',
+                            border: '1px solid #ccc',
+                            borderRadius: '4px',
+                            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
                         }}
                     >
                         <VariableList

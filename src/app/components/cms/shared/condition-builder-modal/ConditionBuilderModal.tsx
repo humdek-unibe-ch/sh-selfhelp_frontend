@@ -20,6 +20,7 @@ import { ModalWrapper } from '../../../shared/common/CustomModal';
 import { useConditionBuilderData } from '../../../../../hooks/useConditionBuilderData';
 import { rulesToJsonLogic, jsonLogicToRules, isValidJsonLogic } from '../../../../../utils/json-logic-conversion.utils';
 import { createConditionFields } from './conditionFields';
+import { TextInputWithMentions } from '../field-components/TextInputWithMentions';
 
 interface IConditionBuilderModalProps {
     opened: boolean;
@@ -76,24 +77,11 @@ function CreatableFieldSelector(props: any) {
     if (isCustomMode) {
         // Custom variable input mode - matches other field styling
         return (
-            <TextInput
+            <TextInputWithMentions
+                fieldId={0} // Dummy fieldId for condition builder context
                 value={value || ''}
-                onChange={(event) => changeHandler(event.currentTarget.value)}
+                onChange={changeHandler}
                 placeholder="{{my_var}}"
-                size="sm"
-                rightSection={
-                    <Tooltip label={toggleTooltip} position="left">
-                        <ActionIcon
-                            variant="filled"
-                            color="blue"
-                            size="sm"
-                            onClick={handleToggleMode}
-                            style={{ cursor: 'pointer' }}
-                        >
-                            <IconLockOpen size="1rem" />
-                        </ActionIcon>
-                    </Tooltip>
-                }
             />
         );
     }
@@ -130,8 +118,7 @@ function CreatableFieldSelector(props: any) {
     );
 }
 
-// Custom value editor that makes select fields searchable
-// Returns null for all other types to let QueryBuilderMantine use default editors
+// Custom value editor that supports both dropdown and text input with mentions
 function SearchableValueEditor(props: any) {
     const {
         value,
@@ -150,7 +137,25 @@ function SearchableValueEditor(props: any) {
         return <div>Error: No change handler</div>;
     }
 
-    // Only handle select fields with values (make them searchable)
+    const [isTextMode, setIsTextMode] = useState(false);
+
+    // Check if current value is a custom variable or contains brackets (suggesting variable usage)
+    const isCustomVariable = value && typeof value === 'string' && (value.startsWith('{{') || value.includes('{{'));
+
+    // If we have a custom variable, automatically switch to text mode
+    useEffect(() => {
+        if (isCustomVariable && !isTextMode) {
+            setIsTextMode(true);
+        }
+    }, [isCustomVariable, isTextMode]);
+
+    const handleToggleMode = () => {
+        setIsTextMode(!isTextMode);
+    };
+
+    const toggleTooltip = isTextMode ? "Switch to dropdown" : "Switch to text input for variables";
+
+    // Only handle select fields with values
     const isSelectType = type === 'select' || fieldData?.valueEditorType === 'select';
     if (isSelectType && values && Array.isArray(values) && values.length > 0) {
         const valueOptions = values.map((opt: any) => ({
@@ -158,24 +163,68 @@ function SearchableValueEditor(props: any) {
             label: opt.label
         }));
 
-        return (
-            <Select
-                value={value || null}
-                onChange={(newValue) => changeHandler(newValue)}
-                data={valueOptions}
-                placeholder="Select value"
-                size="sm"
-                searchable
-                styles={{
-                    wrapper: { width: '100%' },
-                    input: { width: '100%' }
-                }}
+        if (isTextMode) {
+            // Text mode with mentions
+            return (
+            <TextInputWithMentions
+                fieldId={0} // Dummy fieldId for condition builder context
+                value={value || ''}
+                onChange={changeHandler}
+                placeholder="Use {{variable}} or enter value"
             />
-        );
+            );
+        } else {
+            // Dropdown mode
+            return (
+                <Select
+                    value={value || null}
+                    onChange={(newValue) => changeHandler(newValue)}
+                    data={valueOptions}
+                    placeholder="Select value"
+                    size="sm"
+                    searchable
+                    rightSection={
+                        <div onClick={handleToggleMode} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                            <Tooltip label={toggleTooltip} position="left">
+                                <ActionIcon
+                                    variant="subtle"
+                                    color="gray"
+                                    size="sm"
+                                    component="div"
+                                >
+                                    <IconLockOpen size="1rem" />
+                                </ActionIcon>
+                            </Tooltip>
+                        </div>
+                    }
+                    rightSectionPointerEvents="all"
+                    styles={{
+                        wrapper: { width: '100%' },
+                        input: { width: '100%' }
+                    }}
+                />
+            );
+        }
     }
 
-    // Return undefined for all other types to let QueryBuilderMantine use its default editors
-    return <MantineValueEditor  {...props} />;
+    // For date/datetime/time fields, use default MantineValueEditor
+    const isDateTimeField = fieldData?.inputType === 'date' ||
+                           fieldData?.inputType === 'datetime-local' ||
+                           fieldData?.inputType === 'time';
+
+    if (isDateTimeField) {
+        return <MantineValueEditor {...props} />;
+    }
+
+    // For other non-select fields, use text input with mentions
+    return (
+        <TextInputWithMentions
+            fieldId={0} // Dummy fieldId for condition builder context
+            value={value || ''}
+            onChange={changeHandler}
+            placeholder="Enter value or use {{variable}}"
+        />
+    );
 }
 
 export function ConditionBuilderModal({
@@ -270,9 +319,12 @@ export function ConditionBuilderModal({
                 opened={opened}
                 onClose={handleClose}
                 title={title}
-                size="80%"
+                size="90vw"
                 onCancel={handleClose}
                 cancelLabel="Close"
+                modalStyles={{
+                    content: { height: '90vh' },
+                }}
             >
                 <Alert
                     icon={<IconAlertTriangle size={16} />}
@@ -291,7 +343,7 @@ export function ConditionBuilderModal({
             opened={opened}
             onClose={handleClose}
             title={title}
-            size="80%"
+            size="90vw"
             onSave={handleSave}
             onCancel={handleCancel}
             isLoading={isSaving}
@@ -300,7 +352,10 @@ export function ConditionBuilderModal({
             disabled={isLoading}
             closeOnClickOutside={false}
             closeOnEscape={false}
-            scrollAreaHeight="60vh"
+            scrollAreaHeight="70vh"
+            modalStyles={{
+                content: { height: '90vh' },
+            }}
         >
             <LoadingOverlay visible={isLoading} />
 
@@ -323,12 +378,12 @@ export function ConditionBuilderModal({
                                 queryBuilder: 'queryBuilder-justified queryBuilder-branches',
                                 ruleGroup: 'ruleGroup',
                                 rule: 'rule',
-                                addRule: 'addRule',
-                                addGroup: 'addGroup',
-                                cloneRule: 'cloneRule',
-                                cloneGroup: 'cloneGroup',
-                                removeRule: 'removeRule',
-                                removeGroup: 'removeGroup'
+                                addRule: 'addRule modal-high-z',
+                                addGroup: 'addGroup modal-high-z',
+                                cloneRule: 'cloneRule modal-high-z',
+                                cloneGroup: 'cloneGroup modal-high-z',
+                                removeRule: 'removeRule modal-high-z',
+                                removeGroup: 'removeGroup modal-high-z'
                             }}
                             resetOnFieldChange={true}
                         />
