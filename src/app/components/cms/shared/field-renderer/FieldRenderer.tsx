@@ -21,6 +21,12 @@ import {
 } from '../field-components';
 import type { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
 
+// Variable suggestion interface
+export interface IVariableSuggestion {
+    id: string;
+    label: string;
+}
+
 // Global field types for section-level properties
 export type GlobalFieldType = 'condition' | 'data_config' | 'css' | 'css_mobile' | 'debug';
 
@@ -205,6 +211,12 @@ export function FieldRenderer({
     
     // Textarea field - now uses rich text editor
     if (field.type === 'textarea') {
+        const textInputVariables: IVariableSuggestion[] = [
+            { id: 'user_name', label: 'user_name' },
+            { id: 'user_email', label: 'user_email' },
+            { id: 'page_title', label: 'page_title' },
+            { id: 'current_date', label: 'current_date' },
+        ];
         return renderFieldWithBadge(
             <RichTextField
                 fieldId={field.id}
@@ -212,20 +224,32 @@ export function FieldRenderer({
                 onChange={onChange}
                 placeholder={field.default_value || ''}
                 disabled={disabled}
+                variables={textInputVariables}
+                textInputMode={false}
                 {...(field.name === 'name' ? { validator: validateName, sanitize: sanitizeName } : {})}
             />
         );
     }
     
-    // Text and markdown-inline fields
+    // Text and markdown-inline fields - now use RichTextField for variable support
     if (field.type === 'text' || field.type === 'markdown-inline') {
+        // Default variables for text inputs - can be expanded based on context
+        const textInputVariables: IVariableSuggestion[] = [
+            { id: 'user_name', label: 'user_name' },
+            { id: 'user_email', label: 'user_email' },
+            { id: 'page_title', label: 'page_title' },
+            { id: 'current_date', label: 'current_date' },
+        ];
+
         return renderFieldWithBadge(
-            <TextInputField
+            <RichTextField
                 fieldId={field.id}
                 value={fieldValue}
                 onChange={onChange}
                 placeholder={field.default_value || ''}
                 disabled={disabled}
+                variables={textInputVariables}
+                textInputMode={true} // New prop to style as text input
                 {...(field.name === 'name' ? { validator: validateName, sanitize: sanitizeName } : {})}
             />
         );

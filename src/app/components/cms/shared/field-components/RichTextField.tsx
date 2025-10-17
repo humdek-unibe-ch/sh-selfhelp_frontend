@@ -11,7 +11,8 @@ import TextAlign from '@tiptap/extension-text-align';
 import Placeholder from '@tiptap/extension-placeholder';
 import { TextStyle } from '@tiptap/extension-text-style';
 import Mention from '@tiptap/extension-mention';
-import { PluginKey } from '@tiptap/pm/state';
+import { PluginKey, Plugin } from '@tiptap/pm/state';
+import { Extension } from '@tiptap/core';
 import { ReactRenderer } from '@tiptap/react';
 import tippy from 'tippy.js';
 import styles from './RichTextField.module.css';
@@ -127,6 +128,7 @@ interface IRichTextFieldProps {
     description?: string;
     required?: boolean;
     variables?: IVariableSuggestion[];
+    textInputMode?: boolean;
 }
 
 export function RichTextField({
@@ -141,9 +143,11 @@ export function RichTextField({
     description,
     required = false,
     variables,
+    textInputMode = false,
 }: IRichTextFieldProps) {
     const [sourceMode, setSourceMode] = useState(false);
     const [rawHtml, setRawHtml] = useState('');
+    const isUpdatingRef = React.useRef(false);
 
     const errorMessage = validator ? (validator(value).isValid ? undefined : validator(value).error) : undefined;
 
@@ -152,15 +156,80 @@ export function RichTextField({
         StarterKit.configure({
             underline: false,
             link: false,
+            // Disable multi-line content in textInputMode
+            heading: textInputMode ? false : undefined,
+            blockquote: textInputMode ? false : undefined,
+            bulletList: textInputMode ? false : undefined,
+            orderedList: textInputMode ? false : undefined,
+            listItem: textInputMode ? false : undefined,
+            codeBlock: textInputMode ? false : undefined,
+            horizontalRule: textInputMode ? false : undefined,
         }),
         Underline,
         Link,
-        TextAlign.configure({ types: ['heading', 'paragraph'] }),
+        TextAlign.configure({ types: textInputMode ? [] : ['heading', 'paragraph'] }),
         TextStyle,
         Placeholder.configure({
             placeholder: placeholder || 'Start writing...',
         }),
     ];
+
+    // Add keyboard handling for text input mode to prevent Enter
+    if (textInputMode) {
+        extensions.push(
+            Extension.create({
+                name: 'preventNewLines',
+                addProseMirrorPlugins() {
+                    return [
+                        new Plugin({
+                            key: new PluginKey('preventNewLines'),
+                            props: {
+                                handleKeyDown: (view, event) => {
+                                    // Prevent Enter and Shift+Enter from creating new lines
+                                    if (event.key === 'Enter') {
+                                        event.preventDefault();
+                                        return true;
+                                    }
+                                    return false;
+                                },
+                            },
+                        }),
+                    ];
+                },
+            })
+        );
+    }
+
+    // Add paste handling for text input mode to convert multiline to single line
+    if (textInputMode) {
+        extensions.push(
+            Extension.create({
+                name: 'singleLinePaste',
+                addProseMirrorPlugins() {
+                    return [
+                        new Plugin({
+                            key: new PluginKey('singleLinePaste'),
+                            props: {
+                                handlePaste: (view, event) => {
+                                    const text = event.clipboardData?.getData('text/plain');
+                                    if (text && text.includes('\n')) {
+                                        // Convert multiline text to single line
+                                        const singleLineText = text.replace(/\n/g, ' ').replace(/\r/g, ' ');
+                                        // Insert the cleaned text
+                                        const { tr } = view.state;
+                                        const transaction = tr.insertText(singleLineText);
+                                        view.dispatch(transaction);
+                                        return true; // Prevent default paste behavior
+                                    }
+                                    return false; // Allow normal paste for single-line text
+                                },
+                            },
+                        }),
+                    ];
+                },
+            })
+        );
+    }
 
     // Default variables for quick testing - replace with dynamic data later
     const defaultVariables: IVariableSuggestion[] = [
@@ -263,6 +332,9 @@ export function RichTextField({
         extensions,
         content: value,
         onUpdate: ({ editor }) => {
+            // Skip if we're currently updating content programmatically
+            if (isUpdatingRef.current) return;
+
             const html = editor.getHTML();
             // First apply any custom sanitization
             const sanitizedHtml = sanitize ? sanitize(html) : html;
@@ -277,7 +349,12 @@ export function RichTextField({
     // Update editor content when value prop changes externally
     React.useEffect(() => {
         if (editor && editor.getHTML() !== value) {
+            isUpdatingRef.current = true;
             editor.commands.setContent(value);
+            // Reset the flag after a short delay to allow the update to complete
+            setTimeout(() => {
+                isUpdatingRef.current = false;
+            }, 0);
         }
     }, [editor, value]);
 
@@ -288,7 +365,11 @@ export function RichTextField({
         } else {
             // Leaving source mode → update editor with raw HTML
             if (editor) {
+                isUpdatingRef.current = true;
                 editor.commands.setContent(rawHtml, { parseOptions: { preserveWhitespace: true } });
+                setTimeout(() => {
+                    isUpdatingRef.current = false;
+                }, 0);
             }
             const sanitizedHtml = sanitize ? sanitize(rawHtml) : rawHtml;
             const dbReadyHtml = sanitizeForDatabase(sanitizedHtml);
@@ -335,54 +416,63 @@ export function RichTextField({
                 </>
             ) : (
                 <RichTextEditor editor={editor}>
-                    <RichTextEditor.Toolbar>
-                        <RichTextEditor.ControlsGroup>
-                            <RichTextEditor.Bold />
-                            <RichTextEditor.Italic />
-                            <RichTextEditor.Underline />
-                            <RichTextEditor.Strikethrough />
-                        <RichTextEditor.ClearFormatting />
-                        <RichTextEditor.Highlight />
-                        <RichTextEditor.Control
-                            onClick={toggleSourceMode}
-                            active={sourceMode}
-                            disabled={disabled}
-                            aria-label="Toggle source mode"
-                            title="Toggle source mode"
-                        >
-                            <IconCode size={16} />
-                        </RichTextEditor.Control>
-                        </RichTextEditor.ControlsGroup>
+                    {!textInputMode && (
+                        <RichTextEditor.Toolbar>
+                            <RichTextEditor.ControlsGroup>
+                                <RichTextEditor.Bold />
+                                <RichTextEditor.Italic />
+                                <RichTextEditor.Underline />
+                                <RichTextEditor.Strikethrough />
+                            <RichTextEditor.ClearFormatting />
+                            <RichTextEditor.Highlight />
+                            <RichTextEditor.Control
+                                onClick={toggleSourceMode}
+                                active={sourceMode}
+                                disabled={disabled}
+                                aria-label="Toggle source mode"
+                                title="Toggle source mode"
+                            >
+                                <IconCode size={16} />
+                            </RichTextEditor.Control>
+                            </RichTextEditor.ControlsGroup>
+
+                            <RichTextEditor.ControlsGroup>
+                                <RichTextEditor.H1 />
+                                <RichTextEditor.H2 />
+                                <RichTextEditor.H3 />
+                                <RichTextEditor.H4 />
+                            </RichTextEditor.ControlsGroup>
+
+                            <RichTextEditor.ControlsGroup>
+                                <RichTextEditor.Hr />
+                                <RichTextEditor.BulletList />
+                                <RichTextEditor.OrderedList />
+                            </RichTextEditor.ControlsGroup>
+
+                            <RichTextEditor.ControlsGroup>
+                                <RichTextEditor.Link />
+                                <RichTextEditor.Unlink />
+                            </RichTextEditor.ControlsGroup>
 
                         <RichTextEditor.ControlsGroup>
-                            <RichTextEditor.H1 />
-                            <RichTextEditor.H2 />
-                            <RichTextEditor.H3 />
-                            <RichTextEditor.H4 />
+                            <RichTextEditor.AlignLeft />
+                            <RichTextEditor.AlignCenter />
+                            <RichTextEditor.AlignJustify />
+                            <RichTextEditor.AlignRight />
+                            <RichTextEditor.Undo />
+                            <RichTextEditor.Redo />
                         </RichTextEditor.ControlsGroup>
+                        </RichTextEditor.Toolbar>
+                    )}
 
-                        <RichTextEditor.ControlsGroup>
-                            <RichTextEditor.Hr />
-                            <RichTextEditor.BulletList />
-                            <RichTextEditor.OrderedList />
-                        </RichTextEditor.ControlsGroup>
-
-                        <RichTextEditor.ControlsGroup>
-                            <RichTextEditor.Link />
-                            <RichTextEditor.Unlink />
-                        </RichTextEditor.ControlsGroup>
-
-                    <RichTextEditor.ControlsGroup>
-                        <RichTextEditor.AlignLeft />
-                        <RichTextEditor.AlignCenter />
-                        <RichTextEditor.AlignJustify />
-                        <RichTextEditor.AlignRight />
-                        <RichTextEditor.Undo />
-                        <RichTextEditor.Redo />
-                    </RichTextEditor.ControlsGroup>
-                    </RichTextEditor.Toolbar>
-
-                    <RichTextEditor.Content style={{ minHeight: '200px' }} />
+                    <RichTextEditor.Content
+                        style={textInputMode ? {
+                            minHeight: '36px',
+                            maxHeight: '36px',
+                            overflow: 'hidden'
+                        } : { minHeight: '200px' }}
+                        className={textInputMode ? styles.textInputMode : undefined}
+                    />
                 </RichTextEditor>
             )}
         </Input.Wrapper>
