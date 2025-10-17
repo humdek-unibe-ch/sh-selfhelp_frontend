@@ -76,3 +76,18 @@
     display: inline;
     white-space: nowrap;
 }
+
+/* Override default ProseMirror padding only in text input mode */
+.removePadding.textInputMode .mantine-RichTextEditor-content .ProseMirror {
+    padding: 0 !important;
+}
+
+/* Extra specific override for Mantine's generated classes in text input mode only */
+.removePadding.textInputMode [class*="mantine-RichTextEditor-content"] .ProseMirror {
+    padding: 0 !important;
+}
+
+/* Direct global override for text input mode only */
+:global(.RichTextField-module__27jHHq__textInputMode .ProseMirror) {
+    padding: 0 !important;
+}

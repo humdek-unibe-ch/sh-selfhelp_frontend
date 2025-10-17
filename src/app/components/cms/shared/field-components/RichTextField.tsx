@@ -359,7 +359,7 @@ export function RichTextField({
                             maxHeight: '36px',
                             overflow: 'hidden'
                         } : { minHeight: '200px' }}
-                        className={textInputMode ? styles.textInputMode : undefined}
+                        className={`${styles.removePadding} ${textInputMode ? styles.textInputMode : ''}`}
                     />
                 </RichTextEditor>
             )}
