@@ -12,8 +12,7 @@ import {
     Loader,
     Input,
     Combobox,
-    useCombobox,
-    Textarea
+    useCombobox
 } from '@mantine/core';
 import { TextInputWithMentions } from '../TextInputWithMentions';
 import { IVariableSuggestion, DEFAULT_VARIABLES } from '../../../../../../utils/mentions.utils';
@@ -325,43 +324,39 @@ export function CreatableSelectField({
                                 </ActionIcon>
                             </Group>
                         ) : showMultiInput ? (
-                            <Stack gap="xs">
-                                <Textarea
-                                    placeholder={multiCreatePlaceholder}
-                                    value={multiValues}
-                                    onChange={(event) => setMultiValues(event.currentTarget.value)}
-                                    size="xs"
-                                    minRows={3}
-                                    maxRows={6}
-                                    error={multiValues && !validateMultiple(multiValues) ? validationErrorMessage : null}
-                                    onKeyDown={(event) => {
-                                        if (event.key === 'Enter' && event.ctrlKey) {
-                                            handleCreateMultipleValues();
-                                        }
+                            <Group gap="xs">
+                                <div style={{ flex: 1 }}>
+                                    <TextInputWithMentions
+                                        fieldId={fieldId}
+                                        value={multiValues}
+                                        onChange={setMultiValues}
+                                        placeholder={multiCreatePlaceholder}
+                                        disabled={false}
+                                        validator={multiValues ? (value) => ({ isValid: validateMultiple(value), error: validateMultiple(value) ? undefined : validationErrorMessage }) : undefined}
+                                        variables={variables && variables.length > 0 ? variables : DEFAULT_VARIABLES}
+                                    />
+                                </div>
+                                <ActionIcon
+                                    variant="light"
+                                    color="green"
+                                    size="sm"
+                                    onClick={handleCreateMultipleValues}
+                                    disabled={!multiValues || !validateMultiple(multiValues)}
+                                >
+                                    <IconPlus size={14} />
+                                </ActionIcon>
+                                <ActionIcon
+                                    variant="light"
+                                    color="gray"
+                                    size="sm"
+                                    onClick={() => {
+                                        setShowMultiInput(false);
+                                        setMultiValues('');
                                     }}
-                                />
-                                <Group gap="xs">
-                                    <Button
-                                        variant="light"
-                                        size="xs"
-                                        leftSection={<IconPlus size={14} />}
-                                        onClick={handleCreateMultipleValues}
-                                        disabled={!multiValues || !validateMultiple(multiValues)}
-                                    >
-                                        {addClassesButtonText}
-                                    </Button>
-                                    <Button
-                                        variant="subtle"
-                                        size="xs"
-                                        onClick={() => {
-                                            setShowMultiInput(false);
-                                            setMultiValues('');
-                                        }}
-                                    >
-                                        {cancelButtonText}
-                                    </Button>
-                                </Group>
-                            </Stack>
+                                >
+                                    <IconX size={14} />
+                                </ActionIcon>
+                            </Group>
                         ) : null}
                     </>
                 )}
@@ -488,19 +483,17 @@ export function CreatableSelectField({
                         </Group>
                     ) : showCreateInput ? (
                         <Group gap="xs">
-                            <TextInput
-                                placeholder={singleCreatePlaceholder}
-                                value={newValue}
-                                onChange={(event) => setNewValue(event.currentTarget.value)}
-                                size="xs"
-                                style={{ flex: 1 }}
-                                error={newValue && !validateSingle(newValue) ? validationErrorMessage : null}
-                                onKeyDown={(event) => {
-                                    if (event.key === 'Enter') {
-                                        handleCreateValue();
-                                    }
-                                }}
-                            />
+                            <div style={{ flex: 1 }}>
+                                <TextInputWithMentions
+                                    fieldId={fieldId}
+                                    value={newValue}
+                                    onChange={setNewValue}
+                                    placeholder={singleCreatePlaceholder}
+                                    disabled={false}
+                                    validator={newValue ? (value) => ({ isValid: validateSingle(value), error: validateSingle(value) ? undefined : validationErrorMessage }) : undefined}
+                                    variables={variables && variables.length > 0 ? variables : DEFAULT_VARIABLES}
+                                />
+                            </div>
                             <ActionIcon
                                 variant="light"
                                 color="green"
@@ -523,43 +516,39 @@ export function CreatableSelectField({
                             </ActionIcon>
                         </Group>
                     ) : showMultiInput ? (
-                        <Stack gap="xs">
-                            <Textarea
-                                placeholder={multiCreatePlaceholder}
-                                value={multiValues}
-                                onChange={(event) => setMultiValues(event.currentTarget.value)}
-                                size="xs"
-                                minRows={3}
-                                maxRows={6}
-                                error={multiValues && !validateMultiple(multiValues) ? validationErrorMessage : null}
-                                onKeyDown={(event) => {
-                                    if (event.key === 'Enter' && event.ctrlKey) {
-                                        handleCreateMultipleValues();
-                                    }
+                        <Group gap="xs">
+                            <div style={{ flex: 1 }}>
+                                <TextInputWithMentions
+                                    fieldId={fieldId}
+                                    value={multiValues}
+                                    onChange={setMultiValues}
+                                    placeholder={multiCreatePlaceholder}
+                                    disabled={false}
+                                    validator={multiValues ? (value) => ({ isValid: validateMultiple(value), error: validateMultiple(value) ? undefined : validationErrorMessage }) : undefined}
+                                    variables={variables && variables.length > 0 ? variables : DEFAULT_VARIABLES}
+                                />
+                            </div>
+                            <ActionIcon
+                                variant="light"
+                                color="green"
+                                size="sm"
+                                onClick={handleCreateMultipleValues}
+                                disabled={!multiValues || !validateMultiple(multiValues)}
+                            >
+                                <IconPlus size={14} />
+                            </ActionIcon>
+                            <ActionIcon
+                                variant="light"
+                                color="gray"
+                                size="sm"
+                                onClick={() => {
+                                    setShowMultiInput(false);
+                                    setMultiValues('');
                                 }}
-                            />
-                            <Group gap="xs">
-                                <Button
-                                    variant="light"
-                                    size="xs"
-                                    leftSection={<IconPlus size={14} />}
-                                    onClick={handleCreateMultipleValues}
-                                    disabled={!multiValues || !validateMultiple(multiValues)}
-                                >
-                                    {addClassesButtonText}
-                                </Button>
-                                <Button
-                                    variant="subtle"
-                                    size="xs"
-                                    onClick={() => {
-                                        setShowMultiInput(false);
-                                        setMultiValues('');
-                                    }}
-                                >
-                                    {cancelButtonText}
-                                </Button>
-                            </Group>
-                        </Stack>
+                            >
+                                <IconX size={14} />
+                            </ActionIcon>
+                        </Group>
                     ) : null}
                 </>
             )}

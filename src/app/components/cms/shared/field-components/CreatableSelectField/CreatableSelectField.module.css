@@ -47,7 +47,6 @@
 .placeholder {
   color: var(--mantine-color-dimmed);
   font-size: 14px;
-  padding: 6px 0;
   user-select: none;
 }
 

@@ -58,9 +58,7 @@ export const VariableList = React.forwardRef<IKeyboardHandler, IVariableListProp
     const selectItem = (index: number) => {
         const item = props.items[index];
         if (item) {
-            // Wrap with {{ }} when selecting
-            const wrappedItem = { ...item, label: `{{${item.label}}}` };
-            props.command(wrappedItem);
+            props.command(item);
         }
     };
 

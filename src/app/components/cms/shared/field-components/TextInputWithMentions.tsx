@@ -38,6 +38,7 @@ export function TextInputWithMentions({
     const [suggestionPosition, setSuggestionPosition] = useState({ top: 0, left: 0 });
     const inputRef = useRef<HTMLInputElement>(null);
     const suggestionRef = useRef<HTMLDivElement>(null);
+    const variableListRef = useRef<any>(null);
 
     const errorMessage = validator ? (validator(value).isValid ? undefined : validator(value).error) : undefined;
 
@@ -100,6 +101,7 @@ export function TextInputWithMentions({
             const beforeMention = textBeforeCursor.substring(0, mentionMatch.index);
             const newValue = beforeMention + `{{${suggestion.label}}}` + textAfterCursor;
 
+            // Update input value
             setInputValue(newValue);
             setShowSuggestions(false);
 
@@ -119,11 +121,13 @@ export function TextInputWithMentions({
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (showSuggestions) {
+        if (showSuggestions && variableListRef.current) {
             if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === 'Escape') {
                 e.preventDefault();
-                // Handle in suggestion component
-                return;
+                const result = variableListRef.current.onKeyDown({ event: e });
+                if (result) {
+                    return;
+                }
             }
         }
     };
@@ -171,6 +175,7 @@ export function TextInputWithMentions({
                         }}
                     >
                         <VariableList
+                            ref={variableListRef}
                             items={suggestions}
                             command={handleSuggestionSelect}
                         />

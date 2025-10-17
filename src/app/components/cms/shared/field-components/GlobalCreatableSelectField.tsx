@@ -12,6 +12,7 @@ interface IGlobalCreatableSelectFieldProps {
     disabled?: boolean;
     isLoading?: boolean;
     clearable?: boolean;
+    variables?: import('../../../../../utils/mentions.utils').IVariableSuggestion[];
 }
 
 export function GlobalCreatableSelectField({
@@ -21,7 +22,8 @@ export function GlobalCreatableSelectField({
     onChange,
     disabled = false,
     isLoading = false,
-    clearable = false
+    clearable = false,
+    variables
 }: IGlobalCreatableSelectFieldProps) {
     const { data: cssClasses, isLoading: cssLoading } = useCssClasses();
 
@@ -36,8 +38,20 @@ export function GlobalCreatableSelectField({
 
     // CSS class validation function
     const validateCssClass = (input: string): boolean => {
-        // Only allow letters, numbers, hyphens, underscores, and colons
-        return /^[a-zA-Z0-9:_-]+$/.test(input);
+        // Allow CSS classes with embedded variables
+        // Examples: px-4, {{my_var}}, stef-{{user_id}}, {{var}}-suffix, prefix-{{var}}-suffix
+        if (!input.trim()) return false;
+
+        // Check that all {{}} are properly closed and contain valid variable names
+        const varRegex = /\{\{[a-zA-Z_][a-zA-Z0-9_]*\}\}/g;
+        const invalidVars = input.match(/\{\{[^}]*(?:\{|\}[^}]*\{)/g);
+        if (invalidVars) return false;
+
+        // Remove all valid variables and check remaining characters
+        const withoutVars = input.replace(varRegex, '');
+        const remainingValid = /^[a-zA-Z0-9:_-]*$/.test(withoutVars);
+
+        return remainingValid;
     };
 
     // CSS classes validation function for multiple input
@@ -63,8 +77,8 @@ export function GlobalCreatableSelectField({
             placeholder="Search and select CSS classes..."
             searchPlaceholder="Search CSS classes..."
             noOptionsMessage="No CSS classes found"
-            singleCreatePlaceholder="Enter CSS class name (letters, numbers, hyphens, underscores only)"
-            multiCreatePlaceholder={`Enter multiple CSS classes (one per line or space-separated):\npx-4 py-2\nrounded-lg\nfont-medium\ntext-white\nbg-blue-600\nhover:bg-blue-700`}
+            singleCreatePlaceholder="Enter CSS class name (can include variables like stef-{{user_id}})"
+            multiCreatePlaceholder="Enter multiple CSS classes (space-separated): px-4 py-2 rounded-lg {{my_css}} stef-{{user_id}} text-{{theme}}"
             addSingleButtonText="Add custom CSS class"
             addMultipleButtonText="Add multiple classes"
             addClassesButtonText="Add Classes"
@@ -72,6 +86,7 @@ export function GlobalCreatableSelectField({
             validateSingle={validateCssClass}
             validateMultiple={validateMultipleCssClasses}
             validationErrorMessage="Invalid CSS class name"
+            variables={variables}
         />
     );
 }
