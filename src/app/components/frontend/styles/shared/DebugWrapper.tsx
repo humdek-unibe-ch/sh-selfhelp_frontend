@@ -97,7 +97,6 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
 
     return (
         <Indicator
-            inline
             size={16}
             offset={2}
             position="top-end"
