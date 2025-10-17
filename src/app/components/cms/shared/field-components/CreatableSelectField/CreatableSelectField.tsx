@@ -6,7 +6,6 @@ import {
     Text,
     Button,
     ActionIcon,
-    TextInput,
     ScrollArea,
     Pill,
     Loader,
@@ -21,6 +20,69 @@ import { IconPlus, IconX, IconCheck, IconChevronDown } from '@tabler/icons-react
 import { useState, useCallback } from 'react';
 import { IFieldConfig } from '../../../../../../types/requests/admin/fields.types';
 
+// Shared configuration types for different CreatableSelectField variants
+export interface ICreatableSelectConfig {
+    searchable?: boolean;
+    placeholder?: string;
+    searchPlaceholder?: string;
+    noOptionsMessage?: string;
+    singleCreatePlaceholder?: string;
+    multiCreatePlaceholder?: string;
+    addSingleButtonText?: string;
+    addMultipleButtonText?: string;
+    addClassesButtonText?: string;
+    cancelButtonText?: string;
+    validateSingle?: (input: string) => boolean;
+    validateMultiple?: (input: string) => boolean;
+    validationErrorMessage?: string;
+}
+
+// Predefined configurations for different use cases
+export const CREATABLE_SELECT_CONFIGS = {
+    default: {
+        placeholder: 'Search and select...',
+        searchPlaceholder: 'Search options...',
+        noOptionsMessage: 'No options found',
+        singleCreatePlaceholder: 'Enter custom value',
+        multiCreatePlaceholder: 'Enter multiple values (one per line or space-separated)',
+        addSingleButtonText: 'Add custom value',
+        addMultipleButtonText: 'Add multiple values',
+        addClassesButtonText: 'Add Values',
+        cancelButtonText: 'Cancel',
+        validateSingle: (input: string) => input.trim().length > 0,
+        validateMultiple: (input: string) => input.trim().length > 0,
+        validationErrorMessage: 'Invalid value',
+    } as ICreatableSelectConfig,
+
+    cssClasses: {
+        placeholder: 'Search and select CSS classes...',
+        searchPlaceholder: 'Search CSS classes...',
+        noOptionsMessage: 'No CSS classes found',
+        singleCreatePlaceholder: 'Enter CSS class name (can include variables like stef-{{user_id}})',
+        multiCreatePlaceholder: 'Enter multiple CSS classes (space-separated): px-4 py-2 rounded-lg {{my_css}} stef-{{user_id}} text-{{theme}}',
+        addSingleButtonText: 'Add custom CSS class',
+        addMultipleButtonText: 'Add multiple classes',
+        addClassesButtonText: 'Add Classes',
+        cancelButtonText: 'Cancel',
+        validateSingle: (input: string): boolean => {
+            // Allow CSS classes with embedded variables
+            if (!input.trim()) return false;
+            const varRegex = /\{\{[a-zA-Z_][a-zA-Z0-9_]*\}\}/g;
+            const invalidVars = input.match(/\{\{[^}]*(?:\{|\}[^}]*\{)/g);
+            if (invalidVars) return false;
+            const withoutVars = input.replace(varRegex, '');
+            return /^[a-zA-Z0-9:_-]*$/.test(withoutVars);
+        },
+        validateMultiple: (input: string): boolean => {
+            if (!input.trim()) return false;
+            const classes = input.split(/[\s\n]+/).filter(Boolean);
+            const validateSingle = CREATABLE_SELECT_CONFIGS.cssClasses.validateSingle!;
+            return classes.every(cls => validateSingle(cls));
+        },
+        validationErrorMessage: 'Invalid CSS class name',
+    } as ICreatableSelectConfig,
+};
+
 export interface ICreatableSelectFieldProps {
     fieldId: number;
     config: IFieldConfig;
@@ -30,7 +92,7 @@ export interface ICreatableSelectFieldProps {
     isLoading?: boolean;
     clearable?: boolean;
 
-    // Customizable labels and placeholders
+    // Customizable labels and placeholders - can use predefined configs
     searchable?: boolean;
     placeholder?: string;
     searchPlaceholder?: string;
@@ -60,18 +122,18 @@ export function CreatableSelectField({
     isLoading = false,
     clearable = false,
     searchable = false,
-    placeholder = 'Search and select...',
-    searchPlaceholder = 'Search options...',
-    noOptionsMessage = 'No options found',
-    singleCreatePlaceholder = 'Enter custom value',
-    multiCreatePlaceholder = 'Enter multiple values (one per line or space-separated)',
-    addSingleButtonText = 'Add custom value',
-    addMultipleButtonText = 'Add multiple values',
-    addClassesButtonText = 'Add Values',
-    cancelButtonText = 'Cancel',
-    validateSingle = (input: string) => input.trim().length > 0,
-    validateMultiple = (input: string) => input.trim().length > 0,
-    validationErrorMessage = 'Invalid value',
+    placeholder = CREATABLE_SELECT_CONFIGS.default.placeholder,
+    searchPlaceholder = CREATABLE_SELECT_CONFIGS.default.searchPlaceholder,
+    noOptionsMessage = CREATABLE_SELECT_CONFIGS.default.noOptionsMessage,
+    singleCreatePlaceholder = CREATABLE_SELECT_CONFIGS.default.singleCreatePlaceholder,
+    multiCreatePlaceholder = CREATABLE_SELECT_CONFIGS.default.multiCreatePlaceholder,
+    addSingleButtonText = CREATABLE_SELECT_CONFIGS.default.addSingleButtonText,
+    addMultipleButtonText = CREATABLE_SELECT_CONFIGS.default.addMultipleButtonText,
+    addClassesButtonText = CREATABLE_SELECT_CONFIGS.default.addClassesButtonText,
+    cancelButtonText = CREATABLE_SELECT_CONFIGS.default.cancelButtonText,
+    validateSingle = CREATABLE_SELECT_CONFIGS.default.validateSingle!,
+    validateMultiple = CREATABLE_SELECT_CONFIGS.default.validateMultiple!,
+    validationErrorMessage = CREATABLE_SELECT_CONFIGS.default.validationErrorMessage,
     variables
 }: ICreatableSelectFieldProps) {
     const [showCreateInput, setShowCreateInput] = useState(false);
@@ -190,20 +252,6 @@ export function CreatableSelectField({
                             onClick={() => combobox.toggleDropdown()}
                             rightSectionPointerEvents="none"
                             disabled={disabled || isLoading}
-                            style={{
-                                minHeight: '36px',
-                                cursor: 'pointer'
-                            }}
-                            styles={{
-                                input: {
-                                    minHeight: '36px',
-                                    height: 'auto',
-                                    padding: '8px 12px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    cursor: 'pointer'
-                                }
-                            }}
                         >
                             {selectedOption ? (
                                 <Pill

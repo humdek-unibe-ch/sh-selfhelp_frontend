@@ -48,6 +48,7 @@
   color: var(--mantine-color-dimmed);
   font-size: 14px;
   user-select: none;
+  padding: 0 var(--mantine-spacing-sm);
 }
 
 .dropdownOption {

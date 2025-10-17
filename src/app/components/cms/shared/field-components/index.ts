@@ -1,4 +1,4 @@
-export { GlobalCreatableSelectField } from './GlobalCreatableSelectField';
+export { GlobalCreatableSelectField } from './CreatableSelectField';
 export { CreatableSelectField } from './CreatableSelectField';
 export { TextInputField } from './TextInputField';
 export { TextareaField } from './TextareaField';
