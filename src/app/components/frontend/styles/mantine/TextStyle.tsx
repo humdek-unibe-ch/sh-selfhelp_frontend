@@ -89,9 +89,11 @@ const TextStyle: React.FC<ITextStyleProps> = ({ style, styleProps, cssClass }) =
             lineClamp={lineClamp}
             inherit={inherit}
             span={span}
+            dangerouslySetInnerHTML={{ __html: text }}
+
             {...styleProps} className={cssClass}
         >
-            {text}
+            {/* {text} */}
         </Text>
     );
 };
