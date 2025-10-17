@@ -21,7 +21,7 @@ import { IconPlus, IconX, IconCheck, IconChevronDown } from '@tabler/icons-react
 import { useState, useCallback } from 'react';
 import { IFieldConfig } from '../../../../../../types/requests/admin/fields.types';
 
-interface ICreatableSelectFieldProps {
+export interface ICreatableSelectFieldProps {
     fieldId: number;
     config: IFieldConfig;
     value: string;

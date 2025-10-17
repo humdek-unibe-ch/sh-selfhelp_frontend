@@ -1,5 +1,5 @@
 export { GlobalCreatableSelectField } from './GlobalCreatableSelectField';
-export { CreatableSelectField } from './CreatableSelectField/CreatableSelectField';
+export { CreatableSelectField } from './CreatableSelectField';
 export { TextInputField } from './TextInputField';
 export { TextareaField } from './TextareaField';
 export { RichTextField } from './RichTextField';

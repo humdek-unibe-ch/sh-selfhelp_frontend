@@ -2,7 +2,7 @@
 
 import { useCssClasses } from '../../../../../hooks/useCssClasses';
 import { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
-import { CreatableSelectField } from './CreatableSelectField/CreatableSelectField';
+import { CreatableSelectField } from './CreatableSelectField';
 
 interface IGlobalCreatableSelectFieldProps {
     fieldId: number;

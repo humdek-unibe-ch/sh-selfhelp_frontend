@@ -3,7 +3,7 @@
 import { Select, MultiSelect, Group, Text } from '@mantine/core';
 import { IconCheck } from '@tabler/icons-react';
 import type { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
-import { CreatableSelectField } from './CreatableSelectField/CreatableSelectField';
+import { CreatableSelectField } from './CreatableSelectField';
 
 interface ISelectFieldProps {
     fieldId: number;
