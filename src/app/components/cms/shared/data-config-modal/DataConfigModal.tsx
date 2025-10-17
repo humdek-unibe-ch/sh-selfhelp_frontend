@@ -186,14 +186,17 @@ export function DataConfigModal({
             opened={opened}
             onClose={handleClose}
             title={title}
-            size="80%"
+            size="90vw"
             onSave={handleSave}
             onCancel={handleClose}
             isLoading={isSaving}
             saveLabel="Save Configuration"
             cancelLabel="Cancel"
             disabled={dataSources.length === 0}
-            scrollAreaHeight="60vh"
+            scrollAreaHeight="70vh"
+            modalStyles={{
+                content: { height: '90vh' },
+            }}
         >
             <LoadingOverlay visible={isSaving} />
 

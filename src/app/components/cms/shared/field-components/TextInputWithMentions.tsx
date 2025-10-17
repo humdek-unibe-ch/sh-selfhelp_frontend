@@ -122,7 +122,6 @@ export function TextInputWithMentions({
 
     return (
         <Input.Wrapper
-            key={fieldId}
             label={label}
             description={description}
             required={required}

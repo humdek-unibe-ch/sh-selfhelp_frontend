@@ -4,7 +4,6 @@ import { useState, useCallback, useMemo } from 'react';
 import {
     Stack,
     Group,
-    TextInput,
     Select,
     Switch,
     Button,
@@ -20,6 +19,7 @@ import { FilterBuilderInline } from './FilterBuilderInline';
 import { IDataSource } from './DataConfigModal';
 import { useDataTables, useTableColumnNames } from '../../../../../hooks/useData';
 import { LockedField } from '../../ui/locked-field/LockedField';
+import { TextInputWithMentions } from '../field-components/TextInputWithMentions';
 import classes from './DataConfigModal.module.css';
 
 interface IDataSourceFormProps {
@@ -146,11 +146,12 @@ export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormP
             {/* Basic Configuration */}
             <div className={classes.formGrid}>
                 <div className={classes.gridCol2}>
-                    <TextInput
+                    <TextInputWithMentions
+                        fieldId={index * 100 + 1}
                         label="Scope"
                         placeholder="Enter scope name"
                         value={dataSource.scope}
-                        onChange={(e) => handleFieldChange('scope', e.target.value)}
+                        onChange={(value) => handleFieldChange('scope', value)}
                         required
                         description="Set data source scope name"
                     />
@@ -291,21 +292,23 @@ export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormP
                                                 />
                                             </div>
                                             <div className={classes.gridCol4}>
-                                                <TextInput
+                                                <TextInputWithMentions
+                                                    fieldId={index * 100 + fieldIndex * 10 + 2}
                                                     label="Field Holder"
                                                     placeholder="var_name"
                                                     value={field.field_holder}
-                                                    onChange={(e) => handleUpdateField(fieldIndex, 'field_holder', e.target.value)}
+                                                    onChange={(value) => handleUpdateField(fieldIndex, 'field_holder', value)}
                                                     required
                                                     description="Variable name to use in templates ({{var_name}})"
                                                 />
                                             </div>
                                             <div className={classes.gridCol4}>
-                                                <TextInput
+                                                <TextInputWithMentions
+                                                    fieldId={index * 100 + fieldIndex * 10 + 3}
                                                     label="Not Found Text"
                                                     placeholder="Field not found"
                                                     value={field.not_found_text}
-                                                    onChange={(e) => handleUpdateField(fieldIndex, 'not_found_text', e.target.value)}
+                                                    onChange={(value) => handleUpdateField(fieldIndex, 'not_found_text', value)}
                                                     required
                                                     description="Text to show if field is not found"
                                                 />
@@ -372,11 +375,12 @@ export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormP
                                                 />
                                             </div>
                                             <div className={classes.gridCol6}>
-                                                <TextInput
+                                                <TextInputWithMentions
+                                                    fieldId={index * 100 + mapFieldIndex * 10 + 4}
                                                     label="New Field Name"
                                                     placeholder="new_field_name"
                                                     value={mapField.field_new_name}
-                                                    onChange={(e) => handleUpdateMapField(mapFieldIndex, 'field_new_name', e.target.value)}
+                                                    onChange={(value) => handleUpdateMapField(mapFieldIndex, 'field_new_name', value)}
                                                     required
                                                     description="The new name that will be created"
                                                 />

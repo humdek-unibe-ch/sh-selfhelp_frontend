@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Stack, Text, Divider, Group, Select as MantineSelect, NumberInput, ActionIcon, Button } from '@mantine/core';
 import { QueryBuilder, RuleGroupType, defaultValidator, formatQuery } from 'react-querybuilder';
 import { mantineControlElements } from '@react-querybuilder/mantine';
 import { useTableColumnNames } from '../../../../../hooks/useData';
 import { parseSQL } from 'react-querybuilder/parseSQL';
+import { TextInputWithMentions } from '../field-components/TextInputWithMentions';
 
 interface IProps {
   tableName?: string;
@@ -14,6 +15,32 @@ interface IProps {
 }
 
 const initialQuery: RuleGroupType = { combinator: 'and', rules: [] };
+
+// Custom value editor that supports mentions for text inputs
+function ValueEditorWithMentions(props: any) {
+  const { value, handleOnChange, fieldData, type, operator } = props;
+
+  // For text inputs - be more inclusive
+  const isTextInput = type === 'text' || fieldData?.dataType === 'text';
+
+  // Show mentions for text fields with any operator (not just string operators)
+  if (isTextInput) {
+    // Create a stable numeric ID based on field name to prevent re-mounting
+    const stableId = fieldData?.name ? fieldData.name.split('').reduce((a: number, b: string) => a + b.charCodeAt(0), 0) : 999;
+    return (
+      <TextInputWithMentions
+        fieldId={stableId}
+        value={value || ''}
+        onChange={handleOnChange || ((val: string) => {})}
+        placeholder="Enter value or use {{variable}}"
+      />
+    );
+  }
+
+  // Fall back to default Mantine value editor for other types
+  const ValueEditorComponent = mantineControlElements.valueEditor as any;
+  return <ValueEditorComponent {...props} />;
+}
 
 export function FilterBuilderInline({ tableName, initialSql, onSave }: IProps) {
   const { data: columnNames } = useTableColumnNames(tableName);
@@ -29,7 +56,11 @@ export function FilterBuilderInline({ tableName, initialSql, onSave }: IProps) {
   type TTimeToken = typeof TIME_TOKENS[number];
   const [timeToken, setTimeToken] = useState<TTimeToken | ''>('');
 
-  // Use Mantine control elements directly to preserve editor focus stability
+  // Custom control elements with mentions support
+  const customControlElements = {
+    ...mantineControlElements,
+    valueEditor: ValueEditorWithMentions,
+  };
 
   // Helpers to split combined SQL into where/order/limit and extract time token
   function splitCombinedSql(sqlCombined: string | undefined) {
@@ -170,7 +201,7 @@ export function FilterBuilderInline({ tableName, initialSql, onSave }: IProps) {
         query={query}
         onQueryChange={setQuery}
         validator={defaultValidator}
-        controlElements={mantineControlElements}
+        controlElements={customControlElements}
       />
 
       <Divider my="xs" />
