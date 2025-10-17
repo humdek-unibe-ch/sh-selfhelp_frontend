@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Textarea } from '@mantine/core';
-import { VariableList, IVariableSuggestion } from '../../../../../utils/mentions.utils';
+import { VariableList, IVariableSuggestion, formatVariable } from '../../../../../utils/mentions.utils';
 
 interface ITextareaWithMentionsProps {
     value: string;
@@ -96,7 +96,7 @@ export function TextareaWithMentions({
         const mentionMatch = textBeforeCursor.match(/\{\{[^}]*$/);
         if (mentionMatch) {
             const beforeMention = textBeforeCursor.substring(0, mentionMatch.index);
-            const newValue = beforeMention + `{{${suggestion.label}}}` + textAfterCursor;
+            const newValue = beforeMention + formatVariable(suggestion.label) + textAfterCursor;
 
             setShowSuggestions(false);
             onChange(newValue);
@@ -105,7 +105,7 @@ export function TextareaWithMentions({
             setTimeout(() => {
                 if (textareaRef.current) {
                     textareaRef.current.focus();
-                    const newCursorPos = beforeMention.length + `{{${suggestion.label}}}`.length;
+                    const newCursorPos = beforeMention.length + formatVariable(suggestion.label).length;
                     textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
                 }
             }, 0);

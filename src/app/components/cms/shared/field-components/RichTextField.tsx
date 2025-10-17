@@ -16,7 +16,7 @@ import { Extension } from '@tiptap/core';
 import { ReactRenderer } from '@tiptap/react';
 import tippy from 'tippy.js';
 import styles from './RichTextField.module.css';
-import { IVariableSuggestion, IVariableListProps, IKeyboardHandler, sanitizeForDatabase, VariableList, DEFAULT_VARIABLES } from '../../../../../utils/mentions.utils';
+import { IVariableSuggestion, IVariableListProps, IKeyboardHandler, sanitizeForDatabase, VariableList, DEFAULT_VARIABLES, formatVariable } from '../../../../../utils/mentions.utils';
 
 interface IRichTextFieldProps {
     fieldId: number;
@@ -142,11 +142,11 @@ export function RichTextField({
                 HTMLAttributes: {
                     class: styles.variable,
                 },
-                renderText: ({ node }) => node.attrs.label || node.attrs.id,
+                renderText: ({ node }) => formatVariable(node.attrs.label || node.attrs.id),
                 renderHTML: ({ options, node }) => [
                     'span',
                     options.HTMLAttributes,
-                    node.attrs.label || node.attrs.id,
+                    formatVariable(node.attrs.label || node.attrs.id),
                 ],
                 deleteTriggerWithBackspace: true,
                 suggestion: {

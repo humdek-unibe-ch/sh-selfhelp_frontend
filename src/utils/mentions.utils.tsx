@@ -33,7 +33,38 @@ export const DEFAULT_VARIABLES: IVariableSuggestion[] = [
     { id: 'current_year', label: 'current_year' },
 ];
 
-// Function to sanitize HTML by removing mention styling but keeping text
+// Centralized variable formatting functions
+export const VARIABLE_BRACKET_FORMAT = '{{}}';
+
+/**
+ * Formats a variable ID into the standard bracket format
+ * @param variableId - The variable identifier (e.g., 'user_email')
+ * @returns Formatted variable (e.g., '{{user_email}}')
+ */
+export const formatVariable = (variableId: string): string => {
+    return `${VARIABLE_BRACKET_FORMAT.slice(0, 2)}${variableId}${VARIABLE_BRACKET_FORMAT.slice(2)}`;
+};
+
+/**
+ * Extracts the variable ID from a formatted variable string
+ * @param formattedVariable - The formatted variable (e.g., '{{user_email}}')
+ * @returns The variable ID (e.g., 'user_email') or null if not a valid format
+ */
+export const extractVariableId = (formattedVariable: string): string | null => {
+    const match = formattedVariable.match(/^\{\{([^}]+)\}\}$/);
+    return match ? match[1] : null;
+};
+
+/**
+ * Checks if a string is a properly formatted variable
+ * @param str - The string to check
+ * @returns True if the string matches {{variable_id}} format
+ */
+export const isFormattedVariable = (str: string): boolean => {
+    return /^\{\{[^}]+\}\}$/.test(str);
+};
+
+// Function to sanitize HTML by removing mention styling but keeping properly formatted variables
 export const sanitizeForDatabase = (html: string): string => {
     if (!html) return html;
 
@@ -41,10 +72,13 @@ export const sanitizeForDatabase = (html: string): string => {
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = html;
 
-    // Find all mention spans and replace them with plain text
+    // Find all mention spans and replace them with formatted variables
     const mentionSpans = tempDiv.querySelectorAll('[data-type="mention"]');
     mentionSpans.forEach(span => {
-        const textNode = document.createTextNode(span.textContent || '');
+        const variableId = span.textContent || '';
+        // Ensure the variable is properly formatted with brackets
+        const formattedVariable = isFormattedVariable(variableId) ? variableId : formatVariable(variableId);
+        const textNode = document.createTextNode(formattedVariable);
         span.parentNode?.replaceChild(textNode, span);
     });
 
