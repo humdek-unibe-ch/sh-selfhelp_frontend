@@ -44,6 +44,7 @@ interface IDataConfigModalProps {
     onSave: (dataConfig: IDataSource[]) => void;
     initialValue?: string;
     title?: string;
+    dataVariables?: Record<string, string>;
 }
 
 export function DataConfigModal({
@@ -51,7 +52,8 @@ export function DataConfigModal({
     onClose,
     onSave,
     initialValue,
-    title = "Data Config Builder"
+    title = "Data Config Builder",
+    dataVariables
 }: IDataConfigModalProps) {
     const [dataSources, setDataSources] = useState<IDataSource[]>([]);
     const [activeTab, setActiveTab] = useState<string>('0');
@@ -252,6 +254,7 @@ export function DataConfigModal({
                                         dataSource={source}
                                         onChange={(updatedSource) => handleUpdateDataSource(index, updatedSource)}
                                         index={index}
+                                        dataVariables={dataVariables}
                                     />
                                 </Card>
                             </Tabs.Panel>

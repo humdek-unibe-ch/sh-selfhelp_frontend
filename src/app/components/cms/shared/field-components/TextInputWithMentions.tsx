@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Input } from '@mantine/core';
-import { IVariableSuggestion, VariableList, DEFAULT_VARIABLES } from '../../../../../utils/mentions.utils';
+import { IVariableSuggestion, VariableList, VariableSuggestionsPopup } from '../../../../../utils/mentions.utils';
 
 interface ITextInputWithMentionsProps {
     fieldId: number;
@@ -16,6 +16,9 @@ interface ITextInputWithMentionsProps {
     description?: string;
     required?: boolean;
     variables?: IVariableSuggestion[];
+    dataVariables?: Record<string, string>;
+    maxVisibleRows?: number;
+    maxItems?: number;
 }
 
 export function TextInputWithMentions({
@@ -30,14 +33,18 @@ export function TextInputWithMentions({
     description,
     required = false,
     variables,
+    dataVariables,
+    maxVisibleRows = 5,
+    maxItems = 50,
 }: ITextInputWithMentionsProps) {
     const [inputValue, setInputValue] = useState(value);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [suggestions, setSuggestions] = useState<IVariableSuggestion[]>([]);
     const [cursorPosition, setCursorPosition] = useState(0);
+    const [selectedIndex, setSelectedIndex] = useState(0);
     const inputRef = useRef<HTMLInputElement>(null);
     const suggestionRef = useRef<HTMLDivElement>(null);
-    const variableListRef = useRef<any>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     const errorMessage = validator ? (validator(value).isValid ? undefined : validator(value).error) : undefined;
 
@@ -46,7 +53,66 @@ export function TextInputWithMentions({
         setInputValue(value);
     }, [value]);
 
-    const activeVariables = variables && variables.length > 0 ? variables : DEFAULT_VARIABLES;
+    // Reset selected index when suggestions change
+    useEffect(() => {
+        setSelectedIndex(0);
+    }, [suggestions]);
+
+    // Reset suggestions state when popup is hidden
+    useEffect(() => {
+        if (!showSuggestions) {
+            setSuggestions([]);
+            setSelectedIndex(0);
+        }
+    }, [showSuggestions]);
+
+    // Handle clicks outside to hide popup
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                setShowSuggestions(false);
+            }
+        };
+
+        if (showSuggestions) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showSuggestions]);
+
+    // Convert dataVariables object to IVariableSuggestion array
+    const dataVariablesArray: IVariableSuggestion[] = React.useMemo(() => {
+        if (!dataVariables) return [];
+        return Object.values(dataVariables).map(variableName => ({
+            id: variableName,
+            label: variableName,
+        }));
+    }, [dataVariables]);
+
+    // Combine all available variables: custom variables, then data variables from section context
+    const activeVariables = React.useMemo(() => {
+        const allVariables: IVariableSuggestion[] = [];
+
+        // Add custom variables first (highest priority)
+        if (variables && variables.length > 0) {
+            allVariables.push(...variables);
+        }
+
+        // Add data variables from section API
+        if (dataVariablesArray.length > 0) {
+            allVariables.push(...dataVariablesArray);
+        }
+
+        // Remove duplicates based on label
+        const uniqueVariables = allVariables.filter((variable, index, self) =>
+            index === self.findIndex(v => v.label === variable.label)
+        );
+
+        return uniqueVariables;
+    }, [variables, dataVariablesArray]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newValue = e.target.value;
@@ -61,9 +127,17 @@ export function TextInputWithMentions({
 
         if (mentionMatch) {
             const query = mentionMatch[1];
-            const filteredSuggestions = activeVariables.filter(variable =>
-                variable.label.toLowerCase().includes(query.toLowerCase())
-            ).slice(0, 5);
+            let filteredSuggestions: IVariableSuggestion[];
+
+            if (query.length > 0) {
+                // After typing a letter, show all matching suggestions (up to maxItems)
+                filteredSuggestions = activeVariables.filter(variable =>
+                    variable.label.toLowerCase().includes(query.toLowerCase())
+                ).slice(0, maxItems);
+            } else {
+                // When just {{ is typed, show all available suggestions (up to maxItems)
+                filteredSuggestions = activeVariables.slice(0, maxItems);
+            }
 
             if (filteredSuggestions.length > 0) {
                 setSuggestions(filteredSuggestions);
@@ -108,13 +182,25 @@ export function TextInputWithMentions({
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (showSuggestions && variableListRef.current) {
-            if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === 'Escape') {
+        if (showSuggestions && suggestions.length > 0) {
+            if (e.key === 'ArrowDown') {
                 e.preventDefault();
-                const result = variableListRef.current.onKeyDown({ event: e });
-                if (result) {
-                    return;
+                setSelectedIndex((prevIndex) =>
+                    prevIndex < suggestions.length - 1 ? prevIndex + 1 : 0
+                );
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                setSelectedIndex((prevIndex) =>
+                    prevIndex > 0 ? prevIndex - 1 : suggestions.length - 1
+                );
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (suggestions[selectedIndex]) {
+                    handleSuggestionSelect(suggestions[selectedIndex]);
                 }
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                setShowSuggestions(false);
             }
         }
     };
@@ -127,7 +213,7 @@ export function TextInputWithMentions({
             required={required}
             error={errorMessage}
         >
-            <div style={{ position: 'relative' }}>
+            <div ref={containerRef} style={{ position: 'relative' }}>
                 <Input
                     ref={inputRef}
                     value={inputValue}
@@ -139,28 +225,14 @@ export function TextInputWithMentions({
                 />
 
                 {showSuggestions && (
-                    <div
-                        ref={suggestionRef}
-                        style={{
-                            position: 'absolute',
-                            top: '100%',
-                            left: '0',
-                            right: '0',
-                            zIndex: 20000, // Very high z-index for modal contexts
-                            maxHeight: '200px',
-                            overflowY: 'auto',
-                            background: 'white',
-                            border: '1px solid #ccc',
-                            borderRadius: '4px',
-                            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                        }}
-                    >
-                        <VariableList
-                            ref={variableListRef}
-                            items={suggestions}
-                            command={handleSuggestionSelect}
-                        />
-                    </div>
+                    <VariableSuggestionsPopup
+                        suggestions={suggestions}
+                        selectedIndex={selectedIndex}
+                        maxVisibleRows={maxVisibleRows}
+                        maxItems={maxItems}
+                        onSelect={handleSuggestionSelect}
+                        useAbsolutePositioning={true}
+                    />
                 )}
             </div>
         </Input.Wrapper>

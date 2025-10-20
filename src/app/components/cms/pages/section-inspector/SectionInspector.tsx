@@ -476,6 +476,7 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                 onChange={(value) => handleContentFieldChange(field.name, languageId, value)}
                 locale={locale}
                 className={styles.fullWidthLabel}
+                dataVariables={sectionDetailsData?.data_variables}
             />
         );
     };
@@ -494,6 +495,7 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                 value={fieldValue}
                 onChange={(value) => handlePropertyFieldChange(field.name, null, value)}
                 className={styles.fullWidthLabel}
+                dataVariables={sectionDetailsData?.data_variables}
             />
         );
     };
@@ -755,6 +757,7 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                                         [fieldType]: value
                                     }
                                 }))}
+                                dataVariables={sectionDetailsData?.data_variables}
                                 className={styles.fullWidthLabel}
                             />
                         ))}

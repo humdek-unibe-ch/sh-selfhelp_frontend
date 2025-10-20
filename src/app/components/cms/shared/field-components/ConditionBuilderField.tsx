@@ -15,6 +15,7 @@ interface IConditionBuilderFieldProps {
     placeholder?: string;
     addLabel?: string;
     editLabel?: string;
+    dataVariables?: Record<string, string>;
 }
 
 export function ConditionBuilderField({
@@ -25,7 +26,8 @@ export function ConditionBuilderField({
     disabled = false,
     placeholder,
     addLabel = 'Add Condition',
-    editLabel = 'Edit Condition'
+    editLabel = 'Edit Condition',
+    dataVariables
 }: IConditionBuilderFieldProps) {
     const [modalOpened, setModalOpened] = useState(false);
 
@@ -135,6 +137,7 @@ export function ConditionBuilderField({
                 onSave={handleSave}
                 initialValue={value}
                 title={`Condition Builder${fieldName ? ` - ${fieldName}` : ''}`}
+                dataVariables={dataVariables}
             />
         </Stack>
     );

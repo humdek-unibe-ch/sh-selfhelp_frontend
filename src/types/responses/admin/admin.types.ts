@@ -81,6 +81,7 @@ export interface ISectionDetails {
 export interface ISectionDetailsData {
     section: ISectionDetails;
     fields: ISectionField[];
+    data_variables?: Record<string, string>;
 }
 
 export type TSectionDetailsResponse = IBaseApiResponse<ISectionDetailsData>;

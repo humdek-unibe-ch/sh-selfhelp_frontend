@@ -868,6 +868,234 @@ import { LoadingScreen } from '../components/shared/common/LoadingScreen';
 
 ---
 
+## 🎯 Mention/Variable Suggestion System
+
+### Overview
+
+The application includes a sophisticated mention/variable suggestion system that allows users to insert dynamic variables (e.g., user data, page content, section data) into text fields using a `{{variable}}` syntax. The system provides real-time suggestions with keyboard navigation and integrates seamlessly across text inputs, rich text editors, and form builders.
+
+### Key Features
+
+**Real-time Variable Suggestions**:
+- Typing `{{` triggers a popup with available variables
+- Variables are filtered as you type additional characters
+- Suggestions include custom variables and dynamic data variables from the current context
+
+**Keyboard Navigation**:
+- Arrow keys (↑/↓) to navigate through suggestions
+- Auto-scrolling ensures selected items remain visible
+- Enter key inserts the selected variable
+- Escape key closes the popup
+
+**Dynamic Variable Integration**:
+- Custom variables defined per component
+- Data variables from the current section/API context
+- Automatic deduplication of duplicate variables
+- Updates when section data changes
+
+### Architecture Implementation
+
+#### Core Components
+
+**Suggestion Popup Components**:
+```typescript
+// Three main popup implementations for different use cases
+- VariableList: Basic variable list with scroll and selection
+- SimpleVariableSuggestions: Lightweight popup for simple inputs
+- VariableSuggestionsPopup: Full-featured popup with advanced features
+```
+
+**Mention Configuration**:
+```typescript
+// Main configuration function (src/utils/mentions.utils.tsx)
+createMentionConfigWithMantine({
+  variables: [...],           // Custom variables
+  dataVariables: [...],       // Dynamic section variables
+  maxVisibleRows: 5,          // Visible items before scrolling
+  maxItems: 50,               // Total items to display
+  onSelect: (variable) => {...} // Variable insertion callback
+})
+```
+
+#### Integration Points
+
+**Rich Text Editor (TipTap)**:
+```typescript
+// Editor extensions with mention support
+const editorExtensions = useMemo(() => [
+  ...baseExtensions,
+  Mention.configure({
+    HTMLAttributes: { class: 'mention' },
+    suggestion: createMentionConfigWithMantine({
+      variables: activeVariables,
+      dataVariables,
+      maxVisibleRows: 5,
+      maxItems: 50
+    })
+  })
+], [activeVariables, dataVariables]);
+```
+
+**Plain Text Inputs**:
+```typescript
+// Direct integration for text inputs and textareas
+<TextInputWithMentions
+  value={value}
+  onChange={onChange}
+  variables={variables}
+  dataVariables={dataVariables}
+/>
+```
+
+#### Variable Types
+
+**Custom Variables**: User-defined variables for specific use cases
+```typescript
+const customVariables = [
+  { id: 'user.name', text: 'User Name' },
+  { id: 'user.email', text: 'User Email' },
+  { id: 'current.date', text: 'Current Date' }
+];
+```
+
+**Data Variables**: Dynamic variables from API/section data
+```typescript
+const dataVariables = [
+  { id: 'section.title', text: 'Section Title' },
+  { id: 'page.keyword', text: 'Page Keyword' },
+  { id: 'user.role', text: 'User Role' }
+];
+```
+
+### Recent Improvements & Fixes
+
+#### Critical Issues Resolved
+
+**1. Popup Reopening Issue ✅**
+- **Problem**: Mention popup would only appear once, requiring page refresh
+- **Root Cause**: `isDestroyed` flag prevented reopening after popup closure
+- **Solution**: Removed blocking flag, implemented proper cleanup function that resets state without permanent blocking
+
+**2. Dynamic Variable Updates ✅**
+- **Problem**: Variables from section API weren't updating without refresh
+- **Root Cause**: Extension created once, captured variables in closure
+- **Solution**: Memoized extensions with proper dependencies, recreates mention extension when variables change
+
+**3. Arrow Key Navigation Scrolling ✅**
+- **Problem**: Selected items went off-screen during keyboard navigation
+- **Solution**: Implemented scroll-into-view logic with item refs and container refs, calculates positions and auto-scrolls appropriately
+
+**4. Consistent Popup Styling ✅**
+- **Problem**: Different popups had inconsistent appearance
+- **Solution**: Standardized all popups to use consistent sizing (minWidth: 200px, maxWidth: 400px), item height (36px), colors, and scrollbar styling
+
+#### Performance Optimizations
+
+**Memoization Strategy**:
+```typescript
+// Base extensions (stable, recreated only when textInputMode/placeholder change)
+baseExtensions = useMemo(() => [...], [textInputMode, placeholder]);
+
+// Active variables (recalculated when variables or dataVariables change)
+activeVariables = useMemo(() => [...], [variables, dataVariables]);
+
+// Editor extensions (recreated when active variables change)
+editorExtensions = useMemo(() => [...baseExtensions, Mention], [activeVariables, baseExtensions]);
+```
+
+**Cleanup Pattern**:
+```typescript
+const cleanup = () => {
+  // Safe destruction check
+  if (popup?.[0] && !popup[0].state.isDestroyed) {
+    popup[0].destroy();
+  }
+  // Reset state without blocking future opens
+  popup = null;
+  component = null;
+  selectedIndex = 0;
+  currentSuggestions = [];
+};
+```
+
+#### Files Modified
+
+**Core Utilities** (`src/utils/mentions.utils.tsx`):
+- Fixed Enter key handling for variable insertion
+- Changed initial display to show all items (up to maxItems)
+- Added scroll-into-view for all popup components
+- Improved cleanup logic to allow reopening
+
+**Rich Text Field** (`src/app/components/cms/shared/field-components/RichTextField.tsx`):
+- Memoized base extensions with stable dependencies
+- Recreates editor extensions when activeVariables change
+
+**Text Components** (`TextInputWithMentions.tsx`, `TextareaWithMentions.tsx`):
+- Fixed initial suggestions to show all available variables
+- Consistent behavior across all text input components
+
+**Modal Components** (`ConditionBuilderModal.tsx`, `FilterBuilderInline.tsx`):
+- Factory functions for dataVariables closure capture
+- Memoized components to prevent focus loss
+
+#### Testing Checklist
+
+✅ **Basic Functionality**: Typing `{{` triggers popup, clicking inserts variable  
+✅ **Keyboard Navigation**: Arrow keys navigate, selection scrolls into view, Enter inserts  
+✅ **Dynamic Updates**: Section variables update without refresh  
+✅ **Consistent Styling**: All popups have uniform appearance and behavior  
+✅ **Multiple Reopens**: Popups can be opened repeatedly without refresh  
+
+### Usage Examples
+
+**In Rich Text Editor**:
+```typescript
+<RichTextField
+  value={content}
+  onChange={setContent}
+  variables={customVariables}
+  dataVariables={sectionDataVariables}
+/>
+```
+
+**In Form Builder**:
+```typescript
+<TextInputWithMentions
+  label="Dynamic Content"
+  placeholder="Type {{ to see variables..."
+  value={value}
+  onChange={setValue}
+  variables={availableVariables}
+  dataVariables={contextVariables}
+/>
+```
+
+**In Condition Builder**:
+```typescript
+<ConditionBuilderModal
+  onApply={handleApply}
+  dataVariables={currentDataVariables}
+  // Variables automatically available in all condition inputs
+/>
+```
+
+### Future Enhancements
+
+**Potential Improvements**:
+1. **Fuzzy Search**: Implement fuzzy matching for better filtering
+2. **Variable Groups**: Organize variables by category (User, Page, Section)
+3. **Variable Preview**: Show variable values in popup
+4. **Recent Variables**: Prioritize recently used variables
+5. **Keyboard Shortcuts**: Ctrl+Space to manually trigger suggestions
+
+**Known Limitations**:
+- Variables must start with `{{` (no other trigger syntax)
+- Maximum 50 variables displayed (configurable)
+- Only 5 items visible before scrolling (configurable)
+- No support for nested variable syntax
+
+---
+
 ## 🔗 API Layer & Endpoint Management
 
 ### Centralized Configuration

@@ -26,6 +26,7 @@ interface IDataSourceFormProps {
     dataSource: IDataSource;
     onChange: (dataSource: IDataSource) => void;
     index: number;
+    dataVariables?: Record<string, string>;
 }
 
 // Real table/column data will be pulled from hooks; no mocks
@@ -38,7 +39,7 @@ const RETRIEVE_OPTIONS = [
     { value: 'JSON', label: 'JSON Format' }
 ];
 
-export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormProps) {
+export function DataSourceForm({ dataSource, onChange, index, dataVariables }: IDataSourceFormProps) {
     const [filterOpened, setFilterOpened] = useState(false);
 
     // Load tables and columns
@@ -154,6 +155,7 @@ export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormP
                         onChange={(value) => handleFieldChange('scope', value)}
                         required
                         description="Set data source scope name"
+                        dataVariables={dataVariables}
                     />
                 </div>
 
@@ -221,6 +223,7 @@ export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormP
                                     tableName={dataSource.table}
                                     initialSql={dataSource.filter}
                                     onSave={handleSaveFilter}
+                                    dataVariables={dataVariables}
                                 />
                             </div>
                         )}
@@ -300,6 +303,7 @@ export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormP
                                                     onChange={(value) => handleUpdateField(fieldIndex, 'field_holder', value)}
                                                     required
                                                     description="Variable name to use in templates ({{var_name}})"
+                                                    dataVariables={dataVariables}
                                                 />
                                             </div>
                                             <div className={classes.gridCol4}>
@@ -311,6 +315,7 @@ export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormP
                                                     onChange={(value) => handleUpdateField(fieldIndex, 'not_found_text', value)}
                                                     required
                                                     description="Text to show if field is not found"
+                                                    dataVariables={dataVariables}
                                                 />
                                             </div>
                                         </div>
@@ -383,6 +388,7 @@ export function DataSourceForm({ dataSource, onChange, index }: IDataSourceFormP
                                                     onChange={(value) => handleUpdateMapField(mapFieldIndex, 'field_new_name', value)}
                                                     required
                                                     description="The new name that will be created"
+                                                    dataVariables={dataVariables}
                                                 />
                                             </div>
                                         </div>

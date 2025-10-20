@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Textarea } from '@mantine/core';
-import { VariableList, IVariableSuggestion, formatVariable } from '../../../../../utils/mentions.utils';
+import { VariableList, IVariableSuggestion, formatVariable, VariableSuggestionsPopup } from '../../../../../utils/mentions.utils';
 
 interface ITextareaWithMentionsProps {
     value: string;
@@ -13,6 +13,9 @@ interface ITextareaWithMentionsProps {
     maxRows?: number;
     error?: string;
     variables?: IVariableSuggestion[];
+    dataVariables?: Record<string, string>;
+    maxVisibleRows?: number;
+    maxItems?: number;
 }
 
 export function TextareaWithMentions({
@@ -24,28 +27,78 @@ export function TextareaWithMentions({
     maxRows = 6,
     error,
     variables,
+    dataVariables,
+    maxVisibleRows = 5,
+    maxItems = 50,
 }: ITextareaWithMentionsProps) {
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [suggestions, setSuggestions] = useState<IVariableSuggestion[]>([]);
     const [cursorPosition, setCursorPosition] = useState(0);
-    const [suggestionPosition, setSuggestionPosition] = useState({ top: 0, left: 0 });
+    const [selectedIndex, setSelectedIndex] = useState(0);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const variableListRef = useRef<any>(null);
+    const suggestionRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
-    // Default variables for testing
-    const defaultVariables: IVariableSuggestion[] = [
-        { id: 'user_name', label: 'user_name' },
-        { id: 'user_email', label: 'user_email' },
-        { id: 'user_id', label: 'user_id' },
-        { id: 'page_title', label: 'page_title' },
-        { id: 'page_url', label: 'page_url' },
-        { id: 'current_date', label: 'current_date' },
-        { id: 'site_name', label: 'site_name' },
-        { id: 'site_url', label: 'site_url' },
-        { id: 'current_year', label: 'current_year' },
-    ];
+    // Convert dataVariables object to IVariableSuggestion array
+    const dataVariablesArray: IVariableSuggestion[] = React.useMemo(() => {
+        if (!dataVariables) return [];
+        return Object.values(dataVariables).map(variableName => ({
+            id: variableName,
+            label: variableName,
+        }));
+    }, [dataVariables]);
 
-    const activeVariables = variables && variables.length > 0 ? variables : defaultVariables;
+    // Combine all available variables: custom variables, then data variables from section context
+    const activeVariables = React.useMemo(() => {
+        const allVariables: IVariableSuggestion[] = [];
+
+        // Add custom variables first (highest priority)
+        if (variables && variables.length > 0) {
+            allVariables.push(...variables);
+        }
+
+        // Add data variables from section API
+        if (dataVariablesArray.length > 0) {
+            allVariables.push(...dataVariablesArray);
+        }
+
+        // Remove duplicates based on label
+        const uniqueVariables = allVariables.filter((variable, index, self) =>
+            index === self.findIndex(v => v.label === variable.label)
+        );
+
+        return uniqueVariables;
+    }, [variables, dataVariablesArray]);
+
+    // Reset selected index when suggestions change
+    useEffect(() => {
+        setSelectedIndex(0);
+    }, [suggestions]);
+
+    // Reset suggestions state when popup is hidden
+    useEffect(() => {
+        if (!showSuggestions) {
+            setSuggestions([]);
+            setSelectedIndex(0);
+        }
+    }, [showSuggestions]);
+
+    // Handle clicks outside to hide popup
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                setShowSuggestions(false);
+            }
+        };
+
+        if (showSuggestions) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showSuggestions]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const newValue = e.target.value;
@@ -59,23 +112,21 @@ export function TextareaWithMentions({
 
         if (mentionMatch) {
             const query = mentionMatch[1];
-            const filteredSuggestions = activeVariables.filter(variable =>
-                variable.label.toLowerCase().includes(query.toLowerCase())
-            ).slice(0, 5);
+            let filteredSuggestions: IVariableSuggestion[];
+
+            if (query.length > 0) {
+                // After typing a letter, show all matching suggestions (up to maxItems)
+                filteredSuggestions = activeVariables.filter(variable =>
+                    variable.label.toLowerCase().includes(query.toLowerCase())
+                ).slice(0, maxItems);
+            } else {
+                // When just {{ is typed, show all available suggestions (up to maxItems)
+                filteredSuggestions = activeVariables.slice(0, maxItems);
+            }
 
             if (filteredSuggestions.length > 0) {
                 setSuggestions(filteredSuggestions);
                 setShowSuggestions(true);
-
-                // Calculate position for suggestions
-                if (textareaRef.current) {
-                    const textareaRect = textareaRef.current.getBoundingClientRect();
-                    const cursorCoords = getCursorCoordinates(textareaRef.current, cursorPos);
-                    setSuggestionPosition({
-                        top: textareaRect.top + cursorCoords.top + 20,
-                        left: textareaRect.left + cursorCoords.left,
-                    });
-                }
             } else {
                 setShowSuggestions(false);
             }
@@ -87,8 +138,6 @@ export function TextareaWithMentions({
     };
 
     const handleSuggestionSelect = (suggestion: IVariableSuggestion) => {
-        if (!textareaRef.current) return;
-
         const textBeforeCursor = value.substring(0, cursorPosition);
         const textAfterCursor = value.substring(cursorPosition);
 
@@ -96,75 +145,47 @@ export function TextareaWithMentions({
         const mentionMatch = textBeforeCursor.match(/\{\{[^}]*$/);
         if (mentionMatch) {
             const beforeMention = textBeforeCursor.substring(0, mentionMatch.index);
-            const newValue = beforeMention + formatVariable(suggestion.label) + textAfterCursor;
+            const newValue = beforeMention + `{{${suggestion.label}}}` + textAfterCursor;
 
+            // Update value
             setShowSuggestions(false);
             onChange(newValue);
 
-            // Focus back to textarea and set cursor position
+            // Focus back to textarea
             setTimeout(() => {
                 if (textareaRef.current) {
                     textareaRef.current.focus();
-                    const newCursorPos = beforeMention.length + formatVariable(suggestion.label).length;
-                    textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
                 }
             }, 0);
         }
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (showSuggestions && variableListRef.current) {
-            if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === 'Escape') {
+        if (showSuggestions && suggestions.length > 0) {
+            if (e.key === 'ArrowDown') {
                 e.preventDefault();
-                const result = variableListRef.current.onKeyDown({ event: e });
-                if (result) {
-                    return;
+                setSelectedIndex((prevIndex) =>
+                    prevIndex < suggestions.length - 1 ? prevIndex + 1 : 0
+                );
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                setSelectedIndex((prevIndex) =>
+                    prevIndex > 0 ? prevIndex - 1 : suggestions.length - 1
+                );
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (suggestions[selectedIndex]) {
+                    handleSuggestionSelect(suggestions[selectedIndex]);
                 }
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                setShowSuggestions(false);
             }
         }
     };
 
-    // Helper function to get cursor coordinates in textarea
-    const getCursorCoordinates = (textarea: HTMLTextAreaElement, position: number): { top: number; left: number } => {
-        const div = document.createElement('div');
-        const style = window.getComputedStyle(textarea);
-
-        // Copy textarea styles to div
-        ['fontSize', 'fontFamily', 'lineHeight', 'padding', 'border', 'wordWrap', 'whiteSpace', 'overflowWrap'].forEach(prop => {
-            div.style[prop as any] = style[prop as any];
-        });
-
-        div.style.position = 'absolute';
-        div.style.visibility = 'hidden';
-        div.style.whiteSpace = 'pre-wrap';
-        div.style.wordWrap = 'break-word';
-        div.style.overflowWrap = 'break-word';
-        div.style.width = textarea.clientWidth + 'px';
-        div.style.height = textarea.clientHeight + 'px';
-
-        // Create a span to measure cursor position
-        const textBeforeCursor = textarea.value.substring(0, position);
-        const textAfterCursor = textarea.value.substring(position);
-        div.textContent = textBeforeCursor;
-        const span = document.createElement('span');
-        span.textContent = textAfterCursor;
-        div.appendChild(span);
-
-        document.body.appendChild(div);
-
-        const cursorRect = span.getBoundingClientRect();
-        const textareaRect = textarea.getBoundingClientRect();
-
-        document.body.removeChild(div);
-
-        return {
-            top: cursorRect.top - textareaRect.top,
-            left: cursorRect.left - textareaRect.left,
-        };
-    };
-
     return (
-        <div style={{ position: 'relative' }}>
+        <div ref={containerRef} style={{ position: 'relative' }}>
             <Textarea
                 ref={textareaRef}
                 value={value}
@@ -178,20 +199,14 @@ export function TextareaWithMentions({
             />
 
             {showSuggestions && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: suggestionPosition.top,
-                        left: suggestionPosition.left,
-                        zIndex: 1000,
-                    }}
-                >
-                    <VariableList
-                        ref={variableListRef}
-                        items={suggestions}
-                        command={handleSuggestionSelect}
-                    />
-                </div>
+                <VariableSuggestionsPopup
+                    suggestions={suggestions}
+                    selectedIndex={selectedIndex}
+                    maxVisibleRows={maxVisibleRows}
+                    maxItems={maxItems}
+                    onSelect={handleSuggestionSelect}
+                    useAbsolutePositioning={true}
+                />
             )}
         </div>
     );

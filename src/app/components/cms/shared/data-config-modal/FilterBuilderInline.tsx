@@ -12,37 +12,14 @@ interface IProps {
   tableName?: string;
   initialSql?: string; // combined SQL possibly including ORDER BY / LIMIT
   onSave: (payload: { sql: string }) => void;
+  dataVariables?: Record<string, string>;
 }
 
 const initialQuery: RuleGroupType = { combinator: 'and', rules: [] };
 
-// Custom value editor that supports mentions for text inputs
-function ValueEditorWithMentions(props: any) {
-  const { value, handleOnChange, fieldData, type, operator } = props;
 
-  // For text inputs - be more inclusive
-  const isTextInput = type === 'text' || fieldData?.dataType === 'text';
-
-  // Show mentions for text fields with any operator (not just string operators)
-  if (isTextInput) {
-    // Create a stable numeric ID based on field name to prevent re-mounting
-    const stableId = fieldData?.name ? fieldData.name.split('').reduce((a: number, b: string) => a + b.charCodeAt(0), 0) : 999;
-    return (
-      <TextInputWithMentions
-        fieldId={stableId}
-        value={value || ''}
-        onChange={handleOnChange || ((val: string) => {})}
-        placeholder="Enter value or use {{variable}}"
-      />
-    );
-  }
-
-  // Fall back to default Mantine value editor for other types
-  const ValueEditorComponent = mantineControlElements.valueEditor as any;
-  return <ValueEditorComponent {...props} />;
-}
-
-export function FilterBuilderInline({ tableName, initialSql, onSave }: IProps) {
+export function FilterBuilderInline(props: IProps & { dataVariables?: Record<string, string> }) {
+  const { tableName, initialSql, onSave, dataVariables } = props;
   const { data: columnNames } = useTableColumnNames(tableName);
   const fields = useMemo(() => {
     const unique = Array.from(new Set(columnNames || []));
@@ -56,11 +33,40 @@ export function FilterBuilderInline({ tableName, initialSql, onSave }: IProps) {
   type TTimeToken = typeof TIME_TOKENS[number];
   const [timeToken, setTimeToken] = useState<TTimeToken | ''>('');
 
+  // Custom value editor that supports mentions for text inputs
+  const ValueEditorWithMentions = React.useMemo(() => {
+    return (props: any) => {
+      const { value, handleOnChange, fieldData, type, operator } = props;
+
+      // For text inputs - be more inclusive
+      const isTextInput = type === 'text' || fieldData?.dataType === 'text';
+
+      // Show mentions for text fields with any operator (not just string operators)
+      if (isTextInput) {
+        // Create a stable numeric ID based on field name to prevent re-mounting
+        const stableId = fieldData?.name ? fieldData.name.split('').reduce((a: number, b: string) => a + b.charCodeAt(0), 0) : 999;
+        return (
+          <TextInputWithMentions
+            fieldId={stableId}
+            value={value || ''}
+            onChange={handleOnChange || ((val: string) => {})}
+            placeholder="Enter value or use {{variable}}"
+            dataVariables={dataVariables}
+          />
+        );
+      }
+
+      // Fall back to default Mantine value editor for other types
+      const ValueEditorComponent = mantineControlElements.valueEditor as any;
+      return <ValueEditorComponent {...props} />;
+    };
+  }, [dataVariables]);
+
   // Custom control elements with mentions support
-  const customControlElements = {
+  const customControlElements = React.useMemo(() => ({
     ...mantineControlElements,
     valueEditor: ValueEditorWithMentions,
-  };
+  }), [ValueEditorWithMentions]);
 
   // Helpers to split combined SQL into where/order/limit and extract time token
   function splitCombinedSql(sqlCombined: string | undefined) {

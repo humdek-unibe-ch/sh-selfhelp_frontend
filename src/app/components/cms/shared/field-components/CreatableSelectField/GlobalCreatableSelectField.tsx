@@ -14,6 +14,7 @@ export interface IGlobalCreatableSelectFieldProps {
     isLoading?: boolean;
     clearable?: boolean;
     variables?: IVariableSuggestion[];
+    dataVariables?: Record<string, string>;
 }
 
 export function GlobalCreatableSelectField({
@@ -24,7 +25,8 @@ export function GlobalCreatableSelectField({
     disabled = false,
     isLoading = false,
     clearable = false,
-    variables
+    variables,
+    dataVariables
 }: IGlobalCreatableSelectFieldProps) {
     const { data: cssClasses, isLoading: cssLoading } = useCssClasses();
 
@@ -51,6 +53,7 @@ export function GlobalCreatableSelectField({
             clearable={clearable}
             {...cssConfig}
             variables={variables}
+            dataVariables={dataVariables}
         />
     );
 }

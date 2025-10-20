@@ -29,9 +29,10 @@ export interface IGlobalFieldRendererProps {
     onChange: (value: string | boolean) => void;
     className?: string;
     disabled?: boolean;
+    dataVariables?: Record<string, string>;
 }
 import { sanitizeName, validateName } from '../../../../../utils/name-validation.utils';
-import { IVariableSuggestion, DEFAULT_VARIABLES } from '../../../../../utils/mentions.utils';
+import { IVariableSuggestion } from '../../../../../utils/mentions.utils';
 
 // Use the actual field structure from API response
 export interface IFieldData {
@@ -61,21 +62,17 @@ interface IFieldRendererProps {
     locale?: string;
     className?: string;
     disabled?: boolean;
+    dataVariables?: Record<string, string>;
 }
 
-export function FieldRenderer({
-    field,
-    languageId,
-    value,
-    onChange,
-    locale,
-    className,
-    disabled = false
-}: IFieldRendererProps) {
+export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Record<string, string> }) {
+    const { field, languageId, value, onChange, locale, className, disabled = false, dataVariables } = props;
+
     // Skip rendering hidden fields - they should not be visible to users
     if (field.hidden === 1) {
         return null;
     }
+
 
     // Use provided value if available, otherwise extract from field translations
     const getFieldValue = (): string => {
@@ -212,7 +209,7 @@ export function FieldRenderer({
                 onChange={onChange}
                 placeholder={field.default_value || ''}
                 disabled={disabled}
-                variables={DEFAULT_VARIABLES}
+                dataVariables={dataVariables}
                 {...(field.name === 'name' ? { validator: validateName, sanitize: sanitizeName } : {})}
             />
         );
@@ -228,7 +225,7 @@ export function FieldRenderer({
                 onChange={onChange}
                 placeholder={field.default_value || ''}
                 disabled={disabled}
-                variables={DEFAULT_VARIABLES}
+                dataVariables={dataVariables}
                 textInputMode={true}
                 {...(field.name === 'name' ? { validator: validateName, sanitize: sanitizeName } : {})}
             />
@@ -259,6 +256,7 @@ export function FieldRenderer({
                 value={fieldValue}
                 onChange={onChange}
                 disabled={disabled}
+                dataVariables={dataVariables}
             />
         );
     }
@@ -544,7 +542,8 @@ export function GlobalFieldRenderer({
     value,
     onChange,
     className,
-    disabled = false
+    disabled = false,
+    dataVariables
 }: IGlobalFieldRendererProps) {
     const fieldValue = typeof value === 'string' ? value : String(value);
 
@@ -582,6 +581,7 @@ export function GlobalFieldRenderer({
                     onChange={onChange}
                     disabled={disabled}
                     placeholder='Enter JavaScript condition (e.g., field.value > 0 && field.status === "active")'
+                    dataVariables={dataVariables}
                 />
             </Stack>
         );
@@ -602,6 +602,7 @@ export function GlobalFieldRenderer({
                     onChange={onChange}
                     disabled={disabled}
                     placeholder='Enter JSON configuration (e.g., {"type": "array", "items": {"type": "string"}})'
+                    dataVariables={dataVariables}
                 />
             </Stack>
         );
@@ -633,6 +634,7 @@ export function GlobalFieldRenderer({
                     value={fieldValue}
                     onChange={onChange}
                     disabled={disabled}
+                    dataVariables={dataVariables}
                 />
             </Stack>
         );

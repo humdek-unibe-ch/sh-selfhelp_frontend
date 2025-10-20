@@ -12,6 +12,7 @@ interface IDataConfigFieldProps {
     onChange: (value: string) => void;
     disabled?: boolean;
     placeholder?: string;
+    dataVariables?: Record<string, string>;
 }
 
 export function DataConfigField({
@@ -20,7 +21,8 @@ export function DataConfigField({
     value,
     onChange,
     disabled = false,
-    placeholder
+    placeholder,
+    dataVariables
 }: IDataConfigFieldProps) {
     const [modalOpened, setModalOpened] = useState(false);
 
@@ -110,6 +112,7 @@ export function DataConfigField({
                 onSave={handleSave}
                 initialValue={value}
                 title={`Data Config Builder${fieldName ? ` - ${fieldName}` : ''}`}
+                dataVariables={dataVariables}
             />
         </Stack>
     );
