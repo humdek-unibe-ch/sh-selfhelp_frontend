@@ -1,35 +1,65 @@
 # 🚀 SelfHelp Frontend - Comprehensive Developer Guide
 
-**Version**: 0.0.2  
-**Tech Stack**: Next.js 15, React 18, TypeScript, Mantine UI v8, Tailwind CSS, React Query v5, Refine.dev  
+**Version**: 0.0.2
+**Tech Stack**: Next.js 15, React 18, TypeScript, Mantine UI v8, Tailwind CSS, React Query v5, Refine.dev
 **Target Audience**: Developers, AI Coding Assistants, LLMs
 
 ---
 
-## 📋 Table of Contents
+## 📋 Documentation Structure
 
-1. [🏗️ Architecture Overview](#architecture-overview)
-2. [🔐 Authentication System](#authentication-system)
-3. [🌐 CMS Structure & Page System](#cms-structure--page-system)
-4. [⚡ React Query & Caching Strategy](#react-query--caching-strategy)
-5. [🎨 Component Architecture & Styling](#component-architecture--styling)
-6. [🔗 API Layer & Endpoint Management](#api-layer--endpoint-management)
-7. [🌍 Language System & Internationalization](#language-system--internationalization)
-8. [🛠️ Admin Panel & Inspector System](#admin-panel--inspector-system)
-9. [👥 User Permissions & ACL System](#user-permissions--acl-system)
-10. [📱 Responsive Design & Theming](#responsive-design--theming)
-11. [🚀 Performance & Optimization](#performance--optimization)
-12. [🔧 Development Guidelines](#development-guidelines)
-13. [📈 Expansion Guide](#expansion-guide)
+This comprehensive guide has been organized into modular sections for better maintainability and navigation.
+
+### 📚 Main Guides
+| # | Section | Description |
+|---|---------|-------------|
+| 1. | [🏗️ Architecture Overview](./guides/01-architecture-overview.md) | Core principles, directory structure, and technology stack |
+| 2. | [🔐 Authentication System](./guides/02-authentication-system.md) | JWT tokens, 2FA, and authentication flow |
+| 3. | [🌐 CMS Structure & Page System](./guides/03-cms-structure-page-system.md) | Page-section hierarchy and content management |
+| 4. | [⚡ React Query & Caching Strategy](./guides/04-react-query-caching.md) | Data fetching, caching, and query management |
+| 5. | [🎨 Component Architecture & Styling](./guides/05-component-architecture-styling.md) | Component organization and styling system |
+| 6. | [🔗 API Layer & Endpoint Management](./guides/06-api-layer-endpoints.md) | API configuration and service layer |
+| 7. | [🌍 Language System & Internationalization](./guides/07-language-internationalization.md) | Multi-language support and localization |
+| 8. | [🛠️ Admin Panel & Inspector System](./guides/08-admin-panel-inspector.md) | Admin interface and content editing |
+| 9. | [👥 User Permissions & ACL System](./guides/09-user-permissions-acl.md) | Role-based access control and permissions |
+| 10. | [📱 Responsive Design & Theming](./guides/10-responsive-design-theming.md) | Mobile-first design and theme system |
+| 11. | [🚀 Performance & Optimization](./guides/11-performance-optimization.md) | Optimization strategies and best practices |
+| 12. | [🔧 Development Guidelines](./guides/12-development-guidelines.md) | Code standards and development workflow |
+| 13. | [📈 Expansion Guide](./guides/13-expansion-guide.md) | Adding new features and extending the system |
+
+### 🏛️ Architecture Reference
+| Section | Description |
+|---------|-------------|
+| [Component Hierarchy](./architecture/component-hierarchy.md) | Detailed component organization and usage |
+| [Data Flow Patterns](./architecture/data-flow.md) | Application data flow and state management |
+| [Styling System](./architecture/styling-system.md) | CSS architecture and Tailwind integration |
+
+### 📖 Reference Materials
+| Section | Description |
+|---------|-------------|
+| [API Endpoints](./reference/api-endpoints.md) | Complete API endpoint reference |
+| [Component Patterns](./reference/component-patterns.md) | Reusable component patterns and examples |
+| [Configuration Files](./reference/configuration-files.md) | Configuration file reference and usage |
+| [Troubleshooting](./reference/troubleshooting.md) | Common issues and solutions |
 
 ---
 
-## 🏗️ Architecture Overview
+## 🚀 Quick Start
 
-### Core Principles
-- **Server-First**: Prioritize React Server Components, minimize `'use client'`
-- **Type Safety**: Full TypeScript coverage with strict typing
-- **Modularity**: Reusable, composable components
+1. **For New Developers**: Start with [01-architecture-overview.md](./guides/01-architecture-overview.md)
+2. **For Feature Development**: Check [13-expansion-guide.md](./guides/13-expansion-guide.md)
+3. **For Troubleshooting**: See [troubleshooting.md](./reference/troubleshooting.md)
+
+## 📝 Contributing to Documentation
+
+- Keep sections focused and modular
+- Update the table of contents when adding new sections
+- Use consistent formatting and numbering
+- Cross-reference related sections
+
+---
+
+**This guide serves as the definitive reference for understanding and extending the SelfHelp frontend application. Keep it updated as the architecture evolves!**
 - **Performance**: Optimized caching and lazy loading
 - **Accessibility**: WCAG compliant with proper ARIA support
 
