@@ -21,6 +21,7 @@ import { useConditionBuilderData } from '../../../../../hooks/useConditionBuilde
 import { rulesToJsonLogic, jsonLogicToRules, isValidJsonLogic } from '../../../../../utils/json-logic-conversion.utils';
 import { createConditionFields } from './conditionFields';
 import { TextInputWithMentions } from '../field-components/TextInputWithMentions';
+import { QUERY_BUILDER_CONTROL_CLASSNAMES } from '../../../../../constants/querybuilder.constants';
 
 interface IConditionBuilderModalProps {
     opened: boolean;
@@ -475,17 +476,7 @@ export function ConditionBuilderModal({
                                 fieldSelector: CreatableFieldSelector,
                                 valueEditor: SearchableValueEditor
                             }}
-                            controlClassnames={{
-                                queryBuilder: 'queryBuilder-justified queryBuilder-branches',
-                                ruleGroup: 'ruleGroup',
-                                rule: 'rule',
-                                addRule: 'addRule modal-high-z',
-                                addGroup: 'addGroup modal-high-z',
-                                cloneRule: 'cloneRule modal-high-z',
-                                cloneGroup: 'cloneGroup modal-high-z',
-                                removeRule: 'removeRule modal-high-z',
-                                removeGroup: 'removeGroup modal-high-z'
-                            }}
+                            controlClassnames={QUERY_BUILDER_CONTROL_CLASSNAMES}
                             context={{ dataVariables }}
                             resetOnFieldChange={true}
                         />

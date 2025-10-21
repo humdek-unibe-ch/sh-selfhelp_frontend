@@ -7,6 +7,7 @@ import { mantineControlElements } from '@react-querybuilder/mantine';
 import { useTableColumnNames } from '../../../../../hooks/useData';
 import { parseSQL } from 'react-querybuilder/parseSQL';
 import { TextInputWithMentions } from '../field-components/TextInputWithMentions';
+import { QUERY_BUILDER_CONTROL_CLASSNAMES } from '../../../../../constants/querybuilder.constants';
 
 interface IProps {
   tableName?: string;
@@ -46,13 +47,15 @@ export function FilterBuilderInline(props: IProps & { dataVariables?: Record<str
         // Create a stable numeric ID based on field name to prevent re-mounting
         const stableId = fieldData?.name ? fieldData.name.split('').reduce((a: number, b: string) => a + b.charCodeAt(0), 0) : 999;
         return (
+          <div style={{ width: '250px' }}>
           <TextInputWithMentions
-            fieldId={stableId}
-            value={value || ''}
-            onChange={handleOnChange || ((val: string) => {})}
-            placeholder="Enter value or use {{variable}}"
-            dataVariables={dataVariables}
-          />
+              fieldId={stableId}
+              value={value || ''}
+              onChange={handleOnChange || ((val: string) => {})}
+              placeholder="Enter value or use {{variable}}"
+              dataVariables={dataVariables}
+            />
+          </div>
         );
       }
 
@@ -202,12 +205,13 @@ export function FilterBuilderInline(props: IProps & { dataVariables?: Record<str
         clearable
       />
       <Text size="sm" fw={500}>Where clause</Text>
-      <QueryBuilder
+      <QueryBuilder      
         fields={fields}
         query={query}
         onQueryChange={setQuery}
         validator={defaultValidator}
         controlElements={customControlElements}
+        controlClassnames={QUERY_BUILDER_CONTROL_CLASSNAMES}
       />
 
       <Divider my="xs" />
