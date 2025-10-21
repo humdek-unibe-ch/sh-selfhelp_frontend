@@ -45,7 +45,7 @@
     min-height: 36px;
     max-height: 36px;
     overflow: hidden;
-    white-space: nowrap;
+    white-space: pre-wrap;
     font-size: 14px;
     line-height: 1.55;
 }
@@ -62,12 +62,12 @@
 .singleLineEditor :global(.ProseMirror p) {
     margin: 0;
     display: inline;
-    white-space: nowrap;
+    white-space: pre-wrap;
 }
 
 .singleLineEditor :global(.ProseMirror *) {
     display: inline;
-    white-space: nowrap;
+    white-space: pre-wrap;
 }
 
 /* Single line paragraph styling */

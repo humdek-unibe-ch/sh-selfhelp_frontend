@@ -92,6 +92,8 @@ export function MentionEditor({
                 codeBlock: singleLineMode ? false : undefined,
                 horizontalRule: singleLineMode ? false : undefined,
                 paragraph: singleLineMode ? { HTMLAttributes: { class: 'single-line-paragraph' } } : undefined,
+                // Explicitly disable extensions that might conflict
+                link: false,
             }),
             Placeholder.configure({
                 placeholder,
@@ -101,7 +103,6 @@ export function MentionEditor({
         // Add rich text extensions if not in single line mode OR if rich text shortcuts are enabled
         if (!singleLineMode || enableRichTextShortcuts) {
             exts.push(
-                Underline,
                 Link,
                 TextAlign.configure({ types: ['heading', 'paragraph'] }),
                 TextStyle
