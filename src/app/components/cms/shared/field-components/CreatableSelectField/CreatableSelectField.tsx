@@ -64,11 +64,13 @@ export const CREATABLE_SELECT_CONFIGS = {
         addClassesButtonText: 'Add Classes',
         cancelButtonText: 'Cancel',
         validateSingle: (input: string): boolean => {
-            // Allow CSS classes with embedded variables
+            // Allow CSS classes with embedded variables like {{parent2.record_id}}
             if (!input.trim()) return false;
-            const varRegex = /\{\{[a-zA-Z_][a-zA-Z0-9_.]*\}\}/g;
+            // Check for malformed variables (nested braces, etc.)
             const invalidVars = input.match(/\{\{[^}]*(?:\{|\}[^}]*\{)/g);
             if (invalidVars) return false;
+            // Allow any content within {{ }} as variables, and regular CSS class chars outside
+            const varRegex = /\{\{[^}]*\}\}/g;
             const withoutVars = input.replace(varRegex, '');
             return /^[a-zA-Z0-9:_-]*$/.test(withoutVars);
         },
@@ -135,9 +137,7 @@ export function CreatableSelectField({
     validationErrorMessage = CREATABLE_SELECT_CONFIGS.default.validationErrorMessage,
     dataVariables
 }: ICreatableSelectFieldProps) {
-    const [showCreateInput, setShowCreateInput] = useState(false);
     const [showMultiInput, setShowMultiInput] = useState(false);
-    const [newValue, setNewValue] = useState('');
     const [multiValues, setMultiValues] = useState('');
     const [search, setSearch] = useState('');
 
@@ -176,29 +176,32 @@ export function CreatableSelectField({
         return predefinedValues.has(optionValue);
     };
 
-    // Handle creating single value
-    const handleCreateValue = useCallback(() => {
-        if (validateSingle(newValue) && !currentValues.includes(newValue)) {
-            const updatedValues = [...currentValues, newValue];
-            onChange(updatedValues.join(separator));
-            setNewValue('');
-            setShowCreateInput(false);
-        }
-    }, [newValue, currentValues, onChange, separator, validateSingle]);
 
     // Handle creating multiple values
     const handleCreateMultipleValues = useCallback(() => {
         if (validateMultiple(multiValues)) {
             // Split input by whitespace and newlines, filter empty strings
             const newVals = multiValues.split(/[\s\n]+/).filter(Boolean);
-            // Filter out values that are already in current values
-            const uniqueNewVals = newVals.filter(val => !currentValues.includes(val));
-            const updatedValues = [...currentValues, ...uniqueNewVals];
+
+            let updatedValues;
+            if (config.multiSelect) {
+                // For multi-select: add to existing values (don't remove custom values)
+                const uniqueNewVals = newVals.filter(val => !currentValues.includes(val));
+                updatedValues = [...currentValues, ...uniqueNewVals];
+            } else {
+                // For single-select: replace custom values but keep predefined ones
+                const predefinedValuesOnly = currentValues.filter(val => isPredefinedValue(val));
+                updatedValues = [...predefinedValuesOnly, ...newVals];
+            }
+
             onChange(updatedValues.join(separator));
             setMultiValues('');
             setShowMultiInput(false);
+            // Reset search and combobox state to ensure newly added values are visible and selected
+            setSearch('');
+            combobox.resetSelectedOption();
         }
-    }, [multiValues, currentValues, onChange, separator, validateMultiple]);
+    }, [multiValues, currentValues, onChange, separator, validateMultiple, isPredefinedValue, config.multiSelect]);
 
     // Handle adding/removing values
     const handleToggleValue = useCallback((toggleValue: string) => {
@@ -280,10 +283,10 @@ export function CreatableSelectField({
                         <Combobox.Options>
                             <ScrollArea.Autosize type="scroll" mah={200}>
                                 {filteredOptions.length > 0 ? (
-                                    filteredOptions.map((option) => (
+                                    filteredOptions.map((option, index) => (
                                         <Combobox.Option
                                             value={option.value}
-                                            key={option.value}
+                                            key={`${option.value}-${index}`}
                                             active={option.value === value}
                                             className={classes.dropdownOption}
                                         >
@@ -307,80 +310,35 @@ export function CreatableSelectField({
 
                 {config.creatable && (
                     <>
-                        {!showCreateInput && !showMultiInput ? (
+                        {!showMultiInput ? (
                             <Group gap="xs">
                                 <Button
                                     variant="light"
                                     size="xs"
                                     leftSection={<IconPlus size={14} />}
-                                    onClick={() => setShowCreateInput(true)}
+                                    onClick={() => setShowMultiInput(true)}
                                     disabled={disabled}
                                 >
-                                    {addSingleButtonText}
+                                    {config.multiSelect ? addMultipleButtonText : addSingleButtonText}
                                 </Button>
-                                {config.multiSelect && (
-                                    <Button
-                                        variant="light"
-                                        size="xs"
-                                        leftSection={<IconPlus size={14} />}
-                                        onClick={() => setShowMultiInput(true)}
-                                        disabled={disabled}
-                                    >
-                                        {addMultipleButtonText}
-                                    </Button>
-                                )}
                             </Group>
-                        ) : showCreateInput ? (
+                        ) : (
                             <Group gap="xs">
-                                <div style={{ flex: 1 }}>
-                                    <TextInputWithMentions
-                                        fieldId={fieldId}
-                                        value={newValue}
-                                        onChange={setNewValue}
-                                        placeholder={singleCreatePlaceholder}
-                                        disabled={false}
-                                        validator={newValue ? (value) => ({ isValid: validateSingle(value), error: validateSingle(value) ? undefined : validationErrorMessage }) : undefined}
-                                        dataVariables={dataVariables}
-                                    />
-                                </div>
-                                <ActionIcon
-                                    variant="light"
-                                    color="green"
-                                    size="sm"
-                                    onClick={() => {
-                                        if (validateSingle(newValue)) {
-                                            onChange(newValue);
-                                            setNewValue('');
-                                            setShowCreateInput(false);
-                                        }
-                                    }}
-                                    disabled={!newValue || !validateSingle(newValue)}
-                                >
-                                    <IconPlus size={14} />
-                                </ActionIcon>
-                                <ActionIcon
-                                    variant="light"
-                                    color="gray"
-                                    size="sm"
-                                    onClick={() => {
-                                        setShowCreateInput(false);
-                                        setNewValue('');
-                                    }}
-                                >
-                                    <IconX size={14} />
-                                </ActionIcon>
-                            </Group>
-                        ) : showMultiInput ? (
-                            <Group gap="xs">
-                                <div style={{ flex: 1 }}>
+                                <div style={{ flex: 1, width: '290px' }}>
                                     <TextInputWithMentions
                                         fieldId={fieldId}
                                         value={multiValues}
                                         onChange={setMultiValues}
-                                        placeholder={multiCreatePlaceholder}
+                                        placeholder={config.multiSelect ? multiCreatePlaceholder : singleCreatePlaceholder}
                                         disabled={false}
                                         validator={multiValues ? (value) => ({ isValid: validateMultiple(value), error: validateMultiple(value) ? undefined : validationErrorMessage }) : undefined}
                                         dataVariables={dataVariables}
+                                        onKeyDown={(event) => {
+                                            if (event.key === 'Enter' && !event.shiftKey) {
+                                                event.preventDefault();
+                                                handleCreateMultipleValues();
+                                            }
+                                        }}
                                     />
                                 </div>
                                 <ActionIcon
@@ -404,7 +362,7 @@ export function CreatableSelectField({
                                     <IconX size={14} />
                                 </ActionIcon>
                             </Group>
-                        ) : null}
+                        )}
                     </>
                 )}
             </Stack>
@@ -451,9 +409,9 @@ export function CreatableSelectField({
                     >
                         {currentValues.length > 0 ? (
                             <div className={classes.pillsContainer}>
-                                {currentValues.map((val) => (
+                                {currentValues.map((val, index) => (
                                     <Pill
-                                        key={val}
+                                        key={`${val}-${index}`}
                                         withRemoveButton
                                         onRemove={() => handleRemovePill(val)}
                                         size="sm"
@@ -480,10 +438,10 @@ export function CreatableSelectField({
                     <Combobox.Options>
                         <ScrollArea.Autosize type="scroll" mah={280}>
                             {filteredOptions.length > 0 ? (
-                                filteredOptions.map((option) => (
+                                filteredOptions.map((option, index) => (
                                     <Combobox.Option
                                         value={option.value}
-                                        key={option.value}
+                                        key={`${option.value}-${index}`}
                                         active={currentValues.includes(option.value)}
                                         className={classes.dropdownOption}
                                     >
@@ -507,17 +465,8 @@ export function CreatableSelectField({
 
             {config.creatable && (
                 <>
-                    {!showCreateInput && !showMultiInput ? (
+                    {!showMultiInput ? (
                         <Group gap="xs">
-                            <Button
-                                variant="light"
-                                size="xs"
-                                leftSection={<IconPlus size={14} />}
-                                onClick={() => setShowCreateInput(true)}
-                                disabled={disabled}
-                            >
-                                {addSingleButtonText}
-                            </Button>
                             <Button
                                 variant="light"
                                 size="xs"
@@ -525,54 +474,26 @@ export function CreatableSelectField({
                                 onClick={() => setShowMultiInput(true)}
                                 disabled={disabled}
                             >
-                                {addMultipleButtonText}
+                                {config.multiSelect ? addMultipleButtonText : addSingleButtonText}
                             </Button>
                         </Group>
-                    ) : showCreateInput ? (
+                    ) : (
                         <Group gap="xs">
-                            <div style={{ flex: 1 }}>
-                                <TextInputWithMentions
-                                    fieldId={fieldId}
-                                    value={newValue}
-                                    onChange={setNewValue}
-                                    placeholder={singleCreatePlaceholder}
-                                    disabled={false}
-                                    validator={newValue ? (value) => ({ isValid: validateSingle(value), error: validateSingle(value) ? undefined : validationErrorMessage }) : undefined}
-                                    dataVariables={dataVariables}
-                                />
-                            </div>
-                            <ActionIcon
-                                variant="light"
-                                color="green"
-                                size="sm"
-                                onClick={handleCreateValue}
-                                disabled={!newValue || !validateSingle(newValue) || currentValues.includes(newValue)}
-                            >
-                                <IconPlus size={14} />
-                            </ActionIcon>
-                            <ActionIcon
-                                variant="light"
-                                color="gray"
-                                size="sm"
-                                onClick={() => {
-                                    setShowCreateInput(false);
-                                    setNewValue('');
-                                }}
-                            >
-                                <IconX size={14} />
-                            </ActionIcon>
-                        </Group>
-                    ) : showMultiInput ? (
-                        <Group gap="xs">
-                            <div style={{ flex: 1 }}>
+                            <div style={{ flex: 1, width: '290px' }}>
                                 <TextInputWithMentions
                                     fieldId={fieldId}
                                     value={multiValues}
                                     onChange={setMultiValues}
-                                    placeholder={multiCreatePlaceholder}
+                                    placeholder={config.multiSelect ? multiCreatePlaceholder : singleCreatePlaceholder}
                                     disabled={false}
                                     validator={multiValues ? (value) => ({ isValid: validateMultiple(value), error: validateMultiple(value) ? undefined : validationErrorMessage }) : undefined}
                                     dataVariables={dataVariables}
+                                    onKeyDown={(event) => {
+                                        if (event.key === 'Enter' && !event.shiftKey) {
+                                            event.preventDefault();
+                                            handleCreateMultipleValues();
+                                        }
+                                    }}
                                 />
                             </div>
                             <ActionIcon
@@ -596,7 +517,7 @@ export function CreatableSelectField({
                                 <IconX size={14} />
                             </ActionIcon>
                         </Group>
-                    ) : null}
+                    )}
                 </>
             )}
         </Stack>

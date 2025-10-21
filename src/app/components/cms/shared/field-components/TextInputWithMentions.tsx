@@ -17,6 +17,7 @@ interface ITextInputWithMentionsProps {
     maxVisibleRows?: number;
     maxItems?: number;
     autoFocus?: boolean;
+    onKeyDown?: (event: React.KeyboardEvent) => void;
 }
 
 /**
@@ -40,6 +41,7 @@ export function TextInputWithMentions({
     maxVisibleRows = 5,
     maxItems = 50,
     autoFocus = true,
+    onKeyDown,
 }: ITextInputWithMentionsProps) {
     const errorMessage = validator ? (validator(value).isValid ? undefined : validator(value).error) : undefined;
 
@@ -60,6 +62,7 @@ export function TextInputWithMentions({
             singleLineMode={true}
             showToolbar={false}
             autoFocus={autoFocus}
+            onKeyDown={onKeyDown}
         />
     );
 }

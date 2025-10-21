@@ -35,6 +35,8 @@ interface IMentionEditorProps {
     showToolbar?: boolean;
     /** If true, prevents auto-focus when the editor mounts */
     autoFocus?: boolean;
+    /** Callback for key down events */
+    onKeyDown?: (event: React.KeyboardEvent) => void;
 }
 
 /**
@@ -61,6 +63,7 @@ export function MentionEditor({
     singleLineMode = false,
     showToolbar = true,
     autoFocus = true,
+    onKeyDown,
 }: IMentionEditorProps) {
     const isUpdatingRef = React.useRef(false);
 
@@ -244,6 +247,7 @@ export function MentionEditor({
 
                 <RichTextEditor.Content
                     className={singleLineMode ? styles.singleLineEditor : styles.richTextEditor}
+                    onKeyDown={onKeyDown}
                 />
             </RichTextEditor>
         </Input.Wrapper>
