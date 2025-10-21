@@ -3,8 +3,8 @@
 /* Editor content wrapper - applies to the Content component */
 .editorContent {
     border-radius: 8px;
-    background-color: #ffffff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    background-color: light-dark(#ffffff, var(--mantine-color-dark-6));
+    box-shadow: 0 1px 3px light-dark(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.3));
 }
 
 /* Global styles for Tiptap editor content */
