@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Input, Button, Paper, Text } from '@mantine/core';
+import { Input, Button } from '@mantine/core';
 import { RichTextEditor, Link } from '@mantine/tiptap';
 import { IconCode } from '@tabler/icons-react';
 import { useEditor } from '@tiptap/react';
@@ -14,7 +14,7 @@ import Mention from '@tiptap/extension-mention';
 import { PluginKey, Plugin } from '@tiptap/pm/state';
 import { Extension } from '@tiptap/core';
 import styles from './RichTextField.module.css';
-import { IVariableSuggestion, IVariableListProps, IKeyboardHandler, sanitizeForDatabase, VariableList, formatVariable, createMentionConfigWithMantine } from '../../../../../utils/mentions.utils';
+import { IVariableSuggestion, sanitizeForDatabase, createMentionConfigWithMantine } from '../../../../../utils/mentions.utils';
 
 interface IRichTextFieldProps {
     fieldId: number;

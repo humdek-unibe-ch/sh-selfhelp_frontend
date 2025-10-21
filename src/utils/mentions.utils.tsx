@@ -231,114 +231,7 @@ export const VariableList = React.forwardRef<IKeyboardHandler, IVariableListProp
     );
 });
 
-// Unified variable suggestions component - all implementations now use the same styling
-export const SimpleVariableSuggestions: React.FC<IVariableSuggestionsPopupProps> = ({
-    suggestions,
-    selectedIndex,
-    maxVisibleRows = 5,
-    maxItems = 50,
-    onSelect,
-}) => {
-    const itemRefs = React.useRef<(HTMLLIElement | null)[]>([]);
-    const scrollAreaRef = React.useRef<HTMLDivElement>(null);
-
-    // Limit suggestions to maxItems
-    const displaySuggestions = suggestions.slice(0, maxItems);
-
-    // Don't render if no suggestions (this prevents "No matching variables found" from showing)
-    if (displaySuggestions.length === 0) {
-        return null;
-    }
-
-    // Scroll selected item into view when selectedIndex changes
-    React.useEffect(() => {
-        // Use requestAnimationFrame to ensure DOM is ready
-        requestAnimationFrame(() => {
-            if (itemRefs.current[selectedIndex] && scrollAreaRef.current) {
-                const item = itemRefs.current[selectedIndex];
-                const container = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-                
-                if (item && container) {
-                    const itemTop = item.offsetTop;
-                    const itemBottom = itemTop + item.offsetHeight;
-                    const containerTop = container.scrollTop;
-                    const containerBottom = containerTop + container.clientHeight;
-
-                    if (itemTop < containerTop) {
-                        // Scroll up to show item
-                        container.scrollTop = itemTop - 8; // Add padding
-                    } else if (itemBottom > containerBottom) {
-                        // Scroll down to show item
-                        container.scrollTop = itemBottom - container.clientHeight + 8; // Add padding
-                    }
-                }
-            }
-        });
-    }, [selectedIndex]);
-
-    return (
-        <Paper
-            shadow="md"
-            style={{
-                padding: 0,
-                backgroundColor: 'white',
-                borderRadius: '4px',
-                minWidth: '200px',
-                maxWidth: '400px',
-            }}
-            withBorder
-        >
-            <ScrollArea
-                ref={scrollAreaRef}
-                style={{
-                    height: Math.max(36, Math.min(displaySuggestions.length * 36, maxVisibleRows * 36)),
-                    minHeight: '36px',
-                }}
-                scrollbarSize={6}
-            >
-                <List
-                    spacing="xs"
-                    size="sm"
-                    style={{ padding: '8px 0' }}
-                >
-                    {displaySuggestions.map((suggestion, index) => (
-                        <List.Item
-                            key={suggestion.id}
-                            ref={(el) => { itemRefs.current[index] = el; }}
-                            style={{
-                                padding: '8px 16px',
-                                cursor: 'pointer',
-                                backgroundColor: selectedIndex === index ? 'var(--mantine-color-blue-0)' : 'transparent',
-                                transition: 'background-color 0.15s ease',
-                            }}
-                            onClick={() => onSelect(suggestion)}
-                            onMouseEnter={(e) => {
-                                if (selectedIndex !== index) {
-                                    e.currentTarget.style.backgroundColor = 'var(--mantine-color-gray-0)';
-                                }
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = selectedIndex === index ? 'var(--mantine-color-blue-0)' : 'transparent';
-                            }}
-                        >
-                            <Text
-                                size="sm"
-                                style={{
-                                    fontFamily: 'monospace',
-                                    color: selectedIndex === index ? 'var(--mantine-color-blue-9)' : 'inherit'
-                                }}
-                            >
-                                {suggestion.label}
-                            </Text>
-                        </List.Item>
-                    ))}
-                </List>
-            </ScrollArea>
-        </Paper>
-    );
-};
-
-// New Mantine-based variable suggestions popup component for direct DOM usage
+// Unified variable suggestions popup component for both TipTap and direct DOM usage
 export const VariableSuggestionsPopup: React.FC<IVariableSuggestionsPopupProps> = ({
     suggestions,
     selectedIndex,
@@ -365,7 +258,7 @@ export const VariableSuggestionsPopup: React.FC<IVariableSuggestionsPopupProps> 
             if (itemRefs.current[selectedIndex] && scrollAreaRef.current) {
                 const item = itemRefs.current[selectedIndex];
                 const container = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-                
+
                 if (item && container) {
                     const itemTop = item.offsetTop;
                     const itemBottom = itemTop + item.offsetHeight;
@@ -456,6 +349,9 @@ export const VariableSuggestionsPopup: React.FC<IVariableSuggestionsPopupProps> 
         </Paper>
     );
 };
+
+// Alias for backward compatibility with TipTap integration
+export const SimpleVariableSuggestions = VariableSuggestionsPopup;
 
 // Mention configuration for TipTap with Mantine-based popup
 export const createMentionConfigWithMantine = (variables: IVariableSuggestion[], maxVisibleRows: number = 5, maxItems: number = 50) => ({
@@ -562,7 +458,7 @@ export const createMentionConfigWithMantine = (variables: IVariableSuggestion[],
                     currentCommand = props.command;
                     selectedIndex = 0;
 
-                    component = new ReactRenderer(SimpleVariableSuggestions, {
+                    component = new ReactRenderer(VariableSuggestionsPopup, {
                         props: {
                             suggestions: currentSuggestions,
                             selectedIndex: selectedIndex,
@@ -629,117 +525,6 @@ export const createMentionConfigWithMantine = (variables: IVariableSuggestion[],
                 },
                 onExit: () => {
                     cleanup();
-                },
-            };
-        },
-    },
-});
-
-// Legacy mention configuration for backward compatibility
-export const createMentionConfig = (variables: IVariableSuggestion[], maxVisibleRows: number = 5, maxItems: number = 50) => ({
-    HTMLAttributes: {
-        class: styles.variable,
-    },
-    renderText: ({ node }: any) => node.attrs.label || node.attrs.id,
-    renderHTML: ({ options, node }: any) => [
-        'span',
-        options.HTMLAttributes,
-        node.attrs.label || node.attrs.id,
-    ],
-    deleteTriggerWithBackspace: true,
-    suggestion: {
-        char: '{{',
-        pluginKey: new PluginKey('mention'),
-        items: ({ query }: { query: string }) => {
-            if (query.length > 0) {
-                // After typing a letter, show all matching suggestions (up to maxItems)
-                return variables.filter(variable =>
-                    variable.label.toLowerCase().includes(query.toLowerCase())
-                ).slice(0, maxItems);
-            } else {
-                // When just {{ is typed, show all available suggestions (up to maxItems)
-                return variables.slice(0, maxItems);
-            }
-        },
-        render: () => {
-            let component: any;
-            let popup: any;
-            let isDestroyed = false;
-
-            return {
-                onStart: (props: any) => {
-                    if (isDestroyed) return;
-
-                    component = new ReactRenderer(VariableList, {
-                        props: { ...props, maxVisibleRows, maxItems },
-                        editor: props.editor,
-                    });
-
-                    if (!props.clientRect) {
-                        return;
-                    }
-
-                    popup = tippy('body', {
-                        getReferenceClientRect: props.clientRect,
-                        appendTo: () => document.body,
-                        content: component.element,
-                        showOnCreate: true,
-                        interactive: true,
-                        trigger: 'manual',
-                        placement: 'bottom-start',
-                        onHidden: () => {
-                            // When popup is hidden by clicking outside or losing focus, clean up properly
-                            isDestroyed = true;
-                            component?.destroy();
-                            popup = null;
-                            component = null;
-                        },
-                    });
-                },
-                onUpdate: (props: any) => {
-                    if (isDestroyed || !component) return;
-
-                    component.updateProps(props);
-
-                    if (!popup || !popup[0] || popup[0].destroyed) {
-                        return;
-                    }
-
-                    try {
-                        popup[0].setProps({
-                            getReferenceClientRect: props.clientRect,
-                        });
-                    } catch (error) {
-                        // Silently ignore errors when trying to update destroyed instances
-                        console.warn('Failed to update tippy props:', error);
-                    }
-                },
-                onKeyDown: (props: any) => {
-                    if (isDestroyed || !popup?.[0]) return false;
-
-                    if (props.event.key === 'Escape') {
-                        try {
-                            popup[0].hide();
-                        } catch (error) {
-                            // Silently ignore errors when trying to hide destroyed instances
-                        }
-                        return true;
-                    }
-
-                    return component?.ref?.onKeyDown(props) || false;
-                },
-                onExit: () => {
-                    isDestroyed = true;
-                    if (popup?.[0] && !popup[0].destroyed) {
-                        try {
-                            popup[0].destroy();
-                        } catch (error) {
-                            // Silently ignore errors when trying to destroy already destroyed instances
-                        }
-                    }
-                    component?.destroy();
-                    popup = null;
-                    component = null;
                 },
             };
         },

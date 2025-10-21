@@ -14,6 +14,7 @@ Proceed using the sequential thinking method
 USE MCP server when appropirate
 Use Mantine components if any styles are needed use tailwindcss and then if not possible use custom css in module file
 NEVER commit unless i ask you
+DO NOT RUN npm run dev or npm build. THE DEV server is already running. 
 NEVER USE ANY, ALLWASY PROPERLY DEFINE TYPES AND INTERFACES.
 Never git commit and push unless i ask you. Never. NEVER GIT COMMIT UNLESS I SPECIFICLY ASK FOR IT
 Always check the import paths to be correct
