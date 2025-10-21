@@ -1,9 +1,51 @@
 import React from 'react';
-import { Text, Paper, ScrollArea, List } from '@mantine/core';
+import { Text, Paper, ScrollArea, List, MantineProvider } from '@mantine/core';
 import { ReactRenderer } from '@tiptap/react';
 import { PluginKey } from '@tiptap/pm/state';
 import tippy from 'tippy.js';
+import { createPortal } from 'react-dom';
+import { createRoot, Root } from 'react-dom/client';
+import { theme } from '../../theme';
 import styles from '../app/components/cms/shared/field-components/RichTextField.module.css';
+
+// Tippy instance type for mention popups
+export interface ITippyMentionInstance {
+    show: (triggerElement: HTMLElement, getReferenceClientRect: () => DOMRect, initialSuggestions?: IVariableSuggestion[]) => void;
+    hide: () => void;
+    destroy: () => void;
+    updateSuggestions: (suggestions: IVariableSuggestion[], selectedIndex?: number) => void;
+    handleKeyDown: (event: KeyboardEvent) => boolean;
+}
+
+// Wrapper component to provide Mantine context for tippy-rendered components
+interface IMantineProviderWrapperProps {
+    suggestions: IVariableSuggestion[];
+    selectedIndex: number;
+    maxVisibleRows: number;
+    maxItems: number;
+    onSelect: (suggestion: IVariableSuggestion) => void;
+}
+
+const MantineProviderWrapper: React.FC<IMantineProviderWrapperProps> = ({
+    suggestions,
+    selectedIndex,
+    maxVisibleRows,
+    maxItems,
+    onSelect,
+}) => {
+    return (
+        <MantineProvider theme={theme} defaultColorScheme="auto">
+            <VariableSuggestionsPopup
+                suggestions={suggestions}
+                selectedIndex={selectedIndex}
+                maxVisibleRows={maxVisibleRows}
+                maxItems={maxItems}
+                onSelect={onSelect}
+                useAbsolutePositioning={false}
+            />
+        </MantineProvider>
+    );
+};
 
 // Types
 export interface IVariableSuggestion {
@@ -353,6 +395,166 @@ export const VariableSuggestionsPopup: React.FC<IVariableSuggestionsPopupProps> 
 // Alias for backward compatibility with TipTap integration
 export const SimpleVariableSuggestions = VariableSuggestionsPopup;
 
+// Create tippy-based mention handler for regular input/textarea elements
+export const createTippyMentionHandler = (
+    variables: IVariableSuggestion[],
+    onSelect: (suggestion: IVariableSuggestion) => void,
+    maxVisibleRows: number = 5,
+    maxItems: number = 50
+): ITippyMentionInstance => {
+    let tippyInstance: any = null;
+    let root: Root | null = null;
+    let contentElement: HTMLDivElement | null = null;
+    let currentSuggestions: IVariableSuggestion[] = [];
+    let selectedIndex = 0;
+
+    const cleanup = () => {
+        if (tippyInstance?.[0]) {
+            try {
+                if (!tippyInstance[0].state.isDestroyed) {
+                    tippyInstance[0].destroy();
+                }
+            } catch (error) {
+                // Tippy already destroyed
+            }
+        }
+        // Don't synchronously unmount root - let React handle it
+        // Just clean up references
+        tippyInstance = null;
+        root = null;
+        contentElement = null;
+        currentSuggestions = [];
+        selectedIndex = 0;
+    };
+
+    const updateSuggestions = (suggestions: IVariableSuggestion[], newSelectedIndex: number = 0) => {
+        if (!root || !contentElement) return;
+
+        currentSuggestions = suggestions.slice(0, maxItems);
+        selectedIndex = Math.min(newSelectedIndex, currentSuggestions.length - 1);
+
+        root.render(
+            React.createElement('div', null,
+                React.createElement(MantineProviderWrapper, {
+                    suggestions: currentSuggestions,
+                    selectedIndex: selectedIndex,
+                    maxVisibleRows: maxVisibleRows,
+                    maxItems: maxItems,
+                    onSelect: onSelect,
+                })
+            )
+        );
+    };
+
+    const handleKeyDown = (event: KeyboardEvent): boolean => {
+        if (currentSuggestions.length === 0) return false;
+
+        switch (event.key) {
+            case 'ArrowDown':
+                event.preventDefault();
+                selectedIndex = selectedIndex < currentSuggestions.length - 1 ? selectedIndex + 1 : 0;
+                updateSuggestions(currentSuggestions, selectedIndex);
+                return true;
+
+            case 'ArrowUp':
+                event.preventDefault();
+                selectedIndex = selectedIndex > 0 ? selectedIndex - 1 : currentSuggestions.length - 1;
+                updateSuggestions(currentSuggestions, selectedIndex);
+                return true;
+
+            case 'Enter':
+                event.preventDefault();
+                if (currentSuggestions[selectedIndex]) {
+                    onSelect(currentSuggestions[selectedIndex]);
+                    hide();
+                }
+                return true;
+
+            case 'Escape':
+                event.preventDefault();
+                hide();
+                return true;
+
+            case 'Backspace':
+                // Check if Backspace would remove the {{ trigger
+                // This will be handled by the input change handler, but we can let it pass through
+                return false;
+        }
+
+        return false;
+    };
+
+    const show = (triggerElement: HTMLElement, getReferenceClientRect: () => DOMRect, initialSuggestions?: IVariableSuggestion[]) => {
+        // Clean up any existing instances first
+        cleanup();
+
+        // Use provided initial suggestions or default to variables
+        currentSuggestions = initialSuggestions || variables.slice(0, maxItems);
+        selectedIndex = 0;
+
+
+        // Create a container element
+        contentElement = document.createElement('div');
+        contentElement.className = 'tippy-mentions-content';
+
+        // Create React root and render the component with MantineProvider
+        root = createRoot(contentElement);
+        root.render(
+            React.createElement('div', null,
+                React.createElement(MantineProviderWrapper, {
+                    suggestions: currentSuggestions,
+                    selectedIndex: selectedIndex,
+                    maxVisibleRows: maxVisibleRows,
+                    maxItems: maxItems,
+                    onSelect: onSelect,
+                })
+            )
+        );
+
+        tippyInstance = tippy(triggerElement, {
+            getReferenceClientRect: getReferenceClientRect,
+            appendTo: () => document.body,
+            content: contentElement,
+            showOnCreate: true,
+            interactive: true,
+            trigger: 'manual',
+            placement: 'bottom-start',
+            zIndex: 999999,
+            arrow: false,
+            theme: 'light',
+            maxWidth: '400px',
+            popperOptions: {
+                modifiers: [
+                    { name: 'flip', options: { fallbackPlacements: ['top-start', 'bottom-end', 'top-end'] } },
+                    { name: 'preventOverflow', options: { boundary: 'viewport' } },
+                ],
+            },
+            onHidden: () => {
+                // Clean up when hidden but allow reopening
+                cleanup();
+            },
+        });
+    };
+
+    const hide = () => {
+        if (tippyInstance?.[0] && !tippyInstance[0].state.isDestroyed) {
+            tippyInstance[0].hide();
+        }
+    };
+
+    const destroy = () => {
+        cleanup();
+    };
+
+    return {
+        show,
+        hide,
+        destroy,
+        updateSuggestions,
+        handleKeyDown,
+    };
+};
+
 // Mention configuration for TipTap with Mantine-based popup
 export const createMentionConfigWithMantine = (variables: IVariableSuggestion[], maxVisibleRows: number = 5, maxItems: number = 50) => ({
     HTMLAttributes: {
@@ -485,6 +687,12 @@ export const createMentionConfigWithMantine = (variables: IVariableSuggestion[],
                         arrow: false,
                         theme: 'light',
                         maxWidth: '400px',
+                        popperOptions: {
+                            modifiers: [
+                                { name: 'flip', options: { fallbackPlacements: ['top-start', 'bottom-end', 'top-end'] } },
+                                { name: 'preventOverflow', options: { boundary: 'viewport' } },
+                            ],
+                        },
                         onHidden: () => {
                             // Clean up when hidden but allow reopening
                             cleanup();

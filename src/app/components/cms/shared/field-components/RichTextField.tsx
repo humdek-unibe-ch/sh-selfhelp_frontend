@@ -27,7 +27,6 @@ interface IRichTextFieldProps {
     label?: string;
     description?: string;
     required?: boolean;
-    variables?: IVariableSuggestion[];
     dataVariables?: Record<string, string>;
     textInputMode?: boolean;
     maxVisibleRows?: number;
@@ -45,7 +44,6 @@ export function RichTextField({
     label,
     description,
     required = false,
-    variables,
     dataVariables,
     textInputMode = false,
     maxVisibleRows = 5,
@@ -150,27 +148,10 @@ export function RichTextField({
         }));
     }, [dataVariables]);
 
-    // Combine all available variables: custom variables, then data variables from section context
+    // Convert dataVariables to mention suggestions
     const activeVariables = React.useMemo(() => {
-        const allVariables: IVariableSuggestion[] = [];
-
-        // Add custom variables first (highest priority)
-        if (variables && variables.length > 0) {
-            allVariables.push(...variables);
-        }
-
-        // Add data variables from section API
-        if (dataVariablesArray.length > 0) {
-            allVariables.push(...dataVariablesArray);
-        }
-
-        // Remove duplicates based on label
-        const uniqueVariables = allVariables.filter((variable, index, self) =>
-            index === self.findIndex(v => v.label === variable.label)
-        );
-
-        return uniqueVariables;
-    }, [variables, dataVariablesArray]);
+        return dataVariablesArray;
+    }, [dataVariablesArray]);
 
     // Recreate extensions when activeVariables change to ensure mention extension gets updated
     const editorExtensions = React.useMemo(() => {
