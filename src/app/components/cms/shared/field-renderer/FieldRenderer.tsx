@@ -6,6 +6,7 @@ import {
     GlobalCreatableSelectField,
     TextInputField,
     RichTextField,
+    TextInputWithMentions,
     CheckboxField,
     MonacoEditorField,
     SelectField,
@@ -32,7 +33,7 @@ export interface IGlobalFieldRendererProps {
     dataVariables?: Record<string, string>;
 }
 import { sanitizeName, validateName } from '../../../../../utils/name-validation.utils';
-import { IVariableSuggestion } from '../../../../../utils/mentions.utils';
+import { IVariableSuggestion } from '../../../../../config/mentions.config';
 
 // Use the actual field structure from API response
 export interface IFieldData {
@@ -215,19 +216,18 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
         );
     }
     
-    // Text and markdown-inline fields - use RichTextField in text input mode for variable support
+    // Text and markdown-inline fields - use TextInputWithMentions for single-line text with variable support
     if (field.type === 'text' || field.type === 'markdown-inline') {
 
         return renderFieldWithBadge(
-            <RichTextField
+            <TextInputWithMentions
                 fieldId={field.id}
                 value={fieldValue}
                 onChange={onChange}
                 placeholder={field.default_value || ''}
                 disabled={disabled}
                 dataVariables={dataVariables}
-                textInputMode={true}
-                {...(field.name === 'name' ? { validator: validateName, sanitize: sanitizeName } : {})}
+                {...(field.name === 'name' ? { validator: validateName } : {})}
             />
         );
     }

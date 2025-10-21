@@ -874,6 +874,41 @@ import { LoadingScreen } from '../components/shared/common/LoadingScreen';
 
 The application includes a sophisticated mention/variable suggestion system that allows users to insert dynamic variables (e.g., user data, page content, section data) into text fields using a `{{variable}}` syntax. The system provides real-time suggestions with keyboard navigation and integrates seamlessly across text inputs, rich text editors, and form builders.
 
+### Architecture
+
+#### Core Components
+
+1. **`src/config/mentions.config.ts`** - Centralized configuration module
+   - Contains all mention-related configuration functions
+   - Exports `IVariableSuggestion` interface
+   - Provides `formatVariable`, `extractVariableId`, `isFormattedVariable`, `sanitizeForDatabase` utilities
+   - Implements `createMentionConfig` for Tiptap integration
+
+2. **`src/app/components/shared/mentions/`** - Mentions module folder
+   - Contains all mention-related components
+   - Exports through index.ts for clean imports
+
+3. **`src/app/components/shared/mentions/MentionSuggestionList.tsx`** - Reusable suggestion list
+   - Mantine-based suggestion dropdown component
+   - Keyboard navigation support (Arrow Up/Down, Enter)
+   - Scrollable list with proper viewport management
+   - Consistent styling across all editors
+   - Fixed React Hooks rules violation
+
+4. **`src/app/components/shared/mentions/MentionEditor.tsx`** - Unified editor component
+   - Single component supporting two modes:
+     - **Rich Text Mode**: Full Tiptap editor with rich text features
+     - **Single Line Mode**: Plain text input with mentions (no HTML, no line breaks)
+   - Shared mention configuration
+   - Modular and easy to maintain
+   - Consistent placeholder styling
+
+5. **`src/app/components/shared/mentions/MentionEditor.module.css`** - Consistent styling
+   - Mention variable styling (green background, monospace font)
+   - Rich text editor styles
+   - Single line input styles (text input appearance)
+   - Consistent font sizes and placeholder styling
+
 ### Key Features
 
 **Real-time Variable Suggestions**:
@@ -893,61 +928,142 @@ The application includes a sophisticated mention/variable suggestion system that
 - Automatic deduplication of duplicate variables
 - Updates when section data changes
 
-### Architecture Implementation
+### Unified Mention System
 
-#### Core Components
+Both editors share the same:
+- Mention configuration
+- Suggestion dropdown component
+- Keyboard navigation
+- Variable formatting (`{{variable}}`)
+- Styling (green background, monospace font)
 
-**Suggestion Popup Components**:
-```typescript
-// Three main popup implementations for different use cases
-- VariableList: Basic variable list with scroll and selection
-- SimpleVariableSuggestions: Lightweight popup for simple inputs
-- VariableSuggestionsPopup: Full-featured popup with advanced features
-```
+### Rich Text Mode (RichTextField)
 
-**Mention Configuration**:
-```typescript
-// Main configuration function (src/utils/mentions.utils.tsx)
-createMentionConfigWithMantine({
-  variables: [...],           // Custom variables
-  dataVariables: [...],       // Dynamic section variables
-  maxVisibleRows: 5,          // Visible items before scrolling
-  maxItems: 50,               // Total items to display
-  onSelect: (variable) => {...} // Variable insertion callback
-})
-```
-
-#### Integration Points
-
-**Rich Text Editor (TipTap)**:
-```typescript
-// Editor extensions with mention support
-const editorExtensions = useMemo(() => [
-  ...baseExtensions,
-  Mention.configure({
-    HTMLAttributes: { class: 'mention' },
-    suggestion: createMentionConfigWithMantine({
-      variables: activeVariables,
-      dataVariables,
-      maxVisibleRows: 5,
-      maxItems: 50
-    })
-  })
-], [activeVariables, dataVariables]);
-```
-
-**Plain Text Inputs**:
-```typescript
-// Direct integration for text inputs and textareas
-<TextInputWithMentions
-  value={value}
-  onChange={onChange}
-  variables={variables}
-  dataVariables={dataVariables}
+```tsx
+<MentionEditor
+    value={value}
+    onChange={onChange}
+    dataVariables={dataVariables}
+    singleLineMode={false}
+    showToolbar={true}
 />
 ```
 
-#### Variable Types
+**Features:**
+- Full rich text editing (bold, italic, underline, etc.)
+- Headings (H1-H4)
+- Lists (ordered and unordered)
+- Links
+- Text alignment
+- Mentions with `{{variable}}` format
+- HTML output sanitized for database storage
+
+### Single Line Mode (TextInputWithMentions)
+
+```tsx
+<MentionEditor
+    value={value}
+    onChange={onChange}
+    dataVariables={dataVariables}
+    singleLineMode={true}
+    showToolbar={false}
+/>
+```
+
+**Features:**
+- Looks like Mantine Input component
+- Single line only (no line breaks)
+- Mentions with `{{variable}}` format
+- **Plain text output** (NO HTML)
+- Enter key prevented
+- Multiline paste converted to single line
+- Behaves exactly like a text input
+
+### Component Usage
+
+#### Rich Text Editor with Mentions
+
+```tsx
+<RichTextField
+    fieldId={field.id}
+    value={value}
+    onChange={handleChange}
+    placeholder="Enter rich text..."
+    label="Description"
+    description="Rich text editor with mention support"
+    required={false}
+    disabled={false}
+    dataVariables={{
+        user_email: 'user_email',
+        user_name: 'user_name',
+        user_phone: 'user_phone'
+    }}
+    maxVisibleRows={5}
+    maxItems={50}
+/>
+```
+
+**Output:** HTML with sanitized mentions: `<p>Hello {{user_name}}, your email is {{user_email}}</p>`
+
+#### Text Input with Mentions
+
+```tsx
+<TextInputWithMentions
+    fieldId={field.id}
+    value={value}
+    onChange={handleChange}
+    placeholder="Enter text..."
+    label="Subject"
+    description="Single line text with mention support"
+    required={true}
+    disabled={false}
+    dataVariables={{
+        user_email: 'user_email',
+        user_name: 'user_name'
+    }}
+    maxVisibleRows={5}
+    maxItems={50}
+/>
+```
+
+**Output:** Plain text with mentions: `Hello {{user_name}}, your email is {{user_email}}`
+
+#### Unified MentionEditor (Advanced)
+
+```tsx
+// Rich text mode
+<MentionEditor
+    value={value}
+    onChange={onChange}
+    placeholder="Start typing..."
+    label="Content"
+    description="Editor description"
+    required={false}
+    disabled={false}
+    error={errorMessage}
+    dataVariables={{
+        user_email: 'user_email',
+        user_name: 'user_name'
+    }}
+    maxVisibleRows={5}
+    maxItems={50}
+    singleLineMode={false}  // Rich text with HTML
+    showToolbar={true}      // Show formatting toolbar
+/>
+
+// Text input mode
+<MentionEditor
+    value={value}
+    onChange={onChange}
+    placeholder="Type here..."
+    label="Subject"
+    dataVariables={variables}
+    singleLineMode={true}   // Plain text, no HTML
+    showToolbar={false}     // Hide toolbar
+/>
+```
+
+### Variable Types
 
 **Custom Variables**: User-defined variables for specific use cases
 ```typescript
@@ -967,27 +1083,133 @@ const dataVariables = [
 ];
 ```
 
+### Mention Configuration
+
+#### Variable Format
+
+All mentions use the double curly brace format: `{{variable_name}}`
+
+#### Data Variables
+
+Pass variables as a Record:
+
+```tsx
+dataVariables={{
+    user_email: 'user_email',
+    user_name: 'user_name',
+    user_phone: 'user_phone'
+}}
+```
+
+These are automatically converted to `IVariableSuggestion` format internally.
+
+#### Trigger
+
+Type `{{` to trigger the mention dropdown.
+
+#### Keyboard Navigation
+
+- **Arrow Down**: Move to next suggestion
+- **Arrow Up**: Move to previous suggestion
+- **Enter**: Select current suggestion
+- **Escape**: Close dropdown
+
+### Utility Functions
+
+#### Format Variable
+
+```tsx
+import { formatVariable } from '@/config/mentions.config';
+
+const formatted = formatVariable('user_email');
+// Returns: "{{user_email}}"
+```
+
+#### Extract Variable ID
+
+```tsx
+import { extractVariableId } from '@/config/mentions.config';
+
+const id = extractVariableId('{{user_email}}');
+// Returns: "user_email"
+
+const invalid = extractVariableId('user_email');
+// Returns: null
+```
+
+#### Check Variable Format
+
+```tsx
+import { isFormattedVariable } from '@/config/mentions.config';
+
+const isValid = isFormattedVariable('{{user_email}}');
+// Returns: true
+
+const isInvalid = isFormattedVariable('user_email');
+// Returns: false
+```
+
+#### Sanitize for Database
+
+```tsx
+import { sanitizeForDatabase } from '@/config/mentions.config';
+
+const html = '<p>Hello <span data-type="mention" data-id="user_name">user_name</span></p>';
+const sanitized = sanitizeForDatabase(html);
+// Returns: "<p>Hello {{user_name}}</p>"
+```
+
+### Technical Implementation
+
+#### Mention Extension Configuration
+
+The `createMentionConfig` function in `mentions.config.ts` creates a Tiptap Mention extension configuration that:
+
+1. Uses `{{` as the trigger character
+2. Filters suggestions based on user input
+3. Renders mentions as `{{variable_name}}`
+4. Handles keyboard navigation
+5. Displays suggestions using `MentionSuggestionList`
+
+#### Single Line Mode Implementation
+
+Single line mode adds two Tiptap extensions:
+
+1. **preventNewLines**: Prevents Enter key from creating new lines
+2. **singleLinePaste**: Converts multiline paste to single line
+
+#### Database Sanitization
+
+The `sanitizeForDatabase` function:
+
+1. Parses HTML content
+2. Finds all mention spans (`[data-type="mention"]`)
+3. Replaces them with plain text: `{{variable_name}}`
+4. Returns sanitized HTML (for rich text) or plain text (for single line)
+
 ### Recent Improvements & Fixes
 
 #### Critical Issues Resolved
 
-**1. Popup Reopening Issue ✅**
-- **Problem**: Mention popup would only appear once, requiring page refresh
-- **Root Cause**: `isDestroyed` flag prevented reopening after popup closure
-- **Solution**: Removed blocking flag, implemented proper cleanup function that resets state without permanent blocking
+**1. React Hooks Error ✅**
+- **Problem**: MentionSuggestionList was calling `return null` before all hooks, violating React's Rules of Hooks
+- **Fix**: Moved early return check to after all hooks (useState, useRef, useEffect, useImperativeHandle)
 
-**2. Dynamic Variable Updates ✅**
-- **Problem**: Variables from section API weren't updating without refresh
-- **Root Cause**: Extension created once, captured variables in closure
-- **Solution**: Memoized extensions with proper dependencies, recreates mention extension when variables change
+**2. Placeholder Styling ✅**
+- **Problem**: Placeholder text had inconsistent font size and styling compared to existing RichTextField
+- **Fix**: Added proper placeholder styling to match Mantine's standard placeholder appearance
 
-**3. Arrow Key Navigation Scrolling ✅**
-- **Problem**: Selected items went off-screen during keyboard navigation
-- **Solution**: Implemented scroll-into-view logic with item refs and container refs, calculates positions and auto-scrolls appropriately
+**3. Files Organization ✅**
+- **Problem**: Mention files were scattered across the codebase
+- **Fix**: Created dedicated `src/app/components/shared/mentions/` folder with clean exports
 
-**4. Consistent Popup Styling ✅**
-- **Problem**: Different popups had inconsistent appearance
-- **Solution**: Standardized all popups to use consistent sizing (minWidth: 200px, maxWidth: 400px), item height (36px), colors, and scrollbar styling
+**4. Deprecated Code Removal ✅**
+- **Problem**: Old mentions.utils.tsx was confusing and unnecessary
+- **Fix**: Removed deprecated file, updated all imports to use mentions.config.ts directly
+
+**5. FieldRenderer Fix ✅**
+- **Problem**: FieldRenderer was using RichTextField with non-existent textInputMode prop
+- **Fix**: Changed to use TextInputWithMentions component for text/markdown-inline fields
 
 #### Performance Optimizations
 
@@ -1003,48 +1225,16 @@ activeVariables = useMemo(() => [...], [variables, dataVariables]);
 editorExtensions = useMemo(() => [...baseExtensions, Mention], [activeVariables, baseExtensions]);
 ```
 
-**Cleanup Pattern**:
-```typescript
-const cleanup = () => {
-  // Safe destruction check
-  if (popup?.[0] && !popup[0].state.isDestroyed) {
-    popup[0].destroy();
-  }
-  // Reset state without blocking future opens
-  popup = null;
-  component = null;
-  selectedIndex = 0;
-  currentSuggestions = [];
-};
-```
-
-#### Files Modified
-
-**Core Utilities** (`src/utils/mentions.utils.tsx`):
-- Fixed Enter key handling for variable insertion
-- Changed initial display to show all items (up to maxItems)
-- Added scroll-into-view for all popup components
-- Improved cleanup logic to allow reopening
-
-**Rich Text Field** (`src/app/components/cms/shared/field-components/RichTextField.tsx`):
-- Memoized base extensions with stable dependencies
-- Recreates editor extensions when activeVariables change
-
-**Text Components** (`TextInputWithMentions.tsx`, `TextareaWithMentions.tsx`):
-- Fixed initial suggestions to show all available variables
-- Consistent behavior across all text input components
-
-**Modal Components** (`ConditionBuilderModal.tsx`, `FilterBuilderInline.tsx`):
-- Factory functions for dataVariables closure capture
-- Memoized components to prevent focus loss
-
 #### Testing Checklist
 
-✅ **Basic Functionality**: Typing `{{` triggers popup, clicking inserts variable  
-✅ **Keyboard Navigation**: Arrow keys navigate, selection scrolls into view, Enter inserts  
-✅ **Dynamic Updates**: Section variables update without refresh  
-✅ **Consistent Styling**: All popups have uniform appearance and behavior  
-✅ **Multiple Reopens**: Popups can be opened repeatedly without refresh  
+✅ **Basic Functionality**: Typing `{{` triggers popup, clicking inserts variable
+✅ **Keyboard Navigation**: Arrow keys navigate, selection scrolls into view, Enter inserts
+✅ **Dynamic Updates**: Section variables update without refresh
+✅ **Consistent Styling**: All popups have uniform appearance and behavior
+✅ **Multiple Reopens**: Popups can be opened repeatedly without refresh
+✅ **No React Errors**: Hooks rules followed, no console errors
+✅ **Consistent Placeholder**: Font sizes and styling match Mantine standards
+✅ **Proper Imports**: All imports updated to new organized structure
 
 ### Usage Examples
 
@@ -1079,14 +1269,153 @@ const cleanup = () => {
 />
 ```
 
+### Migration Guide
+
+#### For Existing Code Using RichTextField
+
+No changes needed - the component API remains the same.
+
+#### For Existing Code Using TextInputWithMentions
+
+No changes needed - the component API remains the same.
+
+#### For New Components
+
+Use the unified `MentionEditor` component directly:
+
+```tsx
+import { MentionEditor } from '@/app/components/shared/mentions';
+
+// For rich text with mentions
+<MentionEditor
+    value={value}
+    onChange={onChange}
+    dataVariables={{ user_email: 'user_email', user_name: 'user_name' }}
+    singleLineMode={false}
+    showToolbar={true}
+/>
+
+// For text input with mentions
+<MentionEditor
+    value={value}
+    onChange={onChange}
+    dataVariables={{ user_email: 'user_email', user_name: 'user_name' }}
+    singleLineMode={true}
+    showToolbar={false}
+/>
+```
+
+### Common Use Cases
+
+#### 1. Email Templates
+
+```tsx
+<RichTextField
+    fieldId={1}
+    value={emailBody}
+    onChange={setEmailBody}
+    label="Email Body"
+    dataVariables={{
+        recipient_name: 'recipient_name',
+        recipient_email: 'recipient_email',
+        sender_name: 'sender_name'
+    }}
+/>
+```
+
+#### 2. SMS Templates
+
+```tsx
+<TextInputWithMentions
+    fieldId={2}
+    value={smsMessage}
+    onChange={setSmsMessage}
+    label="SMS Message"
+    dataVariables={{
+        user_name: 'user_name',
+        verification_code: 'verification_code'
+    }}
+/>
+```
+
+#### 3. Notification Messages
+
+```tsx
+<TextInputWithMentions
+    fieldId={3}
+    value={notification}
+    onChange={setNotification}
+    label="Notification"
+    dataVariables={{
+        user_name: 'user_name',
+        action: 'action',
+        timestamp: 'timestamp'
+    }}
+/>
+```
+
+### Benefits
+
+#### 1. Code Reduction
+- **RichTextField**: Reduced from ~320 lines to ~60 lines (81% reduction)
+- **TextInputWithMentions**: Reduced from ~230 lines to ~60 lines (74% reduction)
+- **Total**: Eliminated ~430 lines of duplicate code
+
+#### 2. Maintainability
+- Single source of truth for mention functionality
+- Centralized configuration
+- Modular architecture
+- Easy to extend and modify
+
+#### 3. Consistency
+- Same mention behavior across all editors
+- Unified styling
+- Consistent keyboard navigation
+- Same variable format
+
+#### 4. Type Safety
+- Strongly typed interfaces
+- Proper TypeScript support
+- No `any` types in user-facing APIs
+
+#### 5. Best Practices
+- Follows official Tiptap patterns
+- Uses Mantine UI components
+- Modular CSS with CSS modules
+- React best practices (hooks, memoization)
+
+### Troubleshooting
+
+#### Mentions not appearing
+
+1. Check that `dataVariables` prop is provided
+2. Verify variables are in correct format: `{ key: 'value' }`
+3. Ensure you're typing `{{` (double curly brace)
+
+#### Output contains HTML when using TextInputWithMentions
+
+This shouldn't happen. If it does:
+1. Verify `singleLineMode={true}` is set
+2. Check that you're using the latest version
+3. Report as a bug
+
+#### Line breaks in TextInputWithMentions
+
+This shouldn't happen. Single line mode prevents:
+- Enter key creating new lines
+- Paste with line breaks (automatically converted to spaces)
+
+If you see line breaks, please report as a bug.
+
 ### Future Enhancements
 
 **Potential Improvements**:
-1. **Fuzzy Search**: Implement fuzzy matching for better filtering
-2. **Variable Groups**: Organize variables by category (User, Page, Section)
-3. **Variable Preview**: Show variable values in popup
-4. **Recent Variables**: Prioritize recently used variables
-5. **Keyboard Shortcuts**: Ctrl+Space to manually trigger suggestions
+1. **Custom Mention Styles**: Allow custom styling per mention type
+2. **Mention Validation**: Validate mentions against available variables
+3. **Autocomplete**: Add autocomplete for partial variable names
+4. **Multi-Trigger**: Support multiple trigger characters (e.g., `@` for users, `#` for tags)
+5. **Mention Preview**: Show variable value on hover
+6. **Mention Editing**: Allow editing mentions in place
 
 **Known Limitations**:
 - Variables must start with `{{` (no other trigger syntax)
