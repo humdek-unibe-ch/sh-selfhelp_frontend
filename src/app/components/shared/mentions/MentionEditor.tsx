@@ -33,6 +33,8 @@ interface IMentionEditorProps {
     singleLineMode?: boolean;
     /** If true, shows rich text toolbar (only applies when singleLineMode is false) */
     showToolbar?: boolean;
+    /** If true, prevents auto-focus when the editor mounts */
+    autoFocus?: boolean;
 }
 
 /**
@@ -58,6 +60,7 @@ export function MentionEditor({
     maxItems = 50,
     singleLineMode = false,
     showToolbar = true,
+    autoFocus = true,
 }: IMentionEditorProps) {
     const isUpdatingRef = React.useRef(false);
 
@@ -184,6 +187,7 @@ export function MentionEditor({
         },
         editable: !disabled,
         immediatelyRender: false,
+        autofocus: autoFocus,
     });
 
     // Update editor content when value prop changes externally

@@ -16,6 +16,7 @@ interface ITextInputWithMentionsProps {
     dataVariables?: Record<string, string>;
     maxVisibleRows?: number;
     maxItems?: number;
+    autoFocus?: boolean;
 }
 
 /**
@@ -38,6 +39,7 @@ export function TextInputWithMentions({
     dataVariables,
     maxVisibleRows = 5,
     maxItems = 50,
+    autoFocus = true,
 }: ITextInputWithMentionsProps) {
     const errorMessage = validator ? (validator(value).isValid ? undefined : validator(value).error) : undefined;
 
@@ -57,6 +59,7 @@ export function TextInputWithMentions({
             maxItems={maxItems}
             singleLineMode={true}
             showToolbar={false}
+            autoFocus={autoFocus}
         />
     );
 }

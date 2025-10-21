@@ -72,10 +72,13 @@ export function jsonLogicToRules(jsonLogic: string | RQBJsonLogic): RuleGroupTyp
                         // This is a nested rule group
                         processRules(rule);
                     } else if (rule.field && typeof rule.field === 'string') {
-                        // Check if this field is a custom variable that should be converted back
-                        if (rule.field.startsWith('{{') && rule.field.endsWith('}}')) {
+                        // Check if this field is a custom variable (contains {{ anywhere)
+                        // This handles cases like "{{parent2.record_id}} " (with trailing space)
+                        if (rule.field.includes('{{')) {
                             // This is a custom variable field - it should stay as-is since
                             // the new approach allows custom field names directly
+                            // Trim any extra whitespace that might have been added
+                            rule.field = rule.field.trim();
                         }
                         // For other cases where the field is not a known field, convert to field_name
                         else if (!['user_group', 'language', 'platform', 'page_keyword', 'current_date', 'current_datetime', 'current_time', 'last_login'].includes(rule.field)) {
