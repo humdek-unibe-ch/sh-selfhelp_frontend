@@ -219,6 +219,16 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
     // Text and markdown-inline fields - use TextInputWithMentions for single-line text with variable support
     if (field.type === 'text' || field.type === 'markdown-inline') {
 
+        if (field.name === 'name') {
+            return renderFieldWithBadge(
+                <TextInputField
+                    fieldId={field.id}
+                    value={fieldValue}
+                    onChange={onChange}
+                />
+            );
+        }
+
         return renderFieldWithBadge(
             <TextInputWithMentions
                 fieldId={field.id}
