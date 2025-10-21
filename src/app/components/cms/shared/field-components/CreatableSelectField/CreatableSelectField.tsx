@@ -14,7 +14,6 @@ import {
     useCombobox
 } from '@mantine/core';
 import { TextInputWithMentions } from '../TextInputWithMentions';
-import { IVariableSuggestion } from '../../../../../../utils/mentions.utils';
 import classes from './CreatableSelectField.module.css';
 import { IconPlus, IconX, IconCheck, IconChevronDown } from '@tabler/icons-react';
 import React, { useState, useCallback } from 'react';
@@ -110,7 +109,6 @@ export interface ICreatableSelectFieldProps {
     validationErrorMessage?: string;
 
     // Variables for mentions in custom input fields
-    variables?: IVariableSuggestion[];
     dataVariables?: Record<string, string>;
 }
 
@@ -135,7 +133,6 @@ export function CreatableSelectField({
     validateSingle = CREATABLE_SELECT_CONFIGS.default.validateSingle!,
     validateMultiple = CREATABLE_SELECT_CONFIGS.default.validateMultiple!,
     validationErrorMessage = CREATABLE_SELECT_CONFIGS.default.validationErrorMessage,
-    variables,
     dataVariables
 }: ICreatableSelectFieldProps) {
     const [showCreateInput, setShowCreateInput] = useState(false);
@@ -143,37 +140,6 @@ export function CreatableSelectField({
     const [newValue, setNewValue] = useState('');
     const [multiValues, setMultiValues] = useState('');
     const [search, setSearch] = useState('');
-
-    // Convert dataVariables object to IVariableSuggestion array
-    const dataVariablesArray: IVariableSuggestion[] = React.useMemo(() => {
-        if (!dataVariables) return [];
-        return Object.values(dataVariables).map(variableName => ({
-            id: variableName,
-            label: variableName,
-        }));
-    }, [dataVariables]);
-
-    // Combine all available variables: custom variables, then data variables from section context
-    const activeVariables = React.useMemo(() => {
-        const allVariables: IVariableSuggestion[] = [];
-
-        // Add custom variables first (highest priority)
-        if (variables && variables.length > 0) {
-            allVariables.push(...variables);
-        }
-
-        // Add data variables from section API
-        if (dataVariablesArray.length > 0) {
-            allVariables.push(...dataVariablesArray);
-        }
-
-        // Remove duplicates based on label
-        const uniqueVariables = allVariables.filter((variable, index, self) =>
-            index === self.findIndex(v => v.label === variable.label)
-        );
-
-        return uniqueVariables;
-    }, [variables, dataVariablesArray]);
 
     const combobox = useCombobox({
         onDropdownClose: () => {
@@ -374,7 +340,6 @@ export function CreatableSelectField({
                                         placeholder={singleCreatePlaceholder}
                                         disabled={false}
                                         validator={newValue ? (value) => ({ isValid: validateSingle(value), error: validateSingle(value) ? undefined : validationErrorMessage }) : undefined}
-                                        variables={activeVariables}
                                         dataVariables={dataVariables}
                                     />
                                 </div>
@@ -415,7 +380,6 @@ export function CreatableSelectField({
                                         placeholder={multiCreatePlaceholder}
                                         disabled={false}
                                         validator={multiValues ? (value) => ({ isValid: validateMultiple(value), error: validateMultiple(value) ? undefined : validationErrorMessage }) : undefined}
-                                        variables={activeVariables}
                                         dataVariables={dataVariables}
                                     />
                                 </div>
@@ -574,7 +538,6 @@ export function CreatableSelectField({
                                     placeholder={singleCreatePlaceholder}
                                     disabled={false}
                                     validator={newValue ? (value) => ({ isValid: validateSingle(value), error: validateSingle(value) ? undefined : validationErrorMessage }) : undefined}
-                                    variables={variables}
                                     dataVariables={dataVariables}
                                 />
                             </div>
@@ -609,7 +572,6 @@ export function CreatableSelectField({
                                     placeholder={multiCreatePlaceholder}
                                     disabled={false}
                                     validator={multiValues ? (value) => ({ isValid: validateMultiple(value), error: validateMultiple(value) ? undefined : validationErrorMessage }) : undefined}
-                                    variables={variables}
                                     dataVariables={dataVariables}
                                 />
                             </div>

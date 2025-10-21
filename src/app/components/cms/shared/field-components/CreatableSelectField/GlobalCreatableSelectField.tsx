@@ -1,6 +1,5 @@
 'use client';
 
-import { IVariableSuggestion } from '../../../../../../utils/mentions.utils';
 import { useCssClasses } from '../../../../../../hooks/useCssClasses';
 import { IFieldConfig } from '../../../../../../types/requests/admin/fields.types';
 import { CreatableSelectField, CREATABLE_SELECT_CONFIGS } from './CreatableSelectField';
@@ -13,7 +12,6 @@ export interface IGlobalCreatableSelectFieldProps {
     disabled?: boolean;
     isLoading?: boolean;
     clearable?: boolean;
-    variables?: IVariableSuggestion[];
     dataVariables?: Record<string, string>;
 }
 
@@ -25,7 +23,6 @@ export function GlobalCreatableSelectField({
     disabled = false,
     isLoading = false,
     clearable = false,
-    variables,
     dataVariables
 }: IGlobalCreatableSelectFieldProps) {
     const { data: cssClasses, isLoading: cssLoading } = useCssClasses();
@@ -52,7 +49,6 @@ export function GlobalCreatableSelectField({
             isLoading={isLoading || cssLoading}
             clearable={clearable}
             {...cssConfig}
-            variables={variables}
             dataVariables={dataVariables}
         />
     );

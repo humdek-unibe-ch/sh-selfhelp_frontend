@@ -286,6 +286,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
                 onChange={onChange}
                 placeholder="Search and select group..."
                 disabled={disabled}
+                dataVariables={dataVariables}
             />
         );
     }   
@@ -315,6 +316,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
                 onChange={onChange}
                 placeholder="Search and select data table..."
                 disabled={disabled}
+                dataVariables={dataVariables}
             />
         );
     }
@@ -347,6 +349,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
                 onChange={onChange}
                 placeholder="Search and select page keyword..."
                 disabled={disabled}
+                dataVariables={dataVariables}
             />
         );
     }
@@ -379,6 +382,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
                 onChange={onChange}
                 placeholder="Search and select image..."
                 disabled={disabled}
+                dataVariables={dataVariables}
             />
         );
     }
@@ -411,6 +415,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
                 onChange={onChange}
                 placeholder="Search and select video..."
                 disabled={disabled}
+                dataVariables={dataVariables}
             />
         );
     }
@@ -443,6 +448,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
                 onChange={onChange}
                 placeholder="Select an option..."
                 disabled={disabled}
+                dataVariables={dataVariables}
             />
         );
     }

@@ -29,6 +29,7 @@ interface ISelectFieldProps {
     validateSingle?: (input: string) => boolean;
     validateMultiple?: (input: string) => boolean;
     validationErrorMessage?: string;
+    dataVariables?: Record<string, string>;
 }
 
 export function SelectField({
@@ -52,7 +53,8 @@ export function SelectField({
     cancelButtonText,
     validateSingle,
     validateMultiple,
-    validationErrorMessage
+    validationErrorMessage,
+    dataVariables
 }: ISelectFieldProps) {
 
     // Use CreatableSelectField if creatable is enabled
@@ -79,6 +81,7 @@ export function SelectField({
                 validateSingle={validateSingle}
                 validateMultiple={validateMultiple}
                 validationErrorMessage={validationErrorMessage}
+                dataVariables={dataVariables}
             />
         );
     }
