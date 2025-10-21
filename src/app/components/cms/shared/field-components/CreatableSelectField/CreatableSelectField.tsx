@@ -66,7 +66,7 @@ export const CREATABLE_SELECT_CONFIGS = {
         validateSingle: (input: string): boolean => {
             // Allow CSS classes with embedded variables
             if (!input.trim()) return false;
-            const varRegex = /\{\{[a-zA-Z_][a-zA-Z0-9_]*\}\}/g;
+            const varRegex = /\{\{[a-zA-Z_][a-zA-Z0-9_.]*\}\}/g;
             const invalidVars = input.match(/\{\{[^}]*(?:\{|\}[^}]*\{)/g);
             if (invalidVars) return false;
             const withoutVars = input.replace(varRegex, '');
