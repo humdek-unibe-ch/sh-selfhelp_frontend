@@ -327,6 +327,13 @@ export interface IBaseStyle {
     css_mobile: string | null;
     debug: number | null;
     data_config: string | number | null;
+    condition_debug?: {
+        condition?: string;
+        result: boolean;
+        error?: any[];
+        variables?: Record<string, any>;
+        condition_object?: any;
+    } | null;
 }
 
 export interface IStyleWithSpacing extends IBaseStyle {

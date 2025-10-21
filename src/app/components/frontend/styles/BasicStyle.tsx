@@ -25,7 +25,7 @@ import {
     FormStyle,
     ProfileStyle
 } from './SelfHelpStyles';
-import DebugWrapper from './shared/DebugWrapper';
+import DebugWrapper from './shared/debug-wrapper/DebugWrapper';
 import {
     ILoginStyle, IProfileStyle, IValidateStyle, IRegisterStyle, IResetPasswordStyle, ITwoFactorAuthStyle,
     IContainerStyle, ICenterStyle, IDividerStyle, IPaperStyle, IAlertStyle,

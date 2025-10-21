@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Indicator, Popover, Text, ScrollArea, Badge, Group, Box, useMantineColorScheme, ActionIcon, TextInput, Stack } from '@mantine/core';
-import { IconBug, IconSearch, IconX, IconChevronsDown, IconChevronsUp } from '@tabler/icons-react';
+import { Indicator, Popover, Text, ScrollArea, Badge, Group, Box, useMantineColorScheme, ActionIcon, TextInput, Stack, Alert } from '@mantine/core';
+import { IconBug, IconSearch, IconX, IconChevronsDown, IconChevronsUp, IconAlertTriangle } from '@tabler/icons-react';
 import { JsonEditor, githubLightTheme, githubDarkTheme } from 'json-edit-react';
-import type { TStyle } from '../../../../../types/common/styles.types';
+import type { TStyle } from '../../../../../../types/common/styles.types';
 import styles from './DebugWrapper.module.css';
 
 /**
@@ -27,6 +27,9 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
 
     // Check if debug is enabled (debug field is truthy)
     const isDebugEnabled = style.debug && style.debug > 0;
+
+    // Check if condition failed (condition_debug.result is false)
+    const conditionFailed = style.condition_debug && style.condition_debug.result === false;
 
     // Function to highlight search text in DOM elements
     const highlightSearchText = (element: HTMLElement, searchText: string) => {
@@ -95,14 +98,59 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
         return <>{children}</>;
     }
 
+    // Render placeholder when condition failed
+    const renderContent = () => {
+        if (conditionFailed) {
+            return (
+                <Box
+                    p="md"
+                    style={{
+                        border: '1px dashed var(--mantine-color-red-4)',
+                        borderRadius: 'var(--mantine-radius-sm)',
+                        backgroundColor: 'var(--mantine-color-red-0)',
+                        minHeight: '40px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}
+                >
+                    <Alert
+                        variant="light"
+                        color="red"
+                        title="Condition Failed"
+                        icon={<IconAlertTriangle />}
+                        style={{ width: '100%' }}
+                    >
+                        <Text size="sm">
+                            This element is hidden because its condition evaluated to false.
+                            Debug information is still available.
+                        </Text>
+                    </Alert>
+                </Box>
+            );
+        }
+
+        return (
+            <Box
+                style={{
+                    border: '1px solid var(--mantine-color-orange-4)',
+                    // borderRadius: 'var(--mantine-radius-sm)',
+                }}
+            >
+                {children}
+            </Box>
+        );
+    };
+
     return (
-        <Indicator
-            size={16}
-            offset={2}
-            position="top-end"
-            color='transparent'
-            m="xs"
-            label={
+        <Box maw={'calc(100% - var(--mantine-spacing-xs) / 2)'}>
+            <Indicator
+                size={16}
+                offset={2}
+                position="top-end"
+                color='transparent'
+                m={'xs'}
+                label={
                 <Popover
                     opened={opened}
                     onChange={setOpened}
@@ -116,7 +164,7 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
                         <ActionIcon
                             variant='filled'
                             size='xs'
-                            color='orange'
+                            color={conditionFailed ? 'red' : 'orange'}
                             onMouseEnter={() => setOpened(true)}
                             style={{ cursor: 'pointer' }}
                         >
@@ -127,24 +175,102 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
                     <Popover.Dropdown>
                         <Stack gap="md">
                             <Group justify="space-between">
-                                <Text size="sm" fw={600} c="orange">
-                                    Style Debug Info
-                                </Text>
-                                <Badge size="sm" variant="light" color="orange">
+                                <Box>
+                                    <Text size="sm" fw={600} c={conditionFailed ? 'red' : 'orange'} component="span">
+                                        Style Debug Info
+                                    </Text>
+                                    {conditionFailed && (
+                                        <Badge size="xs" color="red" ml="xs">
+                                            Condition Failed
+                                        </Badge>
+                                    )}
+                                </Box>
+                                <Badge size="sm" variant="light" color={conditionFailed ? 'red' : 'orange'}>
                                     ID: {style.id}
                                 </Badge>
                             </Group>
 
                             <Group>
-                                <Badge size="sm" color="orange">
+                                <Badge size="sm" color={conditionFailed ? 'red' : 'orange'}>
                                     {style.style_name}
                                 </Badge>
                                 {style.section_name && (
-                                    <Badge size="sm" variant="outline" color="orange">
+                                    <Badge size="sm" variant="outline" color={conditionFailed ? 'red' : 'orange'}>
                                         {style.section_name}
                                     </Badge>
                                 )}
+                                {style.condition_debug && (
+                                    <Badge
+                                        size="sm"
+                                        color={style.condition_debug.result ? 'green' : 'red'}
+                                        variant="light"
+                                    >
+                                        Condition: {style.condition_debug.result ? 'PASS' : 'FAIL'}
+                                    </Badge>
+                                )}
                             </Group>
+
+                            {/* Condition Debug Section */}
+                            {style.condition_debug && (
+                                <Box>
+                                    <Text size="sm" fw={500} mb="xs">
+                                        Condition Analysis
+                                    </Text>
+                                    <Stack gap="xs">
+                                        <Group gap="xs">
+                                            <Text size="xs" c="dimmed">Result:</Text>
+                                            <Badge
+                                                size="xs"
+                                                color={style.condition_debug.result ? 'green' : 'red'}
+                                            >
+                                                {style.condition_debug.result ? 'TRUE' : 'FALSE'}
+                                            </Badge>
+                                        </Group>
+
+                                        {style.condition_debug.error && style.condition_debug.error.length > 0 && (
+                                            <Box>
+                                                <Text size="xs" c="dimmed" mb="xs">Errors:</Text>
+                                                {style.condition_debug.error.map((error: string, index: number) => (
+                                                    <Text key={index} size="xs" c="red" style={{ fontFamily: 'monospace' }}>
+                                                        {error}
+                                                    </Text>
+                                                ))}
+                                            </Box>
+                                        )}
+
+                                        {style.condition_debug.variables && Object.keys(style.condition_debug.variables).length > 0 && (
+                                            <Box>
+                                                <Text size="xs" c="dimmed" mb="xs">Variables:</Text>
+                                                <Group gap="xs" wrap="wrap">
+                                                    {Object.entries(style.condition_debug.variables).map(([key, value]) => (
+                                                        <Badge key={key} size="xs" variant="outline" color="blue">
+                                                            {key}: {Array.isArray(value) ? `[${value.join(', ')}]` : JSON.stringify(value)}
+                                                        </Badge>
+                                                    ))}
+                                                </Group>
+                                            </Box>
+                                        )}
+
+                                        {style.condition_debug.condition && (
+                                            <Box>
+                                                <Text size="xs" c="dimmed" mb="xs">Condition:</Text>
+                                                <Text
+                                                    size="xs"
+                                                    style={{
+                                                        fontFamily: 'monospace',
+                                                        backgroundColor: 'var(--mantine-color-gray-0)',
+                                                        padding: '4px 8px',
+                                                        borderRadius: '4px',
+                                                        wordBreak: 'break-all'
+                                                    }}
+                                                >
+                                                    {style.condition_debug.condition}
+                                                </Text>
+                                            </Box>
+                                        )}
+                                    </Stack>
+                                </Box>
+                            )}
 
                             <Group justify="space-between" align="center">
                                 <TextInput
@@ -155,7 +281,7 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
                                             <ActionIcon
                                                 variant="transparent"
                                                 size="sm"
-                                                color="orange"
+                                                color={conditionFailed ? 'red' : 'orange'}
                                                 onClick={() => setSearchText('')}
                                                 style={{ cursor: 'pointer' }}
                                             >
@@ -175,7 +301,7 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
                                 <ActionIcon
                                     variant="light"
                                     size="sm"
-                                    color="orange"
+                                    color={conditionFailed ? 'red' : 'orange'}
                                     onClick={() => setIsExpanded(!isExpanded)}
                                     title={isExpanded ? 'Collapse all' : 'Expand all'}
                                     style={{ cursor: 'pointer' }}
@@ -210,15 +336,9 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
                 </Popover>
             }
         >
-            <Box
-                style={{
-                    border: '1px solid var(--mantine-color-orange-4)',
-                    // borderRadius: 'var(--mantine-radius-sm)',
-                }}
-            >
-                {children}
-            </Box>
-        </Indicator>
+                {renderContent()}
+            </Indicator>
+        </Box>
     );
 };
 
