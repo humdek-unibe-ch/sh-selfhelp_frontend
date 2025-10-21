@@ -18,14 +18,18 @@ interface ITextInputWithMentionsProps {
     maxItems?: number;
     autoFocus?: boolean;
     onKeyDown?: (event: React.KeyboardEvent) => void;
+    /** If true, enables rich text formatting shortcuts (bold, italic, underline) in single-line mode */
+    enableRichTextShortcuts?: boolean;
 }
 
 /**
  * TextInputWithMentions Component
- * 
+ *
  * A single-line text input with mention support for CMS field editing.
- * Uses the unified MentionEditor component in single-line mode (no rich text, no HTML).
- * Behaves like a standard Mantine Input but with mention functionality.
+ * Uses the unified MentionEditor component in single-line mode.
+ * When enableRichTextShortcuts is true, supports formatting shortcuts (bold, italic, underline)
+ * while maintaining the appearance of a simple text input.
+ * Behaves like a standard Mantine Input but with mention and optional rich text functionality.
  */
 export function TextInputWithMentions({
     fieldId,
@@ -42,6 +46,7 @@ export function TextInputWithMentions({
     maxItems = 50,
     autoFocus = true,
     onKeyDown,
+    enableRichTextShortcuts = false,
 }: ITextInputWithMentionsProps) {
     const errorMessage = validator ? (validator(value).isValid ? undefined : validator(value).error) : undefined;
 
@@ -63,6 +68,7 @@ export function TextInputWithMentions({
             showToolbar={false}
             autoFocus={autoFocus}
             onKeyDown={onKeyDown}
+            enableRichTextShortcuts={enableRichTextShortcuts}
         />
     );
 }

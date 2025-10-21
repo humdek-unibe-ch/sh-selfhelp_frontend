@@ -37,6 +37,8 @@ interface IMentionEditorProps {
     autoFocus?: boolean;
     /** Callback for key down events */
     onKeyDown?: (event: React.KeyboardEvent) => void;
+    /** If true and singleLineMode is true, enables rich text formatting shortcuts (bold, italic, underline) */
+    enableRichTextShortcuts?: boolean;
 }
 
 /**
@@ -64,6 +66,7 @@ export function MentionEditor({
     showToolbar = true,
     autoFocus = true,
     onKeyDown,
+    enableRichTextShortcuts = false,
 }: IMentionEditorProps) {
     const isUpdatingRef = React.useRef(false);
 
@@ -95,8 +98,8 @@ export function MentionEditor({
             }),
         ];
 
-        // Add rich text extensions only if not in single line mode
-        if (!singleLineMode) {
+        // Add rich text extensions if not in single line mode OR if rich text shortcuts are enabled
+        if (!singleLineMode || enableRichTextShortcuts) {
             exts.push(
                 Underline,
                 Link,
@@ -169,7 +172,7 @@ export function MentionEditor({
         }
 
         return exts;
-    }, [variables, maxVisibleRows, maxItems, singleLineMode, placeholder]);
+    }, [variables, maxVisibleRows, maxItems, singleLineMode, placeholder, enableRichTextShortcuts]);
 
     const editor = useEditor({
         extensions,
@@ -177,12 +180,12 @@ export function MentionEditor({
         onUpdate: ({ editor }) => {
             if (isUpdatingRef.current) return;
 
-            if (singleLineMode) {
-                // In single line mode, extract plain text with mentions
+            if (singleLineMode && !enableRichTextShortcuts) {
+                // In single line mode without rich text shortcuts, extract plain text with mentions
                 const text = editor.getText();
                 onChange(text);
             } else {
-                // In rich text mode, get HTML and sanitize for database
+                // In rich text mode or single line with rich text shortcuts, get HTML and sanitize for database
                 const html = editor.getHTML();
                 const sanitized = sanitizeForDatabase(html);
                 onChange(sanitized);

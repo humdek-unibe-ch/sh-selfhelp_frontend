@@ -227,6 +227,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
                 placeholder={field.default_value || ''}
                 disabled={disabled}
                 dataVariables={dataVariables}
+                enableRichTextShortcuts={true}
                 {...(field.name === 'name' ? { validator: validateName } : {})}
             />
         );

@@ -6,6 +6,8 @@ import { usePageContentContext } from '../../contexts/PageContentContext';
 import { useSubmitFormMutation, useUpdateFormMutation } from '../../../../hooks/useFormSubmission';
 import { IFileInputStyleRef } from './mantine/inputs/FileInputStyle';
 import { IFormLogStyle, IFormRecordStyle } from '../../../../types/common/styles.types';
+import { sanitizeHtmlForInline } from '../../../../utils/html-sanitizer.utils';
+import parse from 'html-react-parser';
 
 interface FormStyleProps {
     style: IFormLogStyle | IFormRecordStyle;
@@ -453,7 +455,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) =>
                     variant={buttonVariant as any}
                     color={isRecord && existingRecordId ? updateColor : saveColor}
                 >
-                    {isRecord && existingRecordId ? updateLabel : saveLabel}
+                    {parse(sanitizeHtmlForInline(isRecord && existingRecordId ? updateLabel : saveLabel))}
                 </Button>
             ) : (
                 <button
@@ -489,7 +491,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) =>
                         transition: 'all 0.2s ease'
                     }}
                 >
-                    {isSubmitting ? 'Submitting...' : (isRecord && existingRecordId ? updateLabel : saveLabel)}
+                    {isSubmitting ? 'Submitting...' : parse(sanitizeHtmlForInline(isRecord && existingRecordId ? updateLabel : saveLabel))}
                 </button>
             )
         );
