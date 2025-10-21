@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Stack,
     Text,
@@ -37,258 +37,217 @@ const initialQuery: RuleGroupType = {
 };
 
 // Custom field selector with LockedField-style design
-function createCreatableFieldSelector(dataVariables?: Record<string, string>) {
-    return function CreatableFieldSelector(props: any) {
-        const { value, options, onChange, handleOnChange, ...otherProps } = props;
+function CreatableFieldSelector(props: any) {
+    const { value, options, onChange, handleOnChange, context, ...otherProps } = props;
+    const { dataVariables } = context || {};
 
-        // react-querybuilder might use handleOnChange instead of onChange
-        const changeHandler = onChange || handleOnChange;
+    // react-querybuilder might use handleOnChange instead of onChange
+    const changeHandler = onChange || handleOnChange;
 
-        if (!changeHandler) {
-            return <div>Error: No change handler</div>;
+    if (!changeHandler) {
+        return <div>Error: No change handler</div>;
+    }
+
+    const [isCustomMode, setIsCustomMode] = useState(false);
+
+    // Check if current value is a custom variable (starts and ends with {{ }})
+    const isCustomVariable = value && typeof value === 'string' && value.startsWith('{{') && value.endsWith('}}');
+
+    // If we have a custom variable, automatically switch to custom mode
+    useEffect(() => {
+        if (isCustomVariable && !isCustomMode) {
+            setIsCustomMode(true);
         }
+    }, [isCustomVariable, isCustomMode]);
 
-        const [isCustomMode, setIsCustomMode] = useState(false);
+    const fieldOptions = options.map((opt: any) => ({
+        value: opt.name,
+        label: opt.label
+    }));
 
-        // Check if current value is a custom variable (starts and ends with {{ }})
-        const isCustomVariable = value && typeof value === 'string' && value.startsWith('{{') && value.endsWith('}}');
-
-        // If we have a custom variable, automatically switch to custom mode
-        useEffect(() => {
-            if (isCustomVariable && !isCustomMode) {
-                setIsCustomMode(true);
-            }
-        }, [isCustomVariable, isCustomMode]);
-
-        const fieldOptions = options.map((opt: any) => ({
-            value: opt.name,
-            label: opt.label
-        }));
-
-        const handleToggleMode = () => {
-            if (isCustomMode) {
-                // Switching from custom mode to dropdown mode
-                // Clear the custom variable and return to empty state
-                changeHandler('');
-            }
-            setIsCustomMode(!isCustomMode);
-        };
-
-        const toggleTooltip = isCustomMode ? "Lock to field selection" : "Unlock for custom variable";
-
+    const handleToggleMode = () => {
         if (isCustomMode) {
-            // Custom variable input mode with lock button
-            return (
-                <div style={{ position: 'relative' }}>
-                    <TextInputWithMentions
-                        fieldId={0}
-                        value={value || ''}
-                        onChange={changeHandler}
-                        placeholder="{{my_var}}"
-                        dataVariables={dataVariables}
-                    />
-                    <div style={{ 
-                        position: 'absolute', 
-                        right: '8px', 
-                        top: '50%', 
-                        transform: 'translateY(-50%)',
-                        zIndex: 10
-                    }}>
-                        <Tooltip label={toggleTooltip} position="left">
-                            <ActionIcon
-                                variant="subtle"
-                                color="gray"
-                                size="sm"
-                                onClick={handleToggleMode}
-                            >
-                                <IconLockOpen size="1rem" />
-                            </ActionIcon>
-                        </Tooltip>
-                    </div>
-                </div>
-            );
+            // Switching from custom mode to dropdown mode
+            // Clear the custom variable and return to empty state
+            changeHandler('');
         }
-
-        // Normal dropdown mode - using Mantine Select
-        return (
-            <Select
-                value={value || null}
-                onChange={(newValue) => changeHandler(newValue)}
-                data={fieldOptions}
-                placeholder="Select field"
-                size="sm"
-                searchable
-                rightSection={
-                    <div onClick={handleToggleMode} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                        <Tooltip label={toggleTooltip} position="left">
-                            <ActionIcon
-                                variant="subtle"
-                                color="gray"
-                                size="sm"
-                                component="div"
-                            >
-                                <IconLock size="1rem" />
-                            </ActionIcon>
-                        </Tooltip>
-                    </div>
-                }
-                rightSectionPointerEvents="all"
-                styles={{
-                    wrapper: { width: '100%' },
-                    input: { width: '100%' }
-                }}
-            />
-        );
+        setIsCustomMode(!isCustomMode);
     };
-}
 
-// Custom value editor that supports both dropdown and text input with mentions
-function createSearchableValueEditor(dataVariables?: Record<string, string>) {
-    return function SearchableValueEditor(props: any) {
-        const {
-            value,
-            values,
-            onChange,
-            handleOnChange,
-            fieldData,
-            type,
-            ...otherProps
-        } = props;
+    const toggleTooltip = isCustomMode ? "Lock to field selection" : "Unlock for custom variable";
 
-        // react-querybuilder might use handleOnChange instead of onChange
-        const changeHandler = onChange || handleOnChange;
-
-        if (!changeHandler) {
-            return <div>Error: No change handler</div>;
-        }
-
-        const [isTextMode, setIsTextMode] = useState(false);
-
-        // Check if current value is a custom variable or contains brackets (suggesting variable usage)
-        const isCustomVariable = value && typeof value === 'string' && (value.startsWith('{{') || value.includes('{{'));
-
-        // If we have a custom variable, automatically switch to text mode
-        useEffect(() => {
-            if (isCustomVariable && !isTextMode) {
-                setIsTextMode(true);
-            }
-        }, [isCustomVariable, isTextMode]);
-
-        const handleToggleMode = () => {
-            setIsTextMode(!isTextMode);
-        };
-
-        const toggleTooltip = isTextMode ? "Switch to dropdown" : "Switch to text input for variables";
-
-        // Only handle select fields with values
-        const isSelectType = type === 'select' || fieldData?.valueEditorType === 'select';
-        if (isSelectType && values && Array.isArray(values) && values.length > 0) {
-            const valueOptions = values.map((opt: any) => ({
-                value: opt.name,
-                label: opt.label
-            }));
-
-            if (isTextMode) {
-                // Text mode with mentions and lock button
-                return (
-                    <div style={{ position: 'relative' }}>
-                        <TextInputWithMentions
-                            fieldId={0}
-                            value={value || ''}
-                            onChange={changeHandler}
-                            placeholder="Use {{variable}} or enter value"
-                            dataVariables={dataVariables}
-                        />
-                        <div style={{ 
-                            position: 'absolute', 
-                            right: '8px', 
-                            top: '50%', 
-                            transform: 'translateY(-50%)',
-                            zIndex: 10
-                        }}>
-                            <Tooltip label={toggleTooltip} position="left">
-                                <ActionIcon
-                                    variant="subtle"
-                                    color="gray"
-                                    size="sm"
-                                    onClick={handleToggleMode}
-                                >
-                                    <IconLockOpen size="1rem" />
-                                </ActionIcon>
-                            </Tooltip>
-                        </div>
-                    </div>
-                );
-            } else {
-                // Dropdown mode
-                return (
-                    <Select
-                        value={value || null}
-                        onChange={(newValue) => changeHandler(newValue)}
-                        data={valueOptions}
-                        placeholder="Select value"
-                        size="sm"
-                        searchable
-                        rightSection={
-                            <div onClick={handleToggleMode} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                                <Tooltip label={toggleTooltip} position="left">
-                                    <ActionIcon
-                                        variant="subtle"
-                                        color="gray"
-                                        size="sm"
-                                        component="div"
-                                    >
-                                        <IconLockOpen size="1rem" />
-                                    </ActionIcon>
-                                </Tooltip>
-                            </div>
-                        }
-                        rightSectionPointerEvents="all"
-                        styles={{
-                            wrapper: { width: '100%' },
-                            input: { width: '100%' }
-                        }}
-                    />
-                );
-            }
-        }
-
-        // For date/datetime/time fields, use default MantineValueEditor
-        const isDateTimeField = fieldData?.inputType === 'date' ||
-                               fieldData?.inputType === 'datetime-local' ||
-                               fieldData?.inputType === 'time';
-
-        if (isDateTimeField) {
-            return <MantineValueEditor {...props} />;
-        }
-
-        // For other non-select fields, use text input with mentions
+    if (isCustomMode) {
+        // Custom variable input mode - matches other field styling
         return (
             <TextInputWithMentions
                 fieldId={0} // Dummy fieldId for condition builder context
                 value={value || ''}
                 onChange={changeHandler}
-                placeholder="Enter value or use {{variable}}"
-                    dataVariables={dataVariables}
+                placeholder="{{my_var}}"
+                dataVariables={dataVariables}
             />
         );
-    };
+    }
+
+    // Normal dropdown mode - using Mantine Select
+    return (
+        <Select
+            value={value || null}
+            onChange={(newValue) => changeHandler(newValue)}
+            data={fieldOptions}
+            placeholder="Select field"
+            size="sm"
+            searchable
+            rightSection={
+                <div onClick={handleToggleMode} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                    <Tooltip label={toggleTooltip} position="left">
+                        <ActionIcon
+                            variant="subtle"
+                            color="gray"
+                            size="sm"
+                            component="div"
+                        >
+                            <IconLock size="1rem" />
+                        </ActionIcon>
+                    </Tooltip>
+                </div>
+            }
+            rightSectionPointerEvents="all"
+            styles={{
+                wrapper: { width: '100%' },
+                input: { width: '100%' }
+            }}
+        />
+    );
 }
 
-export function ConditionBuilderModal(props: IConditionBuilderModalProps & { dataVariables?: Record<string, string> }) {
-    const { opened, onClose, onSave, initialValue, title = "Condition Builder", dataVariables } = props;
+// Custom value editor that supports both dropdown and text input with mentions
+function SearchableValueEditor(props: any) {
+    const {
+        value,
+        values,
+        onChange,
+        handleOnChange,
+        fieldData,
+        type,
+        context,
+        ...otherProps
+    } = props;
+    const { dataVariables } = context || {};
+
+    // react-querybuilder might use handleOnChange instead of onChange
+    const changeHandler = onChange || handleOnChange;
+
+    if (!changeHandler) {
+        return <div>Error: No change handler</div>;
+    }
+
+    const [isTextMode, setIsTextMode] = useState(false);
+
+    // Check if current value is a custom variable or contains brackets (suggesting variable usage)
+    const isCustomVariable = value && typeof value === 'string' && (value.startsWith('{{') || value.includes('{{'));
+
+    // If we have a custom variable, automatically switch to text mode
+    useEffect(() => {
+        if (isCustomVariable && !isTextMode) {
+            setIsTextMode(true);
+        }
+    }, [isCustomVariable, isTextMode]);
+
+    const handleToggleMode = () => {
+        setIsTextMode(!isTextMode);
+    };
+
+    const toggleTooltip = isTextMode ? "Switch to dropdown" : "Switch to text input for variables";
+
+    // Only handle select fields with values
+    const isSelectType = type === 'select' || fieldData?.valueEditorType === 'select';
+    if (isSelectType && values && Array.isArray(values) && values.length > 0) {
+        const valueOptions = values.map((opt: any) => ({
+            value: opt.name,
+            label: opt.label
+        }));
+
+        if (isTextMode) {
+            // Text mode with mentions
+            return (
+            <TextInputWithMentions
+                fieldId={0} // Dummy fieldId for condition builder context
+                value={value || ''}
+                onChange={changeHandler}
+                placeholder="Use {{variable}} or enter value"
+                dataVariables={dataVariables}
+            />
+            );
+        } else {
+            // Dropdown mode
+            return (
+                <Select
+                    value={value || null}
+                    onChange={(newValue) => changeHandler(newValue)}
+                    data={valueOptions}
+                    placeholder="Select value"
+                    size="sm"
+                    searchable
+                    rightSection={
+                        <div onClick={handleToggleMode} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                            <Tooltip label={toggleTooltip} position="left">
+                                <ActionIcon
+                                    variant="subtle"
+                                    color="gray"
+                                    size="sm"
+                                    component="div"
+                                >
+                                    <IconLockOpen size="1rem" />
+                                </ActionIcon>
+                            </Tooltip>
+                        </div>
+                    }
+                    rightSectionPointerEvents="all"
+                    styles={{
+                        wrapper: { width: '100%' },
+                        input: { width: '100%' }
+                    }}
+                />
+            );
+        }
+    }
+
+    // For date/datetime/time fields, use default MantineValueEditor
+    const isDateTimeField = fieldData?.inputType === 'date' ||
+                           fieldData?.inputType === 'datetime-local' ||
+                           fieldData?.inputType === 'time';
+
+    if (isDateTimeField) {
+        return <MantineValueEditor {...props} />;
+    }
+
+    // For other non-select fields, use text input with mentions
+    return (
+        <TextInputWithMentions
+            fieldId={0} // Dummy fieldId for condition builder context
+            value={value || ''}
+            onChange={changeHandler}
+            placeholder="Enter value or use {{variable}}"
+            dataVariables={dataVariables}
+        />
+    );
+}
+
+export function ConditionBuilderModal({
+    opened,
+    onClose,
+    onSave,
+    initialValue,
+    title = "Condition Builder",
+    dataVariables
+}: IConditionBuilderModalProps) {
     const { groups, languages, platforms, pages, isLoading, isError } = useConditionBuilderData();
     const [query, setQuery] = useState<RuleGroupType>(initialQuery);
     const [isSaving, setIsSaving] = useState(false);
 
     // Create fields with dynamic data
-    const fields = createConditionFields(groups, languages, platforms, pages);
-
-    // Memoize the control elements to prevent recreating on every render
-    const controlElements = React.useMemo(() => ({
-        fieldSelector: createCreatableFieldSelector(dataVariables),
-        valueEditor: createSearchableValueEditor(dataVariables)
-    }), [dataVariables]);    
+    const fields = createConditionFields(groups, languages, platforms, pages);    
 
     // Initialize query from initial value - only after data is loaded
     useEffect(() => {
@@ -419,7 +378,10 @@ export function ConditionBuilderModal(props: IConditionBuilderModalProps & { dat
                             query={query}
                             onQueryChange={setQuery}
                             validator={defaultValidator}
-                            controlElements={controlElements}
+                            controlElements={{
+                                fieldSelector: CreatableFieldSelector,
+                                valueEditor: SearchableValueEditor
+                            }}
                             controlClassnames={{
                                 queryBuilder: 'queryBuilder-justified queryBuilder-branches',
                                 ruleGroup: 'ruleGroup',
@@ -431,7 +393,8 @@ export function ConditionBuilderModal(props: IConditionBuilderModalProps & { dat
                                 removeRule: 'removeRule modal-high-z',
                                 removeGroup: 'removeGroup modal-high-z'
                             }}
-                            resetOnFieldChange={false}
+                            context={{ dataVariables }}
+                            resetOnFieldChange={true}
                         />
                     </QueryBuilderMantine>
                 </div>
