@@ -1,7 +1,14 @@
+/* Search input focus styles */
 .searchInput:focus {
     border: 1px solid var(--mantine-color-orange-5);
 }
 
+/* Dark mode search input focus */
+[data-mantine-color-scheme="dark"] .searchInput:focus {
+    border: 1px solid var(--mantine-color-orange-4);
+}
+
+/* JSON editor container */
 .jsonEditor {
     position: relative;
 }
@@ -10,10 +17,71 @@
     background-color: rgba(255, 117, 120, 0.3);
 }
 
-/* Highlight search matches with orange background */
+/* Highlight search matches with theme-aware background */
 .searchHighlight {
     background-color: rgba(255, 117, 120, 0.4);
     border-radius: 2px;
     padding: 1px 2px;
     color: inherit;
+}
+
+/* Dark mode search highlight */
+[data-mantine-color-scheme="dark"] .searchHighlight {
+    background-color: rgba(255, 117, 120, 0.6);
+}
+
+/* Condition failed container - subtle warning colors */
+.conditionFailedContainer {
+    border: 1px dashed var(--mantine-color-orange-4);
+    border-radius: var(--mantine-radius-sm);
+    background-color: var(--mantine-color-orange-0);
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Dark mode condition failed container */
+[data-mantine-color-scheme="dark"] .conditionFailedContainer {
+    border-color: var(--mantine-color-orange-6);
+    background-color: var(--mantine-color-orange-9);
+}
+
+/* Debug wrapper border */
+.debugWrapperBorder {
+    border: 1px solid var(--mantine-color-orange-4);
+}
+
+/* Dark mode debug wrapper border */
+[data-mantine-color-scheme="dark"] .debugWrapperBorder {
+    border-color: var(--mantine-color-orange-6);
+}
+
+/* Code block styling for conditions */
+.codeBlock {
+    font-family: monospace;
+    background-color: var(--mantine-color-gray-0);
+    padding: 4px 8px;
+    border-radius: 4px;
+    word-break: break-all;
+}
+
+/* Dark mode code block */
+[data-mantine-color-scheme="dark"] .codeBlock {
+    background-color: var(--mantine-color-dark-6);
+}
+
+/* Cursor pointer for interactive elements */
+.cursorPointer {
+    cursor: pointer;
+}
+
+/* Flex 1 for search input */
+.flex1 {
+    flex: 1;
+}
+
+/* Small font size for JSON editor */
+.smallFont {
+    font-size: 12px;
 }

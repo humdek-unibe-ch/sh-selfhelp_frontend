@@ -102,21 +102,10 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
     const renderContent = () => {
         if (conditionFailed) {
             return (
-                <Box
-                    p="md"
-                    style={{
-                        border: '1px dashed var(--mantine-color-red-4)',
-                        borderRadius: 'var(--mantine-radius-sm)',
-                        backgroundColor: 'var(--mantine-color-red-0)',
-                        minHeight: '40px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}
-                >
+                <Box p="md" className={styles.conditionFailedContainer}>
                     <Alert
                         variant="light"
-                        color="red"
+                        color="orange"
                         title="Condition Failed"
                         icon={<IconAlertTriangle />}
                         style={{ width: '100%' }}
@@ -131,12 +120,7 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
         }
 
         return (
-            <Box
-                style={{
-                    border: '1px solid var(--mantine-color-orange-4)',
-                    // borderRadius: 'var(--mantine-radius-sm)',
-                }}
-            >
+            <Box className={styles.debugWrapperBorder}>
                 {children}
             </Box>
         );
@@ -164,9 +148,9 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
                         <ActionIcon
                             variant='filled'
                             size='xs'
-                            color={conditionFailed ? 'red' : 'orange'}
+                            color="orange"
                             onMouseEnter={() => setOpened(true)}
-                            style={{ cursor: 'pointer' }}
+                            className={styles.cursorPointer}
                         >
                             <IconBug size={10} />
                         </ActionIcon>
@@ -180,7 +164,7 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
                                         Style Debug Info
                                     </Text>
                                     {conditionFailed && (
-                                        <Badge size="xs" color="red" ml="xs">
+                                        <Badge size="xs" color="orange" ml="xs">
                                             Condition Failed
                                         </Badge>
                                     )}
@@ -231,7 +215,7 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
                                             <Box>
                                                 <Text size="xs" c="dimmed" mb="xs">Errors:</Text>
                                                 {style.condition_debug.error.map((error: string, index: number) => (
-                                                    <Text key={index} size="xs" c="red" style={{ fontFamily: 'monospace' }}>
+                                                    <Text key={index} size="xs" c="orange" className={styles.codeBlock}>
                                                         {error}
                                                     </Text>
                                                 ))}
@@ -256,13 +240,7 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
                                                 <Text size="xs" c="dimmed" mb="xs">Condition:</Text>
                                                 <Text
                                                     size="xs"
-                                                    style={{
-                                                        fontFamily: 'monospace',
-                                                        backgroundColor: 'var(--mantine-color-gray-0)',
-                                                        padding: '4px 8px',
-                                                        borderRadius: '4px',
-                                                        wordBreak: 'break-all'
-                                                    }}
+                                                    className={styles.codeBlock}
                                                 >
                                                     {style.condition_debug.condition}
                                                 </Text>
@@ -283,7 +261,7 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
                                                 size="sm"
                                                 color={conditionFailed ? 'red' : 'orange'}
                                                 onClick={() => setSearchText('')}
-                                                style={{ cursor: 'pointer' }}
+                                                className={styles.cursorPointer}
                                             >
                                                 <IconX size={14} />
                                             </ActionIcon>
@@ -295,7 +273,7 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
                                     value={searchText}
                                     onChange={(event) => setSearchText(event.currentTarget.value)}
                                     size="sm"
-                                    style={{ flex: 1 }}
+                                    className={styles.flex1}
                                 />
 
                                 <ActionIcon
@@ -304,7 +282,7 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
                                     color={conditionFailed ? 'red' : 'orange'}
                                     onClick={() => setIsExpanded(!isExpanded)}
                                     title={isExpanded ? 'Collapse all' : 'Expand all'}
-                                    style={{ cursor: 'pointer' }}
+                                    className={styles.cursorPointer}
                                 >
                                     {isExpanded ? <IconChevronsUp size={16} /> : <IconChevronsDown size={16} />}
                                 </ActionIcon>
@@ -314,8 +292,7 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
                                 <Box
                                     ref={jsonEditorRef}
                                     p="xs"
-                                    style={{ fontSize: '12px' }}
-                                    className={styles.jsonEditor}
+                                    className={`${styles.jsonEditor} ${styles.smallFont}`}
                                     data-search-text={searchText}
                                 >
                                     <JsonEditor
