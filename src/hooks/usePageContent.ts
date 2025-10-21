@@ -21,6 +21,10 @@ interface IUsePageContentOptions {
   forLayout?: boolean;
   /** Custom query key prefix */
   queryKeyPrefix?: string;
+  /** Language ID override */
+  languageId?: number;
+  /** Force draft preview mode (ignores published versions) */
+  preview?: boolean;
 }
 
 /**
@@ -34,19 +38,22 @@ interface IUsePageContentOptions {
  * and can be used in layout components safely.
  */
 export function usePageContent(pageId: number | null, options: IUsePageContentOptions = {}) {
-    const { enabled = true, forLayout = false, queryKeyPrefix } = options;
+    const { enabled = true, forLayout = false, queryKeyPrefix, languageId: providedLanguageId, preview = false } = options;
 
-    // Only use context for non-layout usage
-    const contextHooks = forLayout ? null : usePageContentContext();
-    const { setPageContent } = contextHooks || { setPageContent: () => {} };
+    // Always call the context hook, but only use it for non-layout usage
+    const contextHooks = usePageContentContext();
+    const { setPageContent } = forLayout ? { setPageContent: () => {} } : contextHooks;
 
     const { currentLanguageId } = useLanguageContext();
     const lastDataRef = useRef<any>(null);
 
-    // Determine query key based on usage context
+    // Use provided language ID or fall back to current language from context
+    const languageIdToUse = providedLanguageId || currentLanguageId;
+
+    // Determine query key based on usage context - include preview in key to separate caches
     const queryKey = queryKeyPrefix
-        ? [queryKeyPrefix, pageId, currentLanguageId]
-        : [forLayout ? 'page-content-layout' : 'page-content', pageId, currentLanguageId];
+        ? [queryKeyPrefix, pageId, languageIdToUse, preview ? 'preview' : 'published']
+        : [forLayout ? 'page-content-layout' : 'page-content', pageId, languageIdToUse, preview ? 'preview' : 'published'];
 
     // Determine cache configuration based on usage
     const gcTime = forLayout
@@ -63,15 +70,15 @@ export function usePageContent(pageId: number | null, options: IUsePageContentOp
         isPlaceholderData
     } = useQuery<IPageContent>({
         queryKey,
-        queryFn: () => PageApi.getPageContent(pageId!, currentLanguageId),
-        enabled: !!pageId && !!currentLanguageId && enabled,
-        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        queryFn: () => PageApi.getPageContent(pageId!, languageIdToUse, preview),
+        enabled: !!pageId && !!languageIdToUse && enabled,
+        staleTime: preview ? 0 : REACT_QUERY_CONFIG.CACHE.staleTime, // No cache for preview mode
+        gcTime: preview ? 0 : REACT_QUERY_CONFIG.CACHE.gcTime, // No cache for preview mode
         retry: 2,
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
         placeholderData: forLayout ? undefined : keepPreviousData, // Only use for main content, not layout
-        refetchOnWindowFocus: forLayout ? undefined : false, // Don't refetch when window gains focus
-        refetchOnMount: forLayout ? undefined : false, // Don't refetch if we already have data
+        refetchOnWindowFocus: preview ? true : (forLayout ? undefined : false), // Always refetch preview
+        refetchOnMount: preview ? true : (forLayout ? undefined : false), // Always refetch preview
     });
 
     // Sync React Query data with context only when data actually changes (only for main content)

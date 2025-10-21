@@ -1,0 +1,17 @@
+.versionItem {
+    transition: all 0.2s ease;
+}
+
+.versionItem:hover {
+    background-color: var(--mantine-color-gray-0);
+}
+
+.publishedVersion {
+    background-color: var(--mantine-color-green-0);
+    border-color: var(--mantine-color-green-6);
+}
+
+.publishedVersion:hover {
+    background-color: var(--mantine-color-green-1);
+}
+

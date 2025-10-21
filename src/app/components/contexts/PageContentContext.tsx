@@ -75,13 +75,19 @@ export { PageContentContext };
 
 /**
  * Hook to access page content context
- * @throws {Error} When used outside of PageContentProvider
+ * Returns default implementation when used outside of PageContentProvider (for layout components)
  * @returns {PageContentContextType} Page content context value
  */
 export const usePageContentContext = () => {
     const context = useContext(PageContentContext);
     if (!context) {
-        throw new Error('usePageContentContext must be used within a PageContentProvider');
+        // Return default implementation for layout components that need the hook but don't have access to provider
+        return {
+            pageContent: null,
+            setPageContent: () => {},
+            updatePageContent: () => {},
+            clearPageContent: () => {}
+        };
     }
     return context;
 };

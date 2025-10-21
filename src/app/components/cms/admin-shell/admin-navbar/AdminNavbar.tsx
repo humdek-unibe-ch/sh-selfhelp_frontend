@@ -21,7 +21,7 @@ import { LinksGroup } from './components/LinksGroup';
 import { UserButton } from './components/UserButton';
 import { CreatePageModal } from '../../pages/create-page/CreatePage';
 import { NavigationSearch } from './components/NavigationSearch';
-import { SelfHelpLogo } from '../../../shared';
+import { SelfHelpLogo, PreviewModeToggle } from '../../../shared';
 import classes from './AdminNavbar.module.css';
 
 interface INavigationLink {
@@ -235,8 +235,12 @@ export function AdminNavbar() {
                     <SelfHelpLogo size={30} />
                     <Code fw={700}>v3.1.2</Code>
                 </Group>
-                
-                <NavigationSearch 
+
+                <Box mb="md">
+                    <PreviewModeToggle showLabel={false} />
+                </Box>
+
+                <NavigationSearch
                     adminPagesData={adminPagesData}
                     onItemSelect={() => {}} // Navigation search handles routing internally
                 />

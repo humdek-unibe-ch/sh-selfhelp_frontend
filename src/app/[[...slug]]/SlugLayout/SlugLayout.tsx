@@ -14,6 +14,8 @@ import { useAppNavigation } from "../../../hooks/useAppNavigation";
 import { WebsiteHeader } from "../../components/frontend/layout/WebsiteHeader";
 import styles from './SlugLayout.module.css';
 import { WebsiteFooter } from "../../components";
+import { PreviewModeIndicator } from "../../components/shared/common/PreviewModeIndicator";
+import { usePreviewMode } from "../../../hooks/usePreviewMode";
 
 export default function SlugLayout({ children }: { children: any }) {
     const { slug } = useParams();
@@ -30,18 +32,20 @@ export default function SlugLayout({ children }: { children: any }) {
     // Fetch page content to check if it's headless (with optimized caching)
     const { content: pageContent } = usePageContent(pageId, { forLayout: true });
     const isHeadless = Boolean(pageContent?.is_headless);
+    const { isPreviewMode } = usePreviewMode();
 
     return (
         <AppShell
             header={!isHeadless ? { height: 60 } : undefined}
         >
-            {!isHeadless && (
-                <AppShell.Header>
-                    <WebsiteHeader />
-                </AppShell.Header>
-            )}
+        {!isHeadless && (
+            <AppShell.Header>
+                <WebsiteHeader />
+            </AppShell.Header>
+        )}
 
             <AppShell.Main className={styles.mainLayout}>
+            {isPreviewMode && <PreviewModeIndicator />}
                 <div className={styles.contentArea}>
                     {children}
                 </div>

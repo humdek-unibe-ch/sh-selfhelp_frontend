@@ -9,6 +9,7 @@ import { useAppNavigation } from '../../hooks/useAppNavigation';
 import { useNavigationRefresh } from '../../hooks/useNavigationRefresh';
 import { useLanguageContext } from '../components/contexts/LanguageContext';
 import { PageContentRenderer } from '../components/frontend/content/PageContentRenderer';
+import { usePreviewMode } from '../../hooks/usePreviewMode';
 import React from 'react';
 
 export default function DynamicPage() {
@@ -31,7 +32,8 @@ export default function DynamicPage() {
 const DynamicPageContentOptimized = React.memo(function DynamicPageContentOptimized({ keyword }: { keyword: string }) {
     const { currentLanguageId, isUpdatingLanguage } = useLanguageContext();
     const { refreshOnPageChange } = useNavigationRefresh();
-    
+    const { isPreviewMode } = usePreviewMode();
+
     const { routes, isLoading: navLoading, isFetching: navFetching } = useAppNavigation();
     
     // Convert keyword to pageId using navigation data
@@ -63,7 +65,7 @@ const DynamicPageContentOptimized = React.memo(function DynamicPageContentOptimi
         return patternMatch?.id_pages ?? null;
     }, [keyword, routes]);
     
-    const { content: queryContent, isLoading: pageLoading, isFetching: pageFetching, isPlaceholderData } = usePageContent(pageId);
+    const { content: queryContent, isLoading: pageLoading, isFetching: pageFetching, isPlaceholderData } = usePageContent(pageId, { preview: isPreviewMode });
     const { pageContent: contextContent, clearPageContent, setPageContent } = usePageContentContext();
     
     // Use React Query data as primary source, context as fallback for immediate display

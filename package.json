@@ -55,6 +55,7 @@
     "@tiptap/starter-kit": "^3.5.3",
     "@tiptap/suggestion": "^3.7.2",
     "axios": "^1.12.2",
+    "date-fns": "^4.1.0",
     "dayjs": "^1.11.18",
     "dompurify": "^3.2.7",
     "embla-carousel": "^8.6.0",

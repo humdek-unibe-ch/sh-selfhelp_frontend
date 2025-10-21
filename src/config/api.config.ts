@@ -135,6 +135,15 @@ export const API_CONFIG = {
         // Admin page keywords endpoints
         ADMIN_PAGE_KEYWORDS_GET_ALL: '/admin/page-keywords',
 
+        // Admin page versioning endpoints
+        ADMIN_PAGE_VERSIONS_PUBLISH: (pageId: number) => `/admin/pages/${pageId}/versions/publish`,
+        ADMIN_PAGE_VERSIONS_PUBLISH_SPECIFIC: (pageId: number, versionId: number) => `/admin/pages/${pageId}/versions/${versionId}/publish`,
+        ADMIN_PAGE_VERSIONS_UNPUBLISH: (pageId: number) => `/admin/pages/${pageId}/versions/unpublish`,
+        ADMIN_PAGE_VERSIONS_LIST: (pageId: number) => `/admin/pages/${pageId}/versions`,
+        ADMIN_PAGE_VERSIONS_GET_ONE: (pageId: number, versionId: number) => `/admin/pages/${pageId}/versions/${versionId}`,
+        ADMIN_PAGE_VERSIONS_COMPARE: (pageId: number, version1Id: number, version2Id: number) => `/admin/pages/${pageId}/versions/compare/${version1Id}/${version2Id}`,
+        ADMIN_PAGE_VERSIONS_DELETE: (pageId: number, versionId: number) => `/admin/pages/${pageId}/versions/${versionId}`,
+
         // Admin cache endpoints
         ADMIN_CACHE_STATS: '/admin/cache/stats',
         ADMIN_CACHE_CLEAR_ALL: '/admin/cache/clear/all',

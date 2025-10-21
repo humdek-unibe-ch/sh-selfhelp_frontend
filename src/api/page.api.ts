@@ -16,17 +16,26 @@ export const PageApi = {
      * Fetches page content for a specific page ID.
      * @param {number} pageId - The page identifier
      * @param {number} [languageId] - The language ID for localized content
+     * @param {boolean} [preview] - Whether to force draft preview mode
      * @returns {Promise<IPageContent>} Page content data
      * @throws {Error} When API request fails
      */
     // TODO: execued twice and more when executed in the beegigng, maybe add loading state
-    async getPageContent(pageId: number, languageId?: number): Promise<IPageContent> {
+    async getPageContent(pageId: number, languageId?: number, preview?: boolean): Promise<IPageContent> {
         let url = API_CONFIG.ENDPOINTS.PAGES_GET_ONE(pageId);
         
-        // Add language parameter if provided
+        const params = new URLSearchParams();
         if (languageId) {
-            url += `?language_id=${languageId}`;
+            params.append('language_id', languageId.toString());
         }
+        if (preview) {
+            params.append('preview', 'true');
+        }
+        
+        if (params.toString()) {
+            url += `?${params.toString()}`;
+        }
+        
         const response = await apiClient.get<IBaseApiResponse<{ page: IPageContent }>>(url);
         return response.data.data.page;
     },

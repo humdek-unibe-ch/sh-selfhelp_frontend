@@ -26,7 +26,10 @@ import {
     IconDeviceFloppy,
     IconPlus,
     IconTrash,
-    IconFileExport
+    IconFileExport,
+    IconGitBranch,
+    IconHistory,
+    IconEye
 } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
 import { useHotkeys } from '@mantine/hooks';
@@ -59,6 +62,20 @@ import {
     initializeFieldFormValues
 } from '../../../../../utils/field-processing.utils';
 import { IPageField } from '../../../../../types/common/pages.type';
+import { usePageVersions } from '../../../../../hooks/usePageVersions';
+import {
+    usePublishVersionMutation,
+    usePublishSpecificVersionMutation,
+    useUnpublishPageMutation,
+    useDeleteVersionMutation
+} from '../../../../../hooks/mutations/usePageVersionMutations';
+import {
+    VersionHistoryList,
+    PublishVersionModal,
+    VersionStatusBadge,
+    VersionComparisonViewer
+} from '../../page-versions';
+import { VersionTestPanel } from '../../../debug/VersionTestPanel';
 
 interface PageInspectorProps {
     page: IAdminPage | null;
@@ -86,6 +103,9 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [createChildModalOpened, setCreateChildModalOpened] = useState(false);
     const [activeLanguageTab, setActiveLanguageTab] = useState<string>('');
+    const [publishModalOpened, setPublishModalOpened] = useState(false);
+    const [comparisonModalOpened, setComparisonModalOpened] = useState(false);
+    const [selectedComparisonVersionId, setSelectedComparisonVersionId] = useState<number | null>(null);
     
     // References to get final positions from DragDropMenuPositioner components
     const headerMenuGetFinalPosition = useRef<(() => number | null) | null>(null);
@@ -93,6 +113,19 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
     
     // Get query client for cache invalidation
     const queryClient = useQueryClient();
+    
+    // Fetch page versions
+    const { 
+        data: versionsData, 
+        isLoading: versionsLoading, 
+        error: versionsError 
+    } = usePageVersions(page?.id_pages || null);
+    
+    // Version mutations
+    const publishVersionMutation = usePublishVersionMutation();
+    const publishSpecificVersionMutation = usePublishSpecificVersionMutation();
+    const unpublishPageMutation = useUnpublishPageMutation();
+    const deleteVersionMutation = useDeleteVersionMutation();
     
     // Fetch page fields when page is selected
     const { 
@@ -733,6 +766,108 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                         </CollapsibleSection>
                     )}
 
+                    {/* Version Management Section - Show for all pages */}
+                    <CollapsibleSection
+                        title="Version Management"
+                        inspectorType={INSPECTOR_TYPES.PAGE}
+                        sectionName="version-management"
+                        defaultExpanded={false}
+                    >
+                        <Stack gap="md">
+                            {/* Version Status Indicator */}
+                            <Group justify="space-between">
+                                <Text size="sm" fw={500}>Status:</Text>
+                                <VersionStatusBadge
+                                    hasPublishedVersion={!!versionsData?.current_published_version_id}
+                                    publishedVersionName={
+                                        versionsData?.versions.find(
+                                            v => v.id === versionsData.current_published_version_id
+                                        )?.version_name
+                                    }
+                                />
+                            </Group>
+
+                            {/* Publishing Actions */}
+                            <Group grow>
+                                <Button
+                                    leftSection={<IconGitBranch size={16} />}
+                                    variant="filled"
+                                    color="green"
+                                    onClick={() => setPublishModalOpened(true)}
+                                >
+                                    Publish Version
+                                </Button>
+                                {versionsData?.current_published_version_id && (
+                                    <Button
+                                        leftSection={<IconHistory size={16} />}
+                                        variant="outline"
+                                        color="yellow"
+                                        onClick={() => {
+                                            if (page?.id_pages) {
+                                                unpublishPageMutation.mutate(page.id_pages);
+                                            }
+                                        }}
+                                        loading={unpublishPageMutation.isPending}
+                                    >
+                                        Unpublish
+                                    </Button>
+                                )}
+                            </Group>
+
+                            <Divider />
+
+                            {/* Version History List */}
+                            <Box>
+                                <Text size="sm" fw={500} mb="xs">Version History</Text>
+                                <VersionHistoryList
+                                    versions={versionsData?.versions || []}
+                                    currentPublishedVersionId={versionsData?.current_published_version_id || null}
+                                    isLoading={versionsLoading}
+                                    error={versionsError as Error}
+                                    onPublish={(versionId) => {
+                                        if (page?.id_pages) {
+                                            publishSpecificVersionMutation.mutate({
+                                                pageId: page.id_pages,
+                                                versionId
+                                            });
+                                        }
+                                    }}
+                                    onDelete={(versionId) => {
+                                        if (page?.id_pages) {
+                                            deleteVersionMutation.mutate({
+                                                pageId: page.id_pages,
+                                                versionId
+                                            });
+                                        }
+                                    }}
+                                    onCompare={(versionId) => {
+                                        setSelectedComparisonVersionId(versionId);
+                                        setComparisonModalOpened(true);
+                                    }}
+                                    onView={(versionId) => {
+                                        // TODO: Implement version details viewer
+                                        console.log('View version:', versionId);
+                                    }}
+                                />
+                            </Box>
+                        </Stack>
+                    </CollapsibleSection>
+
+                    {/* Debug/Test Panel - Show only for development */}
+                    {process.env.NODE_ENV === 'development' && page?.id_pages && (
+                        <CollapsibleSection
+                            title="🧪 Version System Test Panel"
+                            inspectorType={INSPECTOR_TYPES.PAGE}
+                            sectionName="version-test-panel"
+                            defaultExpanded={false}
+                        >
+                            <VersionTestPanel
+                                pageId={page.id_pages}
+                                pageKeyword={page.keyword}
+                            />
+                        </CollapsibleSection>
+                    )}
+
                     {/* Action Buttons - Hide for configuration pages */}
                     {!isConfigurationPage && (
                     <Paper p="md" withBorder>
@@ -801,6 +936,40 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                 onClose={handleCloseChildModal}
                 parentPage={page}
             />
+
+            {/* Publish Version Modal */}
+            <PublishVersionModal
+                opened={publishModalOpened}
+                onClose={() => setPublishModalOpened(false)}
+                onPublish={(data) => {
+                    if (page?.id_pages) {
+                        publishVersionMutation.mutate(
+                            { pageId: page.id_pages, data },
+                            {
+                                onSuccess: () => {
+                                    setPublishModalOpened(false);
+                                }
+                            }
+                        );
+                    }
+                }}
+                isLoading={publishVersionMutation.isPending}
+            />
+
+            {/* Version Comparison Modal */}
+            {page?.id_pages && (
+                <VersionComparisonViewer
+                    opened={comparisonModalOpened}
+                    onClose={() => {
+                        setComparisonModalOpened(false);
+                        setSelectedComparisonVersionId(null);
+                    }}
+                    pageId={page.id_pages}
+                    versions={versionsData?.versions || []}
+                    initialVersion1Id={selectedComparisonVersionId || undefined}
+                    initialVersion2Id={versionsData?.current_published_version_id || undefined}
+                />
+            )}
 
             {/* Delete Confirmation Modal */}
             <Modal
