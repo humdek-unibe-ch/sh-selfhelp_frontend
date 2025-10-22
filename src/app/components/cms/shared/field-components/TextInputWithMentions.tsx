@@ -50,9 +50,15 @@ export function TextInputWithMentions({
 }: ITextInputWithMentionsProps) {
     const errorMessage = validator ? (validator(value).isValid ? undefined : validator(value).error) : undefined;
 
+    // Create a key that includes dataVariables to force re-mount when variables change
+    const editorKey = React.useMemo(() => {
+        const variablesHash = dataVariables ? JSON.stringify(Object.values(dataVariables).sort()) : '';
+        return `${fieldId}-${variablesHash}`;
+    }, [fieldId, dataVariables]);
+
     return (
         <MentionEditor
-            key={fieldId}
+            key={editorKey}
             value={value}
             onChange={onChange}
             placeholder={placeholder}

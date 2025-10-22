@@ -35,6 +35,7 @@ import { exportSection } from '../../../../../api/admin/section.api';
 import { downloadJsonFile, generateExportFilename } from '../../../../../utils/export-import.utils';
 import { AdminApi } from '../../../../../api/admin';
 import { validateName, getNameValidationError } from '../../../../../utils/name-validation.utils';
+import { extractDataVariables } from '../../../../../utils/data-config.utils';
 import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
 import { CollapsibleSection } from '../../shared/collapsible-section/CollapsibleSection';
@@ -476,7 +477,7 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                 onChange={(value) => handleContentFieldChange(field.name, languageId, value)}
                 locale={locale}
                 className={styles.fullWidthLabel}
-                dataVariables={sectionDetailsData?.data_variables}
+                dataVariables={dataVariables}
             />
         );
     };
@@ -495,7 +496,7 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                 value={fieldValue}
                 onChange={(value) => handlePropertyFieldChange(field.name, null, value)}
                 className={styles.fullWidthLabel}
-                dataVariables={sectionDetailsData?.data_variables}
+                dataVariables={dataVariables}
             />
         );
     };
@@ -507,6 +508,11 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
     const hasMultipleLanguages = useMemo(() => {
         return languagesData.length > 1;
     }, [languagesData]);
+
+    // Get data variables from API response
+    const dataVariables = useMemo(() => {
+        return sectionDetailsData?.data_variables || {};
+    }, [sectionDetailsData?.data_variables]);
 
     if (!sectionId) {
         return (
@@ -757,7 +763,7 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                                         [fieldType]: value
                                     }
                                 }))}
-                                dataVariables={sectionDetailsData?.data_variables}
+                                dataVariables={dataVariables}
                                 className={styles.fullWidthLabel}
                             />
                         ))}
