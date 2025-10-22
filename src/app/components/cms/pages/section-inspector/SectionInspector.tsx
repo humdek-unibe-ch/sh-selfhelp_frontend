@@ -35,7 +35,6 @@ import { exportSection } from '../../../../../api/admin/section.api';
 import { downloadJsonFile, generateExportFilename } from '../../../../../utils/export-import.utils';
 import { AdminApi } from '../../../../../api/admin';
 import { validateName, getNameValidationError } from '../../../../../utils/name-validation.utils';
-import { extractDataVariables } from '../../../../../utils/data-config.utils';
 import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
 import { CollapsibleSection } from '../../shared/collapsible-section/CollapsibleSection';

@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useMemo, useCallback } from 'react';
 import { ILanguage } from '../../../types/responses/admin/languages.types';
 
 interface ILanguageContextValue {
@@ -39,21 +39,21 @@ export function LanguageProvider({ children, initialData }: ILanguageProviderPro
         return 1; // Default language ID
     });
 
-    const setCurrentLanguageId = (languageId: number) => {
+    const setCurrentLanguageId = useCallback((languageId: number) => {
         setIsUpdatingLanguage(true);
         setCurrentLanguageIdState(languageId);
-        
+
         // Reset updating state after a short delay
         setTimeout(() => setIsUpdatingLanguage(false), 100);
-    };
+    }, []);
 
-    const contextValue: ILanguageContextValue = {
+    const contextValue = useMemo((): ILanguageContextValue => ({
         currentLanguageId,
         setCurrentLanguageId,
         languages,
         setLanguages,
         isUpdatingLanguage
-    };
+    }), [currentLanguageId, setCurrentLanguageId, languages, setLanguages, isUpdatingLanguage]);
 
     return (
         <LanguageContext.Provider value={contextValue}>

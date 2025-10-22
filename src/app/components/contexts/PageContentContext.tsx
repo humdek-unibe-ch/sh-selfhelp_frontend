@@ -7,7 +7,7 @@
  */
 
 "use client";
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useMemo, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { IPageContent } from '../../../types/responses/frontend/frontend.types';
 
@@ -46,25 +46,27 @@ export const PageContentProvider = ({ children }: { children: ReactNode }) => {
      * @param {string} keyword - Page identifier
      * @param {IPageContent} content - New page content
      */
-    const updatePageContent = (keyword: string, content: IPageContent) => {
+    const updatePageContent = useCallback((keyword: string, content: IPageContent) => {
         queryClient.setQueryData(['page-content', keyword], content);
         setPageContent(content);
-    };
+    }, [queryClient, setPageContent]);
 
     /**
      * Clears the current page content (useful when navigating between pages)
      */
-    const clearPageContent = () => {
+    const clearPageContent = useCallback(() => {
         setPageContent(null);
-    };
+    }, [setPageContent]);
+
+    const contextValue = useMemo(() => ({
+        pageContent,
+        setPageContent,
+        updatePageContent,
+        clearPageContent
+    }), [pageContent]);
 
     return (
-        <PageContentContext.Provider value={{ 
-            pageContent, 
-            setPageContent, 
-            updatePageContent,
-            clearPageContent 
-        }}>
+        <PageContentContext.Provider value={contextValue}>
             {children}
         </PageContentContext.Provider>
     );

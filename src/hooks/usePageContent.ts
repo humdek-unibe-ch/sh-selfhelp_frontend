@@ -51,9 +51,10 @@ export function usePageContent(pageId: number | null, options: IUsePageContentOp
     const languageIdToUse = providedLanguageId || currentLanguageId;
 
     // Determine query key based on usage context - include preview in key to separate caches
+    // IMPORTANT: Use the same base key for both layout and page to share the cache and avoid duplicate requests
     const queryKey = queryKeyPrefix
         ? [queryKeyPrefix, pageId, languageIdToUse, preview ? 'preview' : 'published']
-        : [forLayout ? 'page-content-layout' : 'page-content', pageId, languageIdToUse, preview ? 'preview' : 'published'];
+        : ['page-content', pageId, languageIdToUse, preview ? 'preview' : 'published'];
 
     // Determine cache configuration based on usage
     const gcTime = forLayout

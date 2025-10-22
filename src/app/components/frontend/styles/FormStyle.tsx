@@ -39,6 +39,7 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) =>
     const [submitError, setSubmitError] = useState<string | null>(null);
     const formRef = useRef<HTMLFormElement | null>(null);
     const fileInputRefs = useRef<Map<string, IFileInputStyleRef>>(new Map());
+    const hasInitializedForm = useRef<boolean>(false);
 
     // Extract form configuration from style
     const name = style.name?.content || 'default_form';
@@ -514,7 +515,12 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) =>
     // Pre-populate form fields for record types with existing data from section_data
     // Note: Translatable fields are handled by LanguageTabsWrapper, so we skip them here
     useEffect(() => {
-        if (isRecord && existingFormDataFromSection) {
+        // Reset initialization flag when form key changes (form reset)
+        if (hasInitializedForm.current && formKey > 0) {
+            hasInitializedForm.current = false;
+        }
+
+        if (isRecord && existingFormDataFromSection && !hasInitializedForm.current) {
             const form = formRef.current as HTMLFormElement | null;
             if (form) {
                 Object.entries(existingFormDataFromSection).forEach(([fieldName, value]) => {
@@ -540,6 +546,8 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) =>
                     }
                     hidden.value = String(existingRecordId);
                 }
+
+                hasInitializedForm.current = true;
             }
         }
     }, [isRecord, existingFormDataFromSection, existingRecordId, formKey]);

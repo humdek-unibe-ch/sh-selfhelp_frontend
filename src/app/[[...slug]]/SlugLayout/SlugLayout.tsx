@@ -29,10 +29,13 @@ export default function SlugLayout({ children }: { children: any }) {
         return page?.id_pages || null;
     }, [keyword, routes]);
 
-    // Fetch page content to check if it's headless (with optimized caching)
-    const { content: pageContent } = usePageContent(pageId, { forLayout: true });
-    const isHeadless = Boolean(pageContent?.is_headless);
+    // Get preview mode first
     const { isPreviewMode } = usePreviewMode();
+    
+    // Fetch page content to check if it's headless (with optimized caching)
+    // IMPORTANT: Must use same preview parameter as page.tsx to avoid duplicate queries
+    const { content: pageContent } = usePageContent(pageId, { forLayout: true, preview: isPreviewMode });
+    const isHeadless = Boolean(pageContent?.is_headless);
 
     return (
         <AppShell
