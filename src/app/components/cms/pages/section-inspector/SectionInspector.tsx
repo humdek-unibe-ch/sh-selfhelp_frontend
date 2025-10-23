@@ -42,6 +42,7 @@ import { FieldRenderer } from '../../shared/field-renderer/FieldRenderer';
 import { InspectorLayout } from '../../shared/inspector-layout/InspectorLayout';
 import { InspectorHeader } from '../../shared/inspector-header/InspectorHeader';
 import { INSPECTOR_TYPES } from '../../../../../store/inspectorStore';
+import { useRenderMonitor, useWhyDidYouUpdate, useMountMonitor } from '../../../../../utils/performance-monitor.utils';
 
 interface ISectionInspectorProps {
     pageId: number | null;
@@ -89,6 +90,11 @@ interface ISectionSubmitData {
 }
 
 export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) {
+    // Performance monitoring - track renders, prop changes, and mount/unmount
+    useRenderMonitor('SectionInspector', { pageId, sectionId });
+    useWhyDidYouUpdate('SectionInspector', { pageId, sectionId });
+    useMountMonitor('SectionInspector');
+    
     const router = useRouter();
     const queryClient = useQueryClient();
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);

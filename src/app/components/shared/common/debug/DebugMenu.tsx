@@ -33,7 +33,11 @@ import {
     IconFilter,
     IconInfoCircle,
     IconPalette,
-    IconLanguage
+    IconLanguage,
+    IconChartLine,
+    IconAlertTriangle,
+    IconCopy,
+    IconCheck
 } from '@tabler/icons-react';
 import { isDebugEnabled, DEBUG_CONFIG } from '../../../../../config/debug.config';
 import { debugLogger } from '../../../../../utils/debug-logger';
@@ -42,6 +46,12 @@ import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { useLanguageContext } from '../../../contexts/LanguageContext';
 import { notifications } from '@mantine/notifications';
 import { IPageItem } from '../../../../../types/common/pages.type';
+import { 
+    getRenderStats, 
+    getWarnings, 
+    resetPerformanceMonitor,
+    copyPerformanceReportToClipboard
+} from '../../../../../utils/performance-monitor.utils';
 
 interface IDebugLogEntry {
     timestamp: string;
@@ -89,6 +99,9 @@ export function DebugMenu() {
     const [filterSectionInspector, setFilterSectionInspector] = useState(false);
     const [filterPageInspector, setFilterPageInspector] = useState(false);
     const [filterFieldHandler, setFilterFieldHandler] = useState(false);
+    const [performanceStats, setPerformanceStats] = useState(getRenderStats());
+    const [performanceWarnings, setPerformanceWarnings] = useState(getWarnings());
+    const [reportCopied, setReportCopied] = useState(false);
     
     // Navigation data for the navigation debug tab
     const { pages, menuPages, footerPages, routes, isLoading, profilePages } = useAppNavigation();
@@ -112,6 +125,18 @@ export function DebugMenu() {
             debugListeners = debugListeners.filter(l => l !== listener);
         };
     }, []);
+
+    // Auto-refresh performance data when debug menu is opened
+    useEffect(() => {
+        if (!opened) return;
+
+        const interval = setInterval(() => {
+            setPerformanceStats(getRenderStats());
+            setPerformanceWarnings(getWarnings());
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [opened]);
 
     const handleExportLogs = () => {
         const logs = debugLogger.exportLogs();
@@ -506,6 +531,199 @@ export function DebugMenu() {
                                     </ScrollArea>
                                 </Paper>
                             )}
+                        </Stack>
+                    </Tabs.Panel>
+
+                    <Tabs.Panel value="performance" pt="md">
+                        <Stack gap="md">
+                            <Group justify="space-between">
+                                <Text size="sm" c="dimmed">
+                                    Component render tracking and performance monitoring
+                                </Text>
+                                <Group gap="xs">
+                                    <Badge color="green" variant="light">
+                                        {performanceStats.length} Components
+                                    </Badge>
+                                    <Badge color={performanceWarnings.length > 0 ? 'red' : 'gray'} variant="light">
+                                        {performanceWarnings.length} Warnings
+                                    </Badge>
+                                </Group>
+                            </Group>
+
+                            <Group gap="xs" wrap="wrap">
+                                <Button 
+                                    size="xs" 
+                                    leftSection={reportCopied ? <IconCheck size={16} /> : <IconCopy size={16} />}
+                                    color={reportCopied ? 'green' : 'blue'}
+                                    variant="filled"
+                                    onClick={async () => {
+                                        const success = await copyPerformanceReportToClipboard();
+                                        if (success) {
+                                            setReportCopied(true);
+                                            notifications.show({
+                                                title: 'Report Copied!',
+                                                message: 'Performance report copied to clipboard. Paste it in your chat with the AI assistant.',
+                                                color: 'green',
+                                                icon: <IconCheck size={16} />,
+                                            });
+                                            setTimeout(() => setReportCopied(false), 3000);
+                                        } else {
+                                            notifications.show({
+                                                title: 'Copy Failed',
+                                                message: 'Failed to copy report to clipboard',
+                                                color: 'red',
+                                            });
+                                        }
+                                    }}
+                                >
+                                    {reportCopied ? 'Copied!' : 'Copy AI Report'}
+                                </Button>
+                                <Button 
+                                    size="xs" 
+                                    leftSection={<IconActivity size={16} />}
+                                    onClick={() => {
+                                        setPerformanceStats(getRenderStats());
+                                        setPerformanceWarnings(getWarnings());
+                                    }}
+                                >
+                                    Refresh
+                                </Button>
+                                <Button 
+                                    size="xs" 
+                                    leftSection={<IconClearAll size={16} />}
+                                    color="red"
+                                    onClick={() => {
+                                        resetPerformanceMonitor();
+                                        setPerformanceStats([]);
+                                        setPerformanceWarnings([]);
+                                    }}
+                                >
+                                    Reset All
+                                </Button>
+                            </Group>
+
+                            {performanceStats.length === 0 ? (
+                                <Alert icon={<IconInfoCircle size={16} />} color="blue">
+                                    No performance data yet. Add <Code>useRenderMonitor</Code> hook to components you want to track.
+                                    <br />
+                                    <br />
+                                    Example:
+                                    <Code block mt="xs">
+                                        {`import { useRenderMonitor } from '@/utils/performance-monitor.utils';
+
+function MyComponent(props) {
+    useRenderMonitor('MyComponent', props);
+    // Your component code...
+}`}
+                                    </Code>
+                                </Alert>
+                            ) : (
+                                <>
+                                    <Box>
+                                        <Group justify="space-between" mb="xs">
+                                            <Text fw={500}>Render Statistics</Text>
+                                            <Badge size="xs" variant="light" color="blue">
+                                                Scroll to see all →
+                                            </Badge>
+                                        </Group>
+                                        <Paper withBorder p="xs" style={{ background: 'var(--mantine-color-gray-0)' }}>
+                                            <ScrollArea h={200} type="auto" scrollbarSize={8}>
+                                                <Stack gap="xs" pr="xs">
+                                                    {performanceStats
+                                                        .sort((a, b) => b.renderCount - a.renderCount)
+                                                        .map((stat) => (
+                                                        <Paper key={stat.componentName} p="xs" withBorder bg="white">
+                                                            <Group justify="space-between">
+                                                                <Stack gap={2}>
+                                                                    <Text size="sm" fw={500}>{stat.componentName}</Text>
+                                                                    <Group gap="xs">
+                                                                        <Badge 
+                                                                            size="xs" 
+                                                                            color={stat.renderCount > 50 ? 'red' : stat.renderCount > 20 ? 'orange' : 'green'}
+                                                                        >
+                                                                            {stat.renderCount} renders
+                                                                        </Badge>
+                                                                        <Badge size="xs" variant="light">
+                                                                            {stat.averageRenderTime.toFixed(2)}ms avg
+                                                                        </Badge>
+                                                                    </Group>
+                                                                    {stat.changedProps && stat.changedProps.length > 0 && (
+                                                                        <Text size="xs" c="dimmed">
+                                                                            Changed: {stat.changedProps.join(', ')}
+                                                                        </Text>
+                                                                    )}
+                                                                </Stack>
+                                                            </Group>
+                                                        </Paper>
+                                                    ))}
+                                                </Stack>
+                                            </ScrollArea>
+                                        </Paper>
+                                    </Box>
+
+                                    {performanceWarnings.length > 0 && (
+                                        <Box>
+                                            <Group justify="space-between" mb="xs">
+                                                <Text fw={500}>⚠️ Performance Warnings</Text>
+                                                <Badge size="xs" variant="light" color="red">
+                                                    Scroll to see all →
+                                                </Badge>
+                                            </Group>
+                                            <Paper withBorder p="xs" style={{ background: 'var(--mantine-color-red-0)' }}>
+                                                <ScrollArea h={200} type="auto" scrollbarSize={8}>
+                                                    <Stack gap="xs" pr="xs">
+                                                        {performanceWarnings.map((warning, index) => (
+                                                            <Alert
+                                                                key={index}
+                                                                color={warning.type === 'infinite-loop' ? 'red' : 'orange'}
+                                                                icon={<IconAlertTriangle size={16} />}
+                                                            >
+                                                                <Stack gap={4}>
+                                                                    <Text size="sm" fw={500}>{warning.componentName}</Text>
+                                                                    <Text size="xs">{warning.message}</Text>
+                                                                    {warning.details && (
+                                                                        <Code block>
+                                                                            {JSON.stringify(warning.details, null, 2)}
+                                                                        </Code>
+                                                                    )}
+                                                                </Stack>
+                                                            </Alert>
+                                                        ))}
+                                                    </Stack>
+                                                </ScrollArea>
+                                            </Paper>
+                                        </Box>
+                                    )}
+                                </>
+                            )}
+
+                            <Alert icon={<IconInfoCircle size={16} />} color="blue">
+                                <Text size="sm" fw={500} mb="xs">Understanding Render Counts:</Text>
+                                <Text size="xs" component="div" mb="md">
+                                    • <strong>1-3 renders:</strong> ✅ Normal (initial + data loading)
+                                    <br />
+                                    • <strong>4-10 renders:</strong> ⚠️ Acceptable but investigate
+                                    <br />
+                                    • <strong>11-20 renders:</strong> ⚠️ Likely excessive - check console
+                                    <br />
+                                    • <strong>20+ renders:</strong> 🚨 Problematic - check props/context
+                                    <br />
+                                    • <strong>50+ renders:</strong> 🔥 Critical - infinite loop likely
+                                </Text>
+                                
+                                <Text size="sm" fw={500} mb="xs">Pro Tips:</Text>
+                                <Text size="xs" component="div">
+                                    • <strong>Check console now</strong> for <Code>[Why Did You Update]</Code> logs
+                                    <br />
+                                    • Look for <Code>[Mount Monitor]</Code> logs showing remounts
+                                    <br />
+                                    • Remounting frequently = unstable keys or parent re-creating
+                                    <br />
+                                    • Props changing every render = missing memoization
+                                    <br />
+                                    • Read the guide: <Code>docs/performance-monitoring-guide.md</Code>
+                                </Text>
+                            </Alert>
                         </Stack>
                     </Tabs.Panel>
                 </Tabs>

@@ -32,46 +32,53 @@ export function EnhancedLanguageProvider({ children }: IEnhancedLanguageProvider
     const languages = user ? adminLanguages : publicLanguages;
     const languagesLoading = user ? adminLanguagesLoading : publicLanguagesLoading;
 
-    // Populate languages in context when loaded
+    // Effect 1: Populate languages in context when loaded
     useEffect(() => {
         if (languages.length > 0) {
             setLanguages(languages);
         }
     }, [languages, setLanguages]);
 
-    // Handle authentication changes and user data language sync
+    // Effect 2: Handle user ID changes - reset initialization flag
     useEffect(() => {
-        if (isAuthLoading || languagesLoading) return;
-
-        // Reset initialization flag when user changes
         if (user?.id !== lastUserId.current) {
             hasInitializedFromUserData.current = false;
             lastUserId.current = user?.id || null;
         }
+    }, [user?.id]);
 
-        if (user && user.languageId && !hasInitializedFromUserData.current) {
-            // Use language from user data
-            const languageId = typeof user.languageId === 'number' 
-                ? user.languageId 
-                : parseInt(String(user.languageId), 10);
-            
-            
-            // Only update if different from current
-            if (languageId !== currentLanguageId) {
-                setCurrentLanguageId(languageId);
-            }
-            
-            // Mark as initialized to prevent loops
-            hasInitializedFromUserData.current = true;
-        } else if (!user && languages.length > 0) {
-            // Non-authenticated user - validate current language
-            const validLanguageIds = languages.map(lang => lang.id);
-            if (!validLanguageIds.includes(currentLanguageId)) {
-                // Current language ID is not valid, use first language
-                setCurrentLanguageId(languages[0].id);
-            }
+    // Effect 3: Sync language from authenticated user data (one-time initialization per user)
+    useEffect(() => {
+        // Skip if still loading, no user, or already initialized
+        if (isAuthLoading || !user || hasInitializedFromUserData.current) return;
+        
+        // Skip if user doesn't have a language ID
+        if (!user.languageId) return;
+        
+        const languageId = typeof user.languageId === 'number' 
+            ? user.languageId 
+            : parseInt(String(user.languageId), 10);
+        
+        // Only update if different from current language
+        if (languageId !== currentLanguageId) {
+            setCurrentLanguageId(languageId);
         }
-    }, [user, isAuthLoading, setCurrentLanguageId, languages, currentLanguageId, languagesLoading]);
+        
+        // Mark as initialized to prevent loops
+        hasInitializedFromUserData.current = true;
+    }, [user, isAuthLoading, currentLanguageId, setCurrentLanguageId]);
+
+    // Effect 4: Validate language for non-authenticated users
+    useEffect(() => {
+        // Only run for non-authenticated users with loaded languages
+        if (user || languagesLoading || languages.length === 0) return;
+        
+        const validLanguageIds = languages.map(lang => lang.id);
+        if (!validLanguageIds.includes(currentLanguageId)) {
+            // Current language ID is not valid, use first language
+            setCurrentLanguageId(languages[0].id);
+        }
+    }, [user, languages, currentLanguageId, languagesLoading, setCurrentLanguageId]);
 
     return <>{children}</>;
 } 

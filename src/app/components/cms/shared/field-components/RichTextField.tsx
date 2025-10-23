@@ -40,15 +40,11 @@ export function RichTextField({
 }: IRichTextFieldProps) {
     const errorMessage = validator ? (validator(value).isValid ? undefined : validator(value).error) : undefined;
 
-    // Create a key that includes dataVariables to force re-mount when variables change
-    const editorKey = React.useMemo(() => {
-        const variablesHash = dataVariables ? JSON.stringify(Object.values(dataVariables).sort()) : '';
-        return `${fieldId}-${variablesHash}`;
-    }, [fieldId, dataVariables]);
-
+    // Note: MentionEditor internally handles dataVariables changes through its memoized extensions
+    // No need to force re-mount with key changes - that would be more expensive and lose editor state
+    
     return (
         <MentionEditor
-            key={editorKey}
             value={value}
             onChange={onChange}
             placeholder={placeholder}

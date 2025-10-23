@@ -49,21 +49,21 @@ export const PageContentProvider = ({ children }: { children: ReactNode }) => {
     const updatePageContent = useCallback((keyword: string, content: IPageContent) => {
         queryClient.setQueryData(['page-content', keyword], content);
         setPageContent(content);
-    }, [queryClient, setPageContent]);
+    }, [queryClient]);
 
     /**
      * Clears the current page content (useful when navigating between pages)
      */
     const clearPageContent = useCallback(() => {
         setPageContent(null);
-    }, [setPageContent]);
+    }, []);
 
     const contextValue = useMemo(() => ({
         pageContent,
         setPageContent,
         updatePageContent,
         clearPageContent
-    }), [pageContent]);
+    }), [pageContent, updatePageContent, clearPageContent]);
 
     return (
         <PageContentContext.Provider value={contextValue}>

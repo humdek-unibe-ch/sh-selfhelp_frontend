@@ -66,25 +66,9 @@ function AdminPagesContent() {
     };
   }, [params.slug]);
 
-  // Refresh admin pages data when keyword changes
-  useEffect(() => {
-    const refreshAdminPages = async () => {
-      await queryClient.invalidateQueries({ 
-        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES 
-      });
-      
-      queryClient.prefetchQuery({
-        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES,
-        staleTime: 0,
-      });
-    };
-
-    if (keyword) {
-      refreshAdminPages();
-    }
-  }, [keyword, queryClient]);
-
   // Find the selected page
+  // Note: React Query handles caching automatically - no need to manually invalidate on keyword change
+  // The staleTime config in react-query.config.ts controls when data is refetched
   const selectedPage = useMemo(() => {
     if (!pages || !keyword) return null;
     

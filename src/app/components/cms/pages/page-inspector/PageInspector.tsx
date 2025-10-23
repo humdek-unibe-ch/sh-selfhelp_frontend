@@ -61,6 +61,7 @@ import {
     validateFieldProcessing,
     initializeFieldFormValues
 } from '../../../../../utils/field-processing.utils';
+import { useRenderMonitor, useWhyDidYouUpdate, useMountMonitor } from '../../../../../utils/performance-monitor.utils';
 import { IPageField } from '../../../../../types/common/pages.type';
 import { usePageVersions } from '../../../../../hooks/usePageVersions';
 import {
@@ -99,6 +100,11 @@ interface IPageFormValues {
 }
 
 export function PageInspector({ page, isConfigurationPage = false }: PageInspectorProps) {
+    // Performance monitoring - track renders, prop changes, and mount/unmount
+    useRenderMonitor('PageInspector', { pageId: page?.id_pages, isConfigurationPage });
+    useWhyDidYouUpdate('PageInspector', { page, isConfigurationPage });
+    useMountMonitor('PageInspector');
+    
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [createChildModalOpened, setCreateChildModalOpened] = useState(false);

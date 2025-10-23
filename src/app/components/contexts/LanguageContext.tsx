@@ -53,7 +53,7 @@ export function LanguageProvider({ children, initialData }: ILanguageProviderPro
         languages,
         setLanguages,
         isUpdatingLanguage
-    }), [currentLanguageId, setCurrentLanguageId, languages, setLanguages, isUpdatingLanguage]);
+    }), [currentLanguageId, setCurrentLanguageId, languages, isUpdatingLanguage]);
 
     return (
         <LanguageContext.Provider value={contextValue}>

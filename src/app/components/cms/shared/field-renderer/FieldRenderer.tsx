@@ -203,17 +203,22 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
     
     // Textarea field - now uses rich text editor
     if (field.type === 'textarea') {
-        return renderFieldWithBadge(
-            <RichTextField
-                fieldId={field.id}
-                value={fieldValue}
-                onChange={onChange}
-                placeholder={field.default_value || ''}
-                disabled={disabled}
-                dataVariables={dataVariables}
-                {...(field.name === 'name' ? { validator: validateName, sanitize: sanitizeName } : {})}
-            />
-        );
+        // Prepare props conditionally to avoid inline object creation
+        const richTextProps: any = {
+            fieldId: field.id,
+            value: fieldValue,
+            onChange: onChange,
+            placeholder: field.default_value || '',
+            disabled: disabled,
+            dataVariables: dataVariables
+        };
+        
+        if (field.name === 'name') {
+            richTextProps.validator = validateName;
+            richTextProps.sanitize = sanitizeName;
+        }
+        
+        return renderFieldWithBadge(<RichTextField {...richTextProps} />);
     }
     
     // Text and markdown-inline fields - use TextInputWithMentions for single-line text with variable support
@@ -229,18 +234,22 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
             );
         }
 
-        return renderFieldWithBadge(
-            <TextInputWithMentions
-                fieldId={field.id}
-                value={fieldValue}
-                onChange={onChange}
-                placeholder={field.default_value || ''}
-                disabled={disabled}
-                dataVariables={dataVariables}
-                enableRichTextShortcuts={true}
-                {...(field.name === 'name' ? { validator: validateName } : {})}
-            />
-        );
+        // Prepare props conditionally to avoid inline object creation
+        const textInputProps: any = {
+            fieldId: field.id,
+            value: fieldValue,
+            onChange: onChange,
+            placeholder: field.default_value || '',
+            disabled: disabled,
+            dataVariables: dataVariables,
+            enableRichTextShortcuts: true
+        };
+        
+        if (field.name === 'name') {
+            textInputProps.validator = validateName;
+        }
+        
+        return renderFieldWithBadge(<TextInputWithMentions {...textInputProps} />);
     }
 
     // Select CSS field - dynamic select with API options
