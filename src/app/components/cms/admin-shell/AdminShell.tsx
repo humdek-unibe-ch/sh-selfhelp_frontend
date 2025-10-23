@@ -1,13 +1,12 @@
 'use client';
 
-import { AppShell, MantineProvider, Box } from "@mantine/core";
+import { AppShell, Box } from "@mantine/core";
 import { AdminNavbar } from "./admin-navbar/AdminNavbar";
 import { useDisclosure } from '@mantine/hooks';
 import { useIsAuthenticated } from '@refinedev/core';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { ROUTES } from "../../../../config/routes.config";
-import { theme } from "../../../../../theme";
 import { DebugMenu } from "../../shared/common/debug";
 
 interface AdminShellProps {
@@ -56,7 +55,7 @@ export function AdminShell({ children, aside, asideWidth = 400 }: AdminShellProp
     }
 
     return (
-        <MantineProvider theme={theme}>
+        <>
             <AppShell
                 navbar={{
                     width: 300,
@@ -83,6 +82,6 @@ export function AdminShell({ children, aside, asideWidth = 400 }: AdminShellProp
                 )}
             </AppShell>
             <DebugMenu />
-        </MantineProvider>
+        </>
     );
 }

@@ -18,7 +18,7 @@ import {
     IconTrash,
     IconFileExport
 } from '@tabler/icons-react';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSectionDetails } from '../../../../../hooks/useSectionDetails';
 import { useAdminLanguages } from '../../../../../hooks/useLanguages';
@@ -88,6 +88,9 @@ interface ISectionSubmitData {
         fieldName: string; // For debugging
     }>;
 }
+
+// Mark component for WDYR tracking
+SectionInspector.whyDidYouRender = process.env.NODE_ENV === 'development';
 
 export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) {
     // Performance monitoring - track renders, prop changes, and mount/unmount
@@ -206,102 +209,10 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
         }
     }, [languagesData, activeLanguageTab]);
 
-    // Update form when section data changes
-    useEffect(() => {
-        if (sectionDetailsData && languagesData.length > 0) {
-            const { section, fields } = sectionDetailsData;
-            const globalFields = section.global_fields || {
-                condition: null,
-                data_config: null,
-                css: null,
-                css_mobile: null,
-                debug: false
-            };
-            
-            // Process fields for SectionInspector (which has different structure than PageInspector)
-            const contentFields = fields.filter(field => field.display);
-            const propertyFields = fields.filter(field => !field.display);
-            
-            // Process content fields (translatable) - use similar logic to the utility but adapted for ISectionField
-            const contentFieldsObject: Record<string, Record<number, string>> = {};
-            contentFields.forEach(field => {
-                contentFieldsObject[field.name] = {};
-
-                // Initialize all languages with default values first
-                languagesData.forEach(lang => {
-                    contentFieldsObject[field.name][lang.id] = field.default_value || '';
-                });
-
-                if (field.display) {
-                    // Content fields: populate based on actual language_id from translations if available
-                    if (field.translations && field.translations.length > 0) {
-                        field.translations.forEach(translation => {
-                            const language = languagesData.find(l => l.id === translation.language_id);
-                            if (language) {
-                                contentFieldsObject[field.name][language.id] = translation.content || field.default_value || '';
-                            }
-                        });
-                    }
-                    // If no translations, keep the default values set above
-                } else {
-                    // Property fields: find content from language_id = 1 or use default value
-                    let propertyContent = field.default_value || '';
-
-                    if (field.translations && field.translations.length > 0) {
-                        const propertyTranslation = field.translations.find(t => t.language_id === 1);
-                        if (propertyTranslation?.content !== undefined && propertyTranslation?.content !== null) {
-                            propertyContent = propertyTranslation.content;
-                        }
-                    }
-
-                    // Replicate property field content to all language tabs for editing convenience
-                    languagesData.forEach(language => {
-                        contentFieldsObject[field.name][language.id] = propertyContent;
-                    });
-                }
-            });
-
-            // Process property fields for the properties object (SectionInspector uses a different structure)
-            const propertyFieldsObject: Record<string, string | boolean> = {};
-            
-            propertyFields.forEach(field => {
-                // Get the property field content from language ID 1 or use default value
-                let value = field.default_value || '';
-
-                if (field.translations && field.translations.length > 0) {
-                    const propertyTranslation = field.translations.find(t => t.language_id === 1);
-                    if (propertyTranslation?.content !== undefined && propertyTranslation?.content !== null) {
-                        value = propertyTranslation.content;
-                    }
-                }
-
-                // Convert to appropriate type based on field type
-                if (field.type === 'checkbox') {
-                    propertyFieldsObject[field.name] = value === '1' || value === 'true' || value === 'on';
-                } else {
-                    propertyFieldsObject[field.name] = value;
-                }
-            });
-            
-            const newFormValues = {
-                sectionName: section.name,
-                properties: propertyFieldsObject,
-                fields: contentFieldsObject,
-                globalFields: {
-                    condition: globalFields.condition || '',
-                    data_config: globalFields.data_config || '',
-                    css: globalFields.css || '',
-                    css_mobile: globalFields.css_mobile || '',
-                    debug: globalFields.debug || false
-                }
-            };
-            
-            setFormValues(newFormValues);
-            setOriginalValues(newFormValues); // Store original values for change detection
-        } else {
-            
-            // Reset form when no section is selected
-            const resetValues = {
+    // Memoize processed form values to prevent recreation on every render
+    const processedFormValues = useMemo(() => {
+        if (!sectionDetailsData || languagesData.length === 0) {
+            return {
                 sectionName: '',
                 properties: {},
                 fields: {},
@@ -313,15 +224,121 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                     debug: false
                 }
             };
-
-            setFormValues(resetValues);
-            setOriginalValues(resetValues);
         }
+
+        const { section, fields } = sectionDetailsData;
+        const globalFields = section.global_fields || {
+            condition: null,
+            data_config: null,
+            css: null,
+            css_mobile: null,
+            debug: false
+        };
+
+        // Process fields for SectionInspector (which has different structure than PageInspector)
+        const contentFields = fields.filter(field => field.display);
+        const propertyFields = fields.filter(field => !field.display);
+
+        // Process content fields (translatable) - use similar logic to the utility but adapted for ISectionField
+        const contentFieldsObject: Record<string, Record<number, string>> = {};
+        contentFields.forEach(field => {
+            contentFieldsObject[field.name] = {};
+
+            // Initialize all languages with default values first
+            languagesData.forEach(lang => {
+                contentFieldsObject[field.name][lang.id] = field.default_value || '';
+            });
+
+            if (field.display) {
+                // Content fields: populate based on actual language_id from translations if available
+                if (field.translations && field.translations.length > 0) {
+                    field.translations.forEach(translation => {
+                        const language = languagesData.find(l => l.id === translation.language_id);
+                        if (language) {
+                            contentFieldsObject[field.name][language.id] = translation.content || field.default_value || '';
+                        }
+                    });
+                }
+                // If no translations, keep the default values set above
+            } else {
+                // Property fields: find content from language_id = 1 or use default value
+                let propertyContent = field.default_value || '';
+
+                if (field.translations && field.translations.length > 0) {
+                    const propertyTranslation = field.translations.find(t => t.language_id === 1);
+                    if (propertyTranslation?.content !== undefined && propertyTranslation?.content !== null) {
+                        propertyContent = propertyTranslation.content;
+                    }
+                }
+
+                // Replicate property field content to all language tabs for editing convenience
+                languagesData.forEach(language => {
+                    contentFieldsObject[field.name][language.id] = propertyContent;
+                });
+            }
+        });
+
+        // Process property fields for the properties object (SectionInspector uses a different structure)
+        const propertyFieldsObject: Record<string, string | boolean> = {};
+
+        propertyFields.forEach(field => {
+            // Get the property field content from language ID 1 or use default value
+            let value = field.default_value || '';
+
+            if (field.translations && field.translations.length > 0) {
+                const propertyTranslation = field.translations.find(t => t.language_id === 1);
+                if (propertyTranslation?.content !== undefined && propertyTranslation?.content !== null) {
+                    value = propertyTranslation.content;
+                }
+            }
+
+            // Convert to appropriate type based on field type
+            if (field.type === 'checkbox') {
+                propertyFieldsObject[field.name] = value === '1' || value === 'true' || value === 'on';
+            } else {
+                propertyFieldsObject[field.name] = value;
+            }
+        });
+
+        return {
+            sectionName: section.name,
+            properties: propertyFieldsObject,
+            fields: contentFieldsObject,
+            globalFields: {
+                condition: globalFields.condition || '',
+                data_config: globalFields.data_config || '',
+                css: globalFields.css || '',
+                css_mobile: globalFields.css_mobile || '',
+                debug: globalFields.debug || false
+            }
+        };
     }, [sectionDetailsData, languagesData]);
 
-    const handleSave = async () => {
+    // Update form values only when processed data changes
+    useEffect(() => {
+        setFormValues(processedFormValues);
+        setOriginalValues(processedFormValues);
+    }, [processedFormValues]);
+
+    // Memoize computed values to prevent recreation on every render
+    const hasMultipleLanguages = useMemo(() => languagesData.length > 1, [languagesData.length]);
+
+    const dataVariables = useMemo(() => sectionDetailsData?.data_variables || {}, [sectionDetailsData?.data_variables]);
+
+    const contentFields = useMemo(() => sectionDetailsData?.fields.filter(field => field.display) || [], [sectionDetailsData?.fields]);
+
+    const propertyFields = useMemo(() => sectionDetailsData?.fields.filter(field => !field.display) || [], [sectionDetailsData?.fields]);
+
+    // Use shared field change handlers
+    const { handleContentFieldChange, handlePropertyFieldChange } = createFieldChangeHandlers(
+        setFormValues,
+        'SectionInspector'
+    );
+
+    // Memoize handlers to prevent recreation on every render
+    const handleSave = useCallback(async () => {
         if (!sectionId || !sectionDetailsData || !languagesData.length || !pageId) return;
-        
+
         // Validate section name if it has changed
         if (formValues.sectionName !== originalValues.sectionName) {
             const validation = validateName(formValues.sectionName);
@@ -334,11 +351,7 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                 return;
             }
         }
-        
-        const { fields } = sectionDetailsData;
-        const contentFields = fields.filter(field => field.display);
-        const propertyFields = fields.filter(field => !field.display);
-        
+
         // Prepare submit data structure (only changed fields)
         const submitData = {
             contentFields: [] as Array<{
@@ -352,12 +365,12 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
             }>,
             globalFields: {} as any
         } as any;
-        
+
         // Check if section name changed
         if (formValues.sectionName !== originalValues.sectionName) {
             submitData.sectionName = formValues.sectionName;
         }
-        
+
         // Process content fields (translatable) - send all values
         contentFields.forEach(field => {
             const currentFieldValues = formValues.fields[field.name] || {};
@@ -372,7 +385,7 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                 });
             });
         });
-        
+
         // Process property fields (non-translatable) - send all values
         propertyFields.forEach(field => {
             const currentValue = formValues.properties[field.name];
@@ -396,7 +409,7 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
 
         // Always submit since we're sending all field values
         // (no need to check for changes since we send all values)
-        
+
         // Execute the mutation
         try {
             await updateSectionMutation.mutateAsync({
@@ -408,48 +421,40 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
             // Error handling is done by the mutation hook
 
         }
-    };
+    }, [sectionId, sectionDetailsData, languagesData, pageId, formValues, originalValues, contentFields, propertyFields, updateSectionMutation]);
 
-    const handleDeleteSection = () => {
+    const handleDeleteSection = useCallback(() => {
         if (!sectionId || !sectionDetailsData || !pageId) return;
-        
-        if (deleteConfirmText === sectionDetailsData.section.name) {
 
+        if (deleteConfirmText === sectionDetailsData.section.name) {
             deleteSectionMutation.mutate({
                 pageId,
                 sectionId
             });
         }
-    };
+    }, [sectionId, sectionDetailsData, pageId, deleteConfirmText, deleteSectionMutation]);
 
-    const handleExportSection = async () => {
+    const handleExportSection = useCallback(async () => {
         if (!sectionId || !sectionDetailsData || !pageId) return;
-        
+
         try {
             const response = await exportSection(pageId, sectionId);
             const filename = generateExportFilename(`section_${sectionDetailsData.section.name}_${sectionId}`);
             downloadJsonFile(response.data.sectionsData, filename);
         } catch (error) {
-
             // Error notification is handled by the download function
         }
-    };
+    }, [sectionId, sectionDetailsData, pageId]);
 
-    // Use shared field change handlers
-    const { handleContentFieldChange, handlePropertyFieldChange } = createFieldChangeHandlers(
-        setFormValues,
-        'SectionInspector'
-    );
-
-    const handleSectionNameChange = (value: string) => {
+    const handleSectionNameChange = useCallback((value: string) => {
         setFormValues(prev => ({
             ...prev,
             sectionName: value
         }));
-    };
+    }, []);
 
-    // Convert ISectionField to IFieldData
-    const convertToFieldData = (field: ISectionField): IFieldData => ({
+    // Memoize field conversion function
+    const convertToFieldData = useCallback((field: ISectionField): IFieldData => ({
         id: field.id,
         name: field.name,
         title: field.title,
@@ -461,13 +466,13 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
         display: field.display,
         config: field.config,
         translations: field.translations
-    });
+    }), []);
 
     // Define the fixed global field types
     const globalFieldTypes: GlobalFieldType[] = ['condition', 'data_config', 'css', 'css_mobile', 'debug'];
 
-    // Render content field based on type and language
-    const renderContentField = (field: ISectionField, languageId: number) => {
+    // Memoize content field renderer to prevent recreation on every render
+    const renderContentField = useCallback((field: ISectionField, languageId: number) => {
         const currentLanguage = languagesData.find(lang => lang.id === languageId);
         const locale = currentLanguage?.locale;
         const fieldValue = formValues.fields?.[field.name]?.[languageId] ?? '';
@@ -485,10 +490,10 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                 dataVariables={dataVariables}
             />
         );
-    };
+    }, [languagesData, formValues.fields, convertToFieldData, handleContentFieldChange, dataVariables]);
 
-    // Render property field (single-language, uses first language ID)
-    const renderPropertyField = (field: ISectionField) => {
+    // Memoize property field renderer to prevent recreation on every render
+    const renderPropertyField = useCallback((field: ISectionField) => {
         const langId = languagesData[0]?.id || 1;
         const fieldValue = formValues.properties?.[field.name] ?? '';
 
@@ -504,21 +509,53 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                 dataVariables={dataVariables}
             />
         );
-    };
+    }, [languagesData, formValues.properties, convertToFieldData, handlePropertyFieldChange, dataVariables]);
 
     // Get fields data for processing
     const fields = sectionDetailsData?.fields || [];
 
-    // Check if we have multiple languages for content fields
-    const hasMultipleLanguages = useMemo(() => {
-        return languagesData.length > 1;
-    }, [languagesData]);
+    // Memoize header data - only create when we have section data
+    const headerBadges = useMemo(() => {
+        if (!sectionDetailsData) return [];
+        const { section } = sectionDetailsData;
+        return [
+            { label: `ID: ${section.id}`, color: 'blue' },
+            { label: section.style.name, color: 'green' },
+            ...(section.style.canHaveChildren ? [{ label: 'Can Have Children', color: 'green' }] : []),
+            { label: `Type ID: ${section.style.typeId}`, color: 'gray' }
+        ];
+    }, [sectionDetailsData]);
 
-    // Get data variables from API response
-    const dataVariables = useMemo(() => {
-        return sectionDetailsData?.data_variables || {};
-    }, [sectionDetailsData?.data_variables]);
+    const headerActions = useMemo(() => {
+        if (!sectionDetailsData) return [];
+        return [
+            {
+                label: 'Save',
+                icon: <IconDeviceFloppy size="1rem" />,
+                onClick: handleSave,
+                variant: 'filled' as const,
+                disabled: !sectionId || updateSectionMutation.isPending || deleteSectionMutation.isPending,
+                loading: updateSectionMutation.isPending
+            },
+            {
+                label: 'Export',
+                icon: <IconFileExport size="1rem" />,
+                onClick: handleExportSection,
+                variant: 'light' as const,
+                disabled: !sectionId || deleteSectionMutation.isPending
+            },
+            {
+                label: 'Delete',
+                icon: <IconTrash size="1rem" />,
+                onClick: () => setDeleteModalOpened(true),
+                variant: 'light' as const,
+                color: 'red',
+                disabled: !sectionId || deleteSectionMutation.isPending
+            }
+        ];
+    }, [sectionDetailsData, sectionId, updateSectionMutation.isPending, deleteSectionMutation.isPending, handleSave, handleExportSection]);
 
+    // Early returns after all hooks are defined
     if (!sectionId) {
         return (
             <InspectorLayout
@@ -560,9 +597,9 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                     <Text size="xs" c="dimmed">Page ID: {pageId || 'null'}</Text>
                     <Text size="xs" c="dimmed">Section ID: {sectionId || 'null'}</Text>
                     <Text size="xs" c="dimmed">Error: {sectionError.message}</Text>
-                    <Button 
-                        size="xs" 
-                        mt="sm" 
+                    <Button
+                        size="xs"
+                        mt="sm"
                         onClick={async () => {
                             try {
                                 await AdminApi.getSectionDetails(pageId!, sectionId!);
@@ -591,9 +628,9 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                     <Text size="xs" c="dimmed">Loading: {sectionLoading.toString()}</Text>
                     <Text size="xs" c="dimmed">Fetching: {isFetching.toString()}</Text>
                     <Text size="xs" c="dimmed">Stale: {isStale.toString()}</Text>
-                    <Button 
-                        size="xs" 
-                        mt="sm" 
+                    <Button
+                        size="xs"
+                        mt="sm"
                         onClick={async () => {
                             try {
                                 await AdminApi.getSectionDetails(pageId!, sectionId!);
@@ -610,39 +647,6 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
     }
 
     const { section } = sectionDetailsData;
-
-    const headerBadges = [
-        { label: `ID: ${section.id}`, color: 'blue' },
-        { label: section.style.name, color: 'green' },
-        ...(section.style.canHaveChildren ? [{ label: 'Can Have Children', color: 'green' }] : []),
-        { label: `Type ID: ${section.style.typeId}`, color: 'gray' }
-    ];
-
-    const headerActions = [
-        {
-            label: 'Save',
-            icon: <IconDeviceFloppy size="1rem" />,
-            onClick: handleSave,
-            variant: 'filled' as const,
-            disabled: !sectionId || updateSectionMutation.isPending || deleteSectionMutation.isPending,
-            loading: updateSectionMutation.isPending
-        },
-        {
-            label: 'Export',
-            icon: <IconFileExport size="1rem" />,
-            onClick: handleExportSection,
-            variant: 'light' as const,
-            disabled: !sectionId || deleteSectionMutation.isPending
-        },
-        {
-            label: 'Delete',
-            icon: <IconTrash size="1rem" />,
-            onClick: () => setDeleteModalOpened(true),
-            variant: 'light' as const,
-            color: 'red',
-            disabled: !sectionId || deleteSectionMutation.isPending
-        }
-    ];
 
     return (
         <>

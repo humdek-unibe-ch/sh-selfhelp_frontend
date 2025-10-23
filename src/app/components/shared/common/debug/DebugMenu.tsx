@@ -92,6 +92,7 @@ const captureDebugLog = (message: string, component: string, data?: any, level: 
 // Override the global debug function
 (window as any).captureDebug = captureDebugLog;
 
+
 export function DebugMenu() {
     const [opened, { toggle }] = useDisclosure(false);
     const [activeTab, setActiveTab] = useState<string>('all');
@@ -115,7 +116,10 @@ export function DebugMenu() {
 
     useEffect(() => {
         const listener = (newLogs: IDebugLogEntry[]) => {
-            setLogs(newLogs);
+            // Use setTimeout to avoid setState during render
+            setTimeout(() => {
+                setLogs(newLogs);
+            }, 0);
         };
         
         debugListeners.push(listener);
@@ -137,6 +141,8 @@ export function DebugMenu() {
 
         return () => clearInterval(interval);
     }, [opened]);
+
+    // WDYR is now set up globally in providers.tsx - no need for component-level control
 
     const handleExportLogs = () => {
         const logs = debugLogger.exportLogs();
@@ -550,57 +556,292 @@ export function DebugMenu() {
                                 </Group>
                             </Group>
 
-                            <Group gap="xs" wrap="wrap">
-                                <Button 
-                                    size="xs" 
-                                    leftSection={reportCopied ? <IconCheck size={16} /> : <IconCopy size={16} />}
-                                    color={reportCopied ? 'green' : 'blue'}
-                                    variant="filled"
-                                    onClick={async () => {
-                                        const success = await copyPerformanceReportToClipboard();
-                                        if (success) {
-                                            setReportCopied(true);
-                                            notifications.show({
-                                                title: 'Report Copied!',
-                                                message: 'Performance report copied to clipboard. Paste it in your chat with the AI assistant.',
-                                                color: 'green',
-                                                icon: <IconCheck size={16} />,
-                                            });
-                                            setTimeout(() => setReportCopied(false), 3000);
-                                        } else {
-                                            notifications.show({
-                                                title: 'Copy Failed',
-                                                message: 'Failed to copy report to clipboard',
-                                                color: 'red',
-                                            });
-                                        }
-                                    }}
-                                >
-                                    {reportCopied ? 'Copied!' : 'Copy AI Report'}
-                                </Button>
-                                <Button 
-                                    size="xs" 
-                                    leftSection={<IconActivity size={16} />}
-                                    onClick={() => {
-                                        setPerformanceStats(getRenderStats());
-                                        setPerformanceWarnings(getWarnings());
-                                    }}
-                                >
-                                    Refresh
-                                </Button>
-                                <Button 
-                                    size="xs" 
-                                    leftSection={<IconClearAll size={16} />}
-                                    color="red"
-                                    onClick={() => {
-                                        resetPerformanceMonitor();
-                                        setPerformanceStats([]);
-                                        setPerformanceWarnings([]);
-                                    }}
-                                >
-                                    Reset All
-                                </Button>
-                            </Group>
+                                <Alert icon={<IconInfoCircle size="1rem" />} color="blue" title="WDYR Status">
+                                    <Text size="sm">
+                                        Why Did You Render is {process.env.NODE_ENV === 'development' ? 'active' : 'disabled'} in {process.env.NODE_ENV} mode.
+                                        {process.env.NODE_ENV === 'development' && ' Check console for render logs when interacting with tracked components.'}
+                                    </Text>
+                                </Alert>
+
+                                <Group gap="xs">
+                                    {/* AI Analysis Report Generator */}
+                                    {(() => {
+                                        // Collect WDYR logs from debug logger
+                                        const wdyrLogs = debugLogger.getLogs().filter(log =>
+                                            log.message.includes('[why-did-you-render]') ||
+                                            log.message.includes('Why Did You Update') ||
+                                            log.component?.includes('SectionInspector') ||
+                                            log.component?.includes('PageInspector')
+                                        );
+
+                                        // Create comprehensive AI analysis prompt
+                                        const generateAIPrompt = (): string => {
+                                            const criticalComponents = performanceStats.filter(s => s.renderCount > 50).length;
+                                            const highPriorityComponents = performanceStats.filter(s => s.renderCount > 20 && s.renderCount <= 50).length;
+                                            const normalComponents = performanceStats.filter(s => s.renderCount <= 20).length;
+
+                                            const wdyrSection = process.env.NODE_ENV === 'development' ?
+                                                `### 📋 WDYR Console Logs Captured (${wdyrLogs.length} entries)
+
+${wdyrLogs.slice(-50).map((log, idx) =>
+`**${idx + 1}.** [${log.timestamp}] **${log.component || 'Unknown'}**
+- **Message:** ${log.message}
+- **Data:** ${log.data ? JSON.stringify(log.data, null, 2) : 'No additional data'}
+- **Level:** ${log.level}
+`).join('\n\n')}
+
+### 🎯 WDYR Interpretation Guide
+
+**Common WDYR Messages:**
+- \`[why-did-you-render] Component re-rendered unnecessarily\` - Component rendered when props/state didn't change
+- \`[Why Did You Update] Component {changedProps}\` - Shows exactly which props changed
+- \`Hook differences\` - Custom hooks caused re-render
+- \`Owner differences\` - Parent component changes triggered re-render
+
+**What to Look For:**
+- **Repeated renders** with same props = unnecessary re-renders
+- **Hook changes** = unstable hook dependencies
+- **Owner changes** = parent component issues
+- **Frequent renders** = missing memoization` :
+                                                `### ⚠️ WDYR Disabled
+WDYR is only active in development mode. Enable development mode and interact with components to capture WDYR logs.`;
+
+                                            const componentAnalysis = performanceStats.map(stat => {
+                                                const isCritical = stat.renderCount > 50;
+                                                const isWarning = stat.renderCount > 20 && stat.renderCount <= 50;
+
+                                                const propsStructure = stat.props ? Object.keys(stat.props).reduce((acc, key) => {
+                                                    acc[key] = typeof stat.props![key];
+                                                    return acc;
+                                                }, {} as Record<string, string>) : {};
+
+                                                const propChanges = stat.propChangeHistory && stat.propChangeHistory.length > 0 ?
+`Recent Prop Changes (Last ${Math.min(stat.propChangeHistory.length, 5)}):
+${stat.propChangeHistory.slice(-5).reverse().map((change, idx) =>
+`${idx + 1}. Render #${change.renderNumber} (${new Date(change.timestamp).toLocaleTimeString()})
+- Prop: \`${change.propName}\`
+- From: \`${change.oldValue}\`
+- To: \`${change.newValue}\``
+).join('\n')}` : '';
+
+                                                return `${isCritical ? '## 🔥 CRITICAL' : isWarning ? '## ⚠️ HIGH PRIORITY' : '## ✅ NORMAL'}: ${stat.componentName}
+
+Render Count: ${stat.renderCount}
+Average Render Time: ${stat.averageRenderTime.toFixed(2)}ms
+Total Render Time: ${stat.totalRenderTime.toFixed(2)}ms
+
+Current Props Structure:
+\`\`\`json
+${JSON.stringify(propsStructure, null, 2)}
+\`\`\`
+
+${propChanges}
+
+Analysis: ${stat.renderCount > 50 ?
+    '🚨 CRITICAL: Potential infinite loop or missing memoization' :
+    stat.renderCount > 20 ?
+    '⚠️ HIGH: Excessive renders, needs optimization' :
+    '✅ NORMAL: Acceptable render frequency'
+}`;
+                                            }).join('\n\n');
+
+                                            const warningsSection = performanceWarnings.map((warning, index) =>
+`### Warning ${index + 1}: ${warning.componentName}
+
+Type: ${warning.type}
+Message: ${warning.message}
+${warning.details ? `
+Details:
+\`\`\`json
+${JSON.stringify(warning.details, null, 2)}
+\`\`\`
+` : ''}
+`).join('\n\n');
+
+                                            const wdyrAnalysis = wdyrLogs.length > 0 ? `
+Captured WDYR Logs: ${wdyrLogs.length} entries
+
+For each WDYR log entry, explain:
+1. What triggered the re-render?
+   - Was it props, state, context, or hooks?
+   - Which specific prop/hook changed?
+   - Why was this change unnecessary?
+
+2. Root cause identification:
+   - Is the parent component recreating objects?
+   - Are hooks missing dependency optimization?
+   - Is context causing cascading updates?
+   - Are refs or callbacks unstable?
+
+3. Specific fixes needed:
+   - Add \`React.memo\` if component re-renders with same props
+   - Use \`useMemo\` for expensive computations
+   - Use \`useCallback\` for event handlers
+   - Stabilize context values with \`useMemo\`
+   - Fix hook dependencies` : 'No WDYR logs captured. Enable development mode, interact with components, then regenerate this report to see WDYR analysis.';
+
+                                            return `# 🐛 React Performance Analysis Report
+
+Generated: ${new Date().toISOString()}
+Total Components Tracked: ${performanceStats.length}
+Total Warnings: ${performanceWarnings.length}
+WDYR Status: ${process.env.NODE_ENV === 'development' ? 'Active' : 'Disabled'}
+
+---
+
+## 📊 Executive Summary
+
+### 🔥 CRITICAL ISSUES (${criticalComponents} components)
+Immediate Action Required - These components have excessive renders (>50) indicating potential infinite loops
+
+### ⚠️ HIGH PRIORITY (${highPriorityComponents} components)
+Fix Soon - Components with 20-50 renders need optimization
+
+### ✅ NORMAL (${normalComponents} components)
+Good Performance - Components with acceptable render counts
+
+---
+
+## 🔍 WDYR (Why Did You Render) Analysis
+
+${wdyrSection}
+
+---
+
+## 🔍 Detailed Component Analysis
+
+${componentAnalysis}
+
+---
+
+## ⚠️ Performance Warnings
+
+${warningsSection}
+
+---
+
+## 🎯 Comprehensive AI Diagnostic Assistant Prompt
+
+You are a senior React performance expert. Analyze the above data and provide detailed solutions.
+
+### 📋 WDYR Analysis Required
+${wdyrAnalysis}
+
+### 🔧 Performance Issue Analysis
+
+For each problematic component:
+
+1. Immediate Root Cause:
+- Identify WHY it's re-rendering (from WDYR logs)
+- Check if props are being recreated on every render
+- Look for missing memoization in parent components
+- Check for unstable references in dependency arrays
+
+2. Specific Code Fixes:
+- Show exact code changes needed
+- Provide before/after examples
+- Explain why each fix works
+
+3. Implementation Priority:
+- Which components to fix first?
+- Expected performance impact of each fix
+- Quick wins vs. architectural changes
+
+4. Prevention Strategies:
+- How to avoid similar issues in the future
+- Best practices for this codebase
+
+### 📁 Files to Examine
+
+Based on the performance data, check these files:
+
+\`\`\`
+src/app/components/cms/pages/section-inspector/SectionInspector.tsx
+src/app/components/contexts/* (any context providers)
+src/hooks/useSectionDetails.ts
+src/hooks/useAdminLanguages.ts
+src/providers/providers.tsx
+\`\`\`
+
+### 🧪 Testing the Fixes
+
+After implementing fixes:
+1. Check browser console for reduced WDYR logs
+2. Use React DevTools Profiler to measure improvement
+3. Run this debug report again to verify fixes
+
+### 📊 Expected Outcomes
+
+- Critical components (<50 renders): Immediate fix required
+- High priority (20-50 renders): Optimize soon
+- Normal (<20 renders): Good performance maintained
+
+---
+
+Report Generated: ${new Date().toISOString()}
+Environment: ${process.env.NODE_ENV}
+WDYR Active: ${process.env.NODE_ENV === 'development'}
+
+---
+
+End of Analysis Report - Send this complete report to your AI assistant for comprehensive React performance optimization guidance.`;
+                                        };
+
+                                        return (
+                                            <Button
+                                                size="xs"
+                                                leftSection={reportCopied ? <IconCheck size={16} /> : <IconCopy size={16} />}
+                                                color={reportCopied ? 'green' : 'blue'}
+                                                variant="filled"
+                                                onClick={async () => {
+                                                    const aiAnalysisPrompt = generateAIPrompt();
+
+                                                    try {
+                                                        await navigator.clipboard.writeText(aiAnalysisPrompt);
+                                                        setReportCopied(true);
+                                                        notifications.show({
+                                                            title: 'AI Analysis Report Copied!',
+                                                            message: 'Comprehensive performance report with WDYR analysis copied to clipboard. Send to AI assistant for detailed optimization guidance.',
+                                                            color: 'green',
+                                                            icon: <IconCheck size={16} />,
+                                                        });
+                                                        setTimeout(() => setReportCopied(false), 3000);
+                                                    } catch (error) {
+                                                        notifications.show({
+                                                            title: 'Copy Failed',
+                                                            message: 'Failed to copy AI analysis report to clipboard',
+                                                            color: 'red',
+                                                        });
+                                                    }
+                                                }}
+                                            >
+                                                {reportCopied ? 'Copied!' : 'Copy AI Report'}
+                                            </Button>
+                                        );
+                                    })()}
+                                    <Button
+                                        size="xs"
+                                        leftSection={<IconActivity size={16} />}
+                                        onClick={() => {
+                                            setPerformanceStats(getRenderStats());
+                                            setPerformanceWarnings(getWarnings());
+                                        }}
+                                    >
+                                        Refresh
+                                    </Button>
+                                    <Button
+                                        size="xs"
+                                        leftSection={<IconClearAll size={16} />}
+                                        color="red"
+                                        onClick={() => {
+                                            resetPerformanceMonitor();
+                                            setPerformanceStats([]);
+                                            setPerformanceWarnings([]);
+                                        }}
+                                    >
+                                        Reset All
+                                    </Button>
+                                </Group>
 
                             {performanceStats.length === 0 ? (
                                 <Alert icon={<IconInfoCircle size={16} />} color="blue">
@@ -627,33 +868,116 @@ function MyComponent(props) {
                                             </Badge>
                                         </Group>
                                         <Paper withBorder p="xs" style={{ background: 'var(--mantine-color-gray-0)' }}>
-                                            <ScrollArea h={200} type="auto" scrollbarSize={8}>
+                                            <ScrollArea h={300} type="auto" scrollbarSize={8}>
                                                 <Stack gap="xs" pr="xs">
                                                     {performanceStats
                                                         .sort((a, b) => b.renderCount - a.renderCount)
                                                         .map((stat) => (
                                                         <Paper key={stat.componentName} p="xs" withBorder bg="white">
-                                                            <Group justify="space-between">
-                                                                <Stack gap={2}>
-                                                                    <Text size="sm" fw={500}>{stat.componentName}</Text>
-                                                                    <Group gap="xs">
-                                                                        <Badge 
-                                                                            size="xs" 
-                                                                            color={stat.renderCount > 50 ? 'red' : stat.renderCount > 20 ? 'orange' : 'green'}
-                                                                        >
-                                                                            {stat.renderCount} renders
-                                                                        </Badge>
-                                                                        <Badge size="xs" variant="light">
-                                                                            {stat.averageRenderTime.toFixed(2)}ms avg
-                                                                        </Badge>
-                                                                    </Group>
-                                                                    {stat.changedProps && stat.changedProps.length > 0 && (
-                                                                        <Text size="xs" c="dimmed">
-                                                                            Changed: {stat.changedProps.join(', ')}
+                                                            <Stack gap="xs">
+                                                                <Group justify="space-between">
+                                                                    <Stack gap={2}>
+                                                                        <Text size="sm" fw={500}>{stat.componentName}</Text>
+                                                                        <Group gap="xs">
+                                                                            <Badge 
+                                                                                size="xs" 
+                                                                                color={stat.renderCount > 50 ? 'red' : stat.renderCount > 20 ? 'orange' : 'green'}
+                                                                            >
+                                                                                {stat.renderCount} renders
+                                                                            </Badge>
+                                                                            <Badge size="xs" variant="light">
+                                                                                {stat.averageRenderTime.toFixed(2)}ms avg
+                                                                            </Badge>
+                                                                            <Badge size="xs" variant="light" color="gray">
+                                                                                {stat.totalRenderTime.toFixed(2)}ms total
+                                                                            </Badge>
+                                                                        </Group>
+                                                                    </Stack>
+                                                                </Group>
+
+                                                                {/* Prop Change History */}
+                                                                {stat.propChangeHistory && stat.propChangeHistory.length > 0 && (
+                                                                    <Box>
+                                                                        <Text size="xs" fw={500} c="dimmed" mb={4}>
+                                                                            🔍 Why Did You Update (Last {Math.min(stat.propChangeHistory.length, 10)} changes):
                                                                         </Text>
-                                                                    )}
-                                                                </Stack>
-                                                            </Group>
+                                                                        <Paper p="xs" withBorder style={{ background: 'var(--mantine-color-gray-1)' }}>
+                                                                            <Stack gap={6}>
+                                                                                {stat.propChangeHistory.slice(-10).reverse().map((change, idx) => {
+                                                                                    const timeAgo = Date.now() - change.timestamp;
+                                                                                    const timeStr = timeAgo < 1000 ? 'just now' : 
+                                                                                                   timeAgo < 60000 ? `${Math.floor(timeAgo / 1000)}s ago` :
+                                                                                                   `${Math.floor(timeAgo / 60000)}m ago`;
+                                                                                    
+                                                                                    // Simplified value display
+                                                                                    const formatValue = (val: any): string => {
+                                                                                        if (val === undefined) return 'undefined';
+                                                                                        if (val === null) return 'null';
+                                                                                        if (typeof val === 'function') return '[Function]';
+                                                                                        if (typeof val === 'object') {
+                                                                                            try {
+                                                                                                const str = JSON.stringify(val);
+                                                                                                return str.length > 50 ? `${str.substring(0, 50)}...` : str;
+                                                                                            } catch {
+                                                                                                return '[Object]';
+                                                                                            }
+                                                                                        }
+                                                                                        const str = String(val);
+                                                                                        return str.length > 50 ? `${str.substring(0, 50)}...` : str;
+                                                                                    };
+
+                                                                                    return (
+                                                                                        <Box key={idx} p={4} style={{ background: 'white', borderRadius: 4, fontSize: '11px' }}>
+                                                                                            <Group gap={4} mb={2}>
+                                                                                                <Badge size="xs" variant="light" color="blue">
+                                                                                                    Render #{change.renderNumber}
+                                                                                                </Badge>
+                                                                                                <Text size="xs" c="dimmed">{timeStr}</Text>
+                                                                                            </Group>
+                                                                                            <Text size="xs" fw={500} c="blue" mb={2}>
+                                                                                                {change.propName}
+                                                                                            </Text>
+                                                                                            <Stack gap={2}>
+                                                                                                <Group gap={4}>
+                                                                                                    <Text size="xs" c="dimmed" style={{ minWidth: 30 }}>From:</Text>
+                                                                                                    <Code style={{ fontSize: '10px', padding: '2px 4px' }}>
+                                                                                                        {formatValue(change.oldValue)}
+                                                                                                    </Code>
+                                                                                                </Group>
+                                                                                                <Group gap={4}>
+                                                                                                    <Text size="xs" c="dimmed" style={{ minWidth: 30 }}>To:</Text>
+                                                                                                    <Code style={{ fontSize: '10px', padding: '2px 4px' }}>
+                                                                                                        {formatValue(change.newValue)}
+                                                                                                    </Code>
+                                                                                                </Group>
+                                                                                            </Stack>
+                                                                                        </Box>
+                                                                                    );
+                                                                                })}
+                                                                            </Stack>
+                                                                        </Paper>
+                                                                    </Box>
+                                                                )}
+
+                                                                {/* Current Props */}
+                                                                {stat.props && Object.keys(stat.props).length > 0 && (
+                                                                    <Box>
+                                                                        <Text size="xs" fw={500} c="dimmed" mb={4}>
+                                                                            Current Props:
+                                                                        </Text>
+                                                                        <Code block style={{ fontSize: '10px', maxHeight: '100px', overflow: 'auto' }}>
+                                                                            {JSON.stringify(
+                                                                                Object.keys(stat.props).reduce((acc, key) => {
+                                                                                    acc[key] = typeof stat.props![key];
+                                                                                    return acc;
+                                                                                }, {} as Record<string, string>),
+                                                                                null,
+                                                                                2
+                                                                            )}
+                                                                        </Code>
+                                                                    </Box>
+                                                                )}
+                                                            </Stack>
                                                         </Paper>
                                                     ))}
                                                 </Stack>
@@ -697,6 +1021,24 @@ function MyComponent(props) {
                                 </>
                             )}
 
+                            {/* WDYR Info Section */}
+                            {process.env.NODE_ENV === 'development' && (
+                                <Box>
+                                    <Text fw={500} mb="xs">🔍 Why Did You Render Active</Text>
+                                    <Alert icon={<IconInfoCircle size="1rem" />} color="green">
+                                        <Text size="sm" mb="xs">
+                                            WDYR is active and tracking components. Check your browser console for render logs.
+                                        </Text>
+                                        <Text size="xs" component="div">
+                                            • Tracked components: SectionInspector, PageInspector<br/>
+                                            • Excluded: Mantine components, Notifications, DebugMenu<br/>
+                                            • Look for <Code>[why-did-you-render]</Code> logs in console<br/>
+                                            • Use the test component above to trigger renders
+                                        </Text>
+                                    </Alert>
+                                </Box>
+                            )}
+
                             <Alert icon={<IconInfoCircle size={16} />} color="blue">
                                 <Text size="sm" fw={500} mb="xs">Understanding Render Counts:</Text>
                                 <Text size="xs" component="div" mb="md">
@@ -713,13 +1055,17 @@ function MyComponent(props) {
                                 
                                 <Text size="sm" fw={500} mb="xs">Pro Tips:</Text>
                                 <Text size="xs" component="div">
-                                    • <strong>Check console now</strong> for <Code>[Why Did You Update]</Code> logs
+                                    • <strong>Enable WDYR toggle</strong> above to track unnecessary re-renders
+                                    <br />
+                                    • <strong>Check WDYR logs section</strong> below for detailed re-render reasons
                                     <br />
                                     • Look for <Code>[Mount Monitor]</Code> logs showing remounts
                                     <br />
                                     • Remounting frequently = unstable keys or parent re-creating
                                     <br />
                                     • Props changing every render = missing memoization
+                                    <br />
+                                    • WDYR logs are included in the <Code>Copy AI Report</Code> button
                                     <br />
                                     • Read the guide: <Code>docs/performance-monitoring-guide.md</Code>
                                 </Text>

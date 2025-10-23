@@ -1,5 +1,72 @@
 'use client';
 
+// Setup why-did-you-render in development
+if (process.env.NODE_ENV === 'development') {
+    const whyDidYouRender = require('@welldone-software/why-did-you-render');
+    const React = require('react');
+
+    // Custom notifier to capture WDYR logs in our debug system
+    const wdyrNotifier = ({
+        Component,
+        displayName,
+        hookName,
+        prevProps,
+        prevState,
+        prevHookResult,
+        nextProps,
+        nextState,
+        nextHookResult,
+        reason,
+        options,
+        ownerDataMap
+    }) => {
+        const componentName = displayName || Component?.name || 'Unknown';
+
+        // Log to our debug system
+        if (typeof window !== 'undefined' && (window as any).captureDebug) {
+            (window as any).captureDebug(
+                `[why-did-you-render] ${componentName} re-rendered unnecessarily`,
+                componentName,
+                {
+                    reason,
+                    prevProps,
+                    nextProps,
+                    prevState,
+                    nextState,
+                    hookName,
+                    prevHookResult,
+                    nextHookResult,
+                    ownerDataMap
+                },
+                'info'
+            );
+        }
+
+        // Default WDYR console logging
+        console.group(`[why-did-you-render] ${componentName}`);
+        console.log('Reason:', reason);
+        if (prevProps && nextProps) {
+            console.log('Props changed:', { prev: prevProps, next: nextProps });
+        }
+        if (prevState && nextState) {
+            console.log('State changed:', { prev: prevState, next: nextState });
+        }
+        if (hookName) {
+            console.log('Hook changed:', hookName, { prev: prevHookResult, next: nextHookResult });
+        }
+        console.groupEnd();
+    };
+
+    whyDidYouRender(React, {
+        trackAllPureComponents: true,
+        collapseGroups: true,
+        logOnDifferentValues: true,
+        include: [/SectionInspector/, /PageInspector/], // Only track key components
+        exclude: [/@mantine/, /Notifications/, /DebugMenu/], // Exclude UI libraries
+        notifier: wdyrNotifier, // Use custom notifier to capture logs
+    });
+}
+
 import { MantineProvider, createTheme } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { Refine } from '@refinedev/core';

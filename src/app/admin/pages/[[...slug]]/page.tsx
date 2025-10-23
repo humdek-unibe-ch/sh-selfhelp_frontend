@@ -47,7 +47,6 @@ function AdminPagesContent() {
   const params = useParams();
   const { pages, configurationPages, isLoading, isFetching, error } = useAdminPages();
   const queryClient = useQueryClient();
-  const [asideContent, setAsideContent] = useState<React.ReactNode>(null);
 
   // Parse slug to get keyword and sectionId
   const { keyword, sectionId } = useMemo(() => {
@@ -84,32 +83,43 @@ function AdminPagesContent() {
     return configurationPages.some(cp => cp.id_pages === selectedPage.id_pages);
   }, [selectedPage, configurationPages]);
 
-  // Update aside content based on current selection
-  useEffect(() => {
+  // Memoize aside content to prevent unnecessary re-renders
+  // CRITICAL FIX: Extract IDs outside useMemo and ONLY depend on primitive values
+  // selectedPage object gets recreated due to useAdminPages select function creating new references
+  // This was causing unmount/remount cycles when typing in fields
+  const pageId = selectedPage?.id_pages;
+  
+  const asideContent = useMemo(() => {
     if (isConfigurationPage) {
-      setAsideContent(null);
-      return;
+      return null;
     }
 
     const shouldShowSectionInspector = sectionId && !isNaN(sectionId);
-    if (shouldShowSectionInspector) {
-      setAsideContent(
+    if (shouldShowSectionInspector && pageId) {
+      return (
         <SectionInspector 
-          pageId={selectedPage?.id_pages || null} 
+          key={`section-${pageId}-${sectionId}`}
+          pageId={pageId} 
           sectionId={sectionId}
         />
       );
-    } else if (selectedPage) {
-      setAsideContent(
+    }
+    
+    // For PageInspector, we need the full object, but check it exists without depending on it
+    if (pageId && !shouldShowSectionInspector) {
+      return (
         <PageInspector 
-          page={selectedPage} 
+          key={`page-${pageId}`}
+          page={selectedPage!} 
           isConfigurationPage={isConfigurationPage}
         />
       );
-    } else {
-      setAsideContent(null);
     }
-  }, [sectionId, selectedPage, isConfigurationPage]);
+    
+    return null;
+    // CRITICAL: Only depend on primitive values (numbers/booleans), NOT objects
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConfigurationPage, sectionId, pageId]);
 
   // Render main content
   const renderMainContent = () => {
