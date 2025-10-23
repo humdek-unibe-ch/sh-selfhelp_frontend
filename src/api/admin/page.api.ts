@@ -12,6 +12,7 @@ import { IAdminPage } from '../../types/responses/admin/admin.types';
 import { ICreatePageRequest } from '../../types/requests/admin/create-page.types';
 import { IUpdatePageRequest } from '../../types/requests/admin/update-page.types';
 import { IPageFieldsResponse, IPageFieldsData, TPageFieldsResponse, IPageSectionWithFields } from '../../types/common/pages.type';
+import { IRestoreFromVersionResponse } from '../../types/responses/admin/page-version.types';
 
 export const AdminPageApi = {
     /**
@@ -92,5 +93,19 @@ export const AdminPageApi = {
         );
         // For 204 No Content responses, return success indicator
         return { success: response.status === 204 || response.status === 200 };
+    },
+
+    /**
+     * Restores sections from a published version to the current draft
+     * @param {number} pageId - The page ID
+     * @param {number} versionId - The version ID to restore from
+     * @returns {Promise<IRestoreFromVersionResponse>} Restore response
+     * @throws {Error} When API request fails
+     */
+    async restoreFromVersion(pageId: number, versionId: number): Promise<IRestoreFromVersionResponse> {
+        const response = await apiClient.post<IRestoreFromVersionResponse>(
+            API_CONFIG.ENDPOINTS.ADMIN_PAGE_VERSIONS_RESTORE_FROM_VERSION(pageId, versionId)
+        );
+        return response.data;
     }
 }; 

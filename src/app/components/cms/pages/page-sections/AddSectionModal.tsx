@@ -16,6 +16,7 @@ import {
     FileInput,
     Select,
 } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
 import {
     IconPlus,
     IconSearch,
@@ -334,7 +335,13 @@ export function AddSectionModal({
 
             handleClose();
         } catch (error) {
-            // Error is handled by the hook with notifications
+            console.error('Import sections error:', error);
+            // Show error notification if the hook doesn't handle it
+            notifications.show({
+                title: 'Import Failed',
+                message: error instanceof Error ? error.message : 'An unknown error occurred during import',
+                color: 'red'
+            });
         } finally {
             setIsImporting(false);
         }
@@ -364,7 +371,7 @@ export function AddSectionModal({
                     <Button
                         leftSection={<IconUpload size={16} />}
                         onClick={handleImportSections}
-                        disabled={!selectedFile || !isValidJsonFile(selectedFile!) || isProcessing}
+                        disabled={!selectedFile || isProcessing}
                         loading={isImporting}
                         size="sm"
                         color="green"
@@ -685,9 +692,9 @@ export function AddSectionModal({
                                     </Card>
                                 )}
 
-                                {selectedFile && !isValidJsonFile(selectedFile) && (
-                                    <Alert color="red" icon={<IconAlertCircle size={16} />}>
-                                        Please select a valid JSON file.
+                                {selectedFile && !selectedFile.name.toLowerCase().endsWith('.json') && (
+                                    <Alert color="orange" icon={<IconAlertCircle size={16} />}>
+                                        Warning: Selected file does not have a .json extension. The import may fail if the file is not valid JSON.
                                     </Alert>
                                 )}
                             </Stack>

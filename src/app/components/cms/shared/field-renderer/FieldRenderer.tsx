@@ -224,7 +224,7 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
     // Text and markdown-inline fields - use TextInputWithMentions for single-line text with variable support
     if (field.type === 'text' || field.type === 'markdown-inline') {
 
-        if (field.name === 'name' || field.name === 'value') {
+        if (field.name === 'name' || field.name === 'value' || field.name === 'title') {
             return renderFieldWithBadge(
                 <TextInputField
                     fieldId={field.id}

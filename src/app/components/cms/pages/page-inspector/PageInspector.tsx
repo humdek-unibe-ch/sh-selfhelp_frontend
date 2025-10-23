@@ -68,7 +68,8 @@ import {
     usePublishVersionMutation,
     usePublishSpecificVersionMutation,
     useUnpublishPageMutation,
-    useDeleteVersionMutation
+    useDeleteVersionMutation,
+    useRestoreFromVersionMutation
 } from '../../../../../hooks/mutations/usePageVersionMutations';
 import {
     PublishingPanel,
@@ -128,6 +129,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
     const publishSpecificVersionMutation = usePublishSpecificVersionMutation();
     const unpublishPageMutation = useUnpublishPageMutation();
     const deleteVersionMutation = useDeleteVersionMutation();
+    const restoreVersionMutation = useRestoreFromVersionMutation();
     
     // Fetch page fields when page is selected
     const { 
@@ -800,8 +802,18 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                         versionId
                                     });
                                 }}
+                                onRestore={(versionId) => {
+                                    // Handle restore action - trigger the restore mutation
+                                    if (page?.id_pages) {
+                                        restoreVersionMutation.mutate({
+                                            pageId: page.id_pages,
+                                            versionId
+                                        });
+                                    }
+                                }}
                                 isPublishing={publishVersionMutation.isPending}
-                                isDeleting={deleteVersionMutation.isPending}
+                                isDeleting={unpublishPageMutation.isPending}
+                                isRestoring={restoreVersionMutation.isPending}
                             />
                         </CollapsibleSection>
                     )}

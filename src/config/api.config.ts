@@ -145,6 +145,7 @@ export const API_CONFIG = {
         ADMIN_PAGE_VERSIONS_COMPARE_DRAFT: (pageId: number, versionId: number) => `/admin/pages/${pageId}/versions/compare-draft/${versionId}`,
         ADMIN_PAGE_VERSIONS_HAS_CHANGES: (pageId: number) => `/admin/pages/${pageId}/versions/has-changes`,
         ADMIN_PAGE_VERSIONS_COMPARE: (pageId: number, version1Id: number, version2Id: number) => `/admin/pages/${pageId}/versions/compare/${version1Id}/${version2Id}`,
+        ADMIN_PAGE_VERSIONS_RESTORE_FROM_VERSION: (pageId: number, versionId: number) => `/admin/pages/${pageId}/sections/restore-from-version/${versionId}`,
 
         // Admin cache endpoints
         ADMIN_CACHE_STATS: '/admin/cache/stats',

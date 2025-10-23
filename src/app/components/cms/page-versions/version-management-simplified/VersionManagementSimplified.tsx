@@ -9,8 +9,10 @@ import { VersionHistoryList } from '../version-history-list/VersionHistoryList';
 import { PublishVersionModal } from '../publish-version-modal/PublishVersionModal';
 import { VersionDetailsModal } from '../version-details-modal/VersionDetailsModal';
 import { VersionComparisonViewer } from '../version-comparison-viewer/VersionComparisonViewer';
+import { RestoreFromVersionModal } from '../restore-from-version-modal/RestoreFromVersionModal';
 import { useUnpublishedChanges } from '../../../../../hooks/useUnpublishedChanges';
 import { AutoVersionComparison } from '../auto-version-comparison/AutoVersionComparison';
+import { useRestoreFromVersionMutation } from '../../../../../hooks/mutations/usePageVersionMutations';
 
 interface IVersionManagementSimplifiedProps {
     pageId: number;
@@ -22,8 +24,10 @@ interface IVersionManagementSimplifiedProps {
     onPublishSpecific: (versionId: number) => void;
     onUnpublish: () => void;
     onDelete: (versionId: number) => void;
+    onRestore?: (versionId: number) => void;
     isPublishing: boolean;
     isUnpublishing: boolean;
+    isRestoring?: boolean;
 }
 
 export function VersionManagementSimplified({
@@ -36,8 +40,10 @@ export function VersionManagementSimplified({
     onPublishSpecific,
     onUnpublish,
     onDelete,
+    onRestore,
     isPublishing,
-    isUnpublishing
+    isUnpublishing,
+    isRestoring = false
 }: IVersionManagementSimplifiedProps) {
     const [publishModalOpened, setPublishModalOpened] = useState(false);
     const [selectedVersion, setSelectedVersion] = useState<IPageVersion | null>(null);
@@ -45,12 +51,17 @@ export function VersionManagementSimplified({
     const [compareModalOpened, setCompareModalOpened] = useState(false);
     const [draftCompareModalOpened, setDraftCompareModalOpened] = useState(false);
     const [selectedComparisonVersionId, setSelectedComparisonVersionId] = useState<number | null>(null);
+    const [restoreModalOpened, setRestoreModalOpened] = useState(false);
+    const [selectedRestoreVersion, setSelectedRestoreVersion] = useState<IPageVersion | null>(null);
     
     const hasPublishedVersion = currentPublishedVersionId !== null && currentPublishedVersionId !== undefined;
     const publishedVersion = versions.find(v => v.id === currentPublishedVersionId);
     
     // Check for unpublished changes
     const { data: changesStatus, isLoading: changesLoading } = useUnpublishedChanges(pageId);
+
+    // Restore from version mutation
+    const restoreMutation = useRestoreFromVersionMutation();
 
     // Determine if publish button should be disabled
     const hasUnpublishedChanges = changesStatus?.has_unpublished_changes ?? false;
@@ -72,6 +83,24 @@ export function VersionManagementSimplified({
     const handleCompareVersion = (versionId: number) => {
         setSelectedComparisonVersionId(versionId);
         setCompareModalOpened(true);
+    };
+
+    const handleRestoreVersion = (versionId: number) => {
+        if (onRestore) {
+            const version = versions.find(v => v.id === versionId);
+            if (version) {
+                setSelectedRestoreVersion(version);
+                setRestoreModalOpened(true);
+            }
+        }
+    };
+
+    const handleRestoreConfirm = () => {
+        if (selectedRestoreVersion && onRestore) {
+            onRestore(selectedRestoreVersion.id);
+            setRestoreModalOpened(false);
+            setSelectedRestoreVersion(null);
+        }
     };
 
     return (
@@ -170,6 +199,7 @@ export function VersionManagementSimplified({
                     onPublish={onPublishSpecific}
                     onDelete={onDelete}
                     onCompare={handleCompareVersion}
+                    onRestore={handleRestoreVersion}
                     onView={handleViewVersion}
                 />
             </Paper>
@@ -191,9 +221,6 @@ export function VersionManagementSimplified({
                 }}
                 version={selectedVersion}
                 isPublished={selectedVersion?.id === currentPublishedVersionId}
-                onDelete={onDelete}
-                onCompare={handleCompareVersion}
-                onPublish={onPublishSpecific}
             />
 
             {/* Version Comparison Modal */}
@@ -227,6 +254,19 @@ export function VersionManagementSimplified({
                     publishedVersionId={currentPublishedVersionId}
                 />
             </Modal>
+
+            {/* Restore from Version Modal */}
+            <RestoreFromVersionModal
+                opened={restoreModalOpened}
+                onClose={() => {
+                    setRestoreModalOpened(false);
+                    setSelectedRestoreVersion(null);
+                }}
+                onConfirm={handleRestoreConfirm}
+                version={selectedRestoreVersion}
+                hasUnpublishedChanges={hasUnpublishedChanges}
+                isRestoring={isRestoring}
+            />
         </Stack>
     );
 }

@@ -25,7 +25,8 @@ import {
     IconArrowsRightLeft,
     IconCheck,
     IconClock,
-    IconTrash
+    IconTrash,
+    IconRestore
 } from '@tabler/icons-react';
 import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
@@ -35,6 +36,7 @@ import { VersionDetailsModal } from '../version-details-modal/VersionDetailsModa
 import { VersionComparisonViewer } from '../version-comparison-viewer/VersionComparisonViewer';
 import { PublishVersionModal } from '../publish-version-modal/PublishVersionModal';
 import { DeleteVersionModal } from '../delete-version-modal/DeleteVersionModal';
+import { RestoreFromVersionModal } from '../restore-from-version-modal/RestoreFromVersionModal';
 import styles from './PublishingPanel.module.css';
 
 interface IPublishingPanelProps {
@@ -46,8 +48,10 @@ interface IPublishingPanelProps {
     onPublishNew: (data?: any) => void;
     onPublishSpecific: (versionId: number) => void;
     onDelete: (versionId: number) => void;
+    onRestore?: (versionId: number) => void;
     isPublishing: boolean;
     isDeleting?: boolean;
+    isRestoring?: boolean;
 }
 
 export function PublishingPanel({
@@ -59,8 +63,10 @@ export function PublishingPanel({
     onPublishNew,
     onPublishSpecific,
     onDelete,
+    onRestore,
     isPublishing,
-    isDeleting = false
+    isDeleting = false,
+    isRestoring = false
 }: IPublishingPanelProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedVersion, setSelectedVersion] = useState<IPageVersion | null>(null);
@@ -70,6 +76,8 @@ export function PublishingPanel({
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
     const [versionToDelete, setVersionToDelete] = useState<IPageVersion | null>(null);
     const [selectedComparisonVersionId, setSelectedComparisonVersionId] = useState<number | null>(null);
+    const [restoreModalOpened, setRestoreModalOpened] = useState(false);
+    const [versionToRestore, setVersionToRestore] = useState<IPageVersion | null>(null);
 
     // Check for unpublished changes
     const { data: changesStatus, isLoading: changesLoading } = useUnpublishedChanges(pageId);
@@ -146,6 +154,24 @@ export function PublishingPanel({
             onDelete(versionToDelete.id);
             setDeleteModalOpened(false);
             setVersionToDelete(null);
+        }
+    };
+
+    const handleRestoreVersion = (versionId: number) => {
+        if (onRestore) {
+            const version = versions.find(v => v.id === versionId);
+            if (version) {
+                setVersionToRestore(version);
+                setRestoreModalOpened(true);
+            }
+        }
+    };
+
+    const handleRestoreConfirm = () => {
+        if (versionToRestore && onRestore) {
+            onRestore(versionToRestore.id);
+            setRestoreModalOpened(false);
+            setVersionToRestore(null);
         }
     };
 
@@ -270,6 +296,17 @@ export function PublishingPanel({
                                             <IconArrowsRightLeft size={16} />
                                         </ActionIcon>
                                     </Tooltip>
+                                    {onRestore && (
+                                        <Tooltip label="Restore from this version">
+                                            <ActionIcon
+                                                variant="light"
+                                                color="purple"
+                                                onClick={() => handleRestoreVersion(publishedVersion.id)}
+                                            >
+                                                <IconRestore size={16} />
+                                            </ActionIcon>
+                                        </Tooltip>
+                                    )}
                                 </Group>
                             </Group>
                         </Card>
@@ -326,6 +363,17 @@ export function PublishingPanel({
                                                 <IconArrowsRightLeft size={16} />
                                             </ActionIcon>
                                         </Tooltip>
+                                        {onRestore && (
+                                            <Tooltip label="Restore from this version">
+                                                <ActionIcon
+                                                    variant="light"
+                                                    color="purple"
+                                                    onClick={() => handleRestoreVersion(version.id)}
+                                                >
+                                                    <IconRestore size={16} />
+                                                </ActionIcon>
+                                            </Tooltip>
+                                        )}
                                         <Tooltip label="Delete Version">
                                             <ActionIcon
                                                 variant="light"
@@ -358,8 +406,6 @@ export function PublishingPanel({
                 }}
                 version={selectedVersion}
                 isPublished={selectedVersion?.id === currentPublishedVersionId}
-                onCompare={handleCompareVersion}
-                onPublish={onPublishSpecific}
             />
 
             {/* Delete Version Modal */}
@@ -393,6 +439,19 @@ export function PublishingPanel({
                 versions={allVersionsForComparison}
                 initialVersion1Id={selectedComparisonVersionId === -1 ? -1 : (selectedComparisonVersionId || undefined)}
                 initialVersion2Id={currentPublishedVersionId ?? undefined}
+            />
+
+            {/* Restore from Version Modal */}
+            <RestoreFromVersionModal
+                opened={restoreModalOpened}
+                onClose={() => {
+                    setRestoreModalOpened(false);
+                    setVersionToRestore(null);
+                }}
+                onConfirm={handleRestoreConfirm}
+                version={versionToRestore}
+                hasUnpublishedChanges={hasUnpublishedChanges}
+                isRestoring={isRestoring}
             />
         </Stack>
     );

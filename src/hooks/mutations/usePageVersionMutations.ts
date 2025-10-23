@@ -5,6 +5,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { PageVersionApi } from '../../api/admin/page-version.api';
+import { AdminPageApi } from '../../api/admin/page.api';
 import { notifications } from '@mantine/notifications';
 import { IPublishVersionRequest } from '../../types/requests/admin/page-version.types';
 import { debug } from '../../utils/debug-logger';
@@ -128,7 +129,7 @@ export function useDeleteVersionMutation() {
 
             queryClient.invalidateQueries({ queryKey: ['page-versions', variables.pageId] });
             queryClient.invalidateQueries({ queryKey: ['unpublished-changes', variables.pageId] });
-            
+
             notifications.show({
                 title: 'Version Deleted',
                 message: 'Page version deleted successfully',
@@ -140,6 +141,49 @@ export function useDeleteVersionMutation() {
             notifications.show({
                 title: 'Delete Failed',
                 message: error.response?.data?.message || 'Failed to delete version',
+                color: 'red',
+            });
+        },
+    });
+}
+
+export function useRestoreFromVersionMutation() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ pageId, versionId }: { pageId: number; versionId: number }) =>
+            AdminPageApi.restoreFromVersion(pageId, versionId),
+        onSuccess: async (response, variables) => {
+            debug('Sections restored from version', 'useRestoreFromVersionMutation', {
+                pageId: variables.pageId,
+                versionId: variables.versionId,
+                sectionsRestored: response.data.sections_restored
+            });
+
+            // Invalidate and refetch relevant queries to ensure fresh data
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: ['page-versions', variables.pageId] }),
+                queryClient.invalidateQueries({ queryKey: ['unpublished-changes', variables.pageId] }),
+                queryClient.invalidateQueries({ queryKey: ['page-details', variables.pageId] }),
+                queryClient.invalidateQueries({ queryKey: ['page-sections', variables.pageId] }),
+                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+            ]);
+
+            // Force immediate refetch of page data
+            await queryClient.refetchQueries({ queryKey: ['page-details', variables.pageId] });
+            await queryClient.refetchQueries({ queryKey: ['page-sections', variables.pageId] });
+
+            notifications.show({
+                title: 'Sections Restored',
+                message: `Successfully restored ${response.data.sections_restored} sections from version "${response.data.version_restored_from.version_name || `v${response.data.version_restored_from.version_number}`}"`,
+                color: 'green',
+            });
+        },
+        onError: (error: any) => {
+            debug('Failed to restore from version', 'useRestoreFromVersionMutation', { error });
+            notifications.show({
+                title: 'Restore Failed',
+                message: error.response?.data?.message || 'Failed to restore sections from version',
                 color: 'red',
             });
         },

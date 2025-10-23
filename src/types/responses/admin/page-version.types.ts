@@ -60,3 +60,26 @@ export interface IUnpublishedChangesResponse {
     current_published_version_number: number | null;
 }
 
+/**
+ * Restore from version response
+ */
+export interface IRestoreFromVersionResponse {
+    success: boolean;
+    data: {
+        message: string;
+        page_id: number;
+        version_restored_from: {
+            id: number;
+            version_number: number;
+            version_name: string | null;
+            published_at: string;
+        };
+        sections_restored: number;
+        imported_sections: Array<{
+            id: number;
+            name: string;
+            position: number;
+        }>;
+    };
+}
+

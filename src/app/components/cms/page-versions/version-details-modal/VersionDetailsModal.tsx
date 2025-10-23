@@ -1,7 +1,7 @@
 'use client';
 
 import { Modal, Stack, Group, Text, Badge, Divider, Paper, Button, ActionIcon, CopyButton, Tooltip, Code, Box, Alert } from '@mantine/core';
-import { IconCheck, IconCopy, IconGitCommit, IconUser, IconClock, IconTag, IconTrash, IconGitCompare } from '@tabler/icons-react';
+import { IconCheck, IconCopy, IconGitCommit, IconUser, IconClock, IconTag, IconTrash } from '@tabler/icons-react';
 import { format } from 'date-fns';
 import { IPageVersion } from '../../../../../types/responses/admin/page-version.types';
 
@@ -10,19 +10,13 @@ interface IVersionDetailsModalProps {
     onClose: () => void;
     version: IPageVersion | null;
     isPublished: boolean;
-    onCompare?: (versionId: number) => void;
-    onPublish?: (versionId: number) => void;
-    isDeleting?: boolean;
 }
 
 export function VersionDetailsModal({
     opened,
     onClose,
     version,
-    isPublished,
-    onCompare,
-    onPublish,
-    isDeleting = false
+    isPublished
 }: IVersionDetailsModalProps) {
     
     if (!version) return null;
@@ -158,35 +152,6 @@ export function VersionDetailsModal({
                 {/* Actions */}
                 <Divider />
                 <Group justify="flex-end" gap="xs">
-                    {onCompare && (
-                        <Button
-                            variant="light"
-                            color="blue"
-                            leftSection={<IconGitCompare size={16} />}
-                            onClick={() => {
-                                onCompare(version.id);
-                                onClose();
-                            }}
-                        >
-                            Compare
-                        </Button>
-                    )}
-                    
-                    {!isPublished && onPublish && (
-                        <Button
-                            variant="light"
-                            color="green"
-                            leftSection={<IconCheck size={16} />}
-                            onClick={() => {
-                                onPublish(version.id);
-                                onClose();
-                            }}
-                        >
-                            Publish This Version
-                        </Button>
-                    )}
-
-
                     <Button variant="default" onClick={onClose}>
                         Close
                     </Button>

@@ -1,7 +1,7 @@
 'use client';
 
 import { Stack, Paper, Group, Text, Badge, ActionIcon, Tooltip, Box, ScrollArea, Loader, Alert, Center } from '@mantine/core';
-import { IconCheck, IconTrash, IconEye, IconGitBranch, IconGitCommit } from '@tabler/icons-react';
+import { IconCheck, IconTrash, IconEye, IconGitBranch, IconGitCommit, IconGitCompare, IconRestore } from '@tabler/icons-react';
 import { IPageVersion } from '../../../../../types/responses/admin/page-version.types';
 import { format } from 'date-fns';
 import styles from './VersionHistoryList.module.css';
@@ -14,6 +14,8 @@ interface IVersionHistoryListProps {
     onPublish: (versionId: number) => void;
     onDelete: (versionId: number) => void;
     onView: (versionId: number) => void;
+    onCompare?: (versionId: number) => void;
+    onRestore?: (versionId: number) => void;
 }
 
 export function VersionHistoryList({
@@ -23,7 +25,9 @@ export function VersionHistoryList({
     error,
     onPublish,
     onDelete,
-    onView
+    onView,
+    onCompare,
+    onRestore
 }: IVersionHistoryListProps) {
     if (isLoading) {
         return (
@@ -129,8 +133,8 @@ export function VersionHistoryList({
                                     )}
                                     
                                     <Tooltip label="View details" withArrow>
-                                        <ActionIcon 
-                                            size="md" 
+                                        <ActionIcon
+                                            size="md"
                                             variant="light"
                                             color="blue"
                                             onClick={() => onView(version.id)}
@@ -138,7 +142,33 @@ export function VersionHistoryList({
                                             <IconEye size={16} />
                                         </ActionIcon>
                                     </Tooltip>
-                                    
+
+                                    {onCompare && (
+                                        <Tooltip label="Compare versions" withArrow>
+                                            <ActionIcon
+                                                size="md"
+                                                variant="light"
+                                                color="orange"
+                                                onClick={() => onCompare(version.id)}
+                                            >
+                                                <IconGitCompare size={16} />
+                                            </ActionIcon>
+                                        </Tooltip>
+                                    )}
+
+                                    {onRestore && isPublished && (
+                                        <Tooltip label="Restore from this version" withArrow>
+                                            <ActionIcon
+                                                size="md"
+                                                variant="light"
+                                                color="purple"
+                                                onClick={() => onRestore(version.id)}
+                                            >
+                                                <IconRestore size={16} />
+                                            </ActionIcon>
+                                        </Tooltip>
+                                    )}
+
                                     {!isPublished && (
                                         <Tooltip label="Delete version" withArrow>
                                             <ActionIcon 

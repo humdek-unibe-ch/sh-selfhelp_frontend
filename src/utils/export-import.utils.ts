@@ -65,7 +65,7 @@ export function readJsonFile(file: File): Promise<ISectionExportData[]> {
                 
                 // Basic validation of section structure
                 for (const section of data) {
-                    if (!section.name || !section.style_name) {
+                    if (!section.section_name || !section.style_name) {
                         throw new Error('Invalid section format: Missing required fields (name, style_name)');
                     }
                 }
