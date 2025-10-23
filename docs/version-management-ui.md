@@ -4,6 +4,88 @@
 
 All requested features have been implemented and integrated with the new backend endpoints.
 
+**Recent Updates (October 23, 2025):**
+- ✅ **Simplified Architecture** - Removed VersionManagement wrapper, direct PublishingPanel usage
+- ✅ **Enhanced Restore** - Added restore buttons to ALL versions (not just published)
+- ✅ **Fixed Import Bug** - Section import modal now shows errors and works properly
+
+---
+
+## 🆕 Recent Updates (October 23, 2025)
+
+### 1. **Simplified Architecture - Removed VersionManagement Wrapper** ✅
+**Impact:** Major architectural improvement
+
+**Changes:**
+- **Removed** `VersionManagement.tsx` wrapper component entirely
+- **Direct Usage** of `PublishingPanel` component in `PageInspector.tsx`
+- **Eliminated** unnecessary abstraction layer
+- **Cleaner Code** - Reduced component nesting and complexity
+
+**Benefits:**
+- Simpler component hierarchy
+- Better maintainability
+- Direct access to publishing features
+- Reduced bundle size
+
+---
+
+### 2. **Enhanced Restore Functionality - All Versions** ✅
+**Impact:** Improved version management UX
+
+**Changes:**
+- **Added** "Restore from this version" button to **ALL draft versions**
+- **Previously:** Only published versions had restore functionality
+- **Now:** Every version card includes restore capability
+
+**Visual Changes:**
+- **Published Version:** 👁️ Compare 🔄 Restore
+- **Draft Versions:** 👁️ Compare 🔄 Restore 🗑️ Delete
+
+**Technical Details:**
+- Same `handleRestoreVersion` function for all versions
+- Conditional rendering: Only shows when `onRestore` prop is provided
+- Consistent purple icon (`IconRestore`) across all versions
+- Positioned logically between Compare and Delete actions
+
+---
+
+### 3. **Fixed Section Import Modal** ✅
+**Impact:** Resolved critical import functionality bug
+
+**Issue:** Import button appeared to do nothing when clicked
+
+**Root Causes:**
+- Silent error handling (errors caught but not displayed)
+- Overly strict file validation (required `application/json` MIME type)
+
+**Solutions Implemented:**
+- **Added Error Notifications:** Clear error messages for import failures
+- **Relaxed File Validation:** Only requires file selection, warns about non-JSON extensions
+- **Better UX:** Users now see exactly what went wrong during import
+
+**Code Changes:**
+```typescript
+// Before: Silent errors
+catch (error) {
+    // Error is handled by the hook with notifications
+}
+
+// After: User-visible errors
+catch (error) {
+    console.error('Import sections error:', error);
+    notifications.show({
+        title: 'Import Failed',
+        message: error instanceof Error ? error.message : 'An unknown error occurred during import',
+        color: 'red'
+    });
+}
+```
+
+**File Validation:**
+- **Before:** Button disabled if `!isValidJsonFile(file)` (MIME type check)
+- **After:** Button enabled for any file, warning shown for non-`.json` extensions
+
 ---
 
 ## 🎯 What Was Implemented
@@ -283,12 +365,15 @@ All components are properly typed with TypeScript:
 2. `src/hooks/useUnpublishedChanges.ts`
 
 ### Files Modified:
-1. `src/app/components/cms/page-versions/index.ts` - Added exports
-2. `src/app/components/cms/page-versions/version-management/VersionManagement.tsx` - Integrated all features
-3. `src/app/components/cms/page-versions/auto-version-comparison/AutoVersionComparison.tsx` - Updated to use new endpoint
-4. `src/app/components/cms/page-versions/version-history-list/VersionHistoryList.tsx` - Enhanced published badge
-5. `src/config/api.config.ts` - Added new endpoints
-6. `src/api/admin/page-version.api.ts` - Added new API methods
+1. `src/app/components/cms/page-versions/index.ts` - Added exports, removed VersionManagement export
+2. `src/app/components/cms/page-versions/version-management/VersionManagement.tsx` - **DELETED** - Replaced with direct PublishingPanel usage
+3. `src/app/components/cms/page-versions/publishing-panel/PublishingPanel.tsx` - Added restore buttons to all draft versions
+4. `src/app/components/cms/pages/page-inspector/PageInspector.tsx` - Updated to use PublishingPanel directly
+5. `src/app/components/cms/pages/page-sections/AddSectionModal.tsx` - Fixed import functionality with error handling
+6. `src/app/components/cms/page-versions/auto-version-comparison/AutoVersionComparison.tsx` - Updated to use new endpoint
+7. `src/app/components/cms/page-versions/version-history-list/VersionHistoryList.tsx` - Enhanced published badge
+8. `src/config/api.config.ts` - Added new endpoints
+9. `src/api/admin/page-version.api.ts` - Added new API methods
 
 ---
 
@@ -383,9 +468,12 @@ The version management system is now **fully functional** with all requested fea
 ✅ **View version details** - Complete modal with all metadata
 ✅ **Delete versions** - With protection for published versions
 ✅ **Compare versions** - Both manual and automatic draft comparison
+✅ **Restore versions** - Available for ALL versions (not just published)
 ✅ **Unpublished changes detection** - Real-time badge updates
 ✅ **Backend integration** - All new endpoints properly connected
 ✅ **Professional UI** - Clean, intuitive, modern design
+✅ **Simplified Architecture** - Removed unnecessary wrapper components
+✅ **Fixed Import Functionality** - Section import now works with proper error handling
 ✅ **Type safety** - 100% TypeScript coverage
 ✅ **Performance** - Fast hash-based checks, efficient caching
 
@@ -394,7 +482,8 @@ The version management system is now **fully functional** with all requested fea
 ---
 
 **Implementation Date:** October 23, 2025
-**No Git Commits Made:** As per your request
+**Latest Updates:** October 23, 2025
+**Git Commit:** `2bc8903` - feat: enhance version management and section import functionality
 **Linter Errors:** None
 **Console Errors:** None
 
