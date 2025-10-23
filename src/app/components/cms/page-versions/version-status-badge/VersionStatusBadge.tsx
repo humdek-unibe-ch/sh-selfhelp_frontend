@@ -1,22 +1,32 @@
 'use client';
 
-import { Badge, Group, Tooltip } from '@mantine/core';
-import { IconCheck, IconClock } from '@tabler/icons-react';
+import { Badge, Group, Tooltip, Stack, Text } from '@mantine/core';
+import { IconCheck, IconClock, IconAlertCircle } from '@tabler/icons-react';
+import { format } from 'date-fns';
 
 interface IVersionStatusBadgeProps {
     hasPublishedVersion: boolean;
     publishedVersionName?: string | null;
+    publishedAt?: string | null;
 }
 
-export function VersionStatusBadge({ hasPublishedVersion, publishedVersionName }: IVersionStatusBadgeProps) {
+export function VersionStatusBadge({ 
+    hasPublishedVersion, 
+    publishedVersionName,
+    publishedAt 
+}: IVersionStatusBadgeProps) {
     if (!hasPublishedVersion) {
         return (
-            <Tooltip label="This page has no published version. Users will see a 404 error.">
+            <Tooltip 
+                label="No published version - page is not visible to public users"
+                withArrow
+            >
                 <Badge 
-                    size="sm" 
-                    color="yellow" 
-                    variant="filled"
-                    leftSection={<IconClock size={12} />}
+                    size="lg" 
+                    color="orange" 
+                    variant="light"
+                    leftSection={<IconAlertCircle size={14} />}
+                    style={{ cursor: 'help' }}
                 >
                     Draft Only
                 </Badge>
@@ -24,13 +34,30 @@ export function VersionStatusBadge({ hasPublishedVersion, publishedVersionName }
         );
     }
 
+    const tooltipContent = (
+        <Stack gap={4}>
+            {publishedVersionName && (
+                <Text size="xs" fw={500}>{publishedVersionName}</Text>
+            )}
+            {publishedAt && (
+                <Text size="xs" c="dimmed">
+                    Published {format(new Date(publishedAt), 'MMM dd, yyyy HH:mm')}
+                </Text>
+            )}
+            <Text size="xs" c="dimmed">
+                This version is live and visible to users
+            </Text>
+        </Stack>
+    );
+
     return (
-        <Tooltip label={publishedVersionName ? `Published: ${publishedVersionName}` : 'Published version is live'}>
+        <Tooltip label={tooltipContent} withArrow>
             <Badge 
-                size="sm" 
+                size="lg" 
                 color="green" 
-                variant="filled"
-                leftSection={<IconCheck size={12} />}
+                variant="light"
+                leftSection={<IconCheck size={14} />}
+                style={{ cursor: 'help' }}
             >
                 Published
             </Badge>

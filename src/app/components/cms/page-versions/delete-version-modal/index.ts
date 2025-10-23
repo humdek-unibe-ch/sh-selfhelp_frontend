@@ -1,0 +1,1 @@
+export { DeleteVersionModal } from './DeleteVersionModal';

@@ -1,0 +1,38 @@
+.diffContainer {
+    max-height: 500px;
+    overflow-y: auto;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    background: var(--mantine-color-gray-0);
+    padding: 1rem;
+    border-radius: 4px;
+}
+
+[data-mantine-color-scheme='dark'] .diffContainer {
+    background: var(--mantine-color-dark-7);
+}
+
+/* Diff styling */
+.diffContainer ins {
+    background-color: #e6ffed;
+    color: #22863a;
+    text-decoration: none;
+}
+
+.diffContainer del {
+    background-color: #ffeef0;
+    color: #b31d28;
+    text-decoration: line-through;
+}
+
+[data-mantine-color-scheme='dark'] .diffContainer ins {
+    background-color: #144620;
+    color: #85e89d;
+}
+
+[data-mantine-color-scheme='dark'] .diffContainer del {
+    background-color: #5a1a1a;
+    color: #ff7b7b;
+}
+

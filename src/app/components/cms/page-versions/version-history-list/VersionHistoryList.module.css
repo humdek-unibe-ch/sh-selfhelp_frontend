@@ -1,17 +1,26 @@
 .versionItem {
-    transition: all 0.2s ease;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .versionItem:hover {
-    background-color: var(--mantine-color-gray-0);
+    border-color: var(--mantine-color-blue-3);
+}
+
+[data-mantine-color-scheme='dark'] .versionItem:hover {
+    border-color: var(--mantine-color-blue-7);
 }
 
 .publishedVersion {
-    background-color: var(--mantine-color-green-0);
-    border-color: var(--mantine-color-green-6);
+    border-color: var(--mantine-color-green-5);
+    background: linear-gradient(135deg, 
+        var(--mantine-color-green-0) 0%, 
+        var(--mantine-color-blue-0) 100%);
 }
 
-.publishedVersion:hover {
-    background-color: var(--mantine-color-green-1);
+[data-mantine-color-scheme='dark'] .publishedVersion {
+    border-color: var(--mantine-color-green-7);
+    background: linear-gradient(135deg, 
+        var(--mantine-color-dark-6) 0%, 
+        var(--mantine-color-dark-7) 100%);
 }
 

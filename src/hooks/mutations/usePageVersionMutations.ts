@@ -15,13 +15,19 @@ export function usePublishVersionMutation() {
     return useMutation({
         mutationFn: ({ pageId, data }: { pageId: number; data?: IPublishVersionRequest }) =>
             PageVersionApi.publishNewVersion(pageId, data),
-        onSuccess: (_, variables) => {
+        onSuccess: async (_, variables) => {
             debug('Version published successfully', 'usePublishVersionMutation', { pageId: variables.pageId });
-            
-            // Invalidate relevant queries
-            queryClient.invalidateQueries({ queryKey: ['page-versions', variables.pageId] });
-            queryClient.invalidateQueries({ queryKey: ['page-details', variables.pageId] });
-            queryClient.invalidateQueries({ queryKey: ['adminPages'] });
+
+            // Invalidate and refetch relevant queries to ensure fresh data
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: ['page-versions', variables.pageId] }),
+                queryClient.invalidateQueries({ queryKey: ['unpublished-changes', variables.pageId] }),
+                queryClient.invalidateQueries({ queryKey: ['page-details', variables.pageId] }),
+                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+            ]);
+
+            // Force immediate refetch of version data
+            await queryClient.refetchQueries({ queryKey: ['page-versions', variables.pageId] });
             
             notifications.show({
                 title: 'Version Published',
@@ -30,7 +36,7 @@ export function usePublishVersionMutation() {
             });
         },
         onError: (error: any) => {
-            debug('Failed to publish version', 'usePublishVersionMutation', { error }, 'error');
+            debug('Failed to publish version', 'usePublishVersionMutation', { error });
             notifications.show({
                 title: 'Publish Failed',
                 message: error.response?.data?.message || 'Failed to publish version',
@@ -46,12 +52,18 @@ export function usePublishSpecificVersionMutation() {
     return useMutation({
         mutationFn: ({ pageId, versionId }: { pageId: number; versionId: number }) =>
             PageVersionApi.publishSpecificVersion(pageId, versionId),
-        onSuccess: (_, variables) => {
+        onSuccess: async (_, variables) => {
             debug('Specific version published', 'usePublishSpecificVersionMutation', variables);
             
-            queryClient.invalidateQueries({ queryKey: ['page-versions', variables.pageId] });
-            queryClient.invalidateQueries({ queryKey: ['page-details', variables.pageId] });
-            queryClient.invalidateQueries({ queryKey: ['adminPages'] });
+            // Invalidate and refetch relevant queries to ensure fresh data
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: ['page-versions', variables.pageId] }),
+                queryClient.invalidateQueries({ queryKey: ['page-details', variables.pageId] }),
+                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+            ]);
+            
+            // Force immediate refetch of version data
+            await queryClient.refetchQueries({ queryKey: ['page-versions', variables.pageId] });
             
             notifications.show({
                 title: 'Version Published',
@@ -60,7 +72,7 @@ export function usePublishSpecificVersionMutation() {
             });
         },
         onError: (error: any) => {
-            debug('Failed to publish specific version', 'usePublishSpecificVersionMutation', { error }, 'error');
+            debug('Failed to publish specific version', 'usePublishSpecificVersionMutation', { error });
             notifications.show({
                 title: 'Publish Failed',
                 message: error.response?.data?.message || 'Failed to publish version',
@@ -75,12 +87,18 @@ export function useUnpublishPageMutation() {
 
     return useMutation({
         mutationFn: (pageId: number) => PageVersionApi.unpublishPage(pageId),
-        onSuccess: (_, pageId) => {
+        onSuccess: async (_, pageId) => {
             debug('Page unpublished', 'useUnpublishPageMutation', { pageId });
             
-            queryClient.invalidateQueries({ queryKey: ['page-versions', pageId] });
-            queryClient.invalidateQueries({ queryKey: ['page-details', pageId] });
-            queryClient.invalidateQueries({ queryKey: ['adminPages'] });
+            // Invalidate and refetch relevant queries to ensure fresh data
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: ['page-versions', pageId] }),
+                queryClient.invalidateQueries({ queryKey: ['page-details', pageId] }),
+                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+            ]);
+            
+            // Force immediate refetch of version data
+            await queryClient.refetchQueries({ queryKey: ['page-versions', pageId] });
             
             notifications.show({
                 title: 'Page Unpublished',
@@ -89,7 +107,7 @@ export function useUnpublishPageMutation() {
             });
         },
         onError: (error: any) => {
-            debug('Failed to unpublish page', 'useUnpublishPageMutation', { error }, 'error');
+            debug('Failed to unpublish page', 'useUnpublishPageMutation', { error });
             notifications.show({
                 title: 'Unpublish Failed',
                 message: error.response?.data?.message || 'Failed to unpublish page',
@@ -107,8 +125,9 @@ export function useDeleteVersionMutation() {
             PageVersionApi.deleteVersion(pageId, versionId),
         onSuccess: (_, variables) => {
             debug('Version deleted', 'useDeleteVersionMutation', variables);
-            
+
             queryClient.invalidateQueries({ queryKey: ['page-versions', variables.pageId] });
+            queryClient.invalidateQueries({ queryKey: ['unpublished-changes', variables.pageId] });
             
             notifications.show({
                 title: 'Version Deleted',
@@ -117,7 +136,7 @@ export function useDeleteVersionMutation() {
             });
         },
         onError: (error: any) => {
-            debug('Failed to delete version', 'useDeleteVersionMutation', { error }, 'error');
+            debug('Failed to delete version', 'useDeleteVersionMutation', { error });
             notifications.show({
                 title: 'Delete Failed',
                 message: error.response?.data?.message || 'Failed to delete version',

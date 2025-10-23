@@ -141,8 +141,10 @@ export const API_CONFIG = {
         ADMIN_PAGE_VERSIONS_UNPUBLISH: (pageId: number) => `/admin/pages/${pageId}/versions/unpublish`,
         ADMIN_PAGE_VERSIONS_LIST: (pageId: number) => `/admin/pages/${pageId}/versions`,
         ADMIN_PAGE_VERSIONS_GET_ONE: (pageId: number, versionId: number) => `/admin/pages/${pageId}/versions/${versionId}`,
-        ADMIN_PAGE_VERSIONS_COMPARE: (pageId: number, version1Id: number, version2Id: number) => `/admin/pages/${pageId}/versions/compare/${version1Id}/${version2Id}`,
         ADMIN_PAGE_VERSIONS_DELETE: (pageId: number, versionId: number) => `/admin/pages/${pageId}/versions/${versionId}`,
+        ADMIN_PAGE_VERSIONS_COMPARE_DRAFT: (pageId: number, versionId: number) => `/admin/pages/${pageId}/versions/compare-draft/${versionId}`,
+        ADMIN_PAGE_VERSIONS_HAS_CHANGES: (pageId: number) => `/admin/pages/${pageId}/versions/has-changes`,
+        ADMIN_PAGE_VERSIONS_COMPARE: (pageId: number, version1Id: number, version2Id: number) => `/admin/pages/${pageId}/versions/compare/${version1Id}/${version2Id}`,
 
         // Admin cache endpoints
         ADMIN_CACHE_STATS: '/admin/cache/stats',

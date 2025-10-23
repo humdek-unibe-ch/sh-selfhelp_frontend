@@ -12,7 +12,7 @@ export interface IPageVersion {
     version_number: number;
     version_name: string | null;
     page_json?: any; // Complete page JSON structure
-    created_by: number | null;
+    created_by: number | { id: number; name: string } | null;
     created_at: string;
     published_at: string | null;
     metadata: {
@@ -48,5 +48,15 @@ export interface IVersionComparisonResponse {
 export interface IPublishResponse {
     version: IPageVersion;
     message: string;
+}
+
+/**
+ * Unpublished changes status response
+ */
+export interface IUnpublishedChangesResponse {
+    page_id: number;
+    has_unpublished_changes: boolean;
+    current_published_version_id: number | null;
+    current_published_version_number: number | null;
 }
 

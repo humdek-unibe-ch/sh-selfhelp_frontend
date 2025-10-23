@@ -16,7 +16,8 @@ import {
     IPageVersion,
     IVersionHistoryResponse,
     IVersionComparisonResponse,
-    IPublishResponse
+    IPublishResponse,
+    IUnpublishedChangesResponse
 } from '../../types/responses/admin/page-version.types';
 
 export const PageVersionApi = {
@@ -81,6 +82,30 @@ export const PageVersionApi = {
         }`;
 
         const response = await apiClient.get<IBaseApiResponse<IPageVersion>>(url);
+        return response.data.data;
+    },
+
+    /**
+     * Compare current draft with a specific version
+     */
+    async compareDraftWithVersion(
+        pageId: number,
+        versionId: number,
+        format: 'unified' | 'side_by_side' | 'json_patch' | 'summary' = 'side_by_side'
+    ): Promise<IVersionComparisonResponse> {
+        const response = await apiClient.get<IBaseApiResponse<IVersionComparisonResponse>>(
+            `${API_CONFIG.ENDPOINTS.ADMIN_PAGE_VERSIONS_COMPARE_DRAFT(pageId, versionId)}?format=${format}`
+        );
+        return response.data.data;
+    },
+
+    /**
+     * Check if page has unpublished changes (fast hash-based check)
+     */
+    async hasUnpublishedChanges(pageId: number): Promise<IUnpublishedChangesResponse> {
+        const response = await apiClient.get<IBaseApiResponse<IUnpublishedChangesResponse>>(
+            API_CONFIG.ENDPOINTS.ADMIN_PAGE_VERSIONS_HAS_CHANGES(pageId)
+        );
         return response.data.data;
     },
 

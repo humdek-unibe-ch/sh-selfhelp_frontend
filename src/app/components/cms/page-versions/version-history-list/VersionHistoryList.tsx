@@ -1,7 +1,7 @@
 'use client';
 
-import { Stack, Paper, Group, Text, Badge, ActionIcon, Tooltip, Box, ScrollArea, Loader, Alert } from '@mantine/core';
-import { IconCheck, IconClock, IconTrash, IconEye, IconGitBranch } from '@tabler/icons-react';
+import { Stack, Paper, Group, Text, Badge, ActionIcon, Tooltip, Box, ScrollArea, Loader, Alert, Center } from '@mantine/core';
+import { IconCheck, IconTrash, IconEye, IconGitBranch, IconGitCommit } from '@tabler/icons-react';
 import { IPageVersion } from '../../../../../types/responses/admin/page-version.types';
 import { format } from 'date-fns';
 import styles from './VersionHistoryList.module.css';
@@ -13,7 +13,6 @@ interface IVersionHistoryListProps {
     error?: Error | null;
     onPublish: (versionId: number) => void;
     onDelete: (versionId: number) => void;
-    onCompare: (versionId: number) => void;
     onView: (versionId: number) => void;
 }
 
@@ -24,23 +23,22 @@ export function VersionHistoryList({
     error,
     onPublish,
     onDelete,
-    onCompare,
     onView
 }: IVersionHistoryListProps) {
     if (isLoading) {
         return (
-            <Box p="md">
+            <Center p="xl">
                 <Stack align="center" gap="sm">
                     <Loader size="md" />
                     <Text size="sm" c="dimmed">Loading versions...</Text>
                 </Stack>
-            </Box>
+            </Center>
         );
     }
 
     if (error) {
         return (
-            <Alert color="red" title="Error" p="md">
+            <Alert color="red" title="Error loading versions">
                 {error.message || 'Failed to load version history'}
             </Alert>
         );
@@ -48,78 +46,80 @@ export function VersionHistoryList({
 
     if (!versions || versions.length === 0) {
         return (
-            <Box p="md">
-                <Text size="sm" c="dimmed" ta="center">
-                    No versions yet. Publish your first version to get started.
-                </Text>
-            </Box>
+            <Paper p="xl" withBorder>
+                <Stack align="center" gap="xs">
+                    <IconGitBranch size={32} opacity={0.3} />
+                    <Text size="sm" c="dimmed" ta="center">
+                        No versions yet
+                    </Text>
+                    <Text size="xs" c="dimmed" ta="center">
+                        Click "Publish" to create your first version
+                    </Text>
+                </Stack>
+            </Paper>
         );
     }
 
     return (
-        <ScrollArea h={400}>
-            <Stack gap="xs" p="xs">
+        <ScrollArea.Autosize mah={400}>
+            <Stack gap="xs">
                 {versions.map((version) => {
-                    const isPublished = version.id === currentPublishedVersionId;
+                    // Check both current_published_version_id and is_published flag for redundancy
+                    const isPublished = version.id === currentPublishedVersionId || version.is_published === true;
                     
                     return (
                         <Paper 
                             key={version.id} 
-                            p="sm" 
+                            p="md" 
                             withBorder
                             className={isPublished ? styles.publishedVersion : styles.versionItem}
                         >
-                            <Group justify="space-between" wrap="nowrap">
+                            <Group justify="space-between" wrap="nowrap" align="flex-start">
                                 <Box style={{ flex: 1, minWidth: 0 }}>
-                                    <Group gap="xs" wrap="nowrap">
-                                        <IconGitBranch size={16} />
-                                        <Text size="sm" fw={500} truncate>
+                                    <Group gap="xs" mb={6}>
+                                        <IconGitCommit size={16} style={{ flexShrink: 0 }} />
+                                        <Text size="sm" fw={600} truncate>
                                             {version.version_name || `Version ${version.version_number}`}
                                         </Text>
                                         {isPublished && (
-                                            <Badge size="sm" color="green" variant="filled">
-                                                Published
+                                            <Badge size="xs" color="green" variant="filled" leftSection={<IconCheck size={10} />}>
+                                                PUBLISHED
                                             </Badge>
                                         )}
                                     </Group>
                                     
-                                    <Text size="xs" c="dimmed" mt={4}>
-                                        {format(new Date(version.created_at), 'MMM dd, yyyy HH:mm')}
+                                    <Text size="xs" c="dimmed">
+                                        {format(new Date(version.created_at), 'MMM dd, yyyy • HH:mm')}
                                     </Text>
                                     
                                     {version.metadata?.description && (
-                                        <Text size="xs" c="dimmed" mt={4} lineClamp={2}>
+                                        <Text size="xs" mt={6} lineClamp={2}>
                                             {version.metadata.description}
                                         </Text>
                                     )}
                                     
                                     {version.metadata?.tags && version.metadata.tags.length > 0 && (
-                                        <Group gap={4} mt={6}>
+                                        <Group gap={4} mt={8}>
                                             {version.metadata.tags.slice(0, 3).map((tag, index) => (
-                                                <Badge key={index} size="xs" variant="dot" color="gray">
+                                                <Badge key={index} size="xs" variant="outline" color="gray">
                                                     {tag}
                                                 </Badge>
                                             ))}
+                                            {version.metadata.tags.length > 3 && (
+                                                <Text size="xs" c="dimmed">
+                                                    +{version.metadata.tags.length - 3} more
+                                                </Text>
+                                            )}
                                         </Group>
                                     )}
                                 </Box>
 
-                                <Group gap={4} wrap="nowrap">
-                                    <Tooltip label="View version details">
-                                        <ActionIcon 
-                                            size="sm" 
-                                            variant="subtle"
-                                            onClick={() => onView(version.id)}
-                                        >
-                                            <IconEye size={16} />
-                                        </ActionIcon>
-                                    </Tooltip>
-                                    
+                                <Group gap={6} wrap="nowrap" style={{ flexShrink: 0 }}>
                                     {!isPublished && (
-                                        <Tooltip label="Publish this version">
+                                        <Tooltip label="Publish this version" withArrow>
                                             <ActionIcon 
-                                                size="sm" 
-                                                variant="subtle"
+                                                size="md" 
+                                                variant="light"
                                                 color="green"
                                                 onClick={() => onPublish(version.id)}
                                             >
@@ -128,22 +128,22 @@ export function VersionHistoryList({
                                         </Tooltip>
                                     )}
                                     
-                                    <Tooltip label="Compare with current">
+                                    <Tooltip label="View details" withArrow>
                                         <ActionIcon 
-                                            size="sm" 
-                                            variant="subtle"
+                                            size="md" 
+                                            variant="light"
                                             color="blue"
-                                            onClick={() => onCompare(version.id)}
+                                            onClick={() => onView(version.id)}
                                         >
-                                            <IconGitBranch size={16} />
+                                            <IconEye size={16} />
                                         </ActionIcon>
                                     </Tooltip>
                                     
                                     {!isPublished && (
-                                        <Tooltip label="Delete version">
+                                        <Tooltip label="Delete version" withArrow>
                                             <ActionIcon 
-                                                size="sm" 
-                                                variant="subtle"
+                                                size="md" 
+                                                variant="light"
                                                 color="red"
                                                 onClick={() => onDelete(version.id)}
                                             >
@@ -157,7 +157,7 @@ export function VersionHistoryList({
                     );
                 })}
             </Stack>
-        </ScrollArea>
+        </ScrollArea.Autosize>
     );
 }
 

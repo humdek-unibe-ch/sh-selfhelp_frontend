@@ -1,0 +1,8 @@
+.versionCard {
+    transition: border-color 0.2s ease;
+}
+
+.versionCard:hover {
+    border-color: var(--mantine-color-blue-4);
+}
+

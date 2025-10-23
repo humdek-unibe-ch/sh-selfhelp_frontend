@@ -1,8 +1,9 @@
 'use client';
 
 import { Modal, Stack, Select, Box, Text, Loader, Alert, Paper, Tabs, ScrollArea, Code, Group } from '@mantine/core';
-import { useState } from 'react';
-import { useVersionComparison } from '../../../../../hooks/usePageVersions';
+import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { PageVersionApi } from '../../../../../api/admin/page-version.api';
 import { IPageVersion } from '../../../../../types/responses/admin/page-version.types';
 
 interface IVersionComparisonViewerProps {
@@ -26,12 +27,29 @@ export function VersionComparisonViewer({
     const [version2Id, setVersion2Id] = useState<number | null>(initialVersion2Id || null);
     const [format, setFormat] = useState<'unified' | 'side_by_side' | 'json_patch' | 'summary'>('side_by_side');
 
-    const { data: comparison, isLoading, error } = useVersionComparison(
-        pageId,
-        version1Id,
-        version2Id,
-        format
-    );
+    // Update state when modal opens with new initial values
+    useEffect(() => {
+        if (opened) {
+            setVersion1Id(initialVersion1Id || null);
+            setVersion2Id(initialVersion2Id || null);
+        }
+    }, [opened, initialVersion1Id, initialVersion2Id]);
+
+    // Handle draft comparison specially
+    const isDraftComparison = version1Id === -1 || version2Id === -1;
+    const draftVersionId = version1Id === -1 ? version2Id : version1Id;
+
+    const { data: comparison, isLoading, error } = useQuery({
+        queryKey: isDraftComparison
+            ? ['draft-comparison', pageId, draftVersionId, format]
+            : ['version-comparison', pageId, version1Id, version2Id, format],
+        queryFn: () => isDraftComparison
+            ? PageVersionApi.compareDraftWithVersion(pageId!, draftVersionId!, format)
+            : PageVersionApi.compareVersions(pageId!, version1Id!, version2Id!, { format }),
+        enabled: !!pageId && (isDraftComparison ? !!draftVersionId : !!version1Id && !!version2Id),
+        staleTime: 5 * 60 * 1000, // 5 minutes
+        gcTime: 10 * 60 * 1000, // 10 minutes
+    });
 
     const versionOptions = versions.map(v => ({
         value: v.id.toString(),
@@ -114,7 +132,7 @@ export function VersionComparisonViewer({
                         </ScrollArea>
                     )}
 
-                    {!version1Id || !version2Id && (
+                    {(!version1Id || !version2Id) && (
                         <Stack align="center" justify="center" h="100%">
                             <Text c="dimmed">
                                 Select two versions to compare
