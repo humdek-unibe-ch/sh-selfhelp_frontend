@@ -18,7 +18,7 @@ import {
     IconTrash,
     IconFileExport
 } from '@tabler/icons-react';
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSectionDetails } from '../../../../../hooks/useSectionDetails';
 import { useAdminLanguages } from '../../../../../hooks/useLanguages';
@@ -42,7 +42,7 @@ import { FieldRenderer } from '../../shared/field-renderer/FieldRenderer';
 import { InspectorLayout } from '../../shared/inspector-layout/InspectorLayout';
 import { InspectorHeader } from '../../shared/inspector-header/InspectorHeader';
 import { INSPECTOR_TYPES } from '../../../../../store/inspectorStore';
-import { useRenderMonitor, useWhyDidYouUpdate, useMountMonitor } from '../../../../../utils/performance-monitor.utils';
+import { useRenderMonitor, useWhyDidYouUpdate, useMountMonitor, useRenderLogger } from '../../../../../utils/performance-monitor.utils';
 
 interface ISectionInspectorProps {
     pageId: number | null;
@@ -89,15 +89,8 @@ interface ISectionSubmitData {
     }>;
 }
 
-// Mark component for WDYR tracking
-SectionInspector.whyDidYouRender = process.env.NODE_ENV === 'development';
+export const SectionInspector = React.memo(function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) {
 
-export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) {
-    // Performance monitoring - track renders, prop changes, and mount/unmount
-    useRenderMonitor('SectionInspector', { pageId, sectionId });
-    useWhyDidYouUpdate('SectionInspector', { pageId, sectionId });
-    useMountMonitor('SectionInspector');
-    
     const router = useRouter();
     const queryClient = useQueryClient();
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
@@ -129,11 +122,23 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
             debug: false
         }
     });
-    
+
+    // Enhanced performance monitoring with detailed render tracking
+    const { renderEvents } = useRenderMonitor('SectionInspector', { pageId, sectionId }, {
+        trackState: false,
+        trackContext: true,
+        trackHooks: false,
+        enableStackTrace: true // Enable stack traces for debugging critical renders
+    });
+
+    useWhyDidYouUpdate('SectionInspector', { pageId, sectionId });
+    useMountMonitor('SectionInspector');
+    useRenderLogger('SectionInspector', { pageId, sectionId });
+
     // Fetch section details when section is selected
-    const { 
-        data: sectionDetailsData, 
-        isLoading: sectionLoading, 
+    const {
+        data: sectionDetailsData,
+        isLoading: sectionLoading,
         error: sectionError,
         isFetching,
         isStale
@@ -207,9 +212,10 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
             const firstLangId = languagesData[0].id.toString();
             setActiveLanguageTab(firstLangId);
         }
-    }, [languagesData, activeLanguageTab]);
+    }, [languagesData.length, activeLanguageTab]);
 
     // Memoize processed form values to prevent recreation on every render
+    // Use more specific dependencies to avoid unnecessary recalculations
     const processedFormValues = useMemo(() => {
         if (!sectionDetailsData || languagesData.length === 0) {
             return {
@@ -312,7 +318,16 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                 debug: globalFields.debug || false
             }
         };
-    }, [sectionDetailsData, languagesData]);
+    }, [
+        sectionDetailsData?.section?.name,
+        sectionDetailsData?.section?.global_fields?.condition,
+        sectionDetailsData?.section?.global_fields?.data_config,
+        sectionDetailsData?.section?.global_fields?.css,
+        sectionDetailsData?.section?.global_fields?.css_mobile,
+        sectionDetailsData?.section?.global_fields?.debug,
+        sectionDetailsData?.fields?.length,
+        languagesData.length
+    ]);
 
     // Update form values only when processed data changes
     useEffect(() => {
@@ -323,11 +338,20 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
     // Memoize computed values to prevent recreation on every render
     const hasMultipleLanguages = useMemo(() => languagesData.length > 1, [languagesData.length]);
 
-    const dataVariables = useMemo(() => sectionDetailsData?.data_variables || {}, [sectionDetailsData?.data_variables]);
+    const dataVariables = useMemo(() =>
+        sectionDetailsData?.data_variables || {},
+        [sectionDetailsData?.data_variables]
+    );
 
-    const contentFields = useMemo(() => sectionDetailsData?.fields.filter(field => field.display) || [], [sectionDetailsData?.fields]);
+    const contentFields = useMemo(() =>
+        sectionDetailsData?.fields?.filter(field => field.display) || [],
+        [sectionDetailsData?.fields?.length]
+    );
 
-    const propertyFields = useMemo(() => sectionDetailsData?.fields.filter(field => !field.display) || [], [sectionDetailsData?.fields]);
+    const propertyFields = useMemo(() =>
+        sectionDetailsData?.fields?.filter(field => !field.display) || [],
+        [sectionDetailsData?.fields?.length]
+    );
 
     // Use shared field change handlers
     const { handleContentFieldChange, handlePropertyFieldChange } = createFieldChangeHandlers(
@@ -519,12 +543,12 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
         if (!sectionDetailsData) return [];
         const { section } = sectionDetailsData;
         return [
-            { label: `ID: ${section.id}`, color: 'blue' },
-            { label: section.style.name, color: 'green' },
-            ...(section.style.canHaveChildren ? [{ label: 'Can Have Children', color: 'green' }] : []),
-            { label: `Type ID: ${section.style.typeId}`, color: 'gray' }
+            { label: `ID: ${section.id}`, color: 'blue' as const },
+            { label: section.style.name, color: 'green' as const },
+            ...(section.style.canHaveChildren ? [{ label: 'Can Have Children', color: 'green' as const }] : []),
+            { label: `Type ID: ${section.style.typeId}`, color: 'gray' as const }
         ];
-    }, [sectionDetailsData]);
+    }, [sectionDetailsData?.section?.id, sectionDetailsData?.section?.style]);
 
     const headerActions = useMemo(() => {
         if (!sectionDetailsData) return [];
@@ -553,7 +577,14 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                 disabled: !sectionId || deleteSectionMutation.isPending
             }
         ];
-    }, [sectionDetailsData, sectionId, updateSectionMutation.isPending, deleteSectionMutation.isPending, handleSave, handleExportSection]);
+    }, [
+        sectionDetailsData?.section?.id,
+        sectionId,
+        updateSectionMutation.isPending,
+        deleteSectionMutation.isPending,
+        handleSave,
+        handleExportSection
+    ]);
 
     // Early returns after all hooks are defined
     if (!sectionId) {
@@ -862,8 +893,8 @@ export function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) 
                             Delete Section
                         </Button>
                     </Group>
-                </Stack>
-            </Modal>
-        </>
+        </Stack>
+    </Modal>
+    </>
     );
-} 
+});

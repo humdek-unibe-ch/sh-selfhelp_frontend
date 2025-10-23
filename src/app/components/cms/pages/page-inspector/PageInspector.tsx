@@ -61,7 +61,7 @@ import {
     validateFieldProcessing,
     initializeFieldFormValues
 } from '../../../../../utils/field-processing.utils';
-import { useRenderMonitor, useWhyDidYouUpdate, useMountMonitor } from '../../../../../utils/performance-monitor.utils';
+import { useRenderMonitor, useWhyDidYouUpdate, useMountMonitor, useRenderLogger } from '../../../../../utils/performance-monitor.utils';
 import { IPageField } from '../../../../../types/common/pages.type';
 import { usePageVersions } from '../../../../../hooks/usePageVersions';
 import {
@@ -75,6 +75,8 @@ import {
     PublishingPanel,
     VersionComparisonViewer
 } from '../../page-versions';
+// Performance monitoring temporarily disabled due to React 19 compatibility issues
+// import { useRenderMonitor, useWhyDidYouUpdate, useMountMonitor, useRenderLogger } from '../../../../../utils/performance-monitor.utils';
 
 interface PageInspectorProps {
     page: IAdminPage | null;
@@ -98,10 +100,22 @@ interface IPageFormValues {
 }
 
 export function PageInspector({ page, isConfigurationPage = false }: PageInspectorProps) {
-    // Performance monitoring - track renders, prop changes, and mount/unmount
-    useRenderMonitor('PageInspector', { pageId: page?.id_pages, isConfigurationPage });
-    useWhyDidYouUpdate('PageInspector', { page, isConfigurationPage });
+    // Enhanced performance monitoring with detailed render tracking
+    const monitoringProps = useMemo(() => ({
+        pageId: page?.id_pages,
+        isConfigurationPage
+    }), [page?.id_pages, isConfigurationPage]);
+
+    const { renderEvents } = useRenderMonitor('PageInspector', monitoringProps, {
+        trackState: false,
+        trackContext: true,
+        trackHooks: false,
+        enableStackTrace: true // Enable stack traces for debugging
+    });
+
+    useWhyDidYouUpdate('PageInspector', monitoringProps);
     useMountMonitor('PageInspector');
+    useRenderLogger('PageInspector', monitoringProps);
     
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
@@ -159,7 +173,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
             const firstLangId = languagesData[0].id.toString();
             setActiveLanguageTab(firstLangId);
         }
-    }, [languagesData, activeLanguageTab]);
+    }, [languagesData.length]); // Only depend on length to prevent infinite loop
 
     // Update page mutation
     const updatePageMutation = useUpdatePageMutation({
@@ -258,14 +272,17 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
         }]
     ]);
 
-    const handleSave = () => {
+    // Memoize computed field arrays to prevent recalculation on every render
+    const fields = useMemo(() => pageFieldsData?.fields || [], [pageFieldsData?.fields]);
+
+    const handleSave = useCallback(() => {
         // Validate field processing rules
         const validationWarnings: string[] = [];
         fields.forEach(field => {
             const validation = validateFieldProcessing(field);
             validationWarnings.push(...validation.warnings);
         });
-        
+
         // Use the modular field processing utility
         const processedFields = processAllFields({
             fields: fields,
@@ -289,7 +306,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
             pageId: page?.id_pages || 0,
             updateData
         });
-    };
+    }, [fields, form.values, languagesData, updatePageMutation, page?.id_pages]);
 
     const handleCreateChildPage = () => {
         setCreateChildModalOpened(true);
@@ -299,15 +316,15 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
         setCreateChildModalOpened(false);
     };
 
-    const handleDeletePage = () => {
+    const handleDeletePage = useCallback(() => {
         if (deleteConfirmText === page?.keyword && page?.keyword) {
             deletePageMutation.mutate(page.id_pages);
         }
-    };
+    }, [deleteConfirmText, page?.keyword, page?.id_pages, deletePageMutation]);
 
-    const handleExportPageSections = async () => {
+    const handleExportPageSections = useCallback(async () => {
         if (!page) return;
-        
+
         try {
             const response = await exportPageSections(page.id_pages);
             const filename = generateExportFilename(`page_${page.keyword}`);
@@ -316,7 +333,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
 
             // Error notification is handled by the download function
         }
-    };
+    }, [page]);
 
     const handleHeaderMenuChange = (enabled: boolean) => {
         form.setFieldValue('headerMenuEnabled', enabled);
@@ -332,6 +349,10 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
         }
     };
 
+    // Memoize computed field arrays to prevent recalculation on every render
+    const contentFields = useMemo(() => fields.filter(field => isContentField(field)), [fields]);
+    const propertyFields = useMemo(() => fields.filter(field => isPropertyField(field)), [fields]);
+
     // Stable callbacks for position changes to prevent infinite loops
     const handleHeaderPositionChange = useCallback((position: number | null) => {
         form.setFieldValue('navPosition', position);
@@ -340,11 +361,6 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
     const handleFooterPositionChange = useCallback((position: number | null) => {
         form.setFieldValue('footerPosition', position);
     }, []); // Empty dependency array since form.setFieldValue is stable
-
-    // Get fields data for processing (before early returns)
-    const fields = pageFieldsData?.fields || [];
-    const contentFields = fields.filter(field => isContentField(field));
-    const propertyFields = fields.filter(field => isPropertyField(field));
 
     // Check if we have multiple languages for content fields
     const hasMultipleLanguages = useMemo(() => {
@@ -356,15 +372,15 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
         return field.title && field.title.trim() ? field.title : field.name;
     };
 
-    // Render content field based on type and language
-    const renderContentField = (field: IPageField, languageId: number) => {
+    // Memoize render content field to prevent recreation on every render
+    const renderContentField = useCallback((field: IPageField, languageId: number) => {
         const currentLanguage = languagesData.find(lang => lang.id === languageId);
         const locale = currentLanguage?.locale;
         const fieldValue = form.values.fields?.[field.name]?.[languageId] ?? '';
-        
+
         // Check if this is the title field and we're in a configuration page
         const isReadOnly = isConfigurationPage && field.name.toLowerCase() === 'title';
-        
+
         // Convert IPageField to IFieldData
         const fieldData: IFieldData = {
             id: field.id,
@@ -378,7 +394,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
             config: field.config,
             translations: field.translations || []
         };
-        
+
         return (
             <FieldRenderer
                 key={`${field.id}-${languageId}`}
@@ -393,10 +409,10 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                 disabled={isReadOnly}
             />
         );
-    };
+    }, [languagesData, form.values.fields, isConfigurationPage]);
 
-    // Render property field (single-language, uses first language ID)
-    const renderPropertyField = (field: IPageField) => {
+    // Memoize render property field to prevent recreation on every render
+    const renderPropertyField = useCallback((field: IPageField) => {
         const langId = languagesData[0]?.id || 1;
         const fieldValue = form.values.fields?.[field.name]?.[langId] ?? '';
 
@@ -423,7 +439,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                 }}
             />
         );
-    };
+    }, [languagesData, form.values.fields]);
 
     if (!page) {
         return (
@@ -463,30 +479,30 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
 
     return (
         <Stack gap={0} h="100%">
-            {/* Fixed Save Button */}
-            <Paper p="md" withBorder style={{ borderBottom: 'none' }}>
-                <Group justify="space-between" align="center">
-                    <Group gap="xs">
-                        <Title order={2}>{page.keyword}</Title>
-                        <Badge color="blue" variant="light">
-                            ID: {pageDetails?.id}
-                        </Badge>
+                {/* Fixed Save Button */}
+                <Paper p="md" withBorder style={{ borderBottom: 'none' }}>
+                    <Group justify="space-between" align="center">
+                        <Group gap="xs">
+                            <Title order={2}>{page.keyword}</Title>
+                            <Badge color="blue" variant="light">
+                                ID: {pageDetails?.id}
+                            </Badge>
+                        </Group>
+                        <Button
+                            leftSection={<IconDeviceFloppy size="1rem" />}
+                            onClick={handleSave}
+                            variant="filled"
+                            loading={updatePageMutation.isPending}
+                            disabled={!page?.keyword}
+                        >
+                            Save
+                        </Button>
                     </Group>
-                    <Button
-                        leftSection={<IconDeviceFloppy size="1rem" />}
-                        onClick={handleSave}
-                        variant="filled"
-                        loading={updatePageMutation.isPending}
-                        disabled={!page?.keyword}
-                    >
-                        Save
-                    </Button>
-                </Group>
-            </Paper>
+                </Paper>
 
-            {/* Scrollable Content */}
-            <ScrollArea flex={1}>
-                <Stack gap="lg" p="md">
+                {/* Scrollable Content */}
+                <ScrollArea flex={1}>
+                    <Stack gap="lg" p="md">
                     {/* Page Information Section */}
                     <Paper withBorder style={{ backgroundColor: 'light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-9))' }}>
                         <Box p="md">

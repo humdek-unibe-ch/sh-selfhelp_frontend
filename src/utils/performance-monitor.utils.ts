@@ -1,18 +1,19 @@
 /**
  * Performance Monitoring Utilities for Development
- * 
+ *
  * Provides tools to detect re-render issues, track component performance,
  * and identify potential infinite loops or excessive re-renders.
- * 
- * Custom implementation optimized for React 19
- * 
+ *
+ * React DevTools Profiler integration for React 19 compatibility
+ *
  * @module utils/performance-monitor
  */
 
 import React, { useEffect, useRef, useState } from 'react';
+import { debugLogger } from '../utils/debug-logger';
 
-// Note: why-did-you-render is not compatible with React 19
-// Our custom monitoring hooks provide the same functionality without compatibility issues
+// React DevTools Profiler integration
+// Custom performance monitoring system compatible with React 19
 
 interface IPropChange {
     propName: string;
@@ -22,6 +23,20 @@ interface IPropChange {
     renderNumber: number;
 }
 
+interface IRenderEvent {
+    renderNumber: number;
+    timestamp: number;
+    duration: number;
+    cause?: string;
+    changedProps?: string[];
+    changedState?: string[];
+    changedContext?: string[];
+    changedHooks?: string[];
+    stackTrace?: string;
+    previousRenderTime?: number;
+    timeSinceLastRender?: number;
+}
+
 interface IRenderInfo {
     componentName: string;
     renderCount: number;
@@ -29,8 +44,14 @@ interface IRenderInfo {
     totalRenderTime: number;
     averageRenderTime: number;
     props?: Record<string, any>;
+    state?: Record<string, any>;
+    context?: Record<string, any>;
+    hooks?: Record<string, any>;
     changedProps?: string[];
     propChangeHistory?: IPropChange[];
+    renderEvents?: IRenderEvent[];
+    firstRenderTime?: number;
+    totalTimeTracked?: number;
 }
 
 interface IPerformanceWarning {
@@ -45,6 +66,9 @@ interface IPerformanceWarning {
 const renderTracker = new Map<string, IRenderInfo>();
 const warnings: IPerformanceWarning[] = [];
 
+// Performance monitoring configuration
+let isProfilingEnabled = false;
+
 // Configuration thresholds
 const THRESHOLDS = {
     EXCESSIVE_RENDERS: 50,           // Warn if component renders more than this in 10 seconds
@@ -56,30 +80,46 @@ const THRESHOLDS = {
 /**
  * Hook to monitor component render performance
  * Only active in development mode
- * 
+ *
  * @param componentName - Name of the component being monitored
  * @param props - Component props to track changes
+ * @param options - Additional monitoring options
  * @returns Render statistics and warnings
  */
-export function useRenderMonitor(componentName: string, props?: Record<string, any>) {
+export function useRenderMonitor(
+    componentName: string,
+    props?: Record<string, any>,
+    options: {
+        trackState?: boolean;
+        trackContext?: boolean;
+        trackHooks?: boolean;
+        enableStackTrace?: boolean;
+    } = {}
+) {
     const renderCountRef = useRef(0);
     const propsRef = useRef<Record<string, any>>(props || {});
+    const stateRef = useRef<Record<string, any>>({});
+    const contextRef = useRef<Record<string, any>>({});
+    const hooksRef = useRef<Record<string, any>>({});
     const renderStartTimeRef = useRef(0);
+    const lastRenderTimeRef = useRef(0);
     const firstRenderTimeRef = useRef(Date.now());
 
     // Only run in development
     if (process.env.NODE_ENV !== 'development') {
-        return { renderCount: 0, warnings: [] };
+        return { renderCount: 0, warnings: [], renderEvents: [] };
     }
 
     // Track render start
     renderStartTimeRef.current = performance.now();
     renderCountRef.current += 1;
+    const currentRenderNumber = renderCountRef.current;
 
     useEffect(() => {
         const renderEndTime = performance.now();
         const renderDuration = renderEndTime - renderStartTimeRef.current;
         const currentTime = Date.now();
+        const timeSinceLastRender = lastRenderTimeRef.current ? currentTime - lastRenderTimeRef.current : 0;
 
         // Get or create render info
         let info = renderTracker.get(componentName);
@@ -90,50 +130,145 @@ export function useRenderMonitor(componentName: string, props?: Record<string, a
                 lastRenderTime: currentTime,
                 totalRenderTime: 0,
                 averageRenderTime: 0,
+                renderEvents: [],
+                firstRenderTime: currentTime,
+                totalTimeTracked: 0,
             };
             renderTracker.set(componentName, info);
         }
 
         // Update render info
-        info.renderCount = renderCountRef.current;
+        info.renderCount = currentRenderNumber;
         info.lastRenderTime = currentTime;
         info.totalRenderTime += renderDuration;
         info.averageRenderTime = info.totalRenderTime / info.renderCount;
+        info.totalTimeTracked = currentTime - (info.firstRenderTime || currentTime);
 
-        // Detect changed props and record history
+        // Initialize render events array if not exists
+        if (!info.renderEvents) {
+            info.renderEvents = [];
+        }
+
+        // Detect changed props, state, context, and hooks
+        const changedProps: string[] = [];
+        const changedState: string[] = [];
+        const changedContext: string[] = [];
+        const changedHooks: string[] = [];
+        const propChanges: IPropChange[] = [];
+
+        let renderCause = 'initial';
+
+        // Check props changes - compare actual values, not just references
         if (props) {
-            const changedProps: string[] = [];
-            const propChanges: IPropChange[] = [];
-            
             Object.keys(props).forEach((key) => {
-                if (props[key] !== propsRef.current[key]) {
+                const currentValue = props[key];
+                const previousValue = propsRef.current[key];
+
+                // Deep comparison for objects/arrays, shallow for primitives
+                const hasChanged = currentValue !== previousValue ||
+                    (typeof currentValue === 'object' && currentValue !== null &&
+                     typeof previousValue === 'object' && previousValue !== null &&
+                     JSON.stringify(currentValue) !== JSON.stringify(previousValue));
+
+                if (hasChanged) {
                     changedProps.push(key);
-                    
+                    renderCause = 'props';
+
                     // Record the change for history
                     propChanges.push({
                         propName: key,
-                        oldValue: propsRef.current[key],
-                        newValue: props[key],
+                        oldValue: previousValue,
+                        newValue: currentValue,
                         timestamp: currentTime,
-                        renderNumber: info.renderCount
+                        renderNumber: currentRenderNumber
                     });
                 }
             });
-            
-            info.changedProps = changedProps;
+
             info.props = props;
-            
-            // Initialize or append to prop change history (keep last 20 changes)
-            if (!info.propChangeHistory) {
-                info.propChangeHistory = [];
-            }
-            info.propChangeHistory.push(...propChanges);
-            if (info.propChangeHistory.length > 20) {
-                info.propChangeHistory = info.propChangeHistory.slice(-20);
-            }
-            
-            propsRef.current = props;
+            propsRef.current = { ...props }; // Store a copy to detect deep changes
         }
+
+        // Check state changes (if tracking enabled)
+        if (options.trackState && info.state) {
+            Object.keys(info.state).forEach((key) => {
+                if (info.state![key] !== stateRef.current[key]) {
+                    changedState.push(key);
+                    if (renderCause === 'initial') renderCause = 'state';
+                }
+            });
+            stateRef.current = info.state;
+        }
+
+        // Check context changes (if tracking enabled)
+        if (options.trackContext && info.context) {
+            Object.keys(info.context).forEach((key) => {
+                if (info.context![key] !== contextRef.current[key]) {
+                    changedContext.push(key);
+                    if (renderCause === 'initial') renderCause = 'context';
+                }
+            });
+            contextRef.current = info.context;
+        }
+
+        // Check hooks changes (if tracking enabled)
+        if (options.trackHooks && info.hooks) {
+            Object.keys(info.hooks).forEach((key) => {
+                if (info.hooks![key] !== hooksRef.current[key]) {
+                    changedHooks.push(key);
+                    if (renderCause === 'initial') renderCause = 'hooks';
+                }
+            });
+            hooksRef.current = info.hooks;
+        }
+
+        // If no specific cause detected but it's not the first render, assume parent re-render
+        if (renderCause === 'initial' && currentRenderNumber > 1) {
+            renderCause = 'parent';
+        }
+
+        info.changedProps = changedProps;
+
+        // Initialize or append to prop change history (keep last 20 changes)
+        if (!info.propChangeHistory) {
+            info.propChangeHistory = [];
+        }
+        info.propChangeHistory.push(...propChanges);
+        if (info.propChangeHistory.length > 20) {
+            info.propChangeHistory = info.propChangeHistory.slice(-20);
+        }
+
+        // Create render event
+        const renderEvent: IRenderEvent = {
+            renderNumber: currentRenderNumber,
+            timestamp: currentTime,
+            duration: renderDuration,
+            cause: renderCause,
+            changedProps: changedProps.length > 0 ? changedProps : undefined,
+            changedState: changedState.length > 0 ? changedState : undefined,
+            changedContext: changedContext.length > 0 ? changedContext : undefined,
+            changedHooks: changedHooks.length > 0 ? changedHooks : undefined,
+            previousRenderTime: lastRenderTimeRef.current || undefined,
+            timeSinceLastRender: timeSinceLastRender > 0 ? timeSinceLastRender : undefined,
+        };
+
+        // Add stack trace if enabled (only for performance-critical renders)
+        if (options.enableStackTrace && (renderDuration > THRESHOLDS.SLOW_RENDER || changedProps.length > 0)) {
+            try {
+                renderEvent.stackTrace = new Error().stack;
+            } catch (e) {
+                // Stack trace not available
+            }
+        }
+
+        // Keep only last 50 render events
+        info.renderEvents!.push(renderEvent);
+        if (info.renderEvents!.length > 50) {
+            info.renderEvents!.shift();
+        }
+
+        // Update last render time
+        lastRenderTimeRef.current = currentTime;
 
         // Check for performance issues
         checkPerformanceIssues(info, currentTime, renderDuration, firstRenderTimeRef.current);
@@ -145,6 +280,7 @@ export function useRenderMonitor(componentName: string, props?: Record<string, a
     return {
         renderCount: renderCountRef.current,
         warnings: warnings.filter(w => w.componentName === componentName),
+        renderEvents: renderTracker.get(componentName)?.renderEvents || [],
     };
 }
 
@@ -267,11 +403,28 @@ export function getWarnings(): IPerformanceWarning[] {
 }
 
 /**
+ * Enable performance profiling
+ */
+export function enableProfiling() {
+    isProfilingEnabled = true;
+    console.log('[Performance Monitor] Performance profiling enabled');
+}
+
+/**
+ * Disable performance profiling
+ */
+export function disableProfiling() {
+    isProfilingEnabled = false;
+    console.log('[Performance Monitor] Performance profiling disabled');
+}
+
+/**
  * Reset all tracking data
  */
 export function resetPerformanceMonitor() {
     renderTracker.clear();
     warnings.length = 0;
+    isProfilingEnabled = false;
 }
 
 /**
@@ -542,7 +695,82 @@ export function generatePerformanceReport(): string {
                 }
             });
         }
-        
+
+        // Add render timeline section
+        if (stat.renderEvents && stat.renderEvents.length > 0) {
+            section += `\n#### 📊 Render Timeline & Causes\n\n`;
+            section += `Detailed timeline of recent renders and their causes:\n\n`;
+
+            // Show last 10 render events
+            const recentEvents = stat.renderEvents.slice(-10);
+            const firstEventTime = recentEvents[0]?.timestamp || Date.now();
+
+            recentEvents.forEach((event, index) => {
+                const timeSinceStart = event.timestamp - firstEventTime;
+                const timeStr = timeSinceStart < 1000 ? `${timeSinceStart}ms` :
+                               timeSinceStart < 60000 ? `${Math.floor(timeSinceStart / 1000)}s` :
+                               `${Math.floor(timeSinceStart / 60000)}m`;
+
+                const causeIcon = event.cause === 'props' ? '📥' :
+                                event.cause === 'state' ? '💾' :
+                                event.cause === 'context' ? '🔗' :
+                                event.cause === 'hooks' ? '🪝' :
+                                event.cause === 'parent' ? '👨‍👩‍👧‍👦' :
+                                event.cause === 'initial' ? '🎯' : '❓';
+
+                section += `**Render #${event.renderNumber}** (${timeStr}) ${causeIcon} **${event.cause}**\n`;
+                section += `- Duration: ${event.duration.toFixed(2)}ms\n`;
+
+                if (event.timeSinceLastRender && event.timeSinceLastRender > 0) {
+                    const intervalStr = event.timeSinceLastRender < 1000 ? `${event.timeSinceLastRender}ms ago` :
+                                      event.timeSinceLastRender < 60000 ? `${Math.floor(event.timeSinceLastRender / 1000)}s ago` :
+                                      `${Math.floor(event.timeSinceLastRender / 60000)}m ago`;
+                    section += `- Interval: ${intervalStr}\n`;
+                }
+
+                if (event.changedProps && event.changedProps.length > 0) {
+                    section += `- Changed Props: ${event.changedProps.join(', ')}\n`;
+                }
+
+                if (event.changedState && event.changedState.length > 0) {
+                    section += `- Changed State: ${event.changedState.join(', ')}\n`;
+                }
+
+                if (event.changedContext && event.changedContext.length > 0) {
+                    section += `- Changed Context: ${event.changedContext.join(', ')}\n`;
+                }
+
+                if (event.changedHooks && event.changedHooks.length > 0) {
+                    section += `- Changed Hooks: ${event.changedHooks.join(', ')}\n`;
+                }
+
+                // Add stack trace for problematic renders (only in detailed mode)
+                if (event.stackTrace && (event.duration > THRESHOLDS.SLOW_RENDER || (event.changedProps && event.changedProps.length > 0))) {
+                    section += `- Stack Trace: ${event.stackTrace.split('\n').slice(0, 3).join('\n').substring(0, 200)}...\n`;
+                }
+
+                section += `\n`;
+            });
+
+            // Add render pattern analysis
+            section += `**Render Pattern Analysis:**\n`;
+            const causes = recentEvents.reduce((acc, event) => {
+                acc[event.cause || 'unknown'] = (acc[event.cause || 'unknown'] || 0) + 1;
+                return acc;
+            }, {} as Record<string, number>);
+
+            Object.entries(causes).forEach(([cause, count]) => {
+                const percentage = ((count / recentEvents.length) * 100).toFixed(1);
+                section += `- ${cause}: ${count} renders (${percentage}%)\n`;
+            });
+
+            // Check for rapid re-renders
+            const rapidRenders = recentEvents.filter(event => event.timeSinceLastRender && event.timeSinceLastRender < 100).length;
+            if (rapidRenders > recentEvents.length * 0.5) {
+                section += `- ⚠️ **HIGH FREQUENCY**: ${rapidRenders}/${recentEvents.length} renders within 100ms intervals\n`;
+            }
+        }
+
         section += `\n`;
         return section;
     };
@@ -571,14 +799,56 @@ export function generatePerformanceReport(): string {
         });
     }
 
+
     // Add warnings section
     if (warnings.length > 0) {
+    // Add render events summary section
+    const allRenderEvents = Array.from(renderTracker.values())
+        .flatMap(stat => stat.renderEvents || [])
+        .sort((a, b) => b.timestamp - a.timestamp)
+        .slice(0, 20); // Last 20 render events across all components
+
+    if (allRenderEvents.length > 0) {
         report += `---
+
+## 📈 Recent Render Events (Last 20)
+
+`;
+
+        allRenderEvents.forEach((event, index) => {
+            const timeAgo = Date.now() - event.timestamp;
+            const timeStr = timeAgo < 1000 ? 'just now' :
+                           timeAgo < 60000 ? `${Math.floor(timeAgo / 1000)}s ago` :
+                           `${Math.floor(timeAgo / 60000)}m ago`;
+
+            const causeIcon = event.cause === 'props' ? '📥' :
+                            event.cause === 'state' ? '💾' :
+                            event.cause === 'context' ? '🔗' :
+                            event.cause === 'hooks' ? '🪝' :
+                            event.cause === 'parent' ? '👨‍👩‍👧‍👦' :
+                            event.cause === 'initial' ? '🎯' : '❓';
+
+            report += `**${event.renderNumber}** ${causeIcon} **${event.cause || 'unknown'}** (${timeStr})\n`;
+            report += `- Duration: ${event.duration.toFixed(2)}ms\n`;
+
+            if (event.changedProps && event.changedProps.length > 0) {
+                report += `- Props: ${event.changedProps.join(', ')}\n`;
+            }
+
+            if (event.timeSinceLastRender && event.timeSinceLastRender < 100) {
+                report += `- ⚠️ Rapid re-render!\n`;
+            }
+
+            report += `\n`;
+        });
+    }
+
+    report += `---
 
 ## ⚠️ Performance Warnings
 
 `;
-        
+
         const groupedWarnings = warnings.reduce((acc, warning) => {
             if (!acc[warning.componentName]) {
                 acc[warning.componentName] = [];
@@ -590,13 +860,13 @@ export function generatePerformanceReport(): string {
         Object.entries(groupedWarnings).forEach(([componentName, componentWarnings]) => {
             report += `### ${componentName}\n\n`;
             componentWarnings.forEach(warning => {
-                const icon = warning.type === 'infinite-loop' ? '🔥' : 
+                const icon = warning.type === 'infinite-loop' ? '🔥' :
                             warning.type === 'excessive-renders' ? '🚨' :
                             warning.type === 'slow-render' ? '⏱️' : '⚠️';
-                
+
                 report += `**${icon} ${warning.type.toUpperCase()}**\n`;
                 report += `- ${warning.message}\n`;
-                
+
                 if (warning.details) {
                     report += `\`\`\`json\n${JSON.stringify(warning.details, null, 2)}\n\`\`\`\n`;
                 }
@@ -665,6 +935,159 @@ Based on common React performance issues, check these areas:
 }
 
 /**
+ * Hook to check if profiling is enabled
+ */
+export function useProfilingEnabled() {
+    return isProfilingEnabled;
+}
+
+/**
+ * Generate and log performance report to console
+ */
+export function logPerformanceReport() {
+    const report = generatePerformanceReport();
+    console.group('🚀 React Performance Analysis Report');
+    console.log(report);
+    console.groupEnd();
+    return report;
+}
+
+/**
+ * Simple render logger hook to track component re-renders
+ * Logs when a component re-renders and what props changed
+ *
+ * @param name - Component name for logging
+ * @param props - Component props to track changes
+ */
+export function useRenderLogger(name: string, props: Record<string, any>) {
+    const prevProps = React.useRef<Record<string, any>>(props);
+    const renderCount = React.useRef(0);
+    const lastRenderTime = React.useRef(Date.now());
+    const renderStack = React.useRef<string[]>([]);
+
+    renderCount.current += 1;
+    const currentTime = Date.now();
+    const timeSinceLastRender = currentTime - lastRenderTime.current;
+
+    // Capture stack trace for this render
+    const stackTrace = new Error().stack || '';
+    const stackLines = stackTrace.split('\n').slice(5, 10); // Get relevant stack frames
+
+    React.useEffect(() => {
+        const changedProps: string[] = [];
+
+        // Check for changes in props
+        Object.keys(props).forEach(key => {
+            const current = props[key];
+            const previous = prevProps.current[key];
+
+            if (current !== previous) {
+                // For objects/arrays, do a shallow comparison
+                if (typeof current === 'object' && current !== null &&
+                    typeof previous === 'object' && previous !== null) {
+                    // Check if it's an array or plain object
+                    if (Array.isArray(current) && Array.isArray(previous)) {
+                        if (current.length !== previous.length ||
+                            current.some((val, idx) => val !== previous[idx])) {
+                            changedProps.push(key);
+                        }
+                    } else if (!Array.isArray(current) && !Array.isArray(previous)) {
+                        // Plain object comparison
+                        const currentKeys = Object.keys(current);
+                        const previousKeys = Object.keys(previous);
+                        if (currentKeys.length !== previousKeys.length ||
+                            currentKeys.some(k => (current as any)[k] !== (previous as any)[k])) {
+                            changedProps.push(key);
+                        }
+                    } else {
+                        // Different types (object vs array, etc.)
+                        changedProps.push(key);
+                    }
+                } else {
+                    // Primitive comparison or null/undefined
+                    changedProps.push(key);
+                }
+            }
+        });
+
+        // Analyze what might be causing re-renders
+        let cause = 'unknown';
+        if (changedProps.length > 0) {
+            cause = 'props';
+        } else if (renderCount.current > 1) {
+            // Look for clues in the stack trace
+            if (stackTrace.includes('useState') || stackTrace.includes('setState')) {
+                cause = 'state-update';
+            } else if (stackTrace.includes('useEffect')) {
+                cause = 'useEffect';
+            } else if (stackTrace.includes('useContext')) {
+                cause = 'context';
+            } else if (stackTrace.includes('useReducer')) {
+                cause = 'reducer';
+            } else if (stackTrace.includes('commitHookEffectListMount') || stackTrace.includes('flushPassiveEffects')) {
+                cause = 'parent-re-render';
+            } else {
+                cause = 'internal-re-render';
+            }
+        }
+
+        // Always log renders for debugging
+        if (renderCount.current === 1) {
+            const message = `[RenderLogger] ${name} mounted (render #${renderCount.current})`;
+            console.log(message);
+            debugLogger.debug(message, name, { renderCount: renderCount.current });
+        } else {
+            const reason = changedProps.length > 0
+                ? `props: [${changedProps.join(', ')}]`
+                : `internal (${cause})`;
+            const message = `[RenderLogger] ${name} re-rendered (render #${renderCount.current}) after ${timeSinceLastRender}ms because: ${reason}`;
+            console.log(message);
+
+            // Also log to debug logger for AI analysis
+            debugLogger.debug(message, name, {
+                renderCount: renderCount.current,
+                timeSinceLastRender,
+                reason,
+                cause,
+                changedProps: changedProps.length > 0 ? changedProps : null
+            });
+
+            // Log potential causes for internal re-renders
+            if (changedProps.length === 0 && renderCount.current > 2) {
+                const warningData = {
+                    cause,
+                    stackTrace: stackLines.join('\n'),
+                    suggestion: getRenderCauseSuggestion(cause, stackTrace)
+                };
+                console.warn(`[RenderLogger] ${name} internal re-render detected! Possible causes:`, warningData);
+                debugLogger.warn(`[RenderLogger] ${name} internal re-render detected!`, name, warningData);
+            }
+        }
+
+        prevProps.current = { ...props }; // Store a shallow copy
+        lastRenderTime.current = currentTime;
+    });
+}
+
+// Helper function to provide suggestions for render causes
+function getRenderCauseSuggestion(cause: string, stackTrace: string): string {
+    switch (cause) {
+        case 'state-update':
+            return 'Check useState setters called in render or effects without proper dependencies';
+        case 'useEffect':
+            return 'useEffect running without proper dependency array or cleanup function';
+        case 'context':
+            return 'Context value changed - check context provider memoization';
+        case 'parent-re-render':
+            return 'Parent component re-rendered - check if parent is memoized or has stable props';
+        case 'internal-re-render':
+            return 'Component re-rendering internally - check useMemo dependencies, object creation in render, or unstable references';
+        default:
+            return 'Unknown cause - check component logic for state updates or hook dependencies';
+    }
+}
+
+/**
  * Copy performance report to clipboard
  * Returns success status
  */
@@ -672,10 +1095,40 @@ export async function copyPerformanceReportToClipboard(): Promise<boolean> {
     try {
         const report = generatePerformanceReport();
         await navigator.clipboard.writeText(report);
+        console.log('📋 Performance report copied to clipboard!');
         return true;
     } catch (error) {
         console.error('[Performance Monitor] Failed to copy report to clipboard:', error);
         return false;
     }
+}
+
+/**
+ * Get current performance stats
+ */
+export function getCurrentPerformanceStats() {
+    return {
+        renderTracker: Array.from(renderTracker.entries()),
+        warnings: [...warnings],
+        isProfilingEnabled
+    };
+}
+
+// Make functions available globally in development
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+    (window as any).performanceMonitor = {
+        logReport: logPerformanceReport,
+        copyReport: copyPerformanceReportToClipboard,
+        getStats: getCurrentPerformanceStats,
+        enableProfiling,
+        disableProfiling,
+        reset: resetPerformanceMonitor
+    };
+
+    console.log('🔍 Performance Monitor available globally as window.performanceMonitor');
+    console.log('Usage:');
+    console.log('  window.performanceMonitor.logReport() - Log detailed report to console');
+    console.log('  window.performanceMonitor.copyReport() - Copy report to clipboard');
+    console.log('  window.performanceMonitor.getStats() - Get current stats');
 }
 

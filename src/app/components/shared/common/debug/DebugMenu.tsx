@@ -557,22 +557,25 @@ export function DebugMenu() {
                                 </Group>
                             </Group>
 
-                                <Alert icon={<IconInfoCircle size="1rem" />} color="blue" title="WDYR Status">
-                                    <Text size="sm">
-                                        Why Did You Render is {process.env.NODE_ENV === 'development' ? 'active' : 'disabled'} in {process.env.NODE_ENV} mode.
-                                        {process.env.NODE_ENV === 'development' && ' Check console for render logs when interacting with tracked components.'}
-                                    </Text>
-                                </Alert>
 
                                 <Group gap="xs">
                                     {/* AI Analysis Report Generator */}
                                     {(() => {
-                                        // Collect WDYR logs from debug logger
-                                        const wdyrLogs = debugLogger.getLogs().filter(log =>
-                                            log.message.includes('[why-did-you-render]') ||
-                                            log.message.includes('Why Did You Update') ||
+                                        // Collect performance monitoring logs from debug logger
+                                        const performanceLogs = debugLogger.getLogs().filter(log =>
+                                            log.message.includes('[Why Did You Update]') ||
+                                            log.message.includes('[Performance Monitor]') ||
+                                            log.message.includes('[Render Monitor]') ||
+                                            log.message.includes('[Mount Monitor]') ||
                                             log.component?.includes('SectionInspector') ||
                                             log.component?.includes('PageInspector')
+                                        );
+
+                                        // Collect RenderLogger logs
+                                        const renderLoggerLogs = debugLogger.getLogs().filter(log =>
+                                            log.message.includes('[RenderLogger]') &&
+                                            (log.component?.includes('SectionInspector') ||
+                                             log.component?.includes('PageInspector'))
                                         );
 
                                         // Create comprehensive AI analysis prompt
@@ -581,10 +584,10 @@ export function DebugMenu() {
                                             const highPriorityComponents = performanceStats.filter(s => s.renderCount > 20 && s.renderCount <= 50).length;
                                             const normalComponents = performanceStats.filter(s => s.renderCount <= 20).length;
 
-                                            // Enhanced WDYR logs with more detailed analysis
-                                            const wdyrSummary = wdyrLogs.length > 0 ? (() => {
+                                            // Enhanced performance monitoring logs with more detailed analysis
+                                            const performanceSummary = performanceLogs.length > 0 ? (() => {
                                                 // Calculate component activity
-                                                const componentActivity = wdyrLogs.reduce((acc, log) => {
+                                                const componentActivity = performanceLogs.reduce((acc, log) => {
                                                     const component = log.component || 'Unknown';
                                                     acc[component] = (acc[component] || 0) + 1;
                                                     return acc;
@@ -594,28 +597,28 @@ export function DebugMenu() {
                                                     .sort(([,a], [,b]) => b - a)[0];
 
                                                 // Group logs by component for detailed analysis
-                                                const logsByComponent = wdyrLogs.reduce((acc, log) => {
+                                                const logsByComponent = performanceLogs.reduce((acc, log) => {
                                                     const component = log.component || 'Unknown';
                                                     if (!acc[component]) acc[component] = [];
                                                     acc[component].push(log);
                                                     return acc;
                                                 }, {} as Record<string, IDebugLogEntry[]>);
 
-                                                return `### 📋 WDYR Detailed Analysis (${wdyrLogs.length} total logs)
+                                                return `### 📋 Performance Monitor Detailed Analysis (${performanceLogs.length} total logs)
 
 **Component Activity Overview:**
-- Total WDYR logs: ${wdyrLogs.length}
-- Components with WDYR logs: ${Object.keys(componentActivity).length}
+- Total Performance logs: ${performanceLogs.length}
+- Components with Performance logs: ${Object.keys(componentActivity).length}
 - Most active component: ${mostActiveComponent ? `${mostActiveComponent[0]} (${mostActiveComponent[1]} logs)` : 'None'}
 
-**WDYR Log Summary by Component:**
+**Performance Log Summary by Component:**
 ${Object.entries(componentActivity)
     .sort(([,a], [,b]) => b - a)
     .map(([component, count]) => `- **${component}:** ${count} logs`)
     .join('\n')}
 
-**🔍 Detailed WDYR Logs (Last 20 entries):**
-${wdyrLogs.slice(-20).map((log, idx) =>
+**🔍 Detailed Performance Logs (Last 20 entries):**
+${performanceLogs.slice(-20).map((log, idx) =>
 `**${idx + 1}.** [${new Date(log.timestamp).toLocaleTimeString()}] **${log.component || 'Unknown'}**
 - **Message:** ${log.message}
 - **Data:** ${log.data ? Object.keys(log.data).join(', ') : 'No data'}
@@ -640,7 +643,33 @@ ${Object.entries(logsByComponent).map(([component, logs]) => {
 - Avg time between logs: ${avgTimeBetweenLogs > 0 ? `${(avgTimeBetweenLogs / 1000).toFixed(1)}s` : 'N/A'}
 - Recent activity: ${logs.slice(-5).map(l => `[${new Date(l.timestamp).toLocaleTimeString()}]`).join(', ')}`;
 }).join('\n\n')}`;
-                                            })() : 'No WDYR logs captured.';
+                                            })() : performanceLogs.length > 0 ?
+                                                `### 📋 Performance Monitor Logs Analysis (${performanceLogs.length} total logs)
+
+**Component Activity Overview:**
+- Total Performance logs: ${performanceLogs.length}
+- Components with Performance logs: ${new Set(performanceLogs.map(log => log.component || 'Unknown')).size}
+- Most active component: ${(() => {
+    const componentCounts = performanceLogs.reduce((acc, log) => {
+        const component = log.component || 'Unknown';
+        acc[component] = (acc[component] || 0) + 1;
+        return acc;
+    }, {} as Record<string, number>);
+    const mostActive = Object.entries(componentCounts).sort(([,a], [,b]) => b - a)[0];
+    return mostActive ? `${mostActive[0]} (${mostActive[1]} logs)` : 'None';
+})()}
+
+**🔍 Recent Performance Logs (Last 10 entries):**
+${performanceLogs.slice(-10).map((log, idx) =>
+`**${idx + 1}.** [${new Date(log.timestamp).toLocaleTimeString()}] **${log.component || 'Unknown'}**
+- **Message:** ${log.message}
+- **Data:** ${log.data ? Object.keys(log.data).join(', ') : 'No data'}`
+).join('\n\n')}
+
+**🎯 Performance Analysis:**
+- Check browser console for detailed [RenderLogger] messages
+- Use React DevTools Profiler for render timing analysis
+- Monitor component re-render frequency and causes` : '**No performance monitoring logs captured.** Enable development mode and interact with components to generate render logs.';
 
                                             // Only analyze top 10 most problematic components to keep report size manageable
                                             const topComponents = performanceStats
@@ -687,12 +716,12 @@ ${changes.map((change, idx) =>
 ).join('\n')}`;
                                                 })() : 'No prop changes tracked';
 
-                                                // WDYR correlation for this component
-                                                const componentWdyRLogs = wdyrLogs.filter(log => log.component === stat.componentName);
-                                                const wdyrCorrelation = componentWdyRLogs.length > 0 ?
-`WDYR Correlation:
-- WDYR logs for this component: ${componentWdyRLogs.length}
-- Recent WDYR messages: ${componentWdyRLogs.slice(-3).map(log =>
+                                                // Performance monitor correlation for this component
+                                                const componentPerformanceLogs = performanceLogs.filter(log => log.component === stat.componentName);
+                                                const performanceCorrelation = componentPerformanceLogs.length > 0 ?
+`Performance Monitor Correlation:
+- Performance logs for this component: ${componentPerformanceLogs.length}
+- Recent Performance messages: ${componentPerformanceLogs.slice(-3).map(log =>
     `"${log.message.split(' ').slice(0, 6).join(' ')}..."`
 ).join(', ')}` : '';
 
@@ -710,7 +739,7 @@ ${propsSummary}
 **Change History:**
 ${propChanges}
 
-${wdyrCorrelation}
+${performanceCorrelation}
 
 **Analysis & Recommendations:**
 ${stat.renderCount > 50 ?
@@ -768,9 +797,67 @@ ${topWarnings
 ).join('\n')}`;
                                             })() : 'No critical performance warnings.';
 
-                                            const wdyrAnalysis = wdyrLogs.length > 0 ? `
+                                            // RenderLogger analysis
+                                            const renderLoggerAnalysis = renderLoggerLogs.length > 0 ? (() => {
+                                                // Group RenderLogger logs by component
+                                                const renderLoggerByComponent = renderLoggerLogs.reduce((acc, log) => {
+                                                    const component = log.component || 'Unknown';
+                                                    if (!acc[component]) acc[component] = [];
+                                                    acc[component].push(log);
+                                                    return acc;
+                                                }, {} as Record<string, IDebugLogEntry[]>);
 
-**🎯 WDYR Analysis Priorities:**
+                                                // Analyze render patterns for each component
+                                                const componentAnalysis = Object.entries(renderLoggerByComponent).map(([component, logs]) => {
+                                                    const renderLogs = logs.filter(log => log.message.includes('re-rendered'));
+                                                    const internalRenders = logs.filter(log => log.message.includes('internal re-render detected'));
+                                                    const totalRenders = renderLogs.length;
+                                                    const avgRenderTime = renderLogs.reduce((sum, log) => {
+                                                        const timeMatch = log.message.match(/after (\d+)ms/);
+                                                        return sum + (timeMatch ? parseInt(timeMatch[1]) : 0);
+                                                    }, 0) / Math.max(renderLogs.length, 1);
+
+                                                    return {
+                                                        component,
+                                                        totalRenders,
+                                                        internalRenders: internalRenders.length,
+                                                        avgRenderTime: Math.round(avgRenderTime),
+                                                        lastRenderTime: renderLogs.length > 0 ? renderLogs[renderLogs.length - 1].timestamp : null
+                                                    };
+                                                });
+
+                                                return `### 🔄 RenderLogger Analysis (${renderLoggerLogs.length} total logs)
+
+**Component Render Analysis:**
+${componentAnalysis.map((analysis, idx) =>
+`**${idx + 1}. ${analysis.component}:**
+- Total renders: ${analysis.totalRenders}
+- Internal re-renders: ${analysis.internalRenders}
+- Average time between renders: ${analysis.avgRenderTime}ms
+- Last render: ${analysis.lastRenderTime ? new Date(analysis.lastRenderTime).toLocaleTimeString() : 'Unknown'}
+`).join('\n')}
+
+**🔍 Detailed RenderLogger Logs (Last 15 entries):**
+${renderLoggerLogs.slice(-15).map((log, idx) =>
+`**${idx + 1}.** [${new Date(log.timestamp).toLocaleTimeString()}] **${log.component || 'Unknown'}**
+- **Message:** ${log.message}
+${log.data ? `- **Details:** ${JSON.stringify(log.data, null, 2)}` : ''}
+`).join('\n\n')}
+
+**🚨 Critical Internal Re-render Issues:**
+${componentAnalysis
+    .filter(analysis => analysis.internalRenders > 0)
+    .map(analysis =>
+`**${analysis.component}:** ${analysis.internalRenders} internal re-renders detected
+- **Issue:** Component is re-rendering without prop changes
+- **Cause:** useMemo dependencies, object creation in render, or unstable references
+- **Impact:** ${analysis.totalRenders} total renders, ${Math.round(analysis.avgRenderTime)}ms average render time
+`).join('\n\n') || 'No internal re-render issues detected.'}`;
+                                            })() : '**No RenderLogger data captured.** Add useRenderLogger hooks to components to track render causes.';
+
+                                            const performanceAnalysis = performanceLogs.length > 0 ? `
+
+**🎯 Performance Monitor Analysis Priorities:**
 
 **Immediate Investigation Required:**
 1. **Infinite Loop Detection**: Check components with >50 renders for:
@@ -788,12 +875,12 @@ ${topWarnings
    - Are children receiving unstable props?
    - Check component hierarchy for memoization gaps
 
-**WDYR Log Interpretation Guide:**
-- "[why-did-you-render] Component re-rendered unnecessarily" = Props changed but shouldn't have
-- "Hook differences" = Custom hooks causing re-renders
-- "Owner differences" = Parent component changes triggering re-render
-- "Different functions" = Event handlers not memoized
-- "Different objects" = Objects recreated on each render
+**Performance Monitor Log Interpretation Guide:**
+- "[Why Did You Update] Component re-rendered" = Props changed between renders
+- "[Performance Monitor] Slow render detected" = Component took too long to render
+- "[Render Monitor] Component rendered" = Component re-rendered with timing info
+- "[Mount Monitor] Component remounted" = Component unmounted and remounted unnecessarily
+- "Same value, different reference" = Objects/functions not memoized
 
 **Pattern Recognition:**
 - Frequent renders with same props = Missing React.memo
@@ -806,14 +893,14 @@ ${topWarnings
 - Check useMemo usage for expensive computations
 - Verify useCallback for event handlers
 - Audit context providers for proper memoization
-- Look for inline object/array creation in JSX` : '**No WDYR logs captured.** Enable development mode and interact with tracked components to generate WDYR analysis.';
+- Look for inline object/array creation in JSX` : '**No performance logs captured.** Enable development mode and interact with tracked components to generate performance analysis.';
 
                                             return `# 🐛 React Performance Analysis Report
 
 Generated: ${new Date().toISOString()}
 Total Components Tracked: ${performanceStats.length}
 Total Warnings: ${performanceWarnings.length}
-WDYR Status: ${process.env.NODE_ENV === 'development' ? 'Active' : 'Disabled'}
+Performance Monitor Status: ${process.env.NODE_ENV === 'development' ? 'Active' : 'Disabled'}
 
 ---
 
@@ -830,9 +917,19 @@ Good Performance - Components with acceptable render counts
 
 ---
 
-## 🔍 WDYR (Why Did You Render) Analysis
+## 🔍 Performance Monitor Analysis
 
-${wdyrSummary}
+${performanceSummary}
+
+---
+
+${performanceAnalysis}
+
+---
+
+## 🔄 RenderLogger Internal Re-render Analysis
+
+${renderLoggerAnalysis}
 
 ---
 
@@ -894,9 +991,9 @@ You are a senior React performance expert. Analyze the above data and provide de
 
 **Code Investigation Workflow:**
 
-1. **Start with WDYR Logs:**
+1. **Start with Performance Monitor Logs:**
    - Identify which props are changing unnecessarily
-   - Look for "Different objects" or "Different functions" messages
+   - Look for "[Why Did You Update]" messages
    - Check render timestamps for frequency patterns
 
 2. **Component Hierarchy Analysis:**
@@ -921,16 +1018,25 @@ You are a senior React performance expert. Analyze the above data and provide de
 - Parent components passing props to SectionInspector
 
 **Debugging Commands to Run:**
-- Check browser console for WDYR logs during interaction
+- Check browser console for Performance Monitor logs during interaction
 - Use React DevTools to profile component renders
 - Monitor network tab for excessive API calls
 - Check memory usage for potential leaks
+
+**🔍 RenderLogger Analysis Guide:**
+- **Internal re-renders** = Component re-rendering without prop changes
+- **Check useMemo dependencies** for object/array references
+- **Look for object creation in render** phase (anti-pattern)
+- **Verify useEffect dependencies** are stable and complete
+- **Check for unstable function references** in props/dependencies
+- **Context providers** should memoize values to prevent cascading re-renders
+- **Component composition** over prop drilling for stable references
 
 ---
 
 Report Generated: ${new Date().toISOString()}
 Environment: ${process.env.NODE_ENV}
-WDYR Active: ${process.env.NODE_ENV === 'development'}
+Performance Monitor Active: ${process.env.NODE_ENV === 'development'}
 
 ---
 
@@ -1171,18 +1277,18 @@ function MyComponent(props) {
                                 </>
                             )}
 
-                            {/* WDYR Info Section */}
+                            {/* Performance Monitor Info Section */}
                             {process.env.NODE_ENV === 'development' && (
                                 <Box>
-                                    <Text fw={500} mb="xs">🔍 Why Did You Render Active</Text>
+                                    <Text fw={500} mb="xs">🔍 Performance Monitor Active</Text>
                                     <Alert icon={<IconInfoCircle size="1rem" />} color="green">
                                         <Text size="sm" mb="xs">
-                                            WDYR is active and tracking components. Check your browser console for render logs.
+                                            Custom performance monitoring is active and tracking components. Check your browser console for render logs.
                                         </Text>
                                         <Text size="xs" component="div">
                                             • Tracked components: SectionInspector, PageInspector<br/>
                                             • Excluded: Mantine components, Notifications, DebugMenu<br/>
-                                            • Look for <Code>[why-did-you-render]</Code> logs in console<br/>
+                                            • Look for <Code>[Performance Monitor]</Code>, <Code>[Why Did You Update]</Code>, <Code>[Render Monitor]</Code> logs in console<br/>
                                             • Use the test component above to trigger renders
                                         </Text>
                                     </Alert>
