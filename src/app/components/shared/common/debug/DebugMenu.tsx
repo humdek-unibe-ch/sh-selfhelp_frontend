@@ -237,7 +237,7 @@ export function DebugMenu() {
 
     return (
         <>
-            <Tooltip label="Debug Menu" position="left">
+            <Tooltip label="Debug Menu" position="right">
                 <ActionIcon
                     onClick={toggle}
                     variant="subtle"
@@ -245,7 +245,7 @@ export function DebugMenu() {
                     style={{
                         position: 'fixed',
                         top: 16,
-                        right: 16,
+                        left: 16,
                         zIndex: 1000,
                         backgroundColor: 'var(--mantine-color-blue-6)',
                         color: 'white'

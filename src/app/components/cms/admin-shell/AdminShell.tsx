@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { ROUTES } from "../../../../config/routes.config";
 import { theme } from "../../../../../theme";
+import { DebugMenu } from "../../shared/common/debug";
 
 interface AdminShellProps {
     children: React.ReactNode;
@@ -81,6 +82,7 @@ export function AdminShell({ children, aside, asideWidth = 400 }: AdminShellProp
                     </AppShell.Aside>
                 )}
             </AppShell>
+            <DebugMenu />
         </MantineProvider>
     );
 }
