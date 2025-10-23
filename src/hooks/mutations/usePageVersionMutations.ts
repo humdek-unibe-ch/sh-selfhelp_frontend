@@ -165,13 +165,13 @@ export function useRestoreFromVersionMutation() {
                 queryClient.invalidateQueries({ queryKey: ['page-versions', variables.pageId] }),
                 queryClient.invalidateQueries({ queryKey: ['unpublished-changes', variables.pageId] }),
                 queryClient.invalidateQueries({ queryKey: ['page-details', variables.pageId] }),
-                queryClient.invalidateQueries({ queryKey: ['page-sections', variables.pageId] }),
+                queryClient.invalidateQueries({ queryKey: ['pageSections', variables.pageId] }),
                 queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
             ]);
 
             // Force immediate refetch of page data
             await queryClient.refetchQueries({ queryKey: ['page-details', variables.pageId] });
-            await queryClient.refetchQueries({ queryKey: ['page-sections', variables.pageId] });
+            await queryClient.refetchQueries({ queryKey: ['pageSections', variables.pageId] });
 
             notifications.show({
                 title: 'Sections Restored',
