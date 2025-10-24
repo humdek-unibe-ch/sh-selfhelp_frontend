@@ -33,6 +33,7 @@ import {
 } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
 import { useHotkeys } from '@mantine/hooks';
+import { useRouter } from 'next/navigation';
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { usePageFields } from '../../../../../hooks/usePageDetails';
@@ -100,6 +101,8 @@ interface IPageFormValues {
 }
 
 export function PageInspector({ page, isConfigurationPage = false }: PageInspectorProps) {
+    const router = useRouter();
+
     // Enhanced performance monitoring with detailed render tracking
     const monitoringProps = useMemo(() => ({
         pageId: page?.id_pages,
@@ -202,7 +205,8 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
         onSuccess: () => {
             setDeleteModalOpened(false);
             setDeleteConfirmText('');
-            // Additional success handling can be added here if needed
+            // Navigate back to admin pages list after successful deletion
+            router.push('/admin/pages');
         },
         onError: (error) => {
             // Error is already handled by the mutation hook with notifications
