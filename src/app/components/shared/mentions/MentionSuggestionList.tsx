@@ -31,30 +31,33 @@ export const MentionSuggestionList = React.forwardRef<IKeyboardHandler, IVariabl
     ({ items, command, maxVisibleRows = 5, maxItems = 50 }, ref) => {
         const [selectedIndex, setSelectedIndex] = React.useState(0);
         const itemRefs = React.useRef<(HTMLLIElement | null)[]>([]);
-        const scrollAreaRef = React.useRef<HTMLDivElement>(null);
+        const viewportRef = React.useRef<HTMLDivElement>(null);
 
         // Limit items to maxItems
         const displayItems = items.slice(0, maxItems);
 
         // Scroll selected item into view when selectedIndex changes
         React.useEffect(() => {
+            // Use requestAnimationFrame to ensure DOM has updated
             requestAnimationFrame(() => {
-                if (itemRefs.current[selectedIndex] && scrollAreaRef.current) {
-                    const item = itemRefs.current[selectedIndex];
-                    const container = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+                const item = itemRefs.current[selectedIndex];
+                const viewport = viewportRef.current;
 
-                    if (item && container) {
-                        const itemTop = item.offsetTop;
-                        const itemBottom = itemTop + item.offsetHeight;
-                        const containerTop = container.scrollTop;
-                        const containerBottom = containerTop + container.clientHeight;
+                if (!item || !viewport) return;
+                
+                // Calculate relative positions
+                const itemTop = item.offsetTop;
+                const itemBottom = itemTop + item.offsetHeight;
+                const containerScrollTop = viewport.scrollTop;
+                const containerVisibleBottom = containerScrollTop + viewport.clientHeight;
 
-                        if (itemTop < containerTop) {
-                            container.scrollTop = itemTop - 8;
-                        } else if (itemBottom > containerBottom) {
-                            container.scrollTop = itemBottom - container.clientHeight + 8;
-                        }
-                    }
+                // Scroll up if item is above visible area
+                if (itemTop < containerScrollTop) {
+                    viewport.scrollTop = itemTop - 8; // 8px padding
+                } 
+                // Scroll down if item is below visible area
+                else if (itemBottom > containerVisibleBottom) {
+                    viewport.scrollTop = itemBottom - viewport.clientHeight + 8; // 8px padding
                 }
             });
         }, [selectedIndex]);
@@ -121,7 +124,7 @@ export const MentionSuggestionList = React.forwardRef<IKeyboardHandler, IVariabl
                 withBorder
             >
                 <ScrollArea
-                    ref={scrollAreaRef}
+                    viewportRef={viewportRef}
                     style={{
                         height: Math.max(36, Math.min(displayItems.length * 36, maxVisibleRows * 36)),
                         minHeight: '36px',
@@ -145,11 +148,8 @@ export const MentionSuggestionList = React.forwardRef<IKeyboardHandler, IVariabl
                                     transition: 'background-color 0.15s ease',
                                 }}
                                 onClick={() => selectItem(index)}
-                                onMouseEnter={(e) => {
-                                    if (selectedIndex !== index) {
-                                        e.currentTarget.style.backgroundColor =
-                                            'var(--mantine-color-gray-0)';
-                                    }
+                                onMouseEnter={() => {
+                                    setSelectedIndex(index);
                                 }}
                                 onMouseLeave={(e) => {
                                     e.currentTarget.style.backgroundColor =
