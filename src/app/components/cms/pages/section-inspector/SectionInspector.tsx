@@ -1,7 +1,6 @@
 'use client';
 
 import {
-    Paper,
     Box,
     Modal,
     Stack,
@@ -12,9 +11,9 @@ import {
     Alert,
     Tabs,
 } from '@mantine/core';
-import { 
-    IconInfoCircle, 
-    IconDeviceFloppy, 
+import {
+    IconInfoCircle,
+    IconDeviceFloppy,
     IconTrash,
     IconFileExport
 } from '@tabler/icons-react';
@@ -23,43 +22,31 @@ import { useRouter } from 'next/navigation';
 import { useSectionDetails } from '../../../../../hooks/useSectionDetails';
 import { useAdminLanguages } from '../../../../../hooks/useLanguages';
 import { useUpdateSectionMutation, useDeleteSectionMutation } from '../../../../../hooks/mutations';
-import { ISectionField } from '../../../../../types/responses/admin/admin.types';
-import {
-    IFieldData,
-    GlobalFieldRenderer,
-    GlobalFieldType,
-    createFieldChangeHandlers,
-} from '../../shared';
+import { GlobalFieldType } from '../../shared';
 import styles from './SectionInspector.module.css';
 import { exportSection } from '../../../../../api/admin/section.api';
 import { downloadJsonFile, generateExportFilename } from '../../../../../utils/export-import.utils';
-import { AdminApi } from '../../../../../api/admin';
 import { validateName, getNameValidationError } from '../../../../../utils/name-validation.utils';
 import { notifications } from '@mantine/notifications';
 import { useQueryClient } from '@tanstack/react-query';
 import { CollapsibleSection } from '../../shared/collapsible-section/CollapsibleSection';
-import { FieldRenderer } from '../../shared/field-renderer/FieldRenderer';
 import { InspectorLayout } from '../../shared/inspector-layout/InspectorLayout';
 import { InspectorHeader } from '../../shared/inspector-header/InspectorHeader';
 import { INSPECTOR_TYPES } from '../../../../../store/inspectorStore';
 import { useRenderMonitor, useWhyDidYouUpdate, useMountMonitor, useRenderLogger } from '../../../../../utils/performance-monitor.utils';
+import { useSectionFormStore } from '../../../../store/sectionFormStore';
+import { SectionContentField } from './section-field-connectors';
+import { SectionGlobalFields, SectionProperties, SectionMantineProperties, SectionInfoPanel } from './section-field-groups';
 
 interface ISectionInspectorProps {
     pageId: number | null;
     sectionId: number | null;
 }
 
-interface ISectionFormValues {
-    // Section name (editable)
+interface ISectionFormState {
     sectionName: string;
-
-    // Section properties (non-translatable fields)
     properties: Record<string, string | boolean>;
-
-    // Field values by language (translatable fields)
-    fields: Record<string, Record<number, string>>; // fields[fieldName][languageId] = content
-
-    // Global section-level properties
+    fields: Record<string, Record<number, string>>;
     globalFields: {
         condition: string;
         data_config: string;
@@ -69,34 +56,18 @@ interface ISectionFormValues {
     };
 }
 
-interface ISectionSubmitData {
-    // Section name (only if changed)
-    sectionName?: string;
-    
-    // Content fields with language and field IDs (only changed fields)
-    contentFields: Array<{
-        fieldId: number;
-        languageId: number;
-        value: string;
-        fieldName: string; // For debugging
-    }>;
-    
-    // Property fields (only changed fields)
-    propertyFields: Array<{
-        fieldId: number;
-        value: string | boolean;
-        fieldName: string; // For debugging
-    }>;
-}
-
 export const SectionInspector = React.memo(function SectionInspector({ pageId, sectionId }: ISectionInspectorProps) {
-
     const router = useRouter();
     const queryClient = useQueryClient();
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [activeLanguageTab, setActiveLanguageTab] = useState<string>('');
-    const [formValues, setFormValues] = useState<ISectionFormValues>({
+
+    // Actions don't trigger re-renders, only used for updating
+    const setFormValues = useSectionFormStore((state: any) => state.setFormValues);
+
+    // For comparison, keep original values in a ref to avoid re-renders
+    const originalValuesRef = React.useRef<ISectionFormState>({
         sectionName: '',
         properties: {},
         fields: {},
@@ -109,128 +80,75 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
         }
     });
 
-    // Track original values to detect changes
-    const [originalValues, setOriginalValues] = useState<ISectionFormValues>({
-        sectionName: '',
-        properties: {},
-        fields: {},
-        globalFields: {
-            condition: '',
-            data_config: '',
-            css: '',
-            css_mobile: '',
-            debug: false
-        }
-    });
-
-    // Enhanced performance monitoring with detailed render tracking
-    const { renderEvents } = useRenderMonitor('SectionInspector', { pageId, sectionId }, {
+    // Performance monitoring
+    useRenderMonitor('SectionInspector', { pageId, sectionId }, {
         trackState: false,
         trackContext: true,
         trackHooks: false,
-        enableStackTrace: true // Enable stack traces for debugging critical renders
+        enableStackTrace: true
     });
 
     useWhyDidYouUpdate('SectionInspector', { pageId, sectionId });
     useMountMonitor('SectionInspector');
     useRenderLogger('SectionInspector', { pageId, sectionId });
 
-    // Fetch section details when section is selected
+    // Fetch section details
     const {
         data: sectionDetailsData,
         isLoading: sectionLoading,
         error: sectionError,
-        isFetching,
-        isStale
     } = useSectionDetails(pageId, sectionId, !!pageId && !!sectionId);
 
-    // Fetch available languages
+    // Fetch languages
     const { languages: languagesData, isLoading: languagesLoading } = useAdminLanguages();
-    
-    // Section update mutation
+
+    // Update mutation
     const updateSectionMutation = useUpdateSectionMutation({
         showNotifications: true,
         pageId: pageId || undefined,
         onSuccess: () => {
-            // Update original values after successful save
-            setOriginalValues({ ...formValues });
-
-            
-            // Invalidate relevant queries to refresh data - using consistent query keys
+            setFormValues({ ...useSectionFormStore.getState() }); // Update store to reflect changes
             if (pageId) {
-                queryClient.invalidateQueries({ queryKey: ['adminPages'] }); // Admin pages list
-                queryClient.invalidateQueries({ queryKey: ['pageFields', pageId] }); // Page fields
-                queryClient.invalidateQueries({ queryKey: ['pageSections', pageId] }); // Page sections
-                queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'details', pageId, sectionId] }); // Section details (correct key)
-                queryClient.invalidateQueries({ queryKey: ['pages'] }); // Frontend pages
-                queryClient.invalidateQueries({ queryKey: ['page-content'] }); // Frontend page content
-                queryClient.invalidateQueries({ queryKey: ['frontend-pages'] }); // Frontend pages with language
-                
-                // Also invalidate any admin-specific queries that might exist
-                queryClient.invalidateQueries({ queryKey: ['admin', 'pages'] });
-                queryClient.invalidateQueries({ queryKey: ['admin', 'page', pageId] });
-                queryClient.invalidateQueries({ queryKey: ['admin', 'section', pageId, sectionId] });
+                queryClient.invalidateQueries({ queryKey: ['adminPages'] });
+                queryClient.invalidateQueries({ queryKey: ['pageFields', pageId] });
+                queryClient.invalidateQueries({ queryKey: ['pageSections', pageId] });
                 queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'details', pageId, sectionId] });
+                queryClient.invalidateQueries({ queryKey: ['pages'] });
+                queryClient.invalidateQueries({ queryKey: ['page-content'] });
+                queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
             }
-        },
-        onError: (error) => {
-
         }
     });
 
-    // Section delete mutation
+    // Delete mutation
     const deleteSectionMutation = useDeleteSectionMutation({
         showNotifications: true,
         pageId: pageId || undefined,
         onSuccess: () => {
             setDeleteModalOpened(false);
             setDeleteConfirmText('');
-
-            
-            // Navigate to page view after successful deletion
             const currentPath = window.location.pathname;
             const pathParts = currentPath.split('/');
             const adminIndex = pathParts.indexOf('admin');
             const pagesIndex = pathParts.indexOf('pages', adminIndex);
-            
             if (pagesIndex !== -1 && pathParts[pagesIndex + 1]) {
                 const pageKeyword = pathParts[pagesIndex + 1];
                 const newPath = `/admin/pages/${pageKeyword}`;
                 router.push(newPath, { scroll: false });
             }
-        },
-        onError: (error) => {
-
         }
     });
 
-    // Note: Field processing is done directly in useEffect to avoid circular dependencies
-
-    // Set default active language tab when languages are loaded
+    // Set active language tab
     useEffect(() => {
         if (languagesData.length > 0 && !activeLanguageTab) {
-            const firstLangId = languagesData[0].id.toString();
-            setActiveLanguageTab(firstLangId);
+            setActiveLanguageTab(languagesData[0].id.toString());
         }
     }, [languagesData.length, activeLanguageTab]);
 
-    // Memoize processed form values to prevent recreation on every render
-    // Use more specific dependencies to avoid unnecessary recalculations
-    const processedFormValues = useMemo(() => {
-        if (!sectionDetailsData || languagesData.length === 0) {
-            return {
-                sectionName: '',
-                properties: {},
-                fields: {},
-                globalFields: {
-                    condition: '',
-                    data_config: '',
-                    css: '',
-                    css_mobile: '',
-                    debug: false
-                }
-            };
-        }
+    // Load section data into store
+    useEffect(() => {
+        if (!sectionDetailsData || languagesData.length === 0) return;
 
         const { section, fields } = sectionDetailsData;
         const globalFields = section.global_fields || {
@@ -241,56 +159,31 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
             debug: false
         };
 
-        // Process fields for SectionInspector (which has different structure than PageInspector)
         const contentFields = fields.filter(field => field.display);
         const propertyFields = fields.filter(field => !field.display);
 
-        // Process content fields (translatable) - use similar logic to the utility but adapted for ISectionField
+        // Build content fields
         const contentFieldsObject: Record<string, Record<number, string>> = {};
         contentFields.forEach(field => {
             contentFieldsObject[field.name] = {};
-
-            // Initialize all languages with default values first
             languagesData.forEach(lang => {
                 contentFieldsObject[field.name][lang.id] = field.default_value || '';
             });
 
-            if (field.display) {
-                // Content fields: populate based on actual language_id from translations if available
-                if (field.translations && field.translations.length > 0) {
-                    field.translations.forEach(translation => {
-                        const language = languagesData.find(l => l.id === translation.language_id);
-                        if (language) {
-                            contentFieldsObject[field.name][language.id] = translation.content || field.default_value || '';
-                        }
-                    });
-                }
-                // If no translations, keep the default values set above
-            } else {
-                // Property fields: find content from language_id = 1 or use default value
-                let propertyContent = field.default_value || '';
-
-                if (field.translations && field.translations.length > 0) {
-                    const propertyTranslation = field.translations.find(t => t.language_id === 1);
-                    if (propertyTranslation?.content !== undefined && propertyTranslation?.content !== null) {
-                        propertyContent = propertyTranslation.content;
+            if (field.translations && field.translations.length > 0) {
+                field.translations.forEach(translation => {
+                    const language = languagesData.find(l => l.id === translation.language_id);
+                    if (language) {
+                        contentFieldsObject[field.name][language.id] = translation.content || field.default_value || '';
                     }
-                }
-
-                // Replicate property field content to all language tabs for editing convenience
-                languagesData.forEach(language => {
-                    contentFieldsObject[field.name][language.id] = propertyContent;
                 });
             }
         });
 
-        // Process property fields for the properties object (SectionInspector uses a different structure)
+        // Build property fields
         const propertyFieldsObject: Record<string, string | boolean> = {};
-
         propertyFields.forEach(field => {
-            // Get the property field content from language ID 1 or use default value
             let value = field.default_value || '';
-
             if (field.translations && field.translations.length > 0) {
                 const propertyTranslation = field.translations.find(t => t.language_id === 1);
                 if (propertyTranslation?.content !== undefined && propertyTranslation?.content !== null) {
@@ -298,7 +191,6 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                 }
             }
 
-            // Convert to appropriate type based on field type
             if (field.type === 'checkbox') {
                 propertyFieldsObject[field.name] = value === '1' || value === 'true' || value === 'on';
             } else {
@@ -306,7 +198,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
             }
         });
 
-        return {
+        const newFormValues: ISectionFormState = {
             sectionName: section.name,
             properties: propertyFieldsObject,
             fields: contentFieldsObject,
@@ -318,24 +210,11 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                 debug: globalFields.debug || false
             }
         };
-    }, [
-        sectionDetailsData?.section?.name,
-        sectionDetailsData?.section?.global_fields?.condition,
-        sectionDetailsData?.section?.global_fields?.data_config,
-        sectionDetailsData?.section?.global_fields?.css,
-        sectionDetailsData?.section?.global_fields?.css_mobile,
-        sectionDetailsData?.section?.global_fields?.debug,
-        sectionDetailsData?.fields?.length,
-        languagesData.length
-    ]);
 
-    // Update form values only when processed data changes
-    useEffect(() => {
-        setFormValues(processedFormValues);
-        setOriginalValues(processedFormValues);
-    }, [processedFormValues]);
+        setFormValues(newFormValues);
+        originalValuesRef.current = newFormValues; // Update ref
+    }, [sectionDetailsData, languagesData, setFormValues]);
 
-    // Memoize computed values to prevent recreation on every render
     const hasMultipleLanguages = useMemo(() => languagesData.length > 1, [languagesData.length]);
 
     const dataVariables = useMemo(() =>
@@ -353,19 +232,17 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
         [sectionDetailsData?.fields?.length]
     );
 
-    // Use shared field change handlers
-    const { handleContentFieldChange, handlePropertyFieldChange } = createFieldChangeHandlers(
-        setFormValues,
-        'SectionInspector'
-    );
+    const fields = sectionDetailsData?.fields || [];
+    const globalFieldTypes: GlobalFieldType[] = ['condition', 'data_config', 'css', 'css_mobile', 'debug'];
 
-    // Memoize handlers to prevent recreation on every render
+    // Save handler
     const handleSave = useCallback(async () => {
         if (!sectionId || !sectionDetailsData || !languagesData.length || !pageId) return;
 
-        // Validate section name if it has changed
-        if (formValues.sectionName !== originalValues.sectionName) {
-            const validation = validateName(formValues.sectionName);
+        const currentSectionName = useSectionFormStore.getState().sectionName;
+
+        if (currentSectionName !== originalValuesRef.current.sectionName) {
+            const validation = validateName(currentSectionName);
             if (!validation.isValid) {
                 notifications.show({
                     title: 'Invalid Section Name',
@@ -376,32 +253,20 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
             }
         }
 
-        // Prepare submit data structure (only changed fields)
-        const submitData = {
-            contentFields: [] as Array<{
-                fieldId: number;
-                languageId: number;
-                value: string;
-            }>,
-            propertyFields: [] as Array<{
-                fieldId: number;
-                value: string | boolean;
-            }>,
-            globalFields: {} as any
-        } as any;
+        const submitData: any = {
+            contentFields: [],
+            propertyFields: [],
+            globalFields: {}
+        };
 
-        // Check if section name changed
-        if (formValues.sectionName !== originalValues.sectionName) {
-            submitData.sectionName = formValues.sectionName;
+        if (currentSectionName !== originalValuesRef.current.sectionName) {
+            submitData.sectionName = currentSectionName;
         }
 
-        // Process content fields (translatable) - send all values
         contentFields.forEach(field => {
-            const currentFieldValues = formValues.fields[field.name] || {};
-
+            const currentFieldValues = useSectionFormStore.getState().fields[field.name] || {};
             languagesData.forEach(language => {
                 const currentValue = currentFieldValues[language.id] || '';
-
                 submitData.contentFields.push({
                     fieldId: field.id,
                     languageId: language.id,
@@ -410,31 +275,22 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
             });
         });
 
-        // Process property fields (non-translatable) - send all values
         propertyFields.forEach(field => {
-            const currentValue = formValues.properties[field.name];
-
-            const fieldEntry = {
+            const currentValue = useSectionFormStore.getState().properties[field.name];
+            submitData.propertyFields.push({
                 fieldId: field.id,
                 value: currentValue !== undefined ? currentValue : ''
-            };
-
-            submitData.propertyFields.push(fieldEntry);
+            });
         });
 
-        // Process global fields - send all values
-        // Clean up global fields - convert empty strings to null for API
         const cleanGlobalFields: any = {};
-        Object.keys(formValues.globalFields).forEach(key => {
-            const value = formValues.globalFields[key as keyof typeof formValues.globalFields];
+        const storeState = useSectionFormStore.getState();
+        Object.keys(storeState.globalFields).forEach(key => {
+            const value = storeState.globalFields[key as keyof typeof storeState.globalFields];
             cleanGlobalFields[key] = (value === '' || value === null) ? null : value;
         });
         submitData.globalFields = cleanGlobalFields;
 
-        // Always submit since we're sending all field values
-        // (no need to check for changes since we send all values)
-
-        // Execute the mutation
         try {
             await updateSectionMutation.mutateAsync({
                 pageId,
@@ -442,10 +298,9 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                 sectionData: submitData
             });
         } catch (error) {
-            // Error handling is done by the mutation hook
-
+            // Error handled by mutation
         }
-    }, [sectionId, sectionDetailsData, languagesData, pageId, formValues, originalValues, contentFields, propertyFields, updateSectionMutation]);
+    }, [sectionId, sectionDetailsData, languagesData, pageId, updateSectionMutation]);
 
     const handleDeleteSection = useCallback(() => {
         if (!sectionId || !sectionDetailsData || !pageId) return;
@@ -466,79 +321,10 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
             const filename = generateExportFilename(`section_${sectionDetailsData.section.name}_${sectionId}`);
             downloadJsonFile(response.data.sectionsData, filename);
         } catch (error) {
-            // Error notification is handled by the download function
+            // Error handled
         }
     }, [sectionId, sectionDetailsData, pageId]);
 
-    const handleSectionNameChange = useCallback((value: string) => {
-        setFormValues(prev => ({
-            ...prev,
-            sectionName: value
-        }));
-    }, []);
-
-    // Memoize field conversion function
-    const convertToFieldData = useCallback((field: ISectionField): IFieldData => ({
-        id: field.id,
-        name: field.name,
-        title: field.title,
-        type: field.type,
-        default_value: field.default_value,
-        help: field.help,
-        disabled: field.disabled,
-        hidden: field.hidden,
-        display: field.display,
-        config: field.config,
-        translations: field.translations
-    }), []);
-
-    // Define the fixed global field types
-    const globalFieldTypes: GlobalFieldType[] = ['condition', 'data_config', 'css', 'css_mobile', 'debug'];
-
-    // Memoize content field renderer to prevent recreation on every render
-    const renderContentField = useCallback((field: ISectionField, languageId: number) => {
-        const currentLanguage = languagesData.find(lang => lang.id === languageId);
-        const locale = currentLanguage?.locale;
-        const fieldValue = formValues.fields?.[field.name]?.[languageId] ?? '';
-
-        const fieldData: IFieldData = convertToFieldData(field);
-
-        return (
-            <FieldRenderer
-                key={`${field.id}-${languageId}`}
-                field={fieldData}
-                value={fieldValue}
-                onChange={(value) => handleContentFieldChange(field.name, languageId, value)}
-                locale={locale}
-                className={styles.fullWidthLabel}
-                dataVariables={dataVariables}
-            />
-        );
-    }, [languagesData, formValues.fields, convertToFieldData, handleContentFieldChange, dataVariables]);
-
-    // Memoize property field renderer to prevent recreation on every render
-    const renderPropertyField = useCallback((field: ISectionField) => {
-        const langId = languagesData[0]?.id || 1;
-        const fieldValue = formValues.properties?.[field.name] ?? '';
-
-        const fieldData: IFieldData = convertToFieldData(field);
-
-        return (
-            <FieldRenderer
-                key={`${field.id}-${langId}`}
-                field={fieldData}
-                value={fieldValue}
-                onChange={(value) => handlePropertyFieldChange(field.name, null, value)}
-                className={styles.fullWidthLabel}
-                dataVariables={dataVariables}
-            />
-        );
-    }, [languagesData, formValues.properties, convertToFieldData, handlePropertyFieldChange, dataVariables]);
-
-    // Get fields data for processing
-    const fields = sectionDetailsData?.fields || [];
-
-    // Memoize header data - only create when we have section data
     const headerBadges = useMemo(() => {
         if (!sectionDetailsData) return [];
         const { section } = sectionDetailsData;
@@ -577,16 +363,8 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                 disabled: !sectionId || deleteSectionMutation.isPending
             }
         ];
-    }, [
-        sectionDetailsData?.section?.id,
-        sectionId,
-        updateSectionMutation.isPending,
-        deleteSectionMutation.isPending,
-        handleSave,
-        handleExportSection
-    ]);
+    }, [sectionDetailsData?.section?.id, sectionId, updateSectionMutation.isPending, deleteSectionMutation.isPending, handleSave, handleExportSection]);
 
-    // Early returns after all hooks are defined
     if (!sectionId) {
         return (
             <InspectorLayout
@@ -597,9 +375,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                 }}
             >
                 <Box p="md">
-                    <Text size="sm" c="dimmed">Debug Info:</Text>
-                    <Text size="xs" c="dimmed">Page ID: {pageId || 'null'}</Text>
-                    <Text size="xs" c="dimmed">Section ID: {sectionId || 'null'}</Text>
+                    <Text size="sm" c="dimmed">No section selected</Text>
                 </Box>
             </InspectorLayout>
         );
@@ -624,23 +400,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                 error={sectionError.message}
             >
                 <Box p="md">
-                    <Text size="sm" c="dimmed">Debug Info:</Text>
-                    <Text size="xs" c="dimmed">Page ID: {pageId || 'null'}</Text>
-                    <Text size="xs" c="dimmed">Section ID: {sectionId || 'null'}</Text>
-                    <Text size="xs" c="dimmed">Error: {sectionError.message}</Text>
-                    <Button
-                        size="xs"
-                        mt="sm"
-                        onClick={async () => {
-                            try {
-                                await AdminApi.getSectionDetails(pageId!, sectionId!);
-                            } catch (error) {
-                                // Error handled by API layer
-                            }
-                        }}
-                    >
-                        Test API Call
-                    </Button>
+                    <Text size="sm" c="dimmed">Error loading section</Text>
                 </Box>
             </InspectorLayout>
         );
@@ -653,25 +413,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                 error="The selected section could not be found."
             >
                 <Box p="md">
-                    <Text size="sm" c="dimmed">Debug Info:</Text>
-                    <Text size="xs" c="dimmed">Page ID: {pageId || 'null'}</Text>
-                    <Text size="xs" c="dimmed">Section ID: {sectionId || 'null'}</Text>
-                    <Text size="xs" c="dimmed">Loading: {sectionLoading.toString()}</Text>
-                    <Text size="xs" c="dimmed">Fetching: {isFetching.toString()}</Text>
-                    <Text size="xs" c="dimmed">Stale: {isStale.toString()}</Text>
-                    <Button
-                        size="xs"
-                        mt="sm"
-                        onClick={async () => {
-                            try {
-                                await AdminApi.getSectionDetails(pageId!, sectionId!);
-                            } catch (error) {
-                                // Error handled by API layer
-                            }
-                        }}
-                    >
-                        Test API Call
-                    </Button>
+                    <Text size="sm" c="dimmed">Section not found</Text>
                 </Box>
             </InspectorLayout>
         );
@@ -691,49 +433,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                 }
             >
                 {/* Section Information */}
-                <Paper withBorder style={{ backgroundColor: 'light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-9))' }}>
-                    <Box p="md">
-                        <Group gap="xs" mb="sm">
-                            <IconInfoCircle size={16} style={{ color: 'var(--mantine-color-blue-6)' }} />
-                            <Text size="sm" fw={500} c="blue">Section Information</Text>
-                        </Group>
-                        
-                        <Stack gap="xs">
-                            {/* Editable Section Name */}
-                            <Box>
-                                <Text size="xs" fw={500} c="dimmed" mb="xs">Section Name</Text>
-                                <TextInput
-                                    value={formValues.sectionName}
-                                    onChange={(e) => handleSectionNameChange(e.currentTarget.value)}
-                                    placeholder="Enter section name"
-                                    size="sm"
-                                />
-                            </Box>
-                            
-                            <Group gap="md" wrap="wrap">
-                                <Box>
-                                    <Text size="xs" fw={500} c="dimmed">Style</Text>
-                                    <Text size="sm">{section.style.name}</Text>
-                                </Box>
-                                <Box>
-                                    <Text size="xs" fw={500} c="dimmed">Type</Text>
-                                    <Text size="sm">{section.style.type}</Text>
-                                </Box>
-                                <Box>
-                                    <Text size="xs" fw={500} c="dimmed">Section ID</Text>
-                                    <Text size="sm">{section.id}</Text>
-                                </Box>
-                            </Group>
-                            
-                            {section.style.description && (
-                                <Box mt="sm">
-                                    <Text size="xs" fw={500} c="dimmed">Description</Text>
-                                    <Text size="sm">{section.style.description}</Text>
-                                </Box>
-                            )}
-                        </Stack>
-                    </Box>
-                </Paper>
+                <SectionInfoPanel section={section} />
 
                 {/* Content Fields */}
                 <CollapsibleSection
@@ -746,34 +446,42 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                         hasMultipleLanguages ? (
                             <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || (languagesData[0]?.id.toString() || ''))}>
                                 <Tabs.List>
-                                    {languagesData.map(lang => {
-                                        const langId = lang.id.toString();
-                                        return (
-                                            <Tabs.Tab key={langId} value={langId}>
-                                                {lang.language}
-                                            </Tabs.Tab>
-                                        );
-                                    })}
+                                    {languagesData.map(lang => (
+                                        <Tabs.Tab key={lang.id} value={lang.id.toString()}>
+                                            {lang.language}
+                                        </Tabs.Tab>
+                                    ))}
                                 </Tabs.List>
 
-                                {languagesData.map(lang => {
-                                    const langId = lang.id.toString();
-                                    return (
-                                        <Tabs.Panel key={langId} value={langId} pt="md">
-                                            <Stack gap="md">
-                                                {fields.filter(field => field.display).map(field =>
-                                                    renderContentField(field, lang.id)
-                                                )}
-                                            </Stack>
-                                        </Tabs.Panel>
-                                    );
-                                })}
+                                {languagesData.map(lang => (
+                                    <Tabs.Panel key={lang.id} value={lang.id.toString()} pt="md">
+                                        <Stack gap="md">
+                                            {fields.filter(field => field.display).map(field => (
+                                                <SectionContentField
+                                                    key={`${field.id}-${lang.id}`}
+                                                    field={field}
+                                                    languageId={lang.id}
+                                                    locale={lang.locale}
+                                                    className={styles.fullWidthLabel}
+                                                    dataVariables={dataVariables}
+                                                />
+                                            ))}
+                                        </Stack>
+                                    </Tabs.Panel>
+                                ))}
                             </Tabs>
                         ) : (
                             <Stack gap="md">
-                                {fields.filter(field => field.display).map(field =>
-                                    renderContentField(field, languagesData[0]?.id || 1)
-                                )}
+                                {fields.filter(field => field.display).map(field => (
+                                    <SectionContentField
+                                        key={`${field.id}-${languagesData[0]?.id}`}
+                                        field={field}
+                                        languageId={languagesData[0]?.id || 1}
+                                        locale={languagesData[0]?.locale}
+                                        className={styles.fullWidthLabel}
+                                        dataVariables={dataVariables}
+                                    />
+                                ))}
                             </Stack>
                         )
                     ) : (
@@ -790,24 +498,10 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                     sectionName="global-fields"
                     defaultExpanded={false}
                 >
-                    <Stack gap="md">
-                        {globalFieldTypes.map(fieldType => (
-                            <GlobalFieldRenderer
-                                key={fieldType}
-                                fieldType={fieldType}
-                                value={formValues.globalFields[fieldType]}
-                                onChange={(value) => setFormValues(prev => ({
-                                    ...prev,
-                                    globalFields: {
-                                        ...prev.globalFields,
-                                        [fieldType]: value
-                                    }
-                                }))}
-                                dataVariables={dataVariables}
-                                className={styles.fullWidthLabel}
-                            />
-                        ))}
-                    </Stack>
+                    <SectionGlobalFields
+                        globalFieldTypes={globalFieldTypes}
+                        dataVariables={dataVariables}
+                    />
                 </CollapsibleSection>
 
                 {/* Property Fields */}
@@ -818,9 +512,10 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                     defaultExpanded={true}
                 >
                     {fields.filter(field => !field.display && !field.name.startsWith('mantine_')).length > 0 ? (
-                        <Stack gap="md">
-                            {fields.filter(field => !field.display && !field.name.startsWith('mantine_')).map(field => renderPropertyField(field))}
-                        </Stack>
+                        <SectionProperties
+                            fields={fields}
+                            dataVariables={dataVariables}
+                        />
                     ) : (
                         <Alert icon={<IconInfoCircle size="1rem" />} color="blue">
                             No property fields available for this section.
@@ -828,28 +523,27 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                     )}
                 </CollapsibleSection>
 
-                {/* Mantine Properties - Only show if use_mantine_style is enabled */}
-                {formValues.properties?.use_mantine_style === true && (
-                    <CollapsibleSection
-                        title="Mantine Properties"
-                        inspectorType={INSPECTOR_TYPES.SECTION}
-                        sectionName="mantine-properties"
-                        defaultExpanded={false}
-                    >
-                        {fields.filter(field => !field.display && field.name.startsWith('mantine_')).length > 0 ? (
-                            <Stack gap="md">
-                                {fields.filter(field => !field.display && field.name.startsWith('mantine_')).map(field => renderPropertyField(field))}
-                            </Stack>
-                        ) : (
-                            <Alert icon={<IconInfoCircle size="1rem" />} color="blue">
-                                No Mantine property fields available for this section.
-                            </Alert>
-                        )}
-                    </CollapsibleSection>
-                )}
+                {/* Mantine Properties */}
+                <CollapsibleSection
+                    title="Mantine Properties"
+                    inspectorType={INSPECTOR_TYPES.SECTION}
+                    sectionName="mantine-properties"
+                    defaultExpanded={false}
+                >
+                    {fields.filter(field => !field.display && field.name.startsWith('mantine_')).length > 0 ? (
+                        <SectionMantineProperties
+                            fields={fields}
+                            dataVariables={dataVariables}
+                        />
+                    ) : (
+                        <Alert icon={<IconInfoCircle size="1rem" />} color="blue">
+                            No Mantine property fields available for this section.
+                        </Alert>
+                    )}
+                </CollapsibleSection>
             </InspectorLayout>
 
-            {/* Delete Confirmation Modal */}
+            {/* Delete Modal */}
             <Modal
                 opened={deleteModalOpened}
                 onClose={() => {
@@ -863,17 +557,17 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                     <Alert color="red" title="Warning">
                         This action cannot be undone. The section and all its content will be permanently deleted.
                     </Alert>
-                    
+
                     <Text size="sm">
                         To confirm deletion, please type the section name: <strong>{section.name}</strong>
                     </Text>
-                    
+
                     <TextInput
                         placeholder="Enter section name to confirm"
                         value={deleteConfirmText}
                         onChange={(e) => setDeleteConfirmText(e.currentTarget.value)}
                     />
-                    
+
                     <Group justify="flex-end" gap="sm">
                         <Button
                             variant="light"
@@ -893,8 +587,8 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                             Delete Section
                         </Button>
                     </Group>
-        </Stack>
-    </Modal>
-    </>
+                </Stack>
+            </Modal>
+        </>
     );
 });

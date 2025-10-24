@@ -23,13 +23,13 @@ export default function DynamicPage() {
                     <Loader size="lg" />
                 </Center>
             }>
-                <DynamicPageContentOptimized keyword={keyword} />
+                <DynamicPageContent keyword={keyword} />
             </Suspense>
         </PageContentProvider>
     );
 }
 
-const DynamicPageContentOptimized = React.memo(function DynamicPageContentOptimized({ keyword }: { keyword: string }) {
+const DynamicPageContent = React.memo(function DynamicPageContent({ keyword }: { keyword: string }) {
     const { currentLanguageId, isUpdatingLanguage } = useLanguageContext();
     const { refreshOnPageChange } = useNavigationRefresh();
     const { isPreviewMode } = usePreviewMode();
