@@ -6,7 +6,7 @@
  * Common control classnames used across query builder components
  */
 export const QUERY_BUILDER_CONTROL_CLASSNAMES = {
-    queryBuilder: 'queryBuilder-justified queryBuilder-branches',
+    queryBuilder: 'selfhelp-condition-builder queryBuilder-justified queryBuilder-branches',
     ruleGroup: 'ruleGroup',
     rule: 'rule',
     addRule: 'addRule modal-high-z',

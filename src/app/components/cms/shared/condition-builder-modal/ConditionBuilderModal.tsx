@@ -5,14 +5,10 @@ import {
     Stack,
     Text,
     LoadingOverlay,
-    Alert,
-    TextInput,
-    ActionIcon,
-    Tooltip,
-    Select
+    Alert
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconAlertTriangle, IconCheck, IconX, IconLock, IconLockOpen } from '@tabler/icons-react';
+import { IconAlertTriangle, IconCheck, IconX } from '@tabler/icons-react';
 import { defaultValidator, QueryBuilder, RuleGroupType } from 'react-querybuilder';
 import { MantineValueEditor, QueryBuilderMantine } from '@react-querybuilder/mantine';
 import 'react-querybuilder/dist/query-builder.css';
@@ -21,6 +17,7 @@ import { useConditionBuilderData } from '../../../../../hooks/useConditionBuilde
 import { rulesToJsonLogic, jsonLogicToRules, isValidJsonLogic } from '../../../../../utils/json-logic-conversion.utils';
 import { createConditionFields } from './conditionFields';
 import { TextInputWithMentions } from '../field-components/TextInputWithMentions';
+import { CreatableSelectField } from '../field-components/CreatableSelectField/CreatableSelectField';
 import { QUERY_BUILDER_CONTROL_CLASSNAMES } from '../../../../../constants/querybuilder.constants';
 
 interface IConditionBuilderModalProps {
@@ -37,7 +34,9 @@ const initialQuery: RuleGroupType = {
     rules: []
 };
 
-// Custom field selector with LockedField-style design
+const FIELD_SELECTOR_WIDTH = '310px';
+
+// Custom field selector using CreatableSelectField
 function CreatableFieldSelector(props: any) {
     const { value, options, onChange, handleOnChange, context, ...otherProps } = props;
     const { dataVariables } = context || {};
@@ -49,124 +48,37 @@ function CreatableFieldSelector(props: any) {
         return <div>Error: No change handler</div>;
     }
 
-    const [isCustomMode, setIsCustomMode] = useState(true);
-    const [userToggledMode, setUserToggledMode] = useState(false);
-
-    // Check if current value is a custom variable (contains {{ anywhere)
-    const isCustomVariable = value && typeof value === 'string' && value.includes('{{');
-
-    // If we have a custom variable, automatically switch to custom mode
-    // If we have a regular field value (not custom), switch to dropdown mode
-    // BUT only auto-switch if user hasn't manually toggled
-    useEffect(() => {
-        // Don't auto-switch if user has manually toggled the mode
-        if (userToggledMode) {
-            return;
-        }
-        
-        if (isCustomVariable && !isCustomMode) {
-            setIsCustomMode(true);
-        } else if (!isCustomVariable && value && isCustomMode) {
-            // Only switch to dropdown mode if there's a value that looks like a field selection
-            const isFieldValue = options.some((opt: any) => opt.name === value);
-            if (isFieldValue) {
-                setIsCustomMode(false);
-            }
-        }
-    }, [isCustomVariable, value, options]);
-
-    const fieldOptions = options.map((opt: any) => ({
-        value: opt.name,
-        label: opt.label
-    }));
-
-    const handleToggleMode = () => {
-        const newMode = !isCustomMode;
-
-        // Clear the value when toggling modes
-        changeHandler('');
-        
-        setIsCustomMode(newMode);
-        setUserToggledMode(true);
+    // Convert react-querybuilder options to CreatableSelectField config
+    const fieldConfig = {
+        options: options.map((opt: any) => ({
+            value: opt.name,
+            text: opt.label || opt.name
+        })),
+        multiSelect: false,
+        creatable: true,
+        searchable: true,
+        separator: ' '
     };
 
-    const toggleTooltip = isCustomMode ? "Lock to field selection" : "Unlock for custom variable";
-
-    if (isCustomMode) {
-        // Custom variable input mode - matches other field styling
-        return (
-            <div style={{ position: 'relative', width: '250px' }}>
-                <TextInputWithMentions
-                    fieldId={0} // Dummy fieldId for condition builder context
-                    value={value || ''}
-                    onChange={changeHandler}
-                    placeholder="{{my_var}}"
-                    dataVariables={dataVariables}
-                />
-                <div
-                    onClick={handleToggleMode}
-                    style={{
-                        position: 'absolute',
-                        right: '8px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        zIndex: 1000
-                    }}
-                >
-                    <Tooltip label={toggleTooltip} position="left">
-                        <ActionIcon
-                            variant="subtle"
-                            color="gray"
-                            size="sm"
-                            component="div"
-                        >
-                            <IconLockOpen size="1rem" />
-                        </ActionIcon>
-                    </Tooltip>
-                </div>
-            </div>
-        );
-    }
-
-    // Normal dropdown mode - using Mantine Select
     return (
-        <Select
-            style={{ width: '250px' }}
-            value={value || null}
-            onChange={(newValue) => changeHandler(newValue)}
-            data={fieldOptions}
-            placeholder="Select field"
-            size="sm"
-            searchable
-            rightSection={
-                <Tooltip label={toggleTooltip} position="left">
-                    <ActionIcon
-                        variant="subtle"
-                        color="gray"
-                        size="sm"
-                        onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleToggleMode();
-                        }}
-                    >
-                        <IconLock size="1rem" />
-                    </ActionIcon>
-                </Tooltip>
-            }
-            rightSectionPointerEvents="all"
-            styles={{
-                wrapper: { width: '100%' },
-                input: { width: '100%' }
-            }}
-        />
+        <div style={{ width: FIELD_SELECTOR_WIDTH}}>
+            <CreatableSelectField
+                fieldId={0}
+                config={fieldConfig}
+                value={value || ''}
+                onChange={changeHandler}
+                placeholder="Select field or add custom"
+                searchPlaceholder="Search fields..."
+                singleCreatePlaceholder="Enter custom field (e.g., {{my_var}})"
+                addSingleButtonText="Add custom field"
+                dataVariables={dataVariables}
+                clearable={false}
+            />
+        </div>
     );
 }
 
-// Custom value editor that supports both dropdown and text input with mentions
+// Custom value editor using CreatableSelectField for select fields
 function SearchableValueEditor(props: any) {
     const {
         value,
@@ -187,124 +99,37 @@ function SearchableValueEditor(props: any) {
         return <div>Error: No change handler</div>;
     }
 
-    const [isTextMode, setIsTextMode] = useState(true);
-    const [userToggledMode, setUserToggledMode] = useState(false);
-
-    // Check if current value is a custom variable or contains brackets (suggesting variable usage)
-    const isCustomVariable = value && typeof value === 'string' && (value.startsWith('{{') || value.includes('{{'));
-
-    // If we have a custom variable, automatically switch to text mode
-    // If we have a regular value (not custom), switch to dropdown mode
-    // BUT only auto-switch if user hasn't manually toggled
-    useEffect(() => {
-        // Don't auto-switch if user has manually toggled the mode
-        if (userToggledMode) {
-            return;
-        }
-        
-        if (isCustomVariable && !isTextMode) {
-            setIsTextMode(true);
-        } else if (!isCustomVariable && value && isTextMode && values && Array.isArray(values) && values.length > 0) {
-            // Only switch to dropdown mode if there's a value that looks like a dropdown selection
-            const isDropdownValue = values.some((opt: any) => opt.name === value);
-            if (isDropdownValue) {
-                setIsTextMode(false);
-            }
-        }
-    }, [isCustomVariable, value, values]);
-
-    const handleToggleMode = () => {
-        const newMode = !isTextMode;
-
-        // Clear the value when toggling modes
-        changeHandler('');
-        
-        setIsTextMode(newMode);
-        setUserToggledMode(true);
-    };
-
-    const toggleTooltip = isTextMode ? "Lock to dropdown selection" : "Unlock for custom variable";
-
-    // Only handle select fields with values
+    // Check if this is a select field with predefined values
     const isSelectType = type === 'select' || fieldData?.valueEditorType === 'select';
     if (isSelectType && values && Array.isArray(values) && values.length > 0) {
-        const valueOptions = values.map((opt: any) => ({
-            value: opt.name,
-            label: opt.label
-        }));
+        // Use CreatableSelectField for select-type fields
+        const valueConfig = {
+            options: values.map((opt: any) => ({
+                value: opt.name,
+                text: opt.label || opt.name
+            })),
+            multiSelect: false,
+            creatable: true,
+            searchable: true,
+            separator: ' '
+        };
 
-        if (isTextMode) {
-            // Text mode with mentions
-            return (
-                <div style={{ position: 'relative', width: '250px' }}>
-                    <TextInputWithMentions
-                        fieldId={0} // Dummy fieldId for condition builder context
-                        value={value || ''}
-                        onChange={changeHandler}
-                        placeholder="Use {{variable}} or enter value"
-                        dataVariables={dataVariables}
-                    />
-                    <div
-                        onClick={handleToggleMode}
-                        style={{
-                            position: 'absolute',
-                            right: '8px',
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            zIndex: 1000
-                        }}
-                    >
-                        <Tooltip label={toggleTooltip} position="left">
-                            <ActionIcon
-                                variant="subtle"
-                                color="gray"
-                                size="sm"
-                                component="div"
-                            >
-                                <IconLockOpen size="1rem" />
-                            </ActionIcon>
-                        </Tooltip>
-                    </div>
-                </div>
-            );
-        } else {
-            // Dropdown mode
-            return (
-                <Select
-                    style={{ width: '250px' }}
-                    value={value || null}
-                    onChange={(newValue) => changeHandler(newValue)}
-                    data={valueOptions}
-                    placeholder="Select value"
-                    size="sm"
-                    searchable
-                    rightSection={
-                        <Tooltip label={toggleTooltip} position="left">
-                            <ActionIcon
-                                variant="subtle"
-                                color="gray"
-                                size="sm"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleToggleMode();
-                                }}
-                            >
-                                <IconLock size="1rem" />
-                            </ActionIcon>
-                        </Tooltip>
-                    }
-                    rightSectionPointerEvents="all"
-                    styles={{
-                        wrapper: { width: '100%' },
-                        input: { width: '100%' }
-                    }}
+        return (
+            <div style={{ width: FIELD_SELECTOR_WIDTH}}>
+                <CreatableSelectField
+                    fieldId={0}
+                    config={valueConfig}
+                    value={value || ''}
+                    onChange={changeHandler}
+                    placeholder="Select value or add custom"
+                    searchPlaceholder="Search values..."
+                    singleCreatePlaceholder="Enter custom value (e.g., {{my_var}})"
+                    addSingleButtonText="Add custom value"
+                    dataVariables={dataVariables}
+                    clearable={false}
                 />
-            );
-        }
+            </div>
+        );
     }
 
     // For date/datetime/time fields, use default MantineValueEditor
@@ -313,14 +138,14 @@ function SearchableValueEditor(props: any) {
         fieldData?.inputType === 'time';
 
     if (isDateTimeField) {
-        return <MantineValueEditor {...props} style={{ width: '250px' }} />;
+        return <MantineValueEditor {...props} style={{ width: FIELD_SELECTOR_WIDTH }} />;
     }
 
-    // For other non-select fields, use text input with mentions
+    // For other non-select fields, use simple text input with mentions
     return (
-        <div style={{ width: '250px' }}>
+        <div style={{ width: FIELD_SELECTOR_WIDTH }}>
             <TextInputWithMentions
-                fieldId={0} // Dummy fieldId for condition builder context
+                fieldId={0}
                 value={value || ''}
                 onChange={changeHandler}
                 placeholder="Enter value or use {{variable}}"

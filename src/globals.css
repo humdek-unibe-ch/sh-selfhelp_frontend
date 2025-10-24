@@ -79,3 +79,6 @@
     transition: min-height 0.3s ease-in-out;
 }
 
+.selfhelp-condition-builder .rule {
+    align-items: baseline !important;
+}

@@ -50,13 +50,21 @@ export function TextInputWithMentions({
 }: ITextInputWithMentionsProps) {
     const errorMessage = validator ? (validator(value).isValid ? undefined : validator(value).error) : undefined;
 
+    // Handle onChange with automatic trimming to prevent trailing spaces
+    // This solves the space issue globally for all uses of this component
+    const handleChange = (newValue: string) => {
+        // Trim leading and trailing spaces but preserve middle spaces
+        const trimmedValue = newValue.trim();
+        onChange(trimmedValue);
+    };
+
     // Note: MentionEditor internally handles dataVariables changes through its memoized extensions
     // No need to force re-mount with key changes - that would be more expensive and lose state
     
     return (
         <MentionEditor
             value={value}
-            onChange={onChange}
+            onChange={handleChange}
             placeholder={placeholder}
             disabled={disabled}
             label={label}

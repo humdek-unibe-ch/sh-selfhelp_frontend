@@ -7,10 +7,25 @@
     font-weight: 500;
     border: 1px solid rgba(34, 197, 94, 0.2);
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    display: inline;
+    white-space: nowrap;
+    margin: 0;
 }
 
 :global(.mention-variable:hover) {
     background-color: rgba(34, 197, 94, 0.15);
+}
+
+/* Prevent extra spacing around mentions */
+:global(.mention-variable::before),
+:global(.mention-variable::after) {
+    content: none;
+}
+
+/* In single line mode, ensure mentions don't create line breaks */
+.singleLineEditor :global(.mention-variable) {
+    white-space: nowrap;
+    display: inline;
 }
 
 /* Rich text editor mode - standard rich text appearance */
@@ -45,9 +60,11 @@
     min-height: 36px;
     max-height: 36px;
     overflow: hidden;
-    white-space: pre-wrap;
+    white-space: pre;
     font-size: 14px;
     line-height: 1.55;
+    overflow-x: auto;
+    overflow-y: hidden;
 }
 
 .singleLineEditor :global(.ProseMirror .is-editor-empty:first-child::before) {
@@ -62,12 +79,12 @@
 .singleLineEditor :global(.ProseMirror p) {
     margin: 0;
     display: inline;
-    white-space: pre-wrap;
+    white-space: pre;
 }
 
 .singleLineEditor :global(.ProseMirror *) {
     display: inline;
-    white-space: pre-wrap;
+    white-space: pre;
 }
 
 /* Single line paragraph styling */

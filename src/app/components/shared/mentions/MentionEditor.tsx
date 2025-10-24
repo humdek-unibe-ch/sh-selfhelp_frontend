@@ -15,6 +15,7 @@ import { Extension } from '@tiptap/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { createMentionConfig, sanitizeForDatabase, IVariableSuggestion } from '../../../../config/mentions.config';
 import { MentionSuggestionList } from './MentionSuggestionList';
+import { PreserveSpaces } from './PreserveSpacesExtension';
 import styles from './MentionEditor.module.css';
 
 interface IMentionEditorProps {
@@ -98,6 +99,8 @@ export function MentionEditor({
             Placeholder.configure({
                 placeholder,
             }),
+            // Add space preservation for single-line mode
+            ...(singleLineMode ? [PreserveSpaces] : []),
         ];
 
         // Add rich text extensions if not in single line mode OR if rich text shortcuts are enabled

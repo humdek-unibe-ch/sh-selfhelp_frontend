@@ -180,8 +180,16 @@ export function CreatableSelectField({
     // Handle creating multiple values
     const handleCreateMultipleValues = useCallback(() => {
         if (validateMultiple(multiValues)) {
-            // Split input by whitespace and newlines, filter empty strings
-            const newVals = multiValues.split(/[\s\n]+/).filter(Boolean);
+            let newVals: string[];
+            
+            if (config.multiSelect) {
+                // For multi-select: split input by whitespace and newlines (e.g., CSS classes)
+                newVals = multiValues.split(/[\s\n]+/).filter(Boolean);
+            } else {
+                // For single-select: treat entire input as one value (don't split on spaces)
+                // This allows custom fields like "{{user name}}" or "admin role" to work properly
+                newVals = [multiValues.trim()];
+            }
 
             let updatedValues;
             if (config.multiSelect) {
@@ -189,12 +197,12 @@ export function CreatableSelectField({
                 const uniqueNewVals = newVals.filter(val => !currentValues.includes(val));
                 updatedValues = [...currentValues, ...uniqueNewVals];
             } else {
-                // For single-select: replace custom values but keep predefined ones
-                const predefinedValuesOnly = currentValues.filter(val => isPredefinedValue(val));
-                updatedValues = [...predefinedValuesOnly, ...newVals];
+                // For single-select: replace with new value and auto-select it
+                updatedValues = newVals;
             }
 
-            onChange(updatedValues.join(separator));
+            const newValue = updatedValues.join(separator);
+            onChange(newValue);
             setMultiValues('');
             setShowMultiInput(false);
             // Reset search and combobox state to ensure newly added values are visible and selected

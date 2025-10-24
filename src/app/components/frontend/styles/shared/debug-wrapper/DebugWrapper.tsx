@@ -159,19 +159,6 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
                                             </Box>
                                         )}
 
-                                        {style.condition_debug.variables && Object.keys(style.condition_debug.variables).length > 0 && (
-                                            <Box>
-                                                <Text size="xs" c="dimmed" mb="xs">Variables:</Text>
-                                                <Group gap="xs" wrap="wrap">
-                                                    {Object.entries(style.condition_debug.variables).map(([key, value]) => (
-                                                        <Badge key={key} size="xs" variant="outline" color="blue">
-                                                            {key}: {Array.isArray(value) ? `[${value.join(', ')}]` : JSON.stringify(value)}
-                                                        </Badge>
-                                                    ))}
-                                                </Group>
-                                            </Box>
-                                        )}
-
                                         {style.condition_debug.condition && (
                                             <Box>
                                                 <Text size="xs" c="dimmed" mb="xs">Condition:</Text>
