@@ -45,6 +45,9 @@ import {
   IconShield,
   IconUsers,
   IconX,
+  IconFileText,
+  IconDatabase,
+  IconUserCheck,
 } from '@tabler/icons-react';
 import { useRoles } from '../../../../../hooks/useRoles';
 import type { IRoleDetails, IRolesListParams } from '../../../../../types/responses/admin/roles.types';
@@ -53,15 +56,24 @@ interface IRolesListProps {
   onCreateRole?: () => void;
   onEditRole?: (roleId: number) => void;
   onDeleteRole?: (roleId: number, roleName: string) => void;
-  onManagePermissions?: (roleId: number) => void;
+  onManagePagePermissions?: (roleId: number, roleName: string) => void;
+  onManageDataTablePermissions?: (roleId: number, roleName: string) => void;
+  onManageGroupPermissions?: (roleId: number, roleName: string) => void;
 }
 
 export function RolesList({
   onCreateRole,
   onEditRole,
   onDeleteRole,
-  onManagePermissions,
+  onManagePagePermissions,
+  onManageDataTablePermissions,
+  onManageGroupPermissions,
 }: IRolesListProps) {
+
+  // Check if role is admin (untouchable)
+  const isAdminRole = (roleName: string) => {
+    return roleName.toLowerCase() === 'admin';
+  };
   // State for table parameters
   const [params, setParams] = useState<IRolesListParams>({
     page: 1,
@@ -182,18 +194,27 @@ export function RolesList({
             </ActionIcon>
           </Group>
         ),
-        cell: ({ row }) => (
-          <div>
-            <Text size="sm" fw={500}>
-              {row.original.name}
-            </Text>
-            {row.original.description && (
-              <Text size="xs" c="dimmed">
-                {row.original.description}
-              </Text>
-            )}
-          </div>
-        ),
+        cell: ({ row }) => {
+          const adminRole = isAdminRole(row.original.name);
+
+          return (
+            <div>
+              <Group gap="xs" align="center">
+                <Text size="sm" fw={500}>
+                  {row.original.name}
+                </Text>
+                {adminRole && (
+                  <Badge size="xs" color="red" variant="light">Admin</Badge>
+                )}
+              </Group>
+              {row.original.description && (
+                <Text size="xs" c="dimmed">
+                  {row.original.description}
+                </Text>
+              )}
+            </div>
+          );
+        },
         enableSorting: true,
       },
       {
@@ -253,58 +274,90 @@ export function RolesList({
       {
         id: 'actions',
         header: 'Actions',
-        cell: ({ row }) => (
-          <Group gap="xs">
-            <Tooltip label="Edit Role">
-              <ActionIcon
-                variant="subtle"
-                size="sm"
-                onClick={() => onEditRole?.(row.original.id)}
-              >
-                <IconEdit size={16} />
-              </ActionIcon>
-            </Tooltip>
-            
-            <Tooltip label="Manage Permissions">
-              <ActionIcon
-                variant="subtle"
-                size="sm"
-                color="blue"
-                onClick={() => onManagePermissions?.(row.original.id)}
-              >
-                <IconShield size={16} />
-              </ActionIcon>
-            </Tooltip>
+        cell: ({ row }) => {
+          const adminRole = isAdminRole(row.original.name);
 
-            <Menu shadow="md" width={200}>
-              <Menu.Target>
-                <ActionIcon variant="subtle" size="sm">
-                  <IconDots size={16} />
+          return (
+            <Group gap="xs">
+              <Tooltip label={adminRole ? "Admin role cannot be modified" : "Edit Role"}>
+                <ActionIcon
+                  variant="subtle"
+                  size="sm"
+                  disabled={adminRole}
+                  onClick={() => !adminRole && onEditRole?.(row.original.id)}
+                >
+                  <IconEdit size={16} />
                 </ActionIcon>
-              </Menu.Target>
+              </Tooltip>
 
-              <Menu.Dropdown>
-                <Menu.Item
-                  leftSection={<IconUsers size={14} />}
-                  onClick={() => {/* Handle view users */}}
+              {/* Permission Management Buttons */}
+              <Tooltip label={adminRole ? "Admin role permissions cannot be modified" : "Manage Page Permissions"}>
+                <ActionIcon
+                  variant="subtle"
+                  size="sm"
+                  color="blue"
+                  disabled={adminRole}
+                  onClick={() => !adminRole && onManagePagePermissions?.(row.original.id, row.original.name)}
                 >
-                  View Users
-                </Menu.Item>
-                <Menu.Divider />
-                <Menu.Item
-                  leftSection={<IconTrash size={14} />}
-                  color="red"
-                  onClick={() => onDeleteRole?.(row.original.id, row.original.name)}
+                  <IconFileText size={16} />
+                </ActionIcon>
+              </Tooltip>
+
+              <Tooltip label={adminRole ? "Admin role permissions cannot be modified" : "Manage Data Table Permissions"}>
+                <ActionIcon
+                  variant="subtle"
+                  size="sm"
+                  color="green"
+                  disabled={adminRole}
+                  onClick={() => !adminRole && onManageDataTablePermissions?.(row.original.id, row.original.name)}
                 >
-                  Delete Role
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-          </Group>
-        ),
+                  <IconDatabase size={16} />
+                </ActionIcon>
+              </Tooltip>
+
+              <Tooltip label={adminRole ? "Admin role permissions cannot be modified" : "Manage Group Permissions"}>
+                <ActionIcon
+                  variant="subtle"
+                  size="sm"
+                  color="purple"
+                  disabled={adminRole}
+                  onClick={() => !adminRole && onManageGroupPermissions?.(row.original.id, row.original.name)}
+                >
+                  <IconUserCheck size={16} />
+                </ActionIcon>
+              </Tooltip>
+
+              <Menu shadow="md" width={200}>
+                <Menu.Target>
+                  <ActionIcon variant="subtle" size="sm">
+                    <IconDots size={16} />
+                  </ActionIcon>
+                </Menu.Target>
+
+                <Menu.Dropdown>
+                  <Menu.Item
+                    leftSection={<IconUsers size={14} />}
+                    onClick={() => {/* Handle view users */}}
+                  >
+                    View Users
+                  </Menu.Item>
+                  <Menu.Divider />
+                  <Menu.Item
+                    leftSection={<IconTrash size={14} />}
+                    color="red"
+                    disabled={adminRole}
+                    onClick={() => !adminRole && onDeleteRole?.(row.original.id, row.original.name)}
+                  >
+                    {adminRole ? "Admin role cannot be deleted" : "Delete Role"}
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            </Group>
+          );
+        },
       },
     ],
-    [onEditRole, onDeleteRole, onManagePermissions]
+    [onEditRole, onDeleteRole, onManagePagePermissions, onManageDataTablePermissions, onManageGroupPermissions]
   );
 
   // Initialize table

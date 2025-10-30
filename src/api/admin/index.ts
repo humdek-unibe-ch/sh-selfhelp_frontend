@@ -14,6 +14,7 @@ export { AdminUserApi } from './user.api';
 export { AdminAssetApi } from './asset.api';
 export { AdminPermissionApi } from './permission.api';
 export { AdminScheduledJobsApi } from './scheduled-jobs.api';
+export { AdminDataAccessApi } from './data-access.api';
 
 // Legacy compatibility - re-export as AdminApi for backward compatibility
 import { AdminPageApi } from './page.api';
@@ -26,6 +27,7 @@ import { AdminAssetApi } from './asset.api';
 import { AdminPermissionApi } from './permission.api';
 import { AdminScheduledJobsApi } from './scheduled-jobs.api';
 import { AdminActionApi } from './action.api';
+import { AdminDataAccessApi } from './data-access.api';
 
 export const AdminApi = {
     // Page methods
@@ -57,5 +59,8 @@ export const AdminApi = {
     ...AdminScheduledJobsApi,
 
     // Actions methods
-    ...AdminActionApi
+    ...AdminActionApi,
+
+    // Data Access methods
+    ...AdminDataAccessApi
 }; 

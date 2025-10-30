@@ -18,5 +18,46 @@ export const LookupsApi = {
     async getLookups(): Promise<ILookup[]> {
         const response = await apiClient.get<ILookupsResponse>(API_CONFIG.ENDPOINTS.ADMIN_LOOKUPS);
         return response.data.data;
+    },
+
+    /**
+     * Gets resource type ID by lookup code
+     * @param lookupCode The lookup code for the resource type
+     * @returns {Promise<number>} Resource type ID
+     * @throws {Error} When lookup is not found
+     */
+    async getResourceTypeId(lookupCode: string): Promise<number> {
+        const lookups = await this.getLookups();
+        const resourceType = lookups.find(
+            lookup => lookup.typeCode === 'resourceTypes' && lookup.lookupCode === lookupCode
+        );
+
+        if (!resourceType) {
+            throw new Error(`Resource type not found for lookup code: ${lookupCode}`);
+        }
+
+        return resourceType.id;
+    },
+
+    /**
+     * Gets multiple resource type IDs by lookup codes
+     * @param lookupCodes Array of lookup codes
+     * @returns {Promise<Record<string, number>>} Map of lookup codes to IDs
+     */
+    async getResourceTypeIds(lookupCodes: string[]): Promise<Record<string, number>> {
+        const lookups = await this.getLookups();
+        const result: Record<string, number> = {};
+
+        for (const lookupCode of lookupCodes) {
+            const resourceType = lookups.find(
+                lookup => lookup.typeCode === 'resourceTypes' && lookup.lookupCode === lookupCode
+            );
+
+            if (resourceType) {
+                result[lookupCode] = resourceType.id;
+            }
+        }
+
+        return result;
     }
 }; 

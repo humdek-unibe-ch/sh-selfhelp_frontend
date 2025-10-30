@@ -136,4 +136,10 @@ export const PAGE_ACTIONS_EXPORT = 'export';
 
 // styleType
 export const STYLE_TYPE_VIEW = 'view';
-export const STYLE_TYPE_COMPONENT = 'component'; 
+export const STYLE_TYPE_COMPONENT = 'component';
+
+// resourceTypes
+export const RESOURCE_TYPES = 'resourceTypes';
+export const RESOURCE_TYPES_GROUP = 'group';
+export const RESOURCE_TYPES_DATA_TABLE = 'data_table';
+export const RESOURCE_TYPES_PAGES = 'pages'; 

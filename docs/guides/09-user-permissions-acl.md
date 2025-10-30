@@ -87,4 +87,4 @@ const hasPermission = (permission: string): boolean => {
 
 ---
 
-**[← Previous: Admin Panel & Inspector System](08-admin-panel-inspector.md)** | **[Next: Responsive Design & Theming →](10-responsive-design-theming.md)**
+**[← Previous: Admin Panel & Inspector System](08-admin-panel-inspector.md)** | **[Next: Data Access Management →](17-data-access-management.md)**

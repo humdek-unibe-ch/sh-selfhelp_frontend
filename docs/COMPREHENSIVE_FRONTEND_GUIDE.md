@@ -26,6 +26,10 @@ This comprehensive guide has been organized into modular sections for better mai
 | 11. | [🚀 Performance & Optimization](./guides/11-performance-optimization.md) | Optimization strategies and best practices |
 | 12. | [🔧 Development Guidelines](./guides/12-development-guidelines.md) | Code standards and development workflow |
 | 13. | [📈 Expansion Guide](./guides/13-expansion-guide.md) | Adding new features and extending the system |
+| 14. | [📊 State Management & Complex Forms](./guides/14-state-management-complex-forms.md) | Advanced state management patterns |
+| 15. | [💬 Space Handling & Mentions](./guides/15-space-handling-mentions.md) | Text processing and mention system |
+| 16. | [🔍 Condition Builder & Space Handling](./guides/16-condition-builder-space-handling-improvements.md) | Advanced query building |
+| 17. | [🔐 Data Access Management](./guides/17-data-access-management.md) | Granular resource permissions and audit trails |
 
 ### 🏛️ Architecture Reference
 | Section | Description |

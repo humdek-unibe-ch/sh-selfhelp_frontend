@@ -198,6 +198,16 @@ export const API_CONFIG = {
         ADMIN_SECTIONS_IMPORT_TO_PAGE: (pageId: number) => `/admin/pages/${pageId}/sections/import`,
         ADMIN_SECTIONS_IMPORT_TO_SECTION: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/import`,
 
+        // Admin data access management endpoints
+        ADMIN_DATA_ACCESS_ROLES_LIST: '/admin/data-access/roles',
+        ADMIN_DATA_ACCESS_ROLE_EFFECTIVE_PERMISSIONS: (roleId: number) => `/admin/data-access/roles/${roleId}/effective-permissions`,
+        ADMIN_DATA_ACCESS_ROLE_PERMISSIONS_SET: (roleId: number) => `/admin/data-access/roles/${roleId}/permissions`,
+
+        // Admin audit management endpoints
+        ADMIN_AUDIT_DATA_ACCESS_LIST: '/admin/audit/data-access',
+        ADMIN_AUDIT_DATA_ACCESS_DETAIL: (auditId: number) => `/admin/audit/data-access/${auditId}`,
+        ADMIN_AUDIT_DATA_ACCESS_STATS: '/admin/audit/data-access/stats',
+
         // Legacy endpoints (keeping for backward compatibility)
         PAGES_GET_ONE_WITH_LANGUAGE: (pageId: number, languageId: number) => `/pages/${pageId}?language_id=${languageId}`,
         ADMIN_PAGES_GET_ONE_WITH_LANGUAGE: (pageId: number, languageId: number) => `/admin/pages/${pageId}?language_id=${languageId}`,
