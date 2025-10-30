@@ -1,5 +1,7 @@
+import { PERMISSIONS } from '../types/auth/jwt-payload.types';
+
 /**
- * Permission utilities for data access management
+ * Permission utilities for data access management and admin panel permissions
  */
 
 export interface ICrudPermissions {
@@ -82,4 +84,285 @@ export function hasAnyPermission(permissions: ICrudPermissions): boolean {
  */
 export function hasAllPermissions(permissions: ICrudPermissions): boolean {
   return Object.values(permissions).every(Boolean);
+}
+
+/**
+ * Permission checking utilities for admin panel
+ */
+export class PermissionChecker {
+  private userPermissions: string[];
+
+  constructor(userPermissions: string[]) {
+    this.userPermissions = userPermissions || [];
+  }
+
+  /**
+   * Check if user has a specific permission
+   */
+  hasPermission(permission: string): boolean {
+    return this.userPermissions.includes(permission);
+  }
+
+  /**
+   * Check if user has any of the specified permissions
+   */
+  hasAnyPermission(...permissions: string[]): boolean {
+    return permissions.some(permission => this.hasPermission(permission));
+  }
+
+  /**
+   * Check if user has all of the specified permissions
+   */
+  hasAllPermissions(...permissions: string[]): boolean {
+    return permissions.every(permission => this.hasPermission(permission));
+  }
+
+  /**
+   * Check if user can access admin panel
+   */
+  canAccessAdmin(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_ACCESS);
+  }
+
+  /**
+   * Check if user can manage users
+   */
+  canManageUsers(): boolean {
+    return this.hasAnyPermission(
+      PERMISSIONS.ADMIN_USER_READ,
+      PERMISSIONS.ADMIN_USER_CREATE,
+      PERMISSIONS.ADMIN_USER_UPDATE,
+      PERMISSIONS.ADMIN_USER_DELETE,
+      PERMISSIONS.ADMIN_USER_BLOCK,
+      PERMISSIONS.ADMIN_USER_UNBLOCK,
+      PERMISSIONS.ADMIN_USER_IMPERSONATE
+    );
+  }
+
+  /**
+   * Check if user can read users
+   */
+  canReadUsers(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_USER_READ);
+  }
+
+  /**
+   * Check if user can manage groups
+   */
+  canManageGroups(): boolean {
+    return this.hasAnyPermission(
+      PERMISSIONS.ADMIN_GROUP_READ,
+      PERMISSIONS.ADMIN_GROUP_CREATE,
+      PERMISSIONS.ADMIN_GROUP_UPDATE,
+      PERMISSIONS.ADMIN_GROUP_DELETE,
+      PERMISSIONS.ADMIN_GROUP_ACL
+    );
+  }
+
+  /**
+   * Check if user can read groups
+   */
+  canReadGroups(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_GROUP_READ);
+  }
+
+  /**
+   * Check if user can manage roles
+   */
+  canManageRoles(): boolean {
+    return this.hasAnyPermission(
+      PERMISSIONS.ADMIN_ROLE_READ,
+      PERMISSIONS.ADMIN_ROLE_CREATE,
+      PERMISSIONS.ADMIN_ROLE_UPDATE,
+      PERMISSIONS.ADMIN_ROLE_DELETE,
+      PERMISSIONS.ADMIN_ROLE_PERMISSIONS
+    );
+  }
+
+  /**
+   * Check if user can read roles
+   */
+  canReadRoles(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_ROLE_READ);
+  }
+
+  /**
+   * Check if user can manage pages
+   */
+  canManagePages(): boolean {
+    return this.hasAnyPermission(
+      PERMISSIONS.ADMIN_PAGE_READ,
+      PERMISSIONS.ADMIN_PAGE_CREATE,
+      PERMISSIONS.ADMIN_PAGE_UPDATE,
+      PERMISSIONS.ADMIN_PAGE_DELETE,
+      PERMISSIONS.ADMIN_PAGE_EXPORT,
+      PERMISSIONS.ADMIN_PAGE_INSERT
+    );
+  }
+
+  /**
+   * Check if user can read pages
+   */
+  canReadPages(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_PAGE_READ);
+  }
+
+  /**
+   * Check if user can create pages
+   */
+  canCreatePages(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_PAGE_CREATE);
+  }
+
+  /**
+   * Check if user can manage assets
+   */
+  canManageAssets(): boolean {
+    return this.hasAnyPermission(
+      PERMISSIONS.ADMIN_ASSET_READ,
+      PERMISSIONS.ADMIN_ASSET_CREATE,
+      PERMISSIONS.ADMIN_ASSET_DELETE
+    );
+  }
+
+  /**
+   * Check if user can read assets
+   */
+  canReadAssets(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_ASSET_READ);
+  }
+
+  /**
+   * Check if user can manage actions
+   */
+  canManageActions(): boolean {
+    return this.hasAnyPermission(
+      PERMISSIONS.ADMIN_ACTION_READ,
+      PERMISSIONS.ADMIN_ACTION_UPDATE,
+      PERMISSIONS.ADMIN_ACTION_DELETE
+    );
+  }
+
+  /**
+   * Check if user can read actions
+   */
+  canReadActions(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_ACTION_READ);
+  }
+
+  /**
+   * Check if user can manage scheduled jobs
+   */
+  canManageScheduledJobs(): boolean {
+    return this.hasAnyPermission(
+      PERMISSIONS.ADMIN_SCHEDULED_JOB_READ,
+      PERMISSIONS.ADMIN_SCHEDULED_JOB_EXECUTE,
+      PERMISSIONS.ADMIN_SCHEDULED_JOB_DELETE
+    );
+  }
+
+  /**
+   * Check if user can read scheduled jobs
+   */
+  canReadScheduledJobs(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_SCHEDULED_JOB_READ);
+  }
+
+  /**
+   * Check if user can manage cache
+   */
+  canManageCache(): boolean {
+    return this.hasAnyPermission(
+      PERMISSIONS.ADMIN_CACHE_READ,
+      PERMISSIONS.ADMIN_CACHE_MANAGE,
+      PERMISSIONS.ADMIN_CACHE_CLEAR
+    );
+  }
+
+  /**
+   * Check if user can read cache
+   */
+  canReadCache(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_CACHE_READ);
+  }
+
+  /**
+   * Check if user can view audit logs
+   */
+  canViewAuditLogs(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_AUDIT_VIEW);
+  }
+
+  /**
+   * Check if user can access data browser
+   */
+  canAccessDataBrowser(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_DATA_READ);
+  }
+
+  /**
+   * Check if user can manage CMS preferences
+   */
+  canManageCmsPreferences(): boolean {
+    return this.hasAnyPermission(
+      PERMISSIONS.ADMIN_CMS_PREFERENCES_READ,
+      PERMISSIONS.ADMIN_CMS_PREFERENCES_UPDATE
+    );
+  }
+
+  /**
+   * Check if user can read CMS preferences
+   */
+  canReadCmsPreferences(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_CMS_PREFERENCES_READ);
+  }
+
+  /**
+   * Check if user can manage languages
+   */
+  canManageLanguages(): boolean {
+    // Languages are managed through data browser, so we check data permissions
+    return this.hasPermission(PERMISSIONS.ADMIN_DATA_READ);
+  }
+
+  /**
+   * Check if user can manage page versions
+   */
+  canManagePageVersions(): boolean {
+    return this.hasAnyPermission(
+      PERMISSIONS.ADMIN_PAGE_VERSION_READ,
+      PERMISSIONS.ADMIN_PAGE_VERSION_CREATE,
+      PERMISSIONS.ADMIN_PAGE_VERSION_PUBLISH,
+      PERMISSIONS.ADMIN_PAGE_VERSION_UNPUBLISH,
+      PERMISSIONS.ADMIN_PAGE_VERSION_COMPARE
+    );
+  }
+
+  /**
+   * Check if user can read page versions
+   */
+  canReadPageVersions(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_PAGE_VERSION_READ);
+  }
+
+  /**
+   * Check if user can delete sections
+   */
+  canDeleteSections(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_SECTION_DELETE);
+  }
+
+  /**
+   * Check if user has access to settings
+   */
+  canAccessSettings(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_SETTINGS);
+  }
+}
+
+/**
+ * Create a permission checker instance for a user
+ */
+export function createPermissionChecker(userPermissions: string[]): PermissionChecker {
+  return new PermissionChecker(userPermissions);
 }

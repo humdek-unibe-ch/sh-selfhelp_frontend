@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from 'react';
-import { ScrollArea, Group, Code, Box } from '@mantine/core';
+import { ScrollArea, Group, Code, Box, Text, Badge } from '@mantine/core';
 import {
     IconDashboard,
     IconUsers,
@@ -15,6 +15,7 @@ import {
     IconPlus,
 } from '@tabler/icons-react';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
+import { useAuth } from '../../../../../hooks/useAuth';
 import { LinksGroup } from './components/LinksGroup';
 import { UserButton } from './components/UserButton';
 import { CreatePageModal } from '../../pages/create-page/CreatePage';
@@ -41,14 +42,16 @@ function transformPagesToNavigation(pages: any[]): INavigationLink[] {
 }
 
 export function AdminNavbar() {
-    const { 
+    const {
         pages,
-        configurationPageLinks, 
-        categorizedSystemPages, 
-        categorizedRegularPages, 
-        isLoading 
+        configurationPageLinks,
+        categorizedSystemPages,
+        categorizedRegularPages,
+        isLoading
     } = useAdminPages();
-    
+
+    const { permissionChecker } = useAuth();
+
     const [isCreatePageModalOpen, setIsCreatePageModalOpen] = useState(false);
 
     // Transform pages data for search component with full hierarchical structure
@@ -75,18 +78,18 @@ export function AdminNavbar() {
 
     // Build navigation data structure
     const navigationData = useMemo(() => {
-        if (isLoading) return [];
+        if (isLoading || !permissionChecker) return [];
 
         // Get menu pages (pages that appear in website navigation)
-        const menuPages = pages?.filter(page => 
-            page.nav_position !== null && 
+        const menuPages = pages?.filter(page =>
+            page.nav_position !== null &&
             page.nav_position !== undefined &&
             !Boolean(page.is_system)
         ).sort((a, b) => (a.nav_position || 0) - (b.nav_position || 0)) || [];
 
         // Get content pages (pages that don't appear in website navigation, excluding configuration pages)
         const configurationKeywords = new Set(configurationPageLinks?.map(p => p.keyword) || []);
-        const contentPages = pages?.filter(page => 
+        const contentPages = pages?.filter(page =>
             (page.nav_position === null || page.nav_position === undefined) &&
             (page.footer_position === null || page.footer_position === undefined) &&
             !Boolean(page.is_system) &&
@@ -100,129 +103,175 @@ export function AdminNavbar() {
             !Boolean(page.is_system)
         ).sort((a, b) => (a.footer_position || 0) - (b.footer_position || 0)) || [];
 
-        return [
-            { 
-                label: 'Dashboard', 
-                icon: <IconDashboard size={16} />,
-                link: '/admin'
-            },
-            {
-                label: 'User Management',
-                icon: <IconUsers size={16} />,
-                links: [
-                    { label: 'Users', link: '/admin/users' },
-                    { label: 'Groups', link: '/admin/groups' },
-                    { label: 'Roles', link: '/admin/roles' },
-                ],
-            },
-            {
-                label: 'Content',
-                icon: <IconPhoto size={16} />,
-                links: [
-                    { label: 'Assets', link: '/admin/assets' },
-                    { label: 'Unused Sections', link: '/admin/unused-sections' },
-                ],
-            },
-            
-            // PAGE CATEGORIES - All page categories together in requested order:
-            // 1. Create Page functionality
-            {
+        const menuItems = [];
+
+        // Dashboard - always visible for admin users
+        menuItems.push({
+            label: 'Dashboard',
+            icon: <IconDashboard size={16} />,
+            link: '/admin'
+        });
+
+        // User Management - check if user can manage users
+        if (permissionChecker.canManageUsers()) {
+            const userManagementLinks = [];
+            if (permissionChecker.canReadUsers()) userManagementLinks.push({ label: 'Users', link: '/admin/users' });
+            if (permissionChecker.canReadGroups()) userManagementLinks.push({ label: 'Groups', link: '/admin/groups' });
+            if (permissionChecker.canReadRoles()) userManagementLinks.push({ label: 'Roles', link: '/admin/roles' });
+
+            if (userManagementLinks.length > 0) {
+                menuItems.push({
+                    label: 'User Management',
+                    icon: <IconUsers size={16} />,
+                    links: userManagementLinks,
+                });
+            }
+        }
+
+        // Content - check if user can manage assets
+        if (permissionChecker.canManageAssets()) {
+            const contentLinks = [];
+            if (permissionChecker.canReadAssets()) contentLinks.push({ label: 'Assets', link: '/admin/assets' });
+            if (permissionChecker.canDeleteSections()) contentLinks.push({ label: 'Unused Sections', link: '/admin/unused-sections' });
+
+            if (contentLinks.length > 0) {
+                menuItems.push({
+                    label: 'Content',
+                    icon: <IconPhoto size={16} />,
+                    links: contentLinks,
+                });
+            }
+        }
+
+        // PAGE CATEGORIES - All page categories together in requested order:
+        // 1. Create Page functionality - check if user can create pages
+        if (permissionChecker.canCreatePages()) {
+            menuItems.push({
                 label: 'Create Page',
                 icon: <IconPlus size={16} />,
                 link: '#',
                 onClick: () => setIsCreatePageModalOpen(true)
-            },
-            // 2. Menu Pages section (pages that appear in website navigation)
-            ...(menuPages.length > 0 ? [{
+            });
+        }
+
+        // 2. Menu Pages section (pages that appear in website navigation) - check if user can read pages
+        if (permissionChecker.canReadPages() && menuPages.length > 0) {
+            menuItems.push({
                 label: 'Menu Pages',
                 icon: <IconFiles size={16} />,
                 initiallyOpened: true,
                 links: transformPagesToNavigation(menuPages)
-            }] : []),
-            // 3. Footer Pages section (separate category for footer pages)
-            ...(footerPages.length > 0 ? [{
+            });
+        }
+
+        // 3. Footer Pages section (separate category for footer pages) - check if user can read pages
+        if (permissionChecker.canReadPages() && footerPages.length > 0) {
+            menuItems.push({
                 label: 'Footer Pages',
                 icon: <IconFiles size={16} />,
                 links: footerPages.map(page => ({
                     label: page.title || page.keyword,
                     link: `/admin/pages/${page.keyword}`
                 }))
-            }] : []),
-            // 4. Content Pages section (pages that don't appear in website navigation)
-            ...(contentPages.length > 0 ? [{
+            });
+        }
+
+        // 4. Content Pages section (pages that don't appear in website navigation) - check if user can read pages
+        if (permissionChecker.canReadPages() && contentPages.length > 0) {
+            menuItems.push({
                 label: 'Content Pages',
                 icon: <IconFileText size={16} />,
                 links: contentPages.map(page => ({
                     label: page.title || page.keyword,
                     link: `/admin/pages/${page.keyword}`
                 }))
-            }] : []),
-            // 5. System pages
-            {
-                label: 'System Pages',
-                icon: <IconSettingsAutomation size={16} />,
-                links: [
-                    // Authentication pages
-                    ...(categorizedSystemPages?.authentication || []).map(page => ({
-                        label: page.label,
-                        link: `/admin/pages/${page.keyword}`
-                    })),
-                    // Profile pages
-                    ...(categorizedSystemPages?.profile || []).map(page => ({
-                        label: page.label,
-                        link: `/admin/pages/${page.keyword}`
-                    })),
-                    // Error pages
-                    ...(categorizedSystemPages?.errors || []).map(page => ({
-                        label: page.label,
-                        link: `/admin/pages/${page.keyword}`
-                    })),
-                    // Legal pages
-                    ...(categorizedSystemPages?.legal || []).map(page => ({
-                        label: page.label,
-                        link: `/admin/pages/${page.keyword}`
-                    })),
-                    // Other system pages
-                    ...(categorizedSystemPages?.other || []).map(page => ({
-                        label: page.label,
-                        link: `/admin/pages/${page.keyword}`
-                    })),
-                ],
-            },
-            
-            // Configuration pages (separate from page categories)
-            ...(configurationPageLinks && configurationPageLinks.length > 0 
-                ? [{
-                    label: 'Configuration',
-                    icon: <IconSettings size={16} />,
-                    links: configurationPageLinks.map(page => ({
-                        label: page.label,
-                        link: `/admin/pages/${page.keyword}`
-                    }))
-                }] 
-                : []
-            ),
-            {
-                label: 'Automation',
-                icon: <IconPlayerPlay size={16} />,
-                links: [
-                    { label: 'Actions', link: '/admin/actions' },
-                    { label: 'Scheduled Jobs', link: '/admin/scheduled-jobs' },
-                ],
-            },
-            {
+            });
+        }
+
+        // 5. System pages - check if user can read pages
+        if (permissionChecker.canReadPages()) {
+            const systemPageLinks = [
+                // Authentication pages
+                ...(categorizedSystemPages?.authentication || []).map(page => ({
+                    label: page.label,
+                    link: `/admin/pages/${page.keyword}`
+                })),
+                // Profile pages
+                ...(categorizedSystemPages?.profile || []).map(page => ({
+                    label: page.label,
+                    link: `/admin/pages/${page.keyword}`
+                })),
+                // Error pages
+                ...(categorizedSystemPages?.errors || []).map(page => ({
+                    label: page.label,
+                    link: `/admin/pages/${page.keyword}`
+                })),
+                // Legal pages
+                ...(categorizedSystemPages?.legal || []).map(page => ({
+                    label: page.label,
+                    link: `/admin/pages/${page.keyword}`
+                })),
+                // Other system pages
+                ...(categorizedSystemPages?.other || []).map(page => ({
+                    label: page.label,
+                    link: `/admin/pages/${page.keyword}`
+                })),
+            ];
+
+            if (systemPageLinks.length > 0) {
+                menuItems.push({
+                    label: 'System Pages',
+                    icon: <IconSettingsAutomation size={16} />,
+                    links: systemPageLinks,
+                });
+            }
+        }
+
+        // Configuration pages (separate from page categories) - check if user can read pages
+        if (permissionChecker.canReadPages() && configurationPageLinks && configurationPageLinks.length > 0) {
+            menuItems.push({
+                label: 'Configuration',
+                icon: <IconSettings size={16} />,
+                links: configurationPageLinks.map(page => ({
+                    label: page.label,
+                    link: `/admin/pages/${page.keyword}`
+                }))
+            });
+        }
+
+        // Automation - check if user can manage actions or scheduled jobs
+        if (permissionChecker.canManageActions() || permissionChecker.canManageScheduledJobs()) {
+            const automationLinks = [];
+            if (permissionChecker.canReadActions()) automationLinks.push({ label: 'Actions', link: '/admin/actions' });
+            if (permissionChecker.canReadScheduledJobs()) automationLinks.push({ label: 'Scheduled Jobs', link: '/admin/scheduled-jobs' });
+
+            if (automationLinks.length > 0) {
+                menuItems.push({
+                    label: 'Automation',
+                    icon: <IconPlayerPlay size={16} />,
+                    links: automationLinks,
+                });
+            }
+        }
+
+        // System Tools - check various permissions
+        const systemToolLinks = [];
+        if (permissionChecker.canManageLanguages()) systemToolLinks.push({ label: 'Languages', link: '/admin/languages' });
+        if (permissionChecker.canAccessDataBrowser()) systemToolLinks.push({ label: 'Data Browser', link: '/admin/data' });
+        if (permissionChecker.canViewAuditLogs()) systemToolLinks.push({ label: 'Audit Logs', link: '/admin/data-access' });
+        if (permissionChecker.canReadCmsPreferences()) systemToolLinks.push({ label: 'CMS Preferences', link: '/admin/preferences' });
+        if (permissionChecker.canReadCache()) systemToolLinks.push({ label: 'Cache Management', link: '/admin/cache' });
+
+        if (systemToolLinks.length > 0) {
+            menuItems.push({
                 label: 'System Tools',
                 icon: <IconDatabase size={16} />,
-                links: [
-                    { label: 'Languages', link: '/admin/languages' },
-                    { label: 'Data Browser', link: '/admin/data' },
-                    { label: 'Audit Logs', link: '/admin/data-access' },
-                    { label: 'CMS Preferences', link: '/admin/preferences' },
-                    { label: 'Cache Management', link: '/admin/cache' },
-                ],
-            },
-        ];
-    }, [pages, configurationPageLinks, categorizedSystemPages, categorizedRegularPages, isLoading]);
+                links: systemToolLinks,
+            });
+        }
+
+        return menuItems;
+    }, [pages, configurationPageLinks, categorizedSystemPages, categorizedRegularPages, isLoading, permissionChecker]);
 
     const links = navigationData.map((item) => <LinksGroup {...item} key={item.label} />);
 

@@ -16,10 +16,10 @@ import { useAuthUser, useHasPermission, useHasAdminAccess } from './useUserData'
 export const useAuth = () => {
     const router = useRouter();
     const { data: isAuthenticated, isLoading: isAuthLoading } = useIsAuthenticated();
-    const { user, isLoading: isUserDataLoading } = useAuthUser();
+    const { user, permissionChecker, isLoading: isUserDataLoading } = useAuthUser();
     const hasPermission = useHasPermission();
     const hasAdminAccess = useHasAdminAccess();
-    
+
     // Combined loading state
     const isLoading = isAuthLoading || isUserDataLoading;
 
@@ -44,6 +44,7 @@ export const useAuth = () => {
         isAuthenticated,
         isLoading,
         user,
+        permissionChecker,
         hasPermission,
         hasAdminAccess,
         requireAdminAccess,

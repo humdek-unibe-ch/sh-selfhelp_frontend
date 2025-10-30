@@ -60,6 +60,14 @@ interface IUsersListProps {
   onToggleBlock?: (userId: number, blocked: boolean) => void;
   onSendActivationMail?: (userId: number) => void;
   onImpersonateUser?: (userId: number) => void;
+  permissions?: {
+    canCreate?: boolean;
+    canUpdate?: boolean;
+    canDelete?: boolean;
+    canBlock?: boolean;
+    canUnblock?: boolean;
+    canImpersonate?: boolean;
+  };
 }
 
 export function UsersList({
@@ -69,6 +77,7 @@ export function UsersList({
   onToggleBlock,
   onSendActivationMail,
   onImpersonateUser,
+  permissions = {},
 }: IUsersListProps) {
   // State for table parameters
   const [params, setParams] = useState<IUsersListParams>({
@@ -353,6 +362,7 @@ export function UsersList({
                 variant="subtle"
                 size="sm"
                 onClick={() => onEditUser?.(row.original.id)}
+                disabled={!permissions.canUpdate}
               >
                 <IconEdit size={16} />
               </ActionIcon>
@@ -364,6 +374,7 @@ export function UsersList({
                 size="sm"
                 color={row.original.blocked ? 'green' : 'red'}
                 onClick={() => onToggleBlock?.(row.original.id, !row.original.blocked)}
+                disabled={row.original.blocked ? !permissions.canUnblock : !permissions.canBlock}
               >
                 {row.original.blocked ? <IconLockOpen size={16} /> : <IconLock size={16} />}
               </ActionIcon>
@@ -380,12 +391,14 @@ export function UsersList({
                 <Menu.Item
                   leftSection={<IconMail size={14} />}
                   onClick={() => onSendActivationMail?.(row.original.id)}
+                  disabled={!permissions.canUpdate}
                 >
                   Send Activation Mail
                 </Menu.Item>
                 <Menu.Item
                   leftSection={<IconUserCheck size={14} />}
                   onClick={() => onImpersonateUser?.(row.original.id)}
+                  disabled={!permissions.canImpersonate}
                 >
                   Impersonate User
                 </Menu.Item>
@@ -394,6 +407,7 @@ export function UsersList({
                   leftSection={<IconTrash size={14} />}
                   color="red"
                   onClick={() => onDeleteUser?.(row.original.id, row.original.email)}
+                  disabled={!permissions.canDelete}
                 >
                   Delete User
                 </Menu.Item>
@@ -446,6 +460,7 @@ export function UsersList({
           <Button
             leftSection={<IconPlus size={16} />}
             onClick={onCreateUser}
+            disabled={!permissions.canCreate}
           >
             Create User
           </Button>

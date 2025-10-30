@@ -3,6 +3,7 @@
 import { useAuth } from '../../../../../hooks/useAuth';
 import { ROUTES } from '../../../../../config/routes.config';
 import { useRouter } from 'next/navigation';
+import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
 import { useEffect, useState } from 'react';
 import { AuditLogsList } from '../audit-logs-list/AuditLogsList';
 import { AuditLogsStats } from '../audit-logs-stats/AuditLogsStats';
@@ -30,7 +31,7 @@ export function AuditLogsPage() {
   });
 
   // Check permission for audit logs view
-  const hasAuditViewPermission = hasPermission('admin.audit.view');
+  const hasAuditViewPermission = hasPermission(PERMISSIONS.ADMIN_AUDIT_VIEW);
 
   useEffect(() => {
     if (!isLoading && !hasAuditViewPermission) {

@@ -5,6 +5,7 @@ import { AuthApi } from '../api/auth.api';
 import { IUserDataResponse, IAuthUser, IUserData } from '../types/auth/jwt-payload.types';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { getAccessToken } from '../utils/auth.utils';
+import { createPermissionChecker, PermissionChecker } from '../utils/permissions.utils';
 
 /**
  * Hook to fetch current user data from /auth/user-data endpoint
@@ -39,16 +40,25 @@ export function useUserData() {
 /**
  * Hook to get transformed user data in IAuthUser format
  * Converts the API response to the expected user interface
- * 
- * @returns Transformed user data or null if not available
+ *
+ * @returns Transformed user data, permission checker, and loading state
  */
-export function useAuthUser(): { user: IAuthUser | null; isLoading: boolean; error: any } {
+export function useAuthUser(): {
+    user: IAuthUser | null;
+    permissionChecker: PermissionChecker | null;
+    isLoading: boolean;
+    error: any
+} {
     const { data: userDataResponse, isLoading, error } = useUserData();
-    
+
     const user: IAuthUser | null = userDataResponse?.data ? transformUserData(userDataResponse.data) : null;
-    
+    const permissionChecker: PermissionChecker | null = userDataResponse?.data
+        ? createPermissionChecker(userDataResponse.data.permissions)
+        : null;
+
     return {
         user,
+        permissionChecker,
         isLoading,
         error
     };

@@ -37,13 +37,15 @@ import {
     IconChartLine,
     IconAlertTriangle,
     IconCopy,
-    IconCheck
+    IconCheck,
+    IconX
 } from '@tabler/icons-react';
 import { isDebugEnabled, DEBUG_CONFIG } from '../../../../../config/debug.config';
 import { debugLogger } from '../../../../../utils/debug-logger';
 import { useAppNavigation } from '../../../../../hooks/useAppNavigation';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { useLanguageContext } from '../../../contexts/LanguageContext';
+import { useAuth } from '../../../../../hooks/useAuth';
 import { notifications } from '@mantine/notifications';
 import { IPageItem } from '../../../../../types/common/pages.type';
 import { 
@@ -108,6 +110,7 @@ export function DebugMenu() {
     const { pages, menuPages, footerPages, routes, isLoading, profilePages } = useAppNavigation();
     const { systemPageLinks, categorizedSystemPages } = useAdminPages();
     const { currentLanguageId, languages, isUpdatingLanguage, setCurrentLanguageId } = useLanguageContext();
+    const { permissionChecker } = useAuth();
 
     // Derived values for profile pages
     const profileLinkPage = profilePages.length > 0 ? profilePages[0] : null;
@@ -274,6 +277,7 @@ export function DebugMenu() {
                         <Tabs.Tab value="navigation">Navigation</Tabs.Tab>
                         <Tabs.Tab value="system-pages">System Pages</Tabs.Tab>
                         <Tabs.Tab value="profile">Profile Pages</Tabs.Tab>
+                        <Tabs.Tab value="permissions">Permissions</Tabs.Tab>
                         <Tabs.Tab value="config">Config</Tabs.Tab>
                         <Tabs.Tab value="auth">Auth</Tabs.Tab>
                         <Tabs.Tab value="api">API</Tabs.Tab>
@@ -422,6 +426,86 @@ export function DebugMenu() {
                                     </Code>
                                 </div>
                             )}
+                        </Stack>
+                    </Tabs.Panel>
+
+                    <Tabs.Panel value="permissions" pt="md">
+                        <Stack gap="md">
+                            <Text size="sm" c="dimmed">
+                                Admin panel permission system status and menu visibility checks.
+                            </Text>
+
+                            <Group>
+                                <Badge color="blue">Permission Checker: {permissionChecker ? "Active" : "Not Available"}</Badge>
+                            </Group>
+
+                            {permissionChecker && (
+                                <Box>
+                                    <Text fw={500} mb="xs">Menu Permissions (Debug):</Text>
+                                    <Group gap="xs" mb="xs">
+                                        <Badge color={permissionChecker.canAccessAdmin() ? 'green' : 'red'} leftSection={permissionChecker.canAccessAdmin() ? <IconCheck size={10} /> : <IconX size={10} />}>
+                                            Admin Access
+                                        </Badge>
+                                        <Badge color={permissionChecker.canReadUsers() ? 'green' : 'red'} leftSection={permissionChecker.canReadUsers() ? <IconCheck size={10} /> : <IconX size={10} />}>
+                                            Users
+                                        </Badge>
+                                        <Badge color={permissionChecker.canReadGroups() ? 'green' : 'red'} leftSection={permissionChecker.canReadGroups() ? <IconCheck size={10} /> : <IconX size={10} />}>
+                                            Groups
+                                        </Badge>
+                                        <Badge color={permissionChecker.canReadRoles() ? 'green' : 'red'} leftSection={permissionChecker.canReadRoles() ? <IconCheck size={10} /> : <IconX size={10} />}>
+                                            Roles
+                                        </Badge>
+                                        <Badge color={permissionChecker.canReadPages() ? 'green' : 'red'} leftSection={permissionChecker.canReadPages() ? <IconCheck size={10} /> : <IconX size={10} />}>
+                                            Pages
+                                        </Badge>
+                                        <Badge color={permissionChecker.canCreatePages() ? 'green' : 'red'} leftSection={permissionChecker.canCreatePages() ? <IconCheck size={10} /> : <IconX size={10} />}>
+                                            Create Pages
+                                        </Badge>
+                                        <Badge color={permissionChecker.canReadAssets() ? 'green' : 'red'} leftSection={permissionChecker.canReadAssets() ? <IconCheck size={10} /> : <IconX size={10} />}>
+                                            Assets
+                                        </Badge>
+                                        <Badge color={permissionChecker.canViewAuditLogs() ? 'green' : 'red'} leftSection={permissionChecker.canViewAuditLogs() ? <IconCheck size={10} /> : <IconX size={10} />}>
+                                            Audit Logs
+                                        </Badge>
+                                        <Badge color={permissionChecker.canManageActions() ? 'green' : 'red'} leftSection={permissionChecker.canManageActions() ? <IconCheck size={10} /> : <IconX size={10} />}>
+                                            Actions
+                                        </Badge>
+                                        <Badge color={permissionChecker.canManageScheduledJobs() ? 'green' : 'red'} leftSection={permissionChecker.canManageScheduledJobs() ? <IconCheck size={10} /> : <IconX size={10} />}>
+                                            Scheduled Jobs
+                                        </Badge>
+                                        <Badge color={permissionChecker.canReadCache() ? 'green' : 'red'} leftSection={permissionChecker.canReadCache() ? <IconCheck size={10} /> : <IconX size={10} />}>
+                                            Cache
+                                        </Badge>
+                                        <Badge color={permissionChecker.canAccessDataBrowser() ? 'green' : 'red'} leftSection={permissionChecker.canAccessDataBrowser() ? <IconCheck size={10} /> : <IconX size={10} />}>
+                                            Data Browser
+                                        </Badge>
+                                        <Badge color={permissionChecker.canReadCmsPreferences() ? 'green' : 'red'} leftSection={permissionChecker.canReadCmsPreferences() ? <IconCheck size={10} /> : <IconX size={10} />}>
+                                            CMS Preferences
+                                        </Badge>
+                                        <Badge color={permissionChecker.canManageLanguages() ? 'green' : 'red'} leftSection={permissionChecker.canManageLanguages() ? <IconCheck size={10} /> : <IconX size={10} />}>
+                                            Languages
+                                        </Badge>
+                                        <Badge color={permissionChecker.canDeleteSections() ? 'green' : 'red'} leftSection={permissionChecker.canDeleteSections() ? <IconCheck size={10} /> : <IconX size={10} />}>
+                                            Unused Sections
+                                        </Badge>
+                                    </Group>
+                                </Box>
+                            )}
+
+                            <Alert icon={<IconInfoCircle size={16} />} color="blue">
+                                <Text size="sm" fw={500} mb="xs">Permission System Info:</Text>
+                                <Text size="xs" component="div">
+                                    • Green badges = Permission granted, menu item visible
+                                    <br />
+                                    • Red badges = Permission denied, menu item hidden
+                                    <br />
+                                    • Menu items are conditionally shown based on these permissions
+                                    <br />
+                                    • Buttons are disabled if user lacks specific permissions
+                                    <br />
+                                    • Check individual page components for more detailed permission checks
+                                </Text>
+                            </Alert>
                         </Stack>
                     </Tabs.Panel>
 
