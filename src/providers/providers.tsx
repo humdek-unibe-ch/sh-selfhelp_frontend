@@ -27,6 +27,7 @@ import { LoadingScreen } from '../app/components/shared/common/LoadingScreen';
 import { LanguageProvider } from '../app/components/contexts/LanguageContext';
 import { EnhancedLanguageProvider } from '../app/components/contexts/EnhancedLanguageProvider';
 import { theme } from '../../theme';
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
 
 // Create a client with global configuration settings WITHOUT persistence
 // This eliminates stale data issues while maintaining performance
@@ -77,6 +78,7 @@ function Providers({ children }: { children: React.ReactNode }) {
     }
 
     return (
+    <NuqsAdapter>
         <QueryClientProvider client={queryClient}>
             <MantineProvider
                 defaultColorScheme="auto"
@@ -94,6 +96,7 @@ function Providers({ children }: { children: React.ReactNode }) {
                 buttonPosition="bottom-right"
             />
         </QueryClientProvider>
+    </NuqsAdapter>
     );
 }
 

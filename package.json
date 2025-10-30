@@ -66,6 +66,7 @@
     "lowlight": "^3.3.0",
     "memoize-one": "^6.0.0",
     "next": "^15.5.4",
+    "nuqs": "^2.7.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-markdown": "^10.1.0",

@@ -13,21 +13,24 @@ export interface IAuditLogResourceType {
   id: number;
   lookupCode: string;
   lookupValue: string;
-  typeCode: string;
+  code: string;
+  name: string;
 }
 
 export interface IAuditLogAction {
   id: number;
   lookupCode: string;
   lookupValue: string;
-  typeCode: string;
+  code: string;
+  name: string;
 }
 
 export interface IAuditLogPermissionResult {
   id: number;
   lookupCode: string;
   lookupValue: string;
-  typeCode: string;
+  code: string;
+  name: string;
 }
 
 export interface IAuditLogDetails {

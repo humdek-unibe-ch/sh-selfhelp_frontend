@@ -9,12 +9,10 @@ import {
     IconSettingsAutomation,
     IconPhoto,
     IconSettings,
-    IconClock,
     IconDatabase,
     IconPlayerPlay,
     IconFileText,
     IconPlus,
-    IconLanguage
 } from '@tabler/icons-react';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { LinksGroup } from './components/LinksGroup';
@@ -218,6 +216,7 @@ export function AdminNavbar() {
                 links: [
                     { label: 'Languages', link: '/admin/languages' },
                     { label: 'Data Browser', link: '/admin/data' },
+                    { label: 'Audit Logs', link: '/admin/data-access' },
                     { label: 'CMS Preferences', link: '/admin/preferences' },
                     { label: 'Cache Management', link: '/admin/cache' },
                 ],

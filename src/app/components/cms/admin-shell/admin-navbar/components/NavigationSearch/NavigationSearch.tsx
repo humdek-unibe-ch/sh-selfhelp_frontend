@@ -80,6 +80,7 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
             { id: 'groups', label: 'Groups', href: '/admin/groups', icon: <IconUsers size={16} />, category: 'User Management', keywords: ['groups', 'teams', 'permissions'] },
             { id: 'roles', label: 'Roles', href: '/admin/roles', icon: <IconUsers size={16} />, category: 'User Management', keywords: ['roles', 'permissions', 'access'] },
             { id: 'languages', label: 'Languages', href: '/admin/languages', icon: <IconLanguage size={16} />, category: 'System Tools', keywords: ['languages', 'locale', 'translation', 'i18n'] },
+            { id: 'audit-logs', label: 'Audit Logs', href: '/admin/data-access', icon: <IconDatabase size={16} />, category: 'System Tools', keywords: ['audit', 'logs', 'security', 'access', 'monitoring', 'data access'] },
             { id: 'assets', label: 'Assets', href: '/admin/assets', icon: <IconPhoto size={16} />, category: 'Content', keywords: ['assets', 'files', 'media', 'images'] },
             { id: 'unused-sections', label: 'Unused Sections', href: '/admin/unused-sections', icon: <IconDatabase size={16} />, category: 'Content', keywords: ['unused', 'sections', 'cleanup'] },
             { id: 'actions', label: 'Actions', href: '/admin/actions', icon: <IconPlayerPlay size={16} />, category: 'Automation', keywords: ['actions', 'automation', 'triggers'] },
