@@ -24,13 +24,22 @@ declare module 'axios' {
 
 /**
  * Axios instance configured with base URL and default headers.
- * Used as the main HTTP client throughout the application.
+ * Used internally - DO NOT export directly to force permission-aware usage
  */
-export const apiClient = axios.create({
+const apiClientRaw = axios.create({
     baseURL: API_CONFIG.BASE_URL,
     withCredentials: API_CONFIG.CORS_CONFIG.credentials,
     headers: API_CONFIG.CORS_CONFIG.headers
 });
+
+/**
+ * Export for internal use only (e.g., in permission-aware-client.api.ts)
+ * Applications should use permissionAwareApiClient instead
+ *
+ * NOTE: Keeping apiClientRaw export for backward compatibility during migration
+ * TODO: Remove this after migration is complete
+ */
+export const apiClient = apiClientRaw;
 
 // Shared refresh state to prevent multiple simultaneous refreshes
 let isRefreshing = false;
@@ -53,7 +62,7 @@ const handleTokenRefreshSuccess = (accessToken: string, refreshToken?: string) =
     }
 
     // Update axios default headers
-    apiClient.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+    apiClientRaw.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
 
     // Notify Refine auth provider about successful refresh
     authProvider.check().catch(() => {
@@ -66,7 +75,7 @@ const handleTokenRefreshFailure = (clearTokens: boolean = false) => {
     if (clearTokens) {
         // Only clear tokens when explicitly requested (e.g., when logged_in is false)
         removeTokens();
-        delete apiClient.defaults.headers.common.Authorization;
+        delete apiClientRaw.defaults.headers.common.Authorization;
     }
 
     // Note: We don't redirect here anymore to prevent unwanted logouts
@@ -183,7 +192,7 @@ const isAdminDataOperation = (config: any) => {
  * Retrieves the access token and appends it to the Authorization header if available.
  * Also adds the X-Client-Type header for all requests.
  */
-apiClient.interceptors.request.use(
+apiClientRaw.interceptors.request.use(
     (config) => {
         // Add client type header for all requests
         config.headers['X-Client-Type'] = 'web';
@@ -210,7 +219,7 @@ apiClient.interceptors.request.use(
  * 3. Automatic retry of failed requests after token refresh
  * 4. Integration with Refine auth provider
  */
-apiClient.interceptors.response.use(
+apiClientRaw.interceptors.response.use(
     async (response) => {
         // Skip check for logout requests and refresh token requests
         if (isLogoutRequest(response.config) || isRefreshTokenRequest(response.config)) {
@@ -248,7 +257,7 @@ apiClient.interceptors.response.use(
                     originalRequest.headers.Authorization = `Bearer ${newToken}`;
 
                     // Retry the original request
-                    return await apiClient(originalRequest);
+                    return await apiClientRaw(originalRequest);
                 } catch (refreshError) {
                     warn('Token refresh failed for logged_in check', 'BaseApi', refreshError);
 
@@ -311,7 +320,7 @@ apiClient.interceptors.response.use(
                         originalRequest.headers.Authorization = `Bearer ${newToken}`;
 
                         // Retry the original request
-                        return await apiClient(originalRequest);
+                        return await apiClientRaw(originalRequest);
                     } catch (refreshError) {
                         warn('Token refresh failed for logged_in check', 'BaseApi', refreshError);
 
@@ -347,7 +356,7 @@ apiClient.interceptors.response.use(
             originalRequest.headers.Authorization = `Bearer ${newToken}`;
 
             // Retry the original request
-            return apiClient(originalRequest);
+            return apiClientRaw(originalRequest);
         } catch (refreshError) {
             error('Token refresh failed for 401 error', 'BaseApi', refreshError);
 
@@ -358,3 +367,23 @@ apiClient.interceptors.response.use(
         }
     }
 );
+
+// Initialize permission checking after all interceptors are set up
+// This avoids circular dependency issues
+import { initializePermissionChecking } from './permission-wrapper.api';
+import { permissionAwareApiClient } from './permission-aware-client.api';
+
+initializePermissionChecking(apiClient);
+
+/**
+ * RECOMMENDED: Use permissionAwareApiClient for all API calls
+ * This ensures permission metadata is always attached
+ * 
+ * Export this as the primary API client
+ */
+export { permissionAwareApiClient };
+
+/**
+ * For backward compatibility, apiClient is also exported
+ * but will throw errors if permission metadata is missing
+ */

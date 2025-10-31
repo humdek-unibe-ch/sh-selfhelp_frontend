@@ -5,7 +5,7 @@
  * @module api/auth.api
  */
 
-import { apiClient } from './base.api';
+import { permissionAwareApiClient } from './base.api';
 import { NavigationApi } from './navigation.api';
 import { ILoginRequest, ILogoutRequest, IRefreshTokenRequest, ITwoFactorVerifyRequest } from '../types/requests/auth/auth.types';
 import { ILoginSuccessResponse, ITwoFactorRequiredResponse, ITwoFactorVerifySuccessResponse, ILogoutSuccessResponse, TRefreshTokenSuccessResponse, ILanguagePreferenceUpdateResponse } from '../types/responses/auth.types';
@@ -40,7 +40,7 @@ export const AuthApi = {
      * @throws {Error} When authentication fails
      */
     async login(credentials: ILoginRequest): Promise<ILoginSuccessResponse | ITwoFactorRequiredResponse> {
-        const response = await apiClient.post<ILoginSuccessResponse | ITwoFactorRequiredResponse>(
+        const response = await permissionAwareApiClient.post<ILoginSuccessResponse | ITwoFactorRequiredResponse>(
             API_CONFIG.ENDPOINTS.AUTH_LOGIN,
             credentials
         );
@@ -74,7 +74,7 @@ export const AuthApi = {
      * @throws {Error} When 2FA verification fails
      */
     async verifyTwoFactor(twoFactorData: ITwoFactorVerifyRequest): Promise<ITwoFactorVerifySuccessResponse> {
-        const response = await apiClient.post<ITwoFactorVerifySuccessResponse>(
+        const response = await permissionAwareApiClient.post<ITwoFactorVerifySuccessResponse>(
             API_CONFIG.ENDPOINTS.TWO_FACTOR_VERIFY,
             twoFactorData,
         );
@@ -111,7 +111,7 @@ export const AuthApi = {
         }
 
         try {
-            const response = await apiClient.post<TRefreshTokenSuccessResponse>(
+            const response = await permissionAwareApiClient.post<TRefreshTokenSuccessResponse>(
                 API_CONFIG.ENDPOINTS.AUTH_REFRESH_TOKEN,
                 { refresh_token: refreshToken } as IRefreshTokenRequest
             );
@@ -153,7 +153,7 @@ export const AuthApi = {
         let response;
 
         try {
-            response = await apiClient.post<ILogoutSuccessResponse>(
+            response = await permissionAwareApiClient.post<ILogoutSuccessResponse>(
                 API_CONFIG.ENDPOINTS.AUTH_LOGOUT,
                 { refresh_token: refreshToken } as ILogoutRequest
             );
@@ -176,7 +176,7 @@ export const AuthApi = {
      * @throws {Error} When language update fails
      */
     async updateLanguagePreference(languageId: number): Promise<ILanguagePreferenceUpdateResponse> {
-        const response = await apiClient.post<ILanguagePreferenceUpdateResponse>(
+        const response = await permissionAwareApiClient.post<ILanguagePreferenceUpdateResponse>(
             API_CONFIG.ENDPOINTS.USER_LANGUAGE_PREFERENCE,
             { language_id: languageId }
         );
@@ -214,7 +214,7 @@ export const AuthApi = {
      * @throws {Error} When user data fetch fails
      */
     async getUserData(): Promise<IUserDataResponse> {
-        const response = await apiClient.get<IUserDataResponse>(
+        const response = await permissionAwareApiClient.get<IUserDataResponse>(
             API_CONFIG.ENDPOINTS.AUTH_USER_DATA
         );
 
@@ -232,7 +232,7 @@ export const AuthApi = {
      * @throws {Error} When username update fails
      */
     async updateUsername(newUsername: string): Promise<IUserDataResponse> {
-        const response = await apiClient.put<IUserDataResponse>(
+        const response = await permissionAwareApiClient.put<IUserDataResponse>(
             API_CONFIG.ENDPOINTS.USER_UPDATE_USERNAME,
             { user_name: newUsername }
         );
@@ -251,7 +251,7 @@ export const AuthApi = {
      * @throws {Error} When name update fails
      */
     async updateName(newName: string): Promise<IUserDataResponse> {
-        const response = await apiClient.put<IUserDataResponse>(
+        const response = await permissionAwareApiClient.put<IUserDataResponse>(
             API_CONFIG.ENDPOINTS.USER_UPDATE_NAME,
             { name: newName }
         );
@@ -271,7 +271,7 @@ export const AuthApi = {
      * @throws {Error} When password update fails
      */
     async updatePassword(currentPassword: string, newPassword: string): Promise<{status: number, message: string, error?: string}> {
-        const response = await apiClient.put<{status: number, message: string, error?: string}>(
+        const response = await permissionAwareApiClient.put<{status: number, message: string, error?: string}>(
             API_CONFIG.ENDPOINTS.USER_UPDATE_PASSWORD,
             {
                 current_password: currentPassword,
@@ -293,7 +293,7 @@ export const AuthApi = {
      * @throws {Error} When account deletion fails
      */
     async deleteAccount(emailConfirmation: string): Promise<{status: number, message: string, error?: string}> {
-        const response = await apiClient.delete<{status: number, message: string, error?: string}>(
+        const response = await permissionAwareApiClient.delete<{status: number, message: string, error?: string}>(
             API_CONFIG.ENDPOINTS.USER_DELETE_ACCOUNT,
             { data: { email_confirmation: emailConfirmation } }
         );
@@ -314,7 +314,7 @@ export const AuthApi = {
      * @param token - Validation token from URL parameter
      */
     async validateToken(userId: number, token: string) {
-        const response = await apiClient.get(API_CONFIG.ENDPOINTS.USER_VALIDATE_TOKEN(userId, token));
+        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.USER_VALIDATE_TOKEN, userId, token);
         return response.data;
     },
 
@@ -330,7 +330,7 @@ export const AuthApi = {
         section_id: number;
         form_inputs?: Record<string, any>;
     }) {
-        const response = await apiClient.post(API_CONFIG.ENDPOINTS.USER_COMPLETE_VALIDATION(userId, token), data);
+        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.USER_COMPLETE_VALIDATION, data, userId, token);
         return response.data;
     }
 };

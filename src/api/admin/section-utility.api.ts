@@ -1,8 +1,8 @@
-import { apiClient } from '../base.api';
+import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
-import type { 
-    IUnusedSectionsResponse, 
-    IRefContainerSectionsResponse 
+import type {
+    IUnusedSectionsData,
+    IRefContainerSectionsData
 } from '../../types/responses/admin/section-utility.types';
 import type { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
 
@@ -14,24 +14,24 @@ export const AdminSectionUtilityApi = {
     /**
      * Get unused sections (not in hierarchy and not assigned to pages)
      */
-    async getUnusedSections(): Promise<IUnusedSectionsResponse> {
-        const response = await apiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_UNUSED_GET);
-        return response.data;
+    async getUnusedSections(): Promise<IUnusedSectionsData> {
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<IUnusedSectionsData>>(API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_UNUSED_GET);
+        return response.data.data;
     },
 
     /**
      * Get sections with refContainer style
      */
-    async getRefContainers(): Promise<IRefContainerSectionsResponse> {
-        const response = await apiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_REF_CONTAINERS_GET);
-        return response.data;
+    async getRefContainers(): Promise<IRefContainerSectionsData> {
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<IRefContainerSectionsData>>(API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_GET_REF_CONTAINERS);
+        return response.data.data;
     },
 
     /**
      * Delete a specific unused section
      */
     async deleteUnusedSection(sectionId: number): Promise<IBaseApiResponse<any>> {
-        const response = await apiClient.delete(API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_UNUSED_DELETE(sectionId));
+        const response = await permissionAwareApiClient.delete<IBaseApiResponse<any>>(API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_UNUSED_DELETE, sectionId);
         return response.data;
     },
 
@@ -39,7 +39,7 @@ export const AdminSectionUtilityApi = {
      * Delete all unused sections
      */
     async deleteAllUnusedSections(): Promise<IBaseApiResponse<any>> {
-        const response = await apiClient.delete(API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_UNUSED_DELETE_ALL);
+        const response = await permissionAwareApiClient.delete<IBaseApiResponse<any>>(API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_UNUSED_DELETE_ALL);
         return response.data;
     },
 
@@ -47,7 +47,7 @@ export const AdminSectionUtilityApi = {
      * Force delete a section from a page (even if it has children or references)
      */
     async forceDeleteSection(pageId: number, sectionId: number): Promise<IBaseApiResponse<any>> {
-        const response = await apiClient.delete(API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_FORCE_DELETE(pageId, sectionId));
+        const response = await permissionAwareApiClient.delete<IBaseApiResponse<any>>(API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_FORCE_DELETE, pageId, sectionId);
         return response.data;
     },
 };

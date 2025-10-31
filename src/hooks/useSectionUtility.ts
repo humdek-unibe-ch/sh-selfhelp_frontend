@@ -3,16 +3,17 @@ import { notifications } from '@mantine/notifications';
 import { AdminSectionUtilityApi } from '../api/admin/section-utility.api';
 import { AdminCacheApi } from '../api/admin/cache.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
+import type { IUnusedSectionsData, IRefContainerSectionsData } from '../types/responses/admin/section-utility.types';
 
 /**
  * Hook to fetch unused sections (not in hierarchy and not assigned to pages)
  */
 export function useUnusedSections(enabled: boolean = true) {
-    return useQuery({
+    return useQuery<IUnusedSectionsData>({
         queryKey: ['admin', 'sections', 'unused'],
-        queryFn: async () => {
+        queryFn: async (): Promise<IUnusedSectionsData> => {
             const response = await AdminSectionUtilityApi.getUnusedSections();
-            return response.data;
+            return response || [];
         },
         staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
@@ -26,11 +27,11 @@ export function useUnusedSections(enabled: boolean = true) {
  * Hook to fetch sections with refContainer style
  */
 export function useRefContainerSections(enabled: boolean = true) {
-    return useQuery({
+    return useQuery<IRefContainerSectionsData>({
         queryKey: ['admin', 'sections', 'ref-containers'],
-        queryFn: async () => {
+        queryFn: async (): Promise<IRefContainerSectionsData> => {
             const response = await AdminSectionUtilityApi.getRefContainers();
-            return response.data;
+            return response || [];
         },
         staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,

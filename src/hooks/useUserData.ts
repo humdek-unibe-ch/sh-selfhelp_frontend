@@ -1,22 +1,25 @@
 'use client';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { AuthApi } from '../api/auth.api';
 import { IUserDataResponse, IAuthUser, IUserData } from '../types/auth/jwt-payload.types';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { getAccessToken } from '../utils/auth.utils';
 import { createPermissionChecker, PermissionChecker } from '../utils/permissions.utils';
+import { permissionManager } from '../api/permission-wrapper.api';
 
 /**
  * Hook to fetch current user data from /auth/user-data endpoint
  * This replaces JWT-based user information with comprehensive user data
+ * Also syncs permissions with the global permission manager for API access control
  * 
  * @returns User data query result with user information, permissions, roles, and language
  */
 export function useUserData() {
     const queryClient = useQueryClient();
     
-    return useQuery({
+    const query = useQuery({
         queryKey: ['auth', 'user-data'],
         queryFn: async (): Promise<IUserDataResponse> => {
             return AuthApi.getUserData();
@@ -35,6 +38,18 @@ export function useUserData() {
             errorMessage: 'Failed to fetch user data'
         }
     });
+
+    // Sync permissions with global permission manager whenever user data changes
+    useEffect(() => {
+        if (query.data?.data?.permissions) {
+            permissionManager.setPermissions(query.data.data.permissions);
+        } else if (!getAccessToken()) {
+            // Clear permissions when user logs out
+            permissionManager.clearPermissions();
+        }
+    }, [query.data?.data?.permissions]);
+
+    return query;
 }
 
 /**

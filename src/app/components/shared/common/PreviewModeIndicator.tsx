@@ -51,7 +51,7 @@ export function PreviewModeIndicator({ showOnlyInPreview = true, inHeader = fals
   };
 
   return (
-    <Box style={headerStyles}>
+    <Box style={headerStyles as React.CSSProperties}>
       <Box style={{
         display: 'flex',
         alignItems: 'center',

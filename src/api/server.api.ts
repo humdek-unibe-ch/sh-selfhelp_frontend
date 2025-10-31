@@ -95,7 +95,7 @@ export const ServerApi = {
         const isAuth = await serverApi.isAuthenticated();
         if (!isAuth) return null;
         
-        const response = await serverApi.get<IUserDataResponse>(API_CONFIG.ENDPOINTS.AUTH_USER_DATA);
+        const response = await serverApi.get<IUserDataResponse>(API_CONFIG.ENDPOINTS.AUTH_USER_DATA.route);
         return response?.data || null;
     },
 
@@ -103,24 +103,14 @@ export const ServerApi = {
      * Fetch public languages on server side
      */
     async getPublicLanguages(): Promise<ILanguage[] | null> {
-        return await serverApi.get<ILanguage[]>(API_CONFIG.ENDPOINTS.LANGUAGES);
-    },
-
-    /**
-     * Fetch admin languages on server side (for authenticated users)
-     */
-    async getAdminLanguages(): Promise<ILanguage[] | null> {
-        const isAuth = await serverApi.isAuthenticated();
-        if (!isAuth) return null;
-        
-        return await serverApi.get<ILanguage[]>(API_CONFIG.ENDPOINTS.ADMIN_LANGUAGES_GET_ALL);
+        return await serverApi.get<ILanguage[]>(API_CONFIG.ENDPOINTS.LANGUAGES.route);
     },
 
     /**
      * Fetch frontend pages with language support
      */
     async getFrontendPages(languageId: number): Promise<IPageItem[] | null> {
-        return await serverApi.get<IPageItem[]>(API_CONFIG.ENDPOINTS.PAGES_GET_ALL_WITH_LANGUAGE(languageId));
+        return await serverApi.get<IPageItem[]>(API_CONFIG.ENDPOINTS.PAGES_GET_ALL_WITH_LANGUAGE.route(languageId));
     },
 
     /**
@@ -131,14 +121,14 @@ export const ServerApi = {
         const isAdmin = await serverApi.isAdminRequest();
         if (!isAuth || !isAdmin) return null;
         
-        return await serverApi.get<any[]>(API_CONFIG.ENDPOINTS.ADMIN_PAGES_GET_ALL);
+        return await serverApi.get<any[]>(API_CONFIG.ENDPOINTS.ADMIN_PAGES_GET_ALL.route);
     },
 
     /**
      * Fetch CSS classes for theming
      */
     async getCssClasses(): Promise<any[] | null> {
-        const response = await serverApi.get<{ classes: any[] }>(API_CONFIG.ENDPOINTS.FRONTEND_CSS_CLASSES);
+        const response = await serverApi.get<{ classes: any[] }>(API_CONFIG.ENDPOINTS.FRONTEND_CSS_CLASSES_GET_ALL.route);
         return response?.classes || null;
     },
 
@@ -150,7 +140,7 @@ export const ServerApi = {
         const isAdmin = await serverApi.isAdminRequest();
         if (!isAuth || !isAdmin) return null;
         
-        return await serverApi.get<any>(API_CONFIG.ENDPOINTS.ADMIN_CMS_PREFERENCES_GET);
+        return await serverApi.get<any>(API_CONFIG.ENDPOINTS.ADMIN_CMS_PREFERENCES_GET.route);
     },
 
     /**
@@ -165,7 +155,7 @@ export const ServerApi = {
             return null;
         }
         
-        return await serverApi.get<any>(API_CONFIG.ENDPOINTS.ADMIN_PAGES_GET_ONE(pageId));
+        return await serverApi.get<any>(API_CONFIG.ENDPOINTS.ADMIN_PAGES_GET_ONE.route(pageId));
     },
 
     /**

@@ -12,6 +12,7 @@ import { LanguageProvider } from '../app/components/contexts/LanguageContext';
 import { EnhancedLanguageProvider } from '../app/components/contexts/EnhancedLanguageProvider';
 import { authProvider } from './auth.provider';
 import { useState } from 'react';
+import { useUserData } from '../hooks/useUserData';
 
 // Create query client WITHOUT persistence to eliminate stale data issues
 const createQueryClient = () => new QueryClient({
@@ -33,6 +34,10 @@ interface IClientProvidersProps {
 function RefineWrapper({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const isAdmin = pathname?.startsWith('/admin');
+
+    // Initialize user data and permissions early in the app lifecycle
+    // This ensures permissions are loaded before any API calls are made
+    useUserData();
 
     return (
         <Refine

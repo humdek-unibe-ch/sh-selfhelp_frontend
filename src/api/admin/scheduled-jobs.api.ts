@@ -1,4 +1,4 @@
-import { apiClient } from '../base.api';
+import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
 import {
     TScheduledJobsListResponse,
@@ -25,10 +25,10 @@ export class AdminScheduledJobsApi {
         if (filters.sort) params.append('sort', filters.sort);
         if (filters.sortDirection) params.append('sortDirection', filters.sortDirection);
 
-        const queryString = params.toString();
-        const url = queryString ? `${API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_GET_ALL}?${queryString}` : API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_GET_ALL;
-        
-        const response = await apiClient.get(url);
+        const response = await permissionAwareApiClient.get(
+            API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_GET_ALL,
+            { params: Object.fromEntries(params) }
+        );
         return response.data;
     }
 
@@ -36,7 +36,7 @@ export class AdminScheduledJobsApi {
      * Get a specific scheduled job by ID
      */
     static async getScheduledJob(jobId: number): Promise<TScheduledJobDetailResponse> {
-        const response = await apiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_GET_ONE(jobId));
+        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_GET_ONE, jobId);
         return response.data;
     }
 
@@ -44,7 +44,7 @@ export class AdminScheduledJobsApi {
      * Execute a scheduled job
      */
     static async executeScheduledJob(jobId: number): Promise<TScheduledJobDetailResponse> {
-        const response = await apiClient.post(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_EXECUTE(jobId));
+        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_EXECUTE, jobId);
         return response.data;
     }
 
@@ -52,7 +52,7 @@ export class AdminScheduledJobsApi {
      * Delete a scheduled job (soft delete)
      */
     static async deleteScheduledJob(jobId: number): Promise<TScheduledJobDetailResponse> {
-        const response = await apiClient.delete(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_DELETE(jobId));
+        const response = await permissionAwareApiClient.delete(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_DELETE, jobId);
         return response.data;
     }
 
@@ -60,7 +60,7 @@ export class AdminScheduledJobsApi {
      * Get transactions for a specific scheduled job
      */
     static async getScheduledJobTransactions(jobId: number): Promise<TScheduledJobTransactionsResponse> {
-        const response = await apiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_TRANSACTIONS(jobId));
+        const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_TRANSACTIONS, jobId);
         return response.data;
     }
 } 

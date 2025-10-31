@@ -8,12 +8,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { AdminGroupApi } from '../api/admin/group.api';
 import { AdminLanguageApi } from '../api/admin/language.api';
-import { LookupsApi } from '../api/lookups.api';
-import { apiClient } from '../api/base.api';
+import { permissionAwareApiClient } from '../api/base.api';
 import { API_CONFIG } from '../config/api.config';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useLookupsByType } from './useLookups';
 import type { ILanguage } from '../types/responses/admin/languages.types';
+import { IAdminPage } from '../types/responses/admin/admin.types';
+import { IBaseApiResponse } from '../types/responses/common/response-envelope.types';
 
 /**
  * Hook to get all groups for condition builder (requests large page size to get all)
@@ -95,7 +96,7 @@ export function useConditionBuilderPages() {
     return useQuery({
         queryKey: ['condition-builder', 'pages'],
         queryFn: async () => {
-            const response = await apiClient.get(API_CONFIG.ENDPOINTS.PAGES_GET_ALL);
+            const response = await permissionAwareApiClient.get<IBaseApiResponse<IAdminPage[]>>(API_CONFIG.ENDPOINTS.PAGES_GET_ALL);
             const pages = response.data.data || [];
             
             // Convert to key-value format expected by React Query Builder

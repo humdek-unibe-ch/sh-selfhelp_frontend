@@ -5,7 +5,7 @@
  * @module api/admin/preferences.api
  */
 
-import { apiClient } from '../base.api';
+import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
 import { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
 
@@ -23,7 +23,7 @@ export const PreferencesApi = {
      * @throws {Error} When API request fails
      */
     async getCmsPreferences(): Promise<ICMSPreferences> {
-        const response = await apiClient.get<IBaseApiResponse<ICMSPreferences>>(
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<ICMSPreferences>>(
             API_CONFIG.ENDPOINTS.ADMIN_CMS_PREFERENCES_GET
         );
         return response.data.data;
@@ -36,7 +36,7 @@ export const PreferencesApi = {
      * @throws {Error} When update fails
      */
     async updateCmsPreferences(preferences: ICMSPreferences): Promise<ICMSPreferences> {
-        const response = await apiClient.put<IBaseApiResponse<ICMSPreferences>>(
+        const response = await permissionAwareApiClient.put<IBaseApiResponse<ICMSPreferences>>(
             API_CONFIG.ENDPOINTS.ADMIN_CMS_PREFERENCES_UPDATE,
             preferences
         );

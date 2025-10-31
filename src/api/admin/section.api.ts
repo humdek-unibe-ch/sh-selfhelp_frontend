@@ -5,7 +5,7 @@
  * @module api/admin/section.api
  */
 
-import { apiClient } from '../base.api';
+import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
 import { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
 import { TSectionDetailsResponse, ISectionDetailsData } from '../../types/responses/admin/admin.types';
@@ -28,7 +28,6 @@ export const AdminSectionApi = {
      * @throws {Error} When API request fails
      */
     async addSectionToPage(pageId: number, sectionId: number, sectionData: IAddSectionToPageData): Promise<any> {
-        console.log('sectionData', sectionData);
         const requestBody = {
             sectionId: sectionId,
             position: sectionData.position,
@@ -36,8 +35,9 @@ export const AdminSectionApi = {
             ...(sectionData.oldParentSectionId && { oldParentSectionId: sectionData.oldParentSectionId })
         };
         
-        const response = await apiClient.put(
-            API_CONFIG.ENDPOINTS.ADMIN_PAGES_ADD_SECTION(pageId),
+        const response = await permissionAwareApiClient.put(
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_ADD_SECTION,
+            pageId,
             requestBody
         );
         return response.data.data;
@@ -52,8 +52,10 @@ export const AdminSectionApi = {
      * @throws {Error} When API request fails
      */
     async updateSectionInPage(pageId: number, sectionId: number, sectionData: IUpdateSectionInPageData): Promise<any> {
-        const response = await apiClient.put(
-            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_UPDATE(pageId, sectionId),
+        const response = await permissionAwareApiClient.put(
+            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_UPDATE,
+            pageId,
+            sectionId,
             sectionData
         );
         return response.data.data;
@@ -68,8 +70,10 @@ export const AdminSectionApi = {
      * @throws {Error} When API request fails
      */
     async updateSection(pageId: number, sectionId: number, sectionData: any): Promise<any> {
-        const response = await apiClient.put(
-            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_UPDATE(pageId, sectionId),
+        const response = await permissionAwareApiClient.put(
+            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_UPDATE,
+            pageId,
+            sectionId,
             sectionData
         );
         return response.data.data;
@@ -83,8 +87,10 @@ export const AdminSectionApi = {
      * @throws {Error} When API request fails
      */
     async removeSectionFromPage(pageId: number, sectionId: number): Promise<{ success: boolean }> {
-        const response = await apiClient.delete(
-            API_CONFIG.ENDPOINTS.ADMIN_PAGES_REMOVE_SECTION(pageId, sectionId)
+        const response = await permissionAwareApiClient.delete(
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_REMOVE_SECTION,
+            pageId,
+            sectionId
         );
         // For 204 No Content responses, return success indicator
         return { success: response.status === 204 || response.status === 200 };
@@ -107,8 +113,10 @@ export const AdminSectionApi = {
             ...(sectionData.oldParentSectionId && { oldParentSectionId: sectionData.oldParentSectionId })
         };
         
-        const response = await apiClient.put(
-            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_ADD(pageId, parentSectionId),
+        const response = await permissionAwareApiClient.put(
+            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_ADD,
+            pageId,
+            parentSectionId,
             requestBody
         );
         return response.data.data;
@@ -123,8 +131,11 @@ export const AdminSectionApi = {
      * @throws {Error} When API request fails
      */
     async removeSectionFromSection(pageId: number, parentSectionId: number, childSectionId: number): Promise<{ success: boolean }> {
-        const response = await apiClient.delete(
-            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_REMOVE(pageId, parentSectionId, childSectionId)
+        const response = await permissionAwareApiClient.delete(
+            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_REMOVE,
+            pageId,
+            parentSectionId,
+            childSectionId
         );
         // For 204 No Content responses, return success indicator
         return { success: response.status === 204 || response.status === 200 };
@@ -138,8 +149,9 @@ export const AdminSectionApi = {
      * @throws {Error} When API request fails
      */
     async createSectionInPage(pageId: number, sectionData: ICreateSectionInPageData): Promise<any> {
-        const response = await apiClient.post<IBaseApiResponse<any>>(
-            API_CONFIG.ENDPOINTS.ADMIN_PAGES_CREATE_SECTION(pageId),
+        const response = await permissionAwareApiClient.post<IBaseApiResponse<any>>(
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_CREATE_SECTION,
+            pageId,
             sectionData
         );
         return response.data.data;
@@ -154,8 +166,10 @@ export const AdminSectionApi = {
      * @throws {Error} When API request fails
      */
     async createSectionInSection(pageId: number, parentSectionId: number, sectionData: ICreateSectionInSectionData): Promise<any> {
-        const response = await apiClient.post<IBaseApiResponse<any>>(
-            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_CREATE_CHILD(pageId, parentSectionId),
+        const response = await permissionAwareApiClient.post<IBaseApiResponse<any>>(
+            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_CREATE_CHILD,
+            pageId,
+            parentSectionId,
             sectionData
         );
         return response.data.data;
@@ -169,8 +183,10 @@ export const AdminSectionApi = {
      * @throws {Error} When API request fails
      */
     async getSectionDetails(pageId: number, sectionId: number): Promise<ISectionDetailsData> {
-        const response = await apiClient.get<TSectionDetailsResponse>(
-            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_GET_ONE(pageId, sectionId)
+        const response = await permissionAwareApiClient.get<TSectionDetailsResponse>(
+            API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_GET_ONE,
+            pageId,
+            sectionId
         );
         return response.data.data;
     },
@@ -183,8 +199,10 @@ export const AdminSectionApi = {
      * @throws {Error} When API request fails
      */
     async deleteSection(pageId: number, sectionId: number): Promise<{ success: boolean }> {
-        const response = await apiClient.delete(
-            API_CONFIG.ENDPOINTS.ADMIN_PAGES_REMOVE_SECTION(pageId, sectionId)
+        const response = await permissionAwareApiClient.delete(
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_REMOVE_SECTION,
+            pageId,
+            sectionId
         );
         // For 204 No Content responses, return success indicator
         return { success: response.status === 204 || response.status === 200 };
@@ -226,8 +244,9 @@ export interface IImportSectionsRequest {
  * Export all sections from a page
  */
 export async function exportPageSections(pageId: number): Promise<IBaseApiResponse<IPageSectionsExportResponse>> {
-    const response = await apiClient.get(
-        API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_EXPORT_PAGE(pageId)
+    const response = await permissionAwareApiClient.get(
+        API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_EXPORT_PAGE,
+        pageId
     );
     return response.data;
 }
@@ -236,8 +255,10 @@ export async function exportPageSections(pageId: number): Promise<IBaseApiRespon
  * Export a specific section
  */
 export async function exportSection(pageId: number, sectionId: number): Promise<IBaseApiResponse<ISectionExportResponse>> {
-    const response = await apiClient.get(
-        API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_EXPORT_SECTION(pageId, sectionId)
+    const response = await permissionAwareApiClient.get(
+        API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_EXPORT_SECTION,
+        pageId,
+        sectionId
     );
     return response.data;
 }
@@ -255,8 +276,9 @@ export async function importSectionsToPage(
         ...(position !== undefined && { position })
     };
     
-    const response = await apiClient.post(
-        API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_IMPORT_TO_PAGE(pageId),
+    const response = await permissionAwareApiClient.post(
+        API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_IMPORT_TO_PAGE,
+        pageId,
         requestBody
     );
     return response.data;
@@ -276,8 +298,10 @@ export async function importSectionsToSection(
         ...(position !== undefined && { position })
     };
     
-    const response = await apiClient.post(
-        API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_IMPORT_TO_SECTION(pageId, parentSectionId),
+    const response = await permissionAwareApiClient.post(
+        API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_IMPORT_TO_SECTION,
+        pageId,
+        parentSectionId,
         requestBody
     );
     return response.data;

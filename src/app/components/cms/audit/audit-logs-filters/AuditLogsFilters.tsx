@@ -79,7 +79,6 @@ export function AuditLogsFilters({ filters, onFiltersChange }: AuditLogsFiltersP
                 val !== undefined && val !== null && val !== ''
             )
         );
-        console.log('Immediate filter change:', key, value, cleanedFilters);
         onFiltersChange(cleanedFilters);
     };
 
@@ -163,7 +162,6 @@ export function AuditLogsFilters({ filters, onFiltersChange }: AuditLogsFiltersP
                                         dateStr = dateObj.toISOString().split('T')[0];
                                     }
                                 }
-                                console.log('From date changed:', dateStr, date);
                                 handleImmediateFilterChange('date_from', dateStr);
                             }}
                             clearable
@@ -180,7 +178,6 @@ export function AuditLogsFilters({ filters, onFiltersChange }: AuditLogsFiltersP
                                         dateStr = dateObj.toISOString().split('T')[0];
                                     }
                                 }
-                                console.log('To date changed:', dateStr, date);
                                 handleImmediateFilterChange('date_to', dateStr);
                             }}
                             clearable

@@ -4,6 +4,8 @@
  * Frontend is running at http://localhost:3000/Teilnahme
  */
 
+import { PERMISSIONS } from "../types/auth/jwt-payload.types";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost/symfony';
 
 export const API_CONFIG = {
@@ -11,22 +13,58 @@ export const API_CONFIG = {
     BASE_URL: `${API_BASE_URL}/cms-api/v1`,
     ENDPOINTS: {
         // Authentication endpoints
-        AUTH_LOGIN: '/auth/login',
-        TWO_FACTOR_VERIFY: '/auth/two-factor-verify',
-        AUTH_REFRESH_TOKEN: '/auth/refresh-token',
-        AUTH_LOGOUT: '/auth/logout',
-        AUTH_SET_LANGUAGE: '/auth/set-language',
-        AUTH_USER_DATA: '/auth/user-data',
+        AUTH_LOGIN: {
+            route: '/auth/login',
+            permissions: []
+        },
+        TWO_FACTOR_VERIFY: {
+            route: '/auth/two-factor-verify',
+            permissions: []
+        },
+        AUTH_REFRESH_TOKEN: {
+            route: '/auth/refresh-token',
+            permissions: []
+        },
+        AUTH_LOGOUT: {
+            route: '/auth/logout',
+            permissions: []
+        },
+        AUTH_SET_LANGUAGE: {
+            route: '/auth/set-language',
+            permissions: []
+        },
+        AUTH_USER_DATA: {
+            route: '/auth/user-data',
+            permissions: []
+        },
 
         // User profile management endpoints
-        USER_UPDATE_USERNAME: '/auth/user/username',
-        USER_UPDATE_NAME: '/auth/user/name',
-        USER_UPDATE_PASSWORD: '/auth/user/password',
-        USER_DELETE_ACCOUNT: '/auth/user/account',
+        USER_UPDATE_USERNAME: {
+            route: '/auth/user/username',
+            permissions: []
+        },
+        USER_UPDATE_NAME: {
+            route: '/auth/user/name',
+            permissions: []
+        },
+        USER_UPDATE_PASSWORD: {
+            route: '/auth/user/password',
+            permissions: []
+        },
+        USER_DELETE_ACCOUNT: {
+            route: '/auth/user/account',
+            permissions: []
+        },
 
         // User validation endpoints
-        USER_VALIDATE_TOKEN: (userId: number, token: string) => `/validate/${userId}/${token}`,
-        USER_COMPLETE_VALIDATION: (userId: number, token: string) => `/validate/${userId}/${token}/complete`,
+        USER_VALIDATE_TOKEN: {
+            route: (userId: number, token: string) => `/validate/${userId}/${token}`,
+            permissions: []
+        },
+        USER_COMPLETE_VALIDATION: {
+            route: (userId: number, token: string) => `/validate/${userId}/${token}/complete`,
+            permissions: []
+        },
 
         // Public pages endpoints
         /**
@@ -34,194 +72,584 @@ export const API_CONFIG = {
          * WARNING: When logged in, the backend returns a specific page's content (e.g., 'task' page sections),
          * NOT a list of pages. Use ALL_ROUTES for a consistent list of navigation routes.
          */
-        PAGES_GET_ALL: '/pages',
-        PAGES_GET_ALL_WITH_LANGUAGE: (languageId: number) => `/pages/language/${languageId}`,
-        PAGES_GET_ONE: (pageId: number) => `/pages/${pageId}`,
+        PAGES_GET_ALL: {
+            route: '/pages',
+            permissions: []
+        },
+        PAGES_GET_ALL_WITH_LANGUAGE: {
+            route: (languageId: number) => `/pages/language/${languageId}`,
+            permissions: []
+        },
+        PAGES_GET_ONE: {
+            route: (pageId: number) => `/pages/${pageId}`,
+            permissions: []
+        },
 
         // Public languages endpoint
-        LANGUAGES: '/languages',
+        LANGUAGES: {
+            route: '/languages',
+            permissions: []
+        },
 
         // Admin lookups endpoint
-        ADMIN_LOOKUPS: '/admin/lookups',
+        ADMIN_LOOKUPS: {
+            route: '/admin/lookups',
+            permissions: [PERMISSIONS.ADMIN_ACCESS]
+        },
 
         // Admin pages endpoints
-        ADMIN_PAGES_GET_ALL: '/admin/pages',
-        ADMIN_PAGES_GET_ALL_WITH_LANGUAGE: (languageId: number) => `/admin/pages/language/${languageId}`,
-        ADMIN_PAGES_GET_ONE: (pageId: number) => `/admin/pages/${pageId}`,
-        ADMIN_PAGES_CREATE: '/admin/pages',
-        ADMIN_PAGES_UPDATE: (pageId: number) => `/admin/pages/${pageId}`,
-        ADMIN_PAGES_DELETE: (pageId: number) => `/admin/pages/${pageId}`,
-        ADMIN_PAGES_SECTIONS_GET: (pageId: number) => `/admin/pages/${pageId}/sections`,
+        ADMIN_PAGES_GET_ALL: {
+            route: '/admin/pages',
+            permissions: [PERMISSIONS.ADMIN_PAGE_READ]
+        },
+        ADMIN_PAGES_GET_ALL_WITH_LANGUAGE: {
+            route: (languageId: number) => `/admin/pages/language/${languageId}`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_READ]
+        },
+        ADMIN_PAGES_GET_ONE: {
+            route: (pageId: number) => `/admin/pages/${pageId}`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_READ]
+        },
+        ADMIN_PAGES_CREATE: {
+            route: '/admin/pages',
+            permissions: [PERMISSIONS.ADMIN_PAGE_CREATE]
+        },
+        ADMIN_PAGES_UPDATE: {
+            route: (pageId: number) => `/admin/pages/${pageId}`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
+        },
+        ADMIN_PAGES_DELETE: {
+            route: (pageId: number) => `/admin/pages/${pageId}`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_DELETE]
+        },
+        ADMIN_PAGES_SECTIONS_GET: {
+            route: (pageId: number) => `/admin/pages/${pageId}/sections`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_READ]
+        },
 
         // Admin languages endpoints
-        ADMIN_LANGUAGES_GET_ALL: '/admin/languages',
-        ADMIN_LANGUAGES_GET_ONE: (id: number) => `/admin/languages/${id}`,
-        ADMIN_LANGUAGES_CREATE: '/admin/languages',
-        ADMIN_LANGUAGES_UPDATE: (id: number) => `/admin/languages/${id}`,
-        ADMIN_LANGUAGES_DELETE: (id: number) => `/admin/languages/${id}`,
+        ADMIN_LANGUAGES_GET_ALL: {
+            route: '/admin/languages',
+            permissions: [PERMISSIONS.ADMIN_SETTINGS]
+        },
+        ADMIN_LANGUAGES_GET_ONE: {
+            route: (id: number) => `/admin/languages/${id}`,
+            permissions: [PERMISSIONS.ADMIN_SETTINGS]
+        },
+        ADMIN_LANGUAGES_CREATE: {
+            route: '/admin/languages',
+            permissions: [PERMISSIONS.ADMIN_SETTINGS]
+        },
+        ADMIN_LANGUAGES_UPDATE: {
+            route: (id: number) => `/admin/languages/${id}`,
+            permissions: [PERMISSIONS.ADMIN_SETTINGS]
+        },
+        ADMIN_LANGUAGES_DELETE: {
+            route: (id: number) => `/admin/languages/${id}`,
+            permissions: [PERMISSIONS.ADMIN_SETTINGS]
+        },
 
         // Admin styles endpoints
-        ADMIN_STYLES_GET_ALL: '/admin/styles',
-
+        ADMIN_STYLES_GET_ALL: {
+            route: '/admin/styles',
+            permissions: []
+        },
 
         // Admin CMS preferences endpoints
-        ADMIN_CMS_PREFERENCES_GET: '/admin/cms-preferences',
-        ADMIN_CMS_PREFERENCES_UPDATE: '/admin/cms-preferences',
+        ADMIN_CMS_PREFERENCES_GET: {
+            route: '/admin/cms-preferences',
+            permissions: [PERMISSIONS.ADMIN_CMS_PREFERENCES_READ]
+        },
+        ADMIN_CMS_PREFERENCES_UPDATE: {
+            route: '/admin/cms-preferences',
+            permissions: [PERMISSIONS.ADMIN_CMS_PREFERENCES_UPDATE]
+        },
 
         // Admin assets endpoints
-        ADMIN_ASSETS_GET_ALL: '/admin/assets',
-        ADMIN_ASSETS_GET_ONE: (assetId: number) => `/admin/assets/${assetId}`,
-        ADMIN_ASSETS_CREATE: '/admin/assets',
-        ADMIN_ASSETS_DELETE: (assetId: number) => `/admin/assets/${assetId}`,
+        ADMIN_ASSETS_GET_ALL: {
+            route: '/admin/assets',
+            permissions: [PERMISSIONS.ADMIN_ASSET_READ]
+        },
+        ADMIN_ASSETS_GET_ONE: {
+            route: (assetId: number) => `/admin/assets/${assetId}`,
+            permissions: [PERMISSIONS.ADMIN_ASSET_READ]
+        },
+        ADMIN_ASSETS_CREATE: {
+            route: '/admin/assets',
+            permissions: [PERMISSIONS.ADMIN_ASSET_CREATE]
+        },
+        ADMIN_ASSETS_DELETE: {
+            route: (assetId: number) => `/admin/assets/${assetId}`,
+            permissions: [PERMISSIONS.ADMIN_ASSET_DELETE]
+        },
 
         // Admin users endpoints
-        ADMIN_USERS_GET_ALL: '/admin/users',
-        ADMIN_USERS_GET_ONE: (userId: number) => `/admin/users/${userId}`,
-        ADMIN_USERS_CREATE: '/admin/users',
-        ADMIN_USERS_UPDATE: (userId: number) => `/admin/users/${userId}`,
-        ADMIN_USERS_DELETE: (userId: number) => `/admin/users/${userId}`,
-        ADMIN_USERS_BLOCK: (userId: number) => `/admin/users/${userId}/block`,
-        ADMIN_USERS_GROUPS_GET: (userId: number) => `/admin/users/${userId}/groups`,
-        ADMIN_USERS_GROUPS_ADD: (userId: number) => `/admin/users/${userId}/groups`,
-        ADMIN_USERS_GROUPS_REMOVE: (userId: number) => `/admin/users/${userId}/groups`,
-        ADMIN_USERS_ROLES_GET: (userId: number) => `/admin/users/${userId}/roles`,
-        ADMIN_USERS_ROLES_ADD: (userId: number) => `/admin/users/${userId}/roles`,
-        ADMIN_USERS_ROLES_REMOVE: (userId: number) => `/admin/users/${userId}/roles`,
-        ADMIN_USERS_SEND_ACTIVATION: (userId: number) => `/admin/users/${userId}/send-activation-mail`,
-        ADMIN_USERS_CLEAN_DATA: (userId: number) => `/admin/users/${userId}/clean-data`,
-        ADMIN_USERS_IMPERSONATE: (userId: number) => `/admin/users/${userId}/impersonate`,
+        ADMIN_USERS_GET_ALL: {
+            route: '/admin/users',
+            permissions: [PERMISSIONS.ADMIN_USER_READ]
+        },
+        ADMIN_USERS_GET_ONE: {
+            route: (userId: number) => `/admin/users/${userId}`,
+            permissions: [PERMISSIONS.ADMIN_USER_READ]
+        },
+        ADMIN_USERS_CREATE: {
+            route: '/admin/users',
+            permissions: [PERMISSIONS.ADMIN_USER_CREATE]
+        },
+        ADMIN_USERS_UPDATE: {
+            route: (userId: number) => `/admin/users/${userId}`,
+            permissions: [PERMISSIONS.ADMIN_USER_UPDATE]
+        },
+        ADMIN_USERS_DELETE: {
+            route: (userId: number) => `/admin/users/${userId}`,
+            permissions: [PERMISSIONS.ADMIN_USER_DELETE]
+        },
+        ADMIN_USERS_BLOCK: {
+            route: (userId: number) => `/admin/users/${userId}/block`,
+            permissions: [PERMISSIONS.ADMIN_USER_BLOCK]
+        },
+        ADMIN_USERS_GROUPS_GET: {
+            route: (userId: number) => `/admin/users/${userId}/groups`,
+            permissions: []
+        },
+        ADMIN_USERS_GROUPS_ADD: {
+            route: (userId: number) => `/admin/users/${userId}/groups`,
+            permissions: []
+        },
+        ADMIN_USERS_GROUPS_REMOVE: {
+            route: (userId: number) => `/admin/users/${userId}/groups`,
+            permissions: []
+        },
+        ADMIN_USERS_ROLES_GET: {
+            route: (userId: number) => `/admin/users/${userId}/roles`,
+            permissions: []
+        },
+        ADMIN_USERS_ROLES_ADD: {
+            route: (userId: number) => `/admin/users/${userId}/roles`,
+            permissions: []
+        },
+        ADMIN_USERS_ROLES_REMOVE: {
+            route: (userId: number) => `/admin/users/${userId}/roles`,
+            permissions: []
+        },
+        ADMIN_USERS_SEND_ACTIVATION: {
+            route: (userId: number) => `/admin/users/${userId}/send-activation-mail`,
+            permissions: []
+        },
+        ADMIN_USERS_CLEAN_DATA: {
+            route: (userId: number) => `/admin/users/${userId}/clean-data`,
+            permissions: []
+        },
+        ADMIN_USERS_IMPERSONATE: {
+            route: (userId: number) => `/admin/users/${userId}/impersonate`,
+            permissions: [PERMISSIONS.ADMIN_USER_IMPERSONATE]
+        },
 
         // Admin groups endpoints (only paginated endpoint exists)
-        ADMIN_GROUPS_GET_ALL: '/admin/groups',
-        ADMIN_GROUPS_GET_ONE: (groupId: number) => `/admin/groups/${groupId}`,
-        ADMIN_GROUPS_CREATE: '/admin/groups',
-        ADMIN_GROUPS_UPDATE: (groupId: number) => `/admin/groups/${groupId}`,
-        ADMIN_GROUPS_DELETE: (groupId: number) => `/admin/groups/${groupId}`,
-        ADMIN_GROUPS_ACLS_GET: (groupId: number) => `/admin/groups/${groupId}/acls`,
-        ADMIN_GROUPS_ACLS_UPDATE: (groupId: number) => `/admin/groups/${groupId}/acls`,
+        ADMIN_GROUPS_GET_ALL: {
+            route: '/admin/groups',
+            permissions: [PERMISSIONS.ADMIN_GROUP_READ]
+        },
+        ADMIN_GROUPS_GET_ONE: {
+            route: (groupId: number) => `/admin/groups/${groupId}`,
+            permissions: [PERMISSIONS.ADMIN_GROUP_READ]
+        },
+        ADMIN_GROUPS_CREATE: {
+            route: '/admin/groups',
+            permissions: [PERMISSIONS.ADMIN_GROUP_CREATE]
+        },
+        ADMIN_GROUPS_UPDATE: {
+            route: (groupId: number) => `/admin/groups/${groupId}`,
+            permissions: [PERMISSIONS.ADMIN_GROUP_UPDATE]
+        },
+        ADMIN_GROUPS_DELETE: {
+            route: (groupId: number) => `/admin/groups/${groupId}`,
+            permissions: [PERMISSIONS.ADMIN_GROUP_DELETE]
+        },
+        ADMIN_GROUPS_ACLS_GET: {
+            route: (groupId: number) => `/admin/groups/${groupId}/acls`,
+            permissions: [PERMISSIONS.ADMIN_GROUP_READ]
+        },
+        ADMIN_GROUPS_ACLS_UPDATE: {
+            route: (groupId: number) => `/admin/groups/${groupId}/acls`,
+            permissions: [PERMISSIONS.ADMIN_GROUP_ACL]
+        },
 
         // Admin roles endpoints (only paginated endpoint exists)
-        ADMIN_ROLES_GET_ALL: '/admin/roles',
-        ADMIN_ROLES_GET_ONE: (roleId: number) => `/admin/roles/${roleId}`,
-        ADMIN_ROLES_CREATE: '/admin/roles',
-        ADMIN_ROLES_UPDATE: (roleId: number) => `/admin/roles/${roleId}`,
-        ADMIN_ROLES_DELETE: (roleId: number) => `/admin/roles/${roleId}`,
-        ADMIN_ROLES_PERMISSIONS_GET: (roleId: number) => `/admin/roles/${roleId}/permissions`,
-        ADMIN_ROLES_PERMISSIONS_ADD: (roleId: number) => `/admin/roles/${roleId}/permissions`,
-        ADMIN_ROLES_PERMISSIONS_REMOVE: (roleId: number) => `/admin/roles/${roleId}/permissions`,
-        ADMIN_ROLES_PERMISSIONS_UPDATE: (roleId: number) => `/admin/roles/${roleId}/permissions`,
+        ADMIN_ROLES_GET_ALL: {
+            route: '/admin/roles',
+            permissions: [PERMISSIONS.ADMIN_ROLE_READ]
+        },
+        ADMIN_ROLES_GET_ONE: {
+            route: (roleId: number) => `/admin/roles/${roleId}`,
+            permissions: [PERMISSIONS.ADMIN_ROLE_READ]
+        },
+        ADMIN_ROLES_CREATE: {
+            route: '/admin/roles',
+            permissions: [PERMISSIONS.ADMIN_ROLE_CREATE]
+        },
+        ADMIN_ROLES_UPDATE: {
+            route: (roleId: number) => `/admin/roles/${roleId}`,
+            permissions: [PERMISSIONS.ADMIN_ROLE_UPDATE]
+        },
+        ADMIN_ROLES_DELETE: {
+            route: (roleId: number) => `/admin/roles/${roleId}`,
+            permissions: [PERMISSIONS.ADMIN_ROLE_DELETE]
+        },
+        ADMIN_ROLES_PERMISSIONS_GET: {
+            route: (roleId: number) => `/admin/roles/${roleId}/permissions`,
+            permissions: [PERMISSIONS.ADMIN_ROLE_READ]
+        },
+        ADMIN_ROLES_PERMISSIONS_ADD: {
+            route: (roleId: number) => `/admin/roles/${roleId}/permissions`,
+            permissions: [PERMISSIONS.ADMIN_ROLE_PERMISSIONS]
+        },
+        ADMIN_ROLES_PERMISSIONS_REMOVE: {
+            route: (roleId: number) => `/admin/roles/${roleId}/permissions`,
+            permissions: [PERMISSIONS.ADMIN_ROLE_PERMISSIONS]
+        },
+        ADMIN_ROLES_PERMISSIONS_UPDATE: {
+            route: (roleId: number) => `/admin/roles/${roleId}/permissions`,
+            permissions: [PERMISSIONS.ADMIN_ROLE_PERMISSIONS]
+        },
 
         // Admin permissions endpoints
-        ADMIN_PERMISSIONS_GET_ALL: '/admin/permissions',
+        ADMIN_PERMISSIONS_GET_ALL: {
+            route: '/admin/permissions',
+            permissions: [PERMISSIONS.ADMIN_PERMISSION_READ]
+        },
 
         // Admin actions endpoints
-        ADMIN_ACTIONS_GET_ALL: '/admin/actions',
-        ADMIN_ACTIONS_GET_ONE: (actionId: number) => `/admin/actions/${actionId}`,
-        ADMIN_ACTIONS_CREATE: '/admin/actions',
-        ADMIN_ACTIONS_UPDATE: (actionId: number) => `/admin/actions/${actionId}`,
-        ADMIN_ACTIONS_DELETE: (actionId: number) => `/admin/actions/${actionId}`,
-        ADMIN_ACTIONS_TRANSLATIONS_GET_ALL: (actionId: number) => `/admin/actions/${actionId}/translations`,
+        ADMIN_ACTIONS_GET_ALL: {
+            route: '/admin/actions',
+            permissions: [PERMISSIONS.ADMIN_ACTION_READ]
+        },
+        ADMIN_ACTIONS_CREATE: {
+            route: '/admin/actions',
+            permissions: [PERMISSIONS.ADMIN_ACTION_CREATE]
+        },
+        ADMIN_ACTIONS_GET_ONE: {
+            route: (actionId: number) => `/admin/actions/${actionId}`,
+            permissions: [PERMISSIONS.ADMIN_ACTION_READ]
+        },
+        ADMIN_ACTIONS_UPDATE: {
+            route: (actionId: number) => `/admin/actions/${actionId}`,
+            permissions: [PERMISSIONS.ADMIN_ACTION_UPDATE]
+        },
+        ADMIN_ACTIONS_DELETE: {
+            route: (actionId: number) => `/admin/actions/${actionId}`,
+            permissions: [PERMISSIONS.ADMIN_ACTION_DELETE]
+        },
+        ADMIN_ACTIONS_TRANSLATIONS_GET_ALL: {
+            route: (actionId: number) => `/admin/actions/${actionId}/translations`,
+            permissions: [PERMISSIONS.ADMIN_ACTION_TRANSLATION_READ]
+        },
 
         // Frontend CSS classes endpoint
-        FRONTEND_CSS_CLASSES: '/frontend/css-classes',
+        FRONTEND_CSS_CLASSES_GET_ALL: {
+            route: '/frontend/css-classes',
+            permissions: []
+        },
 
         // Admin scheduled jobs endpoints
-        ADMIN_SCHEDULED_JOBS_GET_ALL: '/admin/scheduled-jobs',
-        ADMIN_SCHEDULED_JOBS_GET_ONE: (jobId: number) => `/admin/scheduled-jobs/${jobId}`,
-        ADMIN_SCHEDULED_JOBS_EXECUTE: (jobId: number) => `/admin/scheduled-jobs/${jobId}/execute`,
-        ADMIN_SCHEDULED_JOBS_DELETE: (jobId: number) => `/admin/scheduled-jobs/${jobId}`,
-        ADMIN_SCHEDULED_JOBS_TRANSACTIONS: (jobId: number) => `/admin/scheduled-jobs/${jobId}/transactions`,
+        ADMIN_SCHEDULED_JOBS_GET_ALL: {
+            route: '/admin/scheduled-jobs',
+            permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_READ]
+        },
+        ADMIN_SCHEDULED_JOBS_GET_ONE: {
+            route: (jobId: number) => `/admin/scheduled-jobs/${jobId}`,
+            permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_READ]
+        },
+        ADMIN_SCHEDULED_JOBS_EXECUTE: {
+            route: (jobId: number) => `/admin/scheduled-jobs/${jobId}/execute`,
+            permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_EXECUTE]
+        },
+        ADMIN_SCHEDULED_JOBS_DELETE: {
+            route: (jobId: number) => `/admin/scheduled-jobs/${jobId}`,
+            permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_DELETE]
+        },
+        ADMIN_SCHEDULED_JOBS_TRANSACTIONS: {
+            route: (jobId: number) => `/admin/scheduled-jobs/${jobId}/transactions`,
+            permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_READ]
+        },
 
         // Admin page keywords endpoints
-        ADMIN_PAGE_KEYWORDS_GET_ALL: '/admin/page-keywords',
+        ADMIN_PAGE_KEYWORDS_GET_ALL: {
+            route: '/admin/page-keywords',
+            permissions: [PERMISSIONS.ADMIN_PAGE_READ]
+        },
 
         // Admin page versioning endpoints
-        ADMIN_PAGE_VERSIONS_PUBLISH: (pageId: number) => `/admin/pages/${pageId}/versions/publish`,
-        ADMIN_PAGE_VERSIONS_PUBLISH_SPECIFIC: (pageId: number, versionId: number) => `/admin/pages/${pageId}/versions/${versionId}/publish`,
-        ADMIN_PAGE_VERSIONS_UNPUBLISH: (pageId: number) => `/admin/pages/${pageId}/versions/unpublish`,
-        ADMIN_PAGE_VERSIONS_LIST: (pageId: number) => `/admin/pages/${pageId}/versions`,
-        ADMIN_PAGE_VERSIONS_GET_ONE: (pageId: number, versionId: number) => `/admin/pages/${pageId}/versions/${versionId}`,
-        ADMIN_PAGE_VERSIONS_DELETE: (pageId: number, versionId: number) => `/admin/pages/${pageId}/versions/${versionId}`,
-        ADMIN_PAGE_VERSIONS_COMPARE_DRAFT: (pageId: number, versionId: number) => `/admin/pages/${pageId}/versions/compare-draft/${versionId}`,
-        ADMIN_PAGE_VERSIONS_HAS_CHANGES: (pageId: number) => `/admin/pages/${pageId}/versions/has-changes`,
-        ADMIN_PAGE_VERSIONS_COMPARE: (pageId: number, version1Id: number, version2Id: number) => `/admin/pages/${pageId}/versions/compare/${version1Id}/${version2Id}`,
-        ADMIN_PAGE_VERSIONS_RESTORE_FROM_VERSION: (pageId: number, versionId: number) => `/admin/pages/${pageId}/sections/restore-from-version/${versionId}`,
+        ADMIN_PAGE_VERSIONS_PUBLISH: {
+            route: (pageId: number) => `/admin/pages/${pageId}/versions/publish`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_VERSION_PUBLISH]
+        },
+        ADMIN_PAGE_VERSIONS_PUBLISH_SPECIFIC: {
+            route: (pageId: number, versionId: number) => `/admin/pages/${pageId}/versions/${versionId}/publish`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_VERSION_PUBLISH]
+        },
+        ADMIN_PAGE_VERSIONS_UNPUBLISH: {
+            route: (pageId: number) => `/admin/pages/${pageId}/versions/unpublish`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_VERSION_PUBLISH]
+        },
+        ADMIN_PAGE_VERSIONS_LIST: {
+            route: (pageId: number) => `/admin/pages/${pageId}/versions`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_VERSION_READ]
+        },
+        ADMIN_PAGE_VERSIONS_GET_ONE: {
+            route: (pageId: number, versionId: number) => `/admin/pages/${pageId}/versions/${versionId}`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_VERSION_READ]
+        },
+        ADMIN_PAGE_VERSIONS_DELETE: {
+            route: (pageId: number, versionId: number) => `/admin/pages/${pageId}/versions/${versionId}`,
+            permissions: []
+        },
+        ADMIN_PAGE_VERSIONS_COMPARE_DRAFT: {
+            route: (pageId: number, versionId: number) => `/admin/pages/${pageId}/versions/compare-draft/${versionId}`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_VERSION_COMPARE]
+        },
+        ADMIN_PAGE_VERSIONS_HAS_CHANGES: {
+            route: (pageId: number) => `/admin/pages/${pageId}/versions/has-changes`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_VERSION_READ]
+        },
+        ADMIN_PAGE_VERSIONS_COMPARE: {
+            route: (pageId: number, version1Id: number, version2Id: number) => `/admin/pages/${pageId}/versions/compare/${version1Id}/${version2Id}`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_VERSION_COMPARE]
+        },
+        ADMIN_PAGE_VERSIONS_RESTORE_FROM_VERSION: {
+            route: (pageId: number, versionId: number) => `/admin/pages/${pageId}/sections/restore-from-version/${versionId}`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_EXPORT]
+        },
 
         // Admin cache endpoints
-        ADMIN_CACHE_STATS: '/admin/cache/stats',
-        ADMIN_CACHE_CLEAR_ALL: '/admin/cache/clear/all',
-        ADMIN_CACHE_CLEAR_CATEGORY: '/admin/cache/clear/category',
-        ADMIN_CACHE_CLEAR_USER: '/admin/cache/clear/user',
-        ADMIN_CACHE_RESET_STATS: '/admin/cache/stats/reset',
-        ADMIN_CACHE_HEALTH: '/admin/cache/health',
-        ADMIN_CACHE_CLEAR_API_ROUTES: '/admin/cache/api-routes/clear',
+        ADMIN_CACHE_STATS: {
+            route: '/admin/cache/stats',
+            permissions: [PERMISSIONS.ADMIN_CACHE_READ]
+        },
+        ADMIN_CACHE_CLEAR_ALL: {
+            route: '/admin/cache/clear',
+            permissions: [PERMISSIONS.ADMIN_CACHE_CLEAR]
+        },
+        ADMIN_CACHE_CLEAR_CATEGORY: {
+            route: '/admin/cache/clear',
+            permissions: [PERMISSIONS.ADMIN_CACHE_CLEAR]
+        },
+        ADMIN_CACHE_CLEAR_USER: {
+            route: '/admin/cache/clear',
+            permissions: [PERMISSIONS.ADMIN_CACHE_CLEAR]
+        },
+        ADMIN_CACHE_RESET_STATS: {
+            route: '/admin/cache/reset-stats',
+            permissions: [PERMISSIONS.ADMIN_CACHE_MANAGE]
+        },
+        ADMIN_CACHE_HEALTH: {
+            route: '/admin/cache/health',
+            permissions: [PERMISSIONS.ADMIN_CACHE_READ]
+        },
+        ADMIN_CACHE_CLEAR_API_ROUTES: {
+            route: '/admin/cache/clear-api-routes',
+            permissions: [PERMISSIONS.ADMIN_CACHE_CLEAR]
+        },
 
         // Admin section utility endpoints
-        ADMIN_SECTIONS_UNUSED_GET: '/admin/sections/unused',
-        ADMIN_SECTIONS_REF_CONTAINERS_GET: '/admin/sections/ref-containers',
-        ADMIN_SECTIONS_UNUSED_DELETE: (sectionId: number) => `/admin/sections/unused/${sectionId}`,
-        ADMIN_SECTIONS_UNUSED_DELETE_ALL: '/admin/sections/unused',
-        ADMIN_SECTIONS_FORCE_DELETE: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}/force-delete`,
+        ADMIN_SECTIONS_GET_REF_CONTAINERS: {
+            route: '/admin/sections/ref-containers',
+            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
+        },
+        ADMIN_SECTIONS_UNUSED_GET: {
+            route: '/admin/sections/unused',
+            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
+        },
+        ADMIN_SECTIONS_UNUSED_DELETE: {
+            route: (sectionId: number) => `/admin/sections/unused/${sectionId}`,
+            permissions: [PERMISSIONS.ADMIN_SECTION_DELETE]
+        },
+        ADMIN_SECTIONS_UNUSED_DELETE_ALL: {
+            route: '/admin/sections/unused',
+            permissions: [PERMISSIONS.ADMIN_SECTION_DELETE]
+        },
+        ADMIN_SECTIONS_FORCE_DELETE: {
+            route: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}/force-delete`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_DELETE]
+        },
 
         // Admin data management endpoints
-        ADMIN_DATA_TABLES_LIST: '/admin/data/tables',
-        ADMIN_DATA_ROWS_GET: '/admin/data', // query params: table_name, user_id?, exclude_deleted?, language_id?
-        ADMIN_DATA_TABLE_COLUMNS_GET: (tableName: string) => `/admin/data/tables/${tableName}/columns`,
-        ADMIN_DATA_TABLE_COLUMN_NAMES_GET: (tableName: string) => `/admin/data/tables/${tableName}/column-names`,
-        ADMIN_DATA_TABLE_COLUMNS_DELETE: (tableName: string) => `/admin/data/tables/${tableName}/columns`,
-        ADMIN_DATA_RECORD_DELETE: (recordId: number) => `/admin/data/records/${recordId}`,
-        ADMIN_DATA_TABLE_DELETE: (tableName: string) => `/admin/data/tables/${tableName}`,
-
-
+        ADMIN_DATA_TABLES_LIST: {
+            route: '/admin/data/tables',
+            permissions: [PERMISSIONS.ADMIN_DATA_READ]
+        },
+        ADMIN_DATA_ROWS_GET: {
+            route: '/admin/data',
+            permissions: [PERMISSIONS.ADMIN_DATA_READ]
+        },
+        ADMIN_DATA_TABLE_COLUMNS_GET: {
+            route: (tableName: string) => `/admin/data/tables/${tableName}/columns`,
+            permissions: [PERMISSIONS.ADMIN_DATA_READ]
+        },
+        ADMIN_DATA_TABLE_COLUMN_NAMES_GET: {
+            route: (tableName: string) => `/admin/data/tables/${tableName}/column-names`,
+            permissions: [PERMISSIONS.ADMIN_DATA_READ]
+        },
+        ADMIN_DATA_TABLE_COLUMNS_DELETE: {
+            route: (tableName: string) => `/admin/data/tables/${tableName}/columns`,
+            permissions: [PERMISSIONS.ADMIN_DATA_DELETE_COLUMNS]
+        },
+        ADMIN_DATA_RECORD_DELETE: {
+            route: (recordId: number) => `/admin/data/records/${recordId}`,
+            permissions: [PERMISSIONS.ADMIN_DATA_DELETE]
+        },
+        ADMIN_DATA_TABLE_DELETE: {
+            route: (tableName: string) => `/admin/data/tables/${tableName}`,
+            permissions: [PERMISSIONS.ADMIN_DATA_DELETE]
+        },
 
         // Form submission endpoints (public access)
-        FORMS_SUBMIT: '/forms/submit',
-        FORMS_UPDATE: '/forms/update',
-        FORMS_DELETE: '/forms/delete',
+        FORMS_SUBMIT: {
+            route: '/forms/submit',
+            permissions: []
+        },
+        FORMS_UPDATE: {
+            route: '/forms/update',
+            permissions: []
+        },
+        FORMS_DELETE: {
+            route: '/forms/delete',
+            permissions: []
+        },
 
         // Admin section creation endpoints
-        ADMIN_PAGES_CREATE_SECTION: (pageId: number) => `/admin/pages/${pageId}/sections/create`,
-        ADMIN_SECTIONS_CREATE_CHILD: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections/create`,
+        ADMIN_PAGES_CREATE_SECTION: {
+            route: (pageId: number) => `/admin/pages/${pageId}/sections/create`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
+        },
+        ADMIN_SECTIONS_CREATE_CHILD: {
+            route: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections/create`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
+        },
 
         // Admin section management endpoints
-        ADMIN_PAGES_ADD_SECTION: (pageId: number) => `/admin/pages/${pageId}/sections`,
-        ADMIN_PAGES_REMOVE_SECTION: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}`,
-        ADMIN_SECTIONS_ADD: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections`,
-        ADMIN_SECTIONS_REMOVE: (pageId: number, parentSectionId: number, childSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections/${childSectionId}`,
-        ADMIN_SECTIONS_UPDATE: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}`,
-        ADMIN_SECTIONS_GET_ONE: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}`,
-        ADMIN_SECTIONS_GET_CHILDREN: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections`,
+        ADMIN_PAGES_ADD_SECTION: {
+            route: (pageId: number) => `/admin/pages/${pageId}/sections`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
+        },
+        ADMIN_PAGES_REMOVE_SECTION: {
+            route: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
+        },
+        ADMIN_SECTIONS_ADD: {
+            route: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
+        },
+        ADMIN_SECTIONS_REMOVE: {
+            route: (pageId: number, parentSectionId: number, childSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections/${childSectionId}`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
+        },
+        ADMIN_SECTIONS_UPDATE: {
+            route: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
+        },
+        ADMIN_SECTIONS_GET_ONE: {
+            route: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}`,
+            permissions: []
+        },
+        ADMIN_SECTIONS_GET_CHILDREN: {
+            route: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections`,
+            permissions: []
+        },
 
         // Admin section export/import endpoints
-        ADMIN_SECTIONS_EXPORT_PAGE: (pageId: number) => `/admin/pages/${pageId}/sections/export`,
-        ADMIN_SECTIONS_EXPORT_SECTION: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}/export`,
-        ADMIN_SECTIONS_IMPORT_TO_PAGE: (pageId: number) => `/admin/pages/${pageId}/sections/import`,
-        ADMIN_SECTIONS_IMPORT_TO_SECTION: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/import`,
+        ADMIN_SECTIONS_EXPORT_PAGE: {
+            route: (pageId: number) => `/admin/pages/${pageId}/sections/export`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_EXPORT]
+        },
+        ADMIN_SECTIONS_EXPORT_SECTION: {
+            route: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}/export`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_EXPORT]
+        },
+        ADMIN_SECTIONS_IMPORT_TO_PAGE: {
+            route: (pageId: number) => `/admin/pages/${pageId}/sections/import`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_EXPORT]
+        },
+        ADMIN_SECTIONS_IMPORT_TO_SECTION: {
+            route: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/import`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_EXPORT]
+        },
 
         // Admin data access management endpoints
-        ADMIN_DATA_ACCESS_ROLES_LIST: '/admin/data-access/roles',
-        ADMIN_DATA_ACCESS_ROLE_EFFECTIVE_PERMISSIONS: (roleId: number) => `/admin/data-access/roles/${roleId}/effective-permissions`,
-        ADMIN_DATA_ACCESS_ROLE_PERMISSIONS_SET: (roleId: number) => `/admin/data-access/roles/${roleId}/permissions`,
+        ADMIN_DATA_ACCESS_ROLES_LIST: {
+            route: '/admin/data-access/roles',
+            permissions: [PERMISSIONS.ADMIN_ROLE_READ, PERMISSIONS.ADMIN_ROLE_UPDATE]
+        },
+        ADMIN_DATA_ACCESS_ROLE_EFFECTIVE_PERMISSIONS: {
+            route: (roleId: number) => `/admin/data-access/roles/${roleId}/effective-permissions`,
+            permissions: [PERMISSIONS.ADMIN_ROLE_READ, PERMISSIONS.ADMIN_ROLE_UPDATE]
+        },
+        ADMIN_DATA_ACCESS_ROLE_PERMISSIONS_SET: {
+            route: (roleId: number) => `/admin/data-access/roles/${roleId}/permissions`,
+            permissions: [PERMISSIONS.ADMIN_ROLE_READ, PERMISSIONS.ADMIN_ROLE_UPDATE]
+        },
 
         // Admin audit management endpoints
-        ADMIN_AUDIT_DATA_ACCESS_LIST: '/admin/audit/data-access',
-        ADMIN_AUDIT_DATA_ACCESS_DETAIL: (auditId: number) => `/admin/audit/data-access/${auditId}`,
-        ADMIN_AUDIT_DATA_ACCESS_STATS: '/admin/audit/data-access/stats',
+        ADMIN_AUDIT_DATA_ACCESS_LIST: {
+            route: '/admin/audit/data-access',
+            permissions: [PERMISSIONS.ADMIN_AUDIT_VIEW]
+        },
+        ADMIN_AUDIT_DATA_ACCESS_DETAIL: {
+            route: (auditId: number) => `/admin/audit/data-access/${auditId}`,
+            permissions: [PERMISSIONS.ADMIN_AUDIT_VIEW]
+        },
+        ADMIN_AUDIT_DATA_ACCESS_STATS: {
+            route: '/admin/audit/data-access/stats',
+            permissions: [PERMISSIONS.ADMIN_AUDIT_VIEW]
+        },
 
         // Legacy endpoints (keeping for backward compatibility)
-        PAGES_GET_ONE_WITH_LANGUAGE: (pageId: number, languageId: number) => `/pages/${pageId}?language_id=${languageId}`,
-        ADMIN_PAGES_GET_ONE_WITH_LANGUAGE: (pageId: number, languageId: number) => `/admin/pages/${pageId}?language_id=${languageId}`,
-        ADMIN_LANGUAGES: '/admin/languages', // Alias for ADMIN_LANGUAGES_GET_ALL
+        PAGES_GET_ONE_WITH_LANGUAGE: {
+            route: (pageId: number, languageId: number) => `/pages/${pageId}?language_id=${languageId}`,
+            permissions: []
+        },
+        ADMIN_PAGES_GET_ONE_WITH_LANGUAGE: {
+            route: (pageId: number, languageId: number) => `/admin/pages/${pageId}?language_id=${languageId}`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_READ]
+        },
+        ADMIN_SETTINGS: {
+            route: '/admin/settings',
+            permissions: [PERMISSIONS.ADMIN_SETTINGS]
+        },
 
         // Deprecated endpoints (marked for removal)
-        ADMIN_SECTIONS_ADD_TO_PAGE: (pageId: number) => `/admin/pages/${pageId}/sections`, // Use ADMIN_PAGES_ADD_SECTION
-        ADMIN_SECTIONS_ADD_TO_SECTION: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections`, // Use ADMIN_SECTIONS_ADD
-        ADMIN_SECTIONS_UPDATE_SECTION: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}`, // Use ADMIN_SECTIONS_UPDATE
-        ADMIN_SECTIONS_REMOVE_FROM_SECTION: (pageId: number, parentSectionId: number, childSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections/${childSectionId}`, // Use ADMIN_SECTIONS_REMOVE
-        ADMIN_SECTIONS_DELETE: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}`, // Use ADMIN_PAGES_REMOVE_SECTION
-        ADMIN_PAGES_SECTIONS_CREATE: (pageId: number) => `/admin/pages/${pageId}/sections/create`, // Use ADMIN_PAGES_CREATE_SECTION
-        ADMIN_SECTIONS_CREATE_IN_SECTION: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections/create`, // Use ADMIN_SECTIONS_CREATE_CHILD
-        USER_LANGUAGE_PREFERENCE: '/auth/set-language', // Use AUTH_SET_LANGUAGE
+        ADMIN_SECTIONS_ADD_TO_PAGE: {
+            route: (pageId: number) => `/admin/pages/${pageId}/sections`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
+        },
+        ADMIN_SECTIONS_ADD_TO_SECTION: {
+            route: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
+        },
+        ADMIN_SECTIONS_UPDATE_SECTION: {
+            route: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
+        },
+        ADMIN_SECTIONS_REMOVE_FROM_SECTION: {
+            route: (pageId: number, parentSectionId: number, childSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections/${childSectionId}`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
+        },
+        ADMIN_SECTIONS_DELETE: {
+            route: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
+        },
+        ADMIN_PAGES_SECTIONS_CREATE: {
+            route: (pageId: number) => `/admin/pages/${pageId}/sections/create`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
+        },
+        ADMIN_SECTIONS_CREATE_IN_SECTION: {
+            route: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections/create`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
+        },
+        USER_LANGUAGE_PREFERENCE: {
+            route: '/auth/set-language',
+            permissions: []
+        }
     },
     CORS_CONFIG: {
         credentials: true, // Required for cookies, authorization headers with HTTPS

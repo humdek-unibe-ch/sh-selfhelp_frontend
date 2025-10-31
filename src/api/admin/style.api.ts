@@ -5,7 +5,7 @@
  * @module api/admin/style.api
  */
 
-import { apiClient } from '../base.api';
+import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
 import { TStyleGroupsResponse, IStyleGroup } from '../../types/responses/admin/styles.types';
 
@@ -16,7 +16,7 @@ export const AdminStyleApi = {
      * @throws {Error} When API request fails
      */
     async getStyleGroups(): Promise<IStyleGroup[]> {
-        const response = await apiClient.get<TStyleGroupsResponse>(API_CONFIG.ENDPOINTS.ADMIN_STYLES_GET_ALL);
+        const response = await permissionAwareApiClient.get<TStyleGroupsResponse>(API_CONFIG.ENDPOINTS.ADMIN_STYLES_GET_ALL);
         return response.data.data;
     }
 }; 

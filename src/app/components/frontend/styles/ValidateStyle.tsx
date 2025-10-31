@@ -106,7 +106,6 @@ const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssCl
     const isRecord = false;
     const isLogType = false;
 
-    console.log(style);
 
     // Pre-populate form data when token validation succeeds
     useEffect(() => {

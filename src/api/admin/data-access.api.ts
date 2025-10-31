@@ -1,4 +1,4 @@
-import { apiClient } from '../base.api';
+import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
 import type { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
 import type {
@@ -23,7 +23,7 @@ export const AdminDataAccessApi = {
    * Get all roles with their data access permissions
    */
   async getRolesWithPermissions(): Promise<IRoleDataAccessPermissions[]> {
-    const response = await apiClient.get<IBaseApiResponse<IRoleDataAccessPermissions[]>>(API_CONFIG.ENDPOINTS.ADMIN_DATA_ACCESS_ROLES_LIST);
+    const response = await permissionAwareApiClient.get<IBaseApiResponse<IRoleDataAccessPermissions[]>>(API_CONFIG.ENDPOINTS.ADMIN_DATA_ACCESS_ROLES_LIST);
     return response.data.data;
   },
 
@@ -31,7 +31,7 @@ export const AdminDataAccessApi = {
    * Get effective permissions for a specific role
    */
   async getRoleEffectivePermissions(roleId: number): Promise<IRoleEffectivePermissions> {
-    const response = await apiClient.get<IBaseApiResponse<IRoleEffectivePermissions>>(API_CONFIG.ENDPOINTS.ADMIN_DATA_ACCESS_ROLE_EFFECTIVE_PERMISSIONS(roleId));
+    const response = await permissionAwareApiClient.get<IBaseApiResponse<IRoleEffectivePermissions>>(API_CONFIG.ENDPOINTS.ADMIN_DATA_ACCESS_ROLE_EFFECTIVE_PERMISSIONS, roleId);
     return response.data.data;
   },
 
@@ -41,7 +41,7 @@ export const AdminDataAccessApi = {
    * Send an empty array to remove all permissions.
    */
   async setRolePermissions(roleId: number, permissionData: ISetRolePermissionsRequest): Promise<ISetRolePermissionsResponse> {
-    const response = await apiClient.post<IBaseApiResponse<ISetRolePermissionsResponse>>(API_CONFIG.ENDPOINTS.ADMIN_DATA_ACCESS_ROLE_PERMISSIONS_SET(roleId), permissionData);
+    const response = await permissionAwareApiClient.post<IBaseApiResponse<ISetRolePermissionsResponse>>(API_CONFIG.ENDPOINTS.ADMIN_DATA_ACCESS_ROLE_PERMISSIONS_SET,  permissionData, roleId);
     return response.data.data;
   },
 
@@ -49,7 +49,7 @@ export const AdminDataAccessApi = {
    * Get all available pages for permission management
    */
   async getAvailablePages(): Promise<IAdminPage[]> {
-    const response = await apiClient.get<IBaseApiResponse<IAdminPage[]>>(API_CONFIG.ENDPOINTS.ADMIN_PAGES_GET_ALL);
+    const response = await permissionAwareApiClient.get<IBaseApiResponse<IAdminPage[]>>(API_CONFIG.ENDPOINTS.ADMIN_PAGES_GET_ALL);
     return response.data.data;
   },
 
@@ -57,7 +57,7 @@ export const AdminDataAccessApi = {
    * Get all available data tables for permission management
    */
   async getAvailableDataTables(): Promise<IDataTableSummary[]> {
-    const response = await apiClient.get<IBaseApiResponse<IDataTablesListResponse>>(API_CONFIG.ENDPOINTS.ADMIN_DATA_TABLES_LIST);
+    const response = await permissionAwareApiClient.get<IBaseApiResponse<IDataTablesListResponse>>(API_CONFIG.ENDPOINTS.ADMIN_DATA_TABLES_LIST);
     return response.data.data.dataTables;
   },
 
@@ -65,7 +65,7 @@ export const AdminDataAccessApi = {
    * Get all available groups for permission management
    */
   async getAvailableGroups(): Promise<IGroupDetails[]> {
-    const response = await apiClient.get<IBaseApiResponse<IGroupsListResponse>>(API_CONFIG.ENDPOINTS.ADMIN_GROUPS_GET_ALL);
+    const response = await permissionAwareApiClient.get<IBaseApiResponse<IGroupsListResponse>>(API_CONFIG.ENDPOINTS.ADMIN_GROUPS_GET_ALL);
     return response.data.data.groups;
   },
 
@@ -75,10 +75,12 @@ export const AdminDataAccessApi = {
    * Get data access audit logs with optional filtering
    */
   async getAuditLogs(params?: IAuditLogsListParams): Promise<IAuditLogsListResponse> {
-    const queryParams = params ? new URLSearchParams(Object.entries(params).filter(([, value]) => value !== undefined).map(([key, value]) => [key, String(value)])) : undefined;
-    const url = queryParams ? `${API_CONFIG.ENDPOINTS.ADMIN_AUDIT_DATA_ACCESS_LIST}?${queryParams}` : API_CONFIG.ENDPOINTS.ADMIN_AUDIT_DATA_ACCESS_LIST;
+    const queryParams = params ? Object.fromEntries(Object.entries(params).filter(([, value]) => value !== undefined).map(([key, value]) => [key, String(value)])) : undefined;
 
-    const response = await apiClient.get<IBaseApiResponse<IAuditLogsListResponse>>(url);
+    const response = await permissionAwareApiClient.get<IBaseApiResponse<IAuditLogsListResponse>>(
+      API_CONFIG.ENDPOINTS.ADMIN_AUDIT_DATA_ACCESS_LIST,
+      { params: queryParams }
+    );
     return response.data.data;
   },
 
@@ -86,7 +88,7 @@ export const AdminDataAccessApi = {
    * Get single audit log by ID
    */
   async getAuditLog(auditId: number): Promise<IAuditLogDetails> {
-    const response = await apiClient.get<IBaseApiResponse<IAuditLogDetails>>(API_CONFIG.ENDPOINTS.ADMIN_AUDIT_DATA_ACCESS_DETAIL(auditId));
+    const response = await permissionAwareApiClient.get<IBaseApiResponse<IAuditLogDetails>>(API_CONFIG.ENDPOINTS.ADMIN_AUDIT_DATA_ACCESS_DETAIL, auditId);
     return response.data.data;
   },
 
@@ -94,10 +96,12 @@ export const AdminDataAccessApi = {
    * Get audit statistics
    */
   async getAuditStats(params?: IAuditStatsParams): Promise<IAuditLogStatsResponse> {
-    const queryParams = params ? new URLSearchParams(Object.entries(params).filter(([, value]) => value !== undefined).map(([key, value]) => [key, String(value)])) : undefined;
-    const url = queryParams ? `${API_CONFIG.ENDPOINTS.ADMIN_AUDIT_DATA_ACCESS_STATS}?${queryParams}` : API_CONFIG.ENDPOINTS.ADMIN_AUDIT_DATA_ACCESS_STATS;
+    const queryParams = params ? Object.fromEntries(Object.entries(params).filter(([, value]) => value !== undefined).map(([key, value]) => [key, String(value)])) : undefined;
 
-    const response = await apiClient.get<IBaseApiResponse<IAuditLogStatsResponse>>(url);
+    const response = await permissionAwareApiClient.get<IBaseApiResponse<IAuditLogStatsResponse>>(
+      API_CONFIG.ENDPOINTS.ADMIN_AUDIT_DATA_ACCESS_STATS,
+      { params: queryParams }
+    );
     return response.data.data;
   }
 };

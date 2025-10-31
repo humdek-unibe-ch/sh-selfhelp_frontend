@@ -5,7 +5,7 @@
  * @module api/admin/page.api
  */
 
-import { apiClient } from '../base.api';
+import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
 import { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
 import { IAdminPage } from '../../types/responses/admin/admin.types';
@@ -21,8 +21,7 @@ export const AdminPageApi = {
      * @throws {Error} When API request fails
      */
     async getAdminPages(): Promise<IAdminPage[]> {
-        const response = await apiClient.get<IBaseApiResponse<IAdminPage[]>>(API_CONFIG.ENDPOINTS.ADMIN_PAGES_GET_ALL);
-
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<IAdminPage[]>>(API_CONFIG.ENDPOINTS.ADMIN_PAGES_GET_ALL);
         return response.data.data;
     },
 
@@ -33,8 +32,9 @@ export const AdminPageApi = {
      * @throws {Error} When API request fails
      */
     async getPageFields(pageId: number): Promise<IPageFieldsData> {
-        const response = await apiClient.get<TPageFieldsResponse>(
-            API_CONFIG.ENDPOINTS.ADMIN_PAGES_GET_ONE(pageId)
+        const response = await permissionAwareApiClient.get<TPageFieldsResponse>(
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_GET_ONE,
+            pageId
         );
         return response.data.data;
     },
@@ -46,8 +46,9 @@ export const AdminPageApi = {
      * @throws {Error} When API request fails
      */
     async getPageSections(pageId: number): Promise<IPageSectionWithFields[]> {
-        const response = await apiClient.get<IPageFieldsResponse>(
-            API_CONFIG.ENDPOINTS.ADMIN_PAGES_SECTIONS_GET(pageId)
+        const response = await permissionAwareApiClient.get<IPageFieldsResponse>(
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_SECTIONS_GET,
+            pageId
         );
         return response.data.data.sections as IPageSectionWithFields[];
     },
@@ -59,7 +60,7 @@ export const AdminPageApi = {
      * @throws {Error} When API request fails
      */
     async createPage(pageData: ICreatePageRequest): Promise<IAdminPage> {
-        const response = await apiClient.post<IBaseApiResponse<IAdminPage>>(
+        const response = await permissionAwareApiClient.post<IBaseApiResponse<IAdminPage>>(
             API_CONFIG.ENDPOINTS.ADMIN_PAGES_CREATE,
             pageData
         );
@@ -74,8 +75,9 @@ export const AdminPageApi = {
      * @throws {Error} When API request fails
      */
     async updatePage(pageId: number, updateData: IUpdatePageRequest): Promise<IAdminPage> {
-        const response = await apiClient.put<IBaseApiResponse<IAdminPage>>(
-            API_CONFIG.ENDPOINTS.ADMIN_PAGES_UPDATE(pageId),
+        const response = await permissionAwareApiClient.put<IBaseApiResponse<IAdminPage>>(
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_UPDATE,
+            pageId,
             updateData
         );
         return response.data.data;
@@ -88,8 +90,9 @@ export const AdminPageApi = {
      * @throws {Error} When API request fails
      */
     async deletePage(pageId: number): Promise<{ success: boolean }> {
-        const response = await apiClient.delete(
-            API_CONFIG.ENDPOINTS.ADMIN_PAGES_DELETE(pageId)
+        const response = await permissionAwareApiClient.delete(
+            API_CONFIG.ENDPOINTS.ADMIN_PAGES_DELETE,
+            pageId
         );
         // For 204 No Content responses, return success indicator
         return { success: response.status === 204 || response.status === 200 };
@@ -103,8 +106,10 @@ export const AdminPageApi = {
      * @throws {Error} When API request fails
      */
     async restoreFromVersion(pageId: number, versionId: number): Promise<IRestoreFromVersionResponse> {
-        const response = await apiClient.post<IRestoreFromVersionResponse>(
-            API_CONFIG.ENDPOINTS.ADMIN_PAGE_VERSIONS_RESTORE_FROM_VERSION(pageId, versionId)
+        const response = await permissionAwareApiClient.post<IRestoreFromVersionResponse>(
+            API_CONFIG.ENDPOINTS.ADMIN_PAGE_VERSIONS_RESTORE_FROM_VERSION,
+            pageId,
+            versionId
         );
         return response.data;
     }

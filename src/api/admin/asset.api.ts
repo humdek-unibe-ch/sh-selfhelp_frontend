@@ -1,4 +1,4 @@
-import { apiClient } from '../base.api';
+import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
 import type { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
 
@@ -69,8 +69,10 @@ export const AdminAssetApi = {
     if (params.sortDirection) searchParams.append('sortDirection', params.sortDirection);
     if (params.folder) searchParams.append('folder', params.folder);
 
-    const url = `${API_CONFIG.ENDPOINTS.ADMIN_ASSETS_GET_ALL}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
-    const response = await apiClient.get<IBaseApiResponse<IAssetsListResponse>>(url);
+    const response = await permissionAwareApiClient.get<IBaseApiResponse<IAssetsListResponse>>(
+      API_CONFIG.ENDPOINTS.ADMIN_ASSETS_GET_ALL,
+      { params: Object.fromEntries(searchParams) }
+    );
     return response.data.data;
   },
 
@@ -78,7 +80,7 @@ export const AdminAssetApi = {
    * Get single asset details by ID
    */
   async getAssetById(assetId: number): Promise<IAsset> {
-    const response = await apiClient.get<IBaseApiResponse<IAsset>>(API_CONFIG.ENDPOINTS.ADMIN_ASSETS_GET_ONE(assetId));
+    const response = await permissionAwareApiClient.get<IBaseApiResponse<IAsset>>(API_CONFIG.ENDPOINTS.ADMIN_ASSETS_GET_ONE, assetId);
     return response.data.data;
   },
 
@@ -99,7 +101,7 @@ export const AdminAssetApi = {
       formData.append('overwrite', assetData.overwrite.toString());
     }
 
-    const response = await apiClient.post<IBaseApiResponse<IAsset>>(
+    const response = await permissionAwareApiClient.post<IBaseApiResponse<IAsset>>(
       API_CONFIG.ENDPOINTS.ADMIN_ASSETS_CREATE, 
       formData,
       {
@@ -137,7 +139,7 @@ export const AdminAssetApi = {
       formData.append('overwrite', assetData.overwrite.toString());
     }
 
-    const response = await apiClient.post<IBaseApiResponse<IMultipleAssetsUploadResponse>>(
+    const response = await permissionAwareApiClient.post<IBaseApiResponse<IMultipleAssetsUploadResponse>>(
       API_CONFIG.ENDPOINTS.ADMIN_ASSETS_CREATE, 
       formData,
       {
@@ -153,7 +155,7 @@ export const AdminAssetApi = {
    * Delete asset
    */
   async deleteAsset(assetId: number): Promise<{ success: boolean }> {
-    const response = await apiClient.delete(API_CONFIG.ENDPOINTS.ADMIN_ASSETS_DELETE(assetId));
+    const response = await permissionAwareApiClient.delete(API_CONFIG.ENDPOINTS.ADMIN_ASSETS_DELETE, assetId);
     return { success: response.status === 204 || response.status === 200 };
   },
 }; 

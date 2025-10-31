@@ -5,7 +5,7 @@
  * @module api/admin/page-keywords.api
  */
 
-import { apiClient } from '../base.api';
+import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
 import { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
 
@@ -21,7 +21,7 @@ export const AdminPageKeywordsApi = {
      * @throws {Error} When API request fails
      */
     async getPageKeywords(): Promise<IPageKeyword[]> {
-        const response = await apiClient.get<IBaseApiResponse<IPageKeyword[]>>(API_CONFIG.ENDPOINTS.ADMIN_PAGE_KEYWORDS_GET_ALL);
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<IPageKeyword[]>>(API_CONFIG.ENDPOINTS.ADMIN_PAGE_KEYWORDS_GET_ALL);
 
         return response.data.data;
     }

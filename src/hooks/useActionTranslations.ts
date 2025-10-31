@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '../api/base.api';
+import { permissionAwareApiClient } from '../api/base.api';
 import { API_CONFIG } from '../config/api.config';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import type { IBaseApiResponse } from '../types/responses/common/response-envelope.types';
@@ -30,8 +30,9 @@ export function useActionTranslations(actionId: number) {
     queryFn: async (): Promise<IActionTranslation[]> => {
       if (!actionId) return [];
 
-      const response = await apiClient.get<IBaseApiResponse<IActionTranslation[]>>(
-        API_CONFIG.ENDPOINTS.ADMIN_ACTIONS_TRANSLATIONS_GET_ALL(actionId)
+      const response = await permissionAwareApiClient.get<IBaseApiResponse<IActionTranslation[]>>(
+        API_CONFIG.ENDPOINTS.ADMIN_ACTIONS_TRANSLATIONS_GET_ALL,
+        actionId
       );
       return response.data.data || [];
     },

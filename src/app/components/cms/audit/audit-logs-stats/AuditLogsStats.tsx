@@ -15,9 +15,10 @@ import {
   Box,
   SimpleGrid,
   Divider,
+  Table,
 } from '@mantine/core';
 import { IconAlertCircle, IconRefresh, IconDatabase, IconShield, IconShieldCheck, IconTrendingUp, IconFilter, IconX } from '@tabler/icons-react';
-import { useAuditStats } from '../../../../../hooks/useAuditLogs';
+import { useAuditStats, useAuditLogs } from '../../../../../hooks/useAuditLogs';
 import { DatePickerInput } from '@mantine/dates';
 import type { IAuditStatsParams } from '../../../../../types/responses/admin/audit.types';
 
@@ -33,6 +34,13 @@ export function AuditLogsStats() {
   const [showFilters, setShowFilters] = useState(false);
 
   const { data: stats, isLoading, error, refetch } = useAuditStats(dateRange);
+
+  // Fetch recent audit logs with same date filters
+  const { data: logsData, isLoading: logsLoading } = useAuditLogs({
+    ...dateRange,
+    page: 1,
+    pageSize: 10, // Show last 10 entries
+  });
 
   // Sync local state with props
   useEffect(() => {
@@ -251,6 +259,71 @@ export function AuditLogsStats() {
           </Stack>
         </Card>
 
+        {/* Recent Audit Logs */}
+        {logsData?.logs && logsData.logs.length > 0 && (
+          <Card withBorder mt="md">
+            <Text fw={600} mb="md">Recent Audit Activity</Text>
+            <LoadingOverlay visible={logsLoading} />
+            <div className="overflow-x-auto">
+              <Table striped highlightOnHover>
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>User</Table.Th>
+                    <Table.Th>Action</Table.Th>
+                    <Table.Th>Resource</Table.Th>
+                    <Table.Th>Result</Table.Th>
+                    <Table.Th>Time</Table.Th>
+                    <Table.Th>Notes</Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {logsData.logs.map((log) => (
+                    <Table.Tr key={log.id}>
+                      <Table.Td>
+                        <div>
+                          <Text size="sm" fw={500}>{log.user.username}</Text>
+                          <Text size="xs" c="dimmed">{log.user.email}</Text>
+                        </div>
+                      </Table.Td>
+                      <Table.Td>
+                        <Badge variant="light" color="blue">
+                          {log.action.lookupValue}
+                        </Badge>
+                      </Table.Td>
+                      <Table.Td>
+                        <div>
+                          <Text size="sm" fw={500}>{log.resourceType.lookupValue}</Text>
+                          {log.resourceId !== 0 && (
+                            <Text size="xs" c="dimmed">ID: {log.resourceId}</Text>
+                          )}
+                        </div>
+                      </Table.Td>
+                      <Table.Td>
+                        <Badge
+                          variant="light"
+                          color={log.permissionResult.lookupCode === 'granted' ? 'green' : 'red'}
+                        >
+                          {log.permissionResult.lookupValue}
+                        </Badge>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="sm">
+                          {new Date(log.createdAt).toLocaleString()}
+                        </Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="sm" c="dimmed">
+                          {log.notes || '-'}
+                        </Text>
+                      </Table.Td>
+                    </Table.Tr>
+                  ))}
+                </Table.Tbody>
+              </Table>
+            </div>
+          </Card>
+        )}
+
         {/* Most Accessed Resources */}
         {mostAccessedResources.length > 0 && (
           <Card withBorder mt="md">
@@ -338,10 +411,10 @@ export function AuditLogsStats() {
                     <IconShield size={16} style={{ color: 'var(--mantine-color-red-6)' }} />
                     <div>
                       <Text size="sm" fw={500}>
-                        {attempt.user.username} → {attempt.resourceType.lookupValue}
+                        {attempt.user?.username} → {attempt.resourceType?.lookupValue}
                       </Text>
                       <Text size="xs" c="dimmed">
-                        {attempt.action.lookupValue} • {new Date(attempt.createdAt).toLocaleString()}
+                        {attempt.action?.lookupValue} • {new Date(attempt.createdAt).toLocaleString()}
                       </Text>
                     </div>
                   </Group>

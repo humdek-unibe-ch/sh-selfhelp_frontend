@@ -5,7 +5,7 @@
  * @module api/admin/language.api
  */
 
-import { apiClient } from '../base.api';
+import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
 import { TLanguagesResponse, TLanguageResponse, ILanguage } from '../../types/responses/admin/languages.types';
 import { ICreateLanguageRequest, IUpdateLanguageRequest } from '../../types/requests/admin/languages.types';
@@ -16,8 +16,8 @@ export const AdminLanguageApi = {
      * @returns {Promise<ILanguage[]>} Array of available languages
      * @throws {Error} When API request fails
      */
-    async getLanguages(): Promise<ILanguage[]> {
-        const response = await apiClient.get<TLanguagesResponse>(API_CONFIG.ENDPOINTS.ADMIN_LANGUAGES_GET_ALL);
+    async getLanguages(): Promise<ILanguage[]> {        
+        const response = await permissionAwareApiClient.get<TLanguagesResponse>(API_CONFIG.ENDPOINTS.ADMIN_LANGUAGES_GET_ALL);
         return response.data.data;
     },
 
@@ -28,7 +28,7 @@ export const AdminLanguageApi = {
      * @throws {Error} When API request fails
      */
     async getLanguageById(languageId: number): Promise<ILanguage> {
-        const response = await apiClient.get<TLanguageResponse>(API_CONFIG.ENDPOINTS.ADMIN_LANGUAGES_GET_ONE(languageId));
+        const response = await permissionAwareApiClient.get<TLanguageResponse>(API_CONFIG.ENDPOINTS.ADMIN_LANGUAGES_GET_ONE, languageId);
         return response.data.data;
     },
 
@@ -39,7 +39,7 @@ export const AdminLanguageApi = {
      * @throws {Error} When API request fails
      */
     async createLanguage(languageData: ICreateLanguageRequest): Promise<ILanguage> {
-        const response = await apiClient.post<TLanguageResponse>(API_CONFIG.ENDPOINTS.ADMIN_LANGUAGES_CREATE, languageData);
+        const response = await permissionAwareApiClient.post<TLanguageResponse>(API_CONFIG.ENDPOINTS.ADMIN_LANGUAGES_CREATE, languageData);
         return response.data.data;
     },
 
@@ -51,7 +51,7 @@ export const AdminLanguageApi = {
      * @throws {Error} When API request fails
      */
     async updateLanguage(languageId: number, languageData: IUpdateLanguageRequest): Promise<ILanguage> {
-        const response = await apiClient.put<TLanguageResponse>(API_CONFIG.ENDPOINTS.ADMIN_LANGUAGES_UPDATE(languageId), languageData);
+        const response = await permissionAwareApiClient.put<TLanguageResponse>(API_CONFIG.ENDPOINTS.ADMIN_LANGUAGES_UPDATE, languageId, languageData);
         return response.data.data;
     },
 
@@ -62,7 +62,7 @@ export const AdminLanguageApi = {
      * @throws {Error} When API request fails
      */
     async deleteLanguage(languageId: number): Promise<{ success: boolean }> {
-        const response = await apiClient.delete(API_CONFIG.ENDPOINTS.ADMIN_LANGUAGES_DELETE(languageId));
+        const response = await permissionAwareApiClient.delete(API_CONFIG.ENDPOINTS.ADMIN_LANGUAGES_DELETE, languageId);
         return { success: response.status === 204 || response.status === 200 };
     }
 }; 

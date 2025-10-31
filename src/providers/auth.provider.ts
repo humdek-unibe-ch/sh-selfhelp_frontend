@@ -12,6 +12,7 @@ import { ITwoFactorRequiredResponse } from "../types/responses/auth.types";
 import { ROUTES } from "../config/routes.config";
 import { getAccessToken, getCurrentUser, storeTokens, removeTokens, removeAccessToken, getRefreshToken } from "../utils/auth.utils";
 import { info, warn, error } from '../utils/debug-logger';
+import { permissionManager } from '../api/permission-wrapper.api';
 
 // Custom method for 2FA verification that can be used in components
 export const verifyTwoFactor = async (code: string) => {
@@ -108,6 +109,9 @@ export const authProvider: AuthProvider = {
             // Ensure pending 2FA data is also cleared (in case it's not handled in AuthApi)
             localStorage.removeItem("pending_2fa_user_id");
             
+            // Clear permissions from global permission manager
+            permissionManager.clearPermissions();
+            
             info('Logout successful', 'AuthProvider');
 
             return {
@@ -120,6 +124,9 @@ export const authProvider: AuthProvider = {
             // and redirect to login - AuthApi.logout already handles this in its catch block
             // but we'll add an extra safety check here
             localStorage.removeItem("pending_2fa_user_id");
+            
+            // Clear permissions even on error
+            permissionManager.clearPermissions();
 
             return {
                 success: true,

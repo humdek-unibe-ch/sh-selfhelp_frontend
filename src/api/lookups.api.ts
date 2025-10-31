@@ -5,7 +5,7 @@
  * @module api/lookups.api
  */
 
-import { apiClient } from './base.api';
+import { permissionAwareApiClient } from './base.api';
 import { API_CONFIG } from '../config/api.config';
 import { ILookupsResponse, ILookup } from '../types/responses/admin/lookups.types';
 
@@ -16,7 +16,7 @@ export const LookupsApi = {
      * @throws {Error} When API request fails
      */
     async getLookups(): Promise<ILookup[]> {
-        const response = await apiClient.get<ILookupsResponse>(API_CONFIG.ENDPOINTS.ADMIN_LOOKUPS);
+        const response = await permissionAwareApiClient.get<ILookupsResponse>(API_CONFIG.ENDPOINTS.ADMIN_LOOKUPS);
         return response.data.data;
     },
 

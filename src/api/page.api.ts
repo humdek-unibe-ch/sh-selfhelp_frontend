@@ -6,7 +6,7 @@
  */
 
 import { ILanguage } from '../types/responses/admin/languages.types';
-import { apiClient } from './base.api';
+import { permissionAwareApiClient } from './base.api';
 import { API_CONFIG } from '../config/api.config';
 import { IBaseApiResponse } from '../types/responses/common/response-envelope.types';
 import { IPageContent } from '../types/common/pages.type';
@@ -22,21 +22,19 @@ export const PageApi = {
      */
     // TODO: execued twice and more when executed in the beegigng, maybe add loading state
     async getPageContent(pageId: number, languageId?: number, preview?: boolean): Promise<IPageContent> {
-        let url = API_CONFIG.ENDPOINTS.PAGES_GET_ONE(pageId);
-        
-        const params = new URLSearchParams();
+        const queryParams: Record<string, string> = {};
         if (languageId) {
-            params.append('language_id', languageId.toString());
+            queryParams.language_id = languageId.toString();
         }
         if (preview) {
-            params.append('preview', 'true');
+            queryParams.preview = 'true';
         }
-        
-        if (params.toString()) {
-            url += `?${params.toString()}`;
-        }
-        
-        const response = await apiClient.get<IBaseApiResponse<{ page: IPageContent }>>(url);
+
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<{ page: IPageContent }>>(
+            API_CONFIG.ENDPOINTS.PAGES_GET_ONE,
+            pageId,
+            { params: queryParams }
+        );
         return response.data.data.page;
     },
     
@@ -46,7 +44,7 @@ export const PageApi = {
      * @throws {Error} When API request fails
      */
     async getPublicLanguages(): Promise<ILanguage[]> {
-        const response = await apiClient.get<IBaseApiResponse<ILanguage[]>>(API_CONFIG.ENDPOINTS.LANGUAGES);
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<ILanguage[]>>(API_CONFIG.ENDPOINTS.LANGUAGES);
         return response.data.data;
     },
 
@@ -59,7 +57,7 @@ export const PageApi = {
      */
     async updatePageContent(pageId: number, content: any): Promise<IBaseApiResponse<any>> {
         try {
-            const response = await apiClient.put<IBaseApiResponse<any>>(API_CONFIG.ENDPOINTS.PAGES_GET_ONE(pageId), content);
+            const response = await permissionAwareApiClient.put<IBaseApiResponse<any>>(API_CONFIG.ENDPOINTS.PAGES_GET_ONE, pageId, content);
             return response.data;
         } catch (error: any) {
             if (error.response?.data) {

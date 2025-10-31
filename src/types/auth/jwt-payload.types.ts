@@ -103,6 +103,7 @@ export const PERMISSIONS = {
     // Actions (CRUD)
     ADMIN_ACTION_DELETE: 'admin.action.delete',
     ADMIN_ACTION_READ: 'admin.action.read',
+    ADMIN_ACTION_CREATE: 'admin.action.create',
     ADMIN_ACTION_UPDATE: 'admin.action.update',
 
     // Assets (CRUD)

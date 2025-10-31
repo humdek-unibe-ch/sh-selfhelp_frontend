@@ -30,7 +30,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { usePageFields } from '../../../../../hooks/usePageDetails';
 import { useUpdatePageMutation } from '../../../../../hooks/mutations/useUpdatePageMutation';
-import { useAdminLanguages } from '../../../../../hooks/useLanguages';
+import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import { IUpdatePageData, IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
 import { notifications } from '@mantine/notifications';
 import styles from './ConfigurationPageEditor.module.css';
@@ -68,7 +68,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
     } = usePageFields(page.id_pages, true);
 
     // Fetch available languages
-    const { languages: languagesData, isLoading: languagesLoading } = useAdminLanguages();
+    const { languages: languagesData, isLoading: languagesLoading } = usePublicLanguages();
 
     // Set default active language tab when languages are loaded
     useEffect(() => {

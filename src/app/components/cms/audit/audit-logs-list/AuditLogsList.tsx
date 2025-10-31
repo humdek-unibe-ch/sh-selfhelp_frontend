@@ -38,7 +38,6 @@ export function AuditLogsList({ onViewDetails }: AuditLogsListProps) {
     if (newFilters.date_to) apiFilters.date_to = newFilters.date_to;
     if (newFilters.http_method) apiFilters.http_method = newFilters.http_method;
 
-    console.log('Setting filters:', apiFilters);
     setFilters(apiFilters);
   };
 

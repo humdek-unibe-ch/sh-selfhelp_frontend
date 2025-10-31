@@ -5,7 +5,7 @@
  * @module api/navigation.api
  */
 
-import { apiClient } from './base.api';
+import { permissionAwareApiClient } from './base.api';
 import { API_CONFIG } from '../config/api.config';
 import { IBaseApiResponse } from '../types/responses/common/response-envelope.types';
 import { IPageItem } from '../types/common/pages.type';
@@ -18,7 +18,7 @@ export const NavigationApi = {
      * @deprecated Use getPagesWithLanguage instead for better title support
      */
     async getPages(): Promise<IPageItem[]> {
-        const response = await apiClient.get<IBaseApiResponse<IPageItem[]>>(API_CONFIG.ENDPOINTS.PAGES_GET_ALL);
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<IPageItem[]>>(API_CONFIG.ENDPOINTS.PAGES_GET_ALL);
         return response.data.data;
     },
 
@@ -30,8 +30,9 @@ export const NavigationApi = {
      * @throws {Error} When API request fails
      */
     async getPagesWithLanguage(languageId: number): Promise<IPageItem[]> {
-        const response = await apiClient.get<IBaseApiResponse<IPageItem[]>>(
-            API_CONFIG.ENDPOINTS.PAGES_GET_ALL_WITH_LANGUAGE(languageId)
+        const response = await permissionAwareApiClient.get<IBaseApiResponse<IPageItem[]>>(
+            API_CONFIG.ENDPOINTS.PAGES_GET_ALL_WITH_LANGUAGE,
+            languageId
         );
         return response.data.data;
     }
