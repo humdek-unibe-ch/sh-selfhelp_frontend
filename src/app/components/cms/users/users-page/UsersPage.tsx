@@ -142,36 +142,6 @@ export function UsersPage() {
 
   return (
     <>
-      {/* Debug: Show user permissions (remove in production) */}
-      {process.env.NODE_ENV === 'development' && (
-        <Box mb="md" p="sm" style={{ border: '1px solid #ddd', borderRadius: '4px' }}>
-          <Text size="sm" fw={600} mb="xs">User Permissions (Debug):</Text>
-          <Group gap="xs" mb="xs">
-            <Badge color={canReadUsers ? 'green' : 'red'} leftSection={canReadUsers ? <IconCheck size={12} /> : <IconX size={12} />}>
-              Read Users
-            </Badge>
-            <Badge color={canCreateUsers ? 'green' : 'red'} leftSection={canCreateUsers ? <IconCheck size={12} /> : <IconX size={12} />}>
-              Create Users
-            </Badge>
-            <Badge color={canUpdateUsers ? 'green' : 'red'} leftSection={canUpdateUsers ? <IconCheck size={12} /> : <IconX size={12} />}>
-              Update Users
-            </Badge>
-            <Badge color={canDeleteUsers ? 'green' : 'red'} leftSection={canDeleteUsers ? <IconCheck size={12} /> : <IconX size={12} />}>
-              Delete Users
-            </Badge>
-            <Badge color={canBlockUsers ? 'green' : 'red'} leftSection={canBlockUsers ? <IconCheck size={12} /> : <IconX size={12} />}>
-              Block Users
-            </Badge>
-            <Badge color={canUnblockUsers ? 'green' : 'red'} leftSection={canUnblockUsers ? <IconCheck size={12} /> : <IconX size={12} />}>
-              Unblock Users
-            </Badge>
-            <Badge color={canImpersonateUsers ? 'green' : 'red'} leftSection={canImpersonateUsers ? <IconCheck size={12} /> : <IconX size={12} />}>
-              Impersonate Users
-            </Badge>
-          </Group>
-        </Box>
-      )}
-
       <UsersList
         onCreateUser={canCreateUsers ? handleCreateUser : undefined}
         onEditUser={canUpdateUsers ? handleEditUser : undefined}
