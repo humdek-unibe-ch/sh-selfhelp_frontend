@@ -28,26 +28,31 @@ interface ILinksGroupProps {
   icon?: React.ReactNode;
   label: string;
   initiallyOpened?: boolean;
+  id?: number | string;
   links?: Array<{
     label: string;
     link: string;
     selectable?: boolean;
     onClick?: () => void;
+    id?: number | string;
     links?: Array<{
       label: string;
       link: string;
       selectable?: boolean;
       onClick?: () => void;
+      id?: number | string;
       links?: Array<{
         label: string;
         link: string;
         selectable?: boolean;
         onClick?: () => void;
+        id?: number | string;
         links?: Array<{
           label: string;
           link: string;
           selectable?: boolean;
           onClick?: () => void;
+          id?: number | string;
         }>;
       }>;
     }>;
@@ -131,7 +136,7 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, selectab
       if (hasNestedLinks) {
         return (
           <NestedLinksGroup
-            key={item.label}
+            key={item.id || item.label}
             label={item.label}
             link={item.link}
             links={item.links}
@@ -139,6 +144,7 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, selectab
             pathname={pathname}
             selectable={item.selectable}
             onClick={item.onClick}
+            id={item.id}
           />
         );
       }
@@ -148,7 +154,7 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, selectab
           component="a"
           className={`${classes.link} ${getNestedLinkClass(level)}`}
           href={item.link}
-          key={item.label}
+          key={item.id || item.label}
           data-active={isItemActive}
           onClick={(e) => {
             e.preventDefault();
@@ -241,16 +247,19 @@ interface INestedLinksGroupProps {
     link: string;
     selectable?: boolean;
     onClick?: () => void;
+    id?: number | string;
     links?: Array<{
       label: string;
       link: string;
       selectable?: boolean;
       onClick?: () => void;
+      id?: number | string;
       links?: Array<{
         label: string;
         link: string;
         selectable?: boolean;
         onClick?: () => void;
+        id?: number | string;
       }>;
     }>;
   }>;
@@ -258,6 +267,7 @@ interface INestedLinksGroupProps {
   pathname: string;
   selectable?: boolean;
   onClick?: () => void;
+  id?: number | string;
 }
 
 function NestedLinksGroup({ label, link, links, level, pathname, selectable = true, onClick }: INestedLinksGroupProps) {
@@ -328,7 +338,7 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
       if (hasNestedLinks) {
         return (
           <NestedLinksGroup
-            key={item.label}
+            key={item.id || item.label}
             label={item.label}
             link={item.link}
             links={item.links}
@@ -336,6 +346,7 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
             pathname={pathname}
             selectable={item.selectable}
             onClick={item.onClick}
+            id={item.id}
           />
         );
       }
@@ -345,7 +356,7 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
           component="a"
           className={`${classes.link} ${getNestedLinkClass(currentLevel)}`}
           href={item.link}
-          key={item.label}
+          key={item.id || item.label}
           data-active={isItemActive}
           onClick={(e) => {
             e.preventDefault();

@@ -29,6 +29,7 @@ interface INavigationLink {
     links?: INavigationLink[];
     selectable?: boolean; // Flag to determine if parent item is clickable when it has children
     onClick?: () => void; // Optional click handler for custom actions
+    id?: number | string;
 }
 
 // Helper function to transform pages into navigation structure
@@ -37,7 +38,8 @@ function transformPagesToNavigation(pages: any[]): INavigationLink[] {
         label: page.title || page.keyword,
         link: `/admin/pages/${page.keyword}`,
         links: page.children ? transformPagesToNavigation(page.children) : undefined,
-        selectable: true // Page parent items are always selectable
+        selectable: true, // Page parent items are always selectable
+        id: page.id_pages
     }));
 }
 
@@ -109,7 +111,8 @@ export function AdminNavbar() {
         menuItems.push({
             label: 'Dashboard',
             icon: <IconDashboard size={16} />,
-            link: '/admin'
+            link: '/admin',
+            id: 'dashboard'
         });
 
         // User Management - check if user can manage users
@@ -124,6 +127,7 @@ export function AdminNavbar() {
                     label: 'User Management',
                     icon: <IconUsers size={16} />,
                     links: userManagementLinks,
+                    id: 'user-management'
                 });
             }
         }
@@ -139,6 +143,7 @@ export function AdminNavbar() {
                     label: 'Content',
                     icon: <IconPhoto size={16} />,
                     links: contentLinks,
+                    id: 'content'
                 });
             }
         }
@@ -150,7 +155,8 @@ export function AdminNavbar() {
                 label: 'Create Page',
                 icon: <IconPlus size={16} />,
                 link: '#',
-                onClick: () => setIsCreatePageModalOpen(true)
+                onClick: () => setIsCreatePageModalOpen(true),
+                id: 'create-page'
             });
         }
 
@@ -160,7 +166,8 @@ export function AdminNavbar() {
                 label: 'Menu Pages',
                 icon: <IconFiles size={16} />,
                 initiallyOpened: true,
-                links: transformPagesToNavigation(menuPages)
+                links: transformPagesToNavigation(menuPages),
+                id: 'menu-pages'
             });
         }
 
@@ -171,8 +178,10 @@ export function AdminNavbar() {
                 icon: <IconFiles size={16} />,
                 links: footerPages.map(page => ({
                     label: page.title || page.keyword,
-                    link: `/admin/pages/${page.keyword}`
-                }))
+                    link: `/admin/pages/${page.keyword}`,
+                    id: page.id_pages
+                })),
+                id: 'footer-pages'
             });
         }
 
@@ -183,8 +192,10 @@ export function AdminNavbar() {
                 icon: <IconFileText size={16} />,
                 links: contentPages.map(page => ({
                     label: page.title || page.keyword,
-                    link: `/admin/pages/${page.keyword}`
-                }))
+                    link: `/admin/pages/${page.keyword}`,
+                    id: page.id_pages
+                })),
+                id: 'content-pages'
             });
         }
 
@@ -194,27 +205,32 @@ export function AdminNavbar() {
                 // Authentication pages
                 ...(categorizedSystemPages?.authentication || []).map(page => ({
                     label: page.label,
-                    link: `/admin/pages/${page.keyword}`
+                    link: `/admin/pages/${page.keyword}`,
+                    id: page.id
                 })),
                 // Profile pages
                 ...(categorizedSystemPages?.profile || []).map(page => ({
                     label: page.label,
-                    link: `/admin/pages/${page.keyword}`
+                    link: `/admin/pages/${page.keyword}`,
+                    id: page.id
                 })),
                 // Error pages
                 ...(categorizedSystemPages?.errors || []).map(page => ({
                     label: page.label,
-                    link: `/admin/pages/${page.keyword}`
+                    link: `/admin/pages/${page.keyword}`,
+                    id: page.id
                 })),
                 // Legal pages
                 ...(categorizedSystemPages?.legal || []).map(page => ({
                     label: page.label,
-                    link: `/admin/pages/${page.keyword}`
+                    link: `/admin/pages/${page.keyword}`,
+                    id: page.id
                 })),
                 // Other system pages
                 ...(categorizedSystemPages?.other || []).map(page => ({
                     label: page.label,
-                    link: `/admin/pages/${page.keyword}`
+                    link: `/admin/pages/${page.keyword}`,
+                    id: page.id
                 })),
             ];
 
@@ -223,6 +239,7 @@ export function AdminNavbar() {
                     label: 'System Pages',
                     icon: <IconSettingsAutomation size={16} />,
                     links: systemPageLinks,
+                    id: 'system-pages'
                 });
             }
         }
@@ -234,8 +251,10 @@ export function AdminNavbar() {
                 icon: <IconSettings size={16} />,
                 links: configurationPageLinks.map(page => ({
                     label: page.label,
-                    link: `/admin/pages/${page.keyword}`
-                }))
+                    link: `/admin/pages/${page.keyword}`,
+                    id: page.id
+                })),
+                id: 'configuration'
             });
         }
 
@@ -250,6 +269,7 @@ export function AdminNavbar() {
                     label: 'Automation',
                     icon: <IconPlayerPlay size={16} />,
                     links: automationLinks,
+                    id: 'automation'
                 });
             }
         }
@@ -267,13 +287,14 @@ export function AdminNavbar() {
                 label: 'System Tools',
                 icon: <IconDatabase size={16} />,
                 links: systemToolLinks,
+                id: 'system-tools'
             });
         }
 
         return menuItems;
     }, [pages, configurationPageLinks, categorizedSystemPages, categorizedRegularPages, isLoading, permissionChecker]);
 
-    const links = navigationData.map((item) => <LinksGroup {...item} key={item.label} />);
+    const links = navigationData.map((item) => <LinksGroup {...item} key={item.id || item.label} />);
 
     return (
         <nav className={classes.navbar}>
