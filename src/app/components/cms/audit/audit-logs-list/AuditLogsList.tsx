@@ -23,9 +23,9 @@ export function AuditLogsList({ onViewDetails }: AuditLogsListProps) {
   const { data, isLoading, error, refetch } = useAuditLogs(filters);
 
   const handleFiltersChange = (newFilters: Partial<IAuditLogsListParams>) => {
-    // Merge new filters with current filters, resetting to page 1
+    // Merge new filters with current filters, ALWAYS resetting to page 1 when filters change
     const apiFilters: IAuditLogsListParams = {
-      page: newFilters.page !== undefined ? newFilters.page : 1,
+      page: 1, // Always reset to page 1 when applying filters
       pageSize: newFilters.pageSize !== undefined ? newFilters.pageSize : pageSize,
     };
 
