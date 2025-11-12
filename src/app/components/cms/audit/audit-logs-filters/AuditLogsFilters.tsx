@@ -26,7 +26,7 @@ export function AuditLogsFilters({ filters, onFiltersChange }: AuditLogsFiltersP
 
     // Fetch dynamic lookups
     const resourceTypes = useLookupsByType('resourceTypes');
-    const actions = useLookupsByType('actions');
+    const actions = useLookupsByType('auditActions');
     const permissionResults = useLookupsByType('permissionResults');
 
     // Create select options from lookups
