@@ -22,6 +22,13 @@ export function UsersPage() {
   const { hasPermission, isLoading } = useAuth();
   const router = useRouter();
 
+  // Always call hooks at the top, before any conditional returns
+  // Mutations
+  const deleteUserMutation = useDeleteUser();
+  const toggleBlockMutation = useToggleUserBlock();
+  const sendActivationMailMutation = useSendActivationMail();
+  const impersonateUserMutation = useImpersonateUser();
+
   const [userFormModal, setUserFormModal] = useState<{
     opened: boolean;
     mode: 'create' | 'edit';
@@ -78,12 +85,6 @@ export function UsersPage() {
       </Box>
     );
   }
-
-  // Mutations
-  const deleteUserMutation = useDeleteUser();
-  const toggleBlockMutation = useToggleUserBlock();
-  const sendActivationMailMutation = useSendActivationMail();
-  const impersonateUserMutation = useImpersonateUser();
 
   // Handle create user
   const handleCreateUser = () => {
