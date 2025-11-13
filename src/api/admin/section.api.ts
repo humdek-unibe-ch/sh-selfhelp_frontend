@@ -37,8 +37,8 @@ export const AdminSectionApi = {
         
         const response = await permissionAwareApiClient.put(
             API_CONFIG.ENDPOINTS.ADMIN_PAGES_ADD_SECTION,
-            pageId,
-            requestBody
+            requestBody,
+            pageId
         );
         return response.data.data;
     },
@@ -54,9 +54,9 @@ export const AdminSectionApi = {
     async updateSectionInPage(pageId: number, sectionId: number, sectionData: IUpdateSectionInPageData): Promise<any> {
         const response = await permissionAwareApiClient.put(
             API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_UPDATE,
+            sectionData,
             pageId,
-            sectionId,
-            sectionData
+            sectionId
         );
         return response.data.data;
     },
@@ -72,9 +72,9 @@ export const AdminSectionApi = {
     async updateSection(pageId: number, sectionId: number, sectionData: any): Promise<any> {
         const response = await permissionAwareApiClient.put(
             API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_UPDATE,
+            sectionData,
             pageId,
-            sectionId,
-            sectionData
+            sectionId
         );
         return response.data.data;
     },
@@ -115,9 +115,9 @@ export const AdminSectionApi = {
         
         const response = await permissionAwareApiClient.put(
             API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_ADD,
+            requestBody,
             pageId,
-            parentSectionId,
-            requestBody
+            parentSectionId
         );
         return response.data.data;
     },

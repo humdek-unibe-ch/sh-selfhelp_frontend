@@ -13,12 +13,13 @@ export interface IAdminPage {
     url: string;
     parent: number | null;
     nav_position: number | null;
-    footer_position?: number | null;
+    footer_position: number | null;
     is_headless: number;
+    is_open_access: number;
+    id_pageAccessTypes: number;
+    id_type: number;
     is_system: number;
-    id_type?: number;
-    title: string | null;
-    children?: IAdminPage[];
+    crud: number;
 }
 
 export type TAdminPageSectionsResponse = IBaseApiResponse<IAdminPageSectionsData>;

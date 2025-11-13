@@ -77,8 +77,8 @@ export const AdminPageApi = {
     async updatePage(pageId: number, updateData: IUpdatePageRequest): Promise<IAdminPage> {
         const response = await permissionAwareApiClient.put<IBaseApiResponse<IAdminPage>>(
             API_CONFIG.ENDPOINTS.ADMIN_PAGES_UPDATE,
-            pageId,
-            updateData
+            updateData,
+            pageId
         );
         return response.data.data;
     },

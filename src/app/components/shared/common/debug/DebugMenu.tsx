@@ -371,12 +371,12 @@ export function DebugMenu() {
                             <div>
                                 <Text fw={500} mb="xs">Profile Pages Category:</Text>
                                 <Code block style={{ maxHeight: 200, overflow: 'auto' }}>
-                                    {JSON.stringify(categorizedSystemPages.profile.map(p => ({ 
-                                        keyword: p.keyword, 
+                                    {JSON.stringify(categorizedSystemPages.profile.map((p: any) => ({
+                                        keyword: p.keyword,
                                         label: p.label,
                                         link: p.link,
-                                        children: p.children?.map(c => ({ 
-                                            keyword: c.keyword, 
+                                        children: p.children?.map((c: any) => ({
+                                            keyword: c.keyword,
                                             label: c.label,
                                             link: c.link
                                         })) || []

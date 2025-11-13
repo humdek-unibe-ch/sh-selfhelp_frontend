@@ -19,6 +19,7 @@ import { PageSections } from '../../../components/cms/pages/page-sections/PageSe
 import { ConfigurationPageEditor } from '../../../components/cms/pages/configuration-page-editor/ConfigurationPageEditor';
 import { useAdminPages } from '../../../../hooks/useAdminPages';
 import { IAdminPage } from '../../../../types/responses/admin/admin.types';
+import type { IPageHierarchy } from '../../../../hooks/useAdminPages';
 import { useQueryClient } from '@tanstack/react-query';
 import { REACT_QUERY_CONFIG } from '../../../../config/react-query.config';
 import { PageInspector } from '../../../components/cms/pages/page-inspector/PageInspector';
@@ -27,10 +28,10 @@ import { SectionInspector } from '../../../components/cms/sections';
 /**
  * Utility function to flatten a hierarchical pages array into a flat array
  */
-function flattenPages(pages: IAdminPage[]): IAdminPage[] {
-  const flattened: IAdminPage[] = [];
-  
-  function flatten(pageList: IAdminPage[]) {
+function flattenPages(pages: IPageHierarchy[]): IPageHierarchy[] {
+  const flattened: IPageHierarchy[] = [];
+
+  function flatten(pageList: IPageHierarchy[]) {
     pageList.forEach(page => {
       flattened.push(page);
       if (page.children && page.children.length > 0) {
@@ -38,14 +39,14 @@ function flattenPages(pages: IAdminPage[]): IAdminPage[] {
       }
     });
   }
-  
+
   flatten(pages);
   return flattened;
 }
 
 function AdminPagesContent() {
   const params = useParams();
-  const { pages, configurationPages, isLoading, isFetching, error } = useAdminPages();
+  const { pages, configurationPages, hierarchicalPages, isLoading, isFetching, error } = useAdminPages();
   const queryClient = useQueryClient();
 
   // Parse slug to get keyword and sectionId
@@ -69,13 +70,13 @@ function AdminPagesContent() {
   // Note: React Query handles caching automatically - no need to manually invalidate on keyword change
   // The staleTime config in react-query.config.ts controls when data is refetched
   const selectedPage = useMemo(() => {
-    if (!pages || !keyword) return null;
-    
-    const allPages = flattenPages(pages);
+    if (!hierarchicalPages || !keyword) return null;
+
+    const allPages = flattenPages(hierarchicalPages);
     const page = allPages.find(p => p.keyword === keyword);
-    
+
     return page || null;
-  }, [pages, keyword]);
+  }, [hierarchicalPages, keyword]);
 
   // Check if it's a configuration page
   const isConfigurationPage = useMemo(() => {

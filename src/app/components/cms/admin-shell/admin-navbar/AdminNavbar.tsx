@@ -32,13 +32,15 @@ interface INavigationLink {
     id?: number | string;
 }
 
-// Helper function to transform pages into navigation structure
+// Helper function to transform pages into navigation structure (supports hierarchical structure)
 function transformPagesToNavigation(pages: any[]): INavigationLink[] {
     return pages.map((page: any): INavigationLink => ({
-        label: page.title || page.keyword,
+        label: page.keyword, // Use keyword since title field no longer exists
         link: `/admin/pages/${page.keyword}`,
-        links: page.children ? transformPagesToNavigation(page.children) : undefined,
-        selectable: true, // Page parent items are always selectable
+        links: page.children && page.children.length > 0
+            ? transformPagesToNavigation(page.children)
+            : undefined, // Handle children recursively
+        selectable: true, // Page items are always selectable
         id: page.id_pages
     }));
 }
@@ -49,6 +51,7 @@ export function AdminNavbar() {
         configurationPageLinks,
         categorizedSystemPages,
         categorizedRegularPages,
+        hierarchicalPages,
         isLoading
     } = useAdminPages();
 
@@ -56,23 +59,19 @@ export function AdminNavbar() {
 
     const [isCreatePageModalOpen, setIsCreatePageModalOpen] = useState(false);
 
-    // Transform pages data for search component with full hierarchical structure
+    // Transform pages data for search component (flat structure now)
     const adminPagesData = useMemo(() => ({
         configurationPageLinks,
         categorizedSystemPages,
         categorizedRegularPages,
-        // Add raw pages data for hierarchical search (cast to match expected format)
+        // Add raw pages data for search (cast to match expected format)
         allPages: pages?.map(page => ({
             keyword: page.keyword,
-            title: page.title || undefined,
+            title: page.keyword, // Use keyword since title field no longer exists
             nav_position: page.nav_position || undefined,
             footer_position: page.footer_position || undefined,
-            is_system: Boolean(page.is_system),
-            children: page.children?.map(child => ({
-                keyword: child.keyword,
-                title: child.title || undefined,
-                children: child.children || []
-            }))
+            is_system: Boolean(page.is_system), 
+            children: [] // No children in new flat structure
         })) || []
     }), [configurationPageLinks, categorizedSystemPages, categorizedRegularPages, pages]);
 
@@ -82,21 +81,23 @@ export function AdminNavbar() {
     const navigationData = useMemo(() => {
         if (isLoading || !permissionChecker) return [];
 
-        // Get menu pages (pages that appear in website navigation)
-        const menuPages = pages?.filter(page =>
+        // Get menu pages (pages that appear in website navigation) from hierarchical data
+        const menuPages = hierarchicalPages?.filter(page =>
             page.nav_position !== null &&
             page.nav_position !== undefined &&
             !Boolean(page.is_system)
         ).sort((a, b) => (a.nav_position || 0) - (b.nav_position || 0)) || [];
 
-        // Get content pages (pages that don't appear in website navigation, excluding configuration pages)
+
+        // Get content pages (pages that don't appear in website navigation, excluding configuration pages and system pages)
         const configurationKeywords = new Set(configurationPageLinks?.map(p => p.keyword) || []);
         const contentPages = pages?.filter(page =>
             (page.nav_position === null || page.nav_position === undefined) &&
             (page.footer_position === null || page.footer_position === undefined) &&
-            !Boolean(page.is_system) &&
+            !Boolean(page.is_system) && // Exclude system pages
             !configurationKeywords.has(page.keyword) // Exclude configuration pages
         ) || [];
+
 
         // Get footer pages
         const footerPages = pages?.filter(page =>
@@ -177,7 +178,7 @@ export function AdminNavbar() {
                 label: 'Footer Pages',
                 icon: <IconFiles size={16} />,
                 links: footerPages.map(page => ({
-                    label: page.title || page.keyword,
+                    label: page.keyword, // Use keyword since title field no longer exists
                     link: `/admin/pages/${page.keyword}`,
                     id: page.id_pages
                 })),
@@ -191,7 +192,7 @@ export function AdminNavbar() {
                 label: 'Content Pages',
                 icon: <IconFileText size={16} />,
                 links: contentPages.map(page => ({
-                    label: page.title || page.keyword,
+                    label: page.keyword, // Use keyword since title field no longer exists
                     link: `/admin/pages/${page.keyword}`,
                     id: page.id_pages
                 })),

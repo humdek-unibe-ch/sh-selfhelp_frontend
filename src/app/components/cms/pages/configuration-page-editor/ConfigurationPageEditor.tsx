@@ -321,7 +321,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                                     Configuration Page
                                 </Badge>
                                 <Title order={2} fw={600}>
-                                    {page.title || page.keyword}
+                                    {page.keyword}
                                 </Title>
                             </Group>
                             <Button

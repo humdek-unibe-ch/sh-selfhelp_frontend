@@ -846,7 +846,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                             <Title order={4}>Actions</Title>
                             
                             {/* System page indicator */}
-                            {page?.is_system === 1 && (
+                            {Boolean(page?.is_system) && (
                                 <Alert 
                                     icon={<IconInfoCircle size="1rem" />}
                                     title="System Page"
@@ -889,7 +889,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                         color="red"
                                         variant="outline"
                                         onClick={() => setDeleteModalOpened(true)}
-                                        disabled={page?.is_system === 1}
+                                        disabled={Boolean(page?.is_system)}
                                     >
                                         Delete Page
                                     </Button>

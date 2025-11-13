@@ -8,6 +8,7 @@ import { API_CONFIG } from '../config/api.config';
 import { ILanguage } from '../types/responses/admin/languages.types';
 import { IUserDataResponse } from '../types/auth/jwt-payload.types';
 import { IPageItem } from '../types/common/pages.type';
+import { IAdminPage } from '../types/responses/admin/admin.types';
 
 /**
  * Server-side API client for making requests from Server Components
@@ -116,12 +117,12 @@ export const ServerApi = {
     /**
      * Fetch admin pages (for authenticated admin users)
      */
-    async getAdminPages(): Promise<any[] | null> {
+    async getAdminPages(): Promise<IAdminPage[] | null> {
         const isAuth = await serverApi.isAuthenticated();
         const isAdmin = await serverApi.isAdminRequest();
         if (!isAuth || !isAdmin) return null;
         
-        return await serverApi.get<any[]>(API_CONFIG.ENDPOINTS.ADMIN_PAGES_GET_ALL.route);
+        return await serverApi.get<IAdminPage[]>(API_CONFIG.ENDPOINTS.ADMIN_PAGES_GET_ALL.route);
     },
 
     /**

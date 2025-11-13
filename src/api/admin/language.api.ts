@@ -51,7 +51,7 @@ export const AdminLanguageApi = {
      * @throws {Error} When API request fails
      */
     async updateLanguage(languageId: number, languageData: IUpdateLanguageRequest): Promise<ILanguage> {
-        const response = await permissionAwareApiClient.put<TLanguageResponse>(API_CONFIG.ENDPOINTS.ADMIN_LANGUAGES_UPDATE, languageId, languageData);
+        const response = await permissionAwareApiClient.put<TLanguageResponse>(API_CONFIG.ENDPOINTS.ADMIN_LANGUAGES_UPDATE, languageData, languageId);
         return response.data.data;
     },
 

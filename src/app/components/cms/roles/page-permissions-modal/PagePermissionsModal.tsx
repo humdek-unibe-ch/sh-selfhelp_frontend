@@ -194,7 +194,7 @@ export function PagePermissionsModal({ opened, onClose, roleId, roleName }: IPag
     permissionRows.map(row => ({
       id: row.id_pages,
       name: row.keyword || '',
-      displayName: row.title || undefined,
+      displayName: row.keyword, // Use keyword since title field no longer exists
       permissions: row.permissions,
       hasChanges: row.hasChanges,
       badges: [
