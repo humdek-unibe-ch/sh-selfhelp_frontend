@@ -2,7 +2,7 @@
 // Updated to use CMS system page URLs
 export const ROUTES = {
   // System page URLs that match the CMS database
-  LOGIN: '/login',
+  LOGIN: '/auth/login',
   TWO_FACTOR_AUTH: '/two-factor-authentication',
   VERIFY_2FA: '/two-factor-authentication', // Keep alias for backward compatibility
   RESET_PASSWORD: '/reset',

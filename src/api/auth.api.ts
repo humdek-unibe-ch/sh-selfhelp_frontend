@@ -162,6 +162,7 @@ export const AuthApi = {
         let response;
 
         try {
+            this.clearAuthData();
             response = await permissionAwareApiClient.post<ILogoutSuccessResponse>(
                 API_CONFIG.ENDPOINTS.AUTH_LOGOUT,
                 { refresh_token: refreshToken } as ILogoutRequest
