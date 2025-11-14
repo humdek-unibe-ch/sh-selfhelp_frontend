@@ -9,7 +9,7 @@ import { ROUTES } from '../../config/routes.config';
  * No Access page shown when a user attempts to access a restricted area
  * without the proper permissions
  */
-export default function NoAccessPage() {
+function NoAccessPage() {
   const router = useRouter();
 
   return (

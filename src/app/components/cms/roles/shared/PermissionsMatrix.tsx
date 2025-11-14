@@ -17,7 +17,7 @@ import {
 import { IconX } from '@tabler/icons-react';
 import type { ICrudPermissions } from '../../../../../utils/permissions.utils';
 
-export interface IPermissionRow {
+interface IPermissionRow {
     id: number | string;
     name: string;
     displayName?: string;

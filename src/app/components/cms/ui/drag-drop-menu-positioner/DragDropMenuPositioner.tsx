@@ -31,7 +31,7 @@ import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { calculateMenuPosition, calculateFinalMenuPosition } from '../../../../../utils/position-calculator';
 import styles from './DragDropMenuPositioner.module.css';
 
-export interface IMenuPageItem {
+interface IMenuPageItem {
     id: string;
     keyword: string;
     label: string;
@@ -581,6 +581,3 @@ export function DragDropMenuPositioner({
         </DragContext.Provider>
     );
 }
-
-// Export as default
-export { DragDropMenuPositioner as default }; 

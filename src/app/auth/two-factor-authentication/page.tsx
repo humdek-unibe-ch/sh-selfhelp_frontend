@@ -8,7 +8,7 @@ import { AuthApi } from '../../../api/auth.api';
 import { ITwoFactorVerifyRequest } from '../../../types/requests/auth/auth.types';
 import { ROUTES } from '../../../config/routes.config';
 
-export default function TwoFactorAuthenticationPage() {
+export function TwoFactorAuthenticationPage() {
     const [code, setCode] = useState<string[]>(['', '', '', '', '', '']);
     const [isLoading, setIsLoading] = useState(false);
     const [timer, setTimer] = useState(600); // 10 minutes in seconds
