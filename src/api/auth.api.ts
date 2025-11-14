@@ -197,7 +197,8 @@ export const AuthApi = {
 
         // Store new token if provided
         if (response.data.data.access_token) {
-            // Get current user data to preserve other fields
+            // Get current user data from JWT token to preserve other fields
+            // Using getCurrentUser here since this is an API function (can't use hooks)
             const currentUser = getCurrentUser();
             const refreshToken = getRefreshToken();
             

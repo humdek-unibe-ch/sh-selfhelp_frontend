@@ -11,10 +11,10 @@ interface IEnhancedLanguageProviderProps {
 
 /**
  * Enhanced Language Provider that handles auth-dependent language features
- * - Loads languages from API (public or admin based on auth status)
+ * - Loads languages from API (public endpoint for frontend access)
  * - Syncs language from JWT token for authenticated users
  * - Clears localStorage language preference when user logs in
- * - Uses specific language hooks (usePublicLanguages) instead of deprecated useLanguages
+ * - Uses usePublicLanguages hook for optimized public language fetching
  */
 export function EnhancedLanguageProvider({ children }: IEnhancedLanguageProviderProps) {
     const { user, isLoading: isAuthLoading } = useAuthUser();

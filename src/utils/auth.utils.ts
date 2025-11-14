@@ -86,7 +86,8 @@ export const getUserPayload = (token: string | null): { id: number; email: strin
 
 /**
  * Get basic user information from JWT token
- * @deprecated Use useAuthUser hook instead for complete user information
+ * Used for synchronous auth checks in providers and API functions
+ * For comprehensive user data with permissions, use useAuthUser hook instead
  */
 export const getCurrentUser = (): { id: number; email: string; name: string; roles: string[] } | null => {
     const token = getAccessToken();
