@@ -21,14 +21,23 @@ export const AuthApi = {
     clearAuthData() {
         // Use the utility function to remove tokens
         removeTokens();
-        
+
         // Remove other auth-related data
         localStorage.removeItem('user');
         localStorage.removeItem('pending_2fa_user_id');
-        
+
         // Update navigation to reflect logged-out state
         try {
-            NavigationApi.getPages();
+            // Get current language ID from stored user data in localStorage
+            const storedUserData = localStorage.getItem('user');
+            let currentLanguageId = 1; // Default language ID
+
+            if (storedUserData) {
+                const userData = JSON.parse(storedUserData);
+                currentLanguageId = userData.languageId || userData.language?.id || 1;
+            }
+
+            NavigationApi.getPagesWithLanguage(currentLanguageId);
         } catch (error) {
             console.warn('Failed to update navigation after clearing auth data:', error);
         }

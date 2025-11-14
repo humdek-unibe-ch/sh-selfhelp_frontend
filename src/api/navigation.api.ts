@@ -11,16 +11,6 @@ import { IBaseApiResponse } from '../types/responses/common/response-envelope.ty
 import { IPageItem } from '../types/common/pages.type';
 
 export const NavigationApi = {
-    /**
-     * Fetches all available routes and navigation items from the API.
-     * @returns {Promise<IPageItem[]>} Array of navigation items
-     * @throws {Error} When API request fails
-     * @deprecated Use getPagesWithLanguage instead for better title support
-     */
-    async getPages(): Promise<IPageItem[]> {
-        const response = await permissionAwareApiClient.get<IBaseApiResponse<IPageItem[]>>(API_CONFIG.ENDPOINTS.PAGES_GET_ALL);
-        return response.data.data;
-    },
 
     /**
      * Fetches all available routes and navigation items with language-specific titles.
