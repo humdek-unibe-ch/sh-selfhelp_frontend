@@ -7,7 +7,7 @@ import { notifications } from '@mantine/notifications';
 import { AuthApi } from '../../../api/auth.api';
 import { ROUTES } from '../../../config/routes.config';
 
-export function LoginPage() {
+export default function LoginPage() {
   const [user, setUser] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);

@@ -378,7 +378,7 @@ export interface ITwoFactorAuthStyle extends IStyleWithSpacing {
 export interface IContainerStyle extends IStyleWithSpacing {
     style_name: 'container';
     mantine_size?: IContentField<TMantineSize>;      // Maps to Mantine 'size' prop
-    mantine_fluid?: IContentField<TMantineFullWidth>; // Maps to Mantine 'fluid' prop
+    mantine_fluid?: IContentField<string>; // Maps to Mantine 'fluid' prop
     mantine_px?: IContentField<TMantineSpacing>;     // Maps to Mantine 'px' prop
     mantine_py?: IContentField<TMantineSpacing>;     // Maps to Mantine 'py' prop
     use_mantine_style?: IContentField<string>; // Controls Mantine vs custom styling
@@ -386,7 +386,7 @@ export interface IContainerStyle extends IStyleWithSpacing {
 
 export interface ICenterStyle extends IBaseStyle {
     style_name: 'center';
-    mantine_center_inline?: IContentField<TMantineFullWidth>;
+    mantine_center_inline?: IContentField<string>;
     mantine_width?: IContentField<TMantineWidth>;
     mantine_height?: IContentField<TMantineHeight>;
     mantine_miw?: IContentField<TMantineWidth>;
@@ -424,7 +424,7 @@ export interface IAlertStyle extends IStyleWithSpacing {
     mantine_color?: IContentField<TMantineColor>;
     mantine_radius?: IContentField<TMantineRadius>;
     mantine_left_icon?: IContentField<string>;
-    mantine_with_close_button?: IContentField<TMantineWithCloseButton>;
+    mantine_with_close_button?: IContentField<string>;
     content?: IContentField<string>;
     use_mantine_style?: IContentField<string>;
 }
@@ -824,7 +824,7 @@ export interface IScrollAreaStyle extends IStyleWithSpacing {
     // ScrollArea-specific fields
     mantine_scroll_area_scrollbar_size?: IContentField<TMantineScrollAreaSize>;        // Select field for scrollbar size
     mantine_scroll_area_type?: IContentField<TMantineScrollAreaType>;                  // Segment field for scrollbar type (hover/always/never)
-    mantine_scroll_area_offset_scrollbars?: IContentField<TMantineFullWidth>;     // Checkbox field for offset scrollbars
+    mantine_scroll_area_offset_scrollbars?: IContentField<string>;     // Checkbox field for offset scrollbars
     mantine_scroll_area_scroll_hide_delay?: IContentField<string>;     // Text field for scroll hide delay
     mantine_height?: IContentField<TMantineHeight>;                           // Select field for height
     mantine_width?: IContentField<TMantineWidth>;                            // Select field for width
@@ -856,7 +856,7 @@ export interface IGridColumnStyle extends IStyleWithSpacing {
     mantine_grid_span?: IContentField<TMantineGridSpan>;        // Slider field for span (1-12, auto, content)
     mantine_grid_offset?: IContentField<TMantineGridOffset>;      // Slider field for offset (0-11)
     mantine_grid_order?: IContentField<TMantineGridOrder>;       // Slider field for order (1-12)
-    mantine_grid_grow?: IContentField<TMantineFullWidth>;        // Checkbox field for grow
+    mantine_grid_grow?: IContentField<string>;        // Checkbox field for grow
     mantine_width?: IContentField<TMantineWidth>;            // Select field for width
     mantine_height?: IContentField<TMantineHeight>;           // Select field for height
     use_mantine_style?: IContentField<string>;        // Checkbox for Mantine vs custom styling
@@ -885,13 +885,13 @@ export interface IButtonStyle extends IStyleWithSpacing {
     mantine_radius?: IContentField<TMantineRadius>;           // Select field for radius
     mantine_left_icon?: IContentField<string>;        // Select-icon field for left icon
     mantine_right_icon?: IContentField<string>;       // Select-icon field for right icon
-    mantine_fullwidth?: IContentField<TMantineFullWidth>;        // Checkbox field for full width
-    mantine_compact?: IContentField<TMantineCompact>;          // Checkbox field for compact
-    mantine_auto_contrast?: IContentField<TMantineAutoContrast>;    // Checkbox field for auto contrast
-    is_link?: IContentField<TMantineFullWidth>;                  // Checkbox field for link behavior
+    mantine_fullwidth?: IContentField<string>;        // Checkbox field for full width
+    mantine_compact?: IContentField<string>;          // Checkbox field for compact
+    mantine_auto_contrast?: IContentField<string>;    // Checkbox field for auto contrast
+    is_link?: IContentField<string>;                  // Checkbox field for link behavior
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
     disabled?: IContentField<string>;                 // Checkbox field for disabled state
-    open_in_new_tab?: IContentField<TMantineFullWidth>;          // Checkbox field for opening in new tab
+    open_in_new_tab?: IContentField<string>;          // Checkbox field for opening in new tab
     page_keyword?: IContentField<string>;             // Select field for page link
     url?: IContentField<string>;                      // Text input for URL
     // Translatable content fields
@@ -1110,7 +1110,7 @@ export interface IBadgeStyle extends IStyleWithSpacing {
     mantine_color?: IContentField<TMantineColor>;            // Color picker field
     use_mantine_style?: IContentField<string>;        // Checkbox field for Mantine styling
     mantine_right_icon?: IContentField<string>;        // Select-icon field for right icon
-    mantine_auto_contrast?: IContentField<TMantineAutoContrast>;    // Checkbox field for auto contrast
+    mantine_auto_contrast?: IContentField<string>;    // Checkbox field for auto contrast
 }
 
 export interface IBoxStyle extends IStyleWithSpacing {
@@ -1223,8 +1223,8 @@ export interface IProgressStyle extends IStyleWithSpacing {
     mantine_color?: IContentField<TMantineColor>;                      // Color picker field
     mantine_radius?: IContentField<TMantineRadius>;                     // Select field for radius
     mantine_size?: IContentField<TMantineSize>;                       // Select field for size
-    mantine_progress_striped?: IContentField<TMantineFullWidth>;           // Checkbox field for striped pattern
-    mantine_progress_animated?: IContentField<TMantineFullWidth>;          // Checkbox field for animation
+    mantine_progress_striped?: IContentField<string>;           // Checkbox field for striped pattern
+    mantine_progress_animated?: IContentField<string>;          // Checkbox field for animation
     mantine_progress_transition_duration?: IContentField<TMantineProgressTransitionDuration>; // Select field for transition duration
     use_mantine_style?: IContentField<string>;                  // Checkbox field for Mantine styling
 }
@@ -1232,7 +1232,7 @@ export interface IProgressStyle extends IStyleWithSpacing {
 export interface IProgressRootStyle extends IBaseStyle {
     style_name: 'progress-root';
     mantine_size?: IContentField<TMantineSize>;                       // Select field for size
-    mantine_progress_auto_contrast?: IContentField<TMantineFullWidth>;     // Checkbox field for auto contrast
+    mantine_progress_auto_contrast?: IContentField<string>;     // Checkbox field for auto contrast
     use_mantine_style?: IContentField<string>;                  // Checkbox field for Mantine styling
 }
 
@@ -1240,8 +1240,8 @@ export interface IProgressSectionStyle extends IBaseStyle {
     style_name: 'progress-section';
     value?: IContentField<string>;             // Number field for section value (0-100)
     mantine_color?: IContentField<TMantineColor>;                      // Color picker field
-    mantine_progress_striped?: IContentField<TMantineFullWidth>;           // Checkbox field for striped pattern
-    mantine_progress_animated?: IContentField<TMantineFullWidth>;          // Checkbox field for animation
+    mantine_progress_striped?: IContentField<string>;           // Checkbox field for striped pattern
+    mantine_progress_animated?: IContentField<string>;          // Checkbox field for animation
     label?: IContentField<string>;                              // Text field for section label
     mantine_tooltip_label?: IContentField<string>;              // Text field for tooltip label (display = 1)
     mantine_tooltip_position?: IContentField<string>;           // Select field for tooltip position

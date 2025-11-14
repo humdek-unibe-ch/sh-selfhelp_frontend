@@ -16,7 +16,7 @@ interface IPageContentRendererProps {
  * 
  * @component
  */
-function PageContentRenderer({ sections }: IPageContentRendererProps) {
+export function PageContentRenderer({ sections }: IPageContentRendererProps) {
     if (!sections || sections.length === 0) {
         return null;
     }

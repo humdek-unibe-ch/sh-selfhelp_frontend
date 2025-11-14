@@ -40,7 +40,7 @@ const GridColumnStyle: React.FC<IGridColumnStyleProps> = ({ style, styleProps, c
     if (height) styleObj.height = height;
 
     const colProps: any = {
-        span: span === 'auto' || span === 'content' ? span : parseInt(span),
+        span: span,
         ...(offset > 0 && { offset }),
         ...(order && { order }),
         ...(grow && { grow }),

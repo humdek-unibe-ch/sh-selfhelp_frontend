@@ -46,7 +46,7 @@ export type TMantineColor =
 /**
  * Mantine radius options
  */
-export type TMantineRadius = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+export type TMantineRadius = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'none';
 
 /**
  * Mantine orientation options
@@ -92,12 +92,12 @@ export type TMantineColorFormat = 'hex' | 'rgba' | 'hsla';
 /**
  * Mantine spacing values (gap, padding, margin)
  */
-export type TMantineSpacing = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | number;
+export type TMantineSpacing = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'none';
 
 /**
  * Mantine grid span values
  */
-export type TMantineGridSpan = number | 'auto' | 'content';
+export type TMantineGridSpan = 'auto' | 'content' | number;
 
 /**
  * Mantine grid overflow options
@@ -218,7 +218,7 @@ export type TMantineTimelineLineVariant = 'solid' | 'dashed' | 'dotted';
 /**
  * Mantine title order (heading level)
  */
-export type TMantineTitleOrder = 1 | 2 | 3 | 4 | 5 | 6;
+export type TMantineTitleOrder = number | 1 | 2 | 3 | 4 | 5 | 6;
 
 /**
  * Mantine code block option
