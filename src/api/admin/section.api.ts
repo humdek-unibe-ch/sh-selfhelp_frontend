@@ -150,8 +150,8 @@ export const AdminSectionApi = {
     async createSectionInPage(pageId: number, sectionData: ICreateSectionInPageData): Promise<any> {
         const response = await permissionAwareApiClient.post<IBaseApiResponse<any>>(
             API_CONFIG.ENDPOINTS.ADMIN_PAGES_CREATE_SECTION,
-            pageId,
-            sectionData
+            sectionData,
+            pageId
         );
         return response.data.data;
     },
@@ -167,9 +167,9 @@ export const AdminSectionApi = {
     async createSectionInSection(pageId: number, parentSectionId: number, sectionData: ICreateSectionInSectionData): Promise<any> {
         const response = await permissionAwareApiClient.post<IBaseApiResponse<any>>(
             API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_CREATE_CHILD,
+            sectionData,
             pageId,
-            parentSectionId,
-            sectionData
+            parentSectionId
         );
         return response.data.data;
     },
