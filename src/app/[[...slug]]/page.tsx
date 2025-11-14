@@ -8,9 +8,9 @@ import { usePageContent } from '../../hooks/usePageContent';
 import { useAppNavigation } from '../../hooks/useAppNavigation';
 import { useNavigationRefresh } from '../../hooks/useNavigationRefresh';
 import { useLanguageContext } from '../components/contexts/LanguageContext';
-import { PageContentRenderer } from '../components/frontend/content/PageContentRenderer';
 import { usePreviewMode } from '../../hooks/usePreviewMode';
 import React from 'react';
+import PageContentRenderer from '../components/frontend/content/PageContentRenderer';
 
 export default function DynamicPage() {
     const { slug } = useParams();

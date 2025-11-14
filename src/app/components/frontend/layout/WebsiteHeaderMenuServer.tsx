@@ -1,8 +1,8 @@
 import { Group, Menu, UnstyledButton, Text } from '@mantine/core';
 import { IconChevronDown } from '@tabler/icons-react';
-import { InternalLink } from '../../shared/ui/InternalLink';
 import { ServerApi } from '../../../../api/server.api';
 import { IPageItem } from '../../../../types/responses/frontend/frontend.types';
+import { InternalLink } from '../../shared';
 
 // Helper function to get page title
 const getPageTitle = (item: IPageItem): string => {

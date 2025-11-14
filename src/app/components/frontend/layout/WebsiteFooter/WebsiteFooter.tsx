@@ -1,11 +1,11 @@
 'use client';
 
 import { Box, Container, Group, Stack, Text } from '@mantine/core';
-import { InternalLink } from '../../../shared/ui/InternalLink';
 import { useAppNavigation } from '../../../../../hooks/useAppNavigation';
 import { usePagePrefetch } from '../../../../../hooks/usePagePrefetch';
 import { IPageItem } from '../../../../../types/responses/frontend/frontend.types';
 import styles from './WebsiteFooter.module.css';
+import { InternalLink } from '../../../shared';
 
 // Helper function to get page title
 const getPageTitle = (item: IPageItem): string => {

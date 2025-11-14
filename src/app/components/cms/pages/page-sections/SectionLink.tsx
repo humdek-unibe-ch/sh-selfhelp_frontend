@@ -21,7 +21,7 @@ interface ISectionLinkProps {
  * Supports right-click "Open in new tab" and middle-click functionality
  * while maintaining client-side navigation for regular clicks
  */
-export const SectionLink: React.FC<ISectionLinkProps> = ({ 
+const SectionLink: React.FC<ISectionLinkProps> = ({ 
     sectionId, 
     children, 
     className, 

@@ -8,7 +8,7 @@ import {
     IconFolders,
     IconPlayerPlay
 } from '@tabler/icons-react';
-import { InternalLink } from '../../../shared/ui/InternalLink';
+import { InternalLink } from '../../../shared';
 
 const navigationItems = [
     {

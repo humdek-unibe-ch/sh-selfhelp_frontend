@@ -14,8 +14,8 @@ import {
 } from '@tabler/icons-react';
 import { IPageSectionWithFields } from '../../../../../types/common/pages.type';
 import { RemoveSectionModal } from './RemoveSectionModal';
-import { SectionLink } from './SectionLink';
 import styles from './PageSection.module.css';
+import SectionLink from './SectionLink';
 
 interface IPageSectionProps {
     section: IPageSectionWithFields;

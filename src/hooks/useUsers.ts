@@ -63,11 +63,6 @@ export function useUser(userId: number) {
 }
 
 /**
- * Alias for useUser for consistency
- */
-export const useUserDetails = useUser;
-
-/**
  * Hook to fetch user groups
  */
 export function useUserGroups(userId: number) {

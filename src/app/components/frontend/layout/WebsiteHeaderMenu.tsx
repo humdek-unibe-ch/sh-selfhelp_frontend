@@ -2,10 +2,10 @@
 
 import { IconChevronDown } from '@tabler/icons-react';
 import { Group, Menu, UnstyledButton, Text } from '@mantine/core';
-import { InternalLink } from '../../shared/ui/InternalLink';
 import { useAppNavigation } from '../../../../hooks/useAppNavigation';
 import { usePagePrefetch } from '../../../../hooks/usePagePrefetch';
 import { IPageItem } from '../../../../../src/types/responses/frontend/frontend.types';
+import { InternalLink } from '../../shared';
 
 interface IMenuItemProps {
     item: IPageItem;

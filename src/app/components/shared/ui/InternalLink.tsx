@@ -31,7 +31,7 @@ interface IInternalLinkProps {
  * @param {IInternalLinkProps} props - Component props
  * @returns {JSX.Element} Rendered link component
  */
-export const InternalLink: React.FC<IInternalLinkProps> = ({ href, children, className, onMouseEnter, ...props }) => {
+const InternalLink: React.FC<IInternalLinkProps> = ({ href, children, className, onMouseEnter, ...props }) => {
     const { user, isLoading: isAuthLoading } = useAuth();
     const [isClient, setIsClient] = useState(false);
 

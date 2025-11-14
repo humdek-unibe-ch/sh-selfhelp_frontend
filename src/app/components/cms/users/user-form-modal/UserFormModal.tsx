@@ -13,7 +13,7 @@ import {
     LoadingOverlay,
 } from '@mantine/core';
 import { useQueryClient } from '@tanstack/react-query';
-import { useCreateUser, useUpdateUser, useUserDetails } from '../../../../../hooks/useUsers';
+import { useCreateUser, useUpdateUser, useUser } from '../../../../../hooks/useUsers';
 import { showErrorNotification, showSuccessNotification } from '../../../../../utils/mutation-error-handler';
 import type { ICreateUserRequest, IUpdateUserRequest } from '../../../../../types/requests/admin/users.types';
 import { useGroups } from '../../../../../hooks/useGroups';
@@ -43,7 +43,7 @@ export function UserFormModal({ opened, onClose, userId, mode }: IUserFormModalP
     const queryClient = useQueryClient();
     const createUserMutation = useCreateUser();
     const updateUserMutation = useUpdateUser();
-    const { data: userDetails, isLoading: isLoadingUser } = useUserDetails(userId || 0);
+    const { data: userDetails, isLoading: isLoadingUser } = useUser(userId || 0);
     const { data: groups, isLoading: isLoadingGroups } = useGroups();
     const { data: roles, isLoading: isLoadingRoles } = useRoles();
 
