@@ -7,7 +7,7 @@
  */
 
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
-import { NavigationApi } from '../api/navigation.api';
+import { NavigationApi, transformPageData } from '../api/navigation.api';
 import { IPageItem } from '../types/responses/frontend/frontend.types';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useLanguageContext } from '../app/components/contexts/LanguageContext';
@@ -64,7 +64,10 @@ export function useAppNavigation(options: { isAdmin?: boolean; forceRefresh?: bo
         refetchOnMount: forceRefresh, // Refetch when forced refresh is needed
         retry: 3, // Use global retry setting
         placeholderData: keepPreviousData, // Keep previous data during refetch for smooth transitions
-        select: (pages: IPageItem[]): INavigationData => {
+        select: (rawPages: any[]): INavigationData => {
+            // Transform raw API data to IPageItem format (cached by React Query)
+            const pages = rawPages.map(transformPageData);
+
             // Fix child page URLs to use direct paths instead of nested paths
             const fixChildPageUrls = (pageList: IPageItem[]): IPageItem[] => {
                 return pageList.map(page => {
