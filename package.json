@@ -11,7 +11,8 @@
         "tsc": "tsc",
         "lint": "eslint . --ext .ts,.tsx",
         "lint:fix": "eslint . --ext .ts,.tsx --fix",
-        "dead": "knip"
+        "dead": "knip",
+        "unused": "npx ts-unused-exports tsconfig.json"
     },
     "dependencies": {
         "@atlaskit/pragmatic-drag-and-drop": "^1.7.7",
