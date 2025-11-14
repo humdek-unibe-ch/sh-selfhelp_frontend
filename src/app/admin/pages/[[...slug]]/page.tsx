@@ -18,10 +18,7 @@ import { AdminShell } from '../../../components/cms/admin-shell/AdminShell';
 import { PageSections } from '../../../components/cms/pages/page-sections/PageSections';
 import { ConfigurationPageEditor } from '../../../components/cms/pages/configuration-page-editor/ConfigurationPageEditor';
 import { useAdminPages } from '../../../../hooks/useAdminPages';
-import { IAdminPage } from '../../../../types/responses/admin/admin.types';
 import type { IPageHierarchy } from '../../../../hooks/useAdminPages';
-import { useQueryClient } from '@tanstack/react-query';
-import { REACT_QUERY_CONFIG } from '../../../../config/react-query.config';
 import { PageInspector } from '../../../components/cms/pages/page-inspector/PageInspector';
 import { SectionInspector } from '../../../components/cms/sections';
 
@@ -47,7 +44,6 @@ function flattenPages(pages: IPageHierarchy[]): IPageHierarchy[] {
 function AdminPagesContent() {
   const params = useParams();
   const { pages, configurationPages, hierarchicalPages, isLoading, isFetching, error } = useAdminPages();
-  const queryClient = useQueryClient();
 
   // Parse slug to get keyword and sectionId
   const { keyword, sectionId } = useMemo(() => {

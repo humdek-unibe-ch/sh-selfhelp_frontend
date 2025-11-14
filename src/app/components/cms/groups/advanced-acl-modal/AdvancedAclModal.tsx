@@ -27,11 +27,10 @@ import {
     IconX,
     IconLock,
 } from '@tabler/icons-react';
-import { notifications } from '@mantine/notifications';
-import { useQueryClient } from '@tanstack/react-query';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { useGroupDetails, useUpdateGroupAcls } from '../../../../../hooks/useGroups';
 import { convertAclsToApiFormat, convertApiAclsToUiFormat } from '../../../../../utils/acl-conversion.utils';
+import { useQueryClient } from '@tanstack/react-query';
 
 export interface IAclPage {
     id: number;

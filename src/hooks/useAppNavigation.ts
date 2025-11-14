@@ -106,18 +106,6 @@ export function useAppNavigation(options: { isAdmin?: boolean; forceRefresh?: bo
             // Flatten ALL pages (including children) for route checking
             const routes = flattenPages(fixedPages);
 
-            const transformResults = {
-                totalPages: pages.length,
-                menuPages: menuPages.length,
-                footerPages: footerPages.length,
-                profilePages: profilePages.length,
-                flattenedRoutes: routes.length,
-                routeKeywords: routes.map(r => r.keyword),
-                languageId: currentLanguageId,
-                pagesWithTitles: pages.filter(p => p.title && p.title.trim()).length,
-                pagesWithoutTitles: pages.filter(p => !p.title || !p.title.trim()).length
-            };
-
             // Generate Refine resources for admin mode
             let resources: any[] = [];
             if (isAdmin) {

@@ -29,8 +29,8 @@ import { EnhancedLanguageProvider } from '../app/components/contexts/EnhancedLan
 import { theme } from '../../theme';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 
-// Create a client with global configuration settings WITHOUT persistence
-// This eliminates stale data issues while maintaining performance
+// Create a stable QueryClient at module level for the entire app lifecycle
+// This ensures the same instance is used across all renders and prevents ESLint warnings
 const queryClient = new QueryClient({
     defaultOptions: REACT_QUERY_CONFIG.DEFAULT_OPTIONS,
 });

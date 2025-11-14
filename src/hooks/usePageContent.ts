@@ -56,11 +56,6 @@ export function usePageContent(pageId: number | null, options: IUsePageContentOp
         ? [queryKeyPrefix, pageId, languageIdToUse, preview ? 'preview' : 'published']
         : ['page-content', pageId, languageIdToUse, preview ? 'preview' : 'published'];
 
-    // Determine cache configuration based on usage
-    const gcTime = forLayout
-        ? REACT_QUERY_CONFIG.CACHE.gcTime
-        : REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.gcTime;
-
     // Query configuration using React Query with aggressive caching for smooth navigation
     const {
         data,
