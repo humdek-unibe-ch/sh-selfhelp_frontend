@@ -35,4 +35,4 @@ export function PageContentRenderer({ sections }: IPageContentRendererProps) {
     );
 }
 
-export default PageContentRenderer;
+// export default PageContentRenderer;

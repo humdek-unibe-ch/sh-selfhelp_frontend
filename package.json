@@ -12,7 +12,7 @@
         "lint": "eslint . --ext .ts,.tsx",
         "lint:fix": "eslint . --ext .ts,.tsx --fix",
         "dead": "knip",
-        "unused": "npx ts-unused-exports tsconfig.json"
+        "unused": "npx ts-unused-exports tsconfig.json --excludePathsFromReport=.next --ignoreFiles=\"page.tsx\""
     },
     "dependencies": {
         "@atlaskit/pragmatic-drag-and-drop": "^1.7.7",

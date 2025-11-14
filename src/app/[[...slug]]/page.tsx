@@ -10,7 +10,7 @@ import { useNavigationRefresh } from '../../hooks/useNavigationRefresh';
 import { useLanguageContext } from '../components/contexts/LanguageContext';
 import { usePreviewMode } from '../../hooks/usePreviewMode';
 import React from 'react';
-import PageContentRenderer from '../components/frontend/content/PageContentRenderer';
+import { PageContentRenderer } from '../components';
 
 export default function DynamicPage() {
     const { slug } = useParams();
