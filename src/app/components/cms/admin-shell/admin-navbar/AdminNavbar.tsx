@@ -17,11 +17,10 @@ import {
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { useAuth } from '../../../../../hooks/useAuth';
 import { LinksGroup } from './components/LinksGroup';
-import { UserButton } from './components/UserButton';
 import { CreatePageModal } from '../../pages/create-page/CreatePage';
-import { NavigationSearch } from './components/NavigationSearch';
 import { SelfHelpLogo, PreviewModeToggle } from '../../../shared';
 import classes from './AdminNavbar.module.css';
+import { NavigationSearch, UserButton } from './components';
 
 interface INavigationLink {
     label: string;

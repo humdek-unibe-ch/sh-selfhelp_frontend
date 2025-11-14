@@ -13,7 +13,7 @@ import { IconChevronRight } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useNavigationStore } from '../../../../../store/navigation.store';
 import { usePathname } from 'next/navigation';
-import { NavigationItem } from './NavigationItem';
+import { NavigationItem } from './NavigationItem/NavigationItem';
 
 interface INavigationLink {
     label: string;

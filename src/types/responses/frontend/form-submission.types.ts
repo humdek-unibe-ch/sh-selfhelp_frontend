@@ -3,7 +3,7 @@
  */
 
 // Base form response structure
-export interface IFormResponse<T = any> {
+interface IFormResponse<T = any> {
     status: number;
     message?: string;
     data?: T;
@@ -38,7 +38,7 @@ export interface IFormDeleteResponse extends IFormResponse {
 }
 
 // Page forms response
-export interface IPageFormsResponse extends IFormResponse {
+interface IPageFormsResponse extends IFormResponse {
     data?: {
         forms: IFormRecord[];
         total_count: number;
@@ -46,7 +46,7 @@ export interface IPageFormsResponse extends IFormResponse {
 }
 
 // Form record structure
-export interface IFormRecord {
+interface IFormRecord {
     id: number;
     page_id: number;
     section_id: number;

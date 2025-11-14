@@ -19,7 +19,7 @@ export interface IUnusedSection {
  * RefContainer Section Item
  * Represents a section with refContainer style
  */
-export interface IRefContainerSection {
+interface IRefContainerSection {
     /** Section ID */
     id: number;
     /** Section name */
@@ -45,9 +45,9 @@ export type IRefContainerSectionsData = IRefContainerSection[];
 /**
  * Unused Sections API Response
  */
-export interface IUnusedSectionsResponse extends IBaseApiResponse<IUnusedSectionsData> {}
+interface IUnusedSectionsResponse extends IBaseApiResponse<IUnusedSectionsData> {}
 
 /**
  * RefContainer Sections API Response
  */
-export interface IRefContainerSectionsResponse extends IBaseApiResponse<IRefContainerSectionsData> {}
+interface IRefContainerSectionsResponse extends IBaseApiResponse<IRefContainerSectionsData> {}

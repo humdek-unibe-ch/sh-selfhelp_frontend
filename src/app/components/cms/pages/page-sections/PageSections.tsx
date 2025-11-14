@@ -53,7 +53,7 @@ interface IPageSectionsProps {
 }
 
 // Interfaces for PageSectionsHeader component
-export interface IPageSectionsState {
+interface IPageSectionsState {
     sectionsCount: number;
     isProcessing: boolean;
     searchQuery: string;
@@ -61,7 +61,7 @@ export interface IPageSectionsState {
     currentSearchIndex: number;
 }
 
-export interface IPageSectionsHandlers {
+interface IPageSectionsHandlers {
     onExpandAll: () => void;
     onCollapseAll: () => void;
     onSearchChange: (query: string) => void;

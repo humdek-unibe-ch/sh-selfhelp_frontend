@@ -180,10 +180,3 @@ export const PERMISSIONS = {
     ADMIN_USER_UNBLOCK: 'admin.user.unblock',
     ADMIN_USER_UPDATE: 'admin.user.update',
 } as const;
-
-/**
- * Role constants
- */
-export const ROLES = {
-    ADMIN: 'admin',
-} as const;

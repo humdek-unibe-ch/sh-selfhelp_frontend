@@ -30,7 +30,7 @@ export interface IPermissionRow {
     extraInfo?: React.ReactNode;
 }
 
-export interface IPermissionsMatrixProps {
+interface IPermissionsMatrixProps {
     title: string;
     icon?: React.ReactNode;
     permissionRows: IPermissionRow[];

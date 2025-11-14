@@ -84,6 +84,7 @@
         "knip": "^5.69.1",
         "postcss": "^8.5.6",
         "tailwindcss": "^4.1.17",
+        "ts-prune": "^0.10.3",
         "ts-unused-exports": "^11.0.1",
         "typescript": "5.9.3"
     },

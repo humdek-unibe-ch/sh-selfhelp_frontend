@@ -1,6 +1,6 @@
 import { IBaseApiResponse } from '../common/response-envelope.types';
 
-export interface IStyleRelationship {
+interface IStyleRelationship {
     id: number;
     name: string;
 }

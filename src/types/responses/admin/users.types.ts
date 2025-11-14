@@ -44,7 +44,7 @@ export interface IUserDetails {
   updated_at: string;
 }
 
-export interface IUsersPagination {
+interface IUsersPagination {
   page: number;
   pageSize: number;
   totalCount: number;
