@@ -12,8 +12,9 @@ import { warn, error as logError } from '../utils/debug-logger';
 
 /**
  * Permission denied error class
+ * (Used internally by interceptor)
  */
-export class PermissionDeniedError extends Error {
+class PermissionDeniedError extends Error {
     constructor(
         public requiredPermissions: string[],
         public userPermissions: string[],
@@ -192,10 +193,10 @@ export function initializePermissionChecking(client: AxiosInstance): void {
 }
 
 /**
- * Helper function to manually check if user has permission for an endpoint
+ * Helper function to manually check if user has permission for an endpoint (unused - available for future use)
  * Useful for UI elements (disabling buttons, hiding options, etc.)
  */
-export function canAccessEndpoint(endpointKey: keyof typeof API_CONFIG.ENDPOINTS): boolean {
+function canAccessEndpoint(endpointKey: keyof typeof API_CONFIG.ENDPOINTS): boolean {
     const config = API_CONFIG.ENDPOINTS[endpointKey];
     
     if (!config || typeof config !== 'object' || !('permissions' in config)) {
@@ -206,9 +207,9 @@ export function canAccessEndpoint(endpointKey: keyof typeof API_CONFIG.ENDPOINTS
 }
 
 /**
- * Helper function to get required permissions for an endpoint
+ * Helper function to get required permissions for an endpoint (unused - available for future use)
  */
-export function getEndpointPermissions(endpointKey: keyof typeof API_CONFIG.ENDPOINTS): string[] {
+function getEndpointPermissions(endpointKey: keyof typeof API_CONFIG.ENDPOINTS): string[] {
     const config = API_CONFIG.ENDPOINTS[endpointKey];
     
     if (!config || typeof config !== 'object' || !('permissions' in config)) {

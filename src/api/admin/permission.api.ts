@@ -2,7 +2,8 @@ import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
 import type { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
 
-export interface IPermission {
+// Removed unused exports - These interfaces are available internally
+interface IPermission {
   id: number;
   name: string;
   description?: string;
@@ -12,7 +13,7 @@ export interface IPermission {
   updated_at?: string;
 }
 
-export interface IPermissionsListResponse {
+interface IPermissionsListResponse {
   permissions: IPermission[];
 }
 

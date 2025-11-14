@@ -44,7 +44,8 @@ export interface ICreateMultipleAssetsRequest {
   overwrite?: boolean;
 }
 
-export interface IMultipleAssetsUploadResponse {
+// Removed unused export - IMultipleAssetsUploadResponse is available internally
+interface IMultipleAssetsUploadResponse {
   successful_uploads: number;
   failed_uploads: number;
   total_files: number;
