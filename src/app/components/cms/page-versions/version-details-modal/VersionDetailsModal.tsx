@@ -1,7 +1,7 @@
 'use client';
 
 import { Modal, Stack, Group, Text, Badge, Divider, Paper, Button, ActionIcon, CopyButton, Tooltip, Code, Box, Alert } from '@mantine/core';
-import { IconCheck, IconCopy, IconGitCommit, IconUser, IconClock, IconTag, IconTrash } from '@tabler/icons-react';
+import { IconCheck, IconCopy, IconGitCommit, IconUser, IconClock, IconTag } from '@tabler/icons-react';
 import { format } from 'date-fns';
 import { IPageVersion } from '../../../../../types/responses/admin/page-version.types';
 

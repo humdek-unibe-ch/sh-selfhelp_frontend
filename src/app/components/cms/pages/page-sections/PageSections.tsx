@@ -16,7 +16,6 @@ import {
     Box
 } from '@mantine/core';
 import {
-    IconInfoCircle,
     IconAlertCircle,
     IconFile,
     IconPlus,

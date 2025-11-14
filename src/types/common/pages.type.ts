@@ -4,7 +4,7 @@
  * Consolidated from: pages.type.ts, page-details.types.ts, frontend.types.ts
  */
 
-import { TStyle, IContentField, TStyleName } from '../common/styles.types';
+import { IContentField, TStyleName } from '../common/styles.types';
 import type { IBaseApiResponse } from '../responses/common/response-envelope.types';
 import { IFieldConfig } from '../requests/admin/fields.types';
 

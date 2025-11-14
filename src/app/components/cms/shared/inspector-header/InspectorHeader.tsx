@@ -5,8 +5,7 @@ import {
     Group,
     Title,
     Badge,
-    Button,
-    Stack
+    Button
 } from '@mantine/core';
 import { ReactNode } from 'react';
 

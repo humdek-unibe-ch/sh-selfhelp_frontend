@@ -6,7 +6,6 @@ import { IconExclamationCircle } from '@tabler/icons-react';
 import { useLogin } from '@refinedev/core';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ILoginStyle } from '../../../../types/common/styles.types';
-import { ROUTES } from '../../../../config/routes.config';
 
 /**
  * Props interface for LoginStyle component

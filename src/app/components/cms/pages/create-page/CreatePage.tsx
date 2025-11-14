@@ -28,7 +28,7 @@ import { IconInfoCircle, IconEdit, IconLock } from '@tabler/icons-react';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { PAGE_ACCESS_TYPES, PAGE_ACCESS_TYPES_MOBILE_AND_WEB } from '../../../../../constants/lookups.constants';
-import { ICreatePageFormValues, ICreatePageModalProps, IMenuPageItem } from '../../../../../types/forms/create-page.types';
+import { ICreatePageFormValues, ICreatePageModalProps } from '../../../../../types/forms/create-page.types';
 import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { DragDropMenuPositioner } from '../../ui/drag-drop-menu-positioner/DragDropMenuPositioner';
 import { ICreatePageRequest } from '../../../../../types/requests/admin/create-page.types';

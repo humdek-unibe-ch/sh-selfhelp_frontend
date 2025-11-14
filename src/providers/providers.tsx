@@ -9,7 +9,7 @@ if (process.env.NODE_ENV === 'development') {
     });
 }
 
-import { MantineProvider, createTheme } from '@mantine/core';
+import { MantineProvider } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { Refine } from '@refinedev/core';
 import appRouter from '@refinedev/nextjs-router';

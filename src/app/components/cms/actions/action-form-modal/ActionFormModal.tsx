@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Button, Group, LoadingOverlay, ScrollArea, Select, Stack, Text, TextInput, NumberInput } from '@mantine/core';
-import { IconInfoCircle } from '@tabler/icons-react';
+import { LoadingOverlay, Select, Stack, TextInput } from '@mantine/core';
 import classes from './ActionFormModal.module.css';
 import { useCreateAction, useActionDetails, useUpdateAction } from '../../../../../hooks/useActions';
 import { ModalWrapper } from '../../../shared/common/CustomModal/CustomModal';

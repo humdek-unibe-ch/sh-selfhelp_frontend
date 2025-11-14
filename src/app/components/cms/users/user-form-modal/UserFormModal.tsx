@@ -5,7 +5,6 @@ import { useForm } from '@mantine/form';
 import {
     Stack,
     TextInput,
-    Select,
     Switch,
     Group,
     MultiSelect,

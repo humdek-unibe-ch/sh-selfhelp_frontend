@@ -11,8 +11,7 @@ import {
     Card,
     Text,
     Divider,
-    Alert,
-    Textarea
+    Alert
 } from '@mantine/core';
 import { IconPlus, IconTrash, IconFilter, IconAlertCircle } from '@tabler/icons-react';
 import { FilterBuilderInline } from './FilterBuilderInline';

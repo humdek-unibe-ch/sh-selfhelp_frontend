@@ -14,7 +14,6 @@ import {
     Code,
     ScrollArea,
     Alert,
-    Switch,
     Paper,
     Box,
     Menu,
@@ -22,25 +21,17 @@ import {
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { 
-    IconBug, 
-    IconSettings, 
-    IconDownload, 
-    IconTrash,
-    IconEye,
+    IconBug,
     IconActivity,
-    IconRoute,
     IconClearAll,
-    IconFilter,
     IconInfoCircle,
-    IconPalette,
     IconLanguage,
-    IconChartLine,
     IconAlertTriangle,
     IconCopy,
     IconCheck,
     IconX
 } from '@tabler/icons-react';
-import { isDebugEnabled, DEBUG_CONFIG } from '../../../../../config/debug.config';
+import { DEBUG_CONFIG } from '../../../../../config/debug.config';
 import { debugLogger } from '../../../../../utils/debug-logger';
 import { useAppNavigation } from '../../../../../hooks/useAppNavigation';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
@@ -51,8 +42,7 @@ import { IPageItem } from '../../../../../types/common/pages.type';
 import { 
     getRenderStats, 
     getWarnings, 
-    resetPerformanceMonitor,
-    copyPerformanceReportToClipboard
+    resetPerformanceMonitor
 } from '../../../../../utils/performance-monitor.utils';
 
 interface IDebugLogEntry {

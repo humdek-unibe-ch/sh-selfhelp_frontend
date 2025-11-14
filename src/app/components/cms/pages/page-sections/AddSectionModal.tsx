@@ -31,7 +31,7 @@ import { useSectionOperations } from '../../../../../hooks/useSectionOperations'
 import { useUnusedSections, useRefContainerSections } from '../../../../../hooks/useSectionUtility';
 import { useSectionDetails } from '../../../../../hooks/useSectionDetails';
 import { IStyle, IStyleGroup } from '../../../../../types/responses/admin/styles.types';
-import { readJsonFile, isValidJsonFile } from '../../../../../utils/export-import.utils';
+import { readJsonFile } from '../../../../../utils/export-import.utils';
 import { ISectionOperationOptions } from '../../../../../utils/section-operations.utils';
 import { isStyleRelationshipValid, findStyleById } from '../../../../../utils/style-relationship.utils';
 

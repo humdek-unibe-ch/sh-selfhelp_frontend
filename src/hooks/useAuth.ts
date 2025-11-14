@@ -3,7 +3,6 @@
 import { useCallback } from 'react';
 import { useIsAuthenticated } from '@refinedev/core';
 import { useRouter } from 'next/navigation';
-import { PERMISSIONS } from '../types/auth/jwt-payload.types';
 import { ROUTES } from '../config/routes.config';
 import { useAuthUser, useHasPermission, useHasAdminAccess } from './useUserData';
 

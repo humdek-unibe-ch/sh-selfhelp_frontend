@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from 'react';
-import { ScrollArea, Group, Code, Box, Text, Badge } from '@mantine/core';
+import { ScrollArea, Group, Code, Box } from '@mantine/core';
 import {
     IconDashboard,
     IconUsers,

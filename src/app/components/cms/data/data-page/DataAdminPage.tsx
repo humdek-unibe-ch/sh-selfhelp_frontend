@@ -2,9 +2,9 @@
 
 import { useMemo, useState, useCallback, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Box, Button, Card, Checkbox, Group, MultiSelect, Select, Stack, Text, Title } from '@mantine/core';
+import { Button, Card, Checkbox, Group, MultiSelect, Select, Stack, Text, Title } from '@mantine/core';
 import { IconDatabaseSearch, IconSettings } from '@tabler/icons-react';
-import { useDataTables, useDataRows, DATA_QUERY_KEYS } from '../../../../../hooks/useData';
+import { useDataTables } from '../../../../../hooks/useData';
 import { useUsers } from '../../../../../hooks/useUsers';
 import { useAdminLanguages } from '../../../../../hooks/useLanguages';
 import type { IUserBasic } from '../../../../../types/responses/admin/users.types';

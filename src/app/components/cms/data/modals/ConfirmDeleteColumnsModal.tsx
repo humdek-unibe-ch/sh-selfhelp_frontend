@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Alert, Button, Group, List, Modal, Stack, Text, TextInput, ThemeIcon } from '@mantine/core';
+import { Alert, Button, Group, List, Modal, Stack, TextInput, ThemeIcon } from '@mantine/core';
 import { IconAlertTriangle, IconCircleCheck } from '@tabler/icons-react';
 
 interface IConfirmDeleteColumnsModalProps {

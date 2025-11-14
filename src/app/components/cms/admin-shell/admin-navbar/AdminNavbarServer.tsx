@@ -5,13 +5,8 @@ import {
     IconFileText, 
     IconSettings,
     IconDatabase,
-    IconUsersGroup,
-    IconShield,
     IconFolders,
-    IconTrash,
-    IconCalendarTime,
-    IconPlayerPlay,
-    IconPhoto
+    IconPlayerPlay
 } from '@tabler/icons-react';
 import { InternalLink } from '../../../shared/ui/InternalLink';
 

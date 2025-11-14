@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Container, Divider, Group, Stack, Text } from '@mantine/core';
+import { Box, Container, Group, Stack, Text } from '@mantine/core';
 import { InternalLink } from '../../../shared/ui/InternalLink';
 import { useAppNavigation } from '../../../../../hooks/useAppNavigation';
 import { usePagePrefetch } from '../../../../../hooks/usePagePrefetch';

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from 'react';
-import { Button, Divider, Group, Modal, MultiSelect, Stack, Title } from '@mantine/core';
+import { Button, Group, Modal, MultiSelect, Stack, Title } from '@mantine/core';
 import { useTableColumns, useDeleteColumns } from '../../../../../hooks/useData';
 import { IconTrash } from '@tabler/icons-react';
 import { ConfirmDeleteColumnsModal } from './ConfirmDeleteColumnsModal';

@@ -11,7 +11,6 @@ import { IconTrash, IconRefresh, IconUser, IconDatabase, IconX, IconRoute } from
 import { useClearAllCachesMutation, useClearCacheCategoryMutation, useClearUserCacheMutation, useResetCacheStatsMutation } from '../../../../../hooks/useCache';
 import { useClearApiRoutesCacheMutation } from '../../../../../hooks/useSectionUtility';
 import { useUsers } from '../../../../../hooks/useUsers';
-import type { TCacheCategory } from '../../../../../types/responses/admin/cache.types';
 
 type TSupportedCacheCategory = 'pages' | 'users' | 'sections' | 'languages' | 'groups' | 'roles' | 'permissions' | 'lookups' | 'assets' | 'frontend_user' | 'cms_preferences' | 'scheduled_jobs';
 

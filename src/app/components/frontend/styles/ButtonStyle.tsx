@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Modal, Group, Text } from '@mantine/core';
+import { Button, Modal, Group } from '@mantine/core';
 import { useRouter } from 'next/navigation';
 import { IButtonStyle } from '../../../../types/common/styles.types';
 import IconComponent from '../../shared/common/IconComponent';

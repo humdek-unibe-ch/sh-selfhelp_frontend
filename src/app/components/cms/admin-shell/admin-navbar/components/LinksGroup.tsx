@@ -7,7 +7,6 @@ import {
   Collapse,
   Text,
   UnstyledButton,
-  rem,
 } from '@mantine/core';
 import { IconChevronRight } from '@tabler/icons-react';
 import { useRouter, usePathname } from 'next/navigation';

@@ -10,8 +10,7 @@ import {
 import { 
     IconPlus, 
     IconRefresh, 
-    IconSettings,
-    IconSearch
+    IconSettings
 } from '@tabler/icons-react';
 
 interface INavigationQuickActionsProps {

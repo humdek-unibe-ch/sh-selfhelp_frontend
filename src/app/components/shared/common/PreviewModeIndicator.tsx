@@ -7,7 +7,7 @@
 
 'use client';
 
-import { Alert, Box } from '@mantine/core';
+import { Box } from '@mantine/core';
 import { IconEye } from '@tabler/icons-react';
 import { usePreviewMode } from '../../../../hooks/usePreviewMode';
 

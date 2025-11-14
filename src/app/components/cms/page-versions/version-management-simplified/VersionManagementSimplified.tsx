@@ -1,6 +1,6 @@
 'use client';
 
-import { Stack, Group, Text, Button, Paper, Badge, Divider, Modal } from '@mantine/core';
+import { Stack, Group, Text, Button, Paper, Badge, Modal } from '@mantine/core';
 import { IconRocket, IconHistory, IconGitCompare, IconAlertCircle, IconEye } from '@tabler/icons-react';
 import { useState } from 'react';
 import { IPageVersion } from '../../../../../types/responses/admin/page-version.types';

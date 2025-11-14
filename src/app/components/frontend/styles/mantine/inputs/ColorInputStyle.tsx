@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { ColorInput, Input } from '@mantine/core';
+import { ColorInput } from '@mantine/core';
 import { IColorInputStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 

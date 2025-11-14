@@ -14,8 +14,7 @@ import {
     IAddSectionToSectionData,
     ICreateSectionInPageData,
     ICreateSectionInSectionData,
-    IUpdateSectionInPageData,
-    IUpdateSectionInSectionData
+    IUpdateSectionInPageData
 } from '../../types/requests/admin/create-section.types';
 
 export const AdminSectionApi = {

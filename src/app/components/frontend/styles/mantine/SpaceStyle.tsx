@@ -1,6 +1,5 @@
 import React from 'react';
 import { Space } from '@mantine/core';
-import BasicStyle from '../BasicStyle';
 import { ISpaceStyle } from '../../../../../types/common/styles.types';
 
 /**

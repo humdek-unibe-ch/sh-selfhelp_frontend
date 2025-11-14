@@ -42,7 +42,6 @@ import {
   IconPlus,
   IconSortAscending,
   IconSortDescending,
-  IconShield,
   IconUsers,
   IconX,
   IconFileText,

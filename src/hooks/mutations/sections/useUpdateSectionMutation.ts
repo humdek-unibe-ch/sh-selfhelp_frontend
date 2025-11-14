@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminSectionApi } from '../../../api/admin/section.api';
-import { IUpdateSectionRequest, IUpdateSectionMutationVariables } from '../../../types/requests/admin/update-section.types';
+import { IUpdateSectionMutationVariables } from '../../../types/requests/admin/update-section.types';
 
 interface IUpdateSectionMutationOptions {
     showNotifications?: boolean;

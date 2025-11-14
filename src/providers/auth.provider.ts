@@ -6,11 +6,11 @@
  */
 
 import { AuthProvider } from "@refinedev/core";
-import { ILoginRequest, ITwoFactorVerifyRequest } from "../types/requests/auth/auth.types";
+import { ILoginRequest } from "../types/requests/auth/auth.types";
 import { AuthApi } from "../api/auth.api";
 import { ITwoFactorRequiredResponse } from "../types/responses/auth.types";
 import { ROUTES } from "../config/routes.config";
-import { getAccessToken, getCurrentUser, storeTokens, removeTokens, removeAccessToken, getRefreshToken } from "../utils/auth.utils";
+import { getAccessToken, getCurrentUser, removeAccessToken, getRefreshToken } from "../utils/auth.utils";
 import { info, warn, error } from '../utils/debug-logger';
 import { permissionManager } from '../api/permission-wrapper.api';
 

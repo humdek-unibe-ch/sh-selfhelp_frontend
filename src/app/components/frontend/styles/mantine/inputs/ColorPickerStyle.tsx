@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { ColorPicker, Button, Popover, Tooltip, Input } from '@mantine/core';
+import { ColorPicker, Input } from '@mantine/core';
 import { IColorPickerStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";

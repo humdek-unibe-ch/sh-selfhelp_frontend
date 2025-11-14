@@ -10,7 +10,6 @@ import {
     TableTr,
     Checkbox,
     Text,
-    Badge,
     Group,
     ActionIcon,
     TextInput,

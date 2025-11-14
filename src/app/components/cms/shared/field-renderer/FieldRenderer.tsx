@@ -33,7 +33,6 @@ export interface IGlobalFieldRendererProps {
     dataVariables?: Record<string, string>;
 }
 import { sanitizeName, validateName } from '../../../../../utils/name-validation.utils';
-import { IVariableSuggestion } from '../../../../../config/mentions.config';
 
 // Use the actual field structure from API response
 export interface IFieldData {

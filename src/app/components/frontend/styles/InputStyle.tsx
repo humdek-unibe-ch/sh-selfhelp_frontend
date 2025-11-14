@@ -2,7 +2,6 @@ import React, { useState, useContext, useEffect } from 'react';
 import { IInputStyle } from '../../../../types/common/styles.types';
 import { FormFieldValueContext } from './FormStyle';
 import LanguageTabsWrapper from './shared/LanguageTabsWrapper';
-import { getSpacingProps } from './BasicStyle';
 
 /**
  * Props interface for InputStyle component

@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { AuthApi } from '../../api/auth.api';
 import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
 

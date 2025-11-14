@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Text, Badge, LoadingOverlay, Group } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconDeviceFloppy, IconFileText } from '@tabler/icons-react';
+import { IconFileText } from '@tabler/icons-react';
 import { ModalWrapper } from '../../../shared';
 import { PermissionsMatrix, type IPermissionRow } from '../shared/PermissionsMatrix';
 import { AdminDataAccessApi } from '../../../../../api/admin';

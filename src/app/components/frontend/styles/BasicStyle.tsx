@@ -28,13 +28,10 @@ import {
 import DebugWrapper from './shared/debug-wrapper/DebugWrapper';
 import {
     ILoginStyle, IProfileStyle, IValidateStyle, IRegisterStyle, IResetPasswordStyle, ITwoFactorAuthStyle,
-    IContainerStyle, ICenterStyle, IDividerStyle, IPaperStyle, IAlertStyle,
-    IRefContainerStyle, IDataContainerStyle, IHtmlTagStyle,
+    IContainerStyle, ICenterStyle, IDividerStyle, IPaperStyle, IAlertStyle, IHtmlTagStyle,
     IFormStyle, IInputStyle, ITextInputStyle, ITextareaStyle, IRichTextEditorStyle,
     ISelectStyle, IRadioStyle, ISliderStyle, ICheckboxStyle, IDatePickerStyle,
-    IImageStyle, IVideoStyle, IAudioStyle, IFigureStyle, ICarouselStyle, ILinkStyle,
-    IEntryListStyle, IEntryRecordStyle, IEntryRecordDeleteStyle, ITabsStyle, ITabStyle, IVersionStyle,
-    ILoopStyle, IFlexStyle, IGroupStyle, ISimpleGridStyle, IScrollAreaStyle, ISpaceStyle,
+    IImageStyle, IVideoStyle, IAudioStyle, IFigureStyle, ICarouselStyle, ILinkStyle, ITabsStyle, ITabStyle, IFlexStyle, IGroupStyle, ISimpleGridStyle, IScrollAreaStyle, ISpaceStyle,
     IGridStyle, IGridColumnStyle, IStackStyle, IButtonStyle, IColorInputStyle,
     IColorPickerStyle, IFileInputStyle, INumberInputStyle, IRangeSliderStyle,
     ISegmentedControlStyle, ISwitchStyle, IComboboxStyle, IActionIconStyle,

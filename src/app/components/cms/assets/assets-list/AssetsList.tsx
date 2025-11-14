@@ -21,10 +21,6 @@ import { useDebouncedValue } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import {
   createColumnHelper,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-  getSortedRowModel,
   type SortingState,
 } from '@tanstack/react-table';
 import { 
@@ -47,7 +43,6 @@ import {
 import { useAssets, useDeleteAsset } from '../../../../../hooks/useAssets';
 import { DeleteAssetModal } from '../delete-asset-modal';
 import type { IAsset } from '../../../../../api/admin/asset.api';
-import { API_CONFIG } from '../../../../../config/api.config';
 import { getAssetUrl } from '../../../../../utils/asset-url.utils';
 
 interface IAssetsListProps {

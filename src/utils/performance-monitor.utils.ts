@@ -9,7 +9,7 @@
  * @module utils/performance-monitor
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { debugLogger } from '../utils/debug-logger';
 
 // React DevTools Profiler integration

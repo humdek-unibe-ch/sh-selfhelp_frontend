@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Alert, Button, Group, Modal, Stack, Text, TextInput } from '@mantine/core';
 import { IconAlertTriangle } from '@tabler/icons-react';
-import { useDataTables, useDeleteTable, DATA_QUERY_KEYS } from '../../../../../hooks/useData';
+import { useDataTables, useDeleteTable } from '../../../../../hooks/useData';
 
 interface IDeleteDataTableModalProps {
   open: boolean;

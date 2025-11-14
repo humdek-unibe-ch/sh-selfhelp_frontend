@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { 
     Box, 
     Collapse, 
@@ -8,8 +7,7 @@ import {
     Text, 
     ThemeIcon, 
     UnstyledButton,
-    Stack,
-    Badge
+    Stack
 } from '@mantine/core';
 import { IconChevronRight } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';

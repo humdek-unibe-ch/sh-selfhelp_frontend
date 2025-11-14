@@ -1,9 +1,8 @@
 import React from 'react';
-import { Avatar, Text, ThemeIcon, Timeline } from '@mantine/core';
+import { Timeline } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
 import IconComponent from '../../../shared/common/IconComponent';
 import { ITimelineStyle } from '../../../../../types/common/styles.types';
-import { IconSun, IconVideo } from '@tabler/icons-react';
 
 /**
  * Props interface for TimelineStyle component

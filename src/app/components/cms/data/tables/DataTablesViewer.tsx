@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
-import { Accordion, Card, Stack, Text } from '@mantine/core';
+import { Accordion, Card, Text } from '@mantine/core';
 import { useDataTables } from '../../../../../hooks/useData';
 import SingleDataTable from './SingleDataTable';
 

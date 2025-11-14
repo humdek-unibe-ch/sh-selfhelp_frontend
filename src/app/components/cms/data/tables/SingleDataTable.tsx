@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState } from 'react';
 import {
   flexRender,
   getCoreRowModel,
@@ -30,7 +30,6 @@ import {
 import { IconEdit, IconTrash, IconDatabaseOff } from '@tabler/icons-react';
 import { useDataRows, useDeleteRecord, DATA_QUERY_KEYS, useDeleteTable } from '../../../../../hooks/useData';
 import { DataTableEditorModal } from '../modals/DataTableEditorModal';
-import { ConfirmDeleteColumnsModal } from '../modals/ConfirmDeleteColumnsModal';
 import { ConfirmDeleteTableModal } from '../modals/ConfirmDeleteTableModal';
 
 interface ISingleDataTableProps {

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from 'react';
 import { 
     Modal, 
     Title, 
@@ -11,13 +10,11 @@ import {
     Table, 
     Button, 
     Code,
-    Accordion,
     Paper,
     LoadingOverlay
 } from '@mantine/core';
-import { IconEye, IconPlayerPlay, IconTrash } from '@tabler/icons-react';
+import { IconPlayerPlay, IconTrash } from '@tabler/icons-react';
 import { useScheduledJob } from '../../../../../hooks/useScheduledJobs';
-import { IScheduledJobDetailData } from '../../../../../types/responses/admin/scheduled-jobs.types';
 
 interface IScheduledJobTransaction {
     transaction_id: number;

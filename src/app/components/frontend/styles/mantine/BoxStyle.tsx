@@ -4,7 +4,6 @@ import BasicStyle from '../BasicStyle';
 import { IBoxStyle } from '../../../../../types/common/styles.types';
 import parse from "html-react-parser";
 import DOMPurify from 'dompurify';
-import { getFieldContent } from '../../../../../utils/style-field-extractor';
 
 /**
  * Props interface for BoxStyle component

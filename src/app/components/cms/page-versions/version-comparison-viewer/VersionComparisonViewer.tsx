@@ -1,6 +1,6 @@
 'use client';
 
-import { Modal, Stack, Select, Box, Text, Loader, Alert, Paper, Tabs, ScrollArea, Code, Group } from '@mantine/core';
+import { Modal, Stack, Select, Box, Text, Loader, Alert, Paper, ScrollArea, Code, Group } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { PageVersionApi } from '../../../../../api/admin/page-version.api';

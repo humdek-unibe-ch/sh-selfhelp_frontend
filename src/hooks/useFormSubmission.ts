@@ -4,7 +4,6 @@ import {
     IFormSubmitRequest,
     IFormUpdateRequest
 } from '../types/requests/frontend/form-submission.types';
-import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { notifications } from '@mantine/notifications';
 import { useNavigationRefresh } from './useNavigationRefresh';
 

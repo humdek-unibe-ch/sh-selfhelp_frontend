@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Card, TextInput, Button, Alert, Text } from '@mantine/core';
+import { Box, Card, TextInput, Button, Alert } from '@mantine/core';
 import { IconCheck, IconMail } from '@tabler/icons-react';
 import { IResetPasswordStyle } from '../../../../types/common/styles.types';
 

@@ -7,7 +7,6 @@ import {
     Group,
     Badge,
     Stack,
-    Divider,
     Box,
     Alert,
     ScrollArea,
@@ -26,10 +25,7 @@ import {
     IconDeviceFloppy,
     IconPlus,
     IconTrash,
-    IconFileExport,
-    IconGitBranch,
-    IconHistory,
-    IconEye
+    IconFileExport
 } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
 import { useHotkeys } from '@mantine/hooks';

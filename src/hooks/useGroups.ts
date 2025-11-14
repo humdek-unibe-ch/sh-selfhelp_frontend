@@ -3,11 +3,7 @@ import { AdminGroupApi } from '../api/admin/group.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { notifications } from '@mantine/notifications';
 import type { 
-  IGroupsListParams, 
-  IGroupsListResponse, 
-  IGroupDetails,
-  IGroupAcl,
-  IGroupPageAcl
+  IGroupsListParams
 } from '../types/responses/admin/groups.types';
 import type {
   ICreateGroupRequest,

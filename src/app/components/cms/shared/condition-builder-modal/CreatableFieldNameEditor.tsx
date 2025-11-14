@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Combobox, TextInput, useCombobox } from '@mantine/core';
+import React from 'react';
+import { TextInput } from '@mantine/core';
 import type { ValueEditorProps } from 'react-querybuilder';
 
 /**

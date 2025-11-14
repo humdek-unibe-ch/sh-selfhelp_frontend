@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Button, Group, Stack, Text } from '@mantine/core';
+import { Button, Group, Stack } from '@mantine/core';
 import { IconPlus, IconEdit } from '@tabler/icons-react';
 import { ConditionBuilderModal } from '../condition-builder-modal/ConditionBuilderModal';
 import { isValidJsonLogic } from '../../../../../utils/json-logic-conversion.utils';

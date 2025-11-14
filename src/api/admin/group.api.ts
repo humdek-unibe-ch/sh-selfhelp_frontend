@@ -5,7 +5,6 @@ import type {
   IGroupsListResponse, 
   IGroupsListParams, 
   IGroupDetails,
-  IGroupAcl,
   IGroupPageAcl
 } from '../../types/responses/admin/groups.types';
 import type {

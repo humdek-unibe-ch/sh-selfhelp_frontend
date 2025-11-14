@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { NumberInput, Input } from '@mantine/core';
+import { NumberInput } from '@mantine/core';
 import { INumberInputStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 

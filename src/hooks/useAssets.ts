@@ -5,8 +5,7 @@ import {
   type IAssetsListParams, 
   type IAsset, 
   type ICreateAssetRequest,
-  type ICreateMultipleAssetsRequest,
-  type IMultipleAssetsUploadResponse
+  type ICreateMultipleAssetsRequest
 } from '../api/admin/asset.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 

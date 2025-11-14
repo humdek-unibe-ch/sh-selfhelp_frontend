@@ -1,7 +1,7 @@
 'use client';
 
-import { Badge, Group, Tooltip, Stack, Text } from '@mantine/core';
-import { IconCheck, IconClock, IconAlertCircle } from '@tabler/icons-react';
+import { Badge, Tooltip, Stack, Text } from '@mantine/core';
+import { IconCheck, IconAlertCircle } from '@tabler/icons-react';
 import { format } from 'date-fns';
 
 interface IVersionStatusBadgeProps {

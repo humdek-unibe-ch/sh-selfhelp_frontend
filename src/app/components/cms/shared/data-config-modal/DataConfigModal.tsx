@@ -18,8 +18,7 @@ import { IconAlertTriangle, IconCheck, IconX, IconPlus, IconTrash } from '@table
 import { ModalWrapper } from '../../../shared/common/CustomModal';
 import { DataSourceForm } from './DataSourceForm';
 import classes from './DataConfigModal.module.css';
-  import { formatQuery } from 'react-querybuilder';
-
+  
 export interface IDataSource {
     current_user: boolean;
     all_fields: boolean;

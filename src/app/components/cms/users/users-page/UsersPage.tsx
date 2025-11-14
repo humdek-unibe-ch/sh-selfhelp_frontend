@@ -14,9 +14,8 @@ import {
 import { useAuth } from '../../../../../hooks/useAuth';
 import { ROUTES } from '../../../../../config/routes.config';
 import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
-import { notifications } from '@mantine/notifications';
-import { Alert, Box, Badge, Group, Text } from '@mantine/core';
-import { IconAlertCircle, IconCheck, IconX } from '@tabler/icons-react';
+import { Alert, Box } from '@mantine/core';
+import { IconAlertCircle } from '@tabler/icons-react';
 
 export function UsersPage() {
   const { hasPermission, isLoading } = useAuth();

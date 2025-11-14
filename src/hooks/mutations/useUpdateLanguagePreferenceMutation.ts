@@ -9,7 +9,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AuthApi } from '../../api/auth.api';
 import { ILanguagePreferenceUpdateResponse } from '../../types/responses/auth.types';
 import { notifications } from '@mantine/notifications';
-import { info, error } from '../../utils/debug-logger';
+import { error } from '../../utils/debug-logger';
 
 /**
  * Hook for updating user's language preference

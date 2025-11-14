@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
-import { FileInput, Text, Alert, Box, rem, Paper, Group, Button, Stack, Badge, List } from '@mantine/core';
+import { FileInput, Text, Alert, Box, rem, Paper, Group, Button, Stack, Badge } from '@mantine/core';
 import { IconComponent } from '../../../../shared';
 import { IFileInputStyle } from '../../../../../../types/common/styles.types';
 import { notifications } from '@mantine/notifications';

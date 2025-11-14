@@ -13,7 +13,6 @@ import {
     Paper,
     TextInput,
     ActionIcon,
-    ScrollArea,
     Checkbox,
     Badge,
     Tooltip,

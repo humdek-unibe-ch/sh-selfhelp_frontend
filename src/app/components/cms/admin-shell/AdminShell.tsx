@@ -1,6 +1,6 @@
 'use client';
 
-import { AppShell, Box } from "@mantine/core";
+import { AppShell } from "@mantine/core";
 import { AdminNavbar } from "./admin-navbar/AdminNavbar";
 import { useDisclosure } from '@mantine/hooks';
 import { useIsAuthenticated } from '@refinedev/core';

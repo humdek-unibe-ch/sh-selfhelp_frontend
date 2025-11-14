@@ -6,8 +6,7 @@
  * @module api/permission-wrapper.api
  */
 
-import { AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
-import { permissionAwareApiClient } from './base.api';
+import { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { API_CONFIG } from '../config/api.config';
 import { warn, error as logError } from '../utils/debug-logger';
 
