@@ -6,8 +6,8 @@
  */
 
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
-import { AdminApi } from '../api/admin.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
+import { AdminApi } from '../api/admin';
 
 /**
  * Hook to fetch page sections by page ID

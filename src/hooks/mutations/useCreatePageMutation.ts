@@ -9,7 +9,7 @@ import React from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
-import { AdminApi } from '../../api/admin.api';
+import { AdminApi } from '../../api/admin';
 import { ICreatePageRequest } from '../../types/requests/admin/create-page.types';
 import { IAdminPage } from '../../types/responses/admin/admin.types';
 import { parseApiError } from '../../utils/mutation-error-handler';

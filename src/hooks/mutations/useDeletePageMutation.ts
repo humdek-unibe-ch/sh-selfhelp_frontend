@@ -9,9 +9,9 @@ import React from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
-import { AdminApi } from '../../api/admin.api';
 import { parseApiError } from '../../utils/mutation-error-handler';
 import { useAdminPages } from '../useAdminPages';
+import { AdminApi } from '../../api/admin';
 
 interface IDeletePageMutationOptions {
     onSuccess?: (pageId: number) => void;

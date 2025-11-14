@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
-import { AdminApi } from '../../../api/admin.api';
+import { AdminApi } from '../../../api/admin';
 import { ICreateSectionInPageData, ICreateSectionInSectionData } from '../../../types/requests/admin/create-section.types';
 
 interface ICreateSiblingAboveParams {

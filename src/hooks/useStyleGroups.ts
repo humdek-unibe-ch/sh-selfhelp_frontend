@@ -6,11 +6,11 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { AdminApi } from '../api/admin.api';
 import { IStyleGroup } from '../types/responses/admin/styles.types';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useAuth } from './useAuth';
 import { getAccessToken } from '../utils/auth.utils';
+import { AdminApi } from '../api/admin';
 
 /**
  * Hook for fetching style groups data (requires authentication)

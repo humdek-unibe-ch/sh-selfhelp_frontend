@@ -7,12 +7,12 @@
  */
 
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
-import { AdminApi } from '../api/admin.api';
 import { IAdminPage } from '../types/responses/admin/admin.types';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useAuth } from './useAuth';
 import { getAccessToken } from '../utils/auth.utils';
 import { parseCrudPermissions, ICrudPermissions } from '../utils/permissions.utils';
+import { AdminApi } from '../api/admin';
 
 export interface ISystemPageLink {
     label: string;

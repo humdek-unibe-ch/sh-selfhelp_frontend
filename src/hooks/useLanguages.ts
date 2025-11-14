@@ -7,7 +7,6 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { AdminApi } from '../api/admin.api';
 import { permissionAwareApiClient } from '../api/base.api';
 import { API_CONFIG } from '../config/api.config';
 import { IBaseApiResponse } from '../types/responses/common/response-envelope.types';
@@ -15,6 +14,7 @@ import { ILanguage } from '../types/responses/admin/languages.types';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useAuth } from './useAuth';    
 import { getAccessToken } from '../utils/auth.utils';
+import { AdminApi } from '../api/admin';
 
 
 /**
