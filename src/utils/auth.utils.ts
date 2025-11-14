@@ -85,15 +85,6 @@ export const getUserPayload = (token: string | null): { id: number; email: strin
 };
 
 /**
- * Check if the current user has a specific permission
- * @deprecated Use useHasPermission hook instead for complete permission checking
- */
-export const hasPermission = (permission: string, user: IAuthUser | null): boolean => {
-    if (!user) return false;
-    return user.permissions?.includes(permission) || false;
-};
-
-/**
  * Get basic user information from JWT token
  * @deprecated Use useAuthUser hook instead for complete user information
  */

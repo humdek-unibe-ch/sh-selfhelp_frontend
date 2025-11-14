@@ -617,11 +617,6 @@ export const API_CONFIG = {
             permissions: [PERMISSIONS.ADMIN_SETTINGS]
         },
 
-        // Deprecated endpoints (marked for removal)
-        ADMIN_SECTIONS_ADD_TO_PAGE: {
-            route: (pageId: number) => `/admin/pages/${pageId}/sections`,
-            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
-        },
         ADMIN_SECTIONS_ADD_TO_SECTION: {
             route: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections`,
             permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]

@@ -28,7 +28,7 @@ export interface IBasePageSection {
 
 /**
  * Extended section interface with direct fields from API response
- * Matches the actual API response structure where fields are direct properties
+ * Matches the actual API response structure w fields are direct properties
  * Extends IBaseStyle for compatibility with TStyle union type
  */
 export interface IPageSectionWithFields extends IBasePageSection {
@@ -237,27 +237,3 @@ export interface IGetPageResponse {
 }
 
 export type TGetPageResponse = IGetPageResponse;
-
-/** @deprecated Use IPageDetails.action instead */
-export interface IPageAction {
-    id: number;
-    typeCode: string;
-    lookupCode: string;
-    lookupValue: string;
-    lookupDescription: string | null;
-}
-
-/** @deprecated Use IPageDetails.pageType instead */
-export interface IPageType {
-    id: number;
-    name: string;
-}
-
-/** @deprecated Use IPageDetails.pageAccessType instead */
-export interface IPageAccessType {
-    id: number;
-    typeCode: string;
-    lookupCode: string;
-    lookupValue: string;
-    lookupDescription: string;
-}
