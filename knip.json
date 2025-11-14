@@ -1,17 +1,19 @@
 {
     "$schema": "https://unpkg.com/knip/schema.json",
     "entry": [
-      "src/**/*.ts",
-      "src/**/*.tsx"
+        "src/**/*.ts",
+        "src/**/*.tsx"
     ],
     "ignore": [
-      "**/*.test.ts",
-      "**/*.test.tsx",
-      "**/node_modules/**",
-      ".next/**"
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/node_modules/**",
+        ".next/**"
     ],
     "project": [
-      "src/**/*"
-    ]
-  }
-  
+        "src/**/*"
+    ],
+    "typescript": {
+        "analysis": true
+    }
+}

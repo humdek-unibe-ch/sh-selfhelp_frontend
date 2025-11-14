@@ -1,247 +1,112 @@
-// Mantine field value types for better type safety
-export type TMantineSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-export type TMantineRadius = 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-export type TMantineShadow = 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-export type TMantineVariant = 'filled' | 'light' | 'outline' | 'subtle' | 'default' | 'transparent' | 'white';
-export type TMantineColor = 'gray' | 'red' | 'grape' | 'violet' | 'blue' | 'cyan' | 'green' | 'lime' | 'yellow' | 'orange';
-export type TMantineBorderSize = '1' | '2' | '3' | '4' | '5';
-export type TMantineJustify = 'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around' | 'space-evenly';
-export type TMantineAlign = 'flex-start' | 'center' | 'flex-end' | 'stretch' | 'baseline';
-export type TMantineDirection = 'row' | 'column' | 'row-reverse' | 'column-reverse';
-export type TMantineWrap = 'wrap' | 'nowrap' | 'wrap-reverse';
-export type TMantineOrientation = 'horizontal' | 'vertical';
-export type TMantineTooltipPosition = 'top' | 'bottom' | 'left' | 'right' | 'top-start' | 'top-end' | 'bottom-start' | 'bottom-end' | 'left-start' | 'left-end' | 'right-start' | 'right-end';
-export type TMantineColorFormat = 'hex' | 'rgba' | 'hsla';
-export type TMantineNumericMin = '0' | '1' | '10' | '100' | string;
-export type TMantineNumericMax = '10' | '100' | '1000' | '10000' | string;
-export type TMantineNumericStep = '0.1' | '0.5' | '1' | '5' | '10' | string;
+import type {
+  TMantineSize,
+  TMantineRadius,
+  TMantineVariant,
+  TMantineColor,
+  TMantineOrientation,
+  TMantineDirection,
+  TMantineWrap,
+  TMantineJustify,
+  TMantineAlign,
+  TMantineColorFormat,
+  TMantineSpacing,
+  TMantineGridSpan,
+  TMantineGridOverflow,
+  TMantineTabsVariant,
+  TMantineFileAccept,
+  TMantineClampBehavior,
+  TMantineChipVariant,
+  TMantineFieldsetVariant,
+  TMantineAccordionVariant,
+  TMantineAvatarVariant,
+  TMantineBadgeVariant,
+  TMantineIndicatorPosition,
+  TMantineKbdSize,
+  TMantineThemeIconVariant,
+  TMantineTimelineLineVariant,
+  TMantineTitleOrder,
+  TMantineCodeBlock,
+  TMantineHighlight,
+  TMantineSpoilerMaxHeight,
+  TMantineRatingCount,
+  TMantineRatingFractions,
+  TMantineNotificationWithCloseButton,
+  TMantineAspectRatio,
+  TMantineColorPickerSwatchesPerRow,
+  TMantineActionIconLoading,
+  TMantineGroupWrap,
+  TMantineGroupGrow,
+  TMantineGridGrow,
+  TMantineTabDisabled,
+  TMantineColorInputSwatches,
+  TMantineColorPickerSwatches,
+  TMantineFileInputMultiple,
+  TMantineNumberInputDecimalScale,
+  TMantineRangeSliderMarks,
+  TMantineChipChecked,
+  TMantineChipMultiple,
+  TMantineRatingReadonly,
+  TMantineSpaceHorizontal,
+  TMantineCenterInline,
+  TMantineContainerFluid,
+  TMantineFullWidth,
+  TMantineCompact,
+  TMantineAutoContrast,
+  TMantineIsLink,
+  TMantineUseMantineStyle,
+  TMantineDisabled,
+  TMantineOpenInNewTab,
+  TMantineLoading,
+  TMantineMultiple,
+  TMantineChecked,
+  TMantineReadonly,
+  TMantineWithCloseButton,
+  TMantineProcessing,
+  TMantineBlock,
+  TMantineWithIcon,
+  TMantineAllowStepClick,
+  TMantineAllowNextClicks,
+  TMantineSwatches,
+  TMantineGrow,
+  TMantineInline,
+  TMantineFluid,
+} from '../mantine/common.types';
+
+// Additional style-specific types not in mantine/common.types.ts
+export type TMantineCardShadow = 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 export type TMantineWidth = '25%' | '50%' | '75%' | '100%' | 'auto' | 'fit-content' | 'max-content' | 'min-content' | string;
 export type TMantineHeight = '25%' | '50%' | '75%' | '100%' | 'auto' | 'fit-content' | 'max-content' | 'min-content' | string;
-export type TMantineLabelPosition = 'left' | 'right';
-export type TMantineSwitchValue = '0' | '1' | string;
-export type TMantineProgressTransition = '150' | '200' | '300' | '400' | '0' | string;
-export type TMantineCarouselAlign = 'start' | 'center' | 'end';
-export type TMantineCarouselContainScroll = 'auto' | 'trimSnaps' | 'keepSnaps';
-export type TMantineCarouselDuration = '10' | '25' | '50' | '100' | '150' | '200' | '0' | string;
-export type TMantineLineClamp = '2' | '3' | '4' | '5' | string;
-export type TMantineDecimalScale = '0' | '1' | '2' | '3' | '4' | '5' | string;
-export type TMantineClampBehavior = 'strict' | 'blur';
-export type TMantineImageFit = 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
-export type TMantineAccordionVariant = 'default' | 'contained' | 'filled' | 'separated';
-export type TMantineAccordionChevronPosition = 'left' | 'right';
-export type TMantineFieldsetVariant = 'default' | 'filled';
-export type TMantineSpoilerMaxHeight = '100' | '150' | '200' | '250' | '300' | string;
 export type TMantineDividerVariant = 'solid' | 'dashed' | 'dotted';
-export type TMantineTextareaResize = 'none' | 'vertical' | 'both';
-export type TMantineChipVariant = 'filled' | 'outline' | 'light';
-export type TMantineGap = '0' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-export type TMantineSpacing = 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-export type TMantineCols = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | '11' | '12' | string;
-export type TMantineGridSpan = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | '11' | '12' | 'auto' | 'content' | string;
-export type TMantineGridOffset = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | '11' | string;
-export type TMantineGridOrder = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | '11' | '12' | string;
-export type TMantineScrollAreaType = 'hover' | 'always' | 'never' | 'scroll';
 export type TMantinePaperShadow = 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-export type TMantineListWithPadding = '0' | '1';
-export type TMantineListCenter = '0' | '1';
-export type TMantineAvatarVariant = 'filled' | 'light' | 'outline' | 'transparent' | 'white' | 'gradient' | 'default';
-export type TMantineTimelineBulletSize = string; // number as string
-export type TMantineTimelineLineWidth = string; // number as string
-export type TMantineRatingCount = '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | string;
-export type TMantineRatingFractions = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | string;
-export type TMantineRatingEmptyIcon = string; // Icon name
-export type TMantineRatingFullIcon = string; // Icon name
-export type TMantineRatingHighlightSelectedOnly = '0' | '1';
-export type TMantineChipChecked = '0' | '1';
-export type TMantineChipMultiple = '0' | '1';
-export type TMantineUseInputWrapper = '0' | '1';
-export type TMantineAutoContrast = '0' | '1';
-export type TMantineFullWidth = '0' | '1';
 export type TMantineBorder = '0' | '1';
-export type TMantineCompact = '0' | '1';
-export type TMantineDisabled = '0' | '1';
-export type TMantineReadonly = '0' | '1';
 export type TMantineRequired = '0' | '1';
 export type TMantineTranslatable = '0' | '1';
-export type TMantineWithCloseButton = '0' | '1';
-export type TMantineLoading = '0' | '1';
-export type TMantineInline = '0' | '1';
-export type TMantineProcessing = '0' | '1';
-export type TMantineWithPicker = '0' | '1';
-export type TMantineAsButton = '0' | '1';
-export type TMantineWithTimeGrid = '0' | '1';
-export type TMantineConsistentWeeks = '0' | '1';
-export type TMantineHideOutsideDates = '0' | '1';
-export type TMantineHideWeekends = '0' | '1';
-export type TMantineClearable = '0' | '1';
-export type TMantineAllowDeselect = '0' | '1';
-export type TMantineCardShadow = TMantineShadow;
-export type TMantineCardPadding = TMantineSize;
-export type TMantinePaperPadding = TMantineSize;
-export type TMantineInputSize = TMantineSize;
-export type TMantineInputRadius = TMantineRadius;
+export type TMantineTextInputVariant = 'default' | 'filled' | 'unstyled';
 export type TMantineTextareaAutosize = '0' | '1';
-export type TMantineSliderMarksValues = string; // JSON string
-export type TMantineSliderShowLabel = '0' | '1';
-export type TMantineSliderLabelsAlwaysOn = '0' | '1';
-export type TMantineSliderInverted = '0' | '1';
-export type TMantineSliderThumbSize = string; // number as string
-export type TMantineCheckboxIcon = string; // Icon name
-export type TMantineCheckboxLabelPosition = TMantineLabelPosition;
-export type TMantineCheckboxVariant = 'default' | 'outline';
-export type TMantineFileInputMultiple = '0' | '1';
-export type TMantineFileInputAccept = string; // comma-separated file types
-export type TMantineFileInputClearable = '0' | '1';
-export type TMantineFileInputMaxSize = string; // number as string
-export type TMantineFileInputMaxFiles = string; // number as string
-export type TMantineFileInputDragDrop = '0' | '1';
-export type TMantineColorPickerSwatchesPerRow = '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | string;
-export type TMantineColorPickerSwatches = string; // JSON string
-export type TMantineColorPickerWithPicker = TMantineWithPicker;
-export type TMantineColorPickerSaturationLabel = string;
-export type TMantineColorPickerHueLabel = string;
-export type TMantineColorPickerAlphaLabel = string;
-export type TMantineColorPickerAsButton = TMantineAsButton;
-export type TMantineColorPickerButtonLabel = string;
-export type TMantineSegmentedControlData = string; // JSON string
-export type TMantineComboboxData = string; // JSON string
-export type TMantineMultiSelectData = string; // JSON string
-export type TMantineMultiSelectMaxValues = string; // number as string
-export type TMantineBadgeVariant = TMantineVariant;
-export type TMantineBadgeSize = TMantineSize;
-export type TMantineBadgeRadius = TMantineRadius;
-export type TMantineBadgeColor = TMantineColor;
-export type TMantineBadgeAutoContrast = TMantineAutoContrast;
-export type TMantineAvatarSize = TMantineSize;
-export type TMantineAvatarRadius = TMantineRadius;
-export type TMantineAvatarColor = TMantineColor;
-export type TMantineTimelineActive = string; // number as string
+export type TMantineTextareaResize = 'none' | 'vertical' | 'both';
+export type TMantineTextareaVariant = 'default' | 'filled' | 'unstyled';
+export type TMantineUseInputWrapper = '0' | '1';
+export type TMantineImageFit = 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
+export type TMantineGap = '0' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+export type TMantineCols = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | '11' | '12' | string;
+export type TMantineScrollAreaSize = '4' | '6' | '8' | '10' | '12' | '14' | '16' | '18' | '20' | string;
+export type TMantineScrollAreaType = 'hover' | 'always' | 'never' | 'scroll';
+export type TMantineGridOffset = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | '11' | string;
+export type TMantineGridOrder = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | '11' | '12' | string;
+export type TMantineTimelineBulletSize = string;
+export type TMantineTimelineLineWidth = string;
+export type TMantineTimelineActive = string;
 export type TMantineTimelineAlign = 'left' | 'right';
-export type TMantineTimelineColor = TMantineColor;
-export type TMantineIndicatorSize = '6' | '8' | '10' | '12' | '14' | '16' | '18' | '20' | '22' | '24' | '26' | '28' | '30' | '32' | '34' | '36' | '38' | '40' | string;
-export type TMantineIndicatorPosition = 'top-start' | 'top-center' | 'top-end' | 'middle-start' | 'middle-center' | 'middle-end' | 'bottom-start' | 'bottom-center' | 'bottom-end';
-export type TMantineIndicatorOffset = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | string;
-export type TMantineIndicatorBorder = '0' | '1';
-export type TMantineKbdSize = TMantineSize;
-export type TMantineRatingSize = TMantineSize;
-export type TMantineRatingColor = TMantineColor;
-export type TMantineProgressSize = TMantineSize;
-export type TMantineProgressColor = TMantineColor;
-export type TMantineProgressRadius = TMantineRadius;
 export type TMantineProgressTransitionDuration = TMantineProgressTransition;
-export type TMantineProgressRootAutoContrast = '0' | '1';
-export type TMantineThemeIconSize = TMantineSize;
-export type TMantineThemeIconRadius = TMantineRadius;
-export type TMantineThemeIconColor = TMantineColor;
-export type TMantineThemeIconVariant = TMantineVariant;
 export type TMantineAccordionMultiple = '0' | '1';
+export type TMantineAccordionChevronPosition = 'left' | 'right';
+export type TMantineAccordionChevronSize = string;
 export type TMantineAccordionDisableChevronRotation = '0' | '1';
 export type TMantineAccordionLoop = '0' | '1';
-export type TMantineAccordionTransitionDuration = string; // number as string
-export type TMantineAccordionDefaultValue = string; // JSON string
-export type TMantineAccordionChevronSize = string; // creatable
-export type TMantineNotificationColor = TMantineColor;
-export type TMantineNotificationLoading = TMantineLoading;
-export type TMantineNotificationWithCloseButton = TMantineWithCloseButton;
-export type TMantineNotificationBorder = TMantineBorder;
-export type TMantineNotificationRadius = TMantineRadius;
-export type TMantineTitleOrder = '1' | '2' | '3' | '4' | '5' | '6';
-export type TMantineTitleSize = TMantineSize;
+export type TMantineAccordionTransitionDuration = string;
+export type TMantineAccordionDefaultValue = string;
 export type TMantineTitleTextWrap = 'wrap' | 'balance' | 'nowrap';
 export type TMantineTitleLineClamp = '1' | '2' | '3' | '4' | '5' | string;
-export type TMantineTextSize = TMantineSize;
-export type TMantineTextColor = TMantineColor;
-export type TMantineTextTextDecoration = TMantineTextDecoration;
-export type TMantineTextTextTransform = TMantineTextTransform;
-export type TMantineTextLineClamp = TMantineLineClamp;
-export type TMantineTextInherit = '0' | '1';
-export type TMantineTextSpan = '0' | '1';
-export type TMantineCodeBlock = '0' | '1';
-export type TMantineHighlightHighlight = string; // translatable text
-export type TMantineBlockquoteIconSize = string; // number as string
-export type TMantineBackgroundImageSrc = string; // image path
-export type TMantineFieldsetRadius = TMantineRadius;
-export type TMantineFieldsetDisabled = TMantineDisabled;
-export type TMantineSpoilerShowLabel = string; // translatable
-export type TMantineSpoilerHideLabel = string; // translatable
-export type TMantineTypographyUseMantineStyle = '0' | '1';
-export type TMantineCardBorder = TMantineBorder;
-export type TMantineCardRadius = TMantineRadius;
-export type TMantineCardSegmentUseMantineStyle = '0' | '1';
-export type TMantineListSpacing = TMantineSize;
-export type TMantineListSize = TMantineSize;
-export type TMantineListItemContent = string; // translatable
-export type TMantineFlexGap = TMantineSize | '0';
-export type TMantineFlexJustify = TMantineJustify;
-export type TMantineFlexAlign = TMantineAlign;
-export type TMantineFlexDirection = TMantineDirection;
-export type TMantineFlexWrap = TMantineWrap;
-export type TMantineGroupGap = TMantineSize | '0';
-export type TMantineGroupJustify = TMantineJustify;
-export type TMantineGroupAlign = TMantineAlign;
-export type TMantineGroupWrap = TMantineWrap;
-export type TMantineGroupGrow = '0' | '1';
-export type TMantineSimpleGridCols = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | '11' | '12' | string;
-export type TMantineSimpleGridSpacing = TMantineSize | '0';
-export type TMantineSimpleGridVerticalSpacing = TMantineSize | '0';
-export type TMantineScrollAreaScrollbarSize = TMantineScrollAreaSize;
-export type TMantineScrollAreaOffsetScrollbars = '0' | '1';
-export type TMantineScrollAreaScrollHideDelay = string; // number as string
-export type TMantineSpaceSize = TMantineSize | '0';
-export type TMantineSpaceDirection = TMantineDirection;
-export type TMantineGridCols = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | '11' | '12' | string;
-export type TMantineGridGap = TMantineSize | '0';
-export type TMantineGridJustify = TMantineJustify;
-export type TMantineGridAlign = TMantineAlign;
-export type TMantineGridOverflow = 'visible' | 'hidden';
-export type TMantineGridGrow = '0' | '1';
-export type TMantineStackGap = TMantineSize | '0';
-export type TMantineStackJustify = TMantineJustify;
-export type TMantineStackAlign = TMantineAlign;
-export type TMantineActionIconSize = TMantineSize;
-export type TMantineActionIconRadius = TMantineRadius;
-export type TMantineActionIconColor = TMantineColor;
-export type TMantineActionIconVariant = TMantineVariant;
-export type TMantineActionIconLoading = TMantineLoading;
-export type TMantineColorInputFormat = TMantineColorFormat;
-export type TMantineColorInputSwatches = TMantineColorPickerSwatches;
-export type TMantineColorPickerFormat = TMantineColorFormat;
-export type TMantineNumberInputMin = TMantineNumericMin;
-export type TMantineNumberInputMax = TMantineNumericMax;
-export type TMantineNumberInputStep = TMantineNumericStep;
-export type TMantineRadioOrientation = TMantineOrientation;
-export type TMantineRadioSize = TMantineSize;
-export type TMantineRadioColor = TMantineColor;
-export type TMantineRadioOptions = string; // JSON string
-export type TMantineRadioLabelPosition = TMantineLabelPosition;
-export type TMantineRadioVariant = 'default' | 'outline' | 'card';
-export type TMantineRadioCard = '0' | '1';
-export type TMantineRangeSliderMin = TMantineNumericMin;
-export type TMantineRangeSliderMax = TMantineNumericMax;
-export type TMantineRangeSliderStep = TMantineNumericStep;
-export type TMantineRangeSliderMarksValues = TMantineSliderMarksValues;
-export type TMantineRangeSliderShowLabel = TMantineSliderShowLabel;
-export type TMantineRangeSliderLabelsAlwaysOn = TMantineSliderLabelsAlwaysOn;
-export type TMantineRangeSliderInverted = TMantineSliderInverted;
-export type TMantineSegmentedControlOrientation = TMantineOrientation;
-export type TMantineSegmentedControlSize = TMantineSize;
-export type TMantineSegmentedControlRadius = TMantineRadius;
-export type TMantineSegmentedControlColor = TMantineColor;
-export type TMantineSegmentedControlFullWidth = TMantineFullWidth;
-export type TMantineSegmentedControlDisabled = TMantineDisabled;
-export type TMantineSegmentedControlReadonly = TMantineReadonly;
-export type TMantineSegmentedControlItemBorder = '0' | '1';
-export type TMantineSwitchSize = TMantineSize;
-export type TMantineSwitchColor = TMantineColor;
-export type TMantineSwitchRadius = TMantineRadius;
-export type TMantineSwitchOnLabel = string; // translatable
-export type TMantineSwitchOffLabel = string; // translatable
-export type TMantineSwitchOnValue = string;
-export type TMantineSwitchOffValue = string;
-export type TMantineSwitchLabelPosition = TMantineLabelPosition;
-export type TMantineComboboxOptions = string; // JSON string
-export type TMantineComboboxSeparator = string;
-export type TMantineComboboxMaxValues = TMantineMultiSelectMaxValues;
 export type TMantineTextFontWeight = '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900';
 export type TMantineTextFontStyle = 'normal' | 'italic';
 export type TMantineTextDecoration = 'none' | 'underline' | 'line-through';
@@ -249,18 +114,19 @@ export type TMantineTextTransform = 'none' | 'uppercase' | 'capitalize' | 'lower
 export type TMantineTextAlign = 'left' | 'center' | 'right' | 'justify';
 export type TMantineTextVariant = 'default' | 'gradient';
 export type TMantineTextTruncate = 'none' | 'end' | 'start';
-export type TMantineScrollAreaSize = '4' | '6' | '8' | '10' | '12' | '14' | '16' | '18' | '20' | string;
+export type TMantineLineClamp = '2' | '3' | '4' | '5' | string;
+export type TMantineTextInherit = '0' | '1';
+export type TMantineTextSpan = '0' | '1';
+export type TMantineIconSize = '14' | '16' | '18' | '20' | '24' | '32' | string;
 export type TMantineListType = 'ordered' | 'unordered';
 export type TMantineListStyleType = 'none' | 'disc' | 'circle' | 'square' | 'decimal' | 'decimal-leading-zero' | 'lower-roman' | 'upper-roman' | 'lower-alpha' | 'upper-alpha' | string;
-
-// Additional missing types from SQL schema
-export type TMantineInputVariant = 'default' | 'filled' | 'unstyled';
-export type TMantineTextInputVariant = TMantineInputVariant;
-export type TMantineTextareaVariant = TMantineInputVariant;
-export type TMantineIconSize = '14' | '16' | '18' | '20' | '24' | '32' | string;
-export type TMantineControlSize = TMantineIconSize;
-export type TMantineMarginSpacing = 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-export type TMantinePaddingSpacing = 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+export type TMantineListWithPadding = '0' | '1';
+export type TMantineListCenter = '0' | '1';
+export type TMantineTypographyUseMantineStyle = '0' | '1';
+export type TMantineProgressTransition = '150' | '200' | '300' | '400' | '0' | string;
+export type TMantineLabelPosition = 'left' | 'right';
+export type TMantineCheckboxIcon = string;
+export type TMantineCheckboxLabelPosition = TMantineLabelPosition;
 
 // Style name literal types for type safety
 export type TStyleName =
