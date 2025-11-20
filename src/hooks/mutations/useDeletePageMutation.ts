@@ -33,7 +33,7 @@ export function useDeletePageMutation(options: IDeletePageMutationOptions = {}) 
         mutationFn: (pageId: number) => {
             // Check if the page is a system page before attempting deletion
             const page = pages.find(p => p.id_pages === pageId);
-            if (page?.is_system === 1) {
+            if (page?.is_system) {
                 throw new Error('System pages cannot be deleted');
             }
             return AdminApi.deletePage(pageId);

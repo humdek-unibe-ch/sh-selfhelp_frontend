@@ -14,11 +14,11 @@ export interface IAdminPage {
     parent: number | null;
     nav_position: number | null;
     footer_position: number | null;
-    is_headless: number;
-    is_open_access: number;
+    is_headless: boolean;
+    is_open_access: boolean;
     id_pageAccessTypes: number;
     id_type: number;
-    is_system: number;
+    is_system: boolean;
     crud: number;
 }
 
@@ -96,6 +96,6 @@ export interface IPageHierarchy {
     children: IPageHierarchy[];
     level: number;
     nav_position: number | null;
-    is_system: number;
-    is_headless: number;
+    is_system: boolean;
+    is_headless: boolean;
 }

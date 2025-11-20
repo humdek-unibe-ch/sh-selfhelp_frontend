@@ -117,7 +117,7 @@ export function AclManagement({
                 keyword: page.keyword,
                 title: page.keyword,
                 type: page.id_type || 3,
-                isSystem: page.is_system === 1,
+                isSystem: page.is_system,
                 isConfiguration: (page.id_type || 0) > 3,
                 permissions: pagePermissions,
             };

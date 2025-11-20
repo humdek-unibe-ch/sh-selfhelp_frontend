@@ -37,9 +37,9 @@ export interface IPageHierarchy {
     level: number;
     nav_position: number | null;
     footer_position: number | null;
-    is_system: number;
-    is_headless: number;
-    is_open_access: number;
+    is_system: boolean;
+    is_headless: boolean;
+    is_open_access: boolean;
     id_pageAccessTypes: number;
     crud: number;
     permissions: ICrudPermissions;
@@ -118,7 +118,7 @@ export function useAdminPages() {
             const configurationPages = data.filter(page => page.id_type && page.id_type > 3);
             const regularPages = data.filter(page => !page.id_type || page.id_type <= 3);
 
-            const systemPages = data.filter(page => page.is_system === 1 && (!page.id_type || page.id_type <= 3));
+            const systemPages = data.filter(page => page.is_system && (!page.id_type || page.id_type <= 3));
 
             // Helper function to get page label for admin interface (always use keyword)
             const getAdminLabel = (page: IAdminPage): string => {
@@ -141,7 +141,7 @@ export function useAdminPages() {
                 }));
 
             // Categorize system pages based on is_system field
-            const currentSystemPages = data.filter(page => page.is_system === 1);
+            const currentSystemPages = data.filter(page => page.is_system);
             const categorizedSystemPages = {
                 authentication: currentSystemPages.filter(page => page.keyword?.toLowerCase().includes('auth') || page.keyword?.toLowerCase().includes('login')).map(page => ({
                     label: page.keyword,

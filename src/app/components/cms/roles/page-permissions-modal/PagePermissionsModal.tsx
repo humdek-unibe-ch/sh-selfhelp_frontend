@@ -198,8 +198,8 @@ export function PagePermissionsModal({ opened, onClose, roleId, roleName }: IPag
       permissions: row.permissions,
       hasChanges: row.hasChanges,
       badges: [
-        ...(row.is_system === 1 ? [{ label: 'System', color: 'blue', variant: 'light' as const }] : []),
-        ...(row.is_headless === 1 ? [{ label: 'Headless', color: 'gray', variant: 'light' as const }] : []),
+        ...(row.is_system ? [{ label: 'System', color: 'blue', variant: 'light' as const }] : []),
+        ...(row.is_headless ? [{ label: 'Headless', color: 'gray', variant: 'light' as const }] : []),
       ],
     })), [permissionRows]
   );

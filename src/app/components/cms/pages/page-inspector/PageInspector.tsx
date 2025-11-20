@@ -533,7 +533,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                             Configuration Page
                                         </Badge>
                                     )}
-                                    {page.is_headless === 1 && (
+                                    {page.is_headless && (
                                         <Badge color="orange" variant="light" size="sm">
                                             Headless
                                         </Badge>
@@ -877,7 +877,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                 )}
                                 
                                 <Tooltip 
-                                    label={page?.is_system === 1 ? "System pages cannot be deleted" : "Delete this page"}
+                                    label={page?.is_system ? "System pages cannot be deleted" : "Delete this page"}
                                     position="top"
                                 >
                                     <Button
