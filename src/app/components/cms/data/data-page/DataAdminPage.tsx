@@ -2,11 +2,11 @@
 
 import { useMemo, useState, useCallback, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Button, Card, Checkbox, Group, MultiSelect, Select, Stack, Text, Title } from '@mantine/core';
-import { IconDatabaseSearch, IconSettings } from '@tabler/icons-react';
+import { Alert, Button, Card, Checkbox, Group, MultiSelect, Select, Stack, Text, Title } from '@mantine/core';
+import { IconAlertCircle, IconDatabaseSearch, IconSettings } from '@tabler/icons-react';
 import { useDataTables } from '../../../../../hooks/useData';
 import { useUsers } from '../../../../../hooks/useUsers';
-import { useAdminLanguages } from '../../../../../hooks/useLanguages';
+import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import type { IUserBasic } from '../../../../../types/responses/admin/users.types';
 import { DataTablesViewer } from '../tables/DataTablesViewer';
 
@@ -38,7 +38,7 @@ export function DataAdminPage() {
   // Users - fetch reasonable amount for dropdown, can be searched if needed
   const { data: usersResp } = useUsers({ page: 1, pageSize: 100, sort: 'email', sortDirection: 'asc' });
   const { data: tablesResp } = useDataTables();
-  const { languages } = useAdminLanguages();
+  const { languages } = usePublicLanguages();
 
   const userOptions = useMemo(() => {
     const users: IUserBasic[] = usersResp?.users || [];
@@ -50,6 +50,8 @@ export function DataAdminPage() {
     const tables = tablesResp?.dataTables || [];
     return tables.map((t) => ({ value: String(t.id), label: t.displayName || t.name }));
   }, [tablesResp]);
+
+  const hasTables = tableOptions.length > 0;
 
   const languageOptions = useMemo(() => {
     return languages.map((lang) => ({ value: String(lang.id), label: `${lang.language} (${lang.locale})` }));
@@ -136,6 +138,12 @@ export function DataAdminPage() {
         </div>
       </Group>
 
+      {!hasTables && (
+        <Alert variant="light" color="orange" title="No Access to Data Tables" icon={<IconAlertCircle />}>
+          You currently have no access to any data tables. Please contact your administrator to request access.
+        </Alert>
+      )}
+
       <Card>
         <Group align="end" gap="md">
           <Select
@@ -169,7 +177,7 @@ export function DataAdminPage() {
           <MultiSelect
             label="Data tables"
             placeholder="Select one or more data tables"
-            data={[{ value: String(-1), label: 'All data tables' }, ...tableOptions]}
+            data={hasTables ? [{ value: String(-1), label: 'All data tables' }, ...tableOptions] : []}
             value={selectedTableIds.map(String)}
             onChange={(vals) => {
               const parsed = vals.map((v) => parseInt(v, 10));
@@ -181,6 +189,7 @@ export function DataAdminPage() {
             searchable
             clearable
             w={420}
+            disabled={!hasTables}
           />
           <Checkbox
             label="Show deleted rows"
@@ -191,7 +200,7 @@ export function DataAdminPage() {
               updateUrlParams({ showDeleted: newValue });
             }}
           />
-          <Button leftSection={<IconDatabaseSearch size={16} />} onClick={handleSearch}>
+          <Button leftSection={<IconDatabaseSearch size={16} />} onClick={handleSearch} disabled={!hasTables}>
             Search
           </Button>
         </Group>
