@@ -866,7 +866,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                 </Button>
 
                                 {/* Only show Create Child Page for non-system pages */}
-                                {page?.is_system !== 1 && (
+                                {!page?.is_system && (
                                     <Button
                                         leftSection={<IconPlus size="1rem" />}
                                         variant="outline"

@@ -57,18 +57,7 @@ export function RoleFormModal({ opened, onClose, roleId, mode }: IRoleFormModalP
     }),
   });
 
-  // Load role data for editing
-  useEffect(() => {
-    if (mode === 'edit' && roleDetails) {
-      form.setValues({
-        name: roleDetails.name || '',
-        description: roleDetails.description || '',
-        permission_ids: roleDetails.permissions?.map((p: any) => p.id.toString()) || [],
-      });
-    }
-  }, [mode, roleDetails]);
-
-  // Reset form when modal closes
+  // Reset form when modal closes or mode changes
   useEffect(() => {
     if (!opened) {
       form.setValues({
@@ -78,6 +67,17 @@ export function RoleFormModal({ opened, onClose, roleId, mode }: IRoleFormModalP
       });
     }
   }, [opened]);
+
+  // Load role data for editing - runs when modal opens in edit mode or when roleDetails changes
+  useEffect(() => {
+    if (mode === 'edit' && opened && roleDetails) {
+      form.setValues({
+        name: roleDetails.name || '',
+        description: roleDetails.description || '',
+        permission_ids: roleDetails.permissions?.map((p: any) => p.id.toString()) || [],
+      });
+    }
+  }, [mode, opened, roleDetails]);
 
   // Prepare permission options
   const permissionOptions = useMemo(() => {
