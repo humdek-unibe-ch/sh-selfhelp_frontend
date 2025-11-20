@@ -17,6 +17,7 @@ import { IconSearch, IconX, IconFile, IconSettings, IconUsers, IconDatabase, Ico
 import { useRouter } from 'next/navigation';
 import styles from './NavigationSearch.module.css';
 import { useNavigationStore } from '../../../../../../store/navigation.store';
+import { useAuth } from '../../../../../../../hooks/useAuth';
 
 interface ISearchableItem {
     id: string;
@@ -68,27 +69,72 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
     const [searchQuery, setSearchQuery] = useState('');
     const router = useRouter();
     const { setActiveItem } = useNavigationStore();
+    const { permissionChecker } = useAuth();
 
     // Build searchable items from all admin functions and pages
     const searchableItems = useMemo<ISearchableItem[]>(() => {
         const items: ISearchableItem[] = [];
 
-        // Static admin functions
-        const staticFunctions = [
-            { id: 'dashboard', label: 'Dashboard', href: '/admin', icon: <IconSettings size={16} />, category: 'Admin', keywords: ['dashboard', 'overview', 'home'] },
-            { id: 'users', label: 'Users', href: '/admin/users', icon: <IconUsers size={16} />, category: 'User Management', keywords: ['users', 'accounts', 'people'] },
-            { id: 'groups', label: 'Groups', href: '/admin/groups', icon: <IconUsers size={16} />, category: 'User Management', keywords: ['groups', 'teams', 'permissions'] },
-            { id: 'roles', label: 'Roles', href: '/admin/roles', icon: <IconUsers size={16} />, category: 'User Management', keywords: ['roles', 'permissions', 'access'] },
-            { id: 'languages', label: 'Languages', href: '/admin/languages', icon: <IconLanguage size={16} />, category: 'System Tools', keywords: ['languages', 'locale', 'translation', 'i18n'] },
-            { id: 'audit-logs', label: 'Audit Logs', href: '/admin/data-access', icon: <IconDatabase size={16} />, category: 'System Tools', keywords: ['audit', 'logs', 'security', 'access', 'monitoring', 'data access'] },
-            { id: 'assets', label: 'Assets', href: '/admin/assets', icon: <IconPhoto size={16} />, category: 'Content', keywords: ['assets', 'files', 'media', 'images'] },
-            { id: 'unused-sections', label: 'Unused Sections', href: '/admin/unused-sections', icon: <IconDatabase size={16} />, category: 'Content', keywords: ['unused', 'sections', 'cleanup'] },
-            { id: 'actions', label: 'Actions', href: '/admin/actions', icon: <IconPlayerPlay size={16} />, category: 'Automation', keywords: ['actions', 'automation', 'triggers'] },
-            { id: 'scheduled-jobs', label: 'Scheduled Jobs', href: '/admin/scheduled-jobs', icon: <IconPlayerPlay size={16} />, category: 'Automation', keywords: ['jobs', 'scheduled', 'cron', 'tasks'] },
-            { id: 'data', label: 'Data Browser', href: '/admin/data', icon: <IconDatabase size={16} />, category: 'Data Management', keywords: ['data', 'database', 'tables', 'browse'] },
-            { id: 'preferences', label: 'CMS Preferences', href: '/admin/preferences', icon: <IconSettings size={16} />, category: 'Configuration', keywords: ['preferences', 'settings', 'config'] },
-            { id: 'cache', label: 'Cache Management', href: '/admin/cache', icon: <IconDatabase size={16} />, category: 'Configuration', keywords: ['cache', 'performance', 'memory'] },
-        ];
+        // Static admin functions - only include those the user has permission to access
+        const staticFunctions = [];
+
+        // Always include dashboard for admin users
+        staticFunctions.push({ id: 'dashboard', label: 'Dashboard', href: '/admin', icon: <IconSettings size={16} />, category: 'Admin', keywords: ['dashboard', 'overview', 'home'] });
+
+        // User Management functions - check permissions
+        if (permissionChecker?.canManageUsers()) {
+            if (permissionChecker.canReadUsers()) {
+                staticFunctions.push({ id: 'users', label: 'Users', href: '/admin/users', icon: <IconUsers size={16} />, category: 'User Management', keywords: ['users', 'accounts', 'people'] });
+            }
+            if (permissionChecker.canReadGroups()) {
+                staticFunctions.push({ id: 'groups', label: 'Groups', href: '/admin/groups', icon: <IconUsers size={16} />, category: 'User Management', keywords: ['groups', 'teams', 'permissions'] });
+            }
+            if (permissionChecker.canReadRoles()) {
+                staticFunctions.push({ id: 'roles', label: 'Roles', href: '/admin/roles', icon: <IconUsers size={16} />, category: 'User Management', keywords: ['roles', 'permissions', 'access'] });
+            }
+        }
+
+        // Content functions - check permissions
+        if (permissionChecker?.canManageAssets()) {
+            if (permissionChecker.canReadAssets()) {
+                staticFunctions.push({ id: 'assets', label: 'Assets', href: '/admin/assets', icon: <IconPhoto size={16} />, category: 'Content', keywords: ['assets', 'files', 'media', 'images'] });
+            }
+            if (permissionChecker.canDeleteSections()) {
+                staticFunctions.push({ id: 'unused-sections', label: 'Unused Sections', href: '/admin/unused-sections', icon: <IconDatabase size={16} />, category: 'Content', keywords: ['unused', 'sections', 'cleanup'] });
+            }
+        }
+
+        // Automation functions - check permissions
+        if (permissionChecker?.canManageActions() || permissionChecker?.canManageScheduledJobs()) {
+            if (permissionChecker.canReadActions()) {
+                staticFunctions.push({ id: 'actions', label: 'Actions', href: '/admin/actions', icon: <IconPlayerPlay size={16} />, category: 'Automation', keywords: ['actions', 'automation', 'triggers'] });
+            }
+            if (permissionChecker.canReadScheduledJobs()) {
+                staticFunctions.push({ id: 'scheduled-jobs', label: 'Scheduled Jobs', href: '/admin/scheduled-jobs', icon: <IconPlayerPlay size={16} />, category: 'Automation', keywords: ['jobs', 'scheduled', 'cron', 'tasks'] });
+            }
+        }
+
+        // System Tools functions - check permissions
+        const systemToolFunctions = [];
+        if (permissionChecker?.canManageLanguages()) {
+            systemToolFunctions.push({ id: 'languages', label: 'Languages', href: '/admin/languages', icon: <IconLanguage size={16} />, category: 'System Tools', keywords: ['languages', 'locale', 'translation', 'i18n'] });
+        }
+        if (permissionChecker?.canAccessDataBrowser()) {
+            systemToolFunctions.push({ id: 'data', label: 'Data Browser', href: '/admin/data', icon: <IconDatabase size={16} />, category: 'Data Management', keywords: ['data', 'database', 'tables', 'browse'] });
+        }
+        if (permissionChecker?.canViewAuditLogs()) {
+            systemToolFunctions.push({ id: 'audit-logs', label: 'Audit Logs', href: '/admin/data-access', icon: <IconDatabase size={16} />, category: 'System Tools', keywords: ['audit', 'logs', 'security', 'access', 'monitoring', 'data access'] });
+        }
+        if (permissionChecker?.canReadCmsPreferences()) {
+            systemToolFunctions.push({ id: 'preferences', label: 'CMS Preferences', href: '/admin/preferences', icon: <IconSettings size={16} />, category: 'Configuration', keywords: ['preferences', 'settings', 'config'] });
+        }
+        if (permissionChecker?.canReadCache()) {
+            systemToolFunctions.push({ id: 'cache', label: 'Cache Management', href: '/admin/cache', icon: <IconDatabase size={16} />, category: 'Configuration', keywords: ['cache', 'performance', 'memory'] });
+        }
+
+        if (systemToolFunctions.length > 0) {
+            items.push(...systemToolFunctions);
+        }
 
         items.push(...staticFunctions);
 
@@ -261,7 +307,7 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
         }
 
         return items;
-    }, [adminPagesData]);
+    }, [adminPagesData, permissionChecker]);
 
     // Filter items based on search query with improved ranking
     const filteredItems = useMemo(() => {

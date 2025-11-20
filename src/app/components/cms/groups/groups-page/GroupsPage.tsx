@@ -1,14 +1,19 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { GroupsList } from '../groups-list/GroupsList';
 import { GroupFormModal } from '../group-form-modal/GroupFormModal';
 import { DeleteGroupModal } from '../delete-group-modal/DeleteGroupModal';
 import { AdvancedAclModal } from '../advanced-acl-modal/AdvancedAclModal';
 import { useDeleteGroup } from '../../../../../hooks/useGroups';
+import { useAuth } from '../../../../../hooks/useAuth';
 import { notifications } from '@mantine/notifications';
 
 export function GroupsPage() {
+  const router = useRouter();
+  const { permissionChecker } = useAuth();
+
   const [createModalOpened, setCreateModalOpened] = useState(false);
   const [editModalOpened, setEditModalOpened] = useState(false);
   const [deleteModalOpened, setDeleteModalOpened] = useState(false);
@@ -16,8 +21,15 @@ export function GroupsPage() {
   const [editingGroupId, setEditingGroupId] = useState<number | null>(null);
   const [deletingGroup, setDeletingGroup] = useState<{ id: number; name: string } | null>(null);
   const [managingAclGroup, setManagingAclGroup] = useState<{ id: number; name: string } | null>(null);
-  
+
   const deleteGroupMutation = useDeleteGroup();
+
+  // Check permissions and redirect if user doesn't have access
+  useEffect(() => {
+    if (permissionChecker && !permissionChecker.canReadGroups()) {
+      router.push('/admin/no-access');
+    }
+  }, [permissionChecker, router]);
 
   // Handle create group
   const handleCreateGroup = () => {
