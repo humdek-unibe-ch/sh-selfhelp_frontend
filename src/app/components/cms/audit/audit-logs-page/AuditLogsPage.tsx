@@ -31,7 +31,6 @@ export function AuditLogsPage() {
   });
 
   // Check permission for audit logs view
-  const hasAuditViewPermission = hasPermission(PERMISSIONS.ADMIN_AUDIT_VIEW);
 
   useEffect(() => {
     if (!isLoading && !hasAuditViewPermission) {

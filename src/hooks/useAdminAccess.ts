@@ -8,9 +8,8 @@
 
 import { useGo, useIsAuthenticated } from '@refinedev/core';
 import { useEffect } from 'react';
+import { useCanAccessAdmin } from './usePermissionChecks';
 import { useAuth } from './useAuth';
-import { useHasPermission } from './useUserData';
-import { PERMISSIONS } from '../types/auth/jwt-payload.types';
 import { ROUTES } from '../config/routes.config';
 
 /**
@@ -20,11 +19,10 @@ import { ROUTES } from '../config/routes.config';
 export function useAdminAccess() {
     const go = useGo();
     const { isLoading: isAuthLoading } = useIsAuthenticated();
+    const hasAccess = useCanAccessAdmin();
     const { isAuthenticated, isLoading: isUserDataLoading } = useAuth();
-    const hasPermission = useHasPermission();
 
     // Check user data for admin.access permission
-    const hasAccess = hasPermission(PERMISSIONS.ADMIN_ACCESS);
     const isLoading = isAuthLoading || isUserDataLoading;
 
     // Handle unauthorized access
