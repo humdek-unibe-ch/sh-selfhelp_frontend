@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Group, Stack, Text, TextInput, Badge } from '@mantine/core';
-import { useAdminLanguages } from '../../../../../hooks/useLanguages';
+import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import { RichTextField } from '../../shared/field-components/RichTextField';
 
 interface IGroupedTranslationInputProps {
@@ -25,7 +25,7 @@ export function GroupedTranslationInput({
   required = false,
 }: IGroupedTranslationInputProps) {
   const [activeLanguage, setActiveLanguage] = useState<string>('');
-  const { languages: languagesData } = useAdminLanguages();
+  const { languages: languagesData } = usePublicLanguages();
 
   // Get translation status for all languages
   const languagesWithStatus = languagesData?.map(language => {

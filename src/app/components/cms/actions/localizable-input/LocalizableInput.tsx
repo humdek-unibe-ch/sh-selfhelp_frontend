@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Group, Stack, Text, TextInput, Textarea, Badge } from '@mantine/core';
-import { useAdminLanguages } from '../../../../../hooks/useLanguages';
+import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 
 interface ILocalizableInputProps {
   label: string;
@@ -24,7 +24,7 @@ export function LocalizableInput({
   onChange
 }: ILocalizableInputProps) {
   const [activeTab, setActiveTab] = useState<string>('');
-  const { languages: languagesData } = useAdminLanguages();
+  const { languages: languagesData } = usePublicLanguages();
 
   const InputComponent = multiline ? Textarea : TextInput;
 

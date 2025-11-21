@@ -20,7 +20,7 @@ import {
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSectionDetails } from '../../../../../hooks/useSectionDetails';
-import { useAdminLanguages } from '../../../../../hooks/useLanguages';
+import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import { useUpdateSectionMutation, useDeleteSectionMutation } from '../../../../../hooks/mutations';
 import { GlobalFieldType } from '../../shared';
 import styles from './SectionInspector.module.css';
@@ -100,7 +100,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
     } = useSectionDetails(pageId, sectionId, !!pageId && !!sectionId);
 
     // Fetch languages
-    const { languages: languagesData, isLoading: languagesLoading } = useAdminLanguages();
+    const { languages: languagesData, isLoading: languagesLoading } = usePublicLanguages();
 
     // Update mutation
     const updateSectionMutation = useUpdateSectionMutation({

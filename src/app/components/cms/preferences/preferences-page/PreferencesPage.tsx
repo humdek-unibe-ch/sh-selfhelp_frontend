@@ -20,13 +20,13 @@ import {
 } from '@mantine/core';
 import { IconSettings, IconInfoCircle, IconDeviceFloppy } from '@tabler/icons-react';
 import { useCmsPreferences, useUpdateCmsPreferences } from '../../../../../hooks/usePreferences';
-import { useAdminLanguages } from '../../../../../hooks/useLanguages';
+import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import { ICMSPreferences } from '../../../../../api/admin/preferences.api';
 import { notifications } from '@mantine/notifications';
 
 export function PreferencesPage() {
     const { data: preferences, isLoading, error } = useCmsPreferences();
-    const { languages: languagesData, isLoading: languagesLoading } = useAdminLanguages();
+    const { languages: languagesData, isLoading: languagesLoading } = usePublicLanguages();
     const updateMutation = useUpdateCmsPreferences();
 
     const [formData, setFormData] = useState<ICMSPreferences>({

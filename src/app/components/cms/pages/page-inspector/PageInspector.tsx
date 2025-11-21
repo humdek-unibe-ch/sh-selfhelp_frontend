@@ -36,7 +36,7 @@ import { usePageFields } from '../../../../../hooks/usePageDetails';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { useDeletePageMutation } from '../../../../../hooks/mutations/useDeletePageMutation';
 import { useUpdatePageMutation } from '../../../../../hooks/mutations/useUpdatePageMutation';
-import { useAdminLanguages } from '../../../../../hooks/useLanguages';
+import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 import { LockedField } from '../../ui/locked-field/LockedField';
 import { DragDropMenuPositioner } from '../../ui/drag-drop-menu-positioner/DragDropMenuPositioner';
 import { FieldLabelWithTooltip } from '../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
@@ -155,7 +155,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
     const pageAccessTypes = useLookupsByType(PAGE_ACCESS_TYPES);
 
     // Fetch available languages
-    const { languages: languagesData, isLoading: languagesLoading } = useAdminLanguages();
+    const { languages: languagesData, isLoading: languagesLoading } = usePublicLanguages();
 
     // Fetch admin pages for parent context
     const { pages: adminPages } = useAdminPages();
