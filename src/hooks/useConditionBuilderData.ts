@@ -6,8 +6,8 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import { AdminGroupApi } from '../api/admin/group.api';
-import { AdminLanguageApi } from '../api/admin/language.api';
 import { permissionAwareApiClient } from '../api/base.api';
 import { API_CONFIG } from '../config/api.config';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
@@ -15,6 +15,7 @@ import { useLookupsByType } from './useLookups';
 import type { ILanguage } from '../types/responses/admin/languages.types';
 import { IAdminPage } from '../types/responses/admin/admin.types';
 import { IBaseApiResponse } from '../types/responses/common/response-envelope.types';
+import { usePublicLanguages } from './useLanguages';
 
 /**
  * Hook to get all groups for condition builder (requests large page size to get all)
@@ -41,30 +42,6 @@ export function useConditionBuilderGroups() {
     });
 }
 
-/**
- * Hook to get all languages for condition builder
- */
-export function useConditionBuilderLanguages() {
-    return useQuery({
-        queryKey: ['condition-builder', 'languages'],
-        queryFn: async () => {
-            const languages = await AdminLanguageApi.getLanguages();
-            
-            // Convert to key-value format expected by React Query Builder
-            const languagesMap: Record<string, string> = {};
-            languages.forEach((language: ILanguage) => {
-                // Skip the "all languages" option if it exists
-                if (language.id !== 1 || language.locale !== 'all') {
-                    languagesMap[language.id.toString()] = `${language.language} (${language.locale})`;
-                }
-            });
-            
-            return languagesMap;
-        },
-        staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.staleTime,
-        gcTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.gcTime,
-    });
-}
 
 /**
  * Hook to get platform options from lookups
@@ -117,17 +94,31 @@ export function useConditionBuilderPages() {
  */
 export function useConditionBuilderData() {
     const groupsQuery = useConditionBuilderGroups();
-    const languagesQuery = useConditionBuilderLanguages();
+    const languagesQuery = usePublicLanguages();
     const platformsQuery = useConditionBuilderPlatforms();
     const pagesQuery = useConditionBuilderPages();
 
+    // Process languages data for condition builder format
+    const processedLanguages = useMemo(() => {
+        const languages = languagesQuery.languages || [];
+        // Convert to key-value format expected by React Query Builder
+        const languagesMap: Record<string, string> = {};
+        languages.forEach((language: ILanguage) => {
+            // Skip the "all languages" option if it exists
+            if (language.id !== 1 || language.locale !== 'all') {
+                languagesMap[language.id.toString()] = `${language.language} (${language.locale})`;
+            }
+        });
+        return languagesMap;
+    }, [languagesQuery.languages]);
+
     return {
         groups: groupsQuery.data || {},
-        languages: languagesQuery.data || {},
+        languages: processedLanguages,
         platforms: platformsQuery.data || {},
         pages: pagesQuery.data || {},
         isLoading: groupsQuery.isLoading || languagesQuery.isLoading || platformsQuery.isLoading || pagesQuery.isLoading,
-        isError: groupsQuery.isError || languagesQuery.isError || platformsQuery.isError || pagesQuery.isError,
+        isError: groupsQuery.isError || languagesQuery.error || platformsQuery.isError || pagesQuery.isError,
         error: groupsQuery.error || languagesQuery.error || platformsQuery.error || pagesQuery.error,
     };
 }

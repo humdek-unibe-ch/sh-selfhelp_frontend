@@ -17,7 +17,7 @@ import { useConditionBuilderData } from '../../../../../hooks/useConditionBuilde
 import { rulesToJsonLogic, jsonLogicToRules, isValidJsonLogic } from '../../../../../utils/json-logic-conversion.utils';
 import { createConditionFields } from './conditionFields';
 import { TextInputWithMentions } from '../field-components/TextInputWithMentions';
-import { CreatableSelectField } from '../field-components/CreatableSelectField/CreatableSelectField';
+import { CreatableSelectField, createSelectable } from '../field-components/CreatableSelectField/CreatableSelectField';
 import { QUERY_BUILDER_CONTROL_CLASSNAMES } from '../../../../../constants/querybuilder.constants';
 
 interface IConditionBuilderModalProps {
@@ -50,10 +50,7 @@ function CreatableFieldSelector(props: any) {
 
     // Convert react-querybuilder options to CreatableSelectField config
     const fieldConfig = {
-        options: options.map((opt: any) => ({
-            value: opt.name,
-            text: opt.label || opt.name
-        })),
+        options: createSelectable(options),
         multiSelect: false,
         creatable: true,
         searchable: true,
@@ -104,10 +101,7 @@ function SearchableValueEditor(props: any) {
     if (isSelectType && values && Array.isArray(values) && values.length > 0) {
         // Use CreatableSelectField for select-type fields
         const valueConfig = {
-            options: values.map((opt: any) => ({
-                value: opt.name,
-                text: opt.label || opt.name
-            })),
+            options: createSelectable(values),
             multiSelect: false,
             creatable: true,
             searchable: true,

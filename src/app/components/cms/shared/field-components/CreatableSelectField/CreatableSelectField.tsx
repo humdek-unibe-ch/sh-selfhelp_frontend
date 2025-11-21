@@ -36,6 +36,47 @@ export interface ICreatableSelectConfig {
     validationErrorMessage?: string;
 }
 
+/**
+ * Creates selectable options for CreatableSelectField from various input formats
+ * @param values - Array of values in different formats (react-querybuilder, etc.)
+ * @returns Array of selectable options with value and text properties
+ */
+export function createSelectable(values: any[]): Array<{value: string, text: string}> {
+    if (!Array.isArray(values)) return [];
+
+    return values.map((opt: any) => {
+        // Handle react-querybuilder format: { name: string, label: string }
+        if (opt && typeof opt === 'object' && 'name' in opt && 'label' in opt) {
+            return {
+                value: opt.name,
+                text: opt.label || opt.name
+            };
+        }
+
+        // Handle simple string array
+        if (typeof opt === 'string') {
+            return {
+                value: opt,
+                text: opt
+            };
+        }
+
+        // Handle object with value/label format
+        if (opt && typeof opt === 'object' && 'value' in opt) {
+            return {
+                value: opt.value,
+                text: opt.label || opt.text || opt.value
+            };
+        }
+
+        // Fallback: convert to string
+        return {
+            value: String(opt),
+            text: String(opt)
+        };
+    });
+}
+
 // Predefined configurations for different use cases
 export const CREATABLE_SELECT_CONFIGS = {
     default: {
@@ -270,7 +311,7 @@ export function CreatableSelectField({
                                     onRemove={clearable ? () => onChange('') : undefined}
                                     className={`${classes.pill} ${isPredefinedValue(value) ? classes.predefinedPill : classes.customPill}`}
                                 >
-                                    {value}
+                                    {selectedOption.label}
                                 </Pill>
                             ) : (
                                 <div className={classes.placeholder}>
