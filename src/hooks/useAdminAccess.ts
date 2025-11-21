@@ -8,8 +8,8 @@
 
 import { useGo, useIsAuthenticated } from '@refinedev/core';
 import { useEffect } from 'react';
-import { useCanAccessAdmin } from './usePermissionChecks';
 import { useAuth } from './useAuth';
+import { useCanAccessAdmin } from './usePermissionChecks';
 import { ROUTES } from '../config/routes.config';
 
 /**
@@ -19,10 +19,8 @@ import { ROUTES } from '../config/routes.config';
 export function useAdminAccess() {
     const go = useGo();
     const { isLoading: isAuthLoading } = useIsAuthenticated();
-    const hasAccess = useCanAccessAdmin();
     const { isAuthenticated, isLoading: isUserDataLoading } = useAuth();
-
-    // Check user data for admin.access permission
+    const hasAccess = useCanAccessAdmin();
     const isLoading = isAuthLoading || isUserDataLoading;
 
     // Handle unauthorized access

@@ -3,7 +3,7 @@
 import { useAuth } from '../../../../../hooks/useAuth';
 import { ROUTES } from '../../../../../config/routes.config';
 import { useRouter } from 'next/navigation';
-import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
+import { useCanViewAuditLogs } from '../../../../../hooks/usePermissionChecks';
 import { useEffect, useState } from 'react';
 import { AuditLogsList } from '../audit-logs-list/AuditLogsList';
 import { AuditLogsStats } from '../audit-logs-stats/AuditLogsStats';
@@ -13,8 +13,9 @@ import { IconAlertCircle, IconChartBar, IconList } from '@tabler/icons-react';
 import { useQueryState } from 'nuqs';
 
 export function AuditLogsPage() {
-  const { hasPermission, isLoading } = useAuth();
+  const { isLoading } = useAuth();
   const router = useRouter();
+  const hasAuditViewPermission = useCanViewAuditLogs();
   const [detailModalState, setDetailModalState] = useState<{
     opened: boolean;
     auditLogId: number | null;
@@ -29,8 +30,6 @@ export function AuditLogsPage() {
     parse: (value: string) => value || 'stats',
     serialize: (value: string) => value,
   });
-
-  // Check permission for audit logs view
 
   useEffect(() => {
     if (!isLoading && !hasAuditViewPermission) {
