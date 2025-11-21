@@ -321,8 +321,8 @@ export class PermissionChecker {
    * Check if user can manage languages
    */
   canManageLanguages(): boolean {
-    // Languages are managed through data browser, so we check data permissions
-    return this.hasPermission(PERMISSIONS.ADMIN_DATA_READ);
+    // Languages require admin settings permissions
+    return this.hasPermission(PERMISSIONS.ADMIN_SETTINGS);
   }
 
   /**
