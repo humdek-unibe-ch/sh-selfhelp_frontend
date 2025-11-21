@@ -4,8 +4,11 @@ import { useMemo, useState } from 'react';
 import {
   flexRender,
   getCoreRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
   useReactTable,
   type ColumnDef,
+  type SortingState,
 } from '@tanstack/react-table';
 import {
   ActionIcon,
@@ -15,7 +18,7 @@ import {
   LoadingOverlay,
   Modal,
   Stack,
-  
+  TextInput,
   Table,
   TableTbody,
   TableTd,
@@ -27,7 +30,7 @@ import {
   Button,
   Tooltip,
 } from '@mantine/core';
-import { IconEdit, IconTrash, IconDatabaseOff } from '@tabler/icons-react';
+import { IconEdit, IconTrash, IconDatabaseOff, IconSearch, IconSortAscending, IconSortDescending, IconArrowsUpDown } from '@tabler/icons-react';
 import { useDataRows, useDeleteRecord, DATA_QUERY_KEYS, useDeleteTable } from '../../../../../hooks/useData';
 import { DataTableEditorModal } from '../modals/DataTableEditorModal';
 import { ConfirmDeleteTableModal } from '../modals/ConfirmDeleteTableModal';
@@ -45,6 +48,8 @@ export default function SingleDataTable({ formId, tableName, displayName, select
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isDeleteRowOpen, setIsDeleteRowOpen] = useState<null | { id: number; label: string }>(null);
   const [isDeleteTableOpen, setIsDeleteTableOpen] = useState(false);
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [globalFilter, setGlobalFilter] = useState('');
   const deleteRecord = useDeleteRecord();
   const deleteTable = useDeleteTable();
 
@@ -57,8 +62,27 @@ export default function SingleDataTable({ formId, tableName, displayName, select
     // Construct columns dynamically; keep record_id prominent when present
     const baseCols = Object.keys(sample).map((key) => ({
       accessorKey: key,
-      header: key,
+      header: ({ column }: any) => {
+        const isSorted = column.getIsSorted();
+        return (
+          <Button
+            variant="subtle"
+            size="xs"
+            px="xs"
+            rightSection={
+              isSorted === 'asc' ? <IconSortAscending size={14} /> :
+              isSorted === 'desc' ? <IconSortDescending size={14} /> :
+              <IconArrowsUpDown size={14} />
+            }
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            style={{ fontWeight: 'normal', justifyContent: 'space-between' }}
+          >
+            {key}
+          </Button>
+        );
+      },
       cell: ({ row }: { row: any }) => <Text size="sm">{String(row.original[key])}</Text>,
+      enableSorting: true,
     }));
     return [
       ...baseCols,
@@ -85,6 +109,14 @@ export default function SingleDataTable({ formId, tableName, displayName, select
     data: rows,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onSortingChange: setSorting,
+    onGlobalFilterChange: setGlobalFilter,
+    state: {
+      sorting,
+      globalFilter,
+    },
   });
 
   return (
@@ -107,6 +139,15 @@ export default function SingleDataTable({ formId, tableName, displayName, select
           </Tooltip>
         </Group>
       </Group>
+
+      <TextInput
+        placeholder="Search table data..."
+        leftSection={<IconSearch size={16} />}
+        value={globalFilter}
+        onChange={(event) => setGlobalFilter(event.currentTarget.value)}
+        w={300}
+        size="sm"
+      />
 
       <Box style={{ position: 'relative', overflowX: 'auto' }}>
         <LoadingOverlay visible={isLoading} />
