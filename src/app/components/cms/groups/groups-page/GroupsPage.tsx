@@ -7,12 +7,12 @@ import { GroupFormModal } from '../group-form-modal/GroupFormModal';
 import { DeleteGroupModal } from '../delete-group-modal/DeleteGroupModal';
 import { AdvancedAclModal } from '../advanced-acl-modal/AdvancedAclModal';
 import { useDeleteGroup } from '../../../../../hooks/useGroups';
-import { useAuth } from '../../../../../hooks/useAuth';
+import { useCanReadGroups } from '../../../../../hooks/usePermissionChecks';
 import { notifications } from '@mantine/notifications';
 
 export function GroupsPage() {
   const router = useRouter();
-  const { permissionChecker } = useAuth();
+  const canReadGroups = useCanReadGroups();
 
   const [createModalOpened, setCreateModalOpened] = useState(false);
   const [editModalOpened, setEditModalOpened] = useState(false);
@@ -26,10 +26,10 @@ export function GroupsPage() {
 
   // Check permissions and redirect if user doesn't have access
   useEffect(() => {
-    if (permissionChecker && !permissionChecker.canReadGroups()) {
+    if (!canReadGroups) {
       router.push('/admin/no-access');
     }
-  }, [permissionChecker, router]);
+  }, [canReadGroups, router]);
 
   // Handle create group
   const handleCreateGroup = () => {

@@ -13,13 +13,30 @@ import {
 } from '../../../../../hooks/useUsers';
 import { useAuth } from '../../../../../hooks/useAuth';
 import { ROUTES } from '../../../../../config/routes.config';
-import { PERMISSIONS } from '../../../../../types/auth/jwt-payload.types';
+import {
+  useCanReadUsers,
+  useCanCreateUsers,
+  useCanUpdateUsers,
+  useCanDeleteUsers,
+  useCanBlockUsers,
+  useCanUnblockUsers,
+  useCanImpersonateUsers
+} from '../../../../../hooks/usePermissionChecks';
 import { Alert, Box } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 
 export function UsersPage() {
-  const { hasPermission, isLoading } = useAuth();
+  const { isLoading } = useAuth();
   const router = useRouter();
+
+  // Check permissions
+  const canReadUsers = useCanReadUsers();
+  const canCreateUsers = useCanCreateUsers();
+  const canUpdateUsers = useCanUpdateUsers();
+  const canDeleteUsers = useCanDeleteUsers();
+  const canBlockUsers = useCanBlockUsers();
+  const canUnblockUsers = useCanUnblockUsers();
+  const canImpersonateUsers = useCanImpersonateUsers();
 
   // Always call hooks at the top, before any conditional returns
   // Mutations
@@ -48,15 +65,6 @@ export function UsersPage() {
     userEmail: undefined,
   });
 
-  // Check permissions
-  const canReadUsers = hasPermission(PERMISSIONS.ADMIN_USER_READ);
-  const canCreateUsers = hasPermission(PERMISSIONS.ADMIN_USER_CREATE);
-  const canUpdateUsers = hasPermission(PERMISSIONS.ADMIN_USER_UPDATE);
-  const canDeleteUsers = hasPermission(PERMISSIONS.ADMIN_USER_DELETE);
-  const canBlockUsers = hasPermission(PERMISSIONS.ADMIN_USER_BLOCK);
-  const canUnblockUsers = hasPermission(PERMISSIONS.ADMIN_USER_UNBLOCK);
-  const canImpersonateUsers = hasPermission(PERMISSIONS.ADMIN_USER_IMPERSONATE);
-
   // Redirect if no read permission
   useEffect(() => {
     if (!isLoading && !canReadUsers) {
@@ -79,7 +87,7 @@ export function UsersPage() {
           title="Access Denied"
           icon={<IconAlertCircle />}
         >
-          You don't have permission to view users. Required permission: {PERMISSIONS.ADMIN_USER_READ}
+          You don't have permission to view users.
         </Alert>
       </Box>
     );

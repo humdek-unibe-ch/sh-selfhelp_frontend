@@ -147,6 +147,48 @@ export class PermissionChecker {
   }
 
   /**
+   * Check if user can create users
+   */
+  canCreateUsers(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_USER_CREATE);
+  }
+
+  /**
+   * Check if user can update users
+   */
+  canUpdateUsers(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_USER_UPDATE);
+  }
+
+  /**
+   * Check if user can delete users
+   */
+  canDeleteUsers(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_USER_DELETE);
+  }
+
+  /**
+   * Check if user can block users
+   */
+  canBlockUsers(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_USER_BLOCK);
+  }
+
+  /**
+   * Check if user can unblock users
+   */
+  canUnblockUsers(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_USER_UNBLOCK);
+  }
+
+  /**
+   * Check if user can impersonate users
+   */
+  canImpersonateUsers(): boolean {
+    return this.hasPermission(PERMISSIONS.ADMIN_USER_IMPERSONATE);
+  }
+
+  /**
    * Check if user can manage groups
    */
   canManageGroups(): boolean {
@@ -366,3 +408,4 @@ export class PermissionChecker {
 export function createPermissionChecker(userPermissions: string[]): PermissionChecker {
   return new PermissionChecker(userPermissions);
 }
+
