@@ -1,6 +1,7 @@
 'use client';
 
-import { Box, Text, Stack, Group } from '@mantine/core';
+import { useState, useEffect } from 'react';
+import { Box, Text, Stack, Group, Select } from '@mantine/core';
 import { FieldLabelWithTooltip } from '../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
 import {
     GlobalCreatableSelectField,
@@ -69,7 +70,7 @@ interface IFieldRendererProps {
 
 export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Record<string, string> }) {
     const { field, languageId, value, onChange, locale, className, disabled = false, dataVariables } = props;
-
+    
     // Skip rendering hidden fields - they should not be visible to users
     if (field.hidden === 1) {
         return null;
@@ -448,29 +449,33 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
     if (field.type === 'select-language') {
         const { languages: languageOptions, isLoading: languagesLoading } = usePublicLanguages();
 
-        const languageData = languageOptions.map(lang => ({
-            value: lang.id.toString(),
-            text: lang.language,
-            disabled: false
-        }));
+        // Use local state to ensure proper updates like in timezone field
+        const [localValue, setLocalValue] = useState<string>(() => fieldValue ? fieldValue.toString() : '');
 
-        const selectConfig: IFieldConfig = {
-            multiSelect: false,
-            required: true,
-            options: languageData,
-            searchable: true,
-            clearable: false
-        };
+        // Sync with prop changes
+        useEffect(() => {
+            const newValue = fieldValue ? fieldValue.toString() : '';
+            setLocalValue(newValue);
+        }, [fieldValue]);
 
         return renderFieldWithBadge(
-            <SelectField
-                fieldId={field.id}
-                config={selectConfig}
-                value={String(fieldValue || '')}
-                onChange={onChange}
+            <Select
+                key={field.id}
+                data={languageOptions.map(lang => ({
+                    value: lang.id.toString(),
+                    label: lang.language
+                }))}
+                value={localValue}
+                onChange={(value) => {
+                    const newValue = value || '';
+                    setLocalValue(newValue);
+                    onChange(newValue);
+                }}
                 placeholder="Select a language..."
+                searchable
+                required
                 disabled={disabled || languagesLoading}
-                isLoading={languagesLoading}
+                allowDeselect={false}
             />
         );
     }
@@ -479,28 +484,33 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
     if (field.type === 'select-timezone') {
         const timezoneLookups = useLookupsByType('timezones');
 
-        const timezoneData = timezoneLookups.map(tz => ({
-            value: tz.id.toString(),
-            text: tz.lookupCode + ' - ' + tz.lookupDescription,
-            disabled: false
-        }));
+        // Use local state to ensure proper updates like in ProfileStyle.tsx
+        const [localValue, setLocalValue] = useState<string>(() => fieldValue ? fieldValue.toString() : '');
 
-        const selectConfig: IFieldConfig = {
-            multiSelect: false,
-            required: true,
-            options: timezoneData,
-            searchable: true,
-            clearable: false
-        };
+        // Sync with prop changes
+        useEffect(() => {
+            const newValue = fieldValue ? fieldValue.toString() : '';
+            setLocalValue(newValue);
+        }, [fieldValue]);
 
         return renderFieldWithBadge(
-            <SelectField
-                fieldId={field.id}
-                config={selectConfig}
-                value={String(fieldValue || '')}
-                onChange={onChange}
+            <Select
+                key={field.id}
+                data={timezoneLookups.map(tz => ({
+                    value: tz.id.toString(),
+                    label: `${tz.lookupCode} - ${tz.lookupDescription}`
+                }))}
+                value={localValue}
+                onChange={(value) => {
+                    const newValue = value || '';
+                    setLocalValue(newValue);
+                    onChange(newValue);
+                }}
                 placeholder="Select a timezone..."
+                searchable
+                required
                 disabled={disabled}
+                allowDeselect={false}
             />
         );
     }
