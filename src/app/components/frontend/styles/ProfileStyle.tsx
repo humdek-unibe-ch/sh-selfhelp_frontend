@@ -101,13 +101,13 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
 
     // Initialize timezone form with user's current timezone
     useEffect(() => {
-        if (user?.timezoneId && timezoneForm.timezoneId === '') {
+        if (user?.timezoneId && timezoneForm.timezoneId === '' && !timezoneForm.success) {
             setTimezoneForm(prev => ({
                 ...prev,
                 timezoneId: user.timezoneId!.toString()
             }));
         }
-    }, [user?.timezoneId, timezoneForm.timezoneId]);
+    }, [user?.timezoneId, timezoneForm.timezoneId, timezoneForm.success]);
 
     // Extract field values
     const profileTitle = style.profile_title?.content || 'My Profile';
@@ -334,7 +334,6 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
                     setTimezoneForm(prev => ({
                         ...prev,
                         success: timezoneSuccess,
-                        timezoneId: '',
                         isSubmitting: false
                     }));
                 },
