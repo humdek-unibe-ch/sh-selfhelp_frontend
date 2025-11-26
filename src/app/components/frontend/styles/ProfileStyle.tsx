@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, Fragment } from 'react';
+import React, { useState, Fragment, useEffect } from 'react';
 import {
     Paper,
     Title,
@@ -98,6 +98,16 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
 
     // Modal states
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+
+    // Initialize timezone form with user's current timezone
+    useEffect(() => {
+        if (user?.timezoneId && timezoneForm.timezoneId === '') {
+            setTimezoneForm(prev => ({
+                ...prev,
+                timezoneId: user.timezoneId!.toString()
+            }));
+        }
+    }, [user?.timezoneId, timezoneForm.timezoneId]);
 
     // Extract field values
     const profileTitle = style.profile_title?.content || 'My Profile';
