@@ -16,30 +16,44 @@ export interface IProcessedFieldResult {
 
 /**
  * Determines if a field is a content field (translatable) or property field (system)
- * 
+ * Content fields have translations for specific languages, property fields have translations with language_code "all"
+ *
  * @param field - The field to check
- * @returns true if field is content (display = 1), false if property (display = 0)
+ * @returns true if field is content (has language-specific translations), false if property
  */
 export function isContentField(field: IPageField): boolean {
-    return field.display === true;
+    // Check if field has translations for specific languages (not "all")
+    const hasSpecificLanguageTranslations = field.translations?.some(t =>
+        t.language_code && t.language_code !== 'all'
+    ) ?? false;
+
+    return hasSpecificLanguageTranslations;
 }
 
 /**
  * Determines if a field is a property field (system, non-translatable)
- * 
+ * Property fields have translations with language_code "all" or no translations
+ *
  * @param field - The field to check
- * @returns true if field is property (display = 0), false if content (display = 1)
+ * @returns true if field is property (has "all" language translations or no translations), false if content
  */
 export function isPropertyField(field: IPageField): boolean {
-    return field.display === false;
+    // Check if field has translations with language_code "all" or no translations at all
+    const hasAllLanguageTranslation = field.translations?.some(t =>
+        t.language_code === 'all'
+    ) ?? false;
+
+    const hasNoTranslations = !field.translations || field.translations.length === 0;
+
+    return hasAllLanguageTranslation || hasNoTranslations;
 }
 
 /**
- * Gets the appropriate language IDs for a field based on its display type
- * 
- * Content fields (display = 1): All available languages
- * Property fields (display = 0): Language ID 1 only
- * 
+ * Gets the appropriate language IDs for a field based on its translation type
+ *
+ * Content fields (language-specific translations): All available languages
+ * Property fields ("all" language translations): Language ID 1 only
+ *
  * @param field - The field to process
  * @param languages - Available languages
  * @returns Array of language IDs to process for this field
@@ -55,16 +69,16 @@ export function getFieldLanguageIds(field: IPageField, languages: ILanguage[]): 
 }
 
 /**
- * Processes a single field according to its display type rules
- * 
+ * Processes a single field according to its translation type rules
+ *
  * @param field - The field to process
  * @param formValues - Form values structure: formValues[fieldName][languageId]
  * @param languages - Available languages
  * @returns Array of field entries for the API
  */
 export function processField(
-    field: IPageField, 
-    formValues: Record<string, Record<number, string>>, 
+    field: IPageField,
+    formValues: Record<string, Record<number, string>>,
     languages: ILanguage[]
 ): IUpdatePageField[] {
     const fieldEntries: IUpdatePageField[] = [];
@@ -146,7 +160,7 @@ export function processAllFields(options: IFieldProcessingOptions): IProcessedFi
 
 /**
  * Gets the display name for a field type
- * 
+ *
  * @param field - The field to get display name for
  * @returns Human-readable field type description
  */
@@ -160,7 +174,7 @@ export function getFieldTypeDisplayName(field: IPageField): string {
 
 /**
  * Validates field processing rules
- * 
+ *
  * @param field - The field to validate
  * @returns Validation result with any warnings or errors
  */
@@ -171,17 +185,17 @@ export function validateFieldProcessing(field: IPageField): {
 } {
     const warnings: string[] = [];
     const errors: string[] = [];
-    
-    // CSS fields should always be property fields
+
+    // CSS fields should typically be property fields
     if (field.type === 'css' && isContentField(field)) {
-        warnings.push(`CSS field "${field.name}" has display=1 but should be display=0 (property field)`);
+        warnings.push(`CSS field "${field.name}" has language-specific translations but might be better as a property field`);
     }
-    
+
     // JSON fields are typically property fields
     if (field.type === 'json' && isContentField(field)) {
-        warnings.push(`JSON field "${field.name}" has display=1 but might be better as display=0 (property field)`);
+        warnings.push(`JSON field "${field.name}" has language-specific translations but might be better as a property field`);
     }
-    
+
     return {
         isValid: errors.length === 0,
         warnings,
@@ -191,13 +205,15 @@ export function validateFieldProcessing(field: IPageField): {
 
 /**
  * Initializes form values for fields, handling content vs property field loading correctly
- * 
+ * Content fields populate based on language-specific translations
+ * Property fields use "all" language translations or language_id = 1
+ *
  * @param fields - Page fields from API
  * @param languages - Available languages
  * @returns Form values structure: Record<fieldName, Record<languageId, content>>
  */
 export function initializeFieldFormValues(
-    fields: IPageField[], 
+    fields: IPageField[],
     languages: ILanguage[]
 ): Record<string, Record<number, string>> {
     const fieldsObject: Record<string, Record<number, string>> = {};

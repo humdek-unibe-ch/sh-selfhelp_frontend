@@ -99,8 +99,8 @@ export function SelectField({
                 {option.label}
             </Text>
             {(config.multiSelect ?
-                value.split(separator).includes(option.value) :
-                value === option.value
+                (value ?? '').split(separator).includes(option.value) :
+                (value ?? '') === option.value
             ) && <IconCheck size={16} color="var(--mantine-color-blue-6)" />}
         </Group>
     );
@@ -149,8 +149,8 @@ export function SelectField({
         <Select
             key={fieldId}
             data={options}
-            value={value || ''}
-            onChange={(selectedValue) => onChange(selectedValue || '')}
+            value={value ?? ''}
+            onChange={(selectedValue) => onChange(selectedValue ?? '')}
             placeholder={config.placeholder || placeholder}
             description={config.description}
             error={config.error}

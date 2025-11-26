@@ -20,6 +20,8 @@ import {
     MonacoEditorField
 } from '../field-components';
 import type { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
+import { useLookupsByType } from '../../../../../hooks/useLookups';
+import { usePublicLanguages } from '../../../../../hooks/useLanguages';
 
 // Global field types for section-level properties
 export type GlobalFieldType = 'condition' | 'data_config' | 'css' | 'css_mobile' | 'debug';
@@ -77,30 +79,31 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
     // Use provided value if available, otherwise extract from field translations
     const getFieldValue = (): string => {
         // If a value is explicitly provided, use it (this comes from form state)
-        if (value !== undefined) {
-            const stringValue = typeof value === 'string' ? value : String(value);
-            return stringValue;
+        if (value !== undefined && value !== null) {
+            return typeof value === 'string' ? value : String(value);
         }
 
         // Otherwise, extract from field translations (fallback for initial load)
         if (!field.translations || field.translations.length === 0) {
-            const fallbackValue = field.default_value || '';
-            return fallbackValue;
+            return field.default_value ? String(field.default_value) : '';
         }
 
         // For content fields (display = true), use the specific language
         if (field.display && languageId) {
             const translation = field.translations.find(t => t.language_id === languageId);
-            const translationValue = translation?.content || '';
-            return translationValue;
+            return translation?.content ? String(translation.content) : '';
         }
 
         // For property fields (display = false), use language_id = 1 or language_code = "all"
         const propertyTranslation = field.translations.find(t =>
             t.language_id === 1 || t.language_code === 'all'
         );
-        const propertyValue = propertyTranslation?.content || field.default_value || '';
-        return propertyValue;
+        if (propertyTranslation?.content) {
+            return String(propertyTranslation.content);
+        }
+
+        // Fallback to default value or empty string
+        return field.default_value ? String(field.default_value) : '';
     };
 
     const fieldValue = getFieldValue();
@@ -121,6 +124,8 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
             case 'textarea': return 'indigo';
             case 'checkbox': return 'pink';
             case 'select': return 'blue';
+            case 'select-language': return 'green';
+            case 'select-timezone': return 'purple';
             case 'select-icon': return 'violet';
             case 'select-css': return 'violet';
             case 'select-group': return 'cyan';
@@ -435,6 +440,67 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
                 placeholder="Search and select video..."
                 disabled={disabled}
                 dataVariables={dataVariables}
+            />
+        );
+    }
+
+    // Select Language field - dropdown from public languages
+    if (field.type === 'select-language') {
+        const { languages: languageOptions, isLoading: languagesLoading } = usePublicLanguages();
+
+        const languageData = languageOptions.map(lang => ({
+            value: lang.id.toString(),
+            text: lang.language,
+            disabled: false
+        }));
+
+        const selectConfig: IFieldConfig = {
+            multiSelect: false,
+            required: true,
+            options: languageData,
+            searchable: true,
+            clearable: false
+        };
+
+        return renderFieldWithBadge(
+            <SelectField
+                fieldId={field.id}
+                config={selectConfig}
+                value={String(fieldValue || '')}
+                onChange={onChange}
+                placeholder="Select a language..."
+                disabled={disabled || languagesLoading}
+                isLoading={languagesLoading}
+            />
+        );
+    }
+
+    // Select Timezone field - dropdown from timezone lookups
+    if (field.type === 'select-timezone') {
+        const timezoneLookups = useLookupsByType('timezones');
+
+        const timezoneData = timezoneLookups.map(tz => ({
+            value: tz.id.toString(),
+            text: tz.lookupCode + ' - ' + tz.lookupDescription,
+            disabled: false
+        }));
+
+        const selectConfig: IFieldConfig = {
+            multiSelect: false,
+            required: true,
+            options: timezoneData,
+            searchable: true,
+            clearable: false
+        };
+
+        return renderFieldWithBadge(
+            <SelectField
+                fieldId={field.id}
+                config={selectConfig}
+                value={String(fieldValue || '')}
+                onChange={onChange}
+                placeholder="Select a timezone..."
+                disabled={disabled}
             />
         );
     }
