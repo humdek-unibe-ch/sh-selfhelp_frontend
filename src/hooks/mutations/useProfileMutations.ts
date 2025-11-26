@@ -59,6 +59,24 @@ export function useUpdatePasswordMutation() {
 }
 
 /**
+ * Mutation hook for updating user timezone
+ */
+export function useUpdateTimezoneMutation() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ timezoneId }: { timezoneId: number }) => {
+            return AuthApi.updateTimezone(timezoneId);
+        },
+        onSuccess: () => {
+            // Invalidate and refetch user data
+            queryClient.invalidateQueries({ queryKey: ['auth', 'user-data'] });
+        },
+        ...REACT_QUERY_CONFIG.DEFAULT_OPTIONS.mutations
+    });
+}
+
+/**
  * Mutation hook for deleting user account
  */
 export function useDeleteAccountMutation() {

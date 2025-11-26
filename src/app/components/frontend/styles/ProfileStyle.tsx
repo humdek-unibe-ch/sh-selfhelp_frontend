@@ -9,15 +9,17 @@ import {
     Group,
     TextInput,
     PasswordInput,
+    Select,
     Button,
     Alert,
     Card,
     Modal,
     Accordion
 } from '@mantine/core';
-import { IconUser, IconKey, IconTrash, IconAlertTriangle, IconCheck, IconX } from '@tabler/icons-react';
+import { IconUser, IconKey, IconTrash, IconAlertTriangle, IconCheck, IconX, IconClock } from '@tabler/icons-react';
 import { useAuthUser } from '../../../../hooks/useUserData';
-import { useUpdateUsernameMutation, useUpdateNameMutation, useUpdatePasswordMutation, useDeleteAccountMutation } from '../../../../hooks/mutations/useProfileMutations';
+import { useUpdateUsernameMutation, useUpdateNameMutation, useUpdatePasswordMutation, useUpdateTimezoneMutation, useDeleteAccountMutation } from '../../../../hooks/mutations/useProfileMutations';
+import { useLookupsByType } from '../../../../hooks/useLookups';
 import { IProfileStyle } from '../../../../types/common/styles.types';
 import { sanitizeHtmlForInline } from '../../../../utils/html-sanitizer.utils';
 
@@ -53,10 +55,14 @@ interface IProfileStyleProps {
 const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClass }) => {
     const { user, isLoading: userLoading } = useAuthUser();
 
+    // Timezone lookups
+    const timezoneLookups = useLookupsByType('timezones');
+
     // Mutations
     const updateUsernameMutation = useUpdateUsernameMutation();
     const updateNameMutation = useUpdateNameMutation();
     const updatePasswordMutation = useUpdatePasswordMutation();
+    const updateTimezoneMutation = useUpdateTimezoneMutation();
     const deleteAccountMutation = useDeleteAccountMutation();
 
     // Form states
@@ -71,6 +77,13 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
         currentPassword: '',
         newPassword: '',
         confirmPassword: '',
+        isSubmitting: false,
+        error: '',
+        success: ''
+    });
+
+    const [timezoneForm, setTimezoneForm] = useState({
+        timezoneId: '',
         isSubmitting: false,
         error: '',
         success: ''
@@ -96,6 +109,7 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
     const labelName = style.profile_label_name?.content || 'Full Name';
     const labelCreated = style.profile_label_created?.content || 'Account Created';
     const labelLastLogin = style.profile_label_last_login?.content || 'Last Login';
+    const labelTimezone = style.profile_label_timezone?.content || 'Timezone';
 
     // Name change fields
     const nameChangeTitle = style.profile_name_change_title?.content || 'Change Display Name';
@@ -130,6 +144,18 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
     const passwordErrorMismatch = style.profile_password_reset_error_mismatch?.content || 'New passwords do not match';
     const passwordErrorWeak = style.profile_password_reset_error_weak?.content || 'Password is too weak. Please choose a stronger password.';
     const passwordErrorGeneral = style.profile_password_reset_error_general?.content || 'Failed to update password. Please try again.';
+
+    // Timezone change fields
+    const timezoneChangeTitle = style.profile_timezone_change_title?.content || 'Change Timezone';
+    const timezoneChangeDescription = style.profile_timezone_change_description?.content || '<p>Select your preferred timezone. This will affect how dates and times are displayed.</p>';
+    const timezoneChangeLabel = style.profile_timezone_change_label?.content || 'Timezone';
+    const timezoneChangePlaceholder = style.profile_timezone_change_placeholder?.content || 'Select a timezone';
+    const timezoneChangeButton = style.profile_timezone_change_button?.content || 'Update Timezone';
+
+    // Timezone change messages
+    const timezoneSuccess = style.profile_timezone_change_success?.content || 'Timezone updated successfully!';
+    const timezoneErrorRequired = style.profile_timezone_change_error_required?.content || 'Timezone is required';
+    const timezoneErrorGeneral = style.profile_timezone_change_error_general?.content || 'Failed to update timezone. Please try again.';
 
     // Account deletion fields
     const deleteTitle = style.profile_delete_title?.content || 'Delete Account';
@@ -281,6 +307,42 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
         );
     };
 
+    // Timezone change handlers
+    const handleTimezoneChange = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setTimezoneForm(prev => ({ ...prev, error: '', success: '' }));
+
+        if (!timezoneForm.timezoneId) {
+            setTimezoneForm(prev => ({ ...prev, error: timezoneErrorRequired }));
+            return;
+        }
+
+        updateTimezoneMutation.mutate(
+            { timezoneId: parseInt(timezoneForm.timezoneId) },
+            {
+                onSuccess: () => {
+                    setTimezoneForm(prev => ({
+                        ...prev,
+                        success: timezoneSuccess,
+                        timezoneId: '',
+                        isSubmitting: false
+                    }));
+                },
+                onError: (error: any) => {
+                    let errorMessage = timezoneErrorGeneral;
+
+                    // Include backend error message if available
+                    const backendError = getBackendErrorMessage(error);
+                    if (backendError && backendError !== errorMessage) {
+                        errorMessage = `${errorMessage} ${backendError}`;
+                    }
+
+                    setTimezoneForm(prev => ({ ...prev, error: errorMessage, isSubmitting: false }));
+                }
+            }
+        );
+    };
+
     // Account deletion handlers
     const handleDeleteAccount = async () => {
         setDeleteForm(prev => ({ ...prev, error: '', success: '' }));
@@ -366,6 +428,10 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
                 <Group>
                     <Text fw={500} w={120}>{labelLastLogin}:</Text>
                     <Text>{formatDate('')}</Text> {/* TODO: Add last_login to user data */}
+                </Group>
+                <Group>
+                    <Text fw={500} w={120}>{labelTimezone}:</Text>
+                    <Text>{user.timezoneLookupValue || 'Not set'}</Text>
                 </Group>
             </Stack>
         </Card>
@@ -476,6 +542,54 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
         </Card>
     );
 
+    const renderTimezoneChangeCard = () => (
+        <Card
+            withBorder
+            radius={cardRadius}
+            p="lg"
+            variant={cardVariant}
+            shadow={cardShadow}
+        >
+            {!useAccordion && (
+            <Title order={3} mb="sm">{timezoneChangeTitle}</Title>
+            )}
+            <HtmlContent html={timezoneChangeDescription} className="mb-md text-dimmed" />
+
+            <form onSubmit={handleTimezoneChange}>
+                <Stack gap="md">
+                    <Select
+                        label={timezoneChangeLabel}
+                        placeholder={timezoneChangePlaceholder}
+                        data={timezoneLookups.map(tz => ({
+                            value: tz.id.toString(),
+                            label: `${tz.lookupCode} - ${tz.lookupDescription}`
+                        }))}
+                        value={timezoneForm.timezoneId}
+                        onChange={(value) => setTimezoneForm(prev => ({ ...prev, timezoneId: value || '' }))}
+                        searchable
+                        required
+                        error={timezoneForm.error}
+                        disabled={timezoneForm.isSubmitting}
+                    />
+
+                    {timezoneForm.success && (
+                        <Alert color="green" icon={<IconCheck size={16} />}>
+                            {timezoneForm.success}
+                        </Alert>
+                    )}
+
+                    <Button
+                        type="submit"
+                        loading={timezoneForm.isSubmitting}
+                        leftSection={<IconClock size={16} />}
+                    >
+                        {timezoneChangeButton}
+                    </Button>
+                </Stack>
+            </form>
+        </Card>
+    );
+
     const renderAccountDeletionCard = () => (
         <Card
             withBorder
@@ -511,6 +625,7 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
         const cards = [
             <Fragment key="user-info">{renderUserInfoCard()}</Fragment>,
             <Fragment key="name-change">{renderNameChangeCard()}</Fragment>,
+            <Fragment key="timezone-change">{renderTimezoneChangeCard()}</Fragment>,
             <Fragment key="password-change">{renderPasswordChangeCard()}</Fragment>,
             <Fragment key="account-delete">{renderAccountDeletionCard()}</Fragment>
         ];
@@ -570,6 +685,15 @@ const ProfileStyle: React.FC<IProfileStyleProps> = ({ style, styleProps, cssClas
                         </Accordion.Control>
                         <Accordion.Panel>
                             {renderNameChangeCard()}
+                        </Accordion.Panel>
+                    </Accordion.Item>
+
+                    <Accordion.Item value="timezone_change">
+                        <Accordion.Control icon={<IconClock size={16} />}>
+                            {timezoneChangeTitle}
+                        </Accordion.Control>
+                        <Accordion.Panel>
+                            {renderTimezoneChangeCard()}
                         </Accordion.Panel>
                     </Accordion.Item>
 

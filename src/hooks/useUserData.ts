@@ -106,7 +106,10 @@ function transformUserData(userData: IUserData): IAuthUser {
         groups: userData.groups,
         languageId: userData.language.id,
         languageLocale: userData.language.locale,
-        languageName: userData.language.name
+        languageName: userData.language.name,
+        timezoneId: userData.timezone.id,
+        timezoneLookupCode: userData.timezone.lookupCode,
+        timezoneLookupValue: userData.timezone.lookupValue
     };
 }
 

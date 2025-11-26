@@ -320,6 +320,25 @@ export const AuthApi = {
     },
 
     /**
+     * Updates the current user's timezone preference
+     * @param {number} timezoneId - The timezone lookup ID to set
+     * @returns {Promise<IUserDataResponse>} Response containing updated user information
+     * @throws {Error} When timezone update fails
+     */
+    async updateTimezone(timezoneId: number): Promise<IUserDataResponse> {
+        const response = await permissionAwareApiClient.put<IUserDataResponse>(
+            API_CONFIG.ENDPOINTS.USER_UPDATE_TIMEZONE,
+            { timezone_id: timezoneId }
+        );
+
+        if (response.data.error) {
+            throw new Error(response.data.error);
+        }
+
+        return response.data;
+    },
+
+    /**
      * Validate a user token before showing the validation form
      * @param userId - User ID from URL parameter
      * @param token - Validation token from URL parameter

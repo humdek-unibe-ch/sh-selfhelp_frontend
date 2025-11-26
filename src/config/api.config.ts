@@ -55,6 +55,10 @@ export const API_CONFIG = {
             route: '/auth/user/account',
             permissions: []
         },
+        USER_UPDATE_TIMEZONE: {
+            route: '/auth/user/timezone',
+            permissions: []
+        },
 
         // User validation endpoints
         USER_VALIDATE_TOKEN: {

@@ -232,6 +232,7 @@ export interface IProfileStyle extends IStyleWithSpacing {
     profile_label_name?: IContentField<string>;
     profile_label_created?: IContentField<string>;
     profile_label_last_login?: IContentField<string>;
+    profile_label_timezone?: IContentField<string>;
 
     // Name Change Section
     profile_name_change_title?: IContentField<string>;
@@ -245,6 +246,18 @@ export interface IProfileStyle extends IStyleWithSpacing {
     profile_name_change_error_required?: IContentField<string>;
     profile_name_change_error_invalid?: IContentField<string>;
     profile_name_change_error_general?: IContentField<string>;
+
+    // Timezone Change Section
+    profile_timezone_change_title?: IContentField<string>;
+    profile_timezone_change_description?: IContentField<string>;
+    profile_timezone_change_label?: IContentField<string>;
+    profile_timezone_change_placeholder?: IContentField<string>;
+    profile_timezone_change_button?: IContentField<string>;
+
+    // Timezone Change Messages
+    profile_timezone_change_success?: IContentField<string>;
+    profile_timezone_change_error_required?: IContentField<string>;
+    profile_timezone_change_error_general?: IContentField<string>;
 
     // Password Reset Section
     profile_password_reset_title?: IContentField<string>;

@@ -48,6 +48,11 @@ export interface IUserData {
         locale: string | null;
         name: string | null;
     };
+    timezone: {
+        id: number | null;
+        lookupCode: string | null;
+        lookupValue: string | null;
+    };
     roles: Array<{
         id: number;
         name: string;
@@ -88,6 +93,12 @@ export interface IAuthUser {
     languageLocale: string | null;
     /** User's preferred language name */
     languageName: string | null;
+    /** User's timezone ID */
+    timezoneId: number | null;
+    /** User's timezone lookup code */
+    timezoneLookupCode: string | null;
+    /** User's timezone display value */
+    timezoneLookupValue: string | null;
 }
 
 /**
