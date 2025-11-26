@@ -247,9 +247,9 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
     };
 
     // Render property field
-    const renderPropertyField = (field: IPageField, languageId?: number) => {
-        // If languageId is provided, use it; otherwise use the first language
-        const langId = languageId || languagesData[0]?.id || 1;
+    const renderPropertyField = (field: IPageField) => {
+        // Property fields use language_id = 1 (property language)
+        const langId = 1;
         const fieldValue = form.values.fields?.[field.name]?.[langId] ?? '';
         
         // Convert IPageField to IFieldData
@@ -270,9 +270,11 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                 field={fieldData}
                 value={fieldValue}
                 onChange={(value) => {
-                    const fieldKey = `fields.${field.name}.${langId}`;
-                    
-                    form.setFieldValue(fieldKey, value);
+                    // Update the value for all languages since property fields are not translatable
+                    languagesData.forEach(language => {
+                        const fieldKey = `fields.${field.name}.${language.id}`;
+                        form.setFieldValue(fieldKey, value);
+                    });
                 }}
             />
         );
@@ -429,43 +431,13 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
 
                             <Collapse in={propertiesExpanded}>
                                 <Card.Section p="lg">
-                                    {hasMultipleLanguages ? (
-                                        <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || languagesData[0]?.id.toString() || '')}>
-                                            <Tabs.List mb="md">
-                                                {languagesData.map(lang => {
-                                                    const langId = lang.id.toString();
-                                                    return (
-                                                        <Tabs.Tab key={langId} value={langId} fw={500}>
-                                                            {lang.language}
-                                                        </Tabs.Tab>
-                                                    );
-                                                })}
-                                            </Tabs.List>
-
-                                            {languagesData.map(lang => {
-                                                const langId = lang.id.toString();
-                                                return (
-                                                    <Tabs.Panel key={langId} value={langId}>
-                                                        <div className={styles.fieldGrid}>
-                                                            {propertyFields.map(field => (
-                                                                <div key={field.id}>
-                                                                    {renderPropertyField(field, lang.id)}
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </Tabs.Panel>
-                                                );
-                                            })}
-                                        </Tabs>
-                                    ) : (
-                                        <div className={styles.fieldGrid}>
-                                            {propertyFields.map(field => (
-                                                <div key={field.id}>
-                                                    {renderPropertyField(field)}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
+                                    <div className={styles.fieldGrid}>
+                                        {propertyFields.map(field => (
+                                            <div key={field.id}>
+                                                {renderPropertyField(field)}
+                                            </div>
+                                        ))}
+                                    </div>
                                 </Card.Section>
                             </Collapse>
                         </Card>

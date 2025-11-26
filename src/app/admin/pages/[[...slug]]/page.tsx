@@ -66,13 +66,13 @@ function AdminPagesContent() {
   // Note: React Query handles caching automatically - no need to manually invalidate on keyword change
   // The staleTime config in react-query.config.ts controls when data is refetched
   const selectedPage = useMemo(() => {
-    if (!hierarchicalPages || !keyword) return null;
+    if (!pages || !keyword) return null;
 
-    const allPages = flattenPages(hierarchicalPages);
-    const page = allPages.find(p => p.keyword === keyword);
+    // Search in all pages (both regular and configuration pages)
+    const page = pages.find(p => p.keyword === keyword);
 
     return page || null;
-  }, [hierarchicalPages, keyword]);
+  }, [pages, keyword]);
 
   // Check if it's a configuration page
   const isConfigurationPage = useMemo(() => {

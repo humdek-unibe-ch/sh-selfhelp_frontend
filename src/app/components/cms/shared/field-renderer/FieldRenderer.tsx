@@ -8,7 +8,6 @@ import {
     RichTextField,
     TextInputWithMentions,
     CheckboxField,
-    MonacoEditorField,
     SelectField,
     SelectIconField,
     SliderField,
@@ -17,7 +16,8 @@ import {
     ConditionBuilderField,
     DataConfigField,
     ColorPickerField,
-    SpacingField
+    SpacingField,
+    MonacoEditorField
 } from '../field-components';
 import type { IFieldConfig } from '../../../../../types/requests/admin/fields.types';
 
@@ -546,6 +546,20 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
         );
     }
 
+    // CSS field - use Monaco Editor
+    if (field.type === 'css') {
+        return renderFieldWithBadge(
+            <MonacoEditorField
+                fieldId={field.id}
+                value={fieldValue}
+                onChange={onChange}
+                language="css"
+                height={400}
+                disabled={disabled}
+            />
+        );
+    }
+
     // Unknown field type
     return renderFieldWithBadge(
         <UnknownField
@@ -664,21 +678,4 @@ export function GlobalFieldRenderer({
             </Stack>
         );
     }
-
-    // Fallback for unknown field types
-    return (
-        <Stack gap="xs" className={className}>
-            <FieldLabelWithTooltip
-                label={fieldType}
-                tooltip={`Configuration for ${fieldType}`}
-            />
-            <TextInputField
-                fieldId={0}
-                value={fieldValue}
-                onChange={onChange}
-                placeholder={`Enter ${fieldType} value`}
-                disabled={disabled}
-            />
-        </Stack>
-    );
-} 
+    } 

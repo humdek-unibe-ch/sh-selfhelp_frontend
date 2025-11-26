@@ -224,8 +224,11 @@ export function initializeFieldFormValues(
             // Property fields: find content from language_id = 1 and replicate across all languages
             const propertyTranslation = field.translations.find((t: IPageFieldTranslation) => t.language_id === 1);
             const propertyContent = propertyTranslation?.content || '';
-            
-            // Replicate property field content to all language tabs for editing convenience
+
+            // Set the value for language_id = 1 (property language) for consistency
+            fieldsObject[field.name][1] = propertyContent;
+
+            // Also replicate to all available languages for editing convenience
             languages.forEach(language => {
                 fieldsObject[field.name][language.id] = propertyContent;
             });
