@@ -59,7 +59,24 @@ export function useUpdatePasswordMutation() {
 }
 
 /**
- * Mutation hook for updating user timezone
+ * Mutation hook for updating user timezone preference
+ *
+ * Updates the user's timezone setting which affects how dates and times
+ * are displayed throughout the application. The timezone is stored as
+ * a lookup ID referencing the timezones lookup table.
+ *
+ * @returns Mutation hook with timezone update functionality
+ *
+ * @example
+ * ```typescript
+ * const updateTimezone = useUpdateTimezoneMutation();
+ *
+ * // Update to UTC timezone
+ * updateTimezone.mutate({ timezoneId: 1 });
+ * ```
+ *
+ * @note Invalidates user data cache on success to refresh timezone info
+ * @note Timezone changes affect date/time display across the entire application
  */
 export function useUpdateTimezoneMutation() {
     const queryClient = useQueryClient();
@@ -69,7 +86,7 @@ export function useUpdateTimezoneMutation() {
             return AuthApi.updateTimezone(timezoneId);
         },
         onSuccess: () => {
-            // Invalidate and refetch user data
+            // Invalidate and refetch user data to update timezone info
             queryClient.invalidateQueries({ queryKey: ['auth', 'user-data'] });
         },
         ...REACT_QUERY_CONFIG.DEFAULT_OPTIONS.mutations

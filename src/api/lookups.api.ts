@@ -1,7 +1,12 @@
 /**
  * API client for handling lookups-related API calls.
  * Provides methods for fetching lookup data from the backend.
- * 
+ *
+ * Lookups include various system reference data such as:
+ * - Timezones for user preference settings
+ * - Resource types for content management
+ * - Status codes and configuration options
+ *
  * @module api/lookups.api
  */
 
@@ -59,5 +64,32 @@ export const LookupsApi = {
         }
 
         return result;
+    },
+
+    /**
+     * Gets all available timezones for user preference selection
+     * @returns {Promise<ILookup[]>} Array of timezone lookup items
+     * @throws {Error} When API request fails
+     */
+    async getTimezones(): Promise<ILookup[]> {
+        const lookups = await this.getLookups();
+        return lookups.filter(lookup => lookup.typeCode === 'timezones');
+    },
+
+    /**
+     * Gets timezone ID by timezone code (e.g., 'UTC', 'America/New_York')
+     * @param timezoneCode The timezone code to look up
+     * @returns {Promise<number>} Timezone ID
+     * @throws {Error} When timezone is not found
+     */
+    async getTimezoneId(timezoneCode: string): Promise<number> {
+        const timezones = await this.getTimezones();
+        const timezone = timezones.find(tz => tz.lookupCode === timezoneCode);
+
+        if (!timezone) {
+            throw new Error(`Timezone not found for code: ${timezoneCode}`);
+        }
+
+        return timezone.id;
     }
 }; 

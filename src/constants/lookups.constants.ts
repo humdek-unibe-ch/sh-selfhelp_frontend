@@ -25,6 +25,7 @@ export const USER_STATUS = 'userStatus';
 export const PAGE_ACTIONS = 'pageActions';
 export const STYLE_TYPE = 'styleType';
 export const PLUGINS = 'plugins';
+export const TIMEZONES = 'timezones';
 
 // Lookup Codes
 // notificationTypes
