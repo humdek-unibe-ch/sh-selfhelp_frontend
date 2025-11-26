@@ -279,7 +279,6 @@ export function AdminNavbar() {
         if (permissionChecker.canManageLanguages()) systemToolLinks.push({ label: 'Languages', link: '/admin/languages' });
         if (permissionChecker.canAccessDataBrowser()) systemToolLinks.push({ label: 'Data Browser', link: '/admin/data' });
         if (permissionChecker.canViewAuditLogs()) systemToolLinks.push({ label: 'Audit Logs', link: '/admin/data-access' });
-        if (permissionChecker.canReadCmsPreferences()) systemToolLinks.push({ label: 'CMS Preferences', link: '/admin/preferences' });
         if (permissionChecker.canReadCache()) systemToolLinks.push({ label: 'Cache Management', link: '/admin/cache' });
 
         if (systemToolLinks.length > 0) {

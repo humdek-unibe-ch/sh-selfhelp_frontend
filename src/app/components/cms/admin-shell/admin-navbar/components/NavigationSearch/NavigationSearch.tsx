@@ -125,9 +125,6 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
         if (permissionChecker?.canViewAuditLogs()) {
             systemToolFunctions.push({ id: 'audit-logs', label: 'Audit Logs', href: '/admin/data-access', icon: <IconDatabase size={16} />, category: 'System Tools', keywords: ['audit', 'logs', 'security', 'access', 'monitoring', 'data access'] });
         }
-        if (permissionChecker?.canReadCmsPreferences()) {
-            systemToolFunctions.push({ id: 'preferences', label: 'CMS Preferences', href: '/admin/preferences', icon: <IconSettings size={16} />, category: 'Configuration', keywords: ['preferences', 'settings', 'config'] });
-        }
         if (permissionChecker?.canReadCache()) {
             systemToolFunctions.push({ id: 'cache', label: 'Cache Management', href: '/admin/cache', icon: <IconDatabase size={16} />, category: 'Configuration', keywords: ['cache', 'performance', 'memory'] });
         }
@@ -270,22 +267,28 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                     }));
                 };
 
+                // Get configuration keywords to exclude them from regular pages
+                const configurationKeywords = new Set(adminPagesData.configurationPageLinks?.map(p => p.keyword) || []);
+
                 // Filter menu pages from raw data (preserves hierarchy)
                 const menuPages = convertAllPagesToRegularFormat(
                     adminPagesData.allPages.filter((page) =>
-                        page.nav_position !== null && page.nav_position !== undefined && !page.is_system
+                        page.nav_position !== null && page.nav_position !== undefined && !page.is_system &&
+                        !configurationKeywords.has(page.keyword) // Exclude configuration pages
                     )
                 );
                 const footerPages = convertAllPagesToRegularFormat(
                     adminPagesData.allPages.filter((page) =>
-                        page.footer_position !== null && page.footer_position !== undefined && !page.is_system
+                        page.footer_position !== null && page.footer_position !== undefined && !page.is_system &&
+                        !configurationKeywords.has(page.keyword) // Exclude configuration pages
                     )
                 );
                 const otherPages = convertAllPagesToRegularFormat(
                     adminPagesData.allPages.filter((page) =>
                         (page.nav_position === null || page.nav_position === undefined) &&
                         (page.footer_position === null || page.footer_position === undefined) &&
-                        !page.is_system
+                        !page.is_system &&
+                        !configurationKeywords.has(page.keyword) // Exclude configuration pages
                     )
                 );
 

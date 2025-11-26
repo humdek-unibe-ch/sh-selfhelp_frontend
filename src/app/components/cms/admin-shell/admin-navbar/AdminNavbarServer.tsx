@@ -59,7 +59,6 @@ const navigationItems = [
         label: 'Configuration',
         icon: IconSettings,
         children: [
-            { label: 'CMS Preferences', href: '/admin/preferences' },
             { label: 'Cache Management', href: '/admin/cache' },
         ]
     },
