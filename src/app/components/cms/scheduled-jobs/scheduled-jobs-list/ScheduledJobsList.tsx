@@ -80,7 +80,6 @@ export function ScheduledJobsList({
 
     const [showFilters, setShowFilters] = useState(false);
     const [selectedJobs, setSelectedJobs] = useState<Set<number>>(new Set());
-    const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
 
     // Real API calls
     const { data: scheduledJobsData, isLoading, error, refetch } = useScheduledJobs(params);
@@ -103,7 +102,7 @@ export function ScheduledJobsList({
 
     // Table sorting state
     const [sorting, setSorting] = useState<SortingState>([
-        { id: 'date_create', desc: true }
+        { id: 'date_created', desc: true }
     ]);
 
     // Handle sorting change
@@ -191,21 +190,10 @@ export function ScheduledJobsList({
         }
     }, [selectedJobs, scheduledJobs, onBulkDeleteJobs]);
 
-    // Handle row expansion
-    const handleRowExpansion = useCallback((jobId: number) => {
-        const newExpanded = new Set(expandedRows);
-        if (newExpanded.has(jobId)) {
-            newExpanded.delete(jobId);
-        } else {
-            newExpanded.add(jobId);
-        }
-        setExpandedRows(newExpanded);
-    }, [expandedRows]);
 
     // Get status color
-    const getStatusColor = (status: string | { code: string; name: string }) => {
-        const statusCode = typeof status === 'string' ? status : status.code;
-        switch (statusCode.toLowerCase()) {
+    const getStatusColor = (status: string) => {
+        switch (status.toLowerCase()) {
             case 'queued': return 'blue';
             case 'done': return 'green';
             case 'failed': return 'orange';
@@ -230,24 +218,6 @@ export function ScheduledJobsList({
     // Define table columns
     const columns = useMemo<ColumnDef<IScheduledJob>[]>(
         () => [
-            {
-                id: 'expand',
-                header: '',
-                cell: ({ row }) => (
-                    <ActionIcon
-                        variant="subtle"
-                        size="sm"
-                        onClick={() => handleRowExpansion(row.original.id)}
-                    >
-                        {expandedRows.has(row.original.id) ? (
-                            <IconMinus size={14} />
-                        ) : (
-                            <IconPlus size={14} />
-                        )}
-                    </ActionIcon>
-                ),
-                enableSorting: false,
-            },
             {
                 id: 'select',
                 header: ({ table }) => (
@@ -321,15 +291,13 @@ export function ScheduledJobsList({
                         color={getStatusColor(row.original.status)}
                         size="sm"
                     >
-                        {typeof row.original.status === 'string'
-                            ? row.original.status
-                            : row.original.status.name}
+                        {row.original.status}
                     </Badge>
                 ),
                 enableSorting: true,
             },
             {
-                accessorKey: 'job_type.name',
+                accessorKey: 'job_types',
                 header: ({ column }) => (
                     <Group gap="xs">
                         <Text fw={500}>Type</Text>
@@ -349,12 +317,12 @@ export function ScheduledJobsList({
                     </Group>
                 ),
                 cell: ({ row }) => (
-                    <Text size="sm">{row.original.job_type.name}</Text>
+                    <Text size="sm">{row.original.job_types}</Text>
                 ),
                 enableSorting: true,
             },
             {
-                accessorKey: 'date_create',
+                accessorKey: 'date_created',
                 header: ({ column }) => (
                     <Group gap="xs">
                         <Text fw={500}>Entry Date</Text>
@@ -374,7 +342,7 @@ export function ScheduledJobsList({
                     </Group>
                 ),
                 cell: ({ row }) => (
-                    <Text size="sm">{formatDate(row.original.entry_date)}</Text>
+                    <Text size="sm">{formatDate(row.original.date_created)}</Text>
                 ),
                 enableSorting: true,
             },
@@ -425,7 +393,7 @@ export function ScheduledJobsList({
                 ),
                 cell: ({ row }) => (
                     <Text size="sm">
-                        {row.original.execution_date ? formatDate(row.original.execution_date) : '-'}
+                        {row.original.date_executed ? formatDate(row.original.date_executed) : '-'}
                     </Text>
                 ),
                 enableSorting: true,
@@ -458,29 +426,29 @@ export function ScheduledJobsList({
                 enableSorting: true,
             },
             {
-                accessorKey: 'recipient',
-                header: 'Recipient',
+                accessorKey: 'user_email',
+                header: 'User Email',
                 cell: ({ row }) => (
                     <Text size="sm" className={classes.recipientText} truncate>
-                        {row.original.recipient || '-'}
+                        {row.original.user_email || '-'}
                     </Text>
                 ),
             },
             {
-                accessorKey: 'title',
-                header: 'Title',
+                accessorKey: 'config.email.subject',
+                header: 'Email Subject',
                 cell: ({ row }) => (
                     <Text size="sm" className={classes.titleText} truncate>
-                        {row.original.title || '-'}
+                        {row.original.config?.email?.subject || '-'}
                     </Text>
                 ),
             },
             {
-                accessorKey: 'message',
-                header: 'Message',
+                accessorKey: 'timezone',
+                header: 'Timezone',
                 cell: ({ row }) => (
-                    <Text size="sm" className={classes.messageText} truncate>
-                        {row.original.message || '-'}
+                    <Text size="sm">
+                        {row.original.timezone || '-'}
                     </Text>
                 ),
             },
@@ -521,7 +489,7 @@ export function ScheduledJobsList({
                 ),
             },
         ],
-        [selectedJobs, handleSelectJob, handleSelectAll, onViewJob, onExecuteJob, onDeleteJob, expandedRows, handleRowExpansion]
+        [selectedJobs, handleSelectJob, handleSelectAll, onViewJob, onExecuteJob, onDeleteJob]
     );
 
     // Initialize table
@@ -709,25 +677,16 @@ export function ScheduledJobsList({
                             </TableThead>
                             <TableTbody>
                                 {table.getRowModel().rows.map((row) => (
-                                    <React.Fragment key={row.id}>
-                                        <TableTr>
-                                            {row.getVisibleCells().map((cell) => (
-                                                <TableTd key={cell.id}>
-                                                    {flexRender(
-                                                        cell.column.columnDef.cell,
-                                                        cell.getContext()
-                                                    )}
-                                                </TableTd>
-                                            ))}
-                                        </TableTr>
-                                        {expandedRows.has(row.original.id) && (
-                                            <TableTr key={`${row.id}-transactions`}>
-                                                <TableTd colSpan={row.getVisibleCells().length}>
-                                                    <TransactionsTable transactions={row.original.transactions} />
-                                                </TableTd>
-                                            </TableTr>
-                                        )}
-                                    </React.Fragment>
+                                    <TableTr key={row.id}>
+                                        {row.getVisibleCells().map((cell) => (
+                                            <TableTd key={cell.id}>
+                                                {flexRender(
+                                                    cell.column.columnDef.cell,
+                                                    cell.getContext()
+                                                )}
+                                            </TableTd>
+                                        ))}
+                                    </TableTr>
                                 ))}
                             </TableTbody>
                         </Table>
@@ -772,75 +731,3 @@ export function ScheduledJobsList({
         </Card>
     );
 }
-
-// Transactions Table Component
-interface ITransactionsTableProps {
-    transactions: IScheduledJobTransaction[];
-}
-
-function TransactionsTable({ transactions }: ITransactionsTableProps) {
-    // Format date in European style
-    const formatDate = (dateString: string) => {
-        if (!dateString) return '-';
-        return new Date(dateString).toLocaleString('de-DE', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        });
-    };
-
-    return (
-        <Paper p="md" withBorder>
-            <Text size="sm" fw={500} mb="md">Transactions</Text>
-            {transactions.length > 0 ? (
-                <Table>
-                    <TableThead>
-                        <TableTr>
-                            <TableTh>Transaction ID</TableTh>
-                            <TableTh>Transaction Time</TableTh>
-                            <TableTh>Transaction Type</TableTh>
-                            <TableTh>User</TableTh>
-                            <TableTh>Transaction Log</TableTh>
-                        </TableTr>
-                    </TableThead>
-                    <TableTbody>
-                        {transactions.map((transaction) => (
-                            <TableTr key={transaction.transaction_id}>
-                                <TableTd>
-                                    <Text size="xs" fw={500}>
-                                        {transaction.transaction_id}
-                                    </Text>
-                                </TableTd>
-                                <TableTd>
-                                    <Text size="xs">
-                                        {formatDate(transaction.transaction_time)}
-                                    </Text>
-                                </TableTd>
-                                <TableTd>
-                                    <Text size="xs">
-                                        {transaction.transaction_type}
-                                    </Text>
-                                </TableTd>
-                                <TableTd>
-                                    <Text size="xs">
-                                        {transaction.user}
-                                    </Text>
-                                </TableTd>
-                                <TableTd>
-                                    <Text size="xs" className={classes.transactionLogText} truncate>
-                                        {transaction.transaction_verbal_log}
-                                    </Text>
-                                </TableTd>
-                            </TableTr>
-                        ))}
-                    </TableTbody>
-                </Table>
-            ) : (
-                <Text size="sm" c="dimmed">No transactions found for this job</Text>
-            )}
-        </Paper>
-    );
-} 

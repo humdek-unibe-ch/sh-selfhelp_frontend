@@ -10,32 +10,20 @@ export interface IScheduledJobTransaction {
 
 export interface IScheduledJob {
     id: number;
+    id_users: number;
+    user_email: string;
+    action_name: string | null;
+    data_table_name: string | null;
+    data_row: number | null;
+    job_types: string;
+    status: string;
     description: string;
-    date_create: string;
-    adjusted_execution_time: string | null;
+    timezone: string;
+    date_scheduled: string;
+    date_created: string;
+    date_to_be_executed: string;
     date_executed: string | null;
     config: Record<string, any>;
-    job_type: {
-        code: string;
-        name: string;
-    };
-    status: {
-        code: string;
-        name: string;
-    };
-    user: {
-        id: number;
-        email: string;
-        name: string;
-    };
-    relationships: {
-        action_id: number | null;
-        datatable_id: number | null;
-        datarow_id: number | null;
-    };
-    timezone: {
-        code: string;
-    };
 }
 
 export interface IScheduledJobsListData {

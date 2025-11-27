@@ -14,7 +14,7 @@ import {
     LoadingOverlay
 } from '@mantine/core';
 import { IconPlayerPlay, IconTrash } from '@tabler/icons-react';
-import { useScheduledJob } from '../../../../../hooks/useScheduledJobs';
+import { useScheduledJob, useScheduledJobTransactions } from '../../../../../hooks/useScheduledJobs';
 
 interface IScheduledJobTransaction {
     transaction_id: number;
@@ -42,8 +42,10 @@ export function ScheduledJobDetailsModal({
     onDeleteJob
 }: IScheduledJobDetailsModalProps) {
     const { data: jobDetailsData, isLoading: loading } = useScheduledJob(jobId || 0, opened && !!jobId);
+    const { data: transactionsData, isLoading: transactionsLoading } = useScheduledJobTransactions(jobId || 0, opened && !!jobId);
 
     const jobDetails = jobDetailsData?.data;
+    const transactions = transactionsData?.data || [];
 
     const getStatusColor = (status: string) => {
         switch (status.toLowerCase()) {
@@ -99,13 +101,13 @@ export function ScheduledJobDetailsModal({
                         <Stack gap="sm">
                             <Group>
                                 <Text size="sm" fw={500}>Status:</Text>
-                                <Badge color={getStatusColor(jobDetails.status.value)}>
-                                    {jobDetails.status.value}
+                                <Badge color={getStatusColor(typeof jobDetails.status === 'string' ? jobDetails.status : jobDetails.status.value)}>
+                                    {typeof jobDetails.status === 'string' ? jobDetails.status : jobDetails.status.value}
                                 </Badge>
                             </Group>
                             <Group>
                                 <Text size="sm" fw={500}>Type:</Text>
-                                <Text size="sm">{jobDetails.job_type.value}</Text>
+                                <Text size="sm">{typeof jobDetails.job_type === 'string' ? jobDetails.job_type : jobDetails.job_type?.value}</Text>
                             </Group>
                             <Group>
                                 <Text size="sm" fw={500}>Description:</Text>
@@ -130,64 +132,16 @@ export function ScheduledJobDetailsModal({
                     {jobDetails.config && (
                         <Paper p="md" withBorder>
                             <Title order={4} mb="md">Configuration</Title>
-                            <Code block>{jobDetails.config}</Code>
-                        </Paper>
-                    )}
-
-                    {/* Users */}
-                    {jobDetails.users.length > 0 && (
-                        <Paper p="md" withBorder>
-                            <Title order={4} mb="md">Users</Title>
-                            <Table>
-                                <Table.Thead>
-                                    <Table.Tr>
-                                        <Table.Th>ID</Table.Th>
-                                        <Table.Th>Name</Table.Th>
-                                        <Table.Th>Email</Table.Th>
-                                    </Table.Tr>
-                                </Table.Thead>
-                                <Table.Tbody>
-                                    {jobDetails.users.map((user) => (
-                                        <Table.Tr key={user.id}>
-                                            <Table.Td>{user.id}</Table.Td>
-                                            <Table.Td>{user.name}</Table.Td>
-                                            <Table.Td>{user.email}</Table.Td>
-                                        </Table.Tr>
-                                    ))}
-                                </Table.Tbody>
-                            </Table>
-                        </Paper>
-                    )}
-
-                    {/* Tasks */}
-                    {jobDetails.tasks.length > 0 && (
-                        <Paper p="md" withBorder>
-                            <Title order={4} mb="md">Tasks</Title>
-                            <Table>
-                                <Table.Thead>
-                                    <Table.Tr>
-                                        <Table.Th>ID</Table.Th>
-                                        <Table.Th>Name</Table.Th>
-                                        <Table.Th>Description</Table.Th>
-                                    </Table.Tr>
-                                </Table.Thead>
-                                <Table.Tbody>
-                                    {jobDetails.tasks.map((task) => (
-                                        <Table.Tr key={task.id}>
-                                            <Table.Td>{task.id}</Table.Td>
-                                            <Table.Td>{task.name}</Table.Td>
-                                            <Table.Td>{task.description}</Table.Td>
-                                        </Table.Tr>
-                                    ))}
-                                </Table.Tbody>
-                            </Table>
+                            <Code block>{JSON.stringify(jobDetails.config, null, 2)}</Code>
                         </Paper>
                     )}
 
                     {/* Transactions */}
                     <Paper p="md" withBorder>
                         <Title order={4} mb="md">Transactions</Title>
-                        {jobDetails.transactions.length > 0 ? (
+                        {transactionsLoading ? (
+                            <Text c="dimmed">Loading transactions...</Text>
+                        ) : transactions.length > 0 ? (
                             <Table>
                                 <Table.Thead>
                                     <Table.Tr>
@@ -199,7 +153,7 @@ export function ScheduledJobDetailsModal({
                                     </Table.Tr>
                                 </Table.Thead>
                                 <Table.Tbody>
-                                    {jobDetails.transactions.map((transaction) => (
+                                    {transactions.map((transaction) => (
                                         <Table.Tr key={transaction.transaction_id}>
                                             <Table.Td>{transaction.transaction_id}</Table.Td>
                                             <Table.Td>{formatDate(transaction.transaction_time)}</Table.Td>
@@ -226,7 +180,7 @@ export function ScheduledJobDetailsModal({
                             color="gray"
                             leftSection={<IconPlayerPlay size={16} />}
                             onClick={handleExecute}
-                            disabled={jobDetails.status.value.toLowerCase() !== 'queued'}
+                            disabled={(typeof jobDetails.status === 'string' ? jobDetails.status : jobDetails.status.value).toLowerCase() !== 'queued'}
                         >
                             Execute Job
                         </Button>
