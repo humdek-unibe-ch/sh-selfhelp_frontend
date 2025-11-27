@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { LoadingOverlay, Select, Stack, TextInput } from '@mantine/core';
 import classes from './ActionFormModal.module.css';
 import { useCreateAction, useActionDetails, useUpdateAction } from '../../../../../hooks/useActions';
@@ -77,12 +77,31 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
     [tables]
   );
 
+  // Memoized callback functions to prevent re-renders
+  const handleConfigChange = useCallback((cfg: any) => {
+    const next = JSON.stringify(cfg);
+    if (next !== lastBuilderJsonRef.current) {
+      lastBuilderJsonRef.current = next;
+      setConfigObj(cfg);
+    }
+  }, []);
+
+  const handleTranslationsChange = useCallback((translations: { [key: string]: { [languageId: number]: string } }) => {
+    setActionTranslations(translations);
+  }, []);
+
   useEffect(() => {
     if (mode === 'edit' && details && opened) {
       setName(details.name || '');
       const triggerId = (details.action_trigger_type?.id ?? details.id_actionTriggerTypes) as any;
       setTrigger(triggerId ? String(triggerId) : 'finished');
-      try { setConfigObj(details.config || { blocks: [] }); lastBuilderJsonRef.current = JSON.stringify(details.config || { blocks: [] }); } catch { setConfigObj({ blocks: [] }); lastBuilderJsonRef.current = JSON.stringify({ blocks: [] }); }
+      try {
+        setConfigObj(details.config || { blocks: [] });
+        lastBuilderJsonRef.current = JSON.stringify(details.config || { blocks: [] });
+      } catch {
+        setConfigObj({ blocks: [] });
+        lastBuilderJsonRef.current = JSON.stringify({ blocks: [] });
+      }
       const dtId = (details.data_table?.id ?? details.id_dataTables) as any;
       setDataTableId(dtId ? String(dtId) : '');
     }
@@ -113,43 +132,47 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
 
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
-  // Form validation
+  // Form validation - optimized to only depend on actual form state
   const isFormValid = useMemo(() => {
-    // Basic required fields
-    if (!name.trim()) return false;
-    if (!trigger) return false;
-    if (!dataTableId) return false;
+    const valid = (() => {
+      // Basic required fields
+      if (!name.trim()) return false;
+      if (!trigger) return false;
+      if (!dataTableId) return false;
 
-    // Check if action config has required fields
-    const blocks = configObj?.blocks || [];
-    if (blocks.length === 0) return false;
+      // Check if action config has required fields
+      const blocks = configObj?.blocks || [];
+      if (blocks.length === 0) return false;
 
-    // Check each block has jobs
-    for (const block of blocks) {
-      if (!block.jobs || block.jobs.length === 0) return false;
+      // Check each block has jobs
+      for (const block of blocks) {
+        if (!block.jobs || block.jobs.length === 0) return false;
 
-      // Check each job has required fields
-      for (const job of block.jobs) {
-        // Job name is required
-        if (!job.job_name?.trim()) return false;
+        // Check each job has required fields
+        for (const job of block.jobs) {
+          // Job name is required
+          if (!job.job_name?.trim()) return false;
 
-        // Job type is required
-        if (!job.job_type) return false;
+          // Job type is required
+          if (!job.job_type) return false;
 
-        // Schedule time with schedule type is required
-        if (!job.schedule_time?.job_schedule_types) return false;
+          // Schedule time with schedule type is required
+          if (!job.schedule_time?.job_schedule_types) return false;
 
-        // For notification jobs, check notification fields
-        if (['notification', 'notification_with_reminder', 'notification_with_reminder_for_diary'].includes(job.job_type)) {
-          const notification = job.notification || {};
-          if (!notification.recipient?.trim()) return false;
-          // Subject and body translations are optional for saving
+          // For notification jobs, check notification fields
+          if (['notification', 'notification_with_reminder', 'notification_with_reminder_for_diary'].includes(job.job_type)) {
+            const notification = job.notification || {};
+            if (!notification.recipient?.trim()) return false;
+            // Subject and body translations are optional for saving
+          }
         }
       }
-    }
 
-    return true;
-  }, [name, trigger, dataTableId, configObj, actionTranslations]);
+      return true;
+    })();
+
+    return valid;
+  }, [name, trigger, dataTableId, configObj, mode, opened]); // Removed actionTranslations dependency as it's not used in validation
 
   const handleSave = async () => {
     let parsed: any = configObj || null;
@@ -220,14 +243,8 @@ export function ActionFormModal({ opened, onClose, mode, actionId }: IActionForm
             <ActionConfigBuilder
               actionId={mode === 'edit' ? actionId : undefined}
               value={configObj}
-              onChange={(cfg) => {
-                const next = JSON.stringify(cfg);
-                if (next !== lastBuilderJsonRef.current) {
-                  lastBuilderJsonRef.current = next;
-                  setConfigObj(cfg);
-                }
-              }}
-              onTranslationsChange={setActionTranslations}
+              onChange={handleConfigChange}
+              onTranslationsChange={handleTranslationsChange}
             />
           </div>
         </div>

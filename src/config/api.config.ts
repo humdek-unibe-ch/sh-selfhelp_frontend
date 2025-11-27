@@ -330,7 +330,7 @@ export const API_CONFIG = {
         },
         ADMIN_ACTIONS_CREATE: {
             route: '/admin/actions',
-            permissions: [PERMISSIONS.ADMIN_ACTION_CREATE]
+            permissions: [PERMISSIONS.ADMIN_ACTION_UPDATE]
         },
         ADMIN_ACTIONS_GET_ONE: {
             route: (actionId: number) => `/admin/actions/${actionId}`,

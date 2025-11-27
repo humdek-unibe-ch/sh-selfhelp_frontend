@@ -119,6 +119,19 @@ async function post<T = any>(
         }
     };
 
+    console.log('📤 PermissionAwareApiClient: Making POST request', {
+        url,
+        hasData: !!data,
+        dataKeys: data ? Object.keys(data) : [],
+        enhancedConfig: {
+            ...enhancedConfig,
+            _permissionMetadata: enhancedConfig._permissionMetadata ? {
+                ...enhancedConfig._permissionMetadata,
+                permissions: enhancedConfig._permissionMetadata.permissions
+            } : undefined
+        }
+    });
+
     return apiClient.post<T>(url, data, enhancedConfig);
 }
 
