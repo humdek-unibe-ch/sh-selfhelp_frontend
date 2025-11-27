@@ -444,11 +444,11 @@ export function ScheduledJobsList({
                 ),
             },
             {
-                accessorKey: 'timezone',
-                header: 'Timezone',
+                accessorKey: 'user_timezone',
+                header: 'User Timezone',
                 cell: ({ row }) => (
                     <Text size="sm">
-                        {row.original.timezone || '-'}
+                        {row.original.user_timezone || '-'}
                     </Text>
                 ),
             },

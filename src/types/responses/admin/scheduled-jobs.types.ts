@@ -18,7 +18,7 @@ export interface IScheduledJob {
     job_types: string;
     status: string;
     description: string;
-    timezone: string;
+    user_timezone: string;
     date_scheduled: string;
     date_created: string;
     date_to_be_executed: string;
