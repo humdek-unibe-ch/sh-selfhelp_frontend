@@ -6,7 +6,7 @@
  * - Timezones for user preference settings
  * - Resource types for content management
  * - Status codes and configuration options
- *
+ * 
  * @module api/lookups.api
  */
 

@@ -203,8 +203,9 @@ export function ScheduledJobsList({
     }, [expandedRows]);
 
     // Get status color
-    const getStatusColor = (status: string) => {
-        switch (status.toLowerCase()) {
+    const getStatusColor = (status: string | { code: string; name: string }) => {
+        const statusCode = typeof status === 'string' ? status : status.code;
+        switch (statusCode.toLowerCase()) {
             case 'queued': return 'blue';
             case 'done': return 'green';
             case 'failed': return 'orange';
@@ -320,13 +321,15 @@ export function ScheduledJobsList({
                         color={getStatusColor(row.original.status)}
                         size="sm"
                     >
-                        {row.original.status}
+                        {typeof row.original.status === 'string'
+                            ? row.original.status
+                            : row.original.status.name}
                     </Badge>
                 ),
                 enableSorting: true,
             },
             {
-                accessorKey: 'type',
+                accessorKey: 'job_type.name',
                 header: ({ column }) => (
                     <Group gap="xs">
                         <Text fw={500}>Type</Text>
@@ -346,7 +349,7 @@ export function ScheduledJobsList({
                     </Group>
                 ),
                 cell: ({ row }) => (
-                    <Text size="sm">{row.original.type}</Text>
+                    <Text size="sm">{row.original.job_type.name}</Text>
                 ),
                 enableSorting: true,
             },
