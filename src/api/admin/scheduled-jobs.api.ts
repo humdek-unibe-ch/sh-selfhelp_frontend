@@ -13,7 +13,7 @@ export class AdminScheduledJobsApi {
      */
     static async getScheduledJobs(filters: IScheduledJobFilters = {}): Promise<TScheduledJobsListResponse> {
         const params = new URLSearchParams();
-        
+
         if (filters.page) params.append('page', filters.page.toString());
         if (filters.pageSize) params.append('pageSize', filters.pageSize.toString());
         if (filters.search) params.append('search', filters.search);
@@ -24,6 +24,7 @@ export class AdminScheduledJobsApi {
         if (filters.dateType) params.append('dateType', filters.dateType);
         if (filters.sort) params.append('sort', filters.sort);
         if (filters.sortDirection) params.append('sortDirection', filters.sortDirection);
+        if (filters.includeTransactions) params.append('includeTransactions', filters.includeTransactions.toString());
 
         const response = await permissionAwareApiClient.get(
             API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_GET_ALL,

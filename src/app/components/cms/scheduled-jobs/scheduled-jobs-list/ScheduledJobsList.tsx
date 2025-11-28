@@ -63,6 +63,62 @@ interface IScheduledJobsListProps {
     onBulkDeleteJobs?: (jobIds: number[], descriptions: string[]) => void;
 }
 
+// Format date in European style
+const formatDate = (dateString: string) => {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleString('de-DE', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+};
+
+// Component for displaying transactions sub-table
+function TransactionsSubTable({ transactions }: { transactions: IScheduledJobTransaction[] }) {
+    return (
+        <div style={{ marginLeft: 40, marginTop: 8, marginBottom: 16 }}>
+            <Paper p="xs" withBorder style={{ backgroundColor: 'var(--mantine-color-gray-0)' }}>
+                <Text size="sm" fw={600} mb="xs">
+                    Transactions ({transactions.length})
+                </Text>
+                <Table striped>
+                    <TableThead>
+                        <TableTr>
+                            <TableTh>ID</TableTh>
+                            <TableTh>Time</TableTh>
+                            <TableTh>Type</TableTh>
+                            <TableTh>User</TableTh>
+                            <TableTh>Log</TableTh>
+                        </TableTr>
+                    </TableThead>
+                    <TableTbody>
+                        {transactions.map((transaction) => (
+                            <TableTr key={transaction.transaction_id}>
+                                <TableTd>{transaction.transaction_id}</TableTd>
+                                <TableTd>{formatDate(transaction.transaction_time)}</TableTd>
+                                <TableTd>
+                                    <Badge size="xs" variant="light">
+                                        {transaction.transaction_type}
+                                    </Badge>
+                                </TableTd>
+                                <TableTd>{transaction.user}</TableTd>
+                                <TableTd>
+                                    <Text size="sm" className={classes.descriptionText} truncate>
+                                        {transaction.transaction_verbal_log}
+                                    </Text>
+                                </TableTd>
+                            </TableTr>
+                        ))}
+                    </TableTbody>
+                </Table>
+            </Paper>
+        </div>
+    );
+}
+
 export function ScheduledJobsList({
     onViewJob,
     onExecuteJob,
@@ -76,10 +132,12 @@ export function ScheduledJobsList({
         dateType: 'date_to_be_executed',
         dateFrom: new Date().toISOString().split('T')[0],
         dateTo: new Date().toISOString().split('T')[0],
+        includeTransactions: true,
     });
 
     const [showFilters, setShowFilters] = useState(false);
     const [selectedJobs, setSelectedJobs] = useState<Set<number>>(new Set());
+    const [expandedJobs, setExpandedJobs] = useState<Set<number>>(new Set());
 
     // Real API calls
     const { data: scheduledJobsData, isLoading, error, refetch } = useScheduledJobs(params);
@@ -184,11 +242,22 @@ export function ScheduledJobsList({
         const selectedJobDescriptions = scheduledJobs
             .filter(job => selectedJobs.has(job.id))
             .map(job => job.description);
-        
+
         if (onBulkDeleteJobs && selectedJobIds.length > 0) {
             onBulkDeleteJobs(selectedJobIds, selectedJobDescriptions);
         }
     }, [selectedJobs, scheduledJobs, onBulkDeleteJobs]);
+
+    // Handle row expansion
+    const handleToggleExpand = useCallback((jobId: number) => {
+        const newExpanded = new Set(expandedJobs);
+        if (newExpanded.has(jobId)) {
+            newExpanded.delete(jobId);
+        } else {
+            newExpanded.add(jobId);
+        }
+        setExpandedJobs(newExpanded);
+    }, [expandedJobs]);
 
 
     // Get status color
@@ -202,22 +271,38 @@ export function ScheduledJobsList({
         }
     };
 
-    // Format date in European style
-    const formatDate = (dateString: string) => {
-        if (!dateString) return '-';
-        return new Date(dateString).toLocaleString('de-DE', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        });
-    };
 
     // Define table columns
     const columns = useMemo<ColumnDef<IScheduledJob>[]>(
         () => [
+            {
+                id: 'expand',
+                header: '',
+                cell: ({ row }) => {
+                    const hasTransactions = row.original.transactions && row.original.transactions.length > 0;
+                    const isExpanded = expandedJobs.has(row.original.id);
+
+                    if (!hasTransactions) {
+                        return <div style={{ width: 24 }} />;
+                    }
+
+                    return (
+                        <ActionIcon
+                            variant="subtle"
+                            size="sm"
+                            onClick={() => handleToggleExpand(row.original.id)}
+                        >
+                            {isExpanded ? (
+                                <IconMinus size={14} />
+                            ) : (
+                                <IconPlus size={14} />
+                            )}
+                        </ActionIcon>
+                    );
+                },
+                enableSorting: false,
+                size: 40,
+            },
             {
                 id: 'select',
                 header: ({ table }) => (
@@ -489,7 +574,7 @@ export function ScheduledJobsList({
                 ),
             },
         ],
-        [selectedJobs, handleSelectJob, handleSelectAll, onViewJob, onExecuteJob, onDeleteJob]
+        [selectedJobs, handleSelectJob, handleSelectAll, onViewJob, onExecuteJob, onDeleteJob, expandedJobs, handleToggleExpand]
     );
 
     // Initialize table
@@ -677,16 +762,25 @@ export function ScheduledJobsList({
                             </TableThead>
                             <TableTbody>
                                 {table.getRowModel().rows.map((row) => (
-                                    <TableTr key={row.id}>
-                                        {row.getVisibleCells().map((cell) => (
-                                            <TableTd key={cell.id}>
-                                                {flexRender(
-                                                    cell.column.columnDef.cell,
-                                                    cell.getContext()
-                                                )}
-                                            </TableTd>
-                                        ))}
-                                    </TableTr>
+                                    <React.Fragment key={row.id}>
+                                        <TableTr>
+                                            {row.getVisibleCells().map((cell) => (
+                                                <TableTd key={cell.id}>
+                                                    {flexRender(
+                                                        cell.column.columnDef.cell,
+                                                        cell.getContext()
+                                                    )}
+                                                </TableTd>
+                                            ))}
+                                        </TableTr>
+                                        {expandedJobs.has(row.original.id) && row.original.transactions && (
+                                            <TableTr>
+                                                <TableTd colSpan={table.getAllColumns().length} style={{ padding: 0, border: 'none' }}>
+                                                    <TransactionsSubTable transactions={row.original.transactions} />
+                                                </TableTd>
+                                            </TableTr>
+                                        )}
+                                    </React.Fragment>
                                 ))}
                             </TableTbody>
                         </Table>

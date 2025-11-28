@@ -24,6 +24,7 @@ export interface IScheduledJob {
     date_to_be_executed: string;
     date_executed: string | null;
     config: Record<string, any>;
+    transactions?: IScheduledJobTransaction[];
 }
 
 export interface IScheduledJobsListData {
@@ -73,6 +74,7 @@ export interface IScheduledJobFilters {
     dateType?: 'date_create' | 'date_to_be_executed' | 'date_executed';
     sort?: 'id' | 'date_create' | 'date_to_be_executed' | 'date_executed' | 'description';
     sortDirection?: 'asc' | 'desc';
+    includeTransactions?: boolean;
 }
 
 export interface IScheduledJobStatus {
