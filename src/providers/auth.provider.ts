@@ -61,7 +61,7 @@ export const authProvider: AuthProvider = {
                         },
                         // Custom property to indicate 2FA is needed
                         // This can be used by the UI to redirect to the 2FA page
-                        redirectTo: ROUTES.VERIFY_2FA
+                        redirectTo: ROUTES.TWO_FACTOR_AUTH
                     };
                 }
 
@@ -147,7 +147,7 @@ export const authProvider: AuthProvider = {
                     message: "2FA verification required",
                     name: "Not fully authenticated",
                 },
-                redirectTo: ROUTES.VERIFY_2FA,
+                redirectTo: ROUTES.TWO_FACTOR_AUTH,
             };
         }
 

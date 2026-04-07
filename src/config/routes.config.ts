@@ -3,8 +3,7 @@
 export const ROUTES = {
   // System page URLs that match the CMS database
   LOGIN: '/auth/login',
-  TWO_FACTOR_AUTH: '/two-factor-authentication',
-  VERIFY_2FA: '/two-factor-authentication', // Keep alias for backward compatibility
+  TWO_FACTOR_AUTH: '/auth/two-factor-authentication',
   RESET_PASSWORD: '/reset',
   VALIDATE: '/validate', // Base path, actual URL includes parameters
   HOME: '/home',
