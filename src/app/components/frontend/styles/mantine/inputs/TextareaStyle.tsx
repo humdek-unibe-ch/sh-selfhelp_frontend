@@ -94,7 +94,7 @@ const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style, styleProps, cssCl
 
         return (
             <Input.Wrapper
-                label={label}
+                label={DOMPurify.sanitize(label || '', { ALLOWED_TAGS: [] })}
                 description={parse(sanitizeHtmlForParsing(description))}
                 required={required}
                 className={translatable ? undefined : cssClass}
