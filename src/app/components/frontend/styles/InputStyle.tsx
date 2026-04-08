@@ -2,6 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { IInputStyle } from '../../../../types/common/styles.types';
 import { FormFieldValueContext } from './FormStyle';
 import LanguageTabsWrapper from './shared/LanguageTabsWrapper';
+import DOMPurify from 'dompurify';
 
 /**
  * Props interface for InputStyle component
@@ -76,7 +77,7 @@ const InputStyle: React.FC<IInputStyleProps> = ({ style, cssClass }) => {
                 onChange={handleChange}
                 type={inputType}
                 name={translatable ? undefined : name} // Don't set name for translatable fields - handled by wrapper
-                placeholder={placeholder}
+                placeholder={ DOMPurify.sanitize(placeholder || '', { ALLOWED_TAGS: [] })}
                 required={required}
                 min={min}
                 max={max}

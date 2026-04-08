@@ -46,11 +46,13 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
     
     // Create page mutation
     const createPageMutation = useCreatePageMutation({
-        onSuccess: (createdPage) => {
+        onSuccess: async (createdPage) => {
             // Reset form and state on successful creation
             form.reset();
             onClose();
-            
+
+            await queryClient.invalidateQueries({ queryKey: ['admin-pages'] });
+
             // Navigate to the created page after a short delay to allow modal to close
             setTimeout(() => {
                 router.push(`/admin/pages/${createdPage.keyword}`);

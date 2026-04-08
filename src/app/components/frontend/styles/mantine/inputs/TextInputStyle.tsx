@@ -6,6 +6,10 @@ import { FormFieldValueContext } from '../../FormStyle';
 import { castMantineSize, castMantineRadius } from '../../../../../../utils/style-field-extractor';
 import LanguageTabsWrapper from '../../shared/LanguageTabsWrapper';
 import { getSpacingProps } from '../../BasicStyle';
+import DOMPurify from 'dompurify';
+import parse from "html-react-parser";
+import { sanitizeHtmlForInline } from '../../../../../../utils/html-sanitizer.utils';
+
 
 /**
  * Props interface for ITextInputStyle component
@@ -70,11 +74,11 @@ const TextInputStyle: React.FC<ITextInputStyleProps> = ({ style, styleProps, css
         return (
             <TextInput
                 {...(translatable ? undefined : { ...styleProps, ...spacingProps })} className={translatable ? undefined : cssClass}
-                placeholder={placeholder}
+                placeholder={ DOMPurify.sanitize(placeholder || '', { ALLOWED_TAGS: [] })}
                 required={required}
                 value={currentValue}
-                label={label}
-                description={description}
+                label={parse(sanitizeHtmlForInline(DOMPurify.sanitize(label || '')))}
+                description={parse(sanitizeHtmlForInline(DOMPurify.sanitize(description || '')))}
                 name={translatable ? undefined : name} // Don't set name for translatable fields - handled by wrapper
                 onChange={handleChange}
                 disabled={disabled}

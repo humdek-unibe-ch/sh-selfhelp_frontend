@@ -8,6 +8,7 @@ import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.u
 import { castMantineSize, castMantineRadius } from '../../../../../../utils/style-field-extractor';
 import LanguageTabsWrapper from '../../shared/LanguageTabsWrapper';
 import { getSpacingProps } from '../../BasicStyle';
+import DOMPurify from 'dompurify';
 
 interface ITextareaStyleProps {
     style: ITextareaStyle;
@@ -93,14 +94,14 @@ const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style, styleProps, cssCl
 
         return (
             <Input.Wrapper
-                label={label}
+                label={DOMPurify.sanitize(label || '', { ALLOWED_TAGS: [] })}
                 description={parse(sanitizeHtmlForParsing(description))}
                 required={required}
                 className={translatable ? undefined : cssClass}
                 {...(translatable ? undefined : { ...styleProps, ...spacingProps })}
             >
                 <Textarea
-                    placeholder={placeholder}
+                    placeholder={DOMPurify.sanitize(placeholder || '', { ALLOWED_TAGS: [] })}
                     required={required}
                     value={currentValue}
                     name={translatable ? undefined : name} // Don't set name for translatable fields - handled by wrapper
