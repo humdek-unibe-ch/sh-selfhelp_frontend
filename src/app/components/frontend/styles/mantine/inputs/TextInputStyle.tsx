@@ -8,6 +8,7 @@ import LanguageTabsWrapper from '../../shared/LanguageTabsWrapper';
 import { getSpacingProps } from '../../BasicStyle';
 import DOMPurify from 'dompurify';
 import parse from "html-react-parser";
+import { sanitizeHtmlForInline } from '../../../../../../utils/html-sanitizer.utils';
 
 
 /**
@@ -76,8 +77,8 @@ const TextInputStyle: React.FC<ITextInputStyleProps> = ({ style, styleProps, css
                 placeholder={ DOMPurify.sanitize(placeholder || '', { ALLOWED_TAGS: [] })}
                 required={required}
                 value={currentValue}
-                label={parse(DOMPurify.sanitize(label || '')) as string}
-                description={parse(DOMPurify.sanitize(description || '')) as string}
+                label={parse(sanitizeHtmlForInline(DOMPurify.sanitize(label || '')))}
+                description={parse(sanitizeHtmlForInline(DOMPurify.sanitize(description || '')))}
                 name={translatable ? undefined : name} // Don't set name for translatable fields - handled by wrapper
                 onChange={handleChange}
                 disabled={disabled}
