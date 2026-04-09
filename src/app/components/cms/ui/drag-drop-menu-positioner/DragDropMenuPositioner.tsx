@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useMemo, useEffect, useRef, useCallback, createContext, useContext } from 'react';
-import { 
-    Box, 
-    Text, 
-    Paper, 
-    Group, 
+import {
+    Box,
+    Text,
+    Paper,
+    Group,
     ActionIcon,
     Alert,
     Checkbox
@@ -30,6 +30,8 @@ import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { calculateMenuPosition, calculateFinalMenuPosition } from '../../../../../utils/position-calculator';
 import styles from './DragDropMenuPositioner.module.css';
+import { MenuType } from '../../pages/page-inspector/PageInspector';
+
 
 interface IMenuPageItem {
     id: string;
@@ -41,30 +43,35 @@ interface IMenuPageItem {
 
 interface IDragDropMenuPositionerProps {
     // Menu configuration
-    menuType: 'header' | 'footer';
+    menuType: MenuType;
     title: string;
-    
+
     // Current page being positioned
     currentPage?: IAdminPage | null;
     newPageKeyword?: string;
-    
+
     // Menu state
     enabled: boolean;
     position: number | null;
-    
+
     // Callbacks
     onEnabledChange: (enabled: boolean) => void;
     onPositionChange: (position: number | null) => void;
     onGetFinalPosition?: (getFinalPositionFn: () => number | null) => void;
-    
+
     // Context for filtering pages (for child page creation)
     parentPage?: IAdminPage | null;
-    
+
     // Optional styling
     showCheckbox?: boolean;
     checkboxLabel?: string;
     showAlert?: boolean;
     alertMessage?: string;
+
+    // Drag States
+    onGlobalDragStart?: (menuType: MenuType) => void;
+    onGlobalDragEnd?: () => void;
+    activeDrag?: MenuType | null;
 }
 
 interface IDragState {
@@ -83,27 +90,33 @@ const DragContext = createContext<IDragState>({
     draggedPageId: null
 });
 
-function MenuPageItem({ 
-    item, 
+function MenuPageItem({
+    item,
     index,
-    onPositionChange 
-}: { 
-    item: IMenuPageItem; 
+    onPositionChange,
+    activeDrag,
+    menuType,
+
+}: {
+    item: IMenuPageItem;
     index: number;
     onPositionChange: (position: number | null) => void;
+    activeDrag?: MenuType | null;
+    menuType: MenuType;
 }) {
     const dragContext = useContext(DragContext);
     const elementRef = useRef<HTMLDivElement>(null);
     const dragHandleRef = useRef<HTMLButtonElement>(null);
 
-    const [isDragging, setIsDragging] = useState(false);
     const [dropState, setDropState] = useState<IDropState>({
         closestEdge: null,
         isDropTarget: false
     });
 
     const isBeingDragged = dragContext.draggedPageId === item.id;
-    const canDrag = item.isNew; // Only new/current pages can be dragged
+    const canDrag =
+        item.isNew &&
+        (!activeDrag || activeDrag === menuType);// Only new/current pages can be dragged
 
     // Setup draggable
     useEffect(() => {
@@ -120,7 +133,8 @@ function MenuPageItem({
                 keyword: item.keyword,
                 position: item.position,
                 index,
-                isNew: item.isNew
+                isNew: item.isNew,
+                menuType
             }),
             onGenerateDragPreview: ({ nativeSetDragImage }) => {
                 setCustomNativeDragPreview({
@@ -151,12 +165,6 @@ function MenuPageItem({
                     },
                 });
             },
-            onDragStart: () => {
-                setIsDragging(true);
-            },
-            onDrop: () => {
-                setIsDragging(false);
-            }
         });
     }, [item, index, canDrag]);
 
@@ -169,8 +177,13 @@ function MenuPageItem({
             element,
             canDrop: ({ source }) => {
                 const draggedId = source.data.pageId as string;
-                // Can't drop on itself
-                return draggedId !== item.id && source.data.type === 'menu-page-item';
+                const sourceMenuType = source.data.menuType as MenuType;
+
+                return (
+                    draggedId !== item.id &&
+                    source.data.type === 'menu-page-item' &&
+                    sourceMenuType === menuType
+                );
             },
             getData: ({ input, element }) => {
                 const data = {
@@ -216,9 +229,9 @@ function MenuPageItem({
             p="xs"
             mb="xs"
             withBorder
-            className={`${styles.item} ${item.isNew ? styles.newPageItem : ''} ${isDragging ? styles.itemDragging : ''}`}
+            className={`${styles.item} ${item.isNew ? styles.newPageItem : ''} ${isBeingDragged ? styles.itemDragging : ''}`}
             style={{
-                opacity: isDragging || isBeingDragged ? 0.5 : 1,
+                opacity: isBeingDragged ? 0.5 : 1,
                 position: 'relative'
             }}
         >
@@ -236,9 +249,9 @@ function MenuPageItem({
                     variant="subtle"
                     size="sm"
                     className={item.isNew ? styles.dragItem : styles.dragItemDisabled}
-                    style={{ 
-                        cursor: canDrag ? (isDragging ? 'grabbing' : 'grab') : 'not-allowed',
-                        pointerEvents: canDrag ? 'auto' : 'none'
+                    style={{
+                        cursor: canDrag ? (isBeingDragged ? 'grabbing' : 'grab') : 'not-allowed',
+                        pointerEvents: canDrag ? 'auto' : 'none',
                     }}
                 >
                     <IconGripVertical size="0.8rem" />
@@ -270,7 +283,10 @@ export function DragDropMenuPositioner({
     showCheckbox = true,
     checkboxLabel,
     showAlert = true,
-    alertMessage = "Drag the page to set its position"
+    alertMessage = "Drag the page to set its position",
+    onGlobalDragStart,
+    onGlobalDragEnd,
+    activeDrag
 }: IDragDropMenuPositionerProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [menuPages, setMenuPages] = useState<IMenuPageItem[]>([]);
@@ -279,7 +295,7 @@ export function DragDropMenuPositioner({
         isDragActive: false,
         draggedPageId: null
     });
-    
+
     // Fetch admin pages
     const { pages, isLoading: pagesLoading } = useAdminPages();
 
@@ -304,7 +320,7 @@ export function DragDropMenuPositioner({
         if (!pages.length) return [];
 
         const menuPages: IMenuPageItem[] = [];
-        
+
         // Determine which pages to show based on context
         let pagesToProcess: IAdminPage[] = [];
 
@@ -317,9 +333,9 @@ export function DragDropMenuPositioner({
         }
 
         const processPage = (page: IAdminPage) => {
-            const positionField = menuType === 'header' ? 'nav_position' : 'footer_position';
+            const positionField = menuType === MenuType.HEADER ? 'nav_position' : 'footer_position';
             const pagePosition = page[positionField];
-            
+
             // Only include pages that have a position in this menu type
             if (pagePosition !== null && pagePosition !== undefined) {
                 menuPages.push({
@@ -346,7 +362,7 @@ export function DragDropMenuPositioner({
             // Only update if the processed pages are actually different
             // This prevents unnecessary re-renders when the same data is recalculated
             if (prevMenuPages.length === processMenuPages.length &&
-                prevMenuPages.every((page, index) => 
+                prevMenuPages.every((page, index) =>
                     page.id === processMenuPages[index]?.id &&
                     page.keyword === processMenuPages[index]?.keyword &&
                     page.position === processMenuPages[index]?.position
@@ -364,27 +380,27 @@ export function DragDropMenuPositioner({
         if (!pageKeyword || !enabled) {
             return menuPages;
         }
-        
+
         // Check if the page already exists in the menu
         const existingPageIndex = menuPages.findIndex(page => page.keyword === pageKeyword);
-        
+
         if (existingPageIndex !== -1) {
             // Page already exists in menu - mark it as current instead of adding duplicate
             let updatedPages = menuPages.map((page, index) => ({
                 ...page,
                 isNew: index === existingPageIndex // Mark the existing page as current
             }));
-            
+
             // If user has dragged to a new position, reorder the pages
             if (droppedIndex !== null && droppedIndex !== existingPageIndex) {
                 // Remove the current page from its original position
                 const currentPageItem = updatedPages[existingPageIndex];
                 updatedPages = updatedPages.filter((_, index) => index !== existingPageIndex);
-                
+
                 // Insert at the new position (no adjustment needed since we removed the item first)
-                updatedPages.splice(droppedIndex, 0, currentPageItem);            
+                updatedPages.splice(droppedIndex, 0, currentPageItem);
             }
-            
+
             return updatedPages;
         } else {
             // Page doesn't exist in menu - add as new (for create mode)
@@ -395,12 +411,12 @@ export function DragDropMenuPositioner({
                 position: menuPages.length > 0 ? menuPages[menuPages.length - 1].position + 10 : 10,
                 isNew: true
             };
-            
+
             // If user dragged to specific position, insert there
             if (droppedIndex !== null) {
                 const pagesWithNew = [...menuPages];
                 pagesWithNew.splice(droppedIndex, 0, newPage);
-                
+
                 return pagesWithNew;
             } else {
                 // Add at the end
@@ -429,12 +445,15 @@ export function DragDropMenuPositioner({
                     isDragActive: true,
                     draggedPageId: pageId
                 });
+                onGlobalDragStart?.(menuType);
             },
             onDrop: ({ location, source }) => {
                 setDragState({
                     isDragActive: false,
                     draggedPageId: null
                 });
+
+                onGlobalDragEnd?.();
 
                 if (!location.current.dropTargets.length) {
                     return;
@@ -478,17 +497,18 @@ export function DragDropMenuPositioner({
     const calculateFinalPosition = (pages: IMenuPageItem[], targetIndex: number): number => {
         return calculateFinalMenuPosition(pages, targetIndex);
     };
+    
 
     // Get final calculated position for external use
     const getFinalPosition = useCallback((): number | null => {
         if (!enabled) return null;
-        
+
         const pageKeyword = newPageKeyword || currentPage?.keyword;
         if (!pageKeyword) return null;
-        
+
         // Check if the page already exists in the menu
         const existingPageIndex = menuPages.findIndex(page => page.keyword === pageKeyword);
-        
+
         if (existingPageIndex !== -1) {
             // Page already exists in menu
             if (droppedIndex !== null && droppedIndex !== existingPageIndex) {
@@ -496,16 +516,16 @@ export function DragDropMenuPositioner({
                 // Create a copy of the menu pages and simulate the reordering
                 const reorderedPages = [...menuPages];
                 const currentPageItem = reorderedPages[existingPageIndex];
-                
+
                 // Remove the current page from its original position
                 reorderedPages.splice(existingPageIndex, 1);
-                
+
                 // Insert at the new position (no adjustment needed since we removed the item first)
                 reorderedPages.splice(droppedIndex, 0, currentPageItem);
-                
+
                 // Calculate position based on the new index in the reordered array
                 const finalPosition = calculateFinalPosition(reorderedPages.filter(p => p.keyword !== pageKeyword), droppedIndex);
-            
+
                 return finalPosition;
             } else {
                 // User didn't drag or dragged to same position - keep existing position
@@ -520,8 +540,8 @@ export function DragDropMenuPositioner({
                 return finalPosition;
             } else {
                 // User enabled menu but didn't drag - add at the end
-                const endPosition = menuPages.length > 0 ? 
-                    (menuPages[menuPages.length - 1].position === -1 ? 5 : menuPages[menuPages.length - 1].position + 10) : 
+                const endPosition = menuPages.length > 0 ?
+                    (menuPages[menuPages.length - 1].position === -1 ? 5 : menuPages[menuPages.length - 1].position + 10) :
                     -1;
                 return endPosition;
             }
@@ -536,7 +556,7 @@ export function DragDropMenuPositioner({
     }, [onGetFinalPosition, getFinalPosition]);
 
     return (
-        <DragContext.Provider value={dragState}>
+        <DragContext.Provider value={dragState} >
             <Box className={styles.dragContainer}>
                 {showCheckbox && (
                     <Checkbox
@@ -546,7 +566,7 @@ export function DragDropMenuPositioner({
                         mb="md"
                     />
                 )}
-                
+
                 {enabled && (
                     <>
                         <Text size="sm" fw={500} mb="xs">{title}</Text>
@@ -561,6 +581,8 @@ export function DragDropMenuPositioner({
                                     item={item}
                                     index={index}
                                     onPositionChange={onPositionChange}
+                                    activeDrag={activeDrag}
+                                    menuType={menuType}
                                 />
                             ))}
                             {(menuPagesWithNew?.length ?? 0) === 0 && (
@@ -569,7 +591,7 @@ export function DragDropMenuPositioner({
                                 </Text>
                             )}
                         </Box>
-                        
+
                         {showAlert && (
                             <Alert icon={<IconInfoCircle size="1rem" />} mt="xs" color="blue">
                                 {alertMessage}

@@ -75,6 +75,12 @@ import {
 // Performance monitoring temporarily disabled due to React 19 compatibility issues
 // import { useRenderMonitor, useWhyDidYouUpdate, useMountMonitor, useRenderLogger } from '../../../../../utils/performance-monitor.utils';
 
+export enum MenuType {
+    HEADER = 'header',
+    FOOTER = 'footer'
+}
+
+
 interface PageInspectorProps {
     page: IAdminPage | null;
     isConfigurationPage?: boolean;
@@ -122,6 +128,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
     const [activeLanguageTab, setActiveLanguageTab] = useState<string>('');
     const [comparisonModalOpened, setComparisonModalOpened] = useState(false);
     const [selectedComparisonVersionId, setSelectedComparisonVersionId] = useState<number | null>(null);
+    const [activeDrag, setActiveDrag] = useState<MenuType | null>(null);
 
     // References to get final positions from DragDropMenuPositioner components
     const headerMenuGetFinalPosition = useRef<(() => number | null) | null>(null);
@@ -703,7 +710,10 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
 
                                     <DragDropMenuPositioner
                                         currentPage={page}
-                                        menuType="header"
+                                        activeDrag={activeDrag}
+                                        onGlobalDragStart={setActiveDrag}
+                                        onGlobalDragEnd={() => setActiveDrag(null)}
+                                        menuType={MenuType.HEADER}
                                         title="Header Menu Position"
                                         enabled={form.values.headerMenuEnabled}
                                         position={form.values.navPosition}
@@ -719,7 +729,10 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
 
                                     <DragDropMenuPositioner
                                         currentPage={page}
-                                        menuType="footer"
+                                        activeDrag={activeDrag}
+                                        onGlobalDragStart={setActiveDrag}
+                                        onGlobalDragEnd={() => setActiveDrag(null)}
+                                        menuType={MenuType.FOOTER}
                                         title="Footer Menu Position"
                                         enabled={form.values.footerMenuEnabled}
                                         position={form.values.footerPosition}
