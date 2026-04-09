@@ -234,8 +234,6 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
 
             const pageDetails = pageFieldsData.page;
 
-            console.log(pageDetails);
-
             form.setValues({
                 keyword: page.keyword,
                 url: pageDetails.url || '',
@@ -248,7 +246,6 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                 footerMenuEnabled: pageDetails.footerPosition !== null,
                 fields: fieldsObject
             });
-                        console.log(form.getValues());
 
         } else if (!page) {
 
@@ -307,7 +304,6 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
             fields: processedFields.fieldEntries
         };
 
-        console.warn(updateData);
         updatePageMutation.mutate({
             pageId: page?.id_pages || 0,
             updateData
@@ -348,7 +344,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
         }
     };
 
-    // Drag drop menu positioner to mount and then to set as last position
+    // Drag drop menu positioner wait mount and then to set as last position
     useEffect(() => {
         if (headerMenuGetFinalPosition.current) {
             const lastPosition = headerMenuGetFinalPosition.current();
@@ -365,7 +361,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
         }
     };
 
-    // Drag drop menu positioner to mount and then to set as last position
+    // Drag drop menu positioner wait mount and then to set as last position
     useEffect(() => {
         if (footerMenuGetFinalPosition.current) {
             const lastPosition = footerMenuGetFinalPosition.current();
@@ -730,10 +726,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                         onEnabledChange={handleFooterMenuChange}
                                         onPositionChange={handleFooterPositionChange}
                                         onGetFinalPosition={(getFinalPositionFn) => {
-                                            console.log('DragDropMenuPositioner calling onGetFinalPosition for footer');
-                                            console.log('getFinalPosition function:', typeof getFinalPositionFn);
                                             footerMenuGetFinalPosition.current = getFinalPositionFn;
-                                            console.log(footerMenuGetFinalPosition.current())
                                         }}
                                         parentPage={parentPage}
                                         checkboxLabel="Footer Menu"
