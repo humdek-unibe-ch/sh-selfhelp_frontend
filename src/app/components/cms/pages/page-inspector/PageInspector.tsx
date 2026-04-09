@@ -348,8 +348,8 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
     useEffect(() => {
         if (headerMenuGetFinalPosition.current) {
             const lastPosition = headerMenuGetFinalPosition.current();
-            if (lastPosition != null) {
-                form.setFieldValue('navPosition', lastPosition + 10);
+            if (lastPosition != null && form.values.navPosition == null) {
+                form.setFieldValue('navPosition', lastPosition);
             }
         }
     }, [form.values.headerMenuEnabled]);
@@ -365,8 +365,8 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
     useEffect(() => {
         if (footerMenuGetFinalPosition.current) {
             const lastPosition = footerMenuGetFinalPosition.current();
-            if (lastPosition != null) {
-                form.setFieldValue('footerPosition', lastPosition + 10);
+            if (lastPosition != null && form.values.footerPosition == null) {
+                form.setFieldValue('footerPosition', lastPosition);
             }
         }
     }, [form.values.footerMenuEnabled]);
