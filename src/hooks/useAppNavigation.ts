@@ -92,16 +92,16 @@ export function useAppNavigation(options: { isAdmin?: boolean; forceRefresh?: bo
 
             // Transform data once and cache the result
             const menuPages = fixedPages
-                .filter(page => page.nav_position !== null && !page.is_headless)
-                .sort((a, b) => (a.nav_position ?? 0) - (b.nav_position ?? 0));
+                .filter(page => page.navPosition !== null && !page.is_headless)
+                .sort((a, b) => (a.navPosition ?? 0) - (b.navPosition ?? 0));
 
             const footerPages = fixedPages
-                .filter(page => page.footer_position !== null && !page.is_headless)
-                .sort((a, b) => (a.footer_position ?? 0) - (b.footer_position ?? 0));
+                .filter(page => page.footerPosition !== null && !page.is_headless)
+                .sort((a, b) => (a.footerPosition ?? 0) - (b.footerPosition ?? 0));
 
             const profilePages = fixedPages
                 .filter(page => page.is_system === true && page.keyword === 'profile-link')
-                .sort((a, b) => (a.nav_position ?? 0) - (b.nav_position ?? 0));
+                .sort((a, b) => (a.navPosition ?? 0) - (b.navPosition ?? 0));
 
             // Flatten ALL pages (including children) for route checking
             const routes = flattenPages(fixedPages);
@@ -119,10 +119,10 @@ export function useAppNavigation(options: { isAdmin?: boolean; forceRefresh?: bo
                         label: page.title || page.keyword, // Use title if available, fallback to keyword
                         parent: page.parent_page_id ? pages.find(p => p.id_pages === page.parent_page_id)?.keyword : undefined,
                         canDelete: true,
-                        nav: page.nav_position !== null,
-                        navOrder: page.nav_position,
-                        footer: page.footer_position !== null,
-                        footerOrder: page.footer_position,
+                        nav: page.navPosition !== null,
+                        navOrder: page.navPosition,
+                        footer: page.footerPosition !== null,
+                        footerOrder: page.footerPosition,
                         params: page.url?.includes('[') ? { nav: { type: 'number' } } : {},
                         protocol: ['web']
                     }
