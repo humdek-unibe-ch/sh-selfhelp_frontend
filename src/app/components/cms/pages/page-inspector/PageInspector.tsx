@@ -185,6 +185,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
     const updatePageMutation = useUpdatePageMutation({
         onSuccess: (updatedPage, pageId) => {
 
+            //TODO: Create a hook shareable #1
             // Invalidate relevant queries to refresh data - using consistent query keys
             queryClient.invalidateQueries({ queryKey: ['adminPages'] }); // Admin pages list
             queryClient.invalidateQueries({ queryKey: ['pageFields', pageId] }); // Page fields
