@@ -537,7 +537,7 @@ export function AddSectionModal({
                                                 </Text>
                                             )}
                                             <SimpleGrid
-                                                cols={{ base: 1, sm: 2, md: 3 }} // 1 coluna em mobile, 2 em tablet, 3 em desktop
+                                                cols={{ base: 1, sm: 2, md: 3 }} // responsive - 1 mobile, 2  tablet, 3 desktop
                                                 spacing="sm"
                                                 verticalSpacing="sm"
                                                 mb="md"
