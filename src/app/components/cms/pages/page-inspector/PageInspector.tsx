@@ -271,6 +271,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                 fields: {}
             });
         }
+
     }, [page, pageFieldsData, languagesData]);
 
     // Save hotkey (Ctrl+S)
@@ -676,20 +677,22 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                         label="Page Access Type"
                                         tooltip="Controls who can access this page - web only, mobile only, or both platforms"
                                     />
-                                    <Radio.Group
-                                        value={form.values.pageAccessType}
-                                        onChange={(value) => form.setFieldValue('pageAccessType', value)}
-                                    >
-                                        <Stack gap="xs">
-                                            {pageAccessTypes.map((type) => (
-                                                <Radio
-                                                    key={type.lookupCode}
-                                                    value={type.lookupCode}
-                                                    label={type.lookupValue}
-                                                />
-                                            ))}
-                                        </Stack>
-                                    </Radio.Group>
+                                    {form.values.pageAccessType && pageAccessTypes.length > 0 && (
+                                        <Radio.Group
+                                            value={form.values.pageAccessType}
+                                            onChange={(value) => form.setFieldValue('pageAccessType', value)}
+                                        >
+                                            <Stack gap="xs">
+                                                {pageAccessTypes.map((type) => (
+                                                    <Radio
+                                                        key={type.lookupCode}
+                                                        value={type.lookupCode}
+                                                        label={type.lookupValue}
+                                                    />
+                                                ))}
+                                            </Stack>
+                                        </Radio.Group>
+                                    )}
                                 </Stack>
                             </Paper>
 
