@@ -15,6 +15,7 @@ import {
     ActionIcon,
     FileInput,
     Select,
+    SimpleGrid,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
@@ -535,7 +536,12 @@ export function AddSectionModal({
                                                     {group.description}
                                                 </Text>
                                             )}
-                                            <Stack gap="xs" mb="md">
+                                            <SimpleGrid
+                                                cols={{ base: 1, sm: 2, md: 3 }} // 1 coluna em mobile, 2 em tablet, 3 em desktop
+                                                spacing="sm"
+                                                verticalSpacing="sm"
+                                                mb="md"
+                                            >
                                                 {group.styles.map((style: IStyle) => (
                                                     <Card
                                                         key={style.id}
@@ -543,43 +549,34 @@ export function AddSectionModal({
                                                         p="xs"
                                                         style={{
                                                             cursor: 'pointer',
-                                                            transition: 'all 0.2s ease',
-                                                            backgroundColor: selectedStyle?.id === style.id ? 'var(--mantine-color-blue-1)' : undefined,
-                                                            borderColor: selectedStyle?.id === style.id ? 'var(--mantine-color-blue-6)' : undefined,
-                                                            borderWidth: selectedStyle?.id === style.id ? '2px' : undefined
+                                                            transition: 'transform 0.1s ease, box-shadow 0.1s ease',
+                                                            justifyContent: 'space-between',
+                                                            backgroundColor: selectedStyle?.id === style.id ? 'var(--mantine-color-blue-0)' : undefined,
+                                                            borderColor: selectedStyle?.id === style.id ? 'var(--mantine-color-blue-4)' : undefined,
                                                         }}
                                                         onClick={() => handleStyleSelect(style)}
                                                     >
-                                                        <Group justify="space-between" wrap="nowrap" gap="xs">
-                                                            <div style={{ flex: 1, minWidth: 0 }}>
-                                                                <Group gap="xs" mb={style.description ? "xs" : 0}>
-                                                                    <Text fw={500} size="sm">
-                                                                        {style.name}
-                                                                    </Text>
-                                                                    <Badge size="xs" variant="light" color="gray">
-                                                                        {style.type}
-                                                                    </Badge>
-                                                                    {selectedStyle?.id === style.id && (
-                                                                        <Badge size="xs" variant="filled" color="blue">
-                                                                            SELECTED
-                                                                        </Badge>
-                                                                    )}
-                                                                </Group>
-                                                                {style.description && (
-                                                                    <Text size="xs" c="dimmed" lineClamp={1}>
-                                                                        {style.description}
-                                                                    </Text>
+                                                        <Stack gap={4}>
+                                                            <Group justify="space-between" wrap="nowrap">
+                                                                <Text fw={600} size="sm" truncate>{style.name}</Text>
+                                                                {selectedStyle?.id === style.id && (
+                                                                    <Badge size="xs" variant="filled" color="blue">Selected</Badge>
                                                                 )}
-                                                            </div>
-                                                            {selectedStyle?.id === style.id && (
-                                                                <ActionIcon variant="filled" color="blue" size="sm">
-                                                                    <IconPlus size={14} />
-                                                                </ActionIcon>
+                                                            </Group>
+
+                                                            {style.description && (
+                                                                <Text size="xs" c="dimmed" lineClamp={2}>
+                                                                    {style.description}
+                                                                </Text>
                                                             )}
-                                                        </Group>
+
+                                                            <Badge size="xxs" variant="light" color="gray" w="fit-content">
+                                                                {style.type}
+                                                            </Badge>
+                                                        </Stack>
                                                     </Card>
                                                 ))}
-                                            </Stack>
+                                            </SimpleGrid>
                                         </div>
                                     ))}
                                 </Stack>
