@@ -10,11 +10,10 @@ import {
     Box,
     ActionIcon,
 } from "@mantine/core";
-import { Schedule, ScheduleEventData, ScheduleViewLevel } from "@mantine/schedule";
+import { Schedule, ScheduleEventData } from "@mantine/schedule";
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import "@mantine/schedule/styles.css";
 import dayjs from 'dayjs';
-import { useState } from "react";
 const tomorrow = dayjs().add(1, 'day').format('YYYY-MM-DD');
 
 const today = dayjs().format('YYYY-MM-DD');
@@ -58,6 +57,27 @@ const initialEvents: ScheduleEventData[] = [
     },
     {
         id: 6,
+        title: 'Client Call 2',
+        start: `${tomorrow} 15:30:00`,
+        end: `${tomorrow} 16:30:00`,
+        color: 'cyan',
+    },
+    {
+        id: 7,
+        title: 'Client Call 3',
+        start: `${tomorrow} 15:30:00`,
+        end: `${tomorrow} 16:30:00`,
+        color: 'cyan',
+    },
+    {
+        id: 8,
+        title: 'Client Call 4',
+        start: `${tomorrow} 15:30:00`,
+        end: `${tomorrow} 16:30:00`,
+        color: 'cyan',
+    },
+    {
+        id: 9,
         title: 'All Day Conference',
         start: `${today} 00:00:00`,
         end: dayjs(today).add(1, 'day').startOf('day').format('YYYY-MM-DD HH:mm:ss'),
@@ -66,7 +86,6 @@ const initialEvents: ScheduleEventData[] = [
 ];
 
 export default function ScheduledJobsCalendar() {
-    const [calendarView, setCalendarcalendarView] = useState<ScheduleViewLevel>('month');
 
     return (
         <Paper withBorder p="md" radius="md" shadow="sm">
@@ -99,51 +118,9 @@ export default function ScheduledJobsCalendar() {
                     />
                 </Stack>
 
-                {/* Calendar Header / Controls */}
-                <Group justify="space-between" mt="md">
-                    <Group gap={5}>
-                        <ActionIcon variant="filled" color="blue" size="lg">
-                            <IconChevronLeft size={20} />
-                        </ActionIcon>
-                        <ActionIcon variant="filled" color="blue" size="lg">
-                            <IconChevronRight size={20} />
-                        </ActionIcon>
-                        <Button variant="filled" color="blue">
-                            today
-                        </Button>
-                    </Group>
-
-                    <Title order={2}>December 2025</Title>
-                    <Group gap={0}>
-                        <Button
-                            onClick={() => setCalendarcalendarView('month')}
-                            variant={calendarView === 'month' ? "filled" : "outline"}
-                            color="blue"
-                            style={{ borderRadius: "4px 0 0 4px" }}
-                        >
-                            month
-                        </Button>
-                        <Button
-                            onClick={() => setCalendarcalendarView('week')}
-                            variant={calendarView === 'week' ? "filled" : "outline"}
-                            color="blue"
-                            style={{ borderRadius: 0 }}
-                        >
-                            week
-                        </Button>
-                        <Button
-                            onClick={() => setCalendarcalendarView('day')}
-                            variant={calendarView === 'day' ? "filled" : "outline"}
-                            color="blue"
-                            style={{ borderRadius: 0 }}
-                        >
-                            day
-                        </Button>
-                    </Group>
-                </Group>
-
             <Box mih={600}>
-                <Schedule events={initialEvents} view={calendarView} />
+                <Schedule events={initialEvents}
+ />
             </Box>
         </Stack>
     </Paper >
