@@ -297,7 +297,7 @@ export function DebugMenu() {
                                         keyword: p.keyword, 
                                         url: p.url, 
                                         parent: p.parent_page_id,
-                                        nav_position: p.nav_position,
+                                        nav_position: p.navPosition,
                                         children: p.children?.length || 0
                                     })), null, 2)}
                                 </Code>
@@ -309,7 +309,7 @@ export function DebugMenu() {
                                     {JSON.stringify(menuPages.map(p => ({ 
                                         keyword: p.keyword, 
                                         url: p.url, 
-                                        nav_position: p.nav_position,
+                                        nav_position: p.navPosition,
                                         children: p.children?.length || 0
                                     })), null, 2)}
                                 </Code>

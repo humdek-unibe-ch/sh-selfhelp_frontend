@@ -89,6 +89,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
             // Refetch page fields to reload the data
             refetchPageFields();
             
+            //TODO: Create a hook shareable #1
             // Invalidate relevant queries to refresh data - using consistent query keys
             queryClient.invalidateQueries({ queryKey: ['adminPages'] }); // Admin pages list
             queryClient.invalidateQueries({ queryKey: ['pageFields', page.keyword] }); // Page fields

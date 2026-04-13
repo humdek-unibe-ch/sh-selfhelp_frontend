@@ -1,6 +1,6 @@
 'use client';
 
-import { 
+import {
     Paper,
     Title,
     Text,
@@ -75,6 +75,12 @@ import {
 // Performance monitoring temporarily disabled due to React 19 compatibility issues
 // import { useRenderMonitor, useWhyDidYouUpdate, useMountMonitor, useRenderLogger } from '../../../../../utils/performance-monitor.utils';
 
+export enum MenuType {
+    HEADER = 'header',
+    FOOTER = 'footer'
+}
+
+
 interface PageInspectorProps {
     page: IAdminPage | null;
     isConfigurationPage?: boolean;
@@ -91,7 +97,7 @@ interface IPageFormValues {
     pageAccessType: string;
     headerMenuEnabled: boolean;
     footerMenuEnabled: boolean;
-    
+
     // Field values by language (dynamic based on API response)
     fields: Record<string, Record<number, string>>; // fields[fieldName][languageId] = content
 }
@@ -115,40 +121,41 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
     useWhyDidYouUpdate('PageInspector', monitoringProps);
     useMountMonitor('PageInspector');
     useRenderLogger('PageInspector', monitoringProps);
-    
+
     const [deleteModalOpened, setDeleteModalOpened] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [createChildModalOpened, setCreateChildModalOpened] = useState(false);
     const [activeLanguageTab, setActiveLanguageTab] = useState<string>('');
     const [comparisonModalOpened, setComparisonModalOpened] = useState(false);
     const [selectedComparisonVersionId, setSelectedComparisonVersionId] = useState<number | null>(null);
-    
+    const [activeDrag, setActiveDrag] = useState<MenuType | null>(null);
+
     // References to get final positions from DragDropMenuPositioner components
     const headerMenuGetFinalPosition = useRef<(() => number | null) | null>(null);
     const footerMenuGetFinalPosition = useRef<(() => number | null) | null>(null);
-    
+
     // Get query client for cache invalidation
     const queryClient = useQueryClient();
-    
+
     // Fetch page versions
-    const { 
-        data: versionsData, 
-        isLoading: versionsLoading, 
-        error: versionsError 
+    const {
+        data: versionsData,
+        isLoading: versionsLoading,
+        error: versionsError
     } = usePageVersions(page?.id_pages || null);
-    
+
     // Version mutations
     const publishVersionMutation = usePublishVersionMutation();
     const publishSpecificVersionMutation = usePublishSpecificVersionMutation();
     const unpublishPageMutation = useUnpublishPageMutation();
     const deleteVersionMutation = useDeleteVersionMutation();
     const restoreVersionMutation = useRestoreFromVersionMutation();
-    
+
     // Fetch page fields when page is selected
-    const { 
-        data: pageFieldsData, 
-        isLoading: fieldsLoading, 
-        error: fieldsError 
+    const {
+        data: pageFieldsData,
+        isLoading: fieldsLoading,
+        error: fieldsError
     } = usePageFields(page?.id_pages || null, !!page);
 
     // Fetch page access types
@@ -159,7 +166,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
 
     // Fetch admin pages for parent context
     const { pages: adminPages } = useAdminPages();
-    
+
     // Find parent page for context-aware menu positioning
     const parentPage = useMemo(() => {
         if (!page?.parent || !adminPages.length) return null;
@@ -177,7 +184,8 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
     // Update page mutation
     const updatePageMutation = useUpdatePageMutation({
         onSuccess: (updatedPage, pageId) => {
-            
+
+            //TODO: Create a hook shareable #1
             // Invalidate relevant queries to refresh data - using consistent query keys
             queryClient.invalidateQueries({ queryKey: ['adminPages'] }); // Admin pages list
             queryClient.invalidateQueries({ queryKey: ['pageFields', pageId] }); // Page fields
@@ -185,7 +193,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
             queryClient.invalidateQueries({ queryKey: ['pages'] }); // Frontend pages
             queryClient.invalidateQueries({ queryKey: ['page-content'] }); // Frontend page content
             queryClient.invalidateQueries({ queryKey: ['frontend-pages'] }); // Frontend pages with language
-            
+
             // Also invalidate any admin-specific queries that might exist
             queryClient.invalidateQueries({ queryKey: ['admin', 'pages'] });
             queryClient.invalidateQueries({ queryKey: ['admin', 'page', pageId] });
@@ -233,21 +241,22 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
             const fieldsObject = initializeFieldFormValues(pageFieldsData.fields, languagesData);
 
             const pageDetails = pageFieldsData.page;
-            
+
             form.setValues({
                 keyword: page.keyword,
                 url: pageDetails.url || '',
                 headless: pageDetails.headless || false,
-                navPosition: pageDetails.nav_position,
-                footerPosition: pageDetails.footer_position,
+                navPosition: pageDetails.navPosition,
+                footerPosition: pageDetails.footerPosition,
                 openAccess: pageDetails.openAccess || false,
                 pageAccessType: pageDetails.pageAccessType?.lookupCode || '',
-                headerMenuEnabled: pageDetails.nav_position !== null,
-                footerMenuEnabled: pageDetails.footer_position !== null,
+                headerMenuEnabled: pageDetails.navPosition != null,
+                footerMenuEnabled: pageDetails.footerPosition !== null,
                 fields: fieldsObject
             });
+
         } else if (!page) {
-            
+
             // Reset form when no page is selected
             form.setValues({
                 keyword: '',
@@ -271,6 +280,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
             handleSave();
         }]
     ]);
+
 
     // Memoize computed field arrays to prevent recalculation on every render
     const fields = useMemo(() => pageFieldsData?.fields || [], [pageFieldsData?.fields]);
@@ -342,12 +352,32 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
         }
     };
 
+    // Drag drop menu positioner wait mount and then to set as last position
+    useEffect(() => {
+        if (headerMenuGetFinalPosition.current) {
+            const lastPosition = headerMenuGetFinalPosition.current();
+            if (lastPosition != null && form.values.navPosition == null) {
+                form.setFieldValue('navPosition', lastPosition);
+            }
+        }
+    }, [form.values.headerMenuEnabled]);
+
     const handleFooterMenuChange = (enabled: boolean) => {
         form.setFieldValue('footerMenuEnabled', enabled);
         if (!enabled) {
             form.setFieldValue('footerPosition', null);
         }
     };
+
+    // Drag drop menu positioner wait mount and then to set as last position
+    useEffect(() => {
+        if (footerMenuGetFinalPosition.current) {
+            const lastPosition = footerMenuGetFinalPosition.current();
+            if (lastPosition != null && form.values.footerPosition == null) {
+                form.setFieldValue('footerPosition', lastPosition);
+            }
+        }
+    }, [form.values.footerMenuEnabled]);
 
     // Memoize computed field arrays to prevent recalculation on every render
     const contentFields = useMemo(() => fields.filter(field => isContentField(field)), [fields]);
@@ -479,30 +509,30 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
 
     return (
         <Stack gap={0} h="100%">
-                {/* Fixed Save Button */}
-                <Paper p="md" withBorder style={{ borderBottom: 'none' }}>
-                    <Group justify="space-between" align="center">
-                        <Group gap="xs">
-                            <Title order={2}>{page.keyword}</Title>
-                            <Badge color="blue" variant="light">
-                                ID: {pageDetails?.id}
-                            </Badge>
-                        </Group>
-                        <Button
-                            leftSection={<IconDeviceFloppy size="1rem" />}
-                            onClick={handleSave}
-                            variant="filled"
-                            loading={updatePageMutation.isPending}
-                            disabled={!page?.keyword}
-                        >
-                            Save
-                        </Button>
+            {/* Fixed Save Button */}
+            <Paper p="md" withBorder style={{ borderBottom: 'none' }}>
+                <Group justify="space-between" align="center">
+                    <Group gap="xs">
+                        <Title order={2}>{page.keyword}</Title>
+                        <Badge color="blue" variant="light">
+                            ID: {pageDetails?.id}
+                        </Badge>
                     </Group>
-                </Paper>
+                    <Button
+                        leftSection={<IconDeviceFloppy size="1rem" />}
+                        onClick={handleSave}
+                        variant="filled"
+                        loading={updatePageMutation.isPending}
+                        disabled={!page?.keyword}
+                    >
+                        Save
+                    </Button>
+                </Group>
+            </Paper>
 
-                {/* Scrollable Content */}
-                <ScrollArea flex={1}>
-                    <Stack gap="lg" p="md">
+            {/* Scrollable Content */}
+            <ScrollArea flex={1}>
+                <Stack gap="lg" p="md">
                     {/* Page Information Section */}
                     <Paper withBorder style={{ backgroundColor: 'light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-9))' }}>
                         <Box p="md">
@@ -510,7 +540,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                 <IconInfoCircle size={16} style={{ color: 'var(--mantine-color-blue-6)' }} />
                                 <Text size="sm" fw={500} c="blue">Page Information</Text>
                             </Group>
-                            
+
                             <Stack gap="xs">
                                 <Group gap="md" wrap="wrap">
                                     <Box>
@@ -526,7 +556,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                         <Text size="sm" style={{ color: 'var(--mantine-color-text)' }}>{pageDetails?.id || page.id_pages}</Text>
                                     </Box>
                                 </Group>
-                                
+
                                 <Group gap="xs" mt="xs">
                                     {isConfigurationPage && (
                                         <Badge color="purple" variant="light" size="sm">
@@ -603,157 +633,73 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
 
                     {/* Properties Section */}
                     {!isConfigurationPage && (
-                    <CollapsibleSection
-                        title="Properties"
-                        inspectorType={INSPECTOR_TYPES.PAGE}
-                        sectionName="properties"
-                        defaultExpanded={true}
-                    >
-                        {/* Page Basic Properties */}
-                        <Paper p="md" withBorder>
-                            <Stack gap="md">
-                                <Text size="sm" fw={500} c="blue">Basic Information</Text>
-                                <LockedField
-                                    label={
-                                        <FieldLabelWithTooltip
-                                            label="Keyword"
-                                            tooltip="Unique identifier for the page. Used in URLs and internal references. Cannot contain spaces or special characters."
-                                        />
-                                    }
-                                    {...form.getInputProps('keyword')}
-                                    lockedTooltip="Enable keyword editing"
-                                    unlockedTooltip="Lock keyword editing"
-                                />
-
-                                <LockedField
-                                    label={
-                                        <FieldLabelWithTooltip
-                                            label="URL"
-                                            tooltip="The web address path for this page. Should start with / and be user-friendly."
-                                        />
-                                    }
-                                    {...form.getInputProps('url')}
-                                    lockedTooltip="Enable URL editing"
-                                    unlockedTooltip="Lock URL editing"
-                                />
-                            </Stack>
-                        </Paper>
-
-                        {/* Page Access Type */}
-                        <Paper p="md" withBorder>
-                            <Stack gap="md">
-                                <FieldLabelWithTooltip
-                                    label="Page Access Type"
-                                    tooltip="Controls who can access this page - web only, mobile only, or both platforms"
-                                />
-                                <Radio.Group
-                                    value={form.values.pageAccessType}
-                                    onChange={(value) => form.setFieldValue('pageAccessType', value)}
-                                >
-                                    <Stack gap="xs">
-                                        {pageAccessTypes.map((type) => (
-                                            <Radio
-                                                key={type.lookupCode}
-                                                value={type.lookupCode}
-                                                label={type.lookupValue}
+                        <CollapsibleSection
+                            title="Properties"
+                            inspectorType={INSPECTOR_TYPES.PAGE}
+                            sectionName="properties"
+                            defaultExpanded={true}
+                        >
+                            {/* Page Basic Properties */}
+                            <Paper p="md" withBorder>
+                                <Stack gap="md">
+                                    <Text size="sm" fw={500} c="blue">Basic Information</Text>
+                                    <LockedField
+                                        label={
+                                            <FieldLabelWithTooltip
+                                                label="Keyword"
+                                                tooltip="Unique identifier for the page. Used in URLs and internal references. Cannot contain spaces or special characters."
                                             />
-                                        ))}
-                                    </Stack>
-                                </Radio.Group>
-                            </Stack>
-                        </Paper>
+                                        }
+                                        {...form.getInputProps('keyword')}
+                                        lockedTooltip="Enable keyword editing"
+                                        unlockedTooltip="Lock keyword editing"
+                                    />
 
-                        {/* Menu Positions */}
-                        <Paper p="md" withBorder>
-                            <Stack gap="md">
-                                <Group gap="xs">
-                                    <Text size="sm" fw={500} c="blue">Menu Positions</Text>
-                                    <Tooltip
-                                        label="Configure where this page appears in the website navigation menus. You can drag to reorder positions."
-                                        multiline
-                                        w={300}
+                                    <LockedField
+                                        label={
+                                            <FieldLabelWithTooltip
+                                                label="URL"
+                                                tooltip="The web address path for this page. Should start with / and be user-friendly."
+                                            />
+                                        }
+                                        {...form.getInputProps('url')}
+                                        lockedTooltip="Enable URL editing"
+                                        unlockedTooltip="Lock URL editing"
+                                    />
+                                </Stack>
+                            </Paper>
+
+                            {/* Page Access Type */}
+                            <Paper p="md" withBorder>
+                                <Stack gap="md">
+                                    <FieldLabelWithTooltip
+                                        label="Page Access Type"
+                                        tooltip="Controls who can access this page - web only, mobile only, or both platforms"
+                                    />
+                                    <Radio.Group
+                                        value={form.values.pageAccessType}
+                                        onChange={(value) => form.setFieldValue('pageAccessType', value)}
                                     >
-                                        <ActionIcon variant="subtle" size="xs" color="gray">
-                                            <IconInfoCircle size="0.75rem" />
-                                        </ActionIcon>
-                                    </Tooltip>
-                                </Group>
+                                        <Stack gap="xs">
+                                            {pageAccessTypes.map((type) => (
+                                                <Radio
+                                                    key={type.lookupCode}
+                                                    value={type.lookupCode}
+                                                    label={type.lookupValue}
+                                                />
+                                            ))}
+                                        </Stack>
+                                    </Radio.Group>
+                                </Stack>
+                            </Paper>
 
-                                <DragDropMenuPositioner
-                                    currentPage={page}
-                                    menuType="header"
-                                    title="Header Menu Position"
-                                    enabled={form.values.headerMenuEnabled}
-                                    position={form.values.navPosition}
-                                    onEnabledChange={handleHeaderMenuChange}
-                                    onPositionChange={handleHeaderPositionChange}
-                                    onGetFinalPosition={(getFinalPositionFn) => {
-                                        headerMenuGetFinalPosition.current = getFinalPositionFn;
-                                    }}
-                                    parentPage={parentPage}
-                                    checkboxLabel="Header Menu"
-                                    showAlert={false}
-                                />
-
-                                <DragDropMenuPositioner
-                                    currentPage={page}
-                                    menuType="footer"
-                                    title="Footer Menu Position"
-                                    enabled={form.values.footerMenuEnabled}
-                                    position={form.values.footerPosition}
-                                    onEnabledChange={handleFooterMenuChange}
-                                    onPositionChange={handleFooterPositionChange}
-                                    onGetFinalPosition={(getFinalPositionFn) => {
-                                        footerMenuGetFinalPosition.current = getFinalPositionFn;
-                                    }}
-                                    parentPage={parentPage}
-                                    checkboxLabel="Footer Menu"
-                                    showAlert={false}
-                                />
-                            </Stack>
-                        </Paper>
-
-                        {/* Page Settings */}
-                        <Paper p="md" withBorder>
-                            <Stack gap="md">
-                                <Group gap="xs">
-                                    <Text size="sm" fw={500} c="blue">Page Settings</Text>
-                                    <Tooltip
-                                        label="Configure special page behaviors and access controls."
-                                        multiline
-                                        w={300}
-                                    >
-                                        <ActionIcon variant="subtle" size="xs" color="gray">
-                                            <IconInfoCircle size="0.75rem" />
-                                        </ActionIcon>
-                                    </Tooltip>
-                                </Group>
-
-                                <Group>
-                                    <Tooltip label="Page will not include header/footer layout - useful for popups, embeds, or standalone pages">
-                                        <Checkbox
-                                            label="Headless Page"
-                                            {...form.getInputProps('headless', { type: 'checkbox' })}
-                                        />
-                                    </Tooltip>
-                                    <Tooltip label="Page can be accessed without authentication - visible to all users including guests">
-                                        <Checkbox
-                                            label="Open Access"
-                                            {...form.getInputProps('openAccess', { type: 'checkbox' })}
-                                        />
-                                    </Tooltip>
-                                </Group>
-                            </Stack>
-                        </Paper>
-
-                        {/* Property Fields */}
-                        {propertyFields.length > 0 && (
+                            {/* Menu Positions */}
                             <Paper p="md" withBorder>
                                 <Stack gap="md">
                                     <Group gap="xs">
-                                        <Text size="sm" fw={500} c="blue">Additional Properties</Text>
+                                        <Text size="sm" fw={500} c="blue">Menu Positions</Text>
                                         <Tooltip
-                                            label="Additional configuration fields specific to this page type."
+                                            label="Configure where this page appears in the website navigation menus. You can drag to reorder positions."
                                             multiline
                                             w={300}
                                         >
@@ -763,13 +709,103 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                         </Tooltip>
                                     </Group>
 
-                                    {propertyFields.map(field => (
-                                        <Box key={field.id}>{renderPropertyField(field)}</Box>
-                                    ))}
+                                    <DragDropMenuPositioner
+                                        currentPage={page}
+                                        activeDrag={activeDrag}
+                                        onGlobalDragStart={setActiveDrag}
+                                        onGlobalDragEnd={() => setActiveDrag(null)}
+                                        menuType={MenuType.HEADER}
+                                        title="Header Menu Position"
+                                        enabled={form.values.headerMenuEnabled}
+                                        position={form.values.navPosition}
+                                        onEnabledChange={handleHeaderMenuChange}
+                                        onPositionChange={handleHeaderPositionChange}
+                                        onGetFinalPosition={(getFinalPositionFn) => {
+                                            headerMenuGetFinalPosition.current = getFinalPositionFn;
+                                        }}
+                                        parentPage={parentPage}
+                                        checkboxLabel="Header Menu"
+                                        showAlert={false}
+                                    />
+
+                                    <DragDropMenuPositioner
+                                        currentPage={page}
+                                        activeDrag={activeDrag}
+                                        onGlobalDragStart={setActiveDrag}
+                                        onGlobalDragEnd={() => setActiveDrag(null)}
+                                        menuType={MenuType.FOOTER}
+                                        title="Footer Menu Position"
+                                        enabled={form.values.footerMenuEnabled}
+                                        position={form.values.footerPosition}
+                                        onEnabledChange={handleFooterMenuChange}
+                                        onPositionChange={handleFooterPositionChange}
+                                        onGetFinalPosition={(getFinalPositionFn) => {
+                                            footerMenuGetFinalPosition.current = getFinalPositionFn;
+                                        }}
+                                        parentPage={parentPage}
+                                        checkboxLabel="Footer Menu"
+                                        showAlert={false}
+                                    />
                                 </Stack>
                             </Paper>
-                        )}
-                    </CollapsibleSection>
+
+                            {/* Page Settings */}
+                            <Paper p="md" withBorder>
+                                <Stack gap="md">
+                                    <Group gap="xs">
+                                        <Text size="sm" fw={500} c="blue">Page Settings</Text>
+                                        <Tooltip
+                                            label="Configure special page behaviors and access controls."
+                                            multiline
+                                            w={300}
+                                        >
+                                            <ActionIcon variant="subtle" size="xs" color="gray">
+                                                <IconInfoCircle size="0.75rem" />
+                                            </ActionIcon>
+                                        </Tooltip>
+                                    </Group>
+
+                                    <Group>
+                                        <Tooltip label="Page will not include header/footer layout - useful for popups, embeds, or standalone pages">
+                                            <Checkbox
+                                                label="Headless Page"
+                                                {...form.getInputProps('headless', { type: 'checkbox' })}
+                                            />
+                                        </Tooltip>
+                                        <Tooltip label="Page can be accessed without authentication - visible to all users including guests">
+                                            <Checkbox
+                                                label="Open Access"
+                                                {...form.getInputProps('openAccess', { type: 'checkbox' })}
+                                            />
+                                        </Tooltip>
+                                    </Group>
+                                </Stack>
+                            </Paper>
+
+                            {/* Property Fields */}
+                            {propertyFields.length > 0 && (
+                                <Paper p="md" withBorder>
+                                    <Stack gap="md">
+                                        <Group gap="xs">
+                                            <Text size="sm" fw={500} c="blue">Additional Properties</Text>
+                                            <Tooltip
+                                                label="Additional configuration fields specific to this page type."
+                                                multiline
+                                                w={300}
+                                            >
+                                                <ActionIcon variant="subtle" size="xs" color="gray">
+                                                    <IconInfoCircle size="0.75rem" />
+                                                </ActionIcon>
+                                            </Tooltip>
+                                        </Group>
+
+                                        {propertyFields.map(field => (
+                                            <Box key={field.id}>{renderPropertyField(field)}</Box>
+                                        ))}
+                                    </Stack>
+                                </Paper>
+                            )}
+                        </CollapsibleSection>
                     )}
 
                     {/* Property Fields for Configuration Pages */}
@@ -837,62 +873,62 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
 
                     {/* Action Buttons - Hide for configuration pages */}
                     {!isConfigurationPage && (
-                    <Paper p="md" withBorder>
-                        <Stack gap="md">
-                            <Title order={4}>Actions</Title>
-                            
-                            {/* System page indicator */}
-                            {Boolean(page?.is_system) && (
-                                <Alert 
-                                    icon={<IconInfoCircle size="1rem" />}
-                                    title="System Page"
-                                    color="blue"
-                                    variant="light"
-                                >
-                                    This is a system page that provides core functionality. 
-                                    It can be styled and edited but cannot be deleted.
-                                </Alert>
-                            )}
-                            
-                            <Group>
-                                {/* Export Page Sections */}
-                                <Button
-                                    leftSection={<IconFileExport size="1rem" />}
-                                    variant="outline"
-                                    color="blue"
-                                    onClick={handleExportPageSections}
-                                >
-                                    Export Sections
-                                </Button>
+                        <Paper p="md" withBorder>
+                            <Stack gap="md">
+                                <Title order={4}>Actions</Title>
 
-                                {/* Only show Create Child Page for non-system pages */}
-                                {!page?.is_system && (
-                                    <Button
-                                        leftSection={<IconPlus size="1rem" />}
-                                        variant="outline"
-                                        onClick={handleCreateChildPage}
+                                {/* System page indicator */}
+                                {Boolean(page?.is_system) && (
+                                    <Alert
+                                        icon={<IconInfoCircle size="1rem" />}
+                                        title="System Page"
+                                        color="blue"
+                                        variant="light"
                                     >
-                                        Create Child Page
-                                    </Button>
+                                        This is a system page that provides core functionality.
+                                        It can be styled and edited but cannot be deleted.
+                                    </Alert>
                                 )}
-                                
-                                <Tooltip 
-                                    label={page?.is_system ? "System pages cannot be deleted" : "Delete this page"}
-                                    position="top"
-                                >
+
+                                <Group>
+                                    {/* Export Page Sections */}
                                     <Button
-                                        leftSection={<IconTrash size="1rem" />}
-                                        color="red"
+                                        leftSection={<IconFileExport size="1rem" />}
                                         variant="outline"
-                                        onClick={() => setDeleteModalOpened(true)}
-                                        disabled={Boolean(page?.is_system)}
+                                        color="blue"
+                                        onClick={handleExportPageSections}
                                     >
-                                        Delete Page
+                                        Export Sections
                                     </Button>
-                                </Tooltip>
-                            </Group>
-                        </Stack>
-                    </Paper>
+
+                                    {/* Only show Create Child Page for non-system pages */}
+                                    {!page?.is_system && (
+                                        <Button
+                                            leftSection={<IconPlus size="1rem" />}
+                                            variant="outline"
+                                            onClick={handleCreateChildPage}
+                                        >
+                                            Create Child Page
+                                        </Button>
+                                    )}
+
+                                    <Tooltip
+                                        label={page?.is_system ? "System pages cannot be deleted" : "Delete this page"}
+                                        position="top"
+                                    >
+                                        <Button
+                                            leftSection={<IconTrash size="1rem" />}
+                                            color="red"
+                                            variant="outline"
+                                            onClick={() => setDeleteModalOpened(true)}
+                                            disabled={Boolean(page?.is_system)}
+                                        >
+                                            Delete Page
+                                        </Button>
+                                    </Tooltip>
+                                </Group>
+                            </Stack>
+                        </Paper>
                     )}
                 </Stack>
             </ScrollArea>
@@ -934,20 +970,20 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                     <Alert color="red" title="Warning">
                         This action cannot be undone. The page and all its content will be permanently deleted.
                     </Alert>
-                    
+
                     <Text>
                         To confirm deletion, type the page keyword: <Text span fw={700}>{page.keyword}</Text>
                     </Text>
-                    
+
                     <TextInput
                         placeholder={`Type "${page.keyword}" to confirm`}
                         value={deleteConfirmText}
                         onChange={(e) => setDeleteConfirmText(e.target.value)}
                     />
-                    
+
                     <Group justify="flex-end">
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             onClick={() => {
                                 setDeleteModalOpened(false);
                                 setDeleteConfirmText('');

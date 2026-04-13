@@ -56,8 +56,8 @@ export interface IBasePageInfo {
     url: string | null;
     parent_page_id: number | null;
     is_headless: boolean;
-    nav_position: number | null;
-    footer_position: number | null;
+    navPosition: number | null;
+    footerPosition: number | null;
     is_system?: boolean;
 }
 
