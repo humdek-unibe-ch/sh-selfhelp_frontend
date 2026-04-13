@@ -115,7 +115,7 @@ export function NavigationItemWithChildren({
 
             {/* Children */}
             {hasChildren && (
-                <Collapse in={isExpanded}>
+                <Collapse expanded={isExpanded}>
                     <Stack gap={0} ml="md">
                         {children.map((child, index) => (
                             <NavigationItemWithChildren

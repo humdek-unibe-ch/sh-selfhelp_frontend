@@ -289,7 +289,7 @@ export function AclManagement({
                 </Group>
             )}
 
-            <Collapse in={isExpanded}>
+            <Collapse expanded={isExpanded}>
                 <Stack gap="md">
                     <Alert icon={<IconInfoCircle size="1rem" />} color="blue" variant="light">
                         <Text size="sm">

@@ -366,7 +366,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                                 </Group>
                             </Card.Section>
 
-                            <Collapse in={contentExpanded}>
+                            <Collapse expanded={contentExpanded}>
                                 <Card.Section p="lg">
                                     {hasMultipleLanguages ? (
                                         <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || languagesData[0]?.id.toString() || '')}>
@@ -430,7 +430,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
                                 </Group>
                             </Card.Section>
 
-                            <Collapse in={propertiesExpanded}>
+                            <Collapse expanded={propertiesExpanded}>
                                 <Card.Section p="lg">
                                     <div className={styles.fieldGrid}>
                                         {propertyFields.map(field => (

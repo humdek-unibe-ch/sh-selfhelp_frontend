@@ -409,7 +409,7 @@ export function AssetsList({ onAssetSelect }: IAssetsListProps) {
                 </Group>
               </Card.Section>
 
-              <Collapse in={isExpanded}>
+              <Collapse expanded={isExpanded}>
                 <Card.Section>
                   <Table striped highlightOnHover>
                     <Table.Thead>

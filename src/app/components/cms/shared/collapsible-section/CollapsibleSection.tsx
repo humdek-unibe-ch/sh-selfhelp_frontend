@@ -52,7 +52,7 @@ export function CollapsibleSection({
                     </ActionIcon>
                 </Group>
 
-                <Collapse in={!collapsed}>
+                <Collapse expanded={!collapsed}>
                     <Stack gap="md">
                         {children}
                     </Stack>

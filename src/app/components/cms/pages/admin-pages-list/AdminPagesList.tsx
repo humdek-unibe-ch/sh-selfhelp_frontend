@@ -198,7 +198,7 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
                 </UnstyledButton>
 
                 {hasChildren && (
-                    <Collapse in={isOpen}>
+                    <Collapse expanded={isOpen}>
                         <Box>
                             {page.children.map(child => renderPageItem(child))}
                         </Box>
