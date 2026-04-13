@@ -16,6 +16,7 @@ import {
     FileInput,
     Select,
     SimpleGrid,
+    Tooltip,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
@@ -549,7 +550,7 @@ export function AddSectionModal({
                                                         p="xs"
                                                         style={{
                                                             cursor: 'pointer',
-                                                            transition: 'transform 0.1s ease, box-shadow 0.1s ease',
+                                                            transition: 'box-shadow 0.1s ease',
                                                             justifyContent: 'space-between',
                                                             backgroundColor: selectedStyle?.id === style.id ? 'var(--mantine-color-blue-0)' : undefined,
                                                             borderColor: selectedStyle?.id === style.id ? 'var(--mantine-color-blue-4)' : undefined,
@@ -565,9 +566,18 @@ export function AddSectionModal({
                                                             </Group>
 
                                                             {style.description && (
-                                                                <Text size="xs" c="dimmed" lineClamp={2}>
-                                                                    {style.description}
-                                                                </Text>
+                                                                <Tooltip
+                                                                    label={style.description}
+                                                                    multiline
+                                                                    w={300}
+                                                                    position="bottom"
+                                                                    withArrow
+                                                                    openDelay={300}
+                                                                >
+                                                                    <Text size="xs" c="dimmed" lineClamp={2}>
+                                                                        {style.description}
+                                                                    </Text>
+                                                                </Tooltip>
                                                             )}
 
                                                             <Badge size="xxs" variant="light" color="gray" w="fit-content">
