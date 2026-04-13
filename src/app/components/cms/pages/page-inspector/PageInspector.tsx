@@ -12,12 +12,9 @@ import {
     ScrollArea,
     Button,
     TextInput,
-    Checkbox,
-    ActionIcon,
     Tooltip,
     Modal,
     Tabs,
-    Radio
 } from '@mantine/core';
 import {
     IconInfoCircle,
@@ -27,21 +24,16 @@ import {
     IconTrash,
     IconFileExport
 } from '@tabler/icons-react';
-import { useForm } from '@mantine/form';
 import { useHotkeys } from '@mantine/hooks';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { usePageFields } from '../../../../../hooks/usePageDetails';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { useDeletePageMutation } from '../../../../../hooks/mutations/useDeletePageMutation';
 import { useUpdatePageMutation } from '../../../../../hooks/mutations/useUpdatePageMutation';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';
-import { LockedField } from '../../ui/locked-field/LockedField';
-import { DragDropMenuPositioner } from '../../ui/drag-drop-menu-positioner/DragDropMenuPositioner';
-import { FieldLabelWithTooltip } from '../../ui/field-label-with-tooltip/FieldLabelWithTooltip';
 import { IUpdatePageRequest } from '../../../../../types/requests/admin/update-page.types';
-import { FieldRenderer, IFieldData } from '../../shared/field-renderer/FieldRenderer';
 import { CollapsibleSection } from '../../shared/collapsible-section/CollapsibleSection';
 import { PAGE_ACCESS_TYPES } from '../../../../../constants/lookups.constants';
 import { INSPECTOR_TYPES } from '../../../../../store/inspectorStore';
@@ -59,7 +51,6 @@ import {
     initializeFieldFormValues
 } from '../../../../../utils/field-processing.utils';
 import { useRenderMonitor, useWhyDidYouUpdate, useMountMonitor, useRenderLogger } from '../../../../../utils/performance-monitor.utils';
-import { IPageField } from '../../../../../types/common/pages.type';
 import { usePageVersions } from '../../../../../hooks/usePageVersions';
 import {
     usePublishVersionMutation,
@@ -72,50 +63,40 @@ import {
     PublishingPanel,
     VersionComparisonViewer
 } from '../../page-versions';
-// Performance monitoring temporarily disabled due to React 19 compatibility issues
-// import { useRenderMonitor, useWhyDidYouUpdate, useMountMonitor, useRenderLogger } from '../../../../../utils/performance-monitor.utils';
+import { usePageFormStore } from '../../../../store/pageFormStore';
+import { PageContentField, PagePropertyField } from './page-field-connectors';
+import {
+    PageInfoPanel,
+    PageBasicInfoFields,
+    PageAccessTypeGroup,
+    PageMenuPositions,
+    PageSettings,
+    PageAdditionalProperties
+} from './page-field-groups';
 
 export enum MenuType {
     HEADER = 'header',
     FOOTER = 'footer'
 }
 
-
 interface PageInspectorProps {
     page: IAdminPage | null;
     isConfigurationPage?: boolean;
 }
 
-interface IPageFormValues {
-    // Page properties
-    keyword: string;
-    url: string;
-    headless: boolean;
-    navPosition: number | null;
-    footerPosition: number | null;
-    openAccess: boolean;
-    pageAccessType: string;
-    headerMenuEnabled: boolean;
-    footerMenuEnabled: boolean;
-
-    // Field values by language (dynamic based on API response)
-    fields: Record<string, Record<number, string>>; // fields[fieldName][languageId] = content
-}
-
-export function PageInspector({ page, isConfigurationPage = false }: PageInspectorProps) {
+export const PageInspector = React.memo(function PageInspector({ page, isConfigurationPage = false }: PageInspectorProps) {
     const router = useRouter();
 
-    // Enhanced performance monitoring with detailed render tracking
     const monitoringProps = useMemo(() => ({
         pageId: page?.id_pages,
         isConfigurationPage
     }), [page?.id_pages, isConfigurationPage]);
 
-    const { renderEvents } = useRenderMonitor('PageInspector', monitoringProps, {
+    useRenderMonitor('PageInspector', monitoringProps, {
         trackState: false,
         trackContext: true,
         trackHooks: false,
-        enableStackTrace: true // Enable stack traces for debugging
+        enableStackTrace: true
     });
 
     useWhyDidYouUpdate('PageInspector', monitoringProps);
@@ -128,121 +109,81 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
     const [activeLanguageTab, setActiveLanguageTab] = useState<string>('');
     const [comparisonModalOpened, setComparisonModalOpened] = useState(false);
     const [selectedComparisonVersionId, setSelectedComparisonVersionId] = useState<number | null>(null);
-    const [activeDrag, setActiveDrag] = useState<MenuType | null>(null);
 
-    // References to get final positions from DragDropMenuPositioner components
-    const headerMenuGetFinalPosition = useRef<(() => number | null) | null>(null);
-    const footerMenuGetFinalPosition = useRef<(() => number | null) | null>(null);
-
-    // Get query client for cache invalidation
+    const setFormValues = usePageFormStore((state) => state.setFormValues);
+    const resetStore = usePageFormStore((state) => state.reset);
+    const isStoreInitialized = usePageFormStore((state) => state.isInitialized);
     const queryClient = useQueryClient();
 
-    // Fetch page versions
     const {
         data: versionsData,
         isLoading: versionsLoading,
         error: versionsError
     } = usePageVersions(page?.id_pages || null);
 
-    // Version mutations
     const publishVersionMutation = usePublishVersionMutation();
     const publishSpecificVersionMutation = usePublishSpecificVersionMutation();
     const unpublishPageMutation = useUnpublishPageMutation();
     const deleteVersionMutation = useDeleteVersionMutation();
     const restoreVersionMutation = useRestoreFromVersionMutation();
 
-    // Fetch page fields when page is selected
     const {
         data: pageFieldsData,
         isLoading: fieldsLoading,
         error: fieldsError
     } = usePageFields(page?.id_pages || null, !!page);
 
-    // Fetch page access types
     const pageAccessTypes = useLookupsByType(PAGE_ACCESS_TYPES);
-
-    // Fetch available languages
     const { languages: languagesData, isLoading: languagesLoading } = usePublicLanguages();
-
-    // Fetch admin pages for parent context
     const { pages: adminPages } = useAdminPages();
 
-    // Find parent page for context-aware menu positioning
     const parentPage = useMemo(() => {
         if (!page?.parent || !adminPages.length) return null;
         return adminPages.find(p => p.id_pages === page.parent) || null;
     }, [page?.parent, adminPages]);
 
-    // Set default active language tab when languages are loaded
     useEffect(() => {
         if (languagesData.length > 0 && !activeLanguageTab) {
-            const firstLangId = languagesData[0].id.toString();
-            setActiveLanguageTab(firstLangId);
+            setActiveLanguageTab(languagesData[0].id.toString());
         }
-    }, [languagesData.length]); // Only depend on length to prevent infinite loop
+    }, [languagesData.length, activeLanguageTab]);
 
-    // Update page mutation
     const updatePageMutation = useUpdatePageMutation({
-        onSuccess: (updatedPage, pageId) => {
-
-            //TODO: Create a hook shareable #1
-            // Invalidate relevant queries to refresh data - using consistent query keys
-            queryClient.invalidateQueries({ queryKey: ['adminPages'] }); // Admin pages list
-            queryClient.invalidateQueries({ queryKey: ['pageFields', pageId] }); // Page fields
-            queryClient.invalidateQueries({ queryKey: ['pageSections', pageId] }); // Page sections
-            queryClient.invalidateQueries({ queryKey: ['pages'] }); // Frontend pages
-            queryClient.invalidateQueries({ queryKey: ['page-content'] }); // Frontend page content
-            queryClient.invalidateQueries({ queryKey: ['frontend-pages'] }); // Frontend pages with language
-
-            // Also invalidate any admin-specific queries that might exist
+        onSuccess: (_updatedPage, pageId) => {
+            queryClient.invalidateQueries({ queryKey: ['adminPages'] });
+            queryClient.invalidateQueries({ queryKey: ['pageFields', pageId] });
+            queryClient.invalidateQueries({ queryKey: ['pageSections', pageId] });
+            queryClient.invalidateQueries({ queryKey: ['pages'] });
+            queryClient.invalidateQueries({ queryKey: ['page-content'] });
+            queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
             queryClient.invalidateQueries({ queryKey: ['admin', 'pages'] });
             queryClient.invalidateQueries({ queryKey: ['admin', 'page', pageId] });
             queryClient.invalidateQueries({ queryKey: ['admin', 'page-fields', pageId] });
         },
-        onError: (error, pageId) => {
-            // Error is already handled by the mutation hook with notifications
-        }
+        onError: () => {}
     });
 
-    // Delete page mutation
     const deletePageMutation = useDeletePageMutation({
         onSuccess: () => {
             setDeleteModalOpened(false);
             setDeleteConfirmText('');
-            // Navigate back to admin pages list after successful deletion
             router.push('/admin/pages');
         },
-        onError: (error) => {
-            // Error is already handled by the mutation hook with notifications
-        }
+        onError: () => {}
     });
 
-    // Form for page editing
-    const form = useForm<IPageFormValues>({
-        initialValues: {
-            keyword: '',
-            url: '',
-            headless: false,
-            navPosition: null,
-            footerPosition: null,
-            openAccess: false,
-            pageAccessType: '',
-            headerMenuEnabled: false,
-            footerMenuEnabled: false,
-            fields: {}
-        }
-    });
+    // Reset store when page changes so fields don't render with stale data
+    useEffect(() => {
+        resetStore();
+    }, [page?.id_pages, resetStore]);
 
-    // Update form when page or pageFieldsData changes
+    // Load page data into Zustand store
     useEffect(() => {
         if (page && pageFieldsData && languagesData.length > 0) {
-
-            // Use the modular field initialization utility that handles content vs property fields correctly
             const fieldsObject = initializeFieldFormValues(pageFieldsData.fields, languagesData);
-
             const pageDetails = pageFieldsData.page;
 
-            form.setValues({
+            setFormValues({
                 keyword: page.keyword,
                 url: pageDetails.url || '',
                 headless: pageDetails.headless || false,
@@ -254,60 +195,40 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                 footerMenuEnabled: pageDetails.footerPosition !== null,
                 fields: fieldsObject
             });
-
         } else if (!page) {
-
-            // Reset form when no page is selected
-            form.setValues({
-                keyword: '',
-                url: '',
-                headless: false,
-                navPosition: null,
-                footerPosition: null,
-                openAccess: false,
-                pageAccessType: '',
-                headerMenuEnabled: false,
-                footerMenuEnabled: false,
-                fields: {}
-            });
+            resetStore();
         }
-    }, [page, pageFieldsData, languagesData]);
+    }, [page, pageFieldsData, languagesData, setFormValues, resetStore]);
 
-    // Save hotkey (Ctrl+S)
-    useHotkeys([
-        ['ctrl+S', (e) => {
-            e.preventDefault();
-            handleSave();
-        }]
-    ]);
-
-
-    // Memoize computed field arrays to prevent recalculation on every render
     const fields = useMemo(() => pageFieldsData?.fields || [], [pageFieldsData?.fields]);
+    const contentFields = useMemo(() => fields.filter(field => isContentField(field)), [fields]);
+    const propertyFields = useMemo(() => fields.filter(field => isPropertyField(field)), [fields]);
+    const hasMultipleLanguages = useMemo(() => languagesData.length > 1, [languagesData.length]);
+    const defaultLanguageId = useMemo(() => languagesData[0]?.id || 1, [languagesData]);
 
     const handleSave = useCallback(() => {
-        // Validate field processing rules
+        const storeState = usePageFormStore.getState();
+
         const validationWarnings: string[] = [];
         fields.forEach(field => {
             const validation = validateFieldProcessing(field);
             validationWarnings.push(...validation.warnings);
         });
 
-        // Use the modular field processing utility
         const processedFields = processAllFields({
             fields: fields,
-            formValues: form.values.fields || {},
+            formValues: storeState.fields || {},
             languages: languagesData
         });
 
         const updateData: IUpdatePageRequest = {
             pageData: {
-                url: form.values.url,
-                headless: form.values.headless,
-                navPosition: form.values.navPosition,
-                footerPosition: form.values.footerPosition,
-                openAccess: form.values.openAccess,
-                pageAccessTypeCode: form.values.pageAccessType,
+                url: storeState.url,
+                headless: storeState.headless,
+                navPosition: storeState.navPosition,
+                footerPosition: storeState.footerPosition,
+                openAccess: storeState.openAccess,
+                pageAccessTypeCode: storeState.pageAccessType,
             },
             fields: processedFields.fieldEntries
         };
@@ -316,15 +237,14 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
             pageId: page?.id_pages || 0,
             updateData
         });
-    }, [fields, form.values, languagesData, updatePageMutation, page?.id_pages]);
+    }, [fields, languagesData, updatePageMutation, page?.id_pages]);
 
-    const handleCreateChildPage = () => {
-        setCreateChildModalOpened(true);
-    };
-
-    const handleCloseChildModal = () => {
-        setCreateChildModalOpened(false);
-    };
+    useHotkeys([
+        ['ctrl+S', (e) => {
+            e.preventDefault();
+            handleSave();
+        }]
+    ]);
 
     const handleDeletePage = useCallback(() => {
         if (deleteConfirmText === page?.keyword && page?.keyword) {
@@ -334,142 +254,14 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
 
     const handleExportPageSections = useCallback(async () => {
         if (!page) return;
-
         try {
             const response = await exportPageSections(page.id_pages);
             const filename = generateExportFilename(`page_${page.keyword}`);
             downloadJsonFile(response.data.sectionsData, filename);
-        } catch (error) {
-
+        } catch (_error) {
             // Error notification is handled by the download function
         }
     }, [page]);
-
-    const handleHeaderMenuChange = (enabled: boolean) => {
-        form.setFieldValue('headerMenuEnabled', enabled);
-        if (!enabled) {
-            form.setFieldValue('navPosition', null);
-        }
-    };
-
-    // Drag drop menu positioner wait mount and then to set as last position
-    useEffect(() => {
-        if (headerMenuGetFinalPosition.current) {
-            const lastPosition = headerMenuGetFinalPosition.current();
-            if (lastPosition != null && form.values.navPosition == null) {
-                form.setFieldValue('navPosition', lastPosition);
-            }
-        }
-    }, [form.values.headerMenuEnabled]);
-
-    const handleFooterMenuChange = (enabled: boolean) => {
-        form.setFieldValue('footerMenuEnabled', enabled);
-        if (!enabled) {
-            form.setFieldValue('footerPosition', null);
-        }
-    };
-
-    // Drag drop menu positioner wait mount and then to set as last position
-    useEffect(() => {
-        if (footerMenuGetFinalPosition.current) {
-            const lastPosition = footerMenuGetFinalPosition.current();
-            if (lastPosition != null && form.values.footerPosition == null) {
-                form.setFieldValue('footerPosition', lastPosition);
-            }
-        }
-    }, [form.values.footerMenuEnabled]);
-
-    // Memoize computed field arrays to prevent recalculation on every render
-    const contentFields = useMemo(() => fields.filter(field => isContentField(field)), [fields]);
-    const propertyFields = useMemo(() => fields.filter(field => isPropertyField(field)), [fields]);
-
-    // Stable callbacks for position changes to prevent infinite loops
-    const handleHeaderPositionChange = useCallback((position: number | null) => {
-        form.setFieldValue('navPosition', position);
-    }, []); // Empty dependency array since form.setFieldValue is stable
-
-    const handleFooterPositionChange = useCallback((position: number | null) => {
-        form.setFieldValue('footerPosition', position);
-    }, []); // Empty dependency array since form.setFieldValue is stable
-
-    // Check if we have multiple languages for content fields
-    const hasMultipleLanguages = useMemo(() => {
-        return languagesData.length > 1;
-    }, [languagesData]);
-
-    // Helper function to get field label (use title when available, fallback to name)
-    const getFieldLabel = (field: IPageField) => {
-        return field.title && field.title.trim() ? field.title : field.name;
-    };
-
-    // Memoize render content field to prevent recreation on every render
-    const renderContentField = useCallback((field: IPageField, languageId: number) => {
-        const currentLanguage = languagesData.find(lang => lang.id === languageId);
-        const locale = currentLanguage?.locale;
-        const fieldValue = form.values.fields?.[field.name]?.[languageId] ?? '';
-
-        // Check if this is the title field and we're in a configuration page
-        const isReadOnly = isConfigurationPage && field.name.toLowerCase() === 'title';
-
-        // Convert IPageField to IFieldData
-        const fieldData: IFieldData = {
-            id: field.id,
-            name: field.name,
-            title: field.title,
-            type: field.type,
-            default_value: field.default_value,
-            help: field.help,
-            disabled: isReadOnly,
-            display: field.display,
-            config: field.config,
-            translations: field.translations || []
-        };
-
-        return (
-            <FieldRenderer
-                key={`${field.id}-${languageId}`}
-                field={fieldData}
-                value={fieldValue}
-                onChange={(value) => {
-                    const fieldKey = `fields.${field.name}.${languageId}`;
-                    form.setFieldValue(fieldKey, value);
-                }}
-                locale={locale}
-                className={styles.fullWidthLabel}
-                disabled={isReadOnly}
-            />
-        );
-    }, [languagesData, form.values.fields, isConfigurationPage]);
-
-    // Memoize render property field to prevent recreation on every render
-    const renderPropertyField = useCallback((field: IPageField) => {
-        const langId = languagesData[0]?.id || 1;
-        const fieldValue = form.values.fields?.[field.name]?.[langId] ?? '';
-
-        const fieldData: IFieldData = {
-            id: field.id,
-            name: field.name,
-            title: field.title,
-            type: field.type,
-            default_value: field.default_value,
-            help: field.help,
-            display: field.display,
-            config: field.config,
-            translations: field.translations || []
-        };
-
-        return (
-            <FieldRenderer
-                key={`${field.id}-${langId}`}
-                field={fieldData}
-                value={fieldValue}
-                onChange={(value) => {
-                    const fieldKey = `fields.${field.name}.${langId}`;
-                    form.setFieldValue(fieldKey, value);
-                }}
-            />
-        );
-    }, [languagesData, form.values.fields]);
 
     if (!page) {
         return (
@@ -485,7 +277,7 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
         );
     }
 
-    if (fieldsLoading || languagesLoading) {
+    if (fieldsLoading || languagesLoading || !isStoreInitialized) {
         return (
             <Paper p="xl" withBorder>
                 <Stack align="center" gap="md">
@@ -534,54 +326,11 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
             <ScrollArea flex={1}>
                 <Stack gap="lg" p="md">
                     {/* Page Information Section */}
-                    <Paper withBorder style={{ backgroundColor: 'light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-9))' }}>
-                        <Box p="md">
-                            <Group gap="xs" mb="sm">
-                                <IconInfoCircle size={16} style={{ color: 'var(--mantine-color-blue-6)' }} />
-                                <Text size="sm" fw={500} c="blue">Page Information</Text>
-                            </Group>
-
-                            <Stack gap="xs">
-                                <Group gap="md" wrap="wrap">
-                                    <Box>
-                                        <Text size="xs" fw={500} c="dimmed">Keyword</Text>
-                                        <Text size="sm" style={{ fontFamily: 'monospace', color: 'var(--mantine-color-text)' }}>{page.keyword}</Text>
-                                    </Box>
-                                    <Box>
-                                        <Text size="xs" fw={500} c="dimmed">URL</Text>
-                                        <Text size="sm" style={{ fontFamily: 'monospace', color: 'var(--mantine-color-text)' }}>{page.url}</Text>
-                                    </Box>
-                                    <Box>
-                                        <Text size="xs" fw={500} c="dimmed">Page ID</Text>
-                                        <Text size="sm" style={{ color: 'var(--mantine-color-text)' }}>{pageDetails?.id || page.id_pages}</Text>
-                                    </Box>
-                                </Group>
-
-                                <Group gap="xs" mt="xs">
-                                    {isConfigurationPage && (
-                                        <Badge color="purple" variant="light" size="sm">
-                                            Configuration Page
-                                        </Badge>
-                                    )}
-                                    {page.is_headless && (
-                                        <Badge color="orange" variant="light" size="sm">
-                                            Headless
-                                        </Badge>
-                                    )}
-                                    {page.nav_position !== null && (
-                                        <Badge color="blue" variant="light" size="sm">
-                                            Menu Position: {page.nav_position}
-                                        </Badge>
-                                    )}
-                                    {page.parent !== null && (
-                                        <Badge color="green" variant="light" size="sm">
-                                            Child Page
-                                        </Badge>
-                                    )}
-                                </Group>
-                            </Stack>
-                        </Box>
-                    </Paper>
+                    <PageInfoPanel
+                        page={page}
+                        pageId={pageDetails?.id}
+                        isConfigurationPage={isConfigurationPage}
+                    />
 
                     {/* Content Section */}
                     <CollapsibleSection
@@ -594,34 +343,42 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                             hasMultipleLanguages ? (
                                 <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || (languagesData[0]?.id.toString() || ''))}>
                                     <Tabs.List>
-                                        {languagesData.map(lang => {
-                                            const langId = lang.id.toString();
-                                            return (
-                                                <Tabs.Tab key={langId} value={langId}>
-                                                    {lang.language}
-                                                </Tabs.Tab>
-                                            );
-                                        })}
+                                        {languagesData.map(lang => (
+                                            <Tabs.Tab key={lang.id} value={lang.id.toString()}>
+                                                {lang.language}
+                                            </Tabs.Tab>
+                                        ))}
                                     </Tabs.List>
 
-                                    {languagesData.map(lang => {
-                                        const langId = lang.id.toString();
-                                        return (
-                                            <Tabs.Panel key={langId} value={langId} pt="md">
-                                                <Stack gap="md">
-                                                    {contentFields.map(field =>
-                                                        renderContentField(field, lang.id)
-                                                    )}
-                                                </Stack>
-                                            </Tabs.Panel>
-                                        );
-                                    })}
+                                    {languagesData.map(lang => (
+                                        <Tabs.Panel key={lang.id} value={lang.id.toString()} pt="md">
+                                            <Stack gap="md">
+                                                {contentFields.map(field => (
+                                                    <PageContentField
+                                                        key={`${field.id}-${lang.id}`}
+                                                        field={field}
+                                                        languageId={lang.id}
+                                                        locale={lang.locale}
+                                                        className={styles.fullWidthLabel}
+                                                        disabled={isConfigurationPage && field.name.toLowerCase() === 'title'}
+                                                    />
+                                                ))}
+                                            </Stack>
+                                        </Tabs.Panel>
+                                    ))}
                                 </Tabs>
                             ) : (
                                 <Stack gap="md">
-                                    {contentFields.map(field =>
-                                        renderContentField(field, languagesData[0]?.id || 1) // Default to first language
-                                    )}
+                                    {contentFields.map(field => (
+                                        <PageContentField
+                                            key={`${field.id}-${defaultLanguageId}`}
+                                            field={field}
+                                            languageId={defaultLanguageId}
+                                            locale={languagesData[0]?.locale}
+                                            className={styles.fullWidthLabel}
+                                            disabled={isConfigurationPage && field.name.toLowerCase() === 'title'}
+                                        />
+                                    ))}
                                 </Stack>
                             )
                         ) : (
@@ -639,172 +396,14 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                             sectionName="properties"
                             defaultExpanded={true}
                         >
-                            {/* Page Basic Properties */}
-                            <Paper p="md" withBorder>
-                                <Stack gap="md">
-                                    <Text size="sm" fw={500} c="blue">Basic Information</Text>
-                                    <LockedField
-                                        label={
-                                            <FieldLabelWithTooltip
-                                                label="Keyword"
-                                                tooltip="Unique identifier for the page. Used in URLs and internal references. Cannot contain spaces or special characters."
-                                            />
-                                        }
-                                        {...form.getInputProps('keyword')}
-                                        lockedTooltip="Enable keyword editing"
-                                        unlockedTooltip="Lock keyword editing"
-                                    />
-
-                                    <LockedField
-                                        label={
-                                            <FieldLabelWithTooltip
-                                                label="URL"
-                                                tooltip="The web address path for this page. Should start with / and be user-friendly."
-                                            />
-                                        }
-                                        {...form.getInputProps('url')}
-                                        lockedTooltip="Enable URL editing"
-                                        unlockedTooltip="Lock URL editing"
-                                    />
-                                </Stack>
-                            </Paper>
-
-                            {/* Page Access Type */}
-                            <Paper p="md" withBorder>
-                                <Stack gap="md">
-                                    <FieldLabelWithTooltip
-                                        label="Page Access Type"
-                                        tooltip="Controls who can access this page - web only, mobile only, or both platforms"
-                                    />
-                                    <Radio.Group
-                                        value={form.values.pageAccessType}
-                                        onChange={(value) => form.setFieldValue('pageAccessType', value)}
-                                    >
-                                        <Stack gap="xs">
-                                            {pageAccessTypes.map((type) => (
-                                                <Radio
-                                                    key={type.lookupCode}
-                                                    value={type.lookupCode}
-                                                    label={type.lookupValue}
-                                                />
-                                            ))}
-                                        </Stack>
-                                    </Radio.Group>
-                                </Stack>
-                            </Paper>
-
-                            {/* Menu Positions */}
-                            <Paper p="md" withBorder>
-                                <Stack gap="md">
-                                    <Group gap="xs">
-                                        <Text size="sm" fw={500} c="blue">Menu Positions</Text>
-                                        <Tooltip
-                                            label="Configure where this page appears in the website navigation menus. You can drag to reorder positions."
-                                            multiline
-                                            w={300}
-                                        >
-                                            <ActionIcon variant="subtle" size="xs" color="gray">
-                                                <IconInfoCircle size="0.75rem" />
-                                            </ActionIcon>
-                                        </Tooltip>
-                                    </Group>
-
-                                    <DragDropMenuPositioner
-                                        currentPage={page}
-                                        activeDrag={activeDrag}
-                                        onGlobalDragStart={setActiveDrag}
-                                        onGlobalDragEnd={() => setActiveDrag(null)}
-                                        menuType={MenuType.HEADER}
-                                        title="Header Menu Position"
-                                        enabled={form.values.headerMenuEnabled}
-                                        position={form.values.navPosition}
-                                        onEnabledChange={handleHeaderMenuChange}
-                                        onPositionChange={handleHeaderPositionChange}
-                                        onGetFinalPosition={(getFinalPositionFn) => {
-                                            headerMenuGetFinalPosition.current = getFinalPositionFn;
-                                        }}
-                                        parentPage={parentPage}
-                                        checkboxLabel="Header Menu"
-                                        showAlert={false}
-                                    />
-
-                                    <DragDropMenuPositioner
-                                        currentPage={page}
-                                        activeDrag={activeDrag}
-                                        onGlobalDragStart={setActiveDrag}
-                                        onGlobalDragEnd={() => setActiveDrag(null)}
-                                        menuType={MenuType.FOOTER}
-                                        title="Footer Menu Position"
-                                        enabled={form.values.footerMenuEnabled}
-                                        position={form.values.footerPosition}
-                                        onEnabledChange={handleFooterMenuChange}
-                                        onPositionChange={handleFooterPositionChange}
-                                        onGetFinalPosition={(getFinalPositionFn) => {
-                                            footerMenuGetFinalPosition.current = getFinalPositionFn;
-                                        }}
-                                        parentPage={parentPage}
-                                        checkboxLabel="Footer Menu"
-                                        showAlert={false}
-                                    />
-                                </Stack>
-                            </Paper>
-
-                            {/* Page Settings */}
-                            <Paper p="md" withBorder>
-                                <Stack gap="md">
-                                    <Group gap="xs">
-                                        <Text size="sm" fw={500} c="blue">Page Settings</Text>
-                                        <Tooltip
-                                            label="Configure special page behaviors and access controls."
-                                            multiline
-                                            w={300}
-                                        >
-                                            <ActionIcon variant="subtle" size="xs" color="gray">
-                                                <IconInfoCircle size="0.75rem" />
-                                            </ActionIcon>
-                                        </Tooltip>
-                                    </Group>
-
-                                    <Group>
-                                        <Tooltip label="Page will not include header/footer layout - useful for popups, embeds, or standalone pages">
-                                            <Checkbox
-                                                label="Headless Page"
-                                                {...form.getInputProps('headless', { type: 'checkbox' })}
-                                            />
-                                        </Tooltip>
-                                        <Tooltip label="Page can be accessed without authentication - visible to all users including guests">
-                                            <Checkbox
-                                                label="Open Access"
-                                                {...form.getInputProps('openAccess', { type: 'checkbox' })}
-                                            />
-                                        </Tooltip>
-                                    </Group>
-                                </Stack>
-                            </Paper>
-
-                            {/* Property Fields */}
-                            {propertyFields.length > 0 && (
-                                <Paper p="md" withBorder>
-                                    <Stack gap="md">
-                                        <Group gap="xs">
-                                            <Text size="sm" fw={500} c="blue">Additional Properties</Text>
-                                            <Tooltip
-                                                label="Additional configuration fields specific to this page type."
-                                                multiline
-                                                w={300}
-                                            >
-                                                <ActionIcon variant="subtle" size="xs" color="gray">
-                                                    <IconInfoCircle size="0.75rem" />
-                                                </ActionIcon>
-                                            </Tooltip>
-                                        </Group>
-
-                                        {propertyFields.map(field => (
-                                            <Box key={field.id}>{renderPropertyField(field)}</Box>
-                                        ))}
-                                    </Stack>
-                                </Paper>
-                            )}
+                            <PageBasicInfoFields />
+                            <PageAccessTypeGroup options={pageAccessTypes} />
+                            <PageMenuPositions page={page} parentPage={parentPage} />
+                            <PageSettings />
+                            <PageAdditionalProperties
+                                fields={propertyFields}
+                                defaultLanguageId={defaultLanguageId}
+                            />
                         </CollapsibleSection>
                     )}
 
@@ -817,12 +416,17 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                             defaultExpanded={true}
                         >
                             {propertyFields.map(field => (
-                                <Box key={field.id}>{renderPropertyField(field)}</Box>
+                                <Box key={field.id}>
+                                    <PagePropertyField
+                                        field={field}
+                                        languageId={defaultLanguageId}
+                                    />
+                                </Box>
                             ))}
                         </CollapsibleSection>
                     )}
 
-                    {/* Version Management Section - Show for all pages */}
+                    {/* Version Management Section */}
                     {page?.id_pages && (
                         <CollapsibleSection
                             title="Publishing"
@@ -855,7 +459,6 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                     });
                                 }}
                                 onRestore={(versionId) => {
-                                    // Handle restore action - trigger the restore mutation
                                     if (page?.id_pages) {
                                         restoreVersionMutation.mutate({
                                             pageId: page.id_pages,
@@ -870,14 +473,12 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                         </CollapsibleSection>
                     )}
 
-
-                    {/* Action Buttons - Hide for configuration pages */}
+                    {/* Action Buttons */}
                     {!isConfigurationPage && (
                         <Paper p="md" withBorder>
                             <Stack gap="md">
                                 <Title order={4}>Actions</Title>
 
-                                {/* System page indicator */}
                                 {Boolean(page?.is_system) && (
                                     <Alert
                                         icon={<IconInfoCircle size="1rem" />}
@@ -891,7 +492,6 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                 )}
 
                                 <Group>
-                                    {/* Export Page Sections */}
                                     <Button
                                         leftSection={<IconFileExport size="1rem" />}
                                         variant="outline"
@@ -901,12 +501,11 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
                                         Export Sections
                                     </Button>
 
-                                    {/* Only show Create Child Page for non-system pages */}
                                     {!page?.is_system && (
                                         <Button
                                             leftSection={<IconPlus size="1rem" />}
                                             variant="outline"
-                                            onClick={handleCreateChildPage}
+                                            onClick={() => setCreateChildModalOpened(true)}
                                         >
                                             Create Child Page
                                         </Button>
@@ -936,10 +535,9 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
             {/* Create Child Page Modal */}
             <CreatePageModal
                 opened={createChildModalOpened}
-                onClose={handleCloseChildModal}
+                onClose={() => setCreateChildModalOpened(false)}
                 parentPage={page}
             />
-
 
             {/* Version Comparison Modal */}
             {page?.id_pages && (
@@ -1004,4 +602,4 @@ export function PageInspector({ page, isConfigurationPage = false }: PageInspect
             </Modal>
         </Stack>
     );
-} 
+});
