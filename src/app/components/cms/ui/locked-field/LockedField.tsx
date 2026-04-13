@@ -23,6 +23,7 @@ export function LockedField({
     onLockChange,
     lockedTooltip = "Enable editing",
     unlockedTooltip = "Lock editing",
+    value,
     ...textInputProps
 }: ILockedFieldProps) {
     const [isLocked, setIsLocked] = useState(initialLocked);
@@ -36,6 +37,7 @@ export function LockedField({
     return (
         <TextInput
             {...textInputProps}
+            value={value ?? ''}
             label={label}
             readOnly={isLocked}
             rightSection={
