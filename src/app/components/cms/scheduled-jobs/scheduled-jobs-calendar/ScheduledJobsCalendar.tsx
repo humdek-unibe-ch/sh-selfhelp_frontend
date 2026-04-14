@@ -169,7 +169,7 @@ export default function ScheduledJobsCalendar() {
               onViewChange={(newView) => {
                 setView(newView);
                 updateRange(
-                  params.dateFrom || dayjs().format("YYYY-MM-DD"),
+                  dayjs().format("YYYY-MM-DD"),
                   newView,
                 );
               }}
