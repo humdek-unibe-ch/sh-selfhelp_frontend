@@ -29,25 +29,37 @@ export default function ScheduledJobsCalendar() {
             includeTransactions: true,
     });
 
+    // Fetching data via custom hook.
     const { data: scheduledJobsData, isFetching } = useScheduledJobsAll(params);
 
-    // Map api data
+    /**
+     * DATA MAPPING
+     * Transform API response into the format required by @mantine/schedule.
+     * useMemo ensures we only re-map when the source data changes.
+     */
     const events = useMemo(() => {
-    return (scheduledJobsData || []).map((job) => {
-        const startDate = dayjs(job.date_to_be_executed);
+        return (scheduledJobsData || []).map((job) => {
+            const startDate = dayjs(job.date_to_be_executed);
 
-        return {
-        id: job.id,
-        title: dayjs(job.date_to_be_executed).format("HH:mm"),
-        start: startDate.toDate(),
-        end: startDate.add(60, "minutes").toDate(),
-        color: getJobStatusColor(job.status),
-        description: job.description,
-        job_type: job.job_types,
-        };
-    });
+            return {
+                id: job.id,
+                title: dayjs(job.date_to_be_executed).format("HH:mm"),
+                start: startDate.toDate(),
+                // Setting a default 60-minute duration for visualization
+                end: startDate.add(60, "minutes").toDate(),
+                color: getJobStatusColor(job.status),
+                // Custom properties passed into the payload for the renderer
+                description: job.description,
+                job_type: job.job_types,
+            };
+        });
     }, [scheduledJobsData]);
 
+    /**
+     * CALENDAR HANDLER
+     * Syncs the calendar's internal navigation (date/view changes) 
+     * with the API params to fetch the correct data range.
+     */
     const updateRange = (newDate: string, view: ScheduleViewLevel) => {
       const start = dayjs(newDate).startOf(view);
       const end = dayjs(newDate).endOf(view);
@@ -62,12 +74,12 @@ export default function ScheduledJobsCalendar() {
     return (
       <Paper withBorder p="md" radius="md" shadow="sm">
         <Stack gap="lg">
-          {/* Title Section */}
+          {/* Header */}
           <Title order={4} fw={500} c="dimmed">
-            Job schedule calendar calendarView
+            Job schedule calendar
           </Title>
 
-          {/* Filters Section */}
+          {/* User & Action Filters */}
           <Stack gap="xs">
             <Group align="flex-end">
               <Select
@@ -90,29 +102,30 @@ export default function ScheduledJobsCalendar() {
             />
           </Stack>
 
+          {/* Calendar Display Area */}
           <Box mih={600} pos="relative">
+            {/* Overlay provides feedback while the API is fetching new date ranges */}
             <LoadingOverlay
               visible={isFetching}
-              overlayProps={{
-                blur: 0,
-                backgroundOpacity: 0.4,
-              }}
-            loaderProps={{
-                size: "lg",
-                style: {
-                marginBottom: "auto",
-                },
-            }}
+              overlayProps={{ blur: 0, backgroundOpacity: 0.4 }}
+              loaderProps={{ size: "lg", style: { marginBottom: "auto" } }}
             />
+            
             <Schedule
               onDateChange={(date) => updateRange(date, view)}
               onViewChange={(v) => setView(v)}
               events={events}
+              /**
+               * CUSTOM EVENT RENDERER
+               * Defines how the actual "blocks" inside the calendar look.
+               */
               renderEventBody={(payload) => {
+                // Cast payload to include our custom job properties
                 const customPayload = payload as ScheduleEventData & {
                   job_type: string;
                   description: string;
                 };
+
                 return (
                   <Stack gap={0} px={4} h="100%">
                     <Group gap={4} wrap="nowrap">
@@ -138,7 +151,7 @@ export default function ScheduledJobsCalendar() {
                         lh={1.2}
                         fw={500}
                         c="black"
-                        style={{ opacity: 0.9 }}
+                        style={{ opacity: 0.8 }}
                         truncate="end"
                       >
                         {customPayload.description}
