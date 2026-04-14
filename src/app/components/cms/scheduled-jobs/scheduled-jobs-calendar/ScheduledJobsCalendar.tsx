@@ -18,6 +18,8 @@ import { useScheduledJobsAll } from "../../../../../hooks/useScheduledJobs";
 import { useMemo, useState } from "react";
 import { IScheduledJobFilters } from "../../../../../types/responses/admin/scheduled-jobs.types";
 import { getJobStatusColor } from "../utils/job-status";
+import { useUsers } from "../../../../../hooks/useUsers";
+import { IUserBasic } from "../../../../../types/responses/admin/users.types";
 
 export default function ScheduledJobsCalendar() {
     const [view, setView] = useState<ScheduleViewLevel>("week");
@@ -31,6 +33,7 @@ export default function ScheduledJobsCalendar() {
 
     // Fetching data via custom hook.
     const { data: scheduledJobsData, isFetching } = useScheduledJobsAll(params);
+    const { data: usersData } = useUsers();
 
     /**
      * DATA MAPPING
@@ -54,6 +57,16 @@ export default function ScheduledJobsCalendar() {
             };
         });
     }, [scheduledJobsData]);
+
+    /**
+     * Transform users api data to options for users dropdown.
+     * Format: "[id] - email"
+     */
+    const userOptions = (usersData?.users || []).map((user: IUserBasic) => ({
+    value: String(user.id),
+    label: `[${user.id}] - ${user.email}`,
+    }));
+
 
     /**
      * CALENDAR HANDLER
@@ -82,13 +95,12 @@ export default function ScheduledJobsCalendar() {
           {/* User & Action Filters */}
           <Stack gap="xs">
             <Group align="flex-end">
-              <Select
-                label="Select user"
-                placeholder="Search user"
-                data={["[7k392wvo] cheyenne.takiya@hotmail.com - ctakis"]}
-                defaultValue="[7k392wvo] cheyenne.takiya@hotmail.com - ctakis"
-                flex={1}
-              />
+            <Select
+            label="Select user"
+            placeholder="Search user"
+            data={userOptions}
+            flex={1}
+            />
               <Button variant="filled" color="blue">
                 Apply
               </Button>
