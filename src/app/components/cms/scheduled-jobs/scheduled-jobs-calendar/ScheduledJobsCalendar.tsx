@@ -10,6 +10,7 @@ import {
     Box,
     Text,
     LoadingOverlay,
+    Tooltip,
 } from "@mantine/core";
 import { Schedule, ScheduleEventData, ScheduleViewLevel } from "@mantine/schedule";
 import "@mantine/schedule/styles.css";
@@ -209,39 +210,65 @@ export default function ScheduledJobsCalendar() {
                   job_type: string;
                   description: string;
                 };
-
                 return (
-                  <Stack gap={0} px={4} h="100%">
-                    <Group gap={4} wrap="nowrap">
-                      <Text size="xs" fw={500} lh={1.2} c="dark.9">
-                        {customPayload.title}
-                      </Text>
-                      <Text
-                        size="xs"
-                        fw={700}
-                        lh={1.2}
-                        c="blue.7"
-                        truncate="end"
+                  <Tooltip
+                    multiline
+                    w={250}
+                    withArrow
+                    label={
+                      <Stack gap={4}>
+                        <Text size="xs" fw={700} c="blue.2">
+                         {customPayload.title} - {customPayload.job_type}
+                        </Text>
+                        <Text size="xs" c="white">
+                          {customPayload.description || "No description"}
+                        </Text>
+                        <Text size="10px" c="dimmed">
+                          ID: #{customPayload.id}
+                        </Text>
+                      </Stack>
+                    }
+                  >
+                    {/* The <div> ensures the Tooltip can attach the necessary 
+         ref and event listeners without throwing the error.
+      */}
+                    <div style={{ height: "100%", width: "100%" }}>
+                      <Stack
+                        gap={0}
+                        px={6}
+                        py={4}
+                        h="100%"
+                        style={{ overflow: "hidden" }}
                       >
-                        - {customPayload.job_type}
-                      </Text>
-                    </Group>
-
-                    {customPayload.description && (
-                      <Text
-                        size="10px"
-                        mt={4}
-                        mb={5}
-                        lh={1.2}
-                        fw={500}
-                        c="black"
-                        style={{ opacity: 0.8 }}
-                        truncate="end"
-                      >
-                        {customPayload.description}
-                      </Text>
-                    )}
-                  </Stack>
+                        <Group gap={4} wrap="nowrap">
+                          <Text size="xs" fw={700} lh={1} c="dark.9">
+                            {customPayload.title}
+                          </Text>
+                          <Text
+                            size="xs"
+                            fw={800}
+                            lh={1}
+                            c="blue.7"
+                            truncate="end"
+                          >
+                            - {customPayload.job_type}
+                          </Text>
+                        </Group>
+                        {customPayload.description && (
+                          <Text
+                            size="10px"
+                            mt={4}
+                            lh={1.2}
+                            fw={500}
+                            c="gray.7"
+                            lineClamp={1}
+                          >
+                            {customPayload.description}
+                          </Text>
+                        )}
+                      </Stack>
+                    </div>
+                  </Tooltip>
                 );
               }}
             />
