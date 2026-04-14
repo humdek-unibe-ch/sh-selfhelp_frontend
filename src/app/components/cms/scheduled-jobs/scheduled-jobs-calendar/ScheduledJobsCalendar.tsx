@@ -9,8 +9,7 @@ import {
     Stack,
     Box,
     Text,
-    Center,
-    Loader,
+    LoadingOverlay,
 } from "@mantine/core";
 import { Schedule, ScheduleEventData, ScheduleViewLevel } from "@mantine/schedule";
 import "@mantine/schedule/styles.css";
@@ -30,7 +29,7 @@ export default function ScheduledJobsCalendar() {
             includeTransactions: true,
     });
 
-    const { data: scheduledJobsData, isLoading } = useScheduledJobsAll(params);
+    const { data: scheduledJobsData, isFetching } = useScheduledJobsAll(params);
 
     // Map api data
     const events = useMemo(() => {
@@ -91,23 +90,23 @@ export default function ScheduledJobsCalendar() {
             />
           </Stack>
 
-          <Box mih={600}>
-            {isLoading && (
-              <Center
-                pos="absolute"
-                inset={0}
-                style={{
-                  zIndex: 10,
-                  background: "rgba(255,255,255,0.6)",
-                  borderRadius: "8px",
-                }}
-              >
-                <Loader size="lg" />
-              </Center>
-            )}
+          <Box mih={600} pos="relative">
+            <LoadingOverlay
+              visible={isFetching}
+              overlayProps={{
+                blur: 0,
+                backgroundOpacity: 0.4,
+              }}
+            loaderProps={{
+                size: "lg",
+                style: {
+                marginBottom: "auto",
+                },
+            }}
+            />
             <Schedule
-            onDateChange={(date) => updateRange(date, view)}
-            onViewChange={(v) => setView(v)}
+              onDateChange={(date) => updateRange(date, view)}
+              onViewChange={(v) => setView(v)}
               events={events}
               renderEventBody={(payload) => {
                 const customPayload = payload as ScheduleEventData & {
