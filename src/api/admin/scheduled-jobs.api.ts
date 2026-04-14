@@ -7,6 +7,8 @@ import {
     IScheduledJobFilters
 } from '../../types/responses/admin/scheduled-jobs.types';
 
+
+
 export class AdminScheduledJobsApi {
     /**
      * Get all scheduled jobs with filtering and pagination
@@ -25,6 +27,7 @@ export class AdminScheduledJobsApi {
         if (filters.sort) params.append('sort', filters.sort);
         if (filters.sortDirection) params.append('sortDirection', filters.sortDirection);
         if (filters.includeTransactions) params.append('includeTransactions', filters.includeTransactions.toString());
+        if (filters.userId) params.append('userId', filters.userId.toString());
 
         const response = await permissionAwareApiClient.get(
             API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_GET_ALL,

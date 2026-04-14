@@ -75,6 +75,7 @@ export interface IScheduledJobFilters {
     sort?: 'id' | 'date_create' | 'date_to_be_executed' | 'date_executed' | 'description';
     sortDirection?: 'asc' | 'desc';
     includeTransactions?: boolean;
+    userId?: number;
 }
 
 export interface IScheduledJobStatus {

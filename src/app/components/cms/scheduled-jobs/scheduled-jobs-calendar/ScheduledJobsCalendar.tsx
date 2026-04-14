@@ -22,6 +22,7 @@ import { useUsers } from "../../../../../hooks/useUsers";
 import { IUserBasic } from "../../../../../types/responses/admin/users.types";
 
 export default function ScheduledJobsCalendar() {
+    const [currentUserId, setCurrentUserId] = useState<number | null>(null);
     const [view, setView] = useState<ScheduleViewLevel>("week");
     const [params, setParams] = useState<IScheduledJobFilters>({
             pageSize: 50,
@@ -29,6 +30,7 @@ export default function ScheduledJobsCalendar() {
             dateFrom: dayjs().startOf('week').format('YYYY-MM-DD'),
             dateTo: dayjs().endOf('week').format('YYYY-MM-DD'),
             includeTransactions: true,
+            userId: undefined,
     });
 
     // Fetching data via custom hook.
@@ -84,6 +86,14 @@ export default function ScheduledJobsCalendar() {
       }));
     };
 
+    const handleApply = () => {
+    const newParams: IScheduledJobFilters = {
+        ...params,
+        userId: currentUserId ?? undefined,
+    };
+    setParams(newParams);
+    };
+
     return (
       <Paper withBorder p="md" radius="md" shadow="sm">
         <Stack gap="lg">
@@ -99,9 +109,11 @@ export default function ScheduledJobsCalendar() {
             label="Select user"
             placeholder="Search user"
             data={userOptions}
+            value={currentUserId ? String(currentUserId) : null}
+            onChange={(value) => setCurrentUserId(value ? Number(value) : null)}
             flex={1}
             />
-              <Button variant="filled" color="blue">
+              <Button variant="filled" color="blue" onClick={handleApply}>
                 Apply
               </Button>
             </Group>
