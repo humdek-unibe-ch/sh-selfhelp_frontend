@@ -28,6 +28,7 @@ export class AdminScheduledJobsApi {
         if (filters.sortDirection) params.append('sortDirection', filters.sortDirection);
         if (filters.includeTransactions) params.append('includeTransactions', filters.includeTransactions.toString());
         if (filters.userId) params.append('userId', filters.userId.toString());
+        if (filters.actionId) params.append('actionId', filters.actionId.toString());
 
         const response = await permissionAwareApiClient.get(
             API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_GET_ALL,

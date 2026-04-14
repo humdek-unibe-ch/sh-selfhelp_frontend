@@ -20,9 +20,11 @@ import { IScheduledJobFilters } from "../../../../../types/responses/admin/sched
 import { getJobStatusColor } from "../utils/job-status";
 import { useUsers } from "../../../../../hooks/useUsers";
 import { IUserBasic } from "../../../../../types/responses/admin/users.types";
+import { useActions } from "../../../../../hooks/useActions";
 
 export default function ScheduledJobsCalendar() {
     const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+    const [currentActionId, setCurrentActionId] = useState<number | null>(null);
     const [view, setView] = useState<ScheduleViewLevel>("week");
     const [params, setParams] = useState<IScheduledJobFilters>({
             pageSize: 50,
@@ -31,11 +33,13 @@ export default function ScheduledJobsCalendar() {
             dateTo: dayjs().endOf('week').format('YYYY-MM-DD'),
             includeTransactions: true,
             userId: undefined,
+            actionId: undefined
     });
 
-    // Fetching data via custom hook.
+    // Fetching necessary data via custom hooks.
     const { data: scheduledJobsData, isFetching } = useScheduledJobsAll(params);
     const { data: usersData } = useUsers();
+    const { data: actionsData } = useActions({ pageSize: 100 });
 
     /**
      * DATA MAPPING
@@ -65,9 +69,19 @@ export default function ScheduledJobsCalendar() {
      * Format: "[id] - email"
      */
     const userOptions = (usersData?.users || []).map((user: IUserBasic) => ({
-    value: String(user.id),
+    value: user.id,
     label: `[${user.id}] - ${user.email}`,
     }));
+
+    /**
+     * Transform actions into Select options
+     */
+    const actionOptions = useMemo(() => {
+        return (actionsData?.actions || []).map((action) => ({
+            value: action.id,
+            label: action.name,
+        }));
+    }, [actionsData]);
 
 
     /**
@@ -86,10 +100,11 @@ export default function ScheduledJobsCalendar() {
       }));
     };
 
-    const handleApply = () => {
+    const handleApplyFilters = () => {
     const newParams: IScheduledJobFilters = {
         ...params,
         userId: currentUserId ?? undefined,
+        actionId: currentActionId ?? undefined,
     };
     setParams(newParams);
     };
@@ -103,28 +118,40 @@ export default function ScheduledJobsCalendar() {
           </Title>
 
           {/* User & Action Filters */}
-          <Stack gap="xs">
-            <Group align="flex-end">
-            <Select
-            label="Select user"
-            placeholder="Search user"
-            data={userOptions}
-            value={currentUserId ? String(currentUserId) : null}
-            onChange={(value) => setCurrentUserId(value ? Number(value) : null)}
-            flex={1}
-            />
-              <Button variant="filled" color="blue" onClick={handleApply}>
-                Apply
+          <Paper withBorder p="sm" bg="gray.0">
+            <Group align="flex-end" gap="md">
+              <Select
+                label="User"
+                placeholder="All users"
+                data={userOptions}
+                value={currentUserId}
+                onChange={(value) => setCurrentUserId(value ? Number(value) : null)}
+                clearable
+                searchable
+                flex={1}
+              />
+
+              <Select
+                label="Action"
+                placeholder="All actions"
+                data={actionOptions}
+                value={currentActionId}
+                onChange={(val) => setCurrentActionId(val ? Number(val) : null)}
+                clearable
+                searchable
+                flex={1}
+              />
+
+              <Button
+                variant="filled"
+                color="blue"
+                onClick={handleApplyFilters}
+                loading={isFetching}
+              >
+                Apply Filters
               </Button>
             </Group>
-
-            <Select
-              label="Filter for action"
-              placeholder="All actions"
-              data={["All actions", "add_group", "notification"]}
-              defaultValue="All actions"
-            />
-          </Stack>
+          </Paper>
 
           {/* Calendar Display Area */}
           <Box mih={600} pos="relative">
@@ -134,7 +161,7 @@ export default function ScheduledJobsCalendar() {
               overlayProps={{ blur: 0, backgroundOpacity: 0.4 }}
               loaderProps={{ size: "lg", style: { marginBottom: "auto" } }}
             />
-            
+
             <Schedule
               onDateChange={(date) => updateRange(date, view)}
               onViewChange={(v) => setView(v)}

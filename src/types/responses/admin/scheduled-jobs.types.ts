@@ -76,6 +76,7 @@ export interface IScheduledJobFilters {
     sortDirection?: 'asc' | 'desc';
     includeTransactions?: boolean;
     userId?: number;
+    actionId?: number;
 }
 
 export interface IScheduledJobStatus {
