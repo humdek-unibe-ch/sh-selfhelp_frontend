@@ -11,21 +11,43 @@ import {
     Text,
     LoadingOverlay,
     Tooltip,
+    Menu,
+    UnstyledButton,
 } from "@mantine/core";
 import { Schedule, ScheduleEventData, ScheduleViewLevel } from "@mantine/schedule";
 import "@mantine/schedule/styles.css";
 import dayjs from 'dayjs';
 import { useScheduledJobsAll } from "../../../../../hooks/useScheduledJobs";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { IScheduledJobFilters } from "../../../../../types/responses/admin/scheduled-jobs.types";
 import { getJobStatusColor } from "../utils/job-status";
 import { useUsers } from "../../../../../hooks/useUsers";
 import { IUserBasic } from "../../../../../types/responses/admin/users.types";
 import { useActions } from "../../../../../hooks/useActions";
+import { ScheduledJobDetailsModal } from "../scheduled-job-details-modal/ScheduledJobDetailsModal";
+import { useScheduledJobManager } from "../utils/hooks/useScheduledJobManager";
+import { DeleteJobModal } from "../delete-job-modal/DeleteJobModal";
+import { IconPlayerPlay, IconTrash } from "@tabler/icons-react";
 
 export default function ScheduledJobsCalendar() {
     const [currentUserId, setCurrentUserId] = useState<number | null>(null);
     const [currentActionId, setCurrentActionId] = useState<number | null>(null);
+    const [selectedJobId, setSelectedJobId] = useState<number | undefined>(undefined);
+    const [modalOpened, setModalOpened] = useState(false);
+    const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    jobId: number | null;
+    description?: string;
+    } | null>(null);
+    const {
+        handleExecuteJob,
+        handleDeleteJob,
+        handleConfirmDelete,
+        deleteModal,
+        setDeleteModal,
+    } = useScheduledJobManager();
+
     const [view, setView] = useState<ScheduleViewLevel>("week");
     const [params, setParams] = useState<IScheduledJobFilters>({
             pageSize: 50,
@@ -125,6 +147,29 @@ export default function ScheduledJobsCalendar() {
         }));
     };
 
+    // Close pop up action menu on scroll or escape
+    useEffect(() => {
+    if (!contextMenu) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+        setContextMenu(null);
+        }
+    };
+
+    const handleScroll = () => {
+        setContextMenu(null);
+    };
+
+    globalThis.addEventListener("keydown", handleEscape);
+    globalThis.addEventListener("scroll", handleScroll, true); 
+
+    return () => {
+        globalThis.removeEventListener("keydown", handleEscape);
+        globalThis.removeEventListener("scroll", handleScroll, true);
+    };
+    }, [contextMenu]);
+
     return (
       <Paper withBorder p="md" radius="md" shadow="sm">
         <Stack gap="lg">
@@ -199,6 +244,10 @@ export default function ScheduledJobsCalendar() {
                 setView(newView);
                 updateRange(dayjs().format("YYYY-MM-DD"), newView);
               }}
+              onEventClick={(event) => {
+                setSelectedJobId(Number(event.id));
+                setModalOpened(true);
+              }}
               events={events}
               /**
                * CUSTOM EVENT RENDERER
@@ -218,7 +267,7 @@ export default function ScheduledJobsCalendar() {
                     label={
                       <Stack gap={4}>
                         <Text size="xs" fw={700} c="blue.2">
-                         {customPayload.title} - {customPayload.job_type}
+                          {customPayload.title} - {customPayload.job_type}
                         </Text>
                         <Text size="xs" c="white">
                           {customPayload.description || "No description"}
@@ -229,10 +278,19 @@ export default function ScheduledJobsCalendar() {
                       </Stack>
                     }
                   >
-                    {/* The <div> ensures the Tooltip can attach the necessary 
-         ref and event listeners without throwing the error.
-      */}
-                    <div style={{ height: "100%", width: "100%" }}>
+                    {/* The <div> ensures the Tooltip can attach the necessary ref and event listeners without throwing error. */}
+                    <UnstyledButton
+                    onContextMenu={(e) => {
+                        e.preventDefault();
+                        setContextMenu({
+                        x: e.clientX,
+                        y: e.clientY,
+                        jobId: Number(customPayload.id),
+                        description: customPayload.description,
+                        });
+                    }}
+                    style={{ height: "100%", width: "100%" }}
+                    >
                       <Stack
                         gap={0}
                         px={6}
@@ -267,12 +325,86 @@ export default function ScheduledJobsCalendar() {
                           </Text>
                         )}
                       </Stack>
-                    </div>
+                    </UnstyledButton>
                   </Tooltip>
                 );
               }}
             />
           </Box>
+
+          {contextMenu && (
+            <Menu
+              opened
+              onClose={() => setContextMenu(null)}
+              position="bottom-start"
+              withinPortal
+            >
+              <Menu.Target>
+                <div
+                  style={{
+                    position: "fixed",
+                    top: contextMenu.y,
+                    left: contextMenu.x,
+                    width: 1,
+                    height: 1,
+                  }}
+                />
+              </Menu.Target>
+
+              <Menu.Dropdown>
+                <Menu.Item
+                  leftSection={<IconPlayerPlay size={14} />}
+                  onClick={() => {
+                    handleExecuteJob(contextMenu.jobId!);
+                    setContextMenu(null);
+                  }}
+                >
+                  Execute Job
+                </Menu.Item>
+
+                <Menu.Divider />
+
+                <Menu.Item
+                  leftSection={<IconTrash size={14} />}
+                  color="red"
+                  onClick={() => {
+                    handleDeleteJob(
+                      contextMenu.jobId!,
+                      contextMenu.description ?? '',
+                    );
+                    setContextMenu(null);
+                  }}
+                >
+                  Delete Job
+                </Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
+          )}
+
+          <ScheduledJobDetailsModal
+            opened={modalOpened}
+            onClose={() => {
+              setModalOpened(false);
+              setSelectedJobId(undefined);
+            }}
+            jobId={selectedJobId}
+            onExecuteJob={handleExecuteJob}
+            onDeleteJob={handleDeleteJob}
+          />
+
+          <DeleteJobModal
+            opened={deleteModal.opened}
+            onClose={() =>
+              setDeleteModal({
+                opened: false,
+                jobId: undefined,
+                jobDescription: undefined,
+              })
+            }
+            jobId={deleteModal.jobId}
+            jobDescription={deleteModal.jobDescription}
+            onConfirm={handleConfirmDelete}
+          />
         </Stack>
       </Paper>
     );

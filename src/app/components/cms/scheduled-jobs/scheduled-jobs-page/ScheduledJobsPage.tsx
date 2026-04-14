@@ -5,31 +5,16 @@ import { ScheduledJobsList } from '../scheduled-jobs-list/ScheduledJobsList';
 import { ScheduledJobDetailsModal } from '../scheduled-job-details-modal/ScheduledJobDetailsModal';
 import { DeleteJobModal } from '../delete-job-modal/DeleteJobModal';
 import { BulkDeleteJobsModal } from '../bulk-delete-jobs-modal/BulkDeleteJobsModal';
-import { useExecuteScheduledJobMutation, useDeleteScheduledJobMutation } from '../../../../../hooks/useScheduledJobs';
 import { notifications } from '@mantine/notifications';
+import { useScheduledJobManager } from '../utils/hooks/useScheduledJobManager';
 
 export function ScheduledJobsPage() {
-    // Mutations
-    const executeJobMutation = useExecuteScheduledJobMutation();
-    const deleteJobMutation = useDeleteScheduledJobMutation();
-
-    const [detailsModal, setDetailsModal] = useState<{
-        opened: boolean;
-        jobId?: number;
-    }>({
-        opened: false,
-        jobId: undefined,
-    });
-
-    const [deleteModal, setDeleteModal] = useState<{
-        opened: boolean;
-        jobId?: number;
-        jobDescription?: string;
-    }>({
-        opened: false,
-        jobId: undefined,
-        jobDescription: undefined,
-    });
+    const { 
+        detailsModal, setDetailsModal, 
+        deleteModal, setDeleteModal,
+        handleViewJob, handleExecuteJob, handleDeleteJob, handleConfirmDelete,
+        deleteJobMutation
+    } = useScheduledJobManager();
 
     const [bulkDeleteModal, setBulkDeleteModal] = useState<{
         opened: boolean;
@@ -41,71 +26,12 @@ export function ScheduledJobsPage() {
         jobDescriptions: [],
     });
 
-    // Handle view job details
-    const handleViewJob = (jobId: number) => {
-        setDetailsModal({
-            opened: true,
-            jobId,
-        });
-    };
-
-    // Handle execute job
-    const handleExecuteJob = (jobId: number) => {
-        executeJobMutation.mutate(jobId, {
-            onSuccess: () => {
-                notifications.show({
-                    title: 'Success',
-                    message: 'Job executed successfully',
-                    color: 'green',
-                });
-                setDetailsModal({ opened: false, jobId: undefined });
-            },
-            onError: (error) => {
-                notifications.show({
-                    title: 'Error',
-                    message: error.message || 'Failed to execute job',
-                    color: 'red',
-                });
-            },
-        });
-    };
-
-    // Handle delete single job
-    const handleDeleteJob = (jobId: number, description: string) => {
-        setDeleteModal({
-            opened: true,
-            jobId,
-            jobDescription: description,
-        });
-    };
-
     // Handle bulk delete jobs
     const handleBulkDeleteJobs = (jobIds: number[], descriptions: string[]) => {
         setBulkDeleteModal({
             opened: true,
             jobIds,
             jobDescriptions: descriptions,
-        });
-    };
-
-    // Handle confirm single delete
-    const handleConfirmDelete = async (jobId: number) => {
-        deleteJobMutation.mutate(jobId, {
-            onSuccess: () => {
-                notifications.show({
-                    title: 'Success',
-                    message: 'Job deleted successfully',
-                    color: 'green',
-                });
-                setDeleteModal({ opened: false, jobId: undefined, jobDescription: undefined });
-            },
-            onError: (error) => {
-                notifications.show({
-                    title: 'Error',
-                    message: error.message || 'Failed to delete job',
-                    color: 'red',
-                });
-            },
         });
     };
 
