@@ -125,7 +125,9 @@ export default function ScheduledJobsCalendar() {
                 placeholder="All users"
                 data={userOptions}
                 value={currentUserId}
-                onChange={(value) => setCurrentUserId(value ? Number(value) : null)}
+                onChange={(value) =>
+                  setCurrentUserId(value ? Number(value) : null)
+                }
                 clearable
                 searchable
                 flex={1}
@@ -164,7 +166,13 @@ export default function ScheduledJobsCalendar() {
 
             <Schedule
               onDateChange={(date) => updateRange(date, view)}
-              onViewChange={(v) => setView(v)}
+              onViewChange={(newView) => {
+                setView(newView);
+                updateRange(
+                  params.dateFrom || dayjs().format("YYYY-MM-DD"),
+                  newView,
+                );
+              }}
               events={events}
               /**
                * CUSTOM EVENT RENDERER
