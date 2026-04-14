@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AdminScheduledJobsApi } from '../api/admin/scheduled-jobs.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
-import { IScheduledJobFilters } from '../types/responses/admin/scheduled-jobs.types';
+import { IScheduledJob, IScheduledJobFilters } from '../types/responses/admin/scheduled-jobs.types';
 import { notifications } from '@mantine/notifications';
 
 /**
@@ -17,6 +17,37 @@ export function useScheduledJobs(filters: IScheduledJobFilters = {}) {
         retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
         enabled: true, // Always enabled to fetch data
     });
+}
+
+/**
+ * Hook to fetch scheduled jobs until the last page for the specific period
+ */
+
+export function useScheduledJobsAll(filters: IScheduledJobFilters = {}) {
+  return useQuery({
+    queryKey: ['scheduledJobsAll', filters],
+    queryFn: async () => {
+      let currentPage = 1;
+      let totalPages = 1;
+      let allJobs: IScheduledJob[] = [];
+
+      do {
+        const res = await AdminScheduledJobsApi.getScheduledJobs({
+          ...filters,
+          page: currentPage,
+        });
+
+        const data = res.data;
+
+        allJobs = [...allJobs, ...data.scheduledJobs];
+        totalPages = data.totalPages;
+
+        currentPage++;
+      } while (currentPage <= totalPages);
+
+      return allJobs;
+    },
+  });
 }
 
 /**

@@ -86,3 +86,7 @@
 .mantine-ScheduleEvent-event {
   height: auto !important;
 }
+
+button[data-type="year"] {
+  display: none !important;
+}

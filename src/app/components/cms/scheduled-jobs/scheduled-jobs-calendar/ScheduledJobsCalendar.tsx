@@ -9,114 +9,56 @@ import {
     Stack,
     Box,
     Text,
+    Center,
+    Loader,
 } from "@mantine/core";
-import { Schedule, ScheduleEventData } from "@mantine/schedule";
+import { Schedule, ScheduleEventData, ScheduleViewLevel } from "@mantine/schedule";
 import "@mantine/schedule/styles.css";
 import dayjs from 'dayjs';
-import { useScheduledJobs } from "../../../../../hooks/useScheduledJobs";
+import { useScheduledJobsAll } from "../../../../../hooks/useScheduledJobs";
 import { useMemo, useState } from "react";
 import { IScheduledJobFilters } from "../../../../../types/responses/admin/scheduled-jobs.types";
 import { getJobStatusColor } from "../utils/job-status";
-const tomorrow = dayjs().add(1, 'day').format('YYYY-MM-DD');
-
-const today = dayjs().format('YYYY-MM-DD');
-
-
-const initialEvents: ScheduleEventData[] = [
-    {
-        id: 1,
-        title: 'Morning Standup',
-        start: `${today} 09:00:00`,
-        end: `${today} 09:30:00`,
-        color: 'blue',
-    },
-    {
-        id: 2,
-        title: 'Team Meeting',
-        start: `${today} 10:00:00`,
-        end: `${today} 11:30:00`,
-        color: 'green',
-    },
-    {
-        id: 3,
-        title: 'Lunch Break',
-        start: `${today} 12:00:00`,
-        end: `${today} 13:00:00`,
-        color: 'orange',
-    },
-    {
-        id: 4,
-        title: 'Code RecalendarView',
-        start: `${tomorrow} 14:00:00`,
-        end: `${tomorrow} 15:00:00`,
-        color: 'violet',
-    },
-    {
-        id: 5,
-        title: 'Client Call',
-        start: `${tomorrow} 15:30:00`,
-        end: `${tomorrow} 16:30:00`,
-        color: 'cyan',
-    },
-    {
-        id: 6,
-        title: 'Client Call 2',
-        start: `${tomorrow} 15:30:00`,
-        end: `${tomorrow} 16:30:00`,
-        color: 'cyan',
-    },
-    {
-        id: 7,
-        title: 'Client Call 3',
-        start: `${tomorrow} 15:30:00`,
-        end: `${tomorrow} 16:30:00`,
-        color: 'cyan',
-    },
-    {
-        id: 8,
-        title: 'Client Call 4',
-        start: `${tomorrow} 15:30:00`,
-        end: `${tomorrow} 16:30:00`,
-        color: 'cyan',
-    },
-    {
-        id: 9,
-        title: 'All Day Conference',
-        start: `${today} 00:00:00`,
-        end: dayjs(today).add(1, 'day').startOf('day').format('YYYY-MM-DD HH:mm:ss'),
-        color: 'red',
-    },
-];
 
 export default function ScheduledJobsCalendar() {
+    const [view, setView] = useState<ScheduleViewLevel>("week");
     const [params, setParams] = useState<IScheduledJobFilters>({
-            page: 1,
-            pageSize: 20,
+            pageSize: 50,
             dateType: 'date_to_be_executed',
-            dateFrom: new Date().toISOString().split('T')[0],
-            dateTo: new Date().toISOString().split('T')[0],
+            dateFrom: dayjs().startOf('week').format('YYYY-MM-DD'),
+            dateTo: dayjs().endOf('week').format('YYYY-MM-DD'),
             includeTransactions: true,
     });
 
-    const { data: scheduledJobsData, isLoading, error, refetch } = useScheduledJobs(params);
+    const { data: scheduledJobsData, isLoading } = useScheduledJobsAll(params);
 
-  const events = useMemo(() => {
-    const jobs = scheduledJobsData?.data?.scheduledJobs || [];
+    // Map api data
+    const events = useMemo(() => {
+    return (scheduledJobsData || []).map((job) => {
+        const startDate = dayjs(job.date_to_be_executed);
 
-    return jobs.map((job: any) => {
-      const startDate = dayjs(job.date_to_be_executed);
-
-      return {
+        return {
         id: job.id,
-        title: dayjs(job.date_to_be_executed).format("HH:mm"), // as date to be executed
+        title: dayjs(job.date_to_be_executed).format("HH:mm"),
         start: startDate.toDate(),
         end: startDate.add(60, "minutes").toDate(),
         color: getJobStatusColor(job.status),
         description: job.description,
         job_type: job.job_types,
-      };
+        };
     });
-  }, [scheduledJobsData]);
+    }, [scheduledJobsData]);
+
+    const updateRange = (newDate: string, view: ScheduleViewLevel) => {
+      const start = dayjs(newDate).startOf(view);
+      const end = dayjs(newDate).endOf(view);
+
+      setParams((prev) => ({
+        ...prev,
+        dateFrom: start.format("YYYY-MM-DD"),
+        dateTo: end.format("YYYY-MM-DD"),
+      }));
+    };
 
     return (
       <Paper withBorder p="md" radius="md" shadow="sm">
@@ -137,7 +79,7 @@ export default function ScheduledJobsCalendar() {
                 flex={1}
               />
               <Button variant="filled" color="blue">
-                calendarView
+                Apply
               </Button>
             </Group>
 
@@ -150,19 +92,42 @@ export default function ScheduledJobsCalendar() {
           </Stack>
 
           <Box mih={600}>
+            {isLoading && (
+              <Center
+                pos="absolute"
+                inset={0}
+                style={{
+                  zIndex: 10,
+                  background: "rgba(255,255,255,0.6)",
+                  borderRadius: "8px",
+                }}
+              >
+                <Loader size="lg" />
+              </Center>
+            )}
             <Schedule
+            onDateChange={(date) => updateRange(date, view)}
+            onViewChange={(v) => setView(v)}
               events={events}
               renderEventBody={(payload) => {
-                const customPayload = payload as ScheduleEventData & { job_type: string; description: string };
-                console.log(customPayload);
+                const customPayload = payload as ScheduleEventData & {
+                  job_type: string;
+                  description: string;
+                };
                 return (
                   <Stack gap={0} px={4} h="100%">
                     <Group gap={4} wrap="nowrap">
                       <Text size="xs" fw={500} lh={1.2} c="dark.9">
-                      {customPayload.title} 
+                        {customPayload.title}
                       </Text>
-                      <Text size="xs" fw={700} lh={1.2} c="blue.7" truncate="end">
-                          - {customPayload.job_type}
+                      <Text
+                        size="xs"
+                        fw={700}
+                        lh={1.2}
+                        c="blue.7"
+                        truncate="end"
+                      >
+                        - {customPayload.job_type}
                       </Text>
                     </Group>
 
