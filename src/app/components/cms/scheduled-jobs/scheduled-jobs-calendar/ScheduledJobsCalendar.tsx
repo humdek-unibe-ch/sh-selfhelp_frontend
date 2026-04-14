@@ -100,6 +100,11 @@ export default function ScheduledJobsCalendar() {
       }));
     };
 
+    /**
+     * FILTERS BUTTONS HANDLERS
+     * Apply filters
+     * Reset Filters
+     */
     const handleApplyFilters = () => {
     const newParams: IScheduledJobFilters = {
         ...params,
@@ -107,6 +112,16 @@ export default function ScheduledJobsCalendar() {
         actionId: currentActionId ?? undefined,
     };
     setParams(newParams);
+    };
+
+    const handleResetFilters = () => {
+        setCurrentUserId(null);
+        setCurrentActionId(null);
+        setParams((prev) => ({
+            ...prev,
+            userId: undefined,
+            actionId: undefined,
+        }));
     };
 
     return (
@@ -152,6 +167,19 @@ export default function ScheduledJobsCalendar() {
               >
                 Apply Filters
               </Button>
+              <Button
+                variant="filled"
+                color="red"
+                onClick={handleResetFilters}
+                disabled={
+                  currentUserId === null &&
+                  currentActionId === null &&
+                  !params.userId &&
+                  !params.actionId
+                }
+              >
+                Reset
+              </Button>
             </Group>
           </Paper>
 
@@ -168,10 +196,7 @@ export default function ScheduledJobsCalendar() {
               onDateChange={(date) => updateRange(date, view)}
               onViewChange={(newView) => {
                 setView(newView);
-                updateRange(
-                  dayjs().format("YYYY-MM-DD"),
-                  newView,
-                );
+                updateRange(dayjs().format("YYYY-MM-DD"), newView);
               }}
               events={events}
               /**
