@@ -47,6 +47,7 @@ import {
   IconSortAscending,
   IconSortDescending,
   IconX,
+  IconRefresh,
 } from '@tabler/icons-react';
 import { useUsers } from '../../../../../hooks/useUsers';
 import type { IUserBasic, IUsersListParams } from '../../../../../types/responses/admin/users.types';
@@ -89,7 +90,7 @@ export function UsersList({
   });
 
   // Fetch users data
-  const { data: usersData, isLoading, error } = useUsers(params);
+  const { data: usersData, isFetching, error, refetch  } = useUsers(params);
 
   // Table sorting state
   const [sorting, setSorting] = useState<SortingState>([
@@ -457,13 +458,28 @@ export function UsersList({
               Manage user accounts, permissions, and settings
             </Text>
           </div>
-          <Button
-            leftSection={<IconPlus size={16} />}
-            onClick={onCreateUser}
-            disabled={!permissions.canCreate}
-          >
-            Create User
-          </Button>
+          <Group gap="xs">
+            {/* Create User Button */}
+            <Button
+              leftSection={<IconPlus size={16} />}
+              onClick={onCreateUser}
+              disabled={!permissions.canCreate}
+            >
+              Create User
+            </Button>
+
+            {/* Refresh Button */}
+            <Button
+              variant="light"
+              color="gray"
+              leftSection={<IconRefresh size={16} />}
+              onClick={() => refetch()}
+              loading={ isFetching}
+              disabled={isFetching} 
+            >
+              Refresh
+            </Button>
+          </Group>
         </Group>
 
         {/* Filters */}
@@ -492,10 +508,10 @@ export function UsersList({
             value={params.pageSize?.toString()}
             onChange={handlePageSizeChange}
             data={[
-              { value: '10', label: '10' },
-              { value: '20', label: '20' },
-              { value: '50', label: '50' },
-              { value: '100', label: '100' },
+              { value: "10", label: "10" },
+              { value: "20", label: "20" },
+              { value: "50", label: "50" },
+              { value: "100", label: "100" },
             ]}
             w={100}
           />
@@ -503,7 +519,7 @@ export function UsersList({
 
         {/* Table */}
         <div className={classes.tableWrapper}>
-          <LoadingOverlay visible={isLoading} />
+          <LoadingOverlay visible={isFetching} />
 
           <Box className={classes.tableScrollContainer}>
             <Table striped highlightOnHover className={classes.table}>
@@ -516,7 +532,7 @@ export function UsersList({
                           ? null
                           : flexRender(
                               header.column.columnDef.header,
-                              header.getContext()
+                              header.getContext(),
                             )}
                       </TableTh>
                     ))}
@@ -530,7 +546,7 @@ export function UsersList({
                       <TableTd key={cell.id} className={classes.tableCell}>
                         {flexRender(
                           cell.column.columnDef.cell,
-                          cell.getContext()
+                          cell.getContext(),
                         )}
                       </TableTd>
                     ))}
@@ -541,41 +557,47 @@ export function UsersList({
           </Box>
 
           {/* Empty state */}
-          {!isLoading && (!usersData?.users || usersData.users.length === 0) && (
-            <Center py="xl">
-              <Stack align="center" gap="sm">
-                <Text size="lg" c="dimmed">
-                  No users found
-                </Text>
-                <Text size="sm" c="dimmed">
-                  {params.search 
-                    ? 'Try adjusting your search criteria'
-                    : 'Get started by creating your first user'
-                  }
-                </Text>
-                {!params.search && (
-                  <Button
-                    leftSection={<IconPlus size={16} />}
-                    onClick={onCreateUser}
-                    variant="light"
-                  >
-                    Create User
-                  </Button>
-                )}
-              </Stack>
-            </Center>
-          )}
+          {!isFetching &&
+            (!usersData?.users || usersData.users.length === 0) && (
+              <Center py="xl">
+                <Stack align="center" gap="sm">
+                  <Text size="lg" c="dimmed">
+                    No users found
+                  </Text>
+                  <Text size="sm" c="dimmed">
+                    {params.search
+                      ? "Try adjusting your search criteria"
+                      : "Get started by creating your first user"}
+                  </Text>
+                  {!params.search && (
+                    <Button
+                      leftSection={<IconPlus size={16} />}
+                      onClick={onCreateUser}
+                      variant="light"
+                    >
+                      Create User
+                    </Button>
+                  )}
+                </Stack>
+              </Center>
+            )}
         </div>
 
         {/* Pagination */}
         {usersData?.pagination && usersData.pagination.totalPages > 1 && (
           <Group justify="space-between">
             <Text size="sm" c="dimmed">
-              Showing {((usersData.pagination.page - 1) * usersData.pagination.pageSize) + 1} to{' '}
-              {Math.min(usersData.pagination.page * usersData.pagination.pageSize, usersData.pagination.totalCount)} of{' '}
-              {usersData.pagination.totalCount} users
+              Showing{" "}
+              {(usersData.pagination.page - 1) * usersData.pagination.pageSize +
+                1}{" "}
+              to{" "}
+              {Math.min(
+                usersData.pagination.page * usersData.pagination.pageSize,
+                usersData.pagination.totalCount,
+              )}{" "}
+              of {usersData.pagination.totalCount} users
             </Text>
-            
+
             <Pagination
               value={usersData.pagination.page}
               onChange={handlePageChange}
