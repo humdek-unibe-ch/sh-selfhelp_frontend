@@ -178,9 +178,14 @@ export default function ScheduledJobsCalendar() {
       <Paper withBorder p="md" radius="md" shadow="sm">
         <Stack gap="lg">
           {/* Header */}
-          <Title order={4} fw={500} c="dimmed">
-            Job schedule calendar
-          </Title>
+          <div>
+            <Text size="lg" fw={600}>
+              Scheduled Jobs Calendar
+            </Text>
+            <Text size="sm" c="dimmed">
+              Manage and monitor scheduled jobs via calendar
+            </Text>
+          </div>
 
           {/* User & Action Filters */}
           <Paper withBorder p="sm" bg="gray.0">
@@ -234,12 +239,12 @@ export default function ScheduledJobsCalendar() {
             </Group>
           </Paper>
 
-            <Group justify="flex-end" align="center">
+          <Group justify="flex-end" align="center">
             {/* Refresh Button */}
             <Button
               variant="light"
               color="gray"
-              size="sm" 
+              size="sm"
               leftSection={<IconRefresh size={16} />}
               onClick={() => {
                 setParams((prev) => ({ ...prev, _refresh: Date.now() }));
