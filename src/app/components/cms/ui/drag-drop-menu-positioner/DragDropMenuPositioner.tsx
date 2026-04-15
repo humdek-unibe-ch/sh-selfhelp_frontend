@@ -561,7 +561,7 @@ export function DragDropMenuPositioner({
                 {showCheckbox && (
                     <Checkbox
                         label={checkboxLabel || `${title} Menu`}
-                        checked={enabled}
+                        checked={enabled ?? false}
                         onChange={(event) => onEnabledChange(event.currentTarget.checked)}
                         mb="md"
                     />
