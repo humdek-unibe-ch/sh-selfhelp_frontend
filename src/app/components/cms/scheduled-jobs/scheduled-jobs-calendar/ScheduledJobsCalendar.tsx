@@ -27,7 +27,7 @@ import { useActions } from "../../../../../hooks/useActions";
 import { ScheduledJobDetailsModal } from "../scheduled-job-details-modal/ScheduledJobDetailsModal";
 import { useScheduledJobManager } from "../utils/hooks/useScheduledJobManager";
 import { DeleteJobModal } from "../delete-job-modal/DeleteJobModal";
-import { IconPlayerPlay, IconTrash } from "@tabler/icons-react";
+import { IconPlayerPlay, IconRefresh, IconTrash } from "@tabler/icons-react";
 
 interface ContextMenuState {
   x: number;
@@ -221,6 +221,7 @@ export default function ScheduledJobsCalendar() {
                 variant="filled"
                 color="red"
                 onClick={handleResetFilters}
+                loading={isFetching}
                 disabled={
                   currentUserId === null &&
                   currentActionId === null &&
@@ -232,6 +233,23 @@ export default function ScheduledJobsCalendar() {
               </Button>
             </Group>
           </Paper>
+
+            <Group justify="flex-end" align="center">
+            {/* Refresh Button */}
+            <Button
+              variant="light"
+              color="gray"
+              size="sm" 
+              leftSection={<IconRefresh size={16} />}
+              onClick={() => {
+                setParams((prev) => ({ ...prev, _refresh: Date.now() }));
+              }}
+              loading={isFetching}
+              disabled={isFetching}
+            >
+              Refresh
+            </Button>
+          </Group>
 
           {/* Calendar Display Area */}
           <Box mih={600} pos="relative">
