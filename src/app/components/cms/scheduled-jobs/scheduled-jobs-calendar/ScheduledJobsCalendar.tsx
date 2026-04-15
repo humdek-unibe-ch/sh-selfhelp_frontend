@@ -29,17 +29,20 @@ import { useScheduledJobManager } from "../utils/hooks/useScheduledJobManager";
 import { DeleteJobModal } from "../delete-job-modal/DeleteJobModal";
 import { IconPlayerPlay, IconTrash } from "@tabler/icons-react";
 
+interface ContextMenuState {
+  x: number;
+  y: number;
+  jobId: number | null;
+  description?: string;
+  status?: string;
+}
+
 export default function ScheduledJobsCalendar() {
     const [currentUserId, setCurrentUserId] = useState<number | null>(null);
     const [currentActionId, setCurrentActionId] = useState<number | null>(null);
     const [selectedJobId, setSelectedJobId] = useState<number | undefined>(undefined);
     const [modalOpened, setModalOpened] = useState(false);
-    const [contextMenu, setContextMenu] = useState<{
-    x: number;
-    y: number;
-    jobId: number | null;
-    description?: string;
-    } | null>(null);
+    const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
     const {
         handleExecuteJob,
         handleDeleteJob,
@@ -83,6 +86,7 @@ export default function ScheduledJobsCalendar() {
                 // Custom properties passed into the payload for the renderer
                 description: job.description,
                 job_type: job.job_types,
+                status: job.status,
             };
         });
     }, [scheduledJobsData]);
@@ -258,6 +262,7 @@ export default function ScheduledJobsCalendar() {
                 const customPayload = payload as ScheduleEventData & {
                   job_type: string;
                   description: string;
+                  status: string;
                 };
                 return (
                   <Tooltip
@@ -280,17 +285,18 @@ export default function ScheduledJobsCalendar() {
                   >
                     {/* The <div> ensures the Tooltip can attach the necessary ref and event listeners without throwing error. */}
                     <UnstyledButton
-                    component="div"
-                    onContextMenu={(e) => {
+                      component="div"
+                      onContextMenu={(e) => {
                         e.preventDefault();
                         setContextMenu({
-                        x: e.clientX,
-                        y: e.clientY,
-                        jobId: Number(customPayload.id),
-                        description: customPayload.description,
+                          x: e.clientX,
+                          y: e.clientY,
+                          jobId: Number(customPayload.id),
+                          description: customPayload.description,
+                          status: customPayload.status,
                         });
-                    }}
-                    style={{ height: "100%", width: "100%" }}
+                      }}
+                      style={{ height: "100%", width: "100%" }}
                     >
                       <Stack
                         gap={0}
@@ -356,9 +362,12 @@ export default function ScheduledJobsCalendar() {
                 <Menu.Item
                   leftSection={<IconPlayerPlay size={14} />}
                   onClick={() => {
-                    handleExecuteJob(contextMenu.jobId!);
-                    setContextMenu(null);
+                    if (contextMenu?.jobId) {
+                      handleExecuteJob(contextMenu.jobId);
+                      setContextMenu(null);
+                    }
                   }}
+                  disabled={contextMenu?.status?.toLowerCase() !== "queued"}
                 >
                   Execute Job
                 </Menu.Item>
@@ -369,11 +378,13 @@ export default function ScheduledJobsCalendar() {
                   leftSection={<IconTrash size={14} />}
                   color="red"
                   onClick={() => {
-                    handleDeleteJob(
-                      contextMenu.jobId!,
-                      contextMenu.description ?? '',
-                    );
-                    setContextMenu(null);
+                    if (contextMenu?.jobId) {
+                      handleDeleteJob(
+                        contextMenu.jobId,
+                        contextMenu.description ?? "",
+                      );
+                      setContextMenu(null);
+                    }
                   }}
                 >
                   Delete Job
