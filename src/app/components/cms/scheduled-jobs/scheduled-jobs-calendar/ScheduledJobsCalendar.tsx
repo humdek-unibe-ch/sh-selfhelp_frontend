@@ -280,6 +280,7 @@ export default function ScheduledJobsCalendar() {
                   >
                     {/* The <div> ensures the Tooltip can attach the necessary ref and event listeners without throwing error. */}
                     <UnstyledButton
+                    component="div"
                     onContextMenu={(e) => {
                         e.preventDefault();
                         setContextMenu({
