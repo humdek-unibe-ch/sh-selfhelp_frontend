@@ -16,8 +16,6 @@ import {
   TableThead,
   TableTh,
   TableTr,
-} from '@mantine/core';
-import {
   Card,
   Group,
   TextInput,

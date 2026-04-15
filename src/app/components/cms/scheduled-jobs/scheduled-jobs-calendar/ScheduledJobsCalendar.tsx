@@ -169,8 +169,8 @@ export default function ScheduledJobsCalendar() {
     globalThis.addEventListener("scroll", handleScroll, true); 
 
     return () => {
-        globalThis.removeEventListener("keydown", handleEscape);
-        globalThis.removeEventListener("scroll", handleScroll, true);
+    globalThis.removeEventListener("keydown", handleEscape);
+    globalThis.removeEventListener("scroll", handleScroll, true);
     };
     }, [contextMenu]);
 
