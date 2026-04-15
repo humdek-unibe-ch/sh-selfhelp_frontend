@@ -703,7 +703,7 @@ export function ScheduledJobsList({
                                     value={params.dateFrom ? new Date(params.dateFrom) : null}
                                     onChange={(date) => setParams(prev => ({
                                         ...prev,
-                                        dateFrom: date ? (date as unknown as Date).toISOString().split('T')[0] : undefined,
+                                        dateFrom: date || undefined,
                                         page: 1
                                     }))}
                                     clearable
@@ -714,7 +714,7 @@ export function ScheduledJobsList({
                                     value={params.dateTo ? new Date(params.dateTo) : null}
                                     onChange={(date) => setParams(prev => ({
                                         ...prev,
-                                        dateTo: date ? (date as unknown as Date).toISOString().split('T')[0] : undefined,
+                                        dateTo: date || undefined,
                                         page: 1
                                     }))}
                                     clearable
