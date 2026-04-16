@@ -262,7 +262,10 @@ export function AdminNavbar() {
         if (permissionChecker.canManageActions() || permissionChecker.canManageScheduledJobs()) {
             const automationLinks = [];
             if (permissionChecker.canReadActions()) automationLinks.push({ label: 'Actions', link: '/admin/actions' });
-            if (permissionChecker.canReadScheduledJobs()) automationLinks.push({ label: 'Scheduled Jobs', link: '/admin/scheduled-jobs' });
+            if (permissionChecker.canReadScheduledJobs()) {
+                automationLinks.push({ label: 'Scheduled Jobs', link: '/admin/scheduled-jobs' });
+                automationLinks.push({ label: 'Scheduled Jobs Calendar', link: '/admin/scheduled-jobs/calendar'});
+                };
 
             if (automationLinks.length > 0) {
                 menuItems.push({

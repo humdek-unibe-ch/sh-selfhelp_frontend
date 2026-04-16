@@ -82,3 +82,7 @@
 .selfhelp-condition-builder .rule {
     align-items: baseline !important;
 }
+
+.mantine-ScheduleEvent-event {
+  height: auto !important;
+}

@@ -7,7 +7,6 @@ import {
     Group,
     Badge,
     Stack,
-    Table,
     Button,
     Code,
     Paper,
@@ -16,13 +15,13 @@ import {
     Divider,
     ScrollArea,
     JsonInput,
-    Tabs,
     List,
     ThemeIcon,
     Accordion
 } from '@mantine/core';
 import { IconPlayerPlay, IconTrash, IconMail, IconSettings, IconBell, IconCalendar, IconUser, IconClock } from '@tabler/icons-react';
 import { useScheduledJob, useScheduledJobTransactions } from '../../../../../hooks/useScheduledJobs';
+import { getStatusColor } from '../../../../../utils/status-color.utils';
 
 interface IScheduledJobTransaction {
     transaction_id: number;
@@ -278,16 +277,6 @@ export function ScheduledJobDetailsModal({
 
     const jobDetails = jobDetailsData?.data;
     const transactions = transactionsData?.data || [];
-
-    const getStatusColor = (status: string) => {
-        switch (status.toLowerCase()) {
-            case 'queued': return 'blue';
-            case 'done': return 'green';
-            case 'failed': return 'red';
-            case 'deleted': return 'gray';
-            default: return 'gray';
-        }
-    };
 
     const formatDate = (dateString: string) => {
         if (!dateString) return '-';

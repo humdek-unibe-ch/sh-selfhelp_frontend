@@ -232,7 +232,7 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, selectab
           )}
         </Group>
       </Box>
-      {hasLinks ? <Collapse in={opened}>{items}</Collapse> : null}
+      {hasLinks ? <Collapse expanded={opened}>{items}</Collapse> : null}
     </>
   );
 }
@@ -429,7 +429,7 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
           </UnstyledButton>
         </Group>
       </Box>
-      <Collapse in={opened}>{items}</Collapse>
+      <Collapse expanded={opened}>{items}</Collapse>
     </>
   );
 }

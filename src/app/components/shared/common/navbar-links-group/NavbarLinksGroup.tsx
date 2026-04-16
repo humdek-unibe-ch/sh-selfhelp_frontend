@@ -114,7 +114,7 @@ export function LinksGroup({ icon, label, initiallyOpened, children, link, right
                         </Group>
                     </div>
                     {hasNestedLinks && (
-                        <Collapse in={isItemOpen}>
+                        <Collapse expanded={isItemOpen}>
                             <div>
                                 {renderItems(item.children!, itemPath)}
                             </div>
@@ -166,7 +166,7 @@ export function LinksGroup({ icon, label, initiallyOpened, children, link, right
             </UnstyledButton>
             
             {hasAnyContent && (
-                <Collapse in={isOpen}>
+                <Collapse expanded={isOpen}>
                     {hasLinks ? (
                         renderItems(children as LinkItem[], label)
                     ) : (

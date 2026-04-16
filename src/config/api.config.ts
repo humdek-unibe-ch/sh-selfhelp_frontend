@@ -376,6 +376,10 @@ export const API_CONFIG = {
             route: (jobId: number) => `/admin/scheduled-jobs/${jobId}/transactions`,
             permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_READ]
         },
+         ADMIN_SCHEDULED_JOBS_CALENDAR: {
+            route: () => `/admin/scheduled-jobs/calendar`,
+            permissions: [PERMISSIONS.ADMIN_SCHEDULED_JOB_READ]
+        },
 
         // Admin page keywords endpoints
         ADMIN_PAGE_KEYWORDS_GET_ALL: {

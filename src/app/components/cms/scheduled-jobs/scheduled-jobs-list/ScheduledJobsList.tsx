@@ -16,8 +16,6 @@ import {
   TableThead,
   TableTh,
   TableTr,
-} from '@mantine/core';
-import {
   Card,
   Group,
   TextInput,
@@ -55,6 +53,7 @@ import { useLookups } from '../../../../../hooks/useLookups';
 import { getScheduledJobStatuses, getScheduledJobTypes, getScheduledJobSearchDateTypes } from '../../../../../utils/lookup-filters.utils';
 import { IScheduledJobFilters, IScheduledJob, IScheduledJobTransaction } from '../../../../../types/responses/admin/scheduled-jobs.types';
 import classes from './ScheduledJobsList.module.css';
+import { getJobStatusColor } from '../utils/job-status';
 
 interface IScheduledJobsListProps {
     onViewJob?: (jobId: number) => void;
@@ -135,7 +134,7 @@ export function ScheduledJobsList({
         includeTransactions: true,
     });
 
-    const [showFilters, setShowFilters] = useState(false);
+    const [showFilters, setShowFilters] = useState(true);
     const [selectedJobs, setSelectedJobs] = useState<Set<number>>(new Set());
     const [expandedJobs, setExpandedJobs] = useState<Set<number>>(new Set());
 
@@ -260,18 +259,6 @@ export function ScheduledJobsList({
     }, [expandedJobs]);
 
 
-    // Get status color
-    const getStatusColor = (status: string) => {
-        switch (status.toLowerCase()) {
-            case 'queued': return 'blue';
-            case 'done': return 'green';
-            case 'failed': return 'orange';
-            case 'deleted': return 'red';
-            default: return 'gray';
-        }
-    };
-
-
     // Define table columns
     const columns = useMemo<ColumnDef<IScheduledJob>[]>(
         () => [
@@ -373,7 +360,7 @@ export function ScheduledJobsList({
                 cell: ({ row }) => (
                     <Badge
                         variant="light"
-                        color={getStatusColor(row.original.status)}
+                        color={getJobStatusColor(row.original.status)}
                         size="sm"
                     >
                         {row.original.status}

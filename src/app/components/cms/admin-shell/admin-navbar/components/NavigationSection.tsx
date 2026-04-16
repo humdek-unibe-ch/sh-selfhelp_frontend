@@ -169,7 +169,7 @@ export function NavigationSection({
             </UnstyledButton>
             
             {hasContent && (
-                <Collapse in={isOpen}>
+                <Collapse expanded={isOpen}>
                     <Box pl="sm" pt="xs" pb="xs">
                         <Stack gap={1}>
                             {links && links.map((link) => (
