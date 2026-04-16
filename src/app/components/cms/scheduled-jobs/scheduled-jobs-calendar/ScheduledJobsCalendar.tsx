@@ -97,7 +97,7 @@ export default function ScheduledJobsCalendar() {
      */
     const userOptions = (usersData?.users || []).map((user: IUserBasic) => ({
     value: user.id,
-    label: `[${user.id}] - ${user.email}`,
+    label: `[${user.code}] - ${user.email} - ${user.name}`,
     }));
 
     /**
