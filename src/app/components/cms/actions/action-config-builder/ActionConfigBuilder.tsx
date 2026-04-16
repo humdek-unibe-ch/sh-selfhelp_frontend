@@ -203,17 +203,27 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
     const removeJob = (bIndex: number, jIndex: number) => setBlock(bIndex, { jobs: ensureArray(config.blocks?.[bIndex]?.jobs).filter((_: any, i: number) => i !== jIndex) });
     const setJob = (bIndex: number, jIndex: number, patch: any) => setBlock(bIndex, { jobs: ensureArray(config.blocks?.[bIndex]?.jobs).map((j: any, i: number) => i === jIndex ? { ...j, ...patch } : j) });
 
-    const addReminder = (bIndex: number, jIndex: number) => setJob(bIndex, jIndex, {
-        reminders: [...ensureArray(config.blocks?.[bIndex]?.jobs?.[jIndex]?.reminders), {
-            condition: '',
-            on_job_execute: { condition: '' },
-            schedule_time: {
-                send_after: 1,
-                send_after_type: 'days'
-            },
-            notification: { notification_types: 'email', recipient: '@user' }
-        }]
-    });
+    const addReminder = (bIndex: number, jIndex: number) => {
+        const newReminderIndex = ensureArray(config.blocks?.[bIndex]?.jobs?.[jIndex]?.reminders).length;
+        const reminderPrefix = `block_${bIndex}.job_${jIndex}.reminders.${newReminderIndex}.notification`;
+
+        setJob(bIndex, jIndex, {
+            reminders: [...ensureArray(config.blocks?.[bIndex]?.jobs?.[jIndex]?.reminders), {
+                condition: '',
+                on_job_execute: { condition: '' },
+                schedule_time: {
+                    send_after: 1,
+                    send_after_type: 'days'
+                },
+                notification: {
+                    notification_types: 'email',
+                    recipient: '@user',
+                    subject: `${reminderPrefix}.subject`,
+                    body: `${reminderPrefix}.body`
+                }
+            }]
+        });
+    };
 
     const copyReminder = (bIndex: number, jIndex: number, rIndex: number) => setJob(bIndex, jIndex, {
         reminders: (() => {
@@ -703,8 +713,13 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
         );
     };
 
-    const renderNotification = (job: any, onPatch: (patch: any) => void, blockIndex: number, jobIndex: number) => {
+    const renderNotification = (job: any, onPatch: (patch: any) => void, blockIndex: number, jobIndex: number, reminderIndex?: number) => {
         const n = job.notification || {};
+
+        const isReminder = reminderIndex !== undefined;
+        const prefix = isReminder 
+        ? `block_${blockIndex}.job_${jobIndex}.reminders.${reminderIndex}.notification`
+        : `block_${blockIndex}.job_${jobIndex}.notification`;
         return (
             <Card withBorder>
                 <Stack gap="sm">
@@ -781,38 +796,36 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
 
                     {/* Subject and Body fields for both email and push notifications */}
                     <GroupedTranslationInput
-                        subjectValue={localTranslations[`block_${blockIndex}.job_${jobIndex}.notification.subject`] || {}}
-                        bodyValue={localTranslations[`block_${blockIndex}.job_${jobIndex}.notification.body`] || {}}
+                        subjectValue={localTranslations[`${prefix}.subject`] || {}}
+                        bodyValue={localTranslations[`${prefix}.body`] || {}}
                         subjectPlaceholder={n.notification_types === 'email' ? "Enter email subject" : "Enter notification title"}
                         bodyPlaceholder={n.notification_types === 'email' ? "Enter email body content" : "Enter notification message"}
                         onSubjectChange={(translations) => {
                             setLocalTranslations(prev => ({
                                 ...prev,
-                                [`block_${blockIndex}.job_${jobIndex}.notification.subject`]: translations
+                                [`${prefix}.subject`]: translations
+
                             }));
                             // Only store the translation key if it doesn't exist
-                            if (!n.subject) {
-                                setJob(blockIndex, jobIndex, {
-                                    notification: {
-                                        ...n,
-                                        subject: `block_${blockIndex}.job_${jobIndex}.notification.subject`
-                                    }
-                                });
-                            }
+                        if (!n.subject) {
+                          onPatch({
+                            notification: {
+                              ...n,
+                              subject: `${prefix}.subject`,
+                            },
+                          });
+                        }
                         }}
                         onBodyChange={(translations) => {
-                            setLocalTranslations(prev => ({
-                                ...prev,
-                                [`block_${blockIndex}.job_${jobIndex}.notification.body`]: translations
+                            setLocalTranslations((prev) => ({
+                              ...prev,
+                              [`${prefix}.body`]: translations,
                             }));
                             // Only store the translation key if it doesn't exist
                             if (!n.body) {
-                                setJob(blockIndex, jobIndex, {
-                                    notification: {
-                                        ...n,
-                                        body: `block_${blockIndex}.job_${jobIndex}.notification.body`
-                                    }
-                                });
+                              onPatch({
+                                notification: { ...n, body: `${prefix}.body` },
+                              });
                             }
                         }}
                     />
@@ -906,7 +919,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                 {renderReminderScheduleTime(reminder, onPatch, parentJobType)}
 
                 {/* Reminder notification */}
-                {renderNotification(reminder, onPatch, blockIndex, jobIndex)}
+            {renderNotification(reminder, onPatch, blockIndex, jobIndex, reminderIndex)}
             </Stack>
         );
     };

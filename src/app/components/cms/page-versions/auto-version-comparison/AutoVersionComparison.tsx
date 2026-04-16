@@ -5,6 +5,8 @@ import { IconGitCompare, IconAlertCircle, IconRefresh } from '@tabler/icons-reac
 import { useQuery } from '@tanstack/react-query';
 import { PageVersionApi } from '../../../../../api/admin/page-version.api';
 import styles from './AutoVersionComparison.module.css';
+import DOMPurify from 'dompurify';
+import { useMemo } from 'react';
 
 interface IAutoVersionComparisonProps {
     pageId: number;
@@ -25,6 +27,10 @@ export function AutoVersionComparison({
         enabled: !!pageId && !!publishedVersionId,
         staleTime: 30000, // 30 seconds
     });
+
+    const cleanDiff = useMemo(() => {
+      return DOMPurify.sanitize((comparison?.diff as string) || "");
+    }, [comparison]);
 
     // If no published version, show info
     if (!publishedVersionId) {
@@ -96,7 +102,7 @@ export function AutoVersionComparison({
                 {/* Render the comparison diff */}
                 <div 
                     className={styles.diffContainer}
-                    dangerouslySetInnerHTML={{ __html: comparison.diff }} 
+                    dangerouslySetInnerHTML={{ __html: cleanDiff }} 
                 />
             </Stack>
         </Paper>

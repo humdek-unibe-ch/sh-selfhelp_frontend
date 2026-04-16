@@ -1,6 +1,7 @@
 import React from 'react';
 import { Text } from '@mantine/core';
 import { ITextStyle } from '../../../../../types/common/styles.types';
+import DOMPurify from 'dompurify';
 
 /**
  * Props interface for TextStyle component
@@ -34,7 +35,7 @@ const TextStyle: React.FC<ITextStyleProps> = ({ style, styleProps, cssClass }) =
     }
 
     // Extract text content
-    const text = style.text?.content || '';
+    const text =  DOMPurify.sanitize(style.text?.content ?? '') || '';
 
     // Extract Mantine-specific props
     const size = style.mantine_size?.content || 'md';

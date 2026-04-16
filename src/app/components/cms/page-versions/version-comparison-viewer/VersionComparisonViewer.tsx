@@ -1,10 +1,11 @@
 'use client';
 
 import { Modal, Stack, Select, Box, Text, Loader, Alert, Paper, ScrollArea, Code, Group } from '@mantine/core';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { PageVersionApi } from '../../../../../api/admin/page-version.api';
 import { IPageVersion } from '../../../../../types/responses/admin/page-version.types';
+import DOMPurify from 'dompurify';
 
 interface IVersionComparisonViewerProps {
     opened: boolean;
@@ -55,6 +56,10 @@ export function VersionComparisonViewer({
         value: v.id.toString(),
         label: v.version_name || `Version ${v.version_number}`
     }));
+
+    const cleanDiff = useMemo(() => {
+      return DOMPurify.sanitize((comparison?.diff as string) || "");
+    }, [comparison]);
 
     return (
         <Modal
@@ -113,20 +118,20 @@ export function VersionComparisonViewer({
                         <ScrollArea h="100%">
                             {format === 'side_by_side' && (
                                 <div 
-                                    dangerouslySetInnerHTML={{ __html: comparison.diff as string }}
+                                    dangerouslySetInnerHTML={{ __html: cleanDiff }}
                                     style={{ fontSize: '12px' }}
                                 />
                             )}
                             
                             {format === 'unified' && (
                                 <Code block style={{ whiteSpace: 'pre-wrap' }}>
-                                    {comparison.diff as string}
+                                    {cleanDiff}
                                 </Code>
                             )}
                             
                             {(format === 'json_patch' || format === 'summary') && (
                                 <Code block style={{ whiteSpace: 'pre-wrap' }}>
-                                    {JSON.stringify(comparison.diff, null, 2)}
+                                    {JSON.stringify(cleanDiff, null, 2)}
                                 </Code>
                             )}
                         </ScrollArea>

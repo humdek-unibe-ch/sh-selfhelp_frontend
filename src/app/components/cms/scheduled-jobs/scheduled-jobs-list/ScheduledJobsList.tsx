@@ -134,7 +134,7 @@ export function ScheduledJobsList({
         includeTransactions: true,
     });
 
-    const [showFilters, setShowFilters] = useState(false);
+    const [showFilters, setShowFilters] = useState(true);
     const [selectedJobs, setSelectedJobs] = useState<Set<number>>(new Set());
     const [expandedJobs, setExpandedJobs] = useState<Set<number>>(new Set());
 

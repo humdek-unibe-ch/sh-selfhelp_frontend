@@ -1,6 +1,7 @@
 import React from 'react';
 import { IHtmlTagStyle } from '../../../../types/common/styles.types';
 import BasicStyle from './BasicStyle';
+import DOMPurify from 'dompurify';
 
 /**
  * Props interface for IHtmlTagStyle component
@@ -13,7 +14,7 @@ interface IHtmlTagStyleProps {
 
 const HtmlTagStyle: React.FC<IHtmlTagStyleProps> = ({ style, styleProps, cssClass }) => {
     const htmlTag = style.html_tag?.content || 'div';
-    const content = style.html_tag_content?.content || '';
+    const content = DOMPurify.sanitize(style.html_tag_content?.content ?? '') || '';
 
     // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
