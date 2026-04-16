@@ -22,6 +22,8 @@ import {
 import { IconPlayerPlay, IconTrash, IconMail, IconSettings, IconBell, IconCalendar, IconUser, IconClock } from '@tabler/icons-react';
 import { useScheduledJob, useScheduledJobTransactions } from '../../../../../hooks/useScheduledJobs';
 import { getStatusColor } from '../../../../../utils/status-color.utils';
+import DOMPurify from 'dompurify';
+
 
 interface IScheduledJobTransaction {
     transaction_id: number;
@@ -63,6 +65,7 @@ function formatTransactionLog(log: string): { type: 'text' | 'json', content: an
 // Component to render email job configuration
 function EmailJobConfig({ config }: { config: any }) {
     const emailConfig = config.email || {};
+    const cleanBody = DOMPurify.sanitize(emailConfig.body || '');
 
     return (
         <Stack gap="md">
@@ -114,11 +117,11 @@ function EmailJobConfig({ config }: { config: any }) {
             <Text size="sm" fw={500}>Email Body:</Text>
             {emailConfig.is_html ? (
                 <Paper p="sm" withBorder style={{ backgroundColor: '#f8f9fa' }}>
-                    <div dangerouslySetInnerHTML={{ __html: emailConfig.body }} />
+                    <div dangerouslySetInnerHTML={{ __html: cleanBody }} />
                 </Paper>
             ) : (
                 <Paper p="sm" withBorder>
-                    <Text style={{ whiteSpace: 'pre-wrap' }}>{emailConfig.body}</Text>
+                    <Text style={{ whiteSpace: 'pre-wrap' }}>{cleanBody}</Text>
                 </Paper>
             )}
 
