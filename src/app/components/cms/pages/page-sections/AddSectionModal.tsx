@@ -182,6 +182,19 @@ export function AddSectionModal({
         return filteredGroups.filter(group => group.styles.length > 0);
     }, [styleGroups, searchQuery, isStyleAllowedAsChild, parentSectionId]);
 
+    // Filtered Unused Sections
+    const filteredUnusedSections = useMemo(() => {
+    if (!searchQuery) return unusedSections;
+
+    const query = searchQuery.toLowerCase();
+    return unusedSections.filter(
+        (section) =>
+        section.name.toLowerCase().includes(query) ||
+        String(section.id).includes(query) ||
+        (section.styleName && section.styleName.toLowerCase().includes(query)),
+    );
+    }, [unusedSections, searchQuery]);
+
 
 
     // Section operations hook
@@ -418,295 +431,410 @@ export function AddSectionModal({
     );
 
     return (
-        <ModalWrapper
-            opened={opened}
-            onClose={handleClose}
-            title={title}
-            size="xl"
-            scrollAreaHeight="70vh"
-            customActions={getCustomActions()}
-            isLoading={isProcessing}
-        >
-            <Tabs value={activeTab} onChange={handleTabChange}>
-                {/* Header Section */}
-                <Group justify="space-between" align="center" mb="md">
-                    <Tabs.List>
-                        <Tabs.Tab value="new-section">New Section</Tabs.Tab>
-                        <Tabs.Tab value="unassigned-section">
-                            Unused Section
-                        </Tabs.Tab>
-                        <Tabs.Tab value="reference-section">
-                            Reference Section
-                        </Tabs.Tab>
-                        <Tabs.Tab value="import-section">
-                            Import Section
-                        </Tabs.Tab>
-                    </Tabs.List>
+      <ModalWrapper
+        opened={opened}
+        onClose={handleClose}
+        title={title}
+        size="xl"
+        scrollAreaHeight="70vh"
+        customActions={getCustomActions()}
+        isLoading={isProcessing}
+      >
+        <Tabs value={activeTab} onChange={handleTabChange}>
+          {/* Header Section */}
+          <Group justify="space-between" align="center" mb="md">
+            <Tabs.List>
+              <Tabs.Tab value="new-section">New Section</Tabs.Tab>
+              <Tabs.Tab value="unassigned-section">Unused Section</Tabs.Tab>
+              <Tabs.Tab value="reference-section">Reference Section</Tabs.Tab>
+              <Tabs.Tab value="import-section">Import Section</Tabs.Tab>
+            </Tabs.List>
+          </Group>
+
+          {/* Search Input - only for new-section tab */}
+          {activeTab === "new-section" && (
+            <TextInput
+              placeholder="Search styles..."
+              leftSection={<IconSearch size={16} />}
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.currentTarget.value)}
+              mb="sm"
+              size="sm"
+            />
+          )}
+
+          {/* Section Name Input - only for new-section tab */}
+          {activeTab === "new-section" && (
+            <TextInput
+              label="Section Name (Optional)"
+              placeholder="Enter custom section name..."
+              value={sectionName}
+              onChange={(event) => setSectionName(event.currentTarget.value)}
+              description="Leave empty to use the style name"
+              mb="sm"
+              size="sm"
+            />
+          )}
+
+          {/* Selected Style Display - only for new-section tab */}
+          {activeTab === "new-section" && selectedStyle && (
+            <Card withBorder p="xs" bg="blue.0" mb="sm">
+              <Group justify="space-between" gap="xs">
+                <Group gap="xs" flex={1} style={{ minWidth: 0 }}>
+                  <Text fw={500} size="sm">
+                    Selected:
+                  </Text>
+                  <Text size="sm" truncate>
+                    {selectedStyle.name}
+                  </Text>
+                  <Badge size="xs" variant="light" color="blue">
+                    {selectedStyle.type}
+                  </Badge>
                 </Group>
+                <ActionIcon
+                  variant="subtle"
+                  size="sm"
+                  onClick={() => setSelectedStyle(null)}
+                >
+                  <IconX size={14} />
+                </ActionIcon>
+              </Group>
+            </Card>
+          )}
 
-                {/* Search Input - only for new-section tab */}
-                {activeTab === 'new-section' && (
-                    <TextInput
-                        placeholder="Search styles..."
-                        leftSection={<IconSearch size={16} />}
-                        value={searchQuery}
-                        onChange={(event) => setSearchQuery(event.currentTarget.value)}
-                        mb="sm"
-                        size="sm"
-                    />
-                )}
+          {/* Instructions - only for new-section tab */}
+          {activeTab === "new-section" && (
+            <Text size="xs" c="dimmed" mb="sm">
+              Click on a style below to select it for your new section
+            </Text>
+          )}
 
-                {/* Section Name Input - only for new-section tab */}
-                {activeTab === 'new-section' && (
-                    <TextInput
-                        label="Section Name (Optional)"
-                        placeholder="Enter custom section name..."
-                        value={sectionName}
-                        onChange={(event) => setSectionName(event.currentTarget.value)}
-                        description="Leave empty to use the style name"
-                        mb="sm"
-                        size="sm"
-                    />
-                )}
-
-                {/* Selected Style Display - only for new-section tab */}
-                {activeTab === 'new-section' && selectedStyle && (
-                    <Card withBorder p="xs" bg="blue.0" mb="sm">
-                        <Group justify="space-between" gap="xs">
-                            <Group gap="xs" flex={1} style={{ minWidth: 0 }}>
-                                <Text fw={500} size="sm">Selected:</Text>
-                                <Text size="sm" truncate>{selectedStyle.name}</Text>
-                                <Badge size="xs" variant="light" color="blue">
-                                    {selectedStyle.type}
+          {/* Tab Content */}
+          <Tabs.Panel value="new-section">
+            {isLoadingStyles || (parentSectionId && isLoadingParentDetails) ? (
+              <Group justify="center" p="xl">
+                <Loader size="sm" />
+                <Text size="sm">
+                  {isLoadingStyles
+                    ? "Loading styles..."
+                    : "Loading parent section details..."}
+                </Text>
+              </Group>
+            ) : stylesError ? (
+              <Alert icon={<IconAlertCircle size={16} />} color="red">
+                Failed to load styles. Please try again.
+              </Alert>
+            ) : filteredStyleGroups.length === 0 ? (
+              <Alert icon={<IconInfoCircle size={16} />} color="blue">
+                {searchQuery
+                  ? "No styles found matching your search criteria."
+                  : parentSectionId
+                    ? "No styles are allowed as children of the selected parent section."
+                    : "No styles available."}
+              </Alert>
+            ) : (
+              <Stack gap="sm">
+                {filteredStyleGroups.map((group: IStyleGroup) => (
+                  <div key={group.id}>
+                    <Group gap="xs" mb="xs">
+                      <Text fw={600} size="sm" c="blue">
+                        {group.name}
+                      </Text>
+                      <Badge size="xs" variant="outline">
+                        {group.styles.length}
+                      </Badge>
+                    </Group>
+                    {group.description && (
+                      <Text size="xs" c="dimmed" mb="xs">
+                        {group.description}
+                      </Text>
+                    )}
+                    <SimpleGrid
+                      cols={{ base: 1, sm: 2, md: 3 }} // responsive - 1 mobile, 2  tablet, 3 desktop
+                      spacing="sm"
+                      verticalSpacing="sm"
+                      mb="md"
+                    >
+                      {group.styles.map((style: IStyle) => (
+                        <Card
+                          key={style.id}
+                          withBorder
+                          p="xs"
+                          style={{
+                            cursor: "pointer",
+                            transition: "box-shadow 0.1s ease",
+                            justifyContent: "space-between",
+                            backgroundColor:
+                              selectedStyle?.id === style.id
+                                ? "var(--mantine-color-blue-0)"
+                                : undefined,
+                            borderColor:
+                              selectedStyle?.id === style.id
+                                ? "var(--mantine-color-blue-4)"
+                                : undefined,
+                          }}
+                          onClick={() => handleStyleSelect(style)}
+                        >
+                          <Stack gap={4}>
+                            <Group justify="space-between" wrap="nowrap">
+                              <Text fw={600} size="sm" truncate>
+                                {style.name}
+                              </Text>
+                              {selectedStyle?.id === style.id && (
+                                <Badge size="xs" variant="filled" color="blue">
+                                  Selected
                                 </Badge>
+                              )}
                             </Group>
-                            <ActionIcon
-                                variant="subtle"
-                                size="sm"
-                                onClick={() => setSelectedStyle(null)}
-                            >
-                                <IconX size={14} />
-                            </ActionIcon>
-                        </Group>
-                    </Card>
-                )}
 
-                {/* Instructions - only for new-section tab */}
-                {activeTab === 'new-section' && (
-                    <Text size="xs" c="dimmed" mb="sm">
-                        Click on a style below to select it for your new section
-                    </Text>
-                )}
-
-                {/* Tab Content */}
-                        <Tabs.Panel value="new-section">
-                            {(isLoadingStyles || (parentSectionId && isLoadingParentDetails)) ? (
-                                <Group justify="center" p="xl">
-                                    <Loader size="sm" />
-                                    <Text size="sm">
-                                        {isLoadingStyles ? 'Loading styles...' : 'Loading parent section details...'}
-                                    </Text>
-                                </Group>
-                            ) : stylesError ? (
-                                <Alert icon={<IconAlertCircle size={16} />} color="red">
-                                    Failed to load styles. Please try again.
-                                </Alert>
-                            ) : filteredStyleGroups.length === 0 ? (
-                                <Alert icon={<IconInfoCircle size={16} />} color="blue">
-                                    {searchQuery
-                                        ? 'No styles found matching your search criteria.'
-                                        : parentSectionId
-                                            ? 'No styles are allowed as children of the selected parent section.'
-                                            : 'No styles available.'
-                                    }
-                                </Alert>
-                            ) : (
-                                <Stack gap="sm">
-                                    {filteredStyleGroups.map((group: IStyleGroup) => (
-                                        <div key={group.id}>
-                                            <Group gap="xs" mb="xs">
-                                                <Text fw={600} size="sm" c="blue">
-                                                    {group.name}
-                                                </Text>
-                                                <Badge size="xs" variant="outline">
-                                                    {group.styles.length}
-                                                </Badge>
-                                            </Group>
-                                            {group.description && (
-                                                <Text size="xs" c="dimmed" mb="xs">
-                                                    {group.description}
-                                                </Text>
-                                            )}
-                                            <SimpleGrid
-                                                cols={{ base: 1, sm: 2, md: 3 }} // responsive - 1 mobile, 2  tablet, 3 desktop
-                                                spacing="sm"
-                                                verticalSpacing="sm"
-                                                mb="md"
-                                            >
-                                                {group.styles.map((style: IStyle) => (
-                                                    <Card
-                                                        key={style.id}
-                                                        withBorder
-                                                        p="xs"
-                                                        style={{
-                                                            cursor: 'pointer',
-                                                            transition: 'box-shadow 0.1s ease',
-                                                            justifyContent: 'space-between',
-                                                            backgroundColor: selectedStyle?.id === style.id ? 'var(--mantine-color-blue-0)' : undefined,
-                                                            borderColor: selectedStyle?.id === style.id ? 'var(--mantine-color-blue-4)' : undefined,
-                                                        }}
-                                                        onClick={() => handleStyleSelect(style)}
-                                                    >
-                                                        <Stack gap={4}>
-                                                            <Group justify="space-between" wrap="nowrap">
-                                                                <Text fw={600} size="sm" truncate>{style.name}</Text>
-                                                                {selectedStyle?.id === style.id && (
-                                                                    <Badge size="xs" variant="filled" color="blue">Selected</Badge>
-                                                                )}
-                                                            </Group>
-
-                                                            {style.description && (
-                                                                <Tooltip
-                                                                    label={style.description}
-                                                                    multiline
-                                                                    w={300}
-                                                                    position="bottom"
-                                                                    withArrow
-                                                                    openDelay={300}
-                                                                >
-                                                                    <Text size="xs" c="dimmed" lineClamp={2}>
-                                                                        {style.description}
-                                                                    </Text>
-                                                                </Tooltip>
-                                                            )}
-
-                                                            <Badge size="xxs" variant="light" color="gray" w="fit-content">
-                                                                {style.type}
-                                                            </Badge>
-                                                        </Stack>
-                                                    </Card>
-                                                ))}
-                                            </SimpleGrid>
-                                        </div>
-                                    ))}
-                                </Stack>
+                            {style.description && (
+                              <Tooltip
+                                label={style.description}
+                                multiline
+                                w={300}
+                                position="bottom"
+                                withArrow
+                                openDelay={300}
+                              >
+                                <Text size="xs" c="dimmed" lineClamp={2}>
+                                  {style.description}
+                                </Text>
+                              </Tooltip>
                             )}
-                        </Tabs.Panel>
 
-                        {/* Unused Section Tab Panel */}
-                        <Tabs.Panel value="unassigned-section">
-                            <Stack gap="md">
-                                <Alert icon={<IconInfoCircle size={16} />} color="blue">
-                                    Select an unused section to add to this {parentSectionId ? 'section' : 'page'}. Unused sections are sections that exist but are not currently assigned to any page or section.
-                                </Alert>
+                            <Badge
+                              size="xxs"
+                              variant="light"
+                              color="gray"
+                              w="fit-content"
+                            >
+                              {style.type}
+                            </Badge>
+                          </Stack>
+                        </Card>
+                      ))}
+                    </SimpleGrid>
+                  </div>
+                ))}
+              </Stack>
+            )}
+          </Tabs.Panel>
 
-                                {isLoadingUnused || isFetchingUnused ? (
-                                    <Group justify="center" p="xl">
-                                        <Loader size="sm" />
-                                        <Text size="sm">Loading unused sections...</Text>
-                                    </Group>
-                                ) : unusedError ? (
-                                    <Alert icon={<IconAlertCircle size={16} />} color="red">
-                                        Failed to load unused sections. Please try again.
-                                    </Alert>
-                                ) : unusedSections.length === 0 ? (
-                                    <Alert icon={<IconInfoCircle size={16} />} color="gray">
-                                        No unused sections available. All sections are currently assigned to pages or other sections.
-                                    </Alert>
-                                ) : (
-                                    <Stack gap="sm">
-                                        <Select
-                                            label="Select Unused Section"
-                                            placeholder="Choose an unused section to add..."
-                                            comboboxProps={{ withinPortal: true, zIndex: 10000 }}
-                                            data={unusedSectionsSelectData}
-                                            value={selectedUnusedSection}
-                                            onChange={setSelectedUnusedSection}
-                                            searchable
-                                            clearable
-                                            size="sm"
-                                            nothingFoundMessage="No unused sections found"
-                                        />
-                                    </Stack>
-                                )}
-                            </Stack>
-                        </Tabs.Panel>
+          {/* Unused Section Tab Panel - Grid Style */}
+          <Tabs.Panel value="unassigned-section">
+            <Stack gap="md">
+              <Alert icon={<IconInfoCircle size={16} />} color="blue">
+                Select an unused section to add to this{" "}
+                {parentSectionId ? "section" : "page"}. Unused sections are
+                sections that exist but are not currently assigned.
+              </Alert>
 
-                        {/* Reference Section Tab Panel */}
-                        <Tabs.Panel value="reference-section">
-                            <Stack gap="md">
-                                <Alert icon={<IconInfoCircle size={16} />} color="blue">
-                                    Select a reference container section to add to this {parentSectionId ? 'section' : 'page'}. Reference containers are special sections that can be reused across different pages.
-                                </Alert>
+              {/* Loading State */}
+              {(isLoadingUnused || isFetchingUnused) && (
+                <Group justify="center" p="xl">
+                  <Loader size="sm" />
+                  <Text size="sm">Loading unused sections...</Text>
+                </Group>
+              )}
 
-                                {isLoadingRefContainers || isFetchingRefContainers ? (
-                                    <Group justify="center" p="xl">
-                                        <Loader size="sm" />
-                                        <Text size="sm">Loading reference containers...</Text>
-                                    </Group>
-                                ) : refContainersError ? (
-                                    <Alert icon={<IconAlertCircle size={16} />} color="red">
-                                        Failed to load reference containers. Please try again.
-                                    </Alert>
-                                ) : refContainerSections.length === 0 ? (
-                                    <Alert icon={<IconInfoCircle size={16} />} color="gray">
-                                        No reference container sections available.
-                                    </Alert>
-                                ) : (
-                                    <Stack gap="sm">
-                                        <Select
-                                            comboboxProps={{ withinPortal: true, zIndex: 10000 }}
-                                            label="Select Reference Container"
-                                            placeholder="Choose a reference container to add..."
-                                            data={refContainerSectionsSelectData}
-                                            value={selectedRefContainerSection}
-                                            onChange={setSelectedRefContainerSection}
-                                            searchable
-                                            clearable
-                                            size="sm"
-                                            nothingFoundMessage="No reference containers found"
-                                        />
-                                    </Stack>
-                                )}
-                            </Stack>
-                        </Tabs.Panel>
+              {/* Error State */}
+              {!(isLoadingUnused || isFetchingUnused) && unusedError && (
+                <Alert icon={<IconAlertCircle size={16} />} color="red">
+                  Failed to load unused sections. Please try again.
+                </Alert>
+              )}
 
-                        <Tabs.Panel value="import-section">
-                            <Stack gap="md">
-                                <Alert icon={<IconInfoCircle size={16} />} color="blue">
-                                    Import sections from a previously exported JSON file. The file should contain section data in the correct format.
-                                </Alert>
+              {/* Empty State */}
+              {!(isLoadingUnused || isFetchingUnused) &&
+                !unusedError &&
+                unusedSections.length === 0 && (
+                  <Alert icon={<IconInfoCircle size={16} />} color="gray">
+                    No unused sections available.
+                  </Alert>
+                )}
 
-                                <FileInput
-                                    label="Select JSON file to import"
-                                    placeholder="Choose a JSON file..."
-                                    leftSection={<IconUpload size={16} />}
-                                    value={selectedFile}
-                                    onChange={setSelectedFile}
-                                    accept=".json,application/json"
-                                    clearable
-                                />
+              {/* Main Content */}
+              {!(isLoadingUnused || isFetchingUnused) &&
+                !unusedError &&
+                unusedSections.length > 0 && (
+                  <>
+                    {/* Search Input */}
+                    <TextInput
+                      placeholder="Search by name, ID, or style..."
+                      leftSection={<IconSearch size={16} />}
+                      value={searchQuery}
+                      onChange={(event) =>
+                        setSearchQuery(event.currentTarget.value)
+                      }
+                      size="sm"
+                    />
 
-                                {selectedFile && (
-                                    <Card withBorder p="sm" bg="green.0">
-                                        <Group gap="xs">
-                                            <Text size="sm" fw={500}>Selected file:</Text>
-                                            <Text size="sm">{selectedFile.name}</Text>
-                                            <Badge size="xs" color="green">
-                                                {(selectedFile.size / 1024).toFixed(1)} KB
-                                            </Badge>
-                                        </Group>
-                                    </Card>
-                                )}
+                    <Text size="sm" c="dimmed" mb="xs">
+                      {filteredUnusedSections.length} unused sections found
+                    </Text>
 
-                                {selectedFile && !selectedFile.name.toLowerCase().endsWith('.json') && (
-                                    <Alert color="orange" icon={<IconAlertCircle size={16} />}>
-                                        Warning: Selected file does not have a .json extension. The import may fail if the file is not valid JSON.
-                                    </Alert>
-                                )}
-                            </Stack>
-                        </Tabs.Panel>
-            </Tabs>
-        </ModalWrapper>
+                    {/* Grid Layout */}
+                    <SimpleGrid
+                      cols={{ base: 1, sm: 2, lg: 3, xl: 4 }}
+                      spacing="md"
+                    >
+                      {filteredUnusedSections.map((section) => (
+                        <Card
+                          key={section.id}
+                          withBorder
+                          p="md"
+                          style={{
+                            cursor: "pointer",
+                            transition: "all 0.1s ease",
+                            backgroundColor:
+                              selectedUnusedSection === String(section.id)
+                                ? "var(--mantine-color-blue-0)"
+                                : undefined,
+                            borderColor:
+                              selectedUnusedSection === String(section.id)
+                                ? "var(--mantine-color-blue-5)"
+                                : undefined,
+                          }}
+                          onClick={() =>
+                            setSelectedUnusedSection(
+                              selectedUnusedSection === String(section.id)
+                                ? null
+                                : String(section.id),
+                            )
+                          }
+                        >
+                          <Stack gap="xs">
+                            <Group
+                              justify="space-between"
+                              align="flex-start"
+                              wrap="nowrap"
+                            >
+                              <Text
+                                fw={600}
+                                size="sm"
+                                truncate
+                                style={{ flex: 1 }}
+                              >
+                                {section.name}
+                              </Text>
+                              {selectedUnusedSection === String(section.id) && (
+                                <Badge size="xs" color="blue" variant="filled">
+                                  Selected
+                                </Badge>
+                              )}
+                            </Group>
+
+                            <Text size="xs" c="dimmed">
+                              ID: {section.id}
+                            </Text>
+
+                            {section.styleName && (
+                              <Badge
+                                size="xs"
+                                variant="light"
+                                color="blue"
+                                style={{ alignSelf: "flex-start" }}
+                              >
+                                {section.styleName}
+                              </Badge>
+                            )}
+
+                            {!!section.idStyles && (
+                              <Text size="xs" c="dimmed">
+                                Style ID: {section.idStyles}
+                              </Text>
+                            )}
+                          </Stack>
+                        </Card>
+                      ))}
+                    </SimpleGrid>
+                  </>
+                )}
+            </Stack>
+          </Tabs.Panel>
+
+          {/* Reference Section Tab Panel */}
+          <Tabs.Panel value="reference-section">
+            <Stack gap="md">
+              <Alert icon={<IconInfoCircle size={16} />} color="blue">
+                Select a reference container section to add to this{" "}
+                {parentSectionId ? "section" : "page"}. Reference containers are
+                special sections that can be reused across different pages.
+              </Alert>
+
+              {isLoadingRefContainers || isFetchingRefContainers ? (
+                <Group justify="center" p="xl">
+                  <Loader size="sm" />
+                  <Text size="sm">Loading reference containers...</Text>
+                </Group>
+              ) : refContainersError ? (
+                <Alert icon={<IconAlertCircle size={16} />} color="red">
+                  Failed to load reference containers. Please try again.
+                </Alert>
+              ) : refContainerSections.length === 0 ? (
+                <Alert icon={<IconInfoCircle size={16} />} color="gray">
+                  No reference container sections available.
+                </Alert>
+              ) : (
+                <Stack gap="sm">
+                  <Select
+                    comboboxProps={{ withinPortal: true, zIndex: 10000 }}
+                    label="Select Reference Container"
+                    placeholder="Choose a reference container to add..."
+                    data={refContainerSectionsSelectData}
+                    value={selectedRefContainerSection}
+                    onChange={setSelectedRefContainerSection}
+                    searchable
+                    clearable
+                    size="sm"
+                    nothingFoundMessage="No reference containers found"
+                  />
+                </Stack>
+              )}
+            </Stack>
+          </Tabs.Panel>
+
+          <Tabs.Panel value="import-section">
+            <Stack gap="md">
+              <Alert icon={<IconInfoCircle size={16} />} color="blue">
+                Import sections from a previously exported JSON file. The file
+                should contain section data in the correct format.
+              </Alert>
+
+              <FileInput
+                label="Select JSON file to import"
+                placeholder="Choose a JSON file..."
+                leftSection={<IconUpload size={16} />}
+                value={selectedFile}
+                onChange={setSelectedFile}
+                accept=".json,application/json"
+                clearable
+              />
+
+              {selectedFile && (
+                <Card withBorder p="sm" bg="green.0">
+                  <Group gap="xs">
+                    <Text size="sm" fw={500}>
+                      Selected file:
+                    </Text>
+                    <Text size="sm">{selectedFile.name}</Text>
+                    <Badge size="xs" color="green">
+                      {(selectedFile.size / 1024).toFixed(1)} KB
+                    </Badge>
+                  </Group>
+                </Card>
+              )}
+
+              {selectedFile &&
+                !selectedFile.name.toLowerCase().endsWith(".json") && (
+                  <Alert color="orange" icon={<IconAlertCircle size={16} />}>
+                    Warning: Selected file does not have a .json extension. The
+                    import may fail if the file is not valid JSON.
+                  </Alert>
+                )}
+            </Stack>
+          </Tabs.Panel>
+        </Tabs>
+      </ModalWrapper>
     );
 } 

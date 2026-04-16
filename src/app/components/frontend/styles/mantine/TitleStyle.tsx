@@ -1,6 +1,7 @@
 import React from 'react';
 import { Title } from '@mantine/core';
 import { ITitleStyle } from '../../../../../types/common/styles.types';
+import DOMPurify from 'dompurify';
 
 /**
  * Props interface for TitleStyle component
@@ -25,15 +26,14 @@ interface ITitleStyleProps {
  */
 const TitleStyle: React.FC<ITitleStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
-    const title = style.content?.content || 'Title';
-    const order = (style.mantine_title_order?.content || 1) as 1 | 2 | 3 | 4 | 5 | 6;
+    const title =  DOMPurify.sanitize(style.content?.content ?? '') || 'Title'; // HTML Content
+    const order = Number(style.mantine_title_order?.content) as 1 | 2 | 3 | 4 | 5 | 6 || 1
     const size = style.mantine_size?.content || 'lg';
     const textWrap = style.mantine_title_text_wrap?.content as 'wrap' | 'balance' | 'nowrap' | undefined;
     const lineClamp = style.mantine_title_line_clamp?.content;
 
     // Handle CSS field - use direct property from API response
     
-
     return (
         <Title
             order={order}
@@ -43,7 +43,7 @@ const TitleStyle: React.FC<ITitleStyleProps> = ({ style, styleProps, cssClass })
             // inherit={inherit}
             {...styleProps} className={cssClass}
         >
-            {title}
+            <span dangerouslySetInnerHTML={{ __html: title }} />
         </Title>
     );
 
