@@ -1,48 +1,57 @@
-import { IScheduledJobDetailData } from "../../../../../types/responses/admin/scheduled-jobs.types";
-
-export enum JobStatus {
+enum JobStatus {
   QUEUED = 'Queued',
   DONE = 'Done',
   FAILED = 'Failed',
   DELETED = 'Deleted',
 }
 
+type JobStatusMeta = {
+  label: string;
+  color: string;
+  legendColor: string;
+};
+
+const JOB_STATUS_META: Record<string, JobStatusMeta> = {
+  queued: {
+    label: JobStatus.QUEUED,
+    color: 'blue',
+    legendColor: 'var(--mantine-color-blue-6)',
+  },
+  done: {
+    label: JobStatus.DONE,
+    color: 'green',
+    legendColor: 'var(--mantine-color-green-6)',
+  },
+  failed: {
+    label: JobStatus.FAILED,
+    color: 'red',
+    legendColor: 'var(--mantine-color-red-6)',
+  },
+  deleted: {
+    label: JobStatus.DELETED,
+    color: 'gray',
+    legendColor: 'var(--mantine-color-gray-6)',
+  },
+};
+
+export const STATUS_LEGEND: ReadonlyArray<{ label: string; color: string }> = [
+  JOB_STATUS_META.queued,
+  JOB_STATUS_META.done,
+  JOB_STATUS_META.failed,
+  JOB_STATUS_META.deleted,
+].map(({ label, legendColor }) => ({
+  label,
+  color: legendColor,
+}));
+
 /**
  * Returns the Mantine color associated with a specific Job Status
  */
 export const getJobStatusColor = (status: string | JobStatus): string => {
   const normalizedStatus = status.toLowerCase();
-
-  switch (normalizedStatus) {
-    case JobStatus.QUEUED.toLowerCase():
-      return 'blue';
-    case JobStatus.DONE.toLowerCase():
-      return 'green';
-    case JobStatus.FAILED.toLowerCase():
-      return 'orange';
-    case JobStatus.DELETED.toLowerCase():
-      return 'red';
-    default:
-      return 'gray';
-  }
+  return JOB_STATUS_META[normalizedStatus]?.color ?? 'gray';
 };
 
-
-/**
- * Extracts and normalizes the job status from a job object.
- * Handles status formats.
- *
- * @param job - Job object containing a status field
- * @returns Normalized lowercase status string
- */
-export function getJobStatus(job: IScheduledJobDetailData): string {
-  return (
-    (typeof job?.status === 'string'
-      ? job.status
-      : job?.status?.value
-    ) || ''
-  ).toLowerCase();
-}
 
 /**
  * Determines whether a job allows user actions (execute/delete/etc). Add to the array as needed

@@ -1,447 +1,571 @@
 "use client";
 
 import {
-    Paper,
-    Title,
-    Select,
-    Group,
-    Button,
-    Stack,
-    Box,
-    Text,
-    LoadingOverlay,
-    Tooltip,
-    Menu,
-    UnstyledButton,
+  Paper,
+  Select,
+  Group,
+  Button,
+  Stack,
+  Box,
+  Text,
+  LoadingOverlay,
+  UnstyledButton,
+  HoverCard,
+  Menu,
+  Badge,
+  NumberInput,
 } from "@mantine/core";
-import { Schedule, ScheduleEventData, ScheduleViewLevel } from "@mantine/schedule";
+import {
+  Schedule,
+  ScheduleEventData,
+  ScheduleViewLevel,
+} from "@mantine/schedule";
 import "@mantine/schedule/styles.css";
-import dayjs from 'dayjs';
+import dayjs from "dayjs";
+import { useQueryClient } from "@tanstack/react-query";
 import { useScheduledJobsAll } from "../../../../../hooks/useScheduledJobs";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { IScheduledJobFilters } from "../../../../../types/responses/admin/scheduled-jobs.types";
-import { getJobStatusColor, isJobActionAllowed } from "../utils/job-status";
+import { STATUS_LEGEND } from "../utils/job-status";
 import { useUsers } from "../../../../../hooks/useUsers";
 import { IUserBasic } from "../../../../../types/responses/admin/users.types";
 import { useActions } from "../../../../../hooks/useActions";
 import { ScheduledJobDetailsModal } from "../scheduled-job-details-modal/ScheduledJobDetailsModal";
 import { useScheduledJobManager } from "../utils/hooks/useScheduledJobManager";
 import { DeleteJobModal } from "../delete-job-modal/DeleteJobModal";
-import { IconPlayerPlay, IconRefresh, IconTrash } from "@tabler/icons-react";
+import {
+  IconRefresh,
+  IconCalendar,
+} from "@tabler/icons-react";
+import { mapJobsToEvents, IJobEventPayload } from "./calendar-helpers";
+import { EventHoverDetails } from "./EventHoverDetails";
+import classes from "./ScheduledJobsCalendar.module.css";
+import { ScheduledJobActionsMenuItems } from "../utils/ScheduledJobActionsMenuItems";
 
-interface ContextMenuState {
+/**
+ * Screen coordinates and metadata for the right-click context menu.
+ * Stored in state when the user right-clicks an event; cleared on close.
+ */
+interface IContextMenuState {
+  /** Viewport X coordinate where the menu should anchor */
   x: number;
+  /** Viewport Y coordinate where the menu should anchor */
   y: number;
+  /** ID of the targeted scheduled job */
   jobId: number | null;
+  /** Job description — passed to the delete confirmation dialog */
   description?: string;
+  /** Current job status — gates which context actions are available */
   status?: string;
 }
 
+/**
+ * Full-featured calendar view for browsing and managing scheduled jobs.
+ *
+ * Renders a Mantine `Schedule` with four view levels (month / week / day / year).
+ * Month, week, and day views share a unified custom `renderEvent` that provides:
+ * - **HoverCard** on mouse hover with detailed job metadata
+ * - **Left-click** to open the {@link ScheduledJobDetailsModal}
+ * - **Right-click** context menu with Execute / Delete actions
+ *
+ * Year view uses Mantine defaults (no event-level interaction).
+ *
+ * The component auto-fetches jobs for the currently visible date range
+ * and re-fetches whenever the user navigates dates, changes view, or applies filters.
+ */
 export default function ScheduledJobsCalendar() {
-    const [currentUserId, setCurrentUserId] = useState<number | null>(null);
-    const [currentActionId, setCurrentActionId] = useState<number | null>(null);
-    const [selectedJobId, setSelectedJobId] = useState<number | undefined>(undefined);
-    const [modalOpened, setModalOpened] = useState(false);
-    const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
-    const {
-        handleExecuteJob,
-        handleDeleteJob,
-        handleConfirmDelete,
-        deleteModal,
-        setDeleteModal,
-    } = useScheduledJobManager();
+  const queryClient = useQueryClient();
 
-    const [view, setView] = useState<ScheduleViewLevel>("week");
-    const [params, setParams] = useState<IScheduledJobFilters>({
-            pageSize: 50,
-            dateType: 'date_to_be_executed',
-            dateFrom: dayjs().startOf('week').format('YYYY-MM-DD'),
-            dateTo: dayjs().endOf('week').format('YYYY-MM-DD'),
-            includeTransactions: true,
-            userId: undefined,
-            actionId: undefined
-    });
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [currentActionId, setCurrentActionId] = useState<number | null>(null);
+  const [selectedJobId, setSelectedJobId] = useState<number | undefined>(undefined);
+  const [modalOpened, setModalOpened] = useState(false);
+  const [contextMenu, setContextMenu] = useState<IContextMenuState | null>(null);
+  const [maxEventsPerDay, setMaxEventsPerDay] = useState<number>(10);
 
-    // Fetching necessary data via custom hooks.
-    const { data: scheduledJobsData, isFetching } = useScheduledJobsAll(params);
-    const { data: usersData } = useUsers();
-    const { data: actionsData } = useActions({ pageSize: 100 });
+  const {
+    handleExecuteJob,
+    handleDeleteJob,
+    handleConfirmDelete,
+    deleteModal,
+    setDeleteModal,
+  } = useScheduledJobManager();
 
-    /**
-     * DATA MAPPING
-     * Transform API response into the format required by @mantine/schedule.
-     * useMemo ensures we only re-map when the source data changes.
-     */
-    const events = useMemo(() => {
-        return (scheduledJobsData || []).map((job) => {
-            const startDate = dayjs(job.date_to_be_executed);
+  const [view, setView] = useState<ScheduleViewLevel>("month");
+  const [date, setDate] = useState(dayjs().format("YYYY-MM-DD"));
 
-            return {
-                id: job.id,
-                title: dayjs(job.date_to_be_executed).format("HH:mm"),
-                start: startDate.toDate(),
-                // Setting a default 60-minute duration for visualization
-                end: startDate.add(60, "minutes").toDate(),
-                color: getJobStatusColor(job.status),
-                // Custom properties passed into the payload for the renderer
-                description: job.description,
-                job_type: job.job_types,
-                status: job.status,
-            };
-        });
-    }, [scheduledJobsData]);
+  const [params, setParams] = useState<IScheduledJobFilters>({
+    pageSize: 50,
+    dateType: "date_to_be_executed",
+    dateFrom: dayjs().startOf("month").format("YYYY-MM-DD"),
+    dateTo: dayjs().endOf("month").format("YYYY-MM-DD"),
+    includeTransactions: true,
+    userId: undefined,
+    actionId: undefined,
+  });
 
-    /**
-     * Transform users api data to options for users dropdown.
-     * Format: "[id] - email"
-     */
-    const userOptions = (usersData?.users || []).map((user: IUserBasic) => ({
-    value: user.id,
-    label: `[${user.id}] - ${user.email}`,
-    }));
+  const { data: scheduledJobsData, isFetching } = useScheduledJobsAll(params);
+  const { data: usersData } = useUsers();
+  const { data: actionsData } = useActions({ pageSize: 100 });
 
-    /**
-     * Transform actions into Select options
-     */
-    const actionOptions = useMemo(() => {
-        return (actionsData?.actions || []).map((action) => ({
-            value: action.id,
-            label: action.name,
-        }));
-    }, [actionsData]);
+  /** Transformed events array for the Schedule component. */
+  const events = useMemo(
+    () => mapJobsToEvents(scheduledJobsData || []),
+    [scheduledJobsData]
+  );
 
+  /** Dropdown options for the user filter, formatted as "[id] - email". */
+  const userOptions = useMemo(
+    () =>
+      (usersData?.users || []).map((user: IUserBasic) => ({
+        value: user.id,
+        label: `[${user.id}] - ${user.email}`,
+      })),
+    [usersData]
+  );
 
-    /**
-     * CALENDAR HANDLER
-     * Syncs the calendar's internal navigation (date/view changes) 
-     * with the API params to fetch the correct data range.
-     */
-    const updateRange = (newDate: string, view: ScheduleViewLevel) => {
-      const start = dayjs(newDate).startOf(view);
-      const end = dayjs(newDate).endOf(view);
+  /** Dropdown options for the action filter. */
+  const actionOptions = useMemo(
+    () =>
+      (actionsData?.actions || []).map((action) => ({
+        value: action.id,
+        label: action.name,
+      })),
+    [actionsData]
+  );
+
+  /**
+   * Recalculates the date range in `params` based on the given anchor date
+   * and view level. Called whenever the user navigates or switches views.
+   *
+   * @param newDate  - ISO date string used as the centre of the range
+   * @param currentView - Active view level to determine the range unit
+   */
+  const updateRange = useCallback(
+    (newDate: string, currentView: ScheduleViewLevel) => {
+      const unit = currentView === "year" ? "year" : currentView;
+      const start = dayjs(newDate).startOf(unit);
+      const end = dayjs(newDate).endOf(unit);
 
       setParams((prev) => ({
         ...prev,
         dateFrom: start.format("YYYY-MM-DD"),
         dateTo: end.format("YYYY-MM-DD"),
       }));
-    };
+    },
+    []
+  );
 
-    /**
-     * FILTERS BUTTONS HANDLERS
-     * Apply filters
-     * Reset Filters
-     */
-    const handleApplyFilters = () => {
-    const newParams: IScheduledJobFilters = {
-        ...params,
-        userId: currentUserId ?? undefined,
-        actionId: currentActionId ?? undefined,
-    };
-    setParams(newParams);
-    };
+  /**
+   * Handles date navigation from the Schedule toolbar.
+   * Updates both the displayed date and the data fetch range.
+   *
+   * @param newDate - ISO date string selected in the calendar
+   */
+  const handleDateChange = useCallback(
+    (newDate: string) => {
+      setDate(newDate);
+      updateRange(newDate, view);
+    },
+    [view, updateRange]
+  );
 
-    const handleResetFilters = () => {
-        setCurrentUserId(null);
-        setCurrentActionId(null);
-        setParams((prev) => ({
-            ...prev,
-            userId: undefined,
-            actionId: undefined,
-        }));
-    };
+  /**
+   * Handles view level change (month / week / day / year).
+   * Updates the view state and recalculates the fetch range.
+   *
+   * @param newView - The newly selected view level
+   */
+  const handleViewChange = useCallback(
+    (newView: ScheduleViewLevel) => {
+      setView(newView);
+      updateRange(date, newView);
+    },
+    [date, updateRange]
+  );
 
-    // Close pop up action menu on scroll or escape
-    useEffect(() => {
+  /** Applies the currently selected user / action filters to the query params. */
+  const handleApplyFilters = useCallback(() => {
+    setParams((prev) => ({
+      ...prev,
+      userId: currentUserId ?? undefined,
+      actionId: currentActionId ?? undefined,
+    }));
+  }, [currentUserId, currentActionId]);
+
+  /** Clears all user / action filters and resets the query params. */
+  const handleResetFilters = useCallback(() => {
+    setCurrentUserId(null);
+    setCurrentActionId(null);
+    setParams((prev) => ({
+      ...prev,
+      userId: undefined,
+      actionId: undefined,
+    }));
+  }, []);
+
+  /**
+   * Invalidates the `scheduledJobsAll` query to force a fresh fetch.
+   * Used by the Refresh button as a clean alternative to mutating params.
+   */
+  const handleRefresh = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["scheduledJobsAll"] });
+  }, [queryClient]);
+
+  /**
+   * Opens the right-click context menu anchored to the pointer position.
+   * Extracts the job payload from the event for the menu actions.
+   *
+   * @param e     - The native mouse event (prevented + stopped)
+   * @param event - The `ScheduleEventData` that was right-clicked
+   */
+  const openContextMenu = useCallback(
+    (e: React.MouseEvent, event: ScheduleEventData) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const payload = event.payload as IJobEventPayload | undefined;
+      setContextMenu({
+        x: e.clientX,
+        y: e.clientY,
+        jobId: Number(event.id),
+        description: payload?.description ?? "",
+        status: payload?.status ?? "",
+      });
+    },
+    []
+  );
+
+  const openDetailsModal = useCallback((event: ScheduleEventData) => {
+    setSelectedJobId(Number(event.id));
+    setModalOpened(true);
+  }, []);
+
+  /**
+   * Shared event renderer for month, week, and day views.
+   *
+   * Wraps each event in a `HoverCard` that shows {@link EventHoverDetails}
+   * on hover. The underlying `UnstyledButton` handles:
+   * - **onClick** → opens the {@link ScheduledJobDetailsModal}
+   * - **onContextMenu** → opens the Execute / Delete context menu
+   *
+   * The native `title` prop from Mantine is stripped to prevent
+   * a redundant browser tooltip from appearing alongside the HoverCard.
+   *
+   * @param event - Schedule event data containing the job payload
+   * @param props - Internal Mantine props forwarded to the event DOM element
+   * @returns A HoverCard-wrapped interactive event element
+   */
+  const renderEventWithHover = useCallback(
+    (event: ScheduleEventData, props: Record<string, unknown>) => {
+      const payload = event.payload as IJobEventPayload | undefined;
+      const { title: _nativeTitle, ...restProps } = props;
+
+      return (
+        <HoverCard
+          width={280}
+          position="right"
+          closeDelay={0}
+          openDelay={250}
+          transitionProps={{ duration: 80 }}
+          withinPortal
+        >
+          <HoverCard.Target>
+            <UnstyledButton
+              {...restProps}
+              onClick={(e: React.MouseEvent) => {
+                e.stopPropagation();
+                openDetailsModal(event);
+              }}
+              onContextMenu={(e: React.MouseEvent) =>
+                openContextMenu(e, event)
+              }
+            />
+          </HoverCard.Target>
+          <HoverCard.Dropdown>
+            {payload ? (
+              <EventHoverDetails payload={payload} />
+            ) : (
+              <Text size="xs">No details available</Text>
+            )}
+          </HoverCard.Dropdown>
+        </HoverCard>
+      );
+    },
+    [openContextMenu, openDetailsModal]
+  );
+
+  const renderMoreEventBody = useCallback(
+    (event: ScheduleEventData) => {
+      const payload = event.payload as IJobEventPayload | undefined;
+
+      return (
+        <HoverCard
+          width={280}
+          position="right"
+          closeDelay={0}
+          openDelay={250}
+          transitionProps={{ duration: 80 }}
+          withinPortal
+        >
+          <HoverCard.Target>
+            <Box
+              className={classes.moreEventInteractive}
+              onClick={(e: React.MouseEvent) => {
+                e.stopPropagation();
+                openDetailsModal(event);
+              }}
+              onContextMenu={(e: React.MouseEvent) =>
+                openContextMenu(e, event)
+              }
+            >
+              {event.title}
+            </Box>
+          </HoverCard.Target>
+          <HoverCard.Dropdown>
+            {payload ? (
+              <EventHoverDetails payload={payload} />
+            ) : (
+              <Text size="xs">No details available</Text>
+            )}
+          </HoverCard.Dropdown>
+        </HoverCard>
+      );
+    },
+    [openContextMenu, openDetailsModal]
+  );
+
+  /** Closes the context menu on Escape key or scroll anywhere on the page. */
+  useEffect(() => {
     if (!contextMenu) return;
 
     const handleEscape = (e: KeyboardEvent) => {
-        if (e.key === "Escape") {
-        setContextMenu(null);
-        }
+      if (e.key === "Escape") setContextMenu(null);
     };
-
-    const handleScroll = () => {
-        setContextMenu(null);
-    };
+    const handleScroll = () => setContextMenu(null);
 
     globalThis.addEventListener("keydown", handleEscape);
-    globalThis.addEventListener("scroll", handleScroll, true); 
+    globalThis.addEventListener("scroll", handleScroll, true);
 
     return () => {
-    globalThis.removeEventListener("keydown", handleEscape);
-    globalThis.removeEventListener("scroll", handleScroll, true);
+      globalThis.removeEventListener("keydown", handleEscape);
+      globalThis.removeEventListener("scroll", handleScroll, true);
     };
-    }, [contextMenu]);
+  }, [contextMenu]);
 
-    return (
-      <Paper withBorder p="md" radius="md" shadow="sm">
-        <Stack gap="lg">
-          {/* Header */}
-          <div>
-            <Text size="lg" fw={600}>
+  const totalEvents = events.length;
+  const isFiltersActive =
+    currentUserId !== null ||
+    currentActionId !== null ||
+    !!params.userId ||
+    !!params.actionId;
+
+  return (
+    <Paper withBorder p="xs" radius="md" shadow="sm">
+      <Stack gap="xs">
+        <Group justify="space-between" align="center" wrap="wrap" gap="xs">
+          <Group gap="xs" align="center">
+            <IconCalendar size={18} />
+            <Text size="md" fw={700}>
               Scheduled Jobs Calendar
             </Text>
-            <Text size="sm" c="dimmed">
-              Manage and monitor scheduled jobs via calendar
-            </Text>
-          </div>
+            {totalEvents > 0 && (
+              <Badge variant="light" color="gray" size="sm">
+                {totalEvents}
+              </Badge>
+            )}
+          </Group>
+          <Group gap="sm" align="center">
+            {STATUS_LEGEND.map((s) => (
+              <Group key={s.label} gap={4} wrap="nowrap">
+                <div
+                  className={classes.legendDot}
+                  style={{ backgroundColor: s.color }}
+                />
+                <Text size="xs" c="dimmed">
+                  {s.label}
+                </Text>
+              </Group>
+            ))}
+          </Group>
+        </Group>
 
-          {/* User & Action Filters */}
-          <Paper withBorder p="sm" bg="gray.0">
-            <Group align="flex-end" gap="md">
-              <Select
-                label="User"
-                placeholder="All users"
-                data={userOptions}
-                value={currentUserId}
-                onChange={(value) =>
-                  setCurrentUserId(value ? Number(value) : null)
+        <Paper withBorder p="xs" className={classes.filterBar}>
+          <Group align="flex-end" gap="sm">
+            <Select
+              label="User"
+              placeholder="All users"
+              data={userOptions}
+              value={currentUserId}
+              onChange={(value) =>
+                setCurrentUserId(value ? Number(value) : null)
+              }
+              clearable
+              searchable
+              flex={1}
+              size="xs"
+            />
+            <Select
+              label="Action"
+              placeholder="All actions"
+              data={actionOptions}
+              value={currentActionId}
+              onChange={(val) =>
+                setCurrentActionId(val ? Number(val) : null)
+              }
+              clearable
+              searchable
+              flex={1}
+              size="xs"
+            />
+            {view === "month" && (
+              <NumberInput
+                label="Events/day"
+                value={maxEventsPerDay}
+                onChange={(val) =>
+                  setMaxEventsPerDay(
+                    typeof val === "number" ? Math.max(1, val) : 10
+                  )
                 }
-                clearable
-                searchable
-                flex={1}
+                min={1}
+                max={50}
+                step={5}
+                w={90}
+                size="xs"
               />
-
-              <Select
-                label="Action"
-                placeholder="All actions"
-                data={actionOptions}
-                value={currentActionId}
-                onChange={(val) => setCurrentActionId(val ? Number(val) : null)}
-                clearable
-                searchable
-                flex={1}
-              />
-
-              <Button
-                variant="filled"
-                color="blue"
-                onClick={handleApplyFilters}
-                loading={isFetching}
-              >
-                Apply Filters
-              </Button>
-              <Button
-                variant="filled"
-                color="red"
-                onClick={handleResetFilters}
-                loading={isFetching}
-                disabled={
-                  currentUserId === null &&
-                  currentActionId === null &&
-                  !params.userId &&
-                  !params.actionId
-                }
-              >
-                Reset
-              </Button>
-            </Group>
-          </Paper>
-
-          <Group justify="flex-end" align="center">
-            {/* Refresh Button */}
+            )}
+            <Button
+              variant="filled"
+              color="blue"
+              onClick={handleApplyFilters}
+              loading={isFetching}
+              size="xs"
+            >
+              Apply Filters
+            </Button>
+            <Button
+              variant="default"
+              onClick={handleResetFilters}
+              loading={isFetching}
+              size="xs"
+              disabled={!isFiltersActive}
+            >
+              Reset
+            </Button>
             <Button
               variant="light"
               color="gray"
-              size="sm"
-              leftSection={<IconRefresh size={16} />}
-              onClick={() => {
-                setParams((prev) => ({ ...prev, _refresh: Date.now() }));
-              }}
+              size="xs"
+              leftSection={<IconRefresh size={14} />}
+              onClick={handleRefresh}
               loading={isFetching}
-              disabled={isFetching}
             >
               Refresh
             </Button>
           </Group>
+        </Paper>
 
-          {/* Calendar Display Area */}
-          <Box mih={600} pos="relative">
-            {/* Overlay provides feedback while the API is fetching new date ranges */}
-            <LoadingOverlay
-              visible={isFetching}
-              overlayProps={{ blur: 0, backgroundOpacity: 0.4 }}
-              loaderProps={{ size: "lg", style: { marginBottom: "auto" } }}
-            />
+        <Box className={classes.calendarWrapper}>
+          <LoadingOverlay
+            visible={isFetching}
+            overlayProps={{ blur: 0, backgroundOpacity: 0.35 }}
+            loaderProps={{ size: "md" }}
+          />
 
-            <Schedule
-              onDateChange={(date) => updateRange(date, view)}
-              onViewChange={(newView) => {
-                setView(newView);
-                updateRange(dayjs().format("YYYY-MM-DD"), newView);
-              }}
-              onEventClick={(event) => {
-                setSelectedJobId(Number(event.id));
-                setModalOpened(true);
-              }}
-              events={events}
-              /**
-               * CUSTOM EVENT RENDERER
-               * Defines how the actual "blocks" inside the calendar look.
-               */
-              renderEventBody={(payload) => {
-                // Cast payload to include our custom job properties
-                const customPayload = payload as ScheduleEventData & {
-                  job_type: string;
-                  description: string;
-                  status: string;
-                };
-                return (
-                  <Tooltip
-                    multiline
-                    w={250}
-                    withArrow
-                    label={
-                      <Stack gap={4}>
-                        <Text size="xs" fw={700} c="blue.2">
-                          {customPayload.title} - {customPayload.job_type}
-                        </Text>
-                        <Text size="xs" c="white">
-                          {customPayload.description || "No description"}
-                        </Text>
-                        <Text size="10px" c="dimmed">
-                          ID: #{customPayload.id}
-                        </Text>
-                      </Stack>
-                    }
-                  >
-                    {/* The <div> ensures the Tooltip can attach the necessary ref and event listeners without throwing error. */}
-                    <UnstyledButton
-                      component="div"
-                      onContextMenu={(e) => {
-                        e.preventDefault();
-                        setContextMenu({
-                          x: e.clientX,
-                          y: e.clientY,
-                          jobId: Number(customPayload.id),
-                          description: customPayload.description,
-                          status: customPayload.status,
-                        });
-                      }}
-                      style={{ height: "100%", width: "100%" }}
-                    >
-                      <Stack
-                        gap={0}
-                        px={6}
-                        py={4}
-                        h="100%"
-                        style={{ overflow: "hidden" }}
-                      >
-                        <Group gap={4} wrap="nowrap">
-                          <Text size="xs" fw={700} lh={1} c="dark.9">
-                            {customPayload.title}
-                          </Text>
-                          <Text
-                            size="xs"
-                            fw={800}
-                            lh={1}
-                            c="blue.7"
-                            truncate="end"
-                          >
-                            - {customPayload.job_type}
-                          </Text>
-                        </Group>
-                        {customPayload.description && (
-                          <Text
-                            size="10px"
-                            mt={4}
-                            lh={1.2}
-                            fw={500}
-                            c="gray.7"
-                            lineClamp={1}
-                          >
-                            {customPayload.description}
-                          </Text>
-                        )}
-                      </Stack>
-                    </UnstyledButton>
-                  </Tooltip>
-                );
-              }}
-            />
-          </Box>
-
-          {contextMenu && (
-            <Menu
-              opened
-              onClose={() => setContextMenu(null)}
-              position="bottom-start"
-              withinPortal
-            >
-              <Menu.Target>
-                <div
-                  style={{
-                    position: "fixed",
-                    top: contextMenu.y,
-                    left: contextMenu.x,
-                    width: 1,
-                    height: 1,
-                  }}
-                />
-              </Menu.Target>
-
-              <Menu.Dropdown>
-                <Menu.Item
-                  leftSection={<IconPlayerPlay size={14} />}
-                  onClick={() => {
-                    if (contextMenu?.jobId) {
-                      handleExecuteJob(contextMenu.jobId);
-                      setContextMenu(null);
-                    }
-                  }}
-                disabled={!isJobActionAllowed(contextMenu?.status ?? '')}
-                >
-                  Execute Job
-                </Menu.Item>
-
-                <Menu.Divider />
-
-                <Menu.Item
-                  leftSection={<IconTrash size={14} />}
-                  color="red"
-                  disabled={!isJobActionAllowed(contextMenu?.status ?? '')}
-                  onClick={() => {
-                    if (contextMenu?.jobId) {
-                      handleDeleteJob(
-                        contextMenu.jobId,
-                        contextMenu.description ?? "",
-                      );
-                      setContextMenu(null);
-                    }
-                  }}
-                >
-                  Delete Job
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-          )}
-
-          <ScheduledJobDetailsModal
-            opened={modalOpened}
-            onClose={() => {
-              setModalOpened(false);
-              setSelectedJobId(undefined);
+          {/*
+            `onEventClick` is intentionally NOT set on Schedule because
+            the year view does not support it and throws a console error.
+            All click handling is done inside `renderEventWithHover`.
+          */}
+          <Schedule
+            date={date}
+            onDateChange={handleDateChange}
+            view={view}
+            onViewChange={handleViewChange}
+            events={events}
+            defaultView="month"
+            monthViewProps={{
+              maxEventsPerDay,
+              renderEvent: renderEventWithHover,
+              moreEventsProps: {
+                renderEventBody: renderMoreEventBody,
+              },
+              highlightToday: true,
+              firstDayOfWeek: 1,
             }}
-            jobId={selectedJobId}
-            onExecuteJob={handleExecuteJob}
-            onDeleteJob={handleDeleteJob}
+            weekViewProps={{
+              renderEvent: renderEventWithHover,
+              highlightToday: true,
+              firstDayOfWeek: 1,
+              withCurrentTimeIndicator: true,
+              withCurrentTimeBubble: true,
+            }}
+            dayViewProps={{
+              renderEvent: renderEventWithHover,
+              withCurrentTimeIndicator: true,
+              withCurrentTimeBubble: true,
+            }}
           />
+        </Box>
 
-          <DeleteJobModal
-            opened={deleteModal.opened}
-            onClose={() =>
-              setDeleteModal({
-                opened: false,
-                jobId: undefined,
-                jobDescription: undefined,
-              })
-            }
-            jobId={deleteModal.jobId}
-            jobDescription={deleteModal.jobDescription}
-            onConfirm={handleConfirmDelete}
-          />
-        </Stack>
-      </Paper>
-    );
+        {contextMenu && (
+          <Menu
+            opened
+            onClose={() => setContextMenu(null)}
+            position="bottom-start"
+            withinPortal
+          >
+            <Menu.Target>
+              <div
+                style={{
+                  position: "fixed",
+                  top: contextMenu.y,
+                  left: contextMenu.x,
+                  width: 1,
+                  height: 1,
+                }}
+              />
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Label>Job #{contextMenu.jobId}</Menu.Label>
+              {contextMenu.jobId && (
+                <ScheduledJobActionsMenuItems
+                  jobId={contextMenu.jobId}
+                  status={contextMenu.status ?? ""}
+                  description={contextMenu.description ?? ""}
+                  onExecuteJob={handleExecuteJob}
+                  onDeleteJob={handleDeleteJob}
+                  onActionComplete={() => setContextMenu(null)}
+                />
+              )}
+            </Menu.Dropdown>
+          </Menu>
+        )}
+
+        <ScheduledJobDetailsModal
+          opened={modalOpened}
+          onClose={() => {
+            setModalOpened(false);
+            setSelectedJobId(undefined);
+          }}
+          jobId={selectedJobId}
+          onExecuteJob={handleExecuteJob}
+          onDeleteJob={handleDeleteJob}
+        />
+
+        <DeleteJobModal
+          opened={deleteModal.opened}
+          onClose={() =>
+            setDeleteModal({
+              opened: false,
+              jobId: undefined,
+              jobDescription: undefined,
+            })
+          }
+          jobId={deleteModal.jobId}
+          jobDescription={deleteModal.jobDescription}
+          onConfirm={handleConfirmDelete}
+        />
+      </Stack>
+    </Paper>
+  );
 }
