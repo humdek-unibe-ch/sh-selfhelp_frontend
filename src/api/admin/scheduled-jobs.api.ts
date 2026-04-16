@@ -49,7 +49,9 @@ export class AdminScheduledJobsApi {
      * Execute a scheduled job
      */
     static async executeScheduledJob(jobId: number): Promise<TScheduledJobDetailResponse> {
-        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_EXECUTE, jobId);
+        console.warn(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_EXECUTE);
+        console.warn(jobId);
+        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULED_JOBS_EXECUTE, undefined, jobId);
         return response.data;
     }
 
