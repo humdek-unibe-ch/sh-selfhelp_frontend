@@ -93,7 +93,7 @@ export default function ScheduledJobsCalendar() {
 
     /**
      * Transform users api data to options for users dropdown.
-     * Format: "[id] - email"
+     * Format: "[code] - email - name"
      */
     const userOptions = (usersData?.users || []).map((user: IUserBasic) => ({
     value: user.id,
