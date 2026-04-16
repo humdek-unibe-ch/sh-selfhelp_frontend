@@ -22,6 +22,7 @@ import {
 import { IconPlayerPlay, IconTrash, IconMail, IconSettings, IconBell, IconCalendar, IconUser, IconClock } from '@tabler/icons-react';
 import { useScheduledJob, useScheduledJobTransactions } from '../../../../../hooks/useScheduledJobs';
 import { getStatusColor } from '../../../../../utils/status-color.utils';
+import { isJobActionAllowed } from '../utils/job-status';
 
 interface IScheduledJobTransaction {
     transaction_id: number;
@@ -467,13 +468,18 @@ export function ScheduledJobDetailsModal({
                     </Paper>
 
                     {/* Action Buttons */}
-                    <Group justify="flex-end">
+                    <Group justify="flex-end" >
+                        {( !isJobActionAllowed(jobDetails.status.value) && (
+                            <Text size="xs" c="dimmed">
+                                Actions available only for queued jobs
+                            </Text>
+                        ))}
                         <Button
                             variant="light"
                             color="gray"
                             leftSection={<IconPlayerPlay size={16} />}
                             onClick={handleExecute}
-                            disabled={(typeof jobDetails.status === 'string' ? jobDetails.status : jobDetails.status.value).toLowerCase() !== 'queued'}
+                            disabled={!isJobActionAllowed(jobDetails.status.value)}
                         >
                             Execute Job
                         </Button>
@@ -482,7 +488,7 @@ export function ScheduledJobDetailsModal({
                             color="red"
                             leftSection={<IconTrash size={16} />}
                             onClick={handleDelete}
-                        >
+                            disabled={!isJobActionAllowed(jobDetails.status.value)}>
                             Delete Job
                         </Button>
                     </Group>

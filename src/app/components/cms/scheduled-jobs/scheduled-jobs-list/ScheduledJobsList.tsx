@@ -53,7 +53,7 @@ import { useLookups } from '../../../../../hooks/useLookups';
 import { getScheduledJobStatuses, getScheduledJobTypes, getScheduledJobSearchDateTypes } from '../../../../../utils/lookup-filters.utils';
 import { IScheduledJobFilters, IScheduledJob, IScheduledJobTransaction } from '../../../../../types/responses/admin/scheduled-jobs.types';
 import classes from './ScheduledJobsList.module.css';
-import { getJobStatusColor } from '../utils/job-status';
+import { getJobStatusColor, isJobActionAllowed } from '../utils/job-status';
 
 interface IScheduledJobsListProps {
     onViewJob?: (jobId: number) => void;
@@ -545,6 +545,7 @@ export function ScheduledJobsList({
                             <Menu.Item
                                 leftSection={<IconPlayerPlay size={14} />}
                                 onClick={() => onExecuteJob?.(row.original.id)}
+                                disabled={!isJobActionAllowed(row.original.status)}
                             >
                                 Execute Job
                             </Menu.Item>
@@ -553,6 +554,7 @@ export function ScheduledJobsList({
                                 leftSection={<IconTrash size={14} />}
                                 color="red"
                                 onClick={() => onDeleteJob?.(row.original.id, row.original.description)}
+                                disabled={!isJobActionAllowed(row.original.status)}
                             >
                                 Delete Job
                             </Menu.Item>

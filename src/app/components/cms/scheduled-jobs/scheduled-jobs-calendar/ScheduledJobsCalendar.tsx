@@ -20,7 +20,7 @@ import dayjs from 'dayjs';
 import { useScheduledJobsAll } from "../../../../../hooks/useScheduledJobs";
 import { useEffect, useMemo, useState } from "react";
 import { IScheduledJobFilters } from "../../../../../types/responses/admin/scheduled-jobs.types";
-import { getJobStatusColor } from "../utils/job-status";
+import { getJobStatusColor, isJobActionAllowed } from "../utils/job-status";
 import { useUsers } from "../../../../../hooks/useUsers";
 import { IUserBasic } from "../../../../../types/responses/admin/users.types";
 import { useActions } from "../../../../../hooks/useActions";
@@ -385,7 +385,7 @@ export default function ScheduledJobsCalendar() {
                       setContextMenu(null);
                     }
                   }}
-                  disabled={contextMenu?.status?.toLowerCase() !== "queued"}
+                disabled={!isJobActionAllowed(contextMenu?.status ?? '')}
                 >
                   Execute Job
                 </Menu.Item>
@@ -395,6 +395,7 @@ export default function ScheduledJobsCalendar() {
                 <Menu.Item
                   leftSection={<IconTrash size={14} />}
                   color="red"
+                  disabled={!isJobActionAllowed(contextMenu?.status ?? '')}
                   onClick={() => {
                     if (contextMenu?.jobId) {
                       handleDeleteJob(
