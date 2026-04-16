@@ -139,7 +139,7 @@ export function ScheduledJobsList({
     const [expandedJobs, setExpandedJobs] = useState<Set<number>>(new Set());
 
     // Real API calls
-    const { data: scheduledJobsData, isLoading, error, refetch } = useScheduledJobs(params);
+    const { data: scheduledJobsData, isFetching, error, refetch } = useScheduledJobs(params);
     const { data: lookupsData, isLoading: lookupsLoading } = useLookups();
 
     // Process lookups for filters
@@ -647,6 +647,8 @@ export function ScheduledJobsList({
                         variant="light"
                         leftSection={<IconRefresh size={16} />}
                         onClick={() => refetch()}
+                        loading={ isFetching}
+                        disabled={isFetching} 
                     >
                         Refresh
                     </Button>
@@ -727,7 +729,7 @@ export function ScheduledJobsList({
 
                 {/* Table */}
                 <div className={classes.tableWrapper}>
-                    <LoadingOverlay visible={isLoading} />
+                    <LoadingOverlay visible={isFetching} />
 
                     <Box className={classes.tableScrollContainer}>
                         <Table striped highlightOnHover>
@@ -774,7 +776,7 @@ export function ScheduledJobsList({
                     </Box>
 
                     {/* Empty state */}
-                    {!isLoading && scheduledJobs.length === 0 && (
+                    {!isFetching && scheduledJobs.length === 0 && (
                         <Center py="xl">
                             <Stack align="center" gap="sm">
                                 <Text size="lg" c="dimmed">
