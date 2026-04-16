@@ -32,6 +32,7 @@ export function useScheduledJobsAll(filters: IScheduledJobFilters = {}) {
       let allJobs: IScheduledJob[] = [];
 
       do {
+        // TODO: pull all with one request. Redesing the backend that if the page is not provided, it will return all the jobs.
         const res = await AdminScheduledJobsApi.getScheduledJobs({
           ...filters,
           page: currentPage,
