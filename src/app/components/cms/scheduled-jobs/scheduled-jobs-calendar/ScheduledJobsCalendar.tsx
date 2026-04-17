@@ -18,6 +18,7 @@ import {
 import {
   Schedule,
   ScheduleEventData,
+  ScheduleHeader,
   ScheduleViewLevel,
 } from "@mantine/schedule";
 import "@mantine/schedule/styles.css";
@@ -33,14 +34,12 @@ import { useActions } from "../../../../../hooks/useActions";
 import { ScheduledJobDetailsModal } from "../scheduled-job-details-modal/ScheduledJobDetailsModal";
 import { useScheduledJobManager } from "../utils/hooks/useScheduledJobManager";
 import { DeleteJobModal } from "../delete-job-modal/DeleteJobModal";
-import {
-  IconRefresh,
-  IconCalendar,
-} from "@tabler/icons-react";
+import { IconRefresh, IconCalendar } from "@tabler/icons-react";
 import { mapJobsToEvents, IJobEventPayload } from "./calendar-helpers";
 import { EventHoverDetails } from "./EventHoverDetails";
 import classes from "./ScheduledJobsCalendar.module.css";
 import { ScheduledJobActionsMenuItems } from "../utils/ScheduledJobActionsMenuItems";
+import { DateStringValue, getStartOfWeek } from "@mantine/dates";
 
 /**
  * Screen coordinates and metadata for the right-click context menu.
@@ -78,9 +77,13 @@ export default function ScheduledJobsCalendar() {
 
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [currentActionId, setCurrentActionId] = useState<number | null>(null);
-  const [selectedJobId, setSelectedJobId] = useState<number | undefined>(undefined);
+  const [selectedJobId, setSelectedJobId] = useState<number | undefined>(
+    undefined,
+  );
   const [modalOpened, setModalOpened] = useState(false);
-  const [contextMenu, setContextMenu] = useState<IContextMenuState | null>(null);
+  const [contextMenu, setContextMenu] = useState<IContextMenuState | null>(
+    null,
+  );
   const [maxEventsPerDay, setMaxEventsPerDay] = useState<number>(10);
 
   const {
@@ -93,9 +96,10 @@ export default function ScheduledJobsCalendar() {
 
   const [view, setView] = useState<ScheduleViewLevel>("month");
   const [date, setDate] = useState(dayjs().format("YYYY-MM-DD"));
+  const nav = getNavigationHandlers(date, view);
 
   const [params, setParams] = useState<IScheduledJobFilters>({
-    pageSize: 50,
+    pageSize: undefined,
     dateType: "date_to_be_executed",
     dateFrom: dayjs().startOf("month").format("YYYY-MM-DD"),
     dateTo: dayjs().endOf("month").format("YYYY-MM-DD"),
@@ -110,8 +114,8 @@ export default function ScheduledJobsCalendar() {
 
   /** Transformed events array for the Schedule component. */
   const events = useMemo(
-    () => mapJobsToEvents(scheduledJobsData || []),
-    [scheduledJobsData]
+    () => mapJobsToEvents(scheduledJobsData?.scheduledJobs || []),
+    [scheduledJobsData],
   );
 
   /** Dropdown options for the user filter, formatted as "[id] - email". */
@@ -121,7 +125,7 @@ export default function ScheduledJobsCalendar() {
         value: user.id,
         label: `[${user.code}] - ${user.email}`,
       })),
-    [usersData]
+    [usersData],
   );
 
   /** Dropdown options for the action filter. */
@@ -131,7 +135,7 @@ export default function ScheduledJobsCalendar() {
         value: action.id,
         label: action.name,
       })),
-    [actionsData]
+    [actionsData],
   );
 
   /**
@@ -153,7 +157,7 @@ export default function ScheduledJobsCalendar() {
         dateTo: end.format("YYYY-MM-DD"),
       }));
     },
-    []
+    [],
   );
 
   /**
@@ -167,7 +171,7 @@ export default function ScheduledJobsCalendar() {
       setDate(newDate);
       updateRange(newDate, view);
     },
-    [view, updateRange]
+    [view, updateRange],
   );
 
   /**
@@ -181,7 +185,7 @@ export default function ScheduledJobsCalendar() {
       setView(newView);
       updateRange(date, newView);
     },
-    [date, updateRange]
+    [date, updateRange],
   );
 
   /** Applies the currently selected user / action filters to the query params. */
@@ -232,7 +236,7 @@ export default function ScheduledJobsCalendar() {
         status: payload?.status ?? "",
       });
     },
-    []
+    [],
   );
 
   const openDetailsModal = useCallback((event: ScheduleEventData) => {
@@ -276,9 +280,7 @@ export default function ScheduledJobsCalendar() {
                 e.stopPropagation();
                 openDetailsModal(event);
               }}
-              onContextMenu={(e: React.MouseEvent) =>
-                openContextMenu(e, event)
-              }
+              onContextMenu={(e: React.MouseEvent) => openContextMenu(e, event)}
             />
           </HoverCard.Target>
           <HoverCard.Dropdown>
@@ -291,7 +293,7 @@ export default function ScheduledJobsCalendar() {
         </HoverCard>
       );
     },
-    [openContextMenu, openDetailsModal]
+    [openContextMenu, openDetailsModal],
   );
 
   const renderMoreEventBody = useCallback(
@@ -314,9 +316,7 @@ export default function ScheduledJobsCalendar() {
                 e.stopPropagation();
                 openDetailsModal(event);
               }}
-              onContextMenu={(e: React.MouseEvent) =>
-                openContextMenu(e, event)
-              }
+              onContextMenu={(e: React.MouseEvent) => openContextMenu(e, event)}
             >
               {event.title}
             </Box>
@@ -331,7 +331,7 @@ export default function ScheduledJobsCalendar() {
         </HoverCard>
       );
     },
-    [openContextMenu, openDetailsModal]
+    [openContextMenu, openDetailsModal],
   );
 
   /** Closes the context menu on Escape key or scroll anywhere on the page. */
@@ -358,6 +358,55 @@ export default function ScheduledJobsCalendar() {
     currentActionId !== null ||
     !!params.userId ||
     !!params.actionId;
+
+  function getNavigationHandlers(
+    date: DateStringValue,
+    view: ScheduleViewLevel,
+  ) {
+    const d = dayjs(date);
+    switch (view) {
+      case "day":
+        return {
+          previous: d.subtract(1, "day"),
+          next: d.add(1, "day"),
+        };
+      case "week":
+        return {
+          previous: d.subtract(1, "week"),
+          next: d.add(1, "week"),
+        };
+      case "month":
+        return {
+          previous: d.subtract(1, "month").startOf("month"),
+          next: d.add(1, "month").startOf("month"),
+        };
+      case "year":
+        return {
+          previous: d.subtract(1, "year").startOf("year"),
+          next: d.add(1, "year").startOf("year"),
+        };
+    }
+  }
+
+  function getHeaderLabel(date: DateStringValue, view: ScheduleViewLevel) {
+    const d = dayjs(date);
+    switch (view) {
+      case "day":
+        return d.format("dddd, MMMM D, YYYY");
+      case "week": {
+        const start = dayjs(getStartOfWeek({ date, firstDayOfWeek: 1 }));
+        const end = start.add(6, "day");
+        if (start.month() === end.month()) {
+          return `${start.format("MMM D")} – ${end.format("D, YYYY")}`;
+        }
+        return `${start.format("MMM D")} – ${end.format("MMM D, YYYY")}`;
+      }
+      case "month":
+        return d.format("MMMM YYYY");
+      case "year":
+        return d.format("YYYY");
+    }
+  }
 
   return (
     <Paper withBorder p="xs" radius="md" shadow="sm">
@@ -409,30 +458,12 @@ export default function ScheduledJobsCalendar() {
               placeholder="All actions"
               data={actionOptions}
               value={currentActionId}
-              onChange={(val) =>
-                setCurrentActionId(val ? Number(val) : null)
-              }
+              onChange={(val) => setCurrentActionId(val ? Number(val) : null)}
               clearable
               searchable
               flex={1}
               size="xs"
             />
-            {view === "month" && (
-              <NumberInput
-                label="Events/day"
-                value={maxEventsPerDay}
-                onChange={(val) =>
-                  setMaxEventsPerDay(
-                    typeof val === "number" ? Math.max(1, val) : 10
-                  )
-                }
-                min={1}
-                max={50}
-                step={5}
-                w={90}
-                size="xs"
-              />
-            )}
             <Button
               variant="filled"
               color="blue"
@@ -471,6 +502,55 @@ export default function ScheduledJobsCalendar() {
             loaderProps={{ size: "md" }}
           />
 
+          <ScheduleHeader>
+            <Group align="flex-end" gap="sm" w="100%">
+              {/* --- LEFT SECTION --- */}
+              <ScheduleHeader.Previous
+                onClick={() =>
+                  setDate(nav.previous.format("YYYY-MM-DD") as DateStringValue)
+                }
+              />
+
+              <ScheduleHeader.Control miw={200}>
+                {getHeaderLabel(date, view)}
+              </ScheduleHeader.Control>
+
+              <ScheduleHeader.Next
+                onClick={() =>
+                  setDate(nav.next.format("YYYY-MM-DD") as DateStringValue)
+                }
+              />
+
+              <ScheduleHeader.Today
+                onClick={() =>
+                  setDate(dayjs().format("YYYY-MM-DD") as DateStringValue)
+                }
+              />
+
+              {/* --- SPACER: This pushes the items below to the far right --- */}
+              <div style={{ flex: 1 }} />
+
+              {/* --- RIGHT SECTION --- */}
+              <ScheduleHeader.ViewSelect value={view} onChange={setView} />
+
+              {view === "month" && (
+                <NumberInput
+                  label="Events/day"
+                  value={maxEventsPerDay}
+                  onChange={(val) =>
+                    setMaxEventsPerDay(
+                      typeof val === "number" ? Math.max(1, val) : 10,
+                    )
+                  }
+                  min={1}
+                  max={50}
+                  step={5}
+                  w={130}
+                  size="xs"
+                />
+              )}
+            </Group>
+          </ScheduleHeader>
           {/*
             `onEventClick` is intentionally NOT set on Schedule because
             the year view does not support it and throws a console error.
@@ -491,6 +571,7 @@ export default function ScheduledJobsCalendar() {
               },
               highlightToday: true,
               firstDayOfWeek: 1,
+              withHeader: false,
             }}
             weekViewProps={{
               renderEvent: renderEventWithHover,
@@ -498,11 +579,13 @@ export default function ScheduledJobsCalendar() {
               firstDayOfWeek: 1,
               withCurrentTimeIndicator: true,
               withCurrentTimeBubble: true,
+              withHeader: false,
             }}
             dayViewProps={{
               renderEvent: renderEventWithHover,
               withCurrentTimeIndicator: true,
               withCurrentTimeBubble: true,
+              withHeader: false,
             }}
           />
         </Box>
