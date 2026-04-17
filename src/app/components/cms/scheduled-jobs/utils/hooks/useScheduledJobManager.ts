@@ -65,10 +65,6 @@ export function useScheduledJobManager() {
           color: 'green',
         });
         setDeleteModal({ opened: false, jobId: undefined, jobDescription: undefined });
-         queryClient.invalidateQueries({
-        queryKey: ["scheduledJobsAll"],
-        exact: false,
-      });
       },
       onError: (error: any) => {
         notifications.show({
