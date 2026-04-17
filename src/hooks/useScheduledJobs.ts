@@ -102,6 +102,7 @@ export function useExecuteScheduledJobMutation() {
             // Invalidate relevant queries
             queryClient.invalidateQueries({ queryKey: ['scheduledJobs'] });
             queryClient.invalidateQueries({ queryKey: ['scheduledJob', jobId] });
+            queryClient.invalidateQueries({ queryKey: ['scheduledJobsAll'] }); // For calendar view
         },
         onError: (error, jobId) => {
 
@@ -133,6 +134,7 @@ export function useDeleteScheduledJobMutation() {
             // Invalidate relevant queries
             queryClient.invalidateQueries({ queryKey: ['scheduledJobs'] });
             queryClient.invalidateQueries({ queryKey: ['scheduledJob', jobId] });
+            queryClient.invalidateQueries({ queryKey: ['scheduledJobsAll'] }); // For calendar view
         },
         onError: (error, jobId) => {
 

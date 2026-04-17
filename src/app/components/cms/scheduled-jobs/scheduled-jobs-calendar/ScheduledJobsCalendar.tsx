@@ -119,7 +119,7 @@ export default function ScheduledJobsCalendar() {
     () =>
       (usersData?.users || []).map((user: IUserBasic) => ({
         value: user.id,
-        label: `[${user.id}] - ${user.email}`,
+        label: `[${user.code}] - ${user.email}`,
       })),
     [usersData]
   );
