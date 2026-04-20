@@ -1,3 +1,4 @@
+import { deprecate } from 'util';
 import { IPageField, IPageFieldTranslation } from '../types/common/pages.type';
 import { IUpdatePageField } from '../types/requests/admin/update-page.types';
 import { ILanguage } from '../types/responses/admin/languages.types';
@@ -20,6 +21,7 @@ export interface IProcessedFieldResult {
  *
  * @param field - The field to check
  * @returns true if field is content (has language-specific translations), false if property
+ * @deprecated  We should use the field.display to check if is content
  */
 export function isContentField(field: IPageField): boolean {
     // Check if field has translations for specific languages (not "all")
@@ -36,6 +38,7 @@ export function isContentField(field: IPageField): boolean {
  *
  * @param field - The field to check
  * @returns true if field is property (has "all" language translations or no translations), false if content
+ * @deprecated  We should use the !field.display to check if is property
  */
 export function isPropertyField(field: IPageField): boolean {
     // Check if field has translations with language_code "all" or no translations at all
@@ -59,7 +62,7 @@ export function isPropertyField(field: IPageField): boolean {
  * @returns Array of language IDs to process for this field
  */
 export function getFieldLanguageIds(field: IPageField, languages: ILanguage[]): number[] {
-    if (isContentField(field)) {
+    if (field.display) {
         // Content fields: all languages
         return languages.map(lang => lang.id);
     } else {
@@ -83,7 +86,7 @@ export function processField(
 ): IUpdatePageField[] {
     const fieldEntries: IUpdatePageField[] = [];
     
-    if (isPropertyField(field)) {
+    if (!field.display) {
         // Property fields: Find content in any language but save with language ID 1
         let content = '';
         
@@ -140,7 +143,7 @@ export function processAllFields(options: IFieldProcessingOptions): IProcessedFi
     
     fields.forEach(field => {
         // Categorize fields
-        if (isContentField(field)) {
+        if (field.display) {
             contentFields.push(field);
         } else {
             propertyFields.push(field);
@@ -165,7 +168,7 @@ export function processAllFields(options: IFieldProcessingOptions): IProcessedFi
  * @returns Human-readable field type description
  */
 export function getFieldTypeDisplayName(field: IPageField): string {
-    if (isContentField(field)) {
+    if (field.display) {
         return `Content Field (${field.type})`;
     } else {
         return `Property Field (${field.type})`;
@@ -187,12 +190,12 @@ export function validateFieldProcessing(field: IPageField): {
     const errors: string[] = [];
 
     // CSS fields should typically be property fields
-    if (field.type === 'css' && isContentField(field)) {
+    if (field.type === 'css' && field.display) {
         warnings.push(`CSS field "${field.name}" has language-specific translations but might be better as a property field`);
     }
 
     // JSON fields are typically property fields
-    if (field.type === 'json' && isContentField(field)) {
+    if (field.type === 'json' && field.display) {
         warnings.push(`JSON field "${field.name}" has language-specific translations but might be better as a property field`);
     }
 
@@ -228,7 +231,7 @@ export function initializeFieldFormValues(
 
     // Populate with actual field content from translations
     fields.forEach(field => {
-        if (isContentField(field)) {
+        if (field.display) {
             // Content fields: populate based on actual language_id from translations
             field.translations.forEach((translation: IPageFieldTranslation) => {
                 const language = languages.find(l => l.id === translation.language_id);
