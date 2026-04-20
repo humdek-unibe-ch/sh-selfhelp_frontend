@@ -45,8 +45,6 @@ import { downloadJsonFile, generateExportFilename } from '../../../../../utils/e
 import { useQueryClient } from '@tanstack/react-query';
 import {
     processAllFields,
-    isContentField,
-    isPropertyField,
     validateFieldProcessing,
     initializeFieldFormValues
 } from '../../../../../utils/field-processing.utils';
@@ -201,8 +199,8 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
     }, [page, pageFieldsData, languagesData, setFormValues, resetStore]);
 
     const fields = useMemo(() => pageFieldsData?.fields || [], [pageFieldsData?.fields]);
-    const contentFields = useMemo(() => fields.filter(field => isContentField(field)), [fields]);
-    const propertyFields = useMemo(() => fields.filter(field => isPropertyField(field)), [fields]);
+    const contentFields = useMemo(() => fields.filter(field => field.display), [fields]);
+    const propertyFields = useMemo(() => fields.filter(field => !field.display), [fields]);
     const hasMultipleLanguages = useMemo(() => languagesData.length > 1, [languagesData.length]);
     const defaultLanguageId = useMemo(() => languagesData[0]?.id || 1, [languagesData]);
 
