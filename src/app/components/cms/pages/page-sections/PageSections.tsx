@@ -665,6 +665,24 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                     >
                         Add Section
                     </Button>
+                    <Button
+                        size="xs"
+                        variant="light"
+                        onClick={() => {
+                           router.push(`/admin/pages/${pageName}`);
+                        }}
+                    >
+                        Edit Page
+                    </Button>
+                    <Button
+                        size="xs"
+                        variant="light"
+                        onClick={() => {
+                           router.push(`/${pageName}`);
+                        }}
+                    >
+                        Preview Page
+                    </Button>
                 </Group>
             </Group>
 
