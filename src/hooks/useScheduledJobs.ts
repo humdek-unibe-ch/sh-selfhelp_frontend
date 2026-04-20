@@ -24,31 +24,27 @@ export function useScheduledJobs(filters: IScheduledJobFilters = {}) {
  */
 
 export function useScheduledJobsAll(filters: IScheduledJobFilters = {}) {
-  return useQuery({
-    queryKey: ['scheduledJobsAll', filters],
-    queryFn: async () => {
-      let currentPage = 1;
-      let totalPages = 1;
-      let allJobs: IScheduledJob[] = [];
+    return useQuery({
+        queryKey: ['scheduledJobsAll', filters],
+        queryFn: () => AdminScheduledJobsApi.getScheduledJobs({
+            ...filters,
+            // Page undefined → backend returns all jobs (with safety limit)
+            page: undefined,
+        }),
+        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
+        retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
+        select: (response) => {
+            // Extract the scheduledJobs array from the response
+            const data = response?.data ?? response;
 
-      do {
-        // TODO: pull all with one request. Redesing the backend that if the page is not provided, it will return all the jobs.
-        const res = await AdminScheduledJobsApi.getScheduledJobs({
-          ...filters,
-          page: currentPage,
-        });
-
-        const data = res.data;
-
-        allJobs = [...allJobs, ...data.scheduledJobs];
-        totalPages = data.totalPages;
-
-        currentPage++;
-      } while (currentPage <= totalPages);
-
-      return allJobs;
-    },
-  });
+            return {
+                scheduledJobs: data?.scheduledJobs ?? [],
+                totalCount: data?.totalCount ?? 0,
+            };
+        },
+    });
 }
 
 /**
@@ -102,6 +98,7 @@ export function useExecuteScheduledJobMutation() {
             // Invalidate relevant queries
             queryClient.invalidateQueries({ queryKey: ['scheduledJobs'] });
             queryClient.invalidateQueries({ queryKey: ['scheduledJob', jobId] });
+            queryClient.invalidateQueries({ queryKey: ['scheduledJobsAll'] }); // For calendar view
         },
         onError: (error, jobId) => {
 
@@ -133,6 +130,7 @@ export function useDeleteScheduledJobMutation() {
             // Invalidate relevant queries
             queryClient.invalidateQueries({ queryKey: ['scheduledJobs'] });
             queryClient.invalidateQueries({ queryKey: ['scheduledJob', jobId] });
+            queryClient.invalidateQueries({ queryKey: ['scheduledJobsAll'] }); // For calendar view
         },
         onError: (error, jobId) => {
 

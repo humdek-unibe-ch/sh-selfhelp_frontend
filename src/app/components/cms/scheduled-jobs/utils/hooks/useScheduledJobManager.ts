@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import { notifications } from '@mantine/notifications';
 import { useExecuteScheduledJobMutation, useDeleteScheduledJobMutation } from '../../../../../../hooks/useScheduledJobs';
-import { useQueryClient } from '@tanstack/react-query';
 
 export function useScheduledJobManager() {
   const executeJobMutation = useExecuteScheduledJobMutation();
   const deleteJobMutation = useDeleteScheduledJobMutation();
-  const queryClient = useQueryClient();
 
   // Modal States
   const [detailsModal, setDetailsModal] = useState<{ opened: boolean; jobId?: number }>({
@@ -65,10 +63,6 @@ export function useScheduledJobManager() {
           color: 'green',
         });
         setDeleteModal({ opened: false, jobId: undefined, jobDescription: undefined });
-         queryClient.invalidateQueries({
-        queryKey: ["scheduledJobsAll"],
-        exact: false,
-      });
       },
       onError: (error: any) => {
         notifications.show({
