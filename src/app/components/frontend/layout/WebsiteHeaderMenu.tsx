@@ -6,6 +6,8 @@ import { useAppNavigation } from '../../../../hooks/useAppNavigation';
 import { usePagePrefetch } from '../../../../hooks/usePagePrefetch';
 import { IPageItem } from '../../../../../src/types/responses/frontend/frontend.types';
 import { InternalLink } from '../../shared';
+import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 
 interface IMenuItemProps {
     item: IPageItem;
@@ -65,6 +67,23 @@ function MenuItem({ item }: IMenuItemProps) {
  */
 export function WebsiteHeaderMenu() {
     const { menuPages, isLoading } = useAppNavigation();
+    const pathname = usePathname();
+
+    // Find the current page by matching the current URL pathname
+    // If a matching page is found, set the browser tab title
+    // The title is generated using getPageTitle to ensure consistency with displayed menu titles
+    useEffect(() => {
+        if (isLoading || menuPages.length === 0) return;
+
+        // Find current page by matching URL
+        const currentPage = menuPages.find(page => page.url === pathname);
+
+        if (currentPage) {
+            document.title = getPageTitle(currentPage);
+        }else {
+            document.title = 'SelfHelp V2'
+        }
+    }, [pathname, menuPages, isLoading]);
 
     // Show nothing while loading to prevent layout shift
     if (isLoading || menuPages.length === 0) {
