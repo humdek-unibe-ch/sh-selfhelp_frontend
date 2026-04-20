@@ -27,8 +27,8 @@ export const PageVersionApi = {
     async publishNewVersion(pageId: number, data?: IPublishVersionRequest): Promise<IPublishResponse> {
         const response = await permissionAwareApiClient.post<IBaseApiResponse<IPublishResponse>>(
             API_CONFIG.ENDPOINTS.ADMIN_PAGE_VERSIONS_PUBLISH,
+            data || {},
             pageId,
-            data || {}
         );
         return response.data.data;
     },
