@@ -118,7 +118,7 @@ export default function ScheduledJobsCalendar() {
     [scheduledJobsData],
   );
 
-  /** Dropdown options for the user filter, formatted as "[id] - email". */
+  /** Dropdown options for the user filter, formatted as "[code] - email". */
   const userOptions = useMemo(
     () =>
       (usersData?.users || []).map((user: IUserBasic) => ({
