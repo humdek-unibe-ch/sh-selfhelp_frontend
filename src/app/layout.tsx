@@ -16,7 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <title>Self Help V2</title>
+        <title>SelfHelp V2</title>
         <ColorSchemeScript />
         <link rel="shortcut icon" href="/favicon.svg" />
         <meta

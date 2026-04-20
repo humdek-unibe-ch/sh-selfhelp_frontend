@@ -81,7 +81,7 @@ export function WebsiteHeaderMenu() {
         if (currentPage) {
             document.title = getPageTitle(currentPage);
         }else {
-            document.title = 'Self Help V2'
+            document.title = 'SelfHelp V2'
         }
     }, [pathname, menuPages, isLoading]);
 
