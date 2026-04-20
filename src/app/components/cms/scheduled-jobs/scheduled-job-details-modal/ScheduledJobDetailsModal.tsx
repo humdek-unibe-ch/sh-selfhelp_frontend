@@ -1,7 +1,6 @@
 "use client";
 
 import {
-    Modal,
     Title,
     Text,
     Group,
@@ -24,6 +23,7 @@ import { useScheduledJob, useScheduledJobTransactions } from '../../../../../hoo
 import { getStatusColor } from '../../../../../utils/status-color.utils';
 import { isJobActionAllowed } from '../utils/job-status';
 import DOMPurify from 'dompurify';
+import { ModalWrapper } from '../../../shared';
 
 
 interface IScheduledJobTransaction {
@@ -309,12 +309,17 @@ export function ScheduledJobDetailsModal({
     };
 
     return (
-        <Modal
+        <ModalWrapper
             opened={opened}
             onClose={onClose}
-            title={<Title order={3} component="div">Scheduled Job ID: {jobId}</Title>}
+            title={`Scheduled Job ID: ${jobId}`}
             size="xl"
             centered
+            closeOnClickOutside
+            closeOnEscape
+            withCloseButton
+            scrollAreaHeight={600}
+            isLoading={loading}
         >
             <div style={{ position: 'relative' }}>
                 <LoadingOverlay visible={loading} />
@@ -500,6 +505,6 @@ export function ScheduledJobDetailsModal({
                     <Text ta="center" p="md" c="red">Failed to load job details</Text>
                 )}
             </div>
-        </Modal>
+        </ModalWrapper>
     );
 } 
