@@ -14,6 +14,7 @@ import {
   Menu,
   Badge,
   NumberInput,
+  Container,
 } from "@mantine/core";
 import {
   Schedule,
@@ -352,7 +353,6 @@ export default function ScheduledJobsCalendar() {
     };
   }, [contextMenu]);
 
-  const totalEvents = events.length;
   const isFiltersActive =
     currentUserId !== null ||
     currentActionId !== null ||
@@ -409,20 +409,29 @@ export default function ScheduledJobsCalendar() {
   }
 
   return (
-    <Paper withBorder p="xs" radius="md" shadow="sm">
+    <Paper p="md" radius="md" shadow="sm">
       <Stack gap="xs">
         <Group justify="space-between" align="center" wrap="wrap" gap="xs">
-          <Group gap="xs" align="center">
-            <IconCalendar size={18} />
-            <Text size="md" fw={700}>
-              Scheduled Jobs Calendar
+          {/* Header */}
+          <Group justify="space-between">
+            <Container pl={0}>
+            <Group gap={8} align="center">
+            <Text size="lg" fw={600}>
+                Scheduled Jobs Calendar
             </Text>
-            {totalEvents > 0 && (
-              <Badge variant="light" color="gray" size="sm">
-                {totalEvents}
-              </Badge>
+
+            {scheduledJobsData && scheduledJobsData.totalCount > 0 && (
+                <Badge variant="light" color="gray" size="sm">
+                {scheduledJobsData?.totalCount}
+                </Badge>
             )}
+            </Group>
+              <Text size="sm" c="dimmed">
+                Manage and monitor scheduled jobs via calendar
+              </Text>
+            </Container>
           </Group>
+
           <Group gap="sm" align="center">
             {STATUS_LEGEND.map((s) => (
               <Group key={s.label} gap={4} wrap="nowrap">

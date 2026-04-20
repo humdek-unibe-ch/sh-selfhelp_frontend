@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from 'react';
-import { Button, Group, Stack, Text, TextInput, ActionIcon, Card, Table, Pagination, Loader } from '@mantine/core';
+import { Button, Group, Stack, Text, TextInput, ActionIcon, Card, Table, Pagination, Loader, Paper, Container, Badge } from '@mantine/core';
 import { IconPlus, IconX, IconEdit, IconTrash } from '@tabler/icons-react';
 import { useActions, useDeleteAction } from '../../../../../hooks/useActions';
 import type { IActionsListParams, IActionDetails } from '../../../../../types/responses/admin/actions.types';
@@ -42,66 +42,112 @@ export function ActionsPage() {
   }, [data]);
 
   return (
-    <Stack>
-      <Group justify="space-between">
-        <Text size="lg" fw={600}>Actions</Text>
-        <Button leftSection={<IconPlus size={16} />} onClick={() => setCreateOpen(true)}>New Action</Button>
-      </Group>
+    <Paper p="md" radius="md">
+      <Stack gap="md">
+        {/* Header */}
+        <Group justify="space-between" align="center">
+          <Group justify="space-between">
+            <Container pl={0}>
+              <Group gap={8} align="center">
+                <Text size="lg" fw={600}>
+                  Actions
+                </Text>
+                {data && data.actions.length > 0 && (
+                  <Badge ml={4} variant="light" color="gray" size="sm">
+                    {data.actions.length}
+                  </Badge>
+                )}
+              </Group>
+              <Text size="sm" c="dimmed">
+                Manage and monitor actions
+              </Text>
+            </Container>
+          </Group>
+          <Button
+            leftSection={<IconPlus size={16} />}
+            onClick={() => setCreateOpen(true)}
+          >
+            New Action
+          </Button>
+        </Group>
 
-      <Group>
+        {/* Search */}
         <TextInput
-          value={params.search || ''}
+          value={params.search || ""}
           onChange={(e) => handleSearch(e.currentTarget.value)}
           placeholder="Search actions"
-          rightSection={params.search ? (
-            <ActionIcon variant="subtle" color="gray" size="sm" onClick={clearSearch}><IconX size={14} /></ActionIcon>
-          ) : undefined}
+          rightSection={
+            params.search ? (
+              <ActionIcon
+                variant="subtle"
+                color="gray"
+                size="sm"
+                onClick={clearSearch}
+              >
+                <IconX size={14} />
+              </ActionIcon>
+            ) : undefined
+          }
         />
-      </Group>
 
-      <Card withBorder>
-        {isLoading ? (
-          <Loader />
-        ) : (
-          <Table striped highlightOnHover withTableBorder>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>ID</Table.Th>
-                <Table.Th>Name</Table.Th>
-                <Table.Th>Trigger</Table.Th>
-                <Table.Th>Data table</Table.Th>
-                <Table.Th style={{ width: 120 }}></Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {rows}
-            </Table.Tbody>
-          </Table>
+        {/* Actions table */}
+        <Card withBorder>
+          {isLoading ? (
+            <Loader />
+          ) : (
+            <Table striped highlightOnHover withTableBorder>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>ID</Table.Th>
+                  <Table.Th>Name</Table.Th>
+                  <Table.Th>Trigger</Table.Th>
+                  <Table.Th>Data table</Table.Th>
+                  <Table.Th style={{ width: 120 }} />
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>{rows}</Table.Tbody>
+            </Table>
+          )}
+        </Card>
+
+        {/* Pagination */}
+        {data?.pagination && (
+          <Pagination
+            value={params.page || 1}
+            total={data.pagination.totalPages}
+            onChange={(page) => setParams((prev) => ({ ...prev, page }))}
+          />
         )}
-      </Card>
 
-      {data?.pagination && (
-        <Pagination
-          value={params.page || 1}
-          total={data.pagination.totalPages}
-          onChange={(page) => setParams(prev => ({ ...prev, page }))}
+        {/* Modals */}
+        <ActionFormModal
+          opened={createOpen}
+          onClose={() => setCreateOpen(false)}
+          mode="create"
         />
-      )}
-
-      <ActionFormModal opened={createOpen} onClose={() => setCreateOpen(false)} mode="create" />
-      {editAction && (
-        <ActionFormModal opened={!!editAction} onClose={() => setEditAction(null)} mode="edit" actionId={editAction.id} />
-      )}
-      {deleteTarget && (
-        <DeleteActionModal
-          opened={!!deleteTarget}
-          onClose={() => setDeleteTarget(null)}
-          onConfirm={() => deleteMutation.mutate(deleteTarget.id, { onSettled: () => setDeleteTarget(null) })}
-          actionName={deleteTarget.name}
-          isLoading={deleteMutation.isPending}
-        />
-      )}
-    </Stack>
+        {editAction && (
+          <ActionFormModal
+            opened={!!editAction}
+            onClose={() => setEditAction(null)}
+            mode="edit"
+            actionId={editAction.id}
+          />
+        )}
+        {deleteTarget && (
+          <DeleteActionModal
+            opened={!!deleteTarget}
+            onClose={() => setDeleteTarget(null)}
+            onConfirm={() =>
+              deleteMutation.mutate(deleteTarget.id, {
+                onSettled: () => setDeleteTarget(null),
+              })
+            }
+            actionName={deleteTarget.name}
+            isLoading={deleteMutation.isPending}
+          />
+        )}
+      </Stack>
+    </Paper>
   );
 }
 

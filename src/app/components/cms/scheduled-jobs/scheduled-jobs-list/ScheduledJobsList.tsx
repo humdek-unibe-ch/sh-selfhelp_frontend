@@ -32,6 +32,7 @@ import {
   Box,
   Checkbox,
   Paper,
+  Container,
 } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import {
@@ -576,228 +577,266 @@ export function ScheduledJobsList({
     }
 
     return (
-        <Card>
-            <Stack gap="md">
-                {/* Header */}
-                <Group justify="space-between">
-                    <div>
-                        <Text size="lg" fw={600}>
-                            Scheduled Jobs
-                        </Text>
-                        <Text size="sm" c="dimmed">
-                            Manage and monitor scheduled jobs
-                        </Text>
-                    </div>
-                    <Group>
-                        {selectedJobs.size > 0 && (
-                            <Button
-                                color="red"
-                                leftSection={<IconTrash size={16} />}
-                                onClick={handleBulkDelete}
-                            >
-                                Delete Selected ({selectedJobs.size})
-                            </Button>
-                        )}
-                    </Group>
+      <Card>
+        <Stack gap="md">
+          {/* Header */}
+          <Group justify="space-between" align="center" wrap="wrap" gap="xs">
+            <Group justify="space-between">
+              <Container pl={0}>
+                <Group gap={8} align="center">
+                  <Text size="lg" fw={600}>
+                    Scheduled Jobs
+                  </Text>
+                  {pagination && pagination.totalCount > 0 && (
+                    <Badge ml={4} variant="light" color="gray" size="sm">
+                      {pagination?.totalCount}
+                    </Badge>
+                  )}
                 </Group>
-
-                {/* Filters */}
-                <Group gap="md" wrap="nowrap">
-                    <TextInput
-                        placeholder="Search jobs..."
-                        leftSection={<IconSearch size={16} />}
-                        rightSection={
-                            params.search ? (
-                                <ActionIcon
-                                    variant="subtle"
-                                    size="sm"
-                                    onClick={handleClearSearch}
-                                >
-                                    <IconX size={14} />
-                                </ActionIcon>
-                            ) : null
-                        }
-                        value={params.search || ''}
-                        onChange={(event) => handleSearch(event.currentTarget.value)}
-                        className={classes.searchInput}
-                    />
-                    
-                    <Button
-                        variant={showFilters ? 'filled' : 'light'}
-                        leftSection={<IconFilter size={16} />}
-                        onClick={() => setShowFilters(!showFilters)}
-                    >
-                        Filters
-                    </Button>
-                    
-                    <Button
-                        variant="light"
-                        leftSection={<IconRefresh size={16} />}
-                        onClick={() => refetch()}
-                        loading={ isFetching}
-                        disabled={isFetching} 
-                    >
-                        Refresh
-                    </Button>
-                    
-                    <Select
-                        value={params.pageSize?.toString() || '20'}
-                        onChange={handlePageSizeChange}
-                        data={[
-                            { value: '10', label: '10 per page' },
-                            { value: '20', label: '20 per page' },
-                            { value: '50', label: '50 per page' },
-                            { value: '100', label: '100 per page' },
-                        ]}
-                        className={classes.pageSizeSelect}
-                    />
-                </Group>
-
-                {/* Advanced Filters */}
-                {showFilters && (
-                    <Paper p="md" withBorder>
-                        <Stack gap="md">
-                            <Group gap="md" wrap="nowrap">
-                                <Select
-                                    placeholder="Status"
-                                    data={statusOptions}
-                                    value={params.status || ''}
-                                    onChange={(value) => setParams(prev => ({ ...prev, status: value || undefined, page: 1 }))}
-                                    clearable
-                                    className={classes.filterSelect}
-                                />
-                                <Select
-                                    placeholder="Type"
-                                    data={typeOptions}
-                                    value={params.jobType || ''}
-                                    onChange={(value) => setParams(prev => ({ ...prev, jobType: value || undefined, page: 1 }))}
-                                    clearable
-                                    className={classes.filterSelect}
-                                />
-                                <Select
-                                    placeholder="Date Type"
-                                    data={dateTypeOptions}
-                                    value={params.dateType || ''}
-                                    onChange={(value) => setParams(prev => ({
-                                        ...prev,
-                                        dateType: value as IScheduledJobFilters['dateType'] || 'date_to_be_executed',
-                                        page: 1
-                                    }))}
-                                    className={classes.filterSelect}
-                                />
-                            </Group>
-                            <Group gap="md" wrap="nowrap">
-                                <DateInput
-                                    placeholder="Date From"
-                                    value={params.dateFrom ? new Date(params.dateFrom) : null}
-                                    onChange={(date) => setParams(prev => ({
-                                        ...prev,
-                                        dateFrom: date || undefined,
-                                        page: 1
-                                    }))}
-                                    clearable
-                                    className={classes.dateFilterInput}
-                                />
-                                <DateInput
-                                    placeholder="Date To"
-                                    value={params.dateTo ? new Date(params.dateTo) : null}
-                                    onChange={(date) => setParams(prev => ({
-                                        ...prev,
-                                        dateTo: date || undefined,
-                                        page: 1
-                                    }))}
-                                    clearable
-                                    className={classes.dateFilterInput}
-                                />
-                            </Group>
-                        </Stack>
-                    </Paper>
-                )}
-
-                {/* Table */}
-                <div className={classes.tableWrapper}>
-                    <LoadingOverlay visible={isFetching} />
-
-                    <Box className={classes.tableScrollContainer}>
-                        <Table striped highlightOnHover>
-                            <TableThead>
-                                {table.getHeaderGroups().map((headerGroup) => (
-                                    <TableTr key={headerGroup.id}>
-                                        {headerGroup.headers.map((header) => (
-                                            <TableTh key={header.id}>
-                                                {header.isPlaceholder
-                                                    ? null
-                                                    : flexRender(
-                                                        header.column.columnDef.header,
-                                                        header.getContext()
-                                                    )}
-                                            </TableTh>
-                                        ))}
-                                    </TableTr>
-                                ))}
-                            </TableThead>
-                            <TableTbody>
-                                {table.getRowModel().rows.map((row) => (
-                                    <React.Fragment key={row.id}>
-                                        <TableTr>
-                                            {row.getVisibleCells().map((cell) => (
-                                                <TableTd key={cell.id}>
-                                                    {flexRender(
-                                                        cell.column.columnDef.cell,
-                                                        cell.getContext()
-                                                    )}
-                                                </TableTd>
-                                            ))}
-                                        </TableTr>
-                                        {expandedJobs.has(row.original.id) && row.original.transactions && (
-                                            <TableTr>
-                                                <TableTd colSpan={table.getAllColumns().length} style={{ padding: 0, border: 'none' }}>
-                                                    <TransactionsSubTable transactions={row.original.transactions} />
-                                                </TableTd>
-                                            </TableTr>
-                                        )}
-                                    </React.Fragment>
-                                ))}
-                            </TableTbody>
-                        </Table>
-                    </Box>
-
-                    {/* Empty state */}
-                    {!isFetching && scheduledJobs.length === 0 && (
-                        <Center py="xl">
-                            <Stack align="center" gap="sm">
-                                <Text size="lg" c="dimmed">
-                                    No scheduled jobs found
-                                </Text>
-                                <Text size="sm" c="dimmed">
-                                    {params.search 
-                                        ? 'Try adjusting your search criteria'
-                                        : 'No jobs are currently scheduled'
-                                    }
-                                </Text>
-                            </Stack>
-                        </Center>
-                    )}
-                </div>
-
-                {/* Pagination */}
-                {pagination.totalPages > 1 && (
-                    <Group justify="center">
-                        <Pagination
-                            total={pagination.totalPages}
-                            value={pagination.page}
-                            onChange={handlePageChange}
-                        />
-                    </Group>
-                )}
-
-                {/* Results info */}
-                <Text size="sm" c="dimmed" ta="center">
-                    Showing {((pagination.page - 1) * pagination.pageSize) + 1} to{' '}
-                    {Math.min(pagination.page * pagination.pageSize, pagination.totalCount)} of{' '}
-                    {pagination.totalCount} entries
+                <Text size="sm" c="dimmed">
+                  Manage and monitor scheduled jobs
                 </Text>
-            </Stack>
-        </Card>
+              </Container>
+            </Group>
+
+            <Group>
+              {selectedJobs.size > 0 && (
+                <Button
+                  color="red"
+                  leftSection={<IconTrash size={16} />}
+                  onClick={handleBulkDelete}
+                >
+                  Delete Selected ({selectedJobs.size})
+                </Button>
+              )}
+            </Group>
+          </Group>
+
+          {/* Filters */}
+          <Group gap="md" wrap="nowrap">
+            <TextInput
+              placeholder="Search jobs..."
+              leftSection={<IconSearch size={16} />}
+              rightSection={
+                params.search ? (
+                  <ActionIcon
+                    variant="subtle"
+                    size="sm"
+                    onClick={handleClearSearch}
+                  >
+                    <IconX size={14} />
+                  </ActionIcon>
+                ) : null
+              }
+              value={params.search || ""}
+              onChange={(event) => handleSearch(event.currentTarget.value)}
+              className={classes.searchInput}
+            />
+
+            <Button
+              variant={showFilters ? "filled" : "light"}
+              leftSection={<IconFilter size={16} />}
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              Filters
+            </Button>
+
+            <Button
+              variant="light"
+              leftSection={<IconRefresh size={16} />}
+              onClick={() => refetch()}
+              loading={isFetching}
+              disabled={isFetching}
+            >
+              Refresh
+            </Button>
+
+            <Select
+              value={params.pageSize?.toString() || "20"}
+              onChange={handlePageSizeChange}
+              data={[
+                { value: "10", label: "10 per page" },
+                { value: "20", label: "20 per page" },
+                { value: "50", label: "50 per page" },
+                { value: "100", label: "100 per page" },
+              ]}
+              className={classes.pageSizeSelect}
+            />
+          </Group>
+
+          {/* Advanced Filters */}
+          {showFilters && (
+            <Paper p="md" withBorder>
+              <Stack gap="md">
+                <Group gap="md" wrap="nowrap">
+                  <Select
+                    placeholder="Status"
+                    data={statusOptions}
+                    value={params.status || ""}
+                    onChange={(value) =>
+                      setParams((prev) => ({
+                        ...prev,
+                        status: value || undefined,
+                        page: 1,
+                      }))
+                    }
+                    clearable
+                    className={classes.filterSelect}
+                  />
+                  <Select
+                    placeholder="Type"
+                    data={typeOptions}
+                    value={params.jobType || ""}
+                    onChange={(value) =>
+                      setParams((prev) => ({
+                        ...prev,
+                        jobType: value || undefined,
+                        page: 1,
+                      }))
+                    }
+                    clearable
+                    className={classes.filterSelect}
+                  />
+                  <Select
+                    placeholder="Date Type"
+                    data={dateTypeOptions}
+                    value={params.dateType || ""}
+                    onChange={(value) =>
+                      setParams((prev) => ({
+                        ...prev,
+                        dateType:
+                          (value as IScheduledJobFilters["dateType"]) ||
+                          "date_to_be_executed",
+                        page: 1,
+                      }))
+                    }
+                    className={classes.filterSelect}
+                  />
+                </Group>
+                <Group gap="md" wrap="nowrap">
+                  <DateInput
+                    placeholder="Date From"
+                    value={params.dateFrom ? new Date(params.dateFrom) : null}
+                    onChange={(date) =>
+                      setParams((prev) => ({
+                        ...prev,
+                        dateFrom: date || undefined,
+                        page: 1,
+                      }))
+                    }
+                    clearable
+                    className={classes.dateFilterInput}
+                  />
+                  <DateInput
+                    placeholder="Date To"
+                    value={params.dateTo ? new Date(params.dateTo) : null}
+                    onChange={(date) =>
+                      setParams((prev) => ({
+                        ...prev,
+                        dateTo: date || undefined,
+                        page: 1,
+                      }))
+                    }
+                    clearable
+                    className={classes.dateFilterInput}
+                  />
+                </Group>
+              </Stack>
+            </Paper>
+          )}
+
+          {/* Table */}
+          <div className={classes.tableWrapper}>
+            <LoadingOverlay visible={isFetching} />
+
+            <Box className={classes.tableScrollContainer}>
+              <Table striped highlightOnHover>
+                <TableThead>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableTr key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <TableTh key={header.id}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
+                        </TableTh>
+                      ))}
+                    </TableTr>
+                  ))}
+                </TableThead>
+                <TableTbody>
+                  {table.getRowModel().rows.map((row) => (
+                    <React.Fragment key={row.id}>
+                      <TableTr>
+                        {row.getVisibleCells().map((cell) => (
+                          <TableTd key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
+                          </TableTd>
+                        ))}
+                      </TableTr>
+                      {expandedJobs.has(row.original.id) &&
+                        row.original.transactions && (
+                          <TableTr>
+                            <TableTd
+                              colSpan={table.getAllColumns().length}
+                              style={{ padding: 0, border: "none" }}
+                            >
+                              <TransactionsSubTable
+                                transactions={row.original.transactions}
+                              />
+                            </TableTd>
+                          </TableTr>
+                        )}
+                    </React.Fragment>
+                  ))}
+                </TableTbody>
+              </Table>
+            </Box>
+
+            {/* Empty state */}
+            {!isFetching && scheduledJobs.length === 0 && (
+              <Center py="xl">
+                <Stack align="center" gap="sm">
+                  <Text size="lg" c="dimmed">
+                    No scheduled jobs found
+                  </Text>
+                  <Text size="sm" c="dimmed">
+                    {params.search
+                      ? "Try adjusting your search criteria"
+                      : "No jobs are currently scheduled"}
+                  </Text>
+                </Stack>
+              </Center>
+            )}
+          </div>
+
+          {/* Pagination */}
+          {pagination.totalPages > 1 && (
+            <Group justify="center">
+              <Pagination
+                total={pagination.totalPages}
+                value={pagination.page}
+                onChange={handlePageChange}
+              />
+            </Group>
+          )}
+
+          {/* Results info */}
+          <Text size="sm" c="dimmed" ta="center">
+            Showing {(pagination.page - 1) * pagination.pageSize + 1} to{" "}
+            {Math.min(
+              pagination.page * pagination.pageSize,
+              pagination.totalCount,
+            )}{" "}
+            of {pagination.totalCount} entries
+          </Text>
+        </Stack>
+      </Card>
     );
 }
