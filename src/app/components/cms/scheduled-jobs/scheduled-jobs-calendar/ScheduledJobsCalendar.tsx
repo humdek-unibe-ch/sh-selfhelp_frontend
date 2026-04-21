@@ -567,12 +567,10 @@ export default function ScheduledJobsCalendar() {
             onViewChange={handleViewChange}
             events={events}
             defaultView="month"
+            renderEventBody={renderMoreEventBody}
             monthViewProps={{
               maxEventsPerDay,
               renderEvent: renderEventWithHover,
-              moreEventsProps: {
-                renderEventBody: renderMoreEventBody,
-              },
               highlightToday: true,
               firstDayOfWeek: 1,
               withHeader: false,
