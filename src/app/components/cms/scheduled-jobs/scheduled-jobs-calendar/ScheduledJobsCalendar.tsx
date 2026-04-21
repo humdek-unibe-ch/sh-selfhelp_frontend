@@ -35,7 +35,7 @@ import { useActions } from "../../../../../hooks/useActions";
 import { ScheduledJobDetailsModal } from "../scheduled-job-details-modal/ScheduledJobDetailsModal";
 import { useScheduledJobManager } from "../utils/hooks/useScheduledJobManager";
 import { DeleteJobModal } from "../delete-job-modal/DeleteJobModal";
-import { IconRefresh, IconCalendar } from "@tabler/icons-react";
+import { IconRefresh } from "@tabler/icons-react";
 import { mapJobsToEvents, IJobEventPayload } from "./calendar-helpers";
 import { EventHoverDetails } from "./EventHoverDetails";
 import classes from "./ScheduledJobsCalendar.module.css";
@@ -297,44 +297,6 @@ export default function ScheduledJobsCalendar() {
     [openContextMenu, openDetailsModal],
   );
 
-  const renderMoreEventBody = useCallback(
-    (event: ScheduleEventData) => {
-      const payload = event.payload as IJobEventPayload | undefined;
-
-      return (
-        <HoverCard
-          width={280}
-          position="right"
-          closeDelay={0}
-          openDelay={250}
-          transitionProps={{ duration: 80 }}
-          withinPortal
-        >
-          <HoverCard.Target>
-            <Box
-              className={classes.moreEventInteractive}
-              onClick={(e: React.MouseEvent) => {
-                e.stopPropagation();
-                openDetailsModal(event);
-              }}
-              onContextMenu={(e: React.MouseEvent) => openContextMenu(e, event)}
-            >
-              {event.title}
-            </Box>
-          </HoverCard.Target>
-          <HoverCard.Dropdown>
-            {payload ? (
-              <EventHoverDetails payload={payload} />
-            ) : (
-              <Text size="xs">No details available</Text>
-            )}
-          </HoverCard.Dropdown>
-        </HoverCard>
-      );
-    },
-    [openContextMenu, openDetailsModal],
-  );
-
   /** Closes the context menu on Escape key or scroll anywhere on the page. */
   useEffect(() => {
     if (!contextMenu) return;
@@ -567,7 +529,6 @@ export default function ScheduledJobsCalendar() {
             onViewChange={handleViewChange}
             events={events}
             defaultView="month"
-            renderEventBody={renderMoreEventBody}
             monthViewProps={{
               maxEventsPerDay,
               renderEvent: renderEventWithHover,
