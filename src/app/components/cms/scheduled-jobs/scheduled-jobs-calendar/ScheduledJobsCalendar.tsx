@@ -447,7 +447,7 @@ export default function ScheduledJobsCalendar() {
           </Group>
         </Group>
 
-        <Paper withBorder p="xs" className={classes.filterBar}>
+        <Paper p="xs" className={classes.filterBar}>
           <Group align="flex-end" gap="sm">
             <Select
               label="User"
@@ -460,7 +460,6 @@ export default function ScheduledJobsCalendar() {
               clearable
               searchable
               flex={1}
-              size="xs"
             />
             <Select
               label="Action"
@@ -471,22 +470,19 @@ export default function ScheduledJobsCalendar() {
               clearable
               searchable
               flex={1}
-              size="xs"
             />
             <Button
               variant="filled"
               color="blue"
               onClick={handleApplyFilters}
               loading={isFetching}
-              size="xs"
             >
               Apply Filters
             </Button>
             <Button
-              variant="default"
+              variant="danger"
               onClick={handleResetFilters}
               loading={isFetching}
-              size="xs"
               disabled={!isFiltersActive}
             >
               Reset
@@ -494,7 +490,6 @@ export default function ScheduledJobsCalendar() {
             <Button
               variant="light"
               color="gray"
-              size="xs"
               leftSection={<IconRefresh size={14} />}
               onClick={handleRefresh}
               loading={isFetching}
