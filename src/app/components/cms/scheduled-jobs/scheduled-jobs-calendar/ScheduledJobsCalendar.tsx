@@ -591,6 +591,10 @@ export default function ScheduledJobsCalendar() {
               withCurrentTimeBubble: true,
               withHeader: false,
             }}
+            yearViewProps={{
+            highlightToday: true,
+            withHeader: false,
+            }}
           />
         </Box>
 
