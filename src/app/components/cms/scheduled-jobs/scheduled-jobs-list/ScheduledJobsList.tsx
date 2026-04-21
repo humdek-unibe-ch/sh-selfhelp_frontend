@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   flexRender,
   getCoreRowModel,
@@ -74,6 +74,20 @@ const formatDate = (dateString: string) => {
     });
 };
 
+// Format log to be user friendly
+const formatVerbalLog =(log: string) => {
+  try {
+    const parsed = JSON.parse(log);
+
+    if (parsed.verbal_log) {
+      return parsed.verbal_log;
+    }
+    return log;
+  } catch {
+    return log;
+  }
+}
+
 // Component for displaying transactions sub-table
 function TransactionsSubTable({ transactions }: { transactions: IScheduledJobTransaction[] }) {
     return (
@@ -104,9 +118,11 @@ function TransactionsSubTable({ transactions }: { transactions: IScheduledJobTra
                                 </TableTd>
                                 <TableTd>{transaction.user}</TableTd>
                                 <TableTd>
-                                    <Text size="sm" className={classes.descriptionText} truncate>
-                                        {transaction.transaction_verbal_log}
-                                    </Text>
+                                <Tooltip label={formatVerbalLog(transaction.transaction_verbal_log)}>
+                                <Text size="sm" className={classes.descriptionText} truncate>
+                                    {formatVerbalLog(transaction.transaction_verbal_log)}
+                                </Text>
+                                </Tooltip>
                                 </TableTd>
                             </TableTr>
                         ))}
@@ -280,6 +296,11 @@ export function ScheduledJobsList({
         setExpandedJobs(newExpanded);
     }, [expandedJobs]);
 
+    // Close expanded on new set of data from api
+    useEffect(() => {
+    setExpandedJobs(new Set());
+    }, [scheduledJobsData]);
+
 
     // Define table columns
     const columns = useMemo<ColumnDef<IScheduledJob>[]>(
@@ -291,7 +312,6 @@ export function ScheduledJobsList({
             const hasTransactions =
               row.original.transactions && row.original.transactions.length > 0;
             const isExpanded = expandedJobs.has(row.original.id);
-
             if (!hasTransactions) {
               return <div style={{ width: 24 }} />;
             }
