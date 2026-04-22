@@ -17,6 +17,12 @@ export function DataTablesViewer({ activeTableIds, selectedUserId, showDeleted, 
   const tables = tablesResp?.dataTables || [];
   const [opened, setOpened] = useState<string[]>([]);
 
+  // stable key from IDs to avoid array reference changes triggering effects
+  const tableIdsKey = useMemo(
+  () => tables.map(t => t.id).join(','),
+  [tables]
+  );
+
   // Only reset opened panels when the actual selected tables change, not when filters change
   useEffect(() => {
     // Keep previously opened panels that are still in the current selection
@@ -31,7 +37,7 @@ export function DataTablesViewer({ activeTableIds, selectedUserId, showDeleted, 
         return prevOpened.filter(id => currentTableIds.has(id));
       }
     });
-  }, [activeTableIds, tables]); // Only depend on activeTableIds and tables, not filter parameters
+  }, [activeTableIds, tableIdsKey]); // Only depend on activeTableIds and tables, not filter parameters
 
   const selectedTables = useMemo(() => {
     if (!tables.length) return [] as { id: number; name: string; displayName: string }[];
