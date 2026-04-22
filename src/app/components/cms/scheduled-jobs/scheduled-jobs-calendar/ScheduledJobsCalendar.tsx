@@ -41,6 +41,7 @@ import { ScheduledJobActionsMenuItems } from "../utils/ScheduledJobActionsMenuIt
 import { DateStringValue, getStartOfWeek } from "@mantine/dates";
 import { FilterActions } from "../../../shared/common/FilterControls";
 import { EmptyState } from "../../../shared/common/EmptyState";
+import { PageHeader } from "../../../shared/common/PageHeader";
 
 /**
  * Screen coordinates and metadata for the right-click context menu.
@@ -373,41 +374,31 @@ export default function ScheduledJobsCalendar() {
   return (
     <Paper p="md" radius="md" shadow="sm">
       <Stack gap="xs">
-        <Group justify="space-between" align="center" wrap="wrap" gap="xs">
-          {/* Header */}
-          <Group justify="space-between">
-            <Container pl={0}>
-              <Group gap={8} align="center">
-                <Text size="lg" fw={600}>
-                  Scheduled Jobs Calendar
-                </Text>
-
-                {scheduledJobsData && scheduledJobsData.totalCount > 0 && (
-                  <Badge variant="light" color="gray" size="sm">
-                    {scheduledJobsData?.totalCount}
-                  </Badge>
-                )}
-              </Group>
-              <Text size="sm" c="dimmed">
-                Manage and monitor scheduled jobs via calendar
-              </Text>
-            </Container>
-          </Group>
-
-          <Group gap="sm" align="center">
-            {STATUS_LEGEND.map((s) => (
-              <Group key={s.label} gap={4} wrap="nowrap">
-                <div
-                  className={classes.legendDot}
-                  style={{ backgroundColor: s.color }}
-                />
-                <Text size="xs" c="dimmed">
-                  {s.label}
-                </Text>
-              </Group>
-            ))}
-          </Group>
-        </Group>
+          {/* Reusable PageHeader with Legend as children */}
+          <PageHeader
+            title="Scheduled Jobs Calendar"
+            subtitle="Manage and monitor scheduled jobs via calendar"
+            badge={
+              scheduledJobsData && scheduledJobsData.totalCount > 0
+                ? scheduledJobsData.totalCount
+                : undefined
+            }
+          >
+            {/* Legend as children */}
+            <Group gap="sm" align="center">
+              {STATUS_LEGEND.map((s) => (
+                <Group key={s.label} gap={4} wrap="nowrap">
+                  <div
+                    className={classes.legendDot}
+                    style={{ backgroundColor: s.color }}
+                  />
+                  <Text size="xs" c="dimmed">
+                    {s.label}
+                  </Text>
+                </Group>
+              ))}
+            </Group>
+          </PageHeader>
 
         <Paper p="xs" className={classes.filterBar}>
           <Group align="flex-end" gap="sm">
@@ -450,14 +441,14 @@ export default function ScheduledJobsCalendar() {
           />
 
           {!isFetching && events.length === 0 && (
-              <EmptyState
-                title="No scheduled jobs found"
-                description={
-                  isFiltersActive
-                    ? "No jobs match your current filters (User / Action)"
-                    : "There are no scheduled jobs in the selected time period"
-                }
-              />
+            <EmptyState
+              title="No scheduled jobs found"
+              description={
+                isFiltersActive
+                  ? "No jobs match your current filters (User / Action)"
+                  : "There are no scheduled jobs in the selected time period"
+              }
+            />
           )}
 
           <ScheduleHeader>

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Accordion, Card, Text } from '@mantine/core';
 import { useDataTables } from '../../../../../hooks/useData';
 import SingleDataTable from './SingleDataTable';
+import { EmptyState } from '../../../shared/common/EmptyState';
 
 interface IDataTablesViewerProps {
   activeTableIds: number[]; // includes -1 for all
@@ -55,13 +56,16 @@ export function DataTablesViewer({ activeTableIds, selectedUserId, showDeleted, 
     );
   }
 
-  if (selectedTables.length === 0) {
-    return (
-      <Card>
-        <Text c="dimmed">No data tables available.</Text>
-      </Card>
-    );
-  }
+if (selectedTables.length === 0) {
+  return (
+    <Card withBorder shadow="sm" radius="md">
+      <EmptyState
+        title="No data tables available"
+        description=""
+      />
+    </Card>
+  );
+}
 
   return (
     <Accordion multiple value={opened} onChange={setOpened}>

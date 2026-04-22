@@ -54,6 +54,7 @@ import { getJobStatusColor } from '../utils/job-status';
 import { ScheduledJobActionsMenuItems } from '../utils/ScheduledJobActionsMenuItems';
 import { FilterActions } from '../../../shared/common/FilterControls';
 import { EmptyState } from '../../../shared/common/EmptyState';
+import { PageHeader } from '../../../shared/common/PageHeader';
 interface IScheduledJobsListProps {
     onViewJob?: (jobId: number) => void;
     onExecuteJob?: (jobId: number) => void;
@@ -600,38 +601,22 @@ export function ScheduledJobsList({
     return (
       <Card>
         <Stack gap="md">
-          {/* Header */}
-          <Group justify="space-between" align="center" wrap="wrap" gap="xs">
-            <Group justify="space-between">
-              <Container pl={0}>
-                <Group gap={8} align="center">
-                  <Text size="lg" fw={600}>
-                    Scheduled Jobs
-                  </Text>
-                  {pagination && pagination.totalCount > 0 && (
-                    <Badge ml={4} variant="light" color="gray" size="sm">
-                      {pagination?.totalCount}
-                    </Badge>
-                  )}
-                </Group>
-                <Text size="sm" c="dimmed">
-                  Manage and monitor scheduled jobs
-                </Text>
-              </Container>
-            </Group>
-
-            <Group>
-              {selectedJobs.size > 0 && (
+            {/* Standardized Header using PageHeader */}
+            <PageHeader
+            title="Scheduled Jobs"
+            subtitle="Manage and monitor scheduled jobs"
+            badge={pagination.totalCount > 0 ? pagination.totalCount : undefined}
+            >
+            {selectedJobs.size > 0 && (
                 <Button
-                  color="red"
-                  leftSection={<IconTrash size={16} />}
-                  onClick={handleBulkDelete}
+                color="red"
+                leftSection={<IconTrash size={16} />}
+                onClick={handleBulkDelete}
                 >
-                  Delete Selected ({selectedJobs.size})
+                Delete Selected ({selectedJobs.size})
                 </Button>
-              )}
-            </Group>
-          </Group>
+            )}
+            </PageHeader>
 
           {/* Advanced Filters */}
           <Paper p="md" withBorder>
