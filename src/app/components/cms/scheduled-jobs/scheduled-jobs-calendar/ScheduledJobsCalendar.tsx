@@ -4,7 +4,6 @@ import {
   Paper,
   Select,
   Group,
-  Button,
   Stack,
   Box,
   Text,
@@ -15,6 +14,7 @@ import {
   Badge,
   NumberInput,
   Container,
+  Button,
 } from "@mantine/core";
 import {
   Schedule,
@@ -35,13 +35,13 @@ import { useActions } from "../../../../../hooks/useActions";
 import { ScheduledJobDetailsModal } from "../scheduled-job-details-modal/ScheduledJobDetailsModal";
 import { useScheduledJobManager } from "../utils/hooks/useScheduledJobManager";
 import { DeleteJobModal } from "../delete-job-modal/DeleteJobModal";
-import { IconRefresh } from "@tabler/icons-react";
 import { mapJobsToEvents, IJobEventPayload } from "./calendar-helpers";
 import { EventHoverDetails } from "./EventHoverDetails";
 import classes from "./ScheduledJobsCalendar.module.css";
 import { ScheduledJobActionsMenuItems } from "../utils/ScheduledJobActionsMenuItems";
 import { DateStringValue, getStartOfWeek } from "@mantine/dates";
 import { FilterActions } from "../../../shared/common/FilterControls";
+import { EmptyState } from "../../../shared/common/EmptyState";
 
 /**
  * Screen coordinates and metadata for the right-click context menu.
@@ -449,6 +449,17 @@ export default function ScheduledJobsCalendar() {
             overlayProps={{ blur: 0, backgroundOpacity: 0.35 }}
             loaderProps={{ size: "md" }}
           />
+
+          {!isFetching && events.length === 0 && (
+              <EmptyState
+                title="No scheduled jobs found"
+                description={
+                  isFiltersActive
+                    ? "No jobs match your current filters (User / Action)"
+                    : "There are no scheduled jobs in the selected time period"
+                }
+              />
+          )}
 
           <ScheduleHeader>
             <Group align="flex-end" gap="sm" w="100%">

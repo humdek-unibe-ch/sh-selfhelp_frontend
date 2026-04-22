@@ -28,7 +28,6 @@ import {
   Stack,
   Button,
   Menu,
-  Center,
   Box,
   Checkbox,
   Paper,
@@ -40,7 +39,6 @@ import {
   IconSearch,
   IconTrash,
   IconDots,
-  IconRefresh,
   IconSortAscending,
   IconSortDescending,
   IconX,
@@ -55,6 +53,7 @@ import classes from './ScheduledJobsList.module.css';
 import { getJobStatusColor } from '../utils/job-status';
 import { ScheduledJobActionsMenuItems } from '../utils/ScheduledJobActionsMenuItems';
 import { FilterActions } from '../../../shared/common/FilterControls';
+import { EmptyState } from '../../../shared/common/EmptyState';
 interface IScheduledJobsListProps {
     onViewJob?: (jobId: number) => void;
     onExecuteJob?: (jobId: number) => void;
@@ -752,13 +751,13 @@ export function ScheduledJobsList({
                   className={classes.pageSizeSelect}
                 />
               </Group>
-                <FilterActions
-                  onApply={handleApplyFilters}
-                  onReset={handleResetFilters}
-                  onRefresh={() => refetch()}
-                  isFetching={isFetching}
-                  isApplyDisabled={filterParams === params}
-                />
+              <FilterActions
+                onApply={handleApplyFilters}
+                onReset={handleResetFilters}
+                onRefresh={() => refetch()}
+                isFetching={isFetching}
+                isApplyDisabled={filterParams === params}
+              />
             </Stack>
           </Paper>
 
@@ -827,22 +826,18 @@ export function ScheduledJobsList({
                         colSpan={table.getAllColumns().length}
                         style={{ padding: "80px 20px", textAlign: "center" }}
                       >
-                        <Center>
-                          <Stack align="center" gap="sm">
-                            <Text size="lg" c="dimmed" fw={500}>
-                              No scheduled jobs found
-                            </Text>
-                            <Text size="sm" c="dimmed" ta="center" maw={400}>
-                              {params.search
-                                ? "Try adjusting your search criteria"
-                                : params.status ||
-                                    params.jobType ||
-                                    params.dateFrom !== params.dateTo
-                                  ? "No jobs match your current filters"
-                                  : "No jobs are currently scheduled in the selected period"}
-                            </Text>
-                          </Stack>
-                        </Center>
+                        <EmptyState
+                          title="No scheduled jobs found"
+                          description={
+                            params.search
+                              ? "Try adjusting your search criteria"
+                              : params.status ||
+                                  params.jobType ||
+                                  params.dateFrom !== params.dateTo
+                                ? "No jobs match your current filters"
+                                : "No jobs are currently scheduled in the selected period"
+                          }
+                        />
                       </Table.Td>
                     </Table.Tr>
                   )}

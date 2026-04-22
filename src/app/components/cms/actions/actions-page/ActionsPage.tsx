@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { Button, Group, Stack, Text, TextInput, ActionIcon, Card, Table, Pagination, Paper, Container, Badge, Select, LoadingOverlay } from '@mantine/core';
-import { IconPlus, IconX, IconEdit, IconTrash, IconRefresh } from '@tabler/icons-react';
+import { IconPlus, IconX, IconEdit, IconTrash } from '@tabler/icons-react';
 import { useActions, useDeleteAction } from '../../../../../hooks/useActions';
 import type { IActionsListParams, IActionDetails } from '../../../../../types/responses/admin/actions.types';
 import { DeleteActionModal } from '../delete-action-modal/DeleteActionModal';
@@ -10,6 +10,7 @@ import { ActionFormModal } from '../action-form-modal/ActionFormModal';
 import { useDataTables } from '../../../../../hooks/useData';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { FilterActions } from '../../../shared/common/FilterControls';
+import { EmptyState } from '../../../shared/common/EmptyState';
 
 export function ActionsPage() {
   const [filterParams, setFilterParams] = useState<IActionsListParams>({
@@ -48,7 +49,7 @@ export function ActionsPage() {
       sort: "name",
       sortDirection: "asc",
       triggerTypeId: undefined,
-      dataTable: undefined,
+      dataTableId: undefined,
     };
     setFilterParams(defaultParams);
     setParams(defaultParams);
@@ -214,14 +215,16 @@ const dataTableOptions = useMemo(() => {
                       colSpan={5}
                       style={{ textAlign: "center", padding: "60px 20px" }}
                     >
-                      <Text size="lg" c="dimmed">
-                        {isFetching ? "Loading actions..." : "No actions found"}
-                      </Text>
-                      {!isFetching && (
-                        <Text size="sm" c="dimmed" mt={8}>
-                          Try adjusting your search or filter criteria
-                        </Text>
-                      )}
+                      <EmptyState
+                        title={
+                          isFetching ? "Loading actions..." : "No actions found"
+                        }
+                        description={
+                          !isFetching
+                            ? "Try adjusting your search or filter criteria"
+                            : undefined
+                        }
+                      />
                     </Table.Td>
                   </Table.Tr>
                 )}
