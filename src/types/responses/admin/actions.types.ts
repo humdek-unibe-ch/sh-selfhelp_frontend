@@ -59,6 +59,8 @@ export interface IActionsListParams {
   search?: string;
   sort?: 'name' | 'created_at' | 'updated_at';
   sortDirection?: 'asc' | 'desc';
+  triggerTypeId?: string;
+  dataTableId?: string;
 }
 
 

@@ -54,6 +54,7 @@ import { IScheduledJobFilters, IScheduledJob, IScheduledJobTransaction } from '.
 import classes from './ScheduledJobsList.module.css';
 import { getJobStatusColor } from '../utils/job-status';
 import { ScheduledJobActionsMenuItems } from '../utils/ScheduledJobActionsMenuItems';
+import { FilterActions } from '../../../shared/common/FilterControls';
 interface IScheduledJobsListProps {
     onViewJob?: (jobId: number) => void;
     onExecuteJob?: (jobId: number) => void;
@@ -634,162 +635,143 @@ export function ScheduledJobsList({
           </Group>
 
           {/* Advanced Filters */}
-            <Paper p="md" withBorder>
-              <Stack gap="md">
-                <Group gap="md" wrap="nowrap">
-                  <TextInput
-                    label="Search"
-                    placeholder="Search jobs..."
-                    leftSection={<IconSearch size={16} />}
-                    rightSection={
-                      filterParams.search ? (
-                        <ActionIcon
-                          variant="subtle"
-                          size="sm"
-                          onClick={handleClearSearch}
-                        >
-                          <IconX size={14} />
-                        </ActionIcon>
-                      ) : null
-                    }
-                    value={filterParams.search || ""}
-                    onChange={(event) =>
-                      handleSearch(event.currentTarget.value)
-                    }
-                    className={classes.searchInput}
-                  />
-                  <Select
-                    label="Status"
-                    placeholder="Status"
-                    data={statusOptions}
-                    value={filterParams.status || ""}
-                    onChange={(value) =>
-                      setFilterParams((prev) => ({
-                        ...prev,
-                        status: value || undefined,
-                        page: 1,
-                      }))
-                    }
-                    clearable
-                    className={classes.filterSelect}
-                  />
-                  <Select
-                    label="Type"
-                    placeholder="Type"
-                    data={typeOptions}
-                    value={filterParams.jobType || ""}
-                    onChange={(value) =>
-                      setFilterParams((prev) => ({
-                        ...prev,
-                        jobType: value || undefined,
-                        page: 1,
-                      }))
-                    }
-                    clearable
-                    className={classes.filterSelect}
-                  />
-                  <Select
-                    label="Date Type"
-                    placeholder="Date Type"
-                    data={dateTypeOptions}
-                    value={filterParams.dateType || ""}
-                    onChange={(value) =>
-                      setFilterParams((prev) => ({
-                        ...prev,
-                        dateType:
-                          (value as IScheduledJobFilters["dateType"]) ||
-                          "date_to_be_executed",
-                        page: 1,
-                      }))
-                    }
-                    className={classes.filterSelect}
-                  />
-                </Group>
-                <Group gap="md" wrap="nowrap">
-                  <DateInput
-                    label="Date From"
-                    placeholder="Date From"
-                    value={
-                      filterParams.dateFrom
-                        ? new Date(filterParams.dateFrom)
-                        : null
-                    }
-                    onChange={(date) =>
-                      setFilterParams((prev) => ({
-                        ...prev,
-                        dateFrom: date || undefined,
-                        page: 1,
-                      }))
-                    }
-                    clearable
-                    className={classes.dateFilterInput}
-                  />
-                  <DateInput
-                    label="Date To"
-                    placeholder="Date To"
-                    value={
-                      filterParams.dateTo ? new Date(filterParams.dateTo) : null
-                    }
-                    onChange={(date) =>
-                      setFilterParams((prev) => ({
-                        ...prev,
-                        dateTo: date || undefined,
-                        page: 1,
-                      }))
-                    }
-                    clearable
-                    className={classes.dateFilterInput}
-                  />
-                  <Select
-                    label="Rows per page"
-                    value={filterParams.pageSize?.toString() || "20"}
-                    onChange={handlePageSizeChange}
-                    data={[
-                      { value: "10", label: "10 per page" },
-                      { value: "20", label: "20 per page" },
-                      { value: "50", label: "50 per page" },
-                      { value: "100", label: "100 per page" },
-                    ]}
-                    className={classes.pageSizeSelect}
-                  />
-                </Group>
-                <Group gap="sm" wrap="nowrap" justify="flex-end">
-                  <Button
-                    variant="filled"
-                    color="blue"
-                    onClick={handleApplyFilters}
-                    loading={isFetching}
-                    disabled={filterParams === params}
-                  >
-                    Apply Filters
-                  </Button>
+          <Paper p="md" withBorder>
+            <Stack gap="md">
+              <Group gap="md" wrap="nowrap">
+                <TextInput
+                  label="Search"
+                  placeholder="Search jobs..."
+                  leftSection={<IconSearch size={16} />}
+                  rightSection={
+                    filterParams.search ? (
+                      <ActionIcon
+                        variant="subtle"
+                        size="sm"
+                        onClick={handleClearSearch}
+                      >
+                        <IconX size={14} />
+                      </ActionIcon>
+                    ) : null
+                  }
+                  value={filterParams.search || ""}
+                  onChange={(event) => handleSearch(event.currentTarget.value)}
+                  className={classes.searchInput}
+                />
+                <Select
+                  label="Status"
+                  placeholder="Status"
+                  data={statusOptions}
+                  value={filterParams.status || ""}
+                  onChange={(value) =>
+                    setFilterParams((prev) => ({
+                      ...prev,
+                      status: value || undefined,
+                      page: 1,
+                    }))
+                  }
+                  clearable
+                  className={classes.filterSelect}
+                />
+                <Select
+                  label="Type"
+                  placeholder="Type"
+                  data={typeOptions}
+                  value={filterParams.jobType || ""}
+                  onChange={(value) =>
+                    setFilterParams((prev) => ({
+                      ...prev,
+                      jobType: value || undefined,
+                      page: 1,
+                    }))
+                  }
+                  clearable
+                  className={classes.filterSelect}
+                />
+                <Select
+                  label="Date Type"
+                  placeholder="Date Type"
+                  data={dateTypeOptions}
+                  value={filterParams.dateType || ""}
+                  onChange={(value) =>
+                    setFilterParams((prev) => ({
+                      ...prev,
+                      dateType:
+                        (value as IScheduledJobFilters["dateType"]) ||
+                        "date_to_be_executed",
+                      page: 1,
+                    }))
+                  }
+                  className={classes.filterSelect}
+                />
+              </Group>
+              <Group gap="md" wrap="nowrap">
+                <DateInput
+                  label="Date From"
+                  placeholder="Date From"
+                  value={
+                    filterParams.dateFrom
+                      ? new Date(filterParams.dateFrom)
+                      : null
+                  }
+                  onChange={(date) =>
+                    setFilterParams((prev) => ({
+                      ...prev,
+                      dateFrom: date || undefined,
+                      page: 1,
+                    }))
+                  }
+                  clearable
+                  className={classes.dateFilterInput}
+                />
+                <DateInput
+                  label="Date To"
+                  placeholder="Date To"
+                  value={
+                    filterParams.dateTo ? new Date(filterParams.dateTo) : null
+                  }
+                  onChange={(date) =>
+                    setFilterParams((prev) => ({
+                      ...prev,
+                      dateTo: date || undefined,
+                      page: 1,
+                    }))
+                  }
+                  clearable
+                  className={classes.dateFilterInput}
+                />
+                <Select
+                  label="Rows per page"
+                  value={filterParams.pageSize?.toString() || "20"}
+                  onChange={handlePageSizeChange}
+                  data={[
+                    { value: "10", label: "10 per page" },
+                    { value: "20", label: "20 per page" },
+                    { value: "50", label: "50 per page" },
+                    { value: "100", label: "100 per page" },
+                  ]}
+                  className={classes.pageSizeSelect}
+                />
+              </Group>
+                <FilterActions
+                  onApply={handleApplyFilters}
+                  onReset={handleResetFilters}
+                  onRefresh={() => refetch()}
+                  isFetching={isFetching}
+                  isApplyDisabled={filterParams === params}
+                />
+            </Stack>
+          </Paper>
 
-                <Button
-                    color="red"
-                    variant="filled"
-                    onClick={handleResetFilters}
-                    loading={isFetching}
-                    disabled={filterParams === params}
-                  >
-                    Reset
-                  </Button>
-
-                  <Button
-                    variant="light"
-                    leftSection={<IconRefresh size={16} />}
-                    onClick={() => refetch()}
-                    loading={isFetching}
-                    disabled={isFetching}
-                  >
-                    Refresh
-                  </Button>
-                </Group>
-              </Stack>
-            </Paper>
-
-          {/* Table */}
-          <div className={classes.tableWrapper}>
-            <LoadingOverlay visible={isFetching} />
+          {/* Table Section */}
+          <div
+            className={classes.tableWrapper}
+            style={{ position: "relative", minHeight: 400 }}
+          >
+            <LoadingOverlay
+              visible={isFetching}
+              overlayProps={{ blur: 2, backgroundOpacity: 0.6 }}
+              loaderProps={{ size: "lg" }}
+            />
 
             <Box className={classes.tableScrollContainer}>
               <Table striped highlightOnHover>
@@ -837,25 +819,36 @@ export function ScheduledJobsList({
                         )}
                     </React.Fragment>
                   ))}
+
+                  {/* No Results Empty State */}
+                  {!isFetching && scheduledJobs.length === 0 && (
+                    <Table.Tr>
+                      <Table.Td
+                        colSpan={table.getAllColumns().length}
+                        style={{ padding: "80px 20px", textAlign: "center" }}
+                      >
+                        <Center>
+                          <Stack align="center" gap="sm">
+                            <Text size="lg" c="dimmed" fw={500}>
+                              No scheduled jobs found
+                            </Text>
+                            <Text size="sm" c="dimmed" ta="center" maw={400}>
+                              {params.search
+                                ? "Try adjusting your search criteria"
+                                : params.status ||
+                                    params.jobType ||
+                                    params.dateFrom !== params.dateTo
+                                  ? "No jobs match your current filters"
+                                  : "No jobs are currently scheduled in the selected period"}
+                            </Text>
+                          </Stack>
+                        </Center>
+                      </Table.Td>
+                    </Table.Tr>
+                  )}
                 </TableTbody>
               </Table>
             </Box>
-
-            {/* Empty state */}
-            {!isFetching && scheduledJobs.length === 0 && (
-              <Center py="xl">
-                <Stack align="center" gap="sm">
-                  <Text size="lg" c="dimmed">
-                    No scheduled jobs found
-                  </Text>
-                  <Text size="sm" c="dimmed">
-                    {params.search
-                      ? "Try adjusting your search criteria"
-                      : "No jobs are currently scheduled"}
-                  </Text>
-                </Stack>
-              </Center>
-            )}
           </div>
 
           {/* Pagination */}
@@ -870,14 +863,14 @@ export function ScheduledJobsList({
           )}
 
           {/* Results info */}
-        <Text size="sm" c="dimmed" ta="center">
-        {pagination.totalCount === 0
-            ? "Showing 0 entries"
-            : `Showing ${(pagination.page - 1) * pagination.pageSize + 1} to ${Math.min(
-                pagination.page * pagination.pageSize,
-                pagination.totalCount,
-            )} of ${pagination.totalCount} entries`}
-        </Text>
+          <Text size="sm" c="dimmed" ta="center">
+            {pagination.totalCount === 0
+              ? "Showing 0 entries"
+              : `Showing ${(pagination.page - 1) * pagination.pageSize + 1} to ${Math.min(
+                  pagination.page * pagination.pageSize,
+                  pagination.totalCount,
+                )} of ${pagination.totalCount} entries`}
+          </Text>
         </Stack>
       </Card>
     );

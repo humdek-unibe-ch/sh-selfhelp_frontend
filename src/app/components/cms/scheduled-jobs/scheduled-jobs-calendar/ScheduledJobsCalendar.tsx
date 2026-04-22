@@ -41,6 +41,7 @@ import { EventHoverDetails } from "./EventHoverDetails";
 import classes from "./ScheduledJobsCalendar.module.css";
 import { ScheduledJobActionsMenuItems } from "../utils/ScheduledJobActionsMenuItems";
 import { DateStringValue, getStartOfWeek } from "@mantine/dates";
+import { FilterActions } from "../../../shared/common/FilterControls";
 
 /**
  * Screen coordinates and metadata for the right-click context menu.
@@ -377,17 +378,17 @@ export default function ScheduledJobsCalendar() {
           {/* Header */}
           <Group justify="space-between">
             <Container pl={0}>
-            <Group gap={8} align="center">
-            <Text size="lg" fw={600}>
-                Scheduled Jobs Calendar
-            </Text>
+              <Group gap={8} align="center">
+                <Text size="lg" fw={600}>
+                  Scheduled Jobs Calendar
+                </Text>
 
-            {scheduledJobsData && scheduledJobsData.totalCount > 0 && (
-                <Badge variant="light" color="gray" size="sm">
-                {scheduledJobsData?.totalCount}
-                </Badge>
-            )}
-            </Group>
+                {scheduledJobsData && scheduledJobsData.totalCount > 0 && (
+                  <Badge variant="light" color="gray" size="sm">
+                    {scheduledJobsData?.totalCount}
+                  </Badge>
+                )}
+              </Group>
               <Text size="sm" c="dimmed">
                 Manage and monitor scheduled jobs via calendar
               </Text>
@@ -433,31 +434,12 @@ export default function ScheduledJobsCalendar() {
               searchable
               flex={1}
             />
-            <Button
-              variant="filled"
-              color="blue"
-              onClick={handleApplyFilters}
-              loading={isFetching}
-            >
-              Apply Filters
-            </Button>
-            <Button
-              variant="danger"
-              onClick={handleResetFilters}
-              loading={isFetching}
-              disabled={!isFiltersActive}
-            >
-              Reset
-            </Button>
-            <Button
-              variant="light"
-              color="gray"
-              leftSection={<IconRefresh size={14} />}
-              onClick={handleRefresh}
-              loading={isFetching}
-            >
-              Refresh
-            </Button>
+            <FilterActions
+              onApply={handleApplyFilters}
+              onReset={handleResetFilters}
+              onRefresh={handleRefresh}
+              isFetching={isFetching}
+            />
           </Group>
         </Paper>
 
@@ -551,8 +533,8 @@ export default function ScheduledJobsCalendar() {
               withHeader: false,
             }}
             yearViewProps={{
-            highlightToday: true,
-            withHeader: false,
+              highlightToday: true,
+              withHeader: false,
             }}
           />
         </Box>

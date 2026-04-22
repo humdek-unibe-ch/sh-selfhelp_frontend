@@ -1,25 +1,74 @@
 "use client";
 
 import { useCallback, useMemo, useState } from 'react';
-import { Button, Group, Stack, Text, TextInput, ActionIcon, Card, Table, Pagination, Loader, Paper, Container, Badge } from '@mantine/core';
-import { IconPlus, IconX, IconEdit, IconTrash } from '@tabler/icons-react';
+import { Button, Group, Stack, Text, TextInput, ActionIcon, Card, Table, Pagination, Paper, Container, Badge, Select, LoadingOverlay } from '@mantine/core';
+import { IconPlus, IconX, IconEdit, IconTrash, IconRefresh } from '@tabler/icons-react';
 import { useActions, useDeleteAction } from '../../../../../hooks/useActions';
 import type { IActionsListParams, IActionDetails } from '../../../../../types/responses/admin/actions.types';
 import { DeleteActionModal } from '../delete-action-modal/DeleteActionModal';
 import { ActionFormModal } from '../action-form-modal/ActionFormModal';
+import { useDataTables } from '../../../../../hooks/useData';
+import { useLookupsByType } from '../../../../../hooks/useLookups';
+import { FilterActions } from '../../../shared/common/FilterControls';
 
 export function ActionsPage() {
-  const [params, setParams] = useState<IActionsListParams>({ page: 1, pageSize: 20, search: '', sort: 'name', sortDirection: 'asc' });
-  const { data, isLoading } = useActions(params);
+  const [filterParams, setFilterParams] = useState<IActionsListParams>({
+  page: 1,
+  pageSize: 20,
+  search: '',
+  sort: 'name',
+  sortDirection: 'asc',
+  triggerTypeId: undefined,
+  dataTableId: undefined,
+  });
+  const [params, setParams] = useState<IActionsListParams>(filterParams);
+
+  const { data, isFetching, refetch } = useActions(params);
   const deleteMutation = useDeleteAction();
+  const triggerTypes = useLookupsByType('actionTriggerTypes');
+  const { data: dataTablesData } = useDataTables();
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editAction, setEditAction] = useState<IActionDetails | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<IActionDetails | null>(null);
 
   const handleSearch = useCallback((value: string) => {
-    setParams(prev => ({ ...prev, search: value, page: 1 }));
+    setFilterParams(prev => ({ ...prev, search: value, page: 1 }));
   }, []);
+
+  const handleApplyFilters = useCallback(() => {
+    setParams({ ...filterParams, page: 1 });
+  }, [filterParams]);
+
+  const handleResetFilters = useCallback(() => {
+    const defaultParams: IActionsListParams = {
+      page: 1,
+      pageSize: 20,
+      search: "",
+      sort: "name",
+      sortDirection: "asc",
+      triggerTypeId: undefined,
+      dataTable: undefined,
+    };
+    setFilterParams(defaultParams);
+    setParams(defaultParams);
+   }, []);
+
+  const triggerOptions = useMemo(() => {
+  return triggerTypes.map((t) => ({
+    value: String(t.id),
+    label: t.lookupValue || t.lookupCode,
+  }));
+}, [triggerTypes]);
+
+const dataTableOptions = useMemo(() => {
+  return (
+    dataTablesData?.dataTables?.map((dt) => ({
+      value: String(dt.id),
+      label: dt.displayName || dt.name,
+    })) ?? []
+  );
+}, [dataTablesData]);
 
   const clearSearch = useCallback(() => handleSearch(''), [handleSearch]);
 
@@ -72,30 +121,81 @@ export function ActionsPage() {
         </Group>
 
         {/* Search */}
-        <TextInput
-          value={params.search || ""}
-          onChange={(e) => handleSearch(e.currentTarget.value)}
-          placeholder="Search actions"
-          rightSection={
-            params.search ? (
-              <ActionIcon
-                variant="subtle"
-                color="gray"
-                size="sm"
-                onClick={clearSearch}
-              >
-                <IconX size={14} />
-              </ActionIcon>
-            ) : undefined
-          }
-        />
+        <Card withBorder>
+          <Stack gap="md">
+            {/* Filters row */}
+            <Group gap="md" wrap="nowrap">
+              <TextInput
+                label="Search"
+                value={filterParams.search || ""}
+                onChange={(e) => handleSearch(e.currentTarget.value)}
+                placeholder="Search actions"
+                style={{ flex: 1 }}
+                rightSection={
+                  filterParams.search ? (
+                    <ActionIcon
+                      variant="subtle"
+                      size="sm"
+                      onClick={clearSearch}
+                    >
+                      <IconX size={14} />
+                    </ActionIcon>
+                  ) : null
+                }
+              />
+
+              <Select
+                label="Trigger"
+                placeholder="Trigger"
+                data={triggerOptions}
+                value={filterParams.triggerTypeId || ""}
+                onChange={(value) =>
+                  setFilterParams((prev) => ({
+                    ...prev,
+                    triggerType: value || undefined,
+                    page: 1,
+                  }))
+                }
+                clearable
+              />
+
+              <Select
+                label="Data table"
+                placeholder="Data table"
+                data={dataTableOptions}
+                value={filterParams.dataTableId || ""}
+                onChange={(value) =>
+                  setFilterParams((prev) => ({
+                    ...prev,
+                    dataTable: value || undefined,
+                    page: 1,
+                  }))
+                }
+                clearable
+              />
+            </Group>
+
+            {/* Actions row (same pattern as ScheduledJobsList) */}
+            <FilterActions
+              onApply={handleApplyFilters}
+              onReset={handleResetFilters}
+              onRefresh={() => refetch()}
+              isFetching={isFetching}
+              isApplyDisabled={filterParams === params}
+            />
+          </Stack>
+        </Card>
 
         {/* Actions table */}
-        <Card withBorder>
-          {isLoading ? (
-            <Loader />
-          ) : (
-            <Table striped highlightOnHover withTableBorder>
+        <div style={{ position: "relative" }}>
+          <LoadingOverlay
+            visible={isFetching}
+            overlayProps={{ blur: 0, backgroundOpacity: 0.35 }}
+            loaderProps={{ size: "md" }}
+          />
+
+          <Card withBorder>
+            <Table striped highlightOnHover style={{ fontSize: 14 }}>
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th>ID</Table.Th>
@@ -105,18 +205,40 @@ export function ActionsPage() {
                   <Table.Th style={{ width: 120 }} />
                 </Table.Tr>
               </Table.Thead>
-              <Table.Tbody>{rows}</Table.Tbody>
+              <Table.Tbody>
+                {data?.actions && data.actions.length > 0 ? (
+                  rows
+                ) : (
+                  <Table.Tr>
+                    <Table.Td
+                      colSpan={5}
+                      style={{ textAlign: "center", padding: "60px 20px" }}
+                    >
+                      <Text size="lg" c="dimmed">
+                        {isFetching ? "Loading actions..." : "No actions found"}
+                      </Text>
+                      {!isFetching && (
+                        <Text size="sm" c="dimmed" mt={8}>
+                          Try adjusting your search or filter criteria
+                        </Text>
+                      )}
+                    </Table.Td>
+                  </Table.Tr>
+                )}
+              </Table.Tbody>
             </Table>
-          )}
-        </Card>
+          </Card>
+        </div>
 
         {/* Pagination */}
         {data?.pagination && (
-          <Pagination
-            value={params.page || 1}
-            total={data.pagination.totalPages}
-            onChange={(page) => setParams((prev) => ({ ...prev, page }))}
-          />
+          <Group justify="center" mt="md">
+            <Pagination
+              value={params.page || 1}
+              total={data.pagination.totalPages}
+              onChange={(page) => setParams((prev) => ({ ...prev, page }))}
+            />
+          </Group>
         )}
 
         {/* Modals */}
