@@ -14,7 +14,6 @@ import {
   Badge,
   NumberInput,
   Container,
-  Button,
 } from "@mantine/core";
 import {
   Schedule,
