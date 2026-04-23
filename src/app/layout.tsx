@@ -60,6 +60,28 @@ export default async function RootLayout({ children }: { children: React.ReactNo
  * Default metadata applied to every route unless a route segment overrides
  * it via its own `generateMetadata`. Keeping it here avoids the old
  * `<title>SelfHelp V2</title>` → real title flicker on slug pages.
+ *
+ * ## Division of responsibility
+ * - **Root layout (this file)**: fallbacks used when a route does not
+ *   provide its own metadata (e.g. auth pages, error boundaries).
+ * - **Per-page `generateMetadata()`** (`src/app/[[...slug]]/page.tsx`):
+ *   resolves the *translated* title / description for the current language
+ *   from the content payload (`pages_fields_translation`) and overrides
+ *   the fallbacks below.
+ *
+ * The `title.template` (`'%s'`) simply passes a page-provided title through
+ * untouched; no suffix is appended. When a route returns `title: undefined`
+ * the `default` is used instead — intentional, not a bug.
+ *
+ * Description works the same way but without a template (Next.js does not
+ * support one for description): the route-level string wins, and this
+ * value is the fallback when a route returns nothing.
+ *
+ * NOTE: Because `generateMetadata()` runs server-side, the document title
+ * does not update on a client-side language switch. `DynamicPageClient`
+ * calls `useSyncDocumentMetadata()` to sync `document.title` and the
+ * `<meta name="description">` tag when React Query re-fetches content in a
+ * new language — see `src/hooks/useSyncDocumentMetadata.ts`.
  */
 export const metadata = {
     title: {

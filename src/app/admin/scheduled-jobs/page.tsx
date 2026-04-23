@@ -3,6 +3,8 @@ import { LoadingScreen } from '../../components/shared/common/LoadingScreen';
 import { ScheduledJobsPage } from '../../components/cms/scheduled-jobs/scheduled-jobs-page/ScheduledJobsPage';
 import { AdminShell } from '../../components/cms/admin-shell/AdminShell';
 
+export const metadata = { title: 'Scheduled jobs' };
+
 export default function AdminScheduledJobsPage() {
   return (
     <AdminShell>
