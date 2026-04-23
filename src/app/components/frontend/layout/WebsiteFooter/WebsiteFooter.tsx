@@ -54,7 +54,7 @@ export function WebsiteFooter() {
                         c="dimmed"
                         ta="center"
                     >
-                        © {new Date().getFullYear()} Self Help. All rights reserved.
+                        © {new Date().getFullYear()} SelfHelp V2. All rights reserved.
                     </Text>
                 </Stack>
             </Container>

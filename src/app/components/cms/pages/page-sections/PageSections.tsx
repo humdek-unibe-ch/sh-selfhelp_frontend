@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, memo } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
     Paper,
@@ -664,6 +665,25 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                         }}
                     >
                         Add Section
+                    </Button>
+                    <Button
+                        size="xs"
+                        variant="light"
+                        component={Link}
+                        href={`/admin/pages/${pageName}`}
+                        rel="noopener noreferrer"
+                    >
+                        Edit Page
+                    </Button>
+                    <Button
+                        size="xs"
+                        variant="light"
+                        component={Link}
+                        href={`/${pageName}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Preview Page
                     </Button>
                 </Group>
             </Group>
