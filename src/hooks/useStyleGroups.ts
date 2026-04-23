@@ -9,7 +9,6 @@ import { useQuery } from '@tanstack/react-query';
 import { IStyleGroup } from '../types/responses/admin/styles.types';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useAuth } from './useAuth';
-import { getAccessToken } from '../utils/auth.utils';
 import { AdminApi } from '../api/admin';
 
 /**
@@ -21,7 +20,7 @@ export function useStyleGroups() {
     const { isAuthenticated, user } = useAuth();
     
     // More robust authentication check
-    const isActuallyAuthenticated = !!isAuthenticated && !!user && !!getAccessToken();
+    const isActuallyAuthenticated = !!isAuthenticated && !!user;
 
     return useQuery({
         queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.STYLE_GROUPS,
@@ -29,8 +28,8 @@ export function useStyleGroups() {
             return await AdminApi.getStyleGroups();
         },
         enabled: isActuallyAuthenticated, // Only fetch when user is truly authenticated
-        staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.staleTime, // Use longer cache for static data
-        gcTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.gcTime,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.STATIC.staleTime, // Use longer cache for static data
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.STATIC.gcTime,
         retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
         select: (data: IStyleGroup[]) => {
             return data;

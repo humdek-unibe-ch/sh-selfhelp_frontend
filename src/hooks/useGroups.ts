@@ -26,7 +26,7 @@ export function useGroups(params: IGroupsListParams = {}) {
   return useQuery({
     queryKey: GROUPS_QUERY_KEYS.list(params),
     queryFn: () => AdminGroupApi.getGroups(params),
-    staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.staleTime,
+    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.STATIC.staleTime,
   });
 }
 
@@ -36,7 +36,7 @@ export function useGroupDetails(groupId: number) {
     queryKey: GROUPS_QUERY_KEYS.detail(groupId),
     queryFn: () => AdminGroupApi.getGroupById(groupId),
     enabled: !!groupId,
-    staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
+    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
   });
 }
 
@@ -46,7 +46,7 @@ export function useGroupAcls(groupId: number) {
     queryKey: GROUPS_QUERY_KEYS.acls(groupId),
     queryFn: () => AdminGroupApi.getGroupAcls(groupId),
     enabled: !!groupId,
-    staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
+    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
   });
 }
 

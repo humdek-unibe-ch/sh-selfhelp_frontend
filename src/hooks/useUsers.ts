@@ -47,7 +47,7 @@ export function useUsers(params: IUsersListParams = {}) {
   return useQuery({
     queryKey: USER_QUERY_KEYS.list(params),
     queryFn: () => AdminUserApi.getUsers(params),
-    staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.USER_DATA.staleTime,
+    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.USER_DATA.staleTime,
   });
 }
 

@@ -15,8 +15,8 @@ export function useUnusedSections(enabled: boolean = true) {
             const response = await AdminSectionUtilityApi.getUnusedSections();
             return response || [];
         },
-        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
         retry: 3,
         retryDelay: 1000,
         enabled,
@@ -33,8 +33,8 @@ export function useRefContainerSections(enabled: boolean = true) {
             const response = await AdminSectionUtilityApi.getRefContainers();
             return response || [];
         },
-        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
         retry: 3,
         retryDelay: 1000,
         enabled,
@@ -148,7 +148,7 @@ export function useForceDeleteSectionMutation() {
 
             // Invalidate page sections and unused sections queries
             queryClient.invalidateQueries({ queryKey: ['adminPages'] });
-            queryClient.invalidateQueries({ queryKey: ['page-content'] });
+            queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
             queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'unused'] });
             queryClient.invalidateQueries({ queryKey: ['admin', 'pages', variables.pageId, 'sections'] });
         },

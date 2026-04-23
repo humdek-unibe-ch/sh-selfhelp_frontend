@@ -1,94 +1,110 @@
 /**
- * React Query Global Configuration
- * 
- * Global settings for React Query caching and data fetching.
- * All queries will use these defaults unless specifically overridden.
+ * React Query global configuration with tiered caching.
+ *
+ * See `docs/architecture/ssr-bff-architecture.md` §6 for the full
+ * rationale: what is stored here vs in Zustand vs in `nuqs`, why the
+ * cache-key space is kept small, and how SSR prefetches seed the cache.
+ *
+ * Every query picks exactly one tier from `CACHE_TIERS`. There is no legacy
+ * `CACHE` or `SPECIAL_CONFIGS` alias — callers import `CACHE_TIERS.<TIER>`
+ * directly so the cache policy is visible at the call site.
+ *
+ * Cache policy overview:
+ * - DEFAULT: 60s stale / 5m gc. Sane baseline for anything that doesn't need
+ *   a more specific tier.
+ * - PAGE_CONTENT: 1s stale / 1m gc. Frontend pages can change rapidly but
+ *   SSR prefill means mount refetches are rare.
+ * - FRONTEND_PAGES (nav): 10m stale / 30m gc. Genuinely long-lived —
+ *   invalidated only when the user's `acl_version` changes
+ *   (see `useAclVersionWatcher`).
+ * - ADMIN_PAGES: 5m stale / 30m gc. Invalidated after admin mutations.
+ * - LOOKUPS / STATIC: 30m stale / 1h gc. Rarely change. `STATIC` is an
+ *   alias for callers that aren't strictly about the `lookups` endpoint
+ *   but share the same "practically immutable" lifetime.
+ * - LANGUAGES: Infinity / Infinity. Manual invalidation if an admin adds
+ *   or edits a language.
+ * - USER_DATA: 30s stale / 5m gc with `refetchOnWindowFocus` so
+ *   `acl_version` rotations are picked up promptly.
+ * - REAL_TIME: 0s stale / 30s gc. Opt-in for queries that must always
+ *   re-fetch on mount (e.g. freshly-edited admin data tables).
+ *
+ * Global defaults disable `refetchOnWindowFocus` and `refetchOnReconnect`;
+ * the per-query `USER_DATA` config opts into focus refetches.
  */
 
-export const REACT_QUERY_CONFIG = {
-    /**
-     * Global cache configuration
-     * Optimized cache times for smooth navigation and better performance
-     */
-    CACHE: {
-        staleTime: 1000, // 1 second - how long data is considered fresh
-        gcTime: 1000, // 1 second - how long unused data stays in cache (formerly cacheTime)
+const MINUTE = 60_000;
+
+const CACHE_TIERS = {
+    DEFAULT: {
+        staleTime: 60_000,
+        gcTime: 5 * MINUTE,
     },
-    
-    /**
-     * Query defaults that will be applied to all queries
-     */
+    PAGE_CONTENT: {
+        staleTime: 1_000,
+        gcTime: MINUTE,
+    },
+    FRONTEND_PAGES: {
+        staleTime: 10 * MINUTE,
+        gcTime: 30 * MINUTE,
+    },
+    ADMIN_PAGES: {
+        staleTime: 5 * MINUTE,
+        gcTime: 30 * MINUTE,
+    },
+    LOOKUPS: {
+        staleTime: 30 * MINUTE,
+        gcTime: 60 * MINUTE,
+    },
+    STATIC: {
+        staleTime: 30 * MINUTE,
+        gcTime: 60 * MINUTE,
+    },
+    LANGUAGES: {
+        staleTime: Number.POSITIVE_INFINITY,
+        gcTime: Number.POSITIVE_INFINITY,
+    },
+    USER_DATA: {
+        staleTime: 30_000,
+        gcTime: 5 * MINUTE,
+        refetchOnWindowFocus: true,
+    },
+    REAL_TIME: {
+        staleTime: 0,
+        gcTime: 30_000,
+    },
+} as const;
+
+export const REACT_QUERY_CONFIG = {
     DEFAULT_OPTIONS: {
         queries: {
-            staleTime: 1000, // 1 second
-            gcTime: 1000, // 1 second
-            retry: 3, // Number of retry attempts
-            retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
-            refetchOnWindowFocus: false, // Don't refetch on window focus
-            refetchOnMount: false, // Don't refetch when component mounts - use cache first
-            refetchOnReconnect: true, // Refetch when network reconnects
-            // Enable network mode for better deduplication
-            networkMode: 'online', // Only fetch when online
+            staleTime: CACHE_TIERS.DEFAULT.staleTime,
+            gcTime: CACHE_TIERS.DEFAULT.gcTime,
+            retry: 1,
+            retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000),
+            refetchOnWindowFocus: false,
+            refetchOnMount: false,
+            refetchOnReconnect: false,
+            networkMode: 'online',
         },
         mutations: {
-            retry: 1, // Only retry mutations once
-            retryDelay: 1000, // 1 second delay for mutation retries
+            retry: 1,
+            retryDelay: 1000,
         },
     },
-    
-    /**
-     * Specific query keys and their configurations
-     * Use these for queries that need different cache times
-     */
+
+    CACHE_TIERS,
+
     QUERY_KEYS: {
-        // Frontend pages with language support
         FRONTEND_PAGES: (languageId: number) => ['frontend-pages', languageId],
-        
-        // Admin pages
         ADMIN_PAGES: ['admin-pages'],
-        
-        // Languages
         LANGUAGES: ['languages'],
         PUBLIC_LANGUAGES: ['public-languages'],
-        
-        // Page content
-        PAGE_CONTENT: (keyword: string, languageId?: number) => 
-            languageId ? ['page-content', keyword, languageId] : ['page-content', keyword],
-        
-        // Page details
+        PAGE_BY_KEYWORD: (keyword: string, languageId: number, preview = false) =>
+            ['page-by-keyword', keyword, languageId, preview ? 'preview' : 'published'] as const,
         PAGE_DETAILS: (keyword: string) => ['page-details', keyword],
-        
-        // Section details
         SECTION_DETAILS: (keyword: string, sectionId: number) => ['section-details', keyword, sectionId],
-        
-        // Lookups
         LOOKUPS: ['lookups'],
-        
-        // Style groups
         STYLE_GROUPS: ['style-groups'],
+        USER_DATA: ['user-data'],
     },
-    
-    /**
-     * Special configurations for specific query types
-     * Override these when needed for specific queries
-     */
-    SPECIAL_CONFIGS: {
-        // For static data that rarely changes (like lookups, style groups)
-        STATIC_DATA: {
-            staleTime: 1000, // 1 second for static data
-            gcTime: 1000, // 1 second in cache
-        },
-        
-        // For real-time data that changes frequently
-        REAL_TIME: {
-            staleTime: 0, // Always stale, always refetch
-            gcTime: 30 * 1000, // 30 seconds in cache for quick navigation
-        },
-        
-        // For user-specific data
-        USER_DATA: {
-            staleTime: 1000, // 1 second
-            gcTime: 1000, // 1 second
-        },
-    },
-} as const; 
+} as const;

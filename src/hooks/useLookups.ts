@@ -21,8 +21,8 @@ export function useLookups() {
     return useQuery({
         queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.LOOKUPS,
         queryFn: LookupsApi.getLookups,
-        staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.staleTime, // Use longer cache for static data
-        gcTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.gcTime,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.LOOKUPS.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.LOOKUPS.gcTime,
         retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
         select: (lookups: ILookup[]): IProcessedLookups => {
             // Create lookup map with typeCode_lookupCode as key

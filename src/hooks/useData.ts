@@ -28,8 +28,8 @@ export function useDataTables() {
   return useQuery<IDataTablesListResponse>({
     queryKey: DATA_QUERY_KEYS.tables(),
     queryFn: () => AdminDataApi.listDataTables(),
-    staleTime: REACT_QUERY_CONFIG.CACHE.staleTime, // Use normal caching instead of real-time
-    gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime, // Use normal caching instead of real-time
+    gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
     refetchOnMount: false, // Use cached data first
     placeholderData: keepPreviousData, // Keep previous data for smooth transitions
   });
@@ -41,8 +41,8 @@ export function useDataRows(params: { table_name: string; user_id?: number; excl
     queryKey: DATA_QUERY_KEYS.rows(table_name, user_id, exclude_deleted ?? true, language_id),
     queryFn: () => AdminDataApi.getDataRows({ table_name, user_id, exclude_deleted, language_id }),
     enabled: !!table_name,
-    staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.REAL_TIME.staleTime,
-    gcTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.REAL_TIME.gcTime,
+    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.REAL_TIME.staleTime,
+    gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.REAL_TIME.gcTime,
     select: (data) => data, // identity transform
   });
 }
@@ -52,8 +52,8 @@ export function useTableColumns(tableName?: string) {
     queryKey: tableName ? DATA_QUERY_KEYS.columns(tableName) : ['noop'],
     queryFn: () => AdminDataApi.getTableColumns(tableName as string),
     enabled: !!tableName,
-    staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.REAL_TIME.staleTime,
-    gcTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.REAL_TIME.gcTime,
+    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.REAL_TIME.staleTime,
+    gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.REAL_TIME.gcTime,
   });
 }
 
@@ -63,8 +63,8 @@ export function useTableColumnNames(tableName?: string) {
     queryKey: tableName ? DATA_QUERY_KEYS.columnNames(tableName) : ['noop'],
     queryFn: () => AdminDataApi.getTableColumnNames(tableName as string),
     enabled: !!tableName,
-    staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.REAL_TIME.staleTime,
-    gcTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.REAL_TIME.gcTime,
+    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.REAL_TIME.staleTime,
+    gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.REAL_TIME.gcTime,
     select: (data) => data.columnNames,
   });
 }

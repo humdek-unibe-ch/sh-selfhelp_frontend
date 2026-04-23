@@ -28,7 +28,7 @@ export function useActions(params: IActionsListParams = {}) {
     return useQuery<IActionsListResponse>({
         queryKey: ACTION_QUERY_KEYS.list(params),
         queryFn: () => AdminActionApi.getActions(params),
-        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
         // identity; keeps API shape
         select: (data) => data,
     });
@@ -39,7 +39,7 @@ export function useActionDetails(actionId: number) {
         queryKey: ACTION_QUERY_KEYS.detail(actionId),
         queryFn: () => AdminActionApi.getActionById(actionId),
         enabled: !!actionId, // assumes IDs are positive
-        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
     });
 }
 

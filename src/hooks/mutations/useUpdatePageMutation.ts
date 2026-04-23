@@ -49,7 +49,7 @@ export function useUpdatePageMutation(options: IUpdatePageMutationOptions = {}) 
                 queryClient.invalidateQueries({ queryKey: ['pageSections', pageId] }),
                 // Frontend navigation pages
                 queryClient.invalidateQueries({ queryKey: ['pages'] }),
-                queryClient.invalidateQueries({ queryKey: ['page-content'] }),
+                queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] }),
                 // Frontend pages with language support
                 queryClient.invalidateQueries({ queryKey: ['frontend-pages'] }),
                 // Force refetch to ensure fresh data
