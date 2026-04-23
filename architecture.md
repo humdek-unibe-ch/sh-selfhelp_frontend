@@ -1,5 +1,16 @@
 # Frontend Architecture Guidelines
 
+> **Note**: This file is the *historical* architecture reference and covers
+> styling, component hierarchy, and other long-standing concerns.
+>
+> For the post-v0.1.0 topics (Server Components vs Client Components,
+> Backend-For-Frontend proxy, Axios role, TanStack Query layout, Zustand
+> vs React Query responsibilities, Refine integration, keyword-vs-id
+> page fetch, cookie model, and where to put new code) read
+> [`docs/architecture/ssr-bff-architecture.md`](./docs/architecture/ssr-bff-architecture.md)
+> first. It is the single source of truth for the current
+> request/render pipeline.
+
 ## 1. Introduction
 
 This document outlines the frontend architecture for the SH-Self-help project. The frontend is built using Next.js (App Router), React, Refine.dev, Mantine UI v8, Tailwind CSS 4, and TanStack React Query v5. The goal is to create a scalable, maintainable, and performant application by adhering to modern best practices.
@@ -676,14 +687,17 @@ async updateLanguagePreference(languageId: number): Promise<ILoginSuccessRespons
     // Returns new JWT token with updated preference
 }
 
-// Enhanced Language Context with ID-based management
-const { 
-    currentLanguage,           // Current language object (ILanguage)
+// Language Context (v0.1.0 — see §15 for the SSR flow)
+const {
     currentLanguageId,         // Current language ID (number)
-    setCurrentLanguage,        // Function to change language (accepts ID)
+    setCurrentLanguageId,      // Function to change language (accepts ID)
     languages,                 // Available languages array
-    isUpdatingLanguage        // Loading state for API calls
 } = useLanguageContext();
+
+// For "language switch in flight" use React Query directly:
+//   const pending = useIsFetching({ queryKey: ['page-content'] })
+//                 + useIsFetching({ queryKey: ['page-by-keyword'] });
+// The context no longer maintains a redundant boolean.
 
 // Page content API with language_id parameter
 const { content } = usePageContent(keyword, currentLanguageId);
@@ -1656,5 +1670,354 @@ A clear directory structure is crucial for organization and scalability.
 *   Authentication uses JWT (access + refresh tokens). Implement secure storage and refresh mechanism.
 *   API responses follow a standard format: `{ status, message, error, logged_in, meta, data }`. Ensure data fetching logic correctly unwraps the `data` field.
 *   Handle API errors (400, 401, 403, 404, 500) gracefully, providing user feedback.
+
+## 15. SSR, BFF Auth, and Caching (v0.1.0)
+
+This section documents the post-refactor page-load and auth flow. See
+`CHANGELOG.md` entry **v0.1.0** for the full diff summary.
+
+### 15.1 High-level request flow (public slug pages)
+
+```mermaid
+flowchart TD
+    Browser([Browser request]) --> MW[src/proxy.ts<br/>&#40;Next 16 replaces middleware.ts&#41;]
+    MW -->|sets sh_accept_locale<br/>+ sh_csrf if missing| RootL[src/app/layout.tsx<br/>Server Component]
+    RootL -->|resolveLanguageSSR()| Sym1[Symfony<br/>/languages]
+    RootL --> SlugL[src/app/<br/>&#91;&#91;...slug&#93;&#93;/layout.tsx<br/>Server Component]
+    SlugL -->|getFrontendPagesSSR| Sym2[Symfony<br/>/pages/language/#123;id#125;]
+    SlugL -->|getPageByKeywordSSRCached| Sym3[Symfony<br/>/pages/by-keyword/#123;keyword#125;]
+    SlugL -->|dehydrate| HB[HydrationBoundary]
+    HB --> SlugP[src/app/<br/>&#91;&#91;...slug&#93;&#93;/page.tsx]
+    SlugP -->|generateMetadata<br/>reuses cached fetch| Meta([&lt;title&gt;, og, robots])
+    SlugP --> Dyn[DynamicPageClient<br/>'use client']
+    Dyn -->|reads hydrated cache| RQ[(React Query cache)]
+    Dyn --> DOM([First paint = final HTML,<br/>real title, correct locale])
+```
+
+Key invariants:
+
+- `generateMetadata`, the layout prefetch, and the page's own check all call
+  `getPageByKeywordSSRCached(keyword, languageId)`. That helper is wrapped in
+  React's `cache()` so Symfony sees **one** upstream hit per request no matter
+  how many Server Components consume it.
+- `<html lang>` is set from the primary subtag of the resolved locale
+  (e.g. `en` from `en-GB`) — no hardcoded map, no hydration mismatch.
+- `is_headless` is read server-side from the prefetched page payload and
+  forwarded to `SlugShell` as a prop. No client-side "header flashes then
+  disappears" flicker on headless routes.
+
+### 15.2a SSR silent refresh — handled by `src/proxy.ts`
+
+Server Components do **not** go through the `/api/*` BFF catch-all: they
+call Symfony directly via `src/app/_lib/server-fetch.ts` (faster, no
+double-hop). That means the catch-all's refresh-on-401 loop never fires
+for SSR page renders. Without a countermeasure, the first navigation
+after the access-token JWT expires would 401 the upstream call, the
+Server Component would see `null`, and `[[...slug]]/page.tsx` would call
+`notFound()` → the user lands on a 404 despite holding a perfectly
+valid refresh token.
+
+`src/proxy.ts` closes that gap with a **preemptive** silent refresh that
+runs before Server Components render:
+
+```mermaid
+sequenceDiagram
+    participant B as Browser
+    participant MW as src/proxy.ts
+    participant S as Symfony
+    participant RSC as Server Component
+
+    B->>MW: GET /some/slug<br/>cookies: sh_auth (expired), sh_refresh
+    MW->>MW: decode sh_auth payload,<br/>check exp + 10s window
+    alt access token expired
+        MW->>S: POST /auth/refresh-token<br/>{ refresh_token: sh_refresh }
+        alt refresh OK
+            S-->>MW: new {access_token, refresh_token}
+            MW->>MW: req.cookies.set(...)<br/>response.cookies.set(...)
+            MW->>RSC: forward request with<br/>updated Cookie header
+            RSC->>S: GET /pages/by-keyword/... (fresh Bearer)
+            S-->>RSC: 200 + page payload
+            RSC-->>B: HTML + Set-Cookie (rotated)
+        else refresh failed
+            MW->>MW: clear sh_auth + sh_refresh
+            alt path is /admin/*
+                MW-->>B: 302 /auth/login
+            else
+                MW->>RSC: forward as anonymous
+                RSC-->>B: HTML (public content)
+            end
+        end
+    else access token still valid
+        MW->>RSC: forward untouched
+    end
+```
+
+Key details:
+
+- **No signature verification in the proxy.** We produced the cookie
+  ourselves; decoding just the base64 payload to read `exp` is enough.
+  If the payload is malformed, we treat it as expired — the refresh
+  step will either heal it or clear the cookies.
+- **10-second safety window.** Refresh fires when `exp <= now + 10s` to
+  absorb clock skew between Next.js and Symfony and to avoid a race
+  where the JWT is valid at proxy-time but expired by the time the
+  Server Component's upstream call lands.
+- **Cookie propagation to the same render.** `req.cookies.set(...)`
+  mutates the incoming `Cookie` header in place; returning
+  `NextResponse.next({ request: { headers: req.headers } })` re-exposes
+  that updated header to the Server Component render, so
+  `cookies().get('sh_auth')` inside `server-fetch.ts::authHeaders()`
+  returns the **fresh** token — not the expired one the browser sent.
+- **Rotation stays correct.** The proxy is the only place on the SSR
+  path that can write cookies, so the rotated `sh_refresh` issued by
+  `JWTService::processRefreshToken()` reaches the browser exactly once,
+  matching the single copy now stored in the `refreshTokens` table.
+- **Client-side loop still applies.** The existing `/api/*` catch-all
+  retry is untouched — it handles XHRs initiated by the browser after
+  the page has loaded. The two paths together mean a user with a valid
+  refresh token never sees a login page unless they explicitly log out.
+
+### 15.2 BFF auth proxy — request lifecycle
+
+```mermaid
+sequenceDiagram
+    participant B as Browser
+    participant A as Axios<br/>(baseURL: /api)
+    participant P as Next.js /api/[...path]<br/>(BFF proxy)
+    participant S as Symfony + Redis
+
+    B->>A: PUT /admin/pages/home
+    A->>A: attach X-CSRF-Token<br/>(from sh_csrf cookie)
+    A->>P: PUT /api/admin/pages/home<br/>cookies: sh_auth, sh_csrf
+    P->>P: validateCsrf()
+    P->>P: read sh_auth, attach<br/>Authorization: Bearer
+    P->>S: PUT /cms-api/v1/admin/pages/home
+    alt 200 OK
+        S-->>P: 200 + body
+        P-->>A: 200 + body (sanitised headers)
+    else 401 Unauthorized
+        S-->>P: 401
+        P->>P: bufferRequest() captured<br/>body before forwarding
+        P->>S: POST /auth/refresh-token<br/>(sh_refresh)
+        alt refresh OK
+            S-->>P: new tokens
+            P->>S: replay buffered request<br/>(any HTTP method, new Bearer)
+            S-->>P: 200
+            P-->>A: 200 + body<br/>+ rotated httpOnly cookies
+        else refresh fails
+            P-->>A: 401 + cleared auth cookies<br/>(logged_in: false)
+            A->>A: on /admin/*?
+            A->>B: redirect /auth/login?redirect=...
+        end
+    end
+```
+
+Key properties:
+
+- **Tokens never leave the server.** `sh_auth` and `sh_refresh` are httpOnly
+  so XSS cannot steal them.
+- **Silent refresh covers every method.** The catch-all buffers the
+  incoming request body via `bufferRequest()` *before* forwarding. On
+  401 it refreshes and replays the buffered request (GET, POST, PUT,
+  PATCH, DELETE) with the new Bearer token. Mutations no longer require
+  the client to retry.
+- **`/api/auth/me` participates in the same loop.** A user with an
+  expired access token but a valid refresh token lands directly on an
+  authenticated screen — no visible login flicker.
+- **Client-side safety net.** `src/api/base.api.ts` response interceptor
+  handles the rare case where the proxy surfaces a `401 logged_in: true`
+  (race on cookie rotation): it sets `_retry` and retries exactly once.
+  On `401 logged_in: false` from any `/admin/*` path it redirects to
+  `/auth/login?redirect=<current>`.
+- **CSRF double-submit** is enforced for every unsafe method; `sh_csrf`
+  is a random 256-bit token rotated whenever the cookie is missing. The
+  proxy logs mismatches in development (never in production) so bad
+  integrations are easy to diagnose.
+  - **Browser flow** acquires the token implicitly: `src/proxy.ts` sets
+    `sh_csrf` on the first page visit, Axios reads it via
+    `document.cookie` and attaches `X-CSRF-Token` to every
+    `POST/PUT/PATCH/DELETE`. No app code needs to call anything.
+  - **API-only clients** (curl, Postman, integration tests) that never
+    hit a rendered page can `GET /api/csrf` first: it returns
+    `{ csrf_token, cookie_name, header_name }` and sets the cookie when
+    missing. They then echo the token as `X-CSRF-Token` on subsequent
+    mutating requests. This is the only endpoint that is exempt from
+    CSRF validation — safe because it is GET-only, sets a fresh token
+    deterministically, and reveals no information that isn't already in
+    the response header.
+- **Token rotation in response bodies** (e.g. `/auth/set-language`
+  returns a new `access_token`) is handled by
+  `rotateCookiesFromBodyIfPresent()`: cookies rewritten, tokens scrubbed
+  from the JSON payload before the client sees the response.
+- **Axios stays.** Every `src/api/**/*.api.ts` client depends on the
+  interceptor surface and `AxiosResponse<T>` typing. Dropping it would
+  be a pure renaming refactor with no behavioural win; the BFF
+  already strips the JWT concern that used to motivate replacing it.
+
+### 15.3 Nav invalidation via ACL versioning
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant M as Mutation hook
+    participant RQ as React Query
+    participant BE as Symfony
+    participant W as useAclVersionWatcher
+
+    U->>M: submit form / admin edit
+    M->>BE: POST via /api/* proxy
+    BE-->>M: 200 OK<br/>(may have bumped acl_version server-side)
+    M->>RQ: invalidate ['auth','user-data']
+    RQ->>BE: GET /auth/user-data
+    BE-->>RQ: { ..., acl_version: 'v43' }
+    W->>W: compare with previous<br/>(useRef)
+    alt aclVersion changed
+        W->>RQ: invalidate ['frontend-pages']
+        RQ->>BE: GET /pages/language/#123;id#125;
+        BE-->>RQ: refreshed navigation
+    else unchanged
+        W->>W: no-op
+    end
+```
+
+- Individual mutation hooks never reach into `['frontend-pages']`. They only
+  invalidate `['auth','user-data']` (or trust window-focus to do so).
+- `useAclVersionWatcher` is mounted exactly once inside `ClientProviders`.
+  This is the only place that invalidates the nav cache.
+
+### 15.4 Language change flow
+
+```mermaid
+flowchart LR
+    User[User picks language] --> LS[LanguageSelector]
+    LS --> LC[LanguageContext.<br/>setCurrentLanguageId]
+    LC -->|writeLangCookie| Cookie[sh_lang cookie<br/>max-age 1y]
+    LC -->|invalidate scoped| RQ[(React Query)]
+    RQ --> K1["['frontend-pages']"]
+    RQ --> K2["['page-content']"]
+    RQ --> K3["['page-by-keyword']"]
+    LC -->|setState| Ctx[LanguageContext state]
+    Ctx --> Children[All consumers<br/>re-read content]
+    K1 -.->|next tick| BE[Symfony refetch<br/>with new language_id]
+    K2 -.->|next tick| BE
+    K3 -.->|next tick| BE
+```
+
+- The invalidation is strictly scoped: lookups, admin-pages, user-data and
+  the languages list itself are untouched, so a language switch is cheap.
+- The next hard-reload uses `sh_lang` in the `resolveLanguageSSR` priority
+  chain, so SSR comes back rendering in the new language with no client
+  hop.
+
+### 15.5 File map
+
+```mermaid
+graph TB
+    subgraph Server
+        direction TB
+        MW[src/proxy.ts<br/>admin gate + sh_csrf + sh_accept_locale<br/>&#40;Next 16 file convention; replaces middleware.ts&#41;]
+        RL[src/app/layout.tsx]
+        SL[src/app/&#91;&#91;...slug&#93;&#93;/layout.tsx]
+        SP[src/app/&#91;&#91;...slug&#93;&#93;/page.tsx]
+        AL[src/app/admin/layout.tsx]
+        SF[src/app/_lib/server-fetch.ts<br/>resolveLanguageSSR,<br/>getPageByKeywordSSRCached,<br/>getAdminLookupsSSR]
+        Proxy[src/app/api/&#91;...path&#93;/route.ts<br/>BFF catch-all]
+        Csrf[src/app/api/csrf/route.ts<br/>GET bootstrap for API clients]
+        ProxyLib[src/app/api/_lib/proxy.ts<br/>bufferRequest,<br/>forwardBufferedToSymfony,<br/>refreshInternal,<br/>validateCsrf]
+    end
+
+    subgraph Client
+        direction TB
+        CP[src/providers/providers.tsx<br/>ClientProviders]
+        Axios[src/api/base.api.ts<br/>baseURL = /api]
+        LCtx[LanguageContext]
+        Zu[src/app/store/ui.store.ts<br/>Zustand: isPreviewMode]
+        Watch[useAclVersionWatcher]
+        Hooks[hooks/*<br/>useUserData, usePageContent,<br/>useAdminPages, useSelectedAdminPage]
+    end
+
+    MW --> RL --> SL --> SP
+    AL --> ProxyLib
+    SF --> ProxyLib
+    Proxy --> ProxyLib
+    Csrf --> ProxyLib
+    CP --> LCtx
+    CP --> Watch
+    Hooks --> Axios --> Proxy
+```
+
+### 15.6 Caching tiers
+
+Centralised in `src/config/react-query.config.ts` → `CACHE_TIERS`:
+
+| Tier              | staleTime | gcTime   | Invalidation trigger                         |
+|-------------------|-----------|----------|----------------------------------------------|
+| Default           | 60s       | 5m       | Standard React Query rules                   |
+| PAGE_CONTENT      | 1s        | 1m       | Language change, explicit form mutation      |
+| FRONTEND_PAGES    | 10m       | 30m      | `user.acl_version` change, language change   |
+| ADMIN_PAGES       | 5m        | 30m      | Admin CRUD mutations                         |
+| LOOKUPS / STYLES  | 30m       | 1h       | Manual (admin adds a lookup)                 |
+| LANGUAGES         | Infinity  | Infinity | Manual (admin edits languages table)         |
+| USER_DATA         | 30s       | 5m       | Every window focus (catches ACL rotation)    |
+
+### 15.7 Re-render discipline
+
+- Server state → React Query (one cache key per concept).
+- Cross-component UI state → `src/app/store/ui.store.ts` (Zustand).
+  Currently tracks `isPreviewMode` only.
+- Admin selection → `src/app/store/admin.store.ts` stores only
+  `selectedKeyword` (a string); the full page object is looked up by
+  `useSelectedAdminPage(keyword)` (in `src/hooks/useSelectedAdminPage.ts`)
+  which uses a React Query `select` to narrow the subscription to one row.
+- Never store derived/fetched objects in Zustand — it duplicates state and
+  causes re-renders when any field changes.
+
+### 15.8 SSR-safety invariants for Client Components
+
+Client Components (`'use client'`) in Next.js are **still rendered on the
+server** during the initial HTML streaming pass. That means any module-level
+code, any expression inside the component body, and every prop computation
+runs in Node — not in a browser — on the first request. Several classes of
+code break under that constraint, and the fixes below are load-bearing:
+
+| Constraint                                    | Why it matters                                                                 | How we handle it                                                                                      |
+|-----------------------------------------------|--------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------|
+| `window` / `document` / `localStorage` access | Undefined on the server; throws on module eval or first render.                | Guard with `typeof window !== 'undefined'` (see `DebugMenu.tsx`, `ThemeToggle.tsx`).                  |
+| `dompurify` default import                    | `dompurify@3.x` returns a stub with no `.sanitize` when `window` is absent.    | Every import uses `isomorphic-dompurify`; direct `dompurify` imports are banned.                      |
+| Function-valued props across RSC → CC         | Server Components cannot serialise functions, so `component={Link}` is illegal across the boundary. | Split server / client concerns (see `not-found.tsx` + `NotFoundClient.tsx`).                          |
+| `<script>` nodes in JSX                       | React 19 emits a dev warning for any `React.createElement('script', ...)`.     | Use `ColorSchemeInjector` (`useServerInsertedHTML`) to stream scripts outside React's render tree.    |
+| Sanitising HTML for inline contexts           | `document.createElement` is browser-only; divergent output = hydration mismatch. | `sanitizeHtmlForInline` is a pure-string regex pipeline — byte-identical on server and client.        |
+| Deriving state from props                     | Mirroring `props.value` into `useState` + `useEffect` easily becomes an infinite loop if the mirrored value is not reference-stable. | Prefer `useMemo`. If a fallback is needed, use a frozen module constant (see `useLanguages.ts`).       |
+| Password-manager / autofill mutations         | Extensions inject attributes (`data-sharkid`, `data-bitwarden-watching`, …) and sibling nodes into form inputs before React hydrates — unavoidable and user-scoped. Targets both `/auth/login` and any CMS-rendered form. | Apply `suppressHydrationWarning` **only** on the affected element: `<form>` in `FormStyle.tsx` plus each `<TextInput>` / `<Textarea>` / `<NumberInput>` / `<PasswordInput>`. React's suppress is one-level-deep, so it must live on the Mantine input (it forwards to the underlying `<input>`), never site-wide. |
+
+These invariants are enforced case-by-case; there is no lint rule for most
+of them, so treat them as review checklist items when adding a new Client
+Component that runs during SSR.
+
+### 15.9 Cookies in use
+
+| Cookie               | HttpOnly | Written by                                        | Read by                                             | Purpose                                          |
+|----------------------|----------|---------------------------------------------------|-----------------------------------------------------|--------------------------------------------------|
+| `sh_auth`            | yes      | `/api/auth/login`, `/api/auth/refresh`, proxy     | `cookies()` in RSC + `/api/*` proxy                 | Access token (short-lived)                       |
+| `sh_refresh`         | yes      | `/api/auth/login`, `/api/auth/refresh`            | `/api/*` proxy only                                 | Refresh token (30d)                              |
+| `sh_csrf`            | no       | `src/proxy.ts`                                    | Axios (client), `validateCsrf()` in proxy           | CSRF double-submit                               |
+| `sh_lang`            | no       | `LanguageContext.setCurrentLanguageId` (browser)  | `resolveLanguageSSR()` in RSC                       | Persisted numeric language id                    |
+| `sh_accept_locale`   | no       | `src/proxy.ts` (from `Accept-Language`)           | `resolveLanguageSSR()` in RSC                       | Raw locale hint, mapped to id via live DB        |
+
+All five are strictly necessary → no consent banner required. A static
+`/privacy` page documents them for transparency.
+
+### 15.10 Plan deviations (intentional)
+
+| Plan item                                                            | Implementation                                                                 | Reason                                                                                                                             |
+|----------------------------------------------------------------------|--------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
+| Middleware bootstraps `sh_lang` from `NEXT_PUBLIC_DEFAULT_LANGUAGE_ID` | Middleware stores `sh_accept_locale` hint only; `resolveLanguageSSR` maps it at RSC time | The `languages` table is admin-editable; any hardcoded id would drift the moment an admin renames/deletes a language. RSC sees the live DB. |
+| `src/utils/server-fetch.ts`                                          | `src/app/_lib/server-fetch.ts`                                                 | Next.js convention: server-only helpers live under `app/_lib/` so they're never bundled for the browser.                          |
+| `<PageShell>` rendered by the page component                         | `SlugShell` rendered by the slug layout, `isHeadless` prop passed in           | The layout already has the prefetched page (shared via `cache()`), so this avoids re-reading the data twice. Equivalent effect.    |
+| `src/store/uiStore.ts`                                               | `src/app/store/ui.store.ts`                                                    | Follows the existing `app/store/admin.store.ts` naming convention.                                                                 |
+
+All other plan items are implemented as specified.
+
+---
 
 This architecture provides a solid foundation. It should be treated as a living document and updated as the project evolves.
