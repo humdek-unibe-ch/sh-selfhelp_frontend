@@ -14,7 +14,9 @@ import {
     TextInput,
     ActionIcon,
     Tooltip,
-    Box
+    Box,
+    Card,
+    Stack
 } from '@mantine/core';
 import {
     IconAlertCircle,
@@ -35,6 +37,7 @@ import { SectionsList } from './SectionsList';
 import { AddSectionModal } from './AddSectionModal';
 import { calculateSiblingBelowPosition } from '../../../../../utils/position-calculator';
 import styles from './PageSections.module.css';
+import { PageHeader } from '../../../shared/common/PageHeader';
 
 // Helper function to recursively sort sections and their children by position
 const sortSectionsByPosition = (sections: IPageSectionWithFields[]): IPageSectionWithFields[] => {
@@ -559,167 +562,139 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
         );
     }
 
-    return (
-        <Paper p="xs" withBorder className={styles.paperContainer}>
-            {/* Header with Search */}
-            <Group justify="space-between" mb="xs" px="xs" wrap="nowrap">
-                <Group gap="xs" wrap="nowrap">
-                    <IconFile size={16} />
-                    <Title order={6} size="sm" className={styles.titleNoWrap}>
-                        {pageName ? `${pageName} - Sections` : 'Page Sections'}
-                    </Title>
-                    <Badge size="xs" variant="light" color="blue">
-                        {data?.sections?.length || 0}
-                    </Badge>
-                </Group>
+   return (
+     <Paper p="md" radius="md">
+       <Stack gap="md">
+         {/* 1. Standardized Header */}
+         <PageHeader
+           title={pageName ? `${pageName} - Sections` : "Page Sections"}
+           subtitle="Manage page structure, sections, and their relationships"
+           badge={data?.sections?.length || 0}
+         >
+           <Group gap="xs" wrap="nowrap">
+             <Button
+               leftSection={<IconPlus size={14} />}
+               size="sm"
+               variant="light"
+               onClick={() => setAddSectionModalOpened(true)}
+             >
+               Add Section
+             </Button>
+                {/* Expand/Collapse + Sections List */}
+               <Button
+                 size="sm"
+                 variant="light"
+                 onClick={
+                   expandedSections.size > 0
+                     ? handleCollapseAll
+                     : handleExpandAll
+                 }
+                 leftSection={
+                   expandedSections.size > 0 ? (
+                     <IconChevronUp size={16} />
+                   ) : (
+                     <IconChevronDown size={16} />
+                   )
+                 }
+               >
+                 {expandedSections.size > 0 ? "Collapse all" : "Expand all"}
+               </Button>
 
-                {/* Search Bar - Flexible width */}
-                <Group gap="xs" className={styles.searchGroup} wrap="nowrap">
-                    <TextInput
-                        placeholder="Search sections..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.currentTarget.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && searchResults.length > 0) {
-                                e.preventDefault();
-                                handleSearchNext();
-                            }
-                            if (e.key === 'Escape') {
-                                e.preventDefault();
-                                handleSearchClear();
-                            }
-                        }}
-                        leftSection={<IconSearch size={14} />}
-                        rightSection={
-                            searchQuery && (
-                                <ActionIcon
-                                    size="xs"
-                                    variant="subtle"
-                                    onClick={handleSearchClear}
-                                >
-                                    <IconX size={12} />
-                                </ActionIcon>
-                            )
-                        }
-                        size="xs"
-                        className={styles.contentContainer}
-                    />
-                    {searchResults.length > 0 && (
-                        <>
-                            <Text size="xs" c="dimmed" className={styles.infoText}>
-                                {currentSearchIndex + 1}/{searchResults.length}
-                            </Text>
-                            <Group gap={2}>
-                                <Tooltip label="Previous">
-                                    <ActionIcon
-                                        size="xs"
-                                        variant="subtle"
-                                        onClick={handleSearchPrevious}
-                                        disabled={searchResults.length === 0}
-                                    >
-                                        <IconArrowLeft size={12} />
-                                    </ActionIcon>
-                                </Tooltip>
-                                <Tooltip label="Next">
-                                    <ActionIcon
-                                        size="xs"
-                                        variant="subtle"
-                                        onClick={handleSearchNext}
-                                        disabled={searchResults.length === 0}
-                                    >
-                                        <IconArrowRight size={12} />
-                                    </ActionIcon>
-                                </Tooltip>
-                            </Group>
-                        </>
-                    )}
-                </Group>
+             <Button
+               size="sm"
+               variant="light"
+               component={Link}
+               href={`/admin/pages/${pageName}`}
+             >
+               Edit Page
+             </Button>
 
-                <Group gap="xs" wrap="nowrap">
-                    <Tooltip label="Expand All">
-                        <ActionIcon
-                            size="xs"
-                            variant="subtle"
-                            color="blue"
-                            onClick={handleExpandAll}
-                        >
-                            <IconChevronDown size={12} />
-                        </ActionIcon>
-                    </Tooltip>
-                    <Tooltip label="Collapse All">
-                        <ActionIcon
-                            size="xs"
-                            variant="subtle"
-                            color="blue"
-                            onClick={handleCollapseAll}
-                        >
-                            <IconChevronUp size={12} />
-                        </ActionIcon>
-                    </Tooltip>
-                    <Button
-                        leftSection={<IconPlus size={14} />}
-                        size="xs"
-                        variant="light"
-                        onClick={() => {
-                            setAddSectionModalOpened(true);
-                        }}
-                    >
-                        Add Section
-                    </Button>
-                    <Button
-                        size="xs"
-                        variant="light"
-                        component={Link}
-                        href={`/admin/pages/${pageName}`}
-                        rel="noopener noreferrer"
-                    >
-                        Edit Page
-                    </Button>
-                    <Button
-                        size="xs"
-                        variant="light"
-                        component={Link}
-                        href={`/${pageName}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        Preview Page
-                    </Button>
-                </Group>
-            </Group>
+             <Button
+               size="sm"
+               variant="light"
+               component={Link}
+               href={`/${pageName}`}
+               target="_blank"
+               rel="noopener noreferrer"
+             >
+               Preview Page
+             </Button>
+           </Group>
+         </PageHeader>
 
-            {/* Sections List - Scrollable Content Area */}
-            <Box className={styles.contentContainer}>
-                <SectionsList
-                    sections={isLoading ? undefined : data?.sections ? sortSectionsByPosition(data.sections) : undefined}
-                    expandedSections={expandedSections}
-                    onToggleExpand={handleToggleExpand}
-                    onSectionMove={handleSectionMove}
-                    onRemoveSection={handleRemoveSection}
-                    onAddChildSection={handleAddChildSection}
-                    onAddSiblingAbove={handleAddSiblingAbove}
-                    onAddSiblingBelow={handleAddSiblingBelow}
-                    onSectionSelect={handleSectionSelect}
-                    selectedSectionId={selectedSectionId}
-                    focusedSectionId={focusedSectionId}
-                    pageId={pageId || undefined}
-                    styleGroups={styleGroups}
-                />
-            </Box>
+        {/* 2. Advanced Search Bar - No extra Card to avoid double border */}
+        <TextInput
+          placeholder="Search sections by name, ID, or style..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.currentTarget.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && searchResults.length > 0) {
+              e.preventDefault();
+              handleSearchNext();
+            }
+            if (e.key === "Escape") {
+              e.preventDefault();
+              handleSearchClear();
+            }
+          }}
+          leftSection={<IconSearch size={16} />}
+          rightSection={
+            searchQuery && (
+              <ActionIcon
+                size="sm"
+                variant="subtle"
+                onClick={handleSearchClear}
+              >
+                <IconX size={14} />
+              </ActionIcon>
+            )
+          }
+          size="md"
+        />
 
-            {/* Add Section Modal */}
-            <AddSectionModal
-                opened={addSectionModalOpened}
-                onClose={handleCloseAddSectionModal}
-                pageId={pageId || undefined}
-                parentSectionId={selectedParentSectionId}
-                title={selectedParentSectionId ? "Add Child Section" : "Add Section to Page"}
-                specificPosition={specificPosition}
-                onSectionCreated={handleSectionCreated}
-                onSectionsImported={handleSectionsImported}
-            />
-        </Paper>
-    );
+         {/* 4. Main Content */}
+         <Box className={styles.contentContainer}>
+           <SectionsList
+             sections={
+               isLoading
+                 ? undefined
+                 : data?.sections
+                   ? sortSectionsByPosition(data.sections)
+                   : undefined
+             }
+             expandedSections={expandedSections}
+             onToggleExpand={handleToggleExpand}
+             onSectionMove={handleSectionMove}
+             onRemoveSection={handleRemoveSection}
+             onAddChildSection={handleAddChildSection}
+             onAddSiblingAbove={handleAddSiblingAbove}
+             onAddSiblingBelow={handleAddSiblingBelow}
+             onSectionSelect={handleSectionSelect}
+             selectedSectionId={selectedSectionId}
+             focusedSectionId={focusedSectionId}
+             pageId={pageId || undefined}
+             styleGroups={styleGroups}
+           />
+         </Box>
+
+         {/* Add Section Modal */}
+         <AddSectionModal
+           opened={addSectionModalOpened}
+           onClose={handleCloseAddSectionModal}
+           pageId={pageId || undefined}
+           parentSectionId={selectedParentSectionId}
+           title={
+             selectedParentSectionId
+               ? "Add Child Section"
+               : "Add Section to Page"
+           }
+           specificPosition={specificPosition}
+           onSectionCreated={handleSectionCreated}
+           onSectionsImported={handleSectionsImported}
+         />
+       </Stack>
+     </Paper>
+   );
 };
 
 // Export memoized component to prevent unnecessary re-renders

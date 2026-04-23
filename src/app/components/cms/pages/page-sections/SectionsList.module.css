@@ -2,12 +2,14 @@
 
 /* Container styles - main scrollable area for sections */
 .sectionsContainer {
-    padding: 16px;
-    height: 100%; /* Take full height of parent */
+    padding: 4px 16px 16px 16px;
+    height: 100%;
+    /* Take full height of parent */
     overflow-y: auto;
     overflow-x: hidden;
     background: var(--mantine-color-body);
-    flex: 1; /* Allow it to grow and shrink */
+    flex: 1;
+    /* Allow it to grow and shrink */
 }
 
 /* Custom scrollbar */
