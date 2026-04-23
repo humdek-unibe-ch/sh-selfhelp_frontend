@@ -8,9 +8,10 @@ import { useEffect, useState } from 'react';
 import { AuditLogsList } from '../audit-logs-list/AuditLogsList';
 import { AuditLogsStats } from '../audit-logs-stats/AuditLogsStats';
 import { AuditLogDetailModal } from '../audit-log-detail-modal/AuditLogDetailModal';
-import { Alert, Title, Text, Tabs, Box } from '@mantine/core';
+import { Alert, Tabs, Paper, Stack } from '@mantine/core';
 import { IconAlertCircle, IconChartBar, IconList } from '@tabler/icons-react';
 import { useQueryState } from 'nuqs';
+import { PageHeader } from '../../../shared/common/PageHeader';
 
 export function AuditLogsPage() {
   const { isLoading } = useAuth();
@@ -67,19 +68,19 @@ export function AuditLogsPage() {
         title="Access Denied"
         icon={<IconAlertCircle />}
       >
-        You don't have permission to view audit logs. Required permission: admin.audit.view
+        You dont have permission to view audit logs. Required permission: admin.audit.view
       </Alert>
     );
   }
 
   return (
-    <Box>
-      <div className="mb-6">
-        <Title order={2}>Audit Logs</Title>
-        <Text c="dimmed" size="sm">
-          Monitor data access security and permission checks across the system
-        </Text>
-      </div>
+       <Paper p="md" radius="md">
+      <Stack gap="md">
+      {/* Standardized Header */}
+      <PageHeader
+        title="Audit Logs"
+        subtitle="Monitor data access security and permission checks across the system"
+      />
 
       <Tabs value={activeTab} onChange={setActiveTab}>
         <Tabs.List>
@@ -99,6 +100,7 @@ export function AuditLogsPage() {
           <AuditLogsList onViewDetails={handleViewDetails} />
         </Tabs.Panel>
       </Tabs>
+      </Stack>
 
       {/* Detail Modal */}
       <AuditLogDetailModal
@@ -106,6 +108,6 @@ export function AuditLogsPage() {
         onClose={handleCloseDetailModal}
         auditLogId={detailModalState.auditLogId}
       />
-    </Box>
+    </Paper>
   );
 }

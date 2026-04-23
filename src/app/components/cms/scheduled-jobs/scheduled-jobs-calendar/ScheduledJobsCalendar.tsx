@@ -429,6 +429,7 @@ export default function ScheduledJobsCalendar() {
               onReset={handleResetFilters}
               onRefresh={handleRefresh}
               isFetching={isFetching}
+              isApplyDisabled={!isFiltersActive}
             />
           </Group>
         </Paper>

@@ -130,7 +130,8 @@ export function DataAdminPage() {
     setActiveShowDeleted(false);
     setActiveSelectedLanguageId(1);
 
-    router.replace('/data', { scroll: false });
+    const currentPath = globalThis.location.pathname;
+    router.replace(currentPath, { scroll: false });
   }, [router]);
 
     // Refresh

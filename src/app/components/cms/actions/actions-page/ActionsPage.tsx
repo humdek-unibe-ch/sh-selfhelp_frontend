@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from 'react';
-import { Button, Group, Stack, Text, TextInput, ActionIcon, Card, Table, Pagination, Paper, Container, Badge, Select, LoadingOverlay } from '@mantine/core';
+import { Button, Group, Stack, TextInput, ActionIcon, Card, Table, Pagination, Paper, Select, LoadingOverlay } from '@mantine/core';
 import { IconPlus, IconX, IconEdit, IconTrash } from '@tabler/icons-react';
 import { useActions, useDeleteAction } from '../../../../../hooks/useActions';
 import type { IActionsListParams, IActionDetails } from '../../../../../types/responses/admin/actions.types';
@@ -11,6 +11,7 @@ import { useDataTables } from '../../../../../hooks/useData';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import { FilterActions } from '../../../shared/common/FilterControls';
 import { EmptyState } from '../../../shared/common/EmptyState';
+import { PageHeader } from '../../../shared/common/PageHeader';
 
 export function ActionsPage() {
   const [filterParams, setFilterParams] = useState<IActionsListParams>({
@@ -94,32 +95,19 @@ const dataTableOptions = useMemo(() => {
   return (
     <Paper p="md" radius="md">
       <Stack gap="md">
-        {/* Header */}
-        <Group justify="space-between" align="center">
-          <Group justify="space-between">
-            <Container pl={0}>
-              <Group gap={8} align="center">
-                <Text size="lg" fw={600}>
-                  Actions
-                </Text>
-                {data && data.actions.length > 0 && (
-                  <Badge ml={4} variant="light" color="gray" size="sm">
-                    {data.actions.length}
-                  </Badge>
-                )}
-              </Group>
-              <Text size="sm" c="dimmed">
-                Manage and monitor actions
-              </Text>
-            </Container>
-          </Group>
+           {/* Standardized Header */}
+        <PageHeader
+          title="Actions"
+          subtitle="Manage and monitor actions"
+          badge={data?.actions?.length || 0}
+        >
           <Button
             leftSection={<IconPlus size={16} />}
             onClick={() => setCreateOpen(true)}
           >
             New Action
           </Button>
-        </Group>
+        </PageHeader>
 
         {/* Search */}
         <Card withBorder>
@@ -149,13 +137,16 @@ const dataTableOptions = useMemo(() => {
                 label="Trigger"
                 placeholder="Trigger"
                 data={triggerOptions}
-                value={filterParams.triggerTypeId || ""}
+                value={filterParams.triggerTypeId ? String(filterParams.triggerTypeId) : null}
                 onChange={(value) =>
-                  setFilterParams((prev) => ({
+                  {
+                    console.warn(triggerOptions);
+                    console.warn(value);
+                    setFilterParams((prev) => ({
                     ...prev,
-                    triggerType: value || undefined,
+                    triggerTypeId: value || undefined,
                     page: 1,
-                  }))
+                  }))}
                 }
                 clearable
               />
@@ -164,11 +155,11 @@ const dataTableOptions = useMemo(() => {
                 label="Data table"
                 placeholder="Data table"
                 data={dataTableOptions}
-                value={filterParams.dataTableId || ""}
+                value={filterParams.dataTableId ? String(filterParams.dataTableId) : null}
                 onChange={(value) =>
                   setFilterParams((prev) => ({
                     ...prev,
-                    dataTable: value || undefined,
+                    dataTableId: value || undefined,
                     page: 1,
                   }))
                 }

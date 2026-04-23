@@ -17,10 +17,11 @@ import {
   Divider,
   Table,
 } from '@mantine/core';
-import { IconAlertCircle, IconRefresh, IconDatabase, IconShield, IconShieldCheck, IconTrendingUp, IconFilter, IconX } from '@tabler/icons-react';
+import { IconAlertCircle, IconDatabase, IconShield, IconShieldCheck, IconTrendingUp, IconFilter, IconX } from '@tabler/icons-react';
 import { useAuditStats, useAuditLogs } from '../../../../../hooks/useAuditLogs';
 import { DatePickerInput } from '@mantine/dates';
 import type { IAuditStatsParams } from '../../../../../types/responses/admin/audit.types';
+import { FilterActions } from '../../../shared/common/FilterControls';
 
 export function AuditLogsStats() {
   const [dateRange, setDateRange] = useState<IAuditStatsParams>({
@@ -33,10 +34,10 @@ export function AuditLogsStats() {
   });
   const [showFilters, setShowFilters] = useState(false);
 
-  const { data: stats, isLoading, error, refetch } = useAuditStats(dateRange);
+  const { data: stats, isFetching, error, refetch } = useAuditStats(dateRange);
 
   // Fetch recent audit logs with same date filters
-  const { data: logsData, isLoading: logsLoading } = useAuditLogs({
+  const { data: logsData, isFetching: logsFetching } = useAuditLogs({
     ...dateRange,
     page: 1,
     pageSize: 10, // Show last 10 entries
@@ -120,14 +121,6 @@ export function AuditLogsStats() {
             >
               Filters
             </Button>
-            <Button
-              variant="light"
-              leftSection={<IconRefresh size={16} />}
-              onClick={() => refetch()}
-              loading={isLoading}
-            >
-              Refresh
-            </Button>
           </Group>
         </Group>
 
@@ -162,14 +155,13 @@ export function AuditLogsStats() {
                     </Badge>
                   )}
                 </div>
-                <Group>
-                  <Button variant="light" onClick={clearFilters} leftSection={<IconX size={16} />}>
-                    Clear Filters
-                  </Button>
-                  <Button onClick={applyFilters}>
-                    Apply Filters
-                  </Button>
-                </Group>
+                <FilterActions
+                onApply={applyFilters}
+                onReset={clearFilters}
+                onRefresh={refetch}
+                isFetching={isFetching}
+                isApplyDisabled={localDateRange === dateRange}
+              />
               </Group>
             </Stack>
           </>
@@ -178,7 +170,7 @@ export function AuditLogsStats() {
 
       {/* Statistics Cards */}
       <div className="relative">
-        <LoadingOverlay visible={isLoading} />
+        <LoadingOverlay visible={isFetching} />
         <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
           {/* Total Logs */}
           <Card withBorder>
@@ -263,7 +255,7 @@ export function AuditLogsStats() {
         {logsData?.logs && logsData.logs.length > 0 && (
           <Card withBorder mt="md">
             <Text fw={600} mb="md">Recent Audit Activity</Text>
-            <LoadingOverlay visible={logsLoading} />
+            <LoadingOverlay visible={logsFetching} />
             <div className="overflow-x-auto">
               <Table striped highlightOnHover>
                 <Table.Thead>
