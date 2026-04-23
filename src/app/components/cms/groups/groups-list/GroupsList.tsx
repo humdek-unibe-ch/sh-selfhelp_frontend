@@ -48,6 +48,9 @@ import {
 } from '@tabler/icons-react';
 import { useGroups } from '../../../../../hooks/useGroups';
 import type { IGroupDetails, IGroupsListParams } from '../../../../../types/responses/admin/groups.types';
+import { PageHeader } from '../../../shared/common/PageHeader';
+import { FilterActions } from '../../../shared/common/FilterControls';
+import { EmptyState } from '../../../shared/common/EmptyState';
 
 interface IGroupsListProps {
   onCreateGroup?: () => void;
@@ -62,8 +65,8 @@ export function GroupsList({
   onDeleteGroup,
   onManageAcls,
 }: IGroupsListProps) {
-  // State for table parameters
-  const [params, setParams] = useState<IGroupsListParams>({
+ // Filter form state (what user is editing)
+  const [filterParams, setFilterParams] = useState<IGroupsListParams>({
     page: 1,
     pageSize: 20,
     search: '',
@@ -71,8 +74,11 @@ export function GroupsList({
     sortDirection: 'asc',
   });
 
+  // Applied params (what is sent to the API)
+  const [params, setParams] = useState<IGroupsListParams>(filterParams);
+
   // Fetch groups data
-  const { data: groupsData, isLoading, error } = useGroups(params);
+  const { data: groupsData, isFetching, refetch, error } = useGroups(params);
 
   // Table sorting state
   const [sorting, setSorting] = useState<SortingState>([
@@ -100,7 +106,7 @@ export function GroupsList({
 
   // Handle search
   const handleSearch = useCallback((search: string) => {
-    setParams(prev => ({
+    setFilterParams(prev => ({
       ...prev,
       search,
       page: 1,
@@ -124,12 +130,28 @@ export function GroupsList({
   // Handle page size change
   const handlePageSizeChange = useCallback((pageSize: string | null) => {
     if (pageSize) {
-      setParams(prev => ({
+      setFilterParams(prev => ({
         ...prev,
         pageSize: parseInt(pageSize, 10),
         page: 1,
       }));
     }
+  }, []);
+
+    const handleApplyFilters = useCallback(() => {
+    setParams({ ...filterParams, page: 1 });
+  }, [filterParams]);
+
+  const handleResetFilters = useCallback(() => {
+    const defaultParams: IGroupsListParams = {
+      page: 1,
+      pageSize: 20,
+      search: '',
+      sort: 'name',
+      sortDirection: 'asc',
+    };
+    setFilterParams(defaultParams);
+    setParams(defaultParams);
   }, []);
 
   // Define table columns
@@ -321,61 +343,67 @@ export function GroupsList({
     <Card>
       <Stack gap="md">
         {/* Header */}
-        <Group justify="space-between">
-          <div>
-            <Text size="lg" fw={600}>
-              Groups Management
-            </Text>
-            <Text size="sm" c="dimmed">
-              Manage user groups and their permissions
-            </Text>
-          </div>
+        <PageHeader
+          title="Groups Management"
+          subtitle="Manage user groups and their permissions"
+        >
           <Button
             leftSection={<IconPlus size={16} />}
             onClick={onCreateGroup}
           >
             Create Group
           </Button>
-        </Group>
+        </PageHeader>
 
-        {/* Filters */}
-        <Group gap="md">
-          <TextInput
-            placeholder="Search groups..."
-            leftSection={<IconSearch size={16} />}
-            rightSection={
-              params.search ? (
-                <ActionIcon
-                  variant="subtle"
-                  color="gray"
-                  size="sm"
-                  onClick={handleClearSearch}
-                >
-                  <IconX size={14} />
-                </ActionIcon>
-              ) : null
-            }
-            value={params.search}
-            onChange={(e) => handleSearch(e.currentTarget.value)}
-            style={{ flex: 1 }}
-          />
-          <Select
-            placeholder="Per page"
-            value={params.pageSize?.toString()}
-            onChange={handlePageSizeChange}
-            data={[
-              { value: '10', label: '10' },
-              { value: '20', label: '20' },
-              { value: '50', label: '50' },
-              { value: '100', label: '100' },
-            ]}
-            w={100}
-          />
-        </Group>
+        {/* Filters Card */}
+        <Card withBorder p="md">
+          <Stack gap="md">
+            <Group gap="md" align="flex-end">
+              <TextInput
+                placeholder="Search groups..."
+                leftSection={<IconSearch size={16} />}
+                rightSection={
+                  filterParams.search ? (
+                    <ActionIcon variant="subtle" color="gray" size="sm" onClick={handleClearSearch}>
+                      <IconX size={14} />
+                    </ActionIcon>
+                  ) : null
+                }
+                value={filterParams.search}
+                onChange={(e) => handleSearch(e.currentTarget.value)}
+                style={{ flex: 1 }}
+              />
+
+              <Select
+                placeholder="Per page"
+                value={filterParams.pageSize?.toString() || "20"}
+                onChange={handlePageSizeChange}
+                data={[
+                  { value: "10", label: "10" },
+                  { value: "20", label: "20" },
+                  { value: "50", label: "50" },
+                  { value: "100", label: "100" },
+                ]}
+                w={100}
+              />
+            </Group>
+
+            {/* Filter Actions - Right aligned under the form */}
+            <Group justify="flex-end">
+              <FilterActions
+                onApply={handleApplyFilters}
+                onReset={handleResetFilters}
+                onRefresh={refetch}
+                isFetching={isFetching}
+                isApplyDisabled={filterParams === params}
+              />
+            </Group>
+          </Stack>
+        </Card>
 
         {/* Table */}
         <div style={{ position: 'relative' }}>
-          <LoadingOverlay visible={isLoading} />
+          <LoadingOverlay visible={isFetching} />
           
           <Box style={{ overflowX: 'auto' }}>
             <Table striped highlightOnHover>
@@ -412,30 +440,16 @@ export function GroupsList({
             </Table>
           </Box>
 
-          {/* Empty state */}
-          {!isLoading && (!groupsData?.groups || groupsData.groups.length === 0) && (
-            <Center py="xl">
-              <Stack align="center" gap="sm">
-                <Text size="lg" c="dimmed">
-                  No groups found
-                </Text>
-                <Text size="sm" c="dimmed">
-                  {params.search 
-                    ? 'Try adjusting your search criteria'
-                    : 'Get started by creating your first group'
-                  }
-                </Text>
-                {!params.search && (
-                  <Button
-                    leftSection={<IconPlus size={16} />}
-                    onClick={onCreateGroup}
-                    variant="light"
-                  >
-                    Create Group
-                  </Button>
-                )}
-              </Stack>
-            </Center>
+          {/* Empty State */}
+          {!isFetching && (!groupsData?.groups || groupsData.groups.length === 0) && (
+            <EmptyState
+              title="No groups found"
+              description={
+                params.search
+                  ? "Try adjusting your search criteria"
+                  : "Get started by creating your first group"
+              }
+            />
           )}
         </div>
 
