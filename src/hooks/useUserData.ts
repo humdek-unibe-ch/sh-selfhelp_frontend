@@ -1,11 +1,10 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { AuthApi } from '../api/auth.api';
 import { IUserDataResponse, IAuthUser, IUserData } from '../types/auth/jwt-payload.types';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
-import { getAccessToken } from '../utils/auth.utils';
 import { createPermissionChecker, PermissionChecker } from '../utils/permissions.utils';
 import { permissionManager } from '../api/permission-wrapper.api';
 
@@ -17,22 +16,23 @@ import { permissionManager } from '../api/permission-wrapper.api';
  * @returns User data query result with user information, permissions, roles, and language
  */
 export function useUserData() {
-    const queryClient = useQueryClient();
-    
     const query = useQuery({
-        queryKey: ['auth', 'user-data'],
+        queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA,
         queryFn: async (): Promise<IUserDataResponse> => {
             return AuthApi.getUserData();
         },
-        enabled: !!getAccessToken(), // Only fetch when user is authenticated
-        staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.USER_DATA.staleTime,
-        gcTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.USER_DATA.gcTime,
+        // Always enabled: the BFF translates missing auth into a 401 and we
+        // let React Query cache that negative state. No client-visible token
+        // to gate on now that auth lives in httpOnly cookies.
+        enabled: true,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.USER_DATA.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.USER_DATA.gcTime,
+        refetchOnWindowFocus: REACT_QUERY_CONFIG.CACHE_TIERS.USER_DATA.refetchOnWindowFocus,
         retry: (failureCount, error: any) => {
-            // Don't retry on 401 (unauthorized) errors
             if (error?.response?.status === 401) {
                 return false;
             }
-            return failureCount < 3;
+            return failureCount < 1;
         },
         meta: {
             errorMessage: 'Failed to fetch user data'
@@ -43,11 +43,10 @@ export function useUserData() {
     useEffect(() => {
         if (query.data?.data?.permissions) {
             permissionManager.setPermissions(query.data.data.permissions);
-        } else if (!getAccessToken()) {
-            // Clear permissions when user logs out
+        } else if (query.isError || (!query.isLoading && !query.data)) {
             permissionManager.clearPermissions();
         }
-    }, [query.data?.data?.permissions]);
+    }, [query.data?.data?.permissions, query.isError, query.isLoading, query.data]);
 
     return query;
 }
@@ -80,27 +79,16 @@ export function useAuthUser(): {
 }
 
 /**
- * Hook to invalidate user data cache
- * Useful after language changes or other operations that affect user data
- */
-export function useInvalidateUserData() {
-    const queryClient = useQueryClient();
-    
-    return () => {
-        queryClient.invalidateQueries({ queryKey: ['auth', 'user-data'] });
-    };
-}
-
-/**
  * Transform user data from API response to IAuthUser interface
  */
 function transformUserData(userData: IUserData): IAuthUser {
     return {
         id: userData.id,
         email: userData.email,
-        name: userData.name || userData.email, // Fallback to email if name is null
+        name: userData.name || userData.email,
         user_name: userData.user_name,
         blocked: userData.blocked,
+        aclVersion: userData.acl_version ?? null,
         roles: userData.roles,
         permissions: userData.permissions,
         groups: userData.groups,

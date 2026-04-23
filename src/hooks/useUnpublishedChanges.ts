@@ -13,8 +13,8 @@ export function useUnpublishedChanges(pageId: number | null) {
         queryKey: ['unpublished-changes', pageId],
         queryFn: () => PageVersionApi.hasUnpublishedChanges(pageId!),
         enabled: !!pageId,
-        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
         // Optionally poll for changes every 30 seconds
         refetchInterval: 30000,
     });

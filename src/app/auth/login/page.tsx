@@ -67,13 +67,29 @@ export default function LoginPage() {
       <Title ta="center">Welcome back!</Title>
 
       <Paper withBorder shadow="md" p={30} mt={30} radius="md">
-        <form onSubmit={handleSubmit}>
+        {/*
+          Password managers (Bitwarden, Dashlane, 1Password, and in this case
+          a "SharkID"-style autofill extension) inject custom attributes
+          (`data-sharkid`, `data-sharklabel`) and extra siblings
+          (`<shark-icon-container>`) into login form inputs *before* React
+          hydrates. The resulting DOM no longer matches the SSR HTML, so
+          React throws "Hydration failed" on every visit. `suppressHydrationWarning`
+          on the `<form>` tells React to accept whatever the DOM currently
+          contains for the form's direct children — which is exactly the
+          intended escape hatch for extension-driven DOM mutations, per
+          https://react.dev/reference/react-dom/client/hydrateRoot#suppressing-unavoidable-hydration-mismatch-errors.
+          We scope it tightly to the login form so the rest of the page still
+          benefits from strict hydration checks.
+        */}
+        <form onSubmit={handleSubmit} suppressHydrationWarning>
           <TextInput
             label="Email/Username"
             placeholder="your@email.com or username"
             required
             value={user}
             onChange={(e) => setUser(e.currentTarget.value)}
+            autoComplete="username"
+            suppressHydrationWarning
           />
           <PasswordInput
             label="Password"
@@ -82,6 +98,8 @@ export default function LoginPage() {
             mt="md"
             value={password}
             onChange={(e) => setPassword(e.currentTarget.value)}
+            autoComplete="current-password"
+            suppressHydrationWarning
           />
           <Button fullWidth mt="xl" type="submit" loading={isLoading}>
             Sign in

@@ -12,9 +12,21 @@ import { API_CONFIG } from '../config/api.config';
 import { IBaseApiResponse } from '../types/responses/common/response-envelope.types';
 import { ILanguage } from '../types/responses/admin/languages.types';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
-import { useAuth } from './useAuth';    
-import { getAccessToken } from '../utils/auth.utils';
+import { useAuth } from './useAuth';
 import { AdminApi } from '../api/admin';
+
+/**
+ * A single frozen reference used whenever the query has no data yet.
+ *
+ * WHY THIS MATTERS: if we return `data || []` from a hook, every render
+ * produces a *new* `[]` reference while `data` is still `undefined`. Any
+ * consumer that depends on `languages` via `useEffect` / `useMemo` will
+ * then see a changed dependency on every render and loop — we hit exactly
+ * this in `LanguageTabsWrapper` (infinite `setState` in an effect depending
+ * on `languages`). A frozen, module-level empty array keeps the reference
+ * stable across renders.
+ */
+const EMPTY_LANGUAGES: readonly ILanguage[] = Object.freeze([]) as readonly ILanguage[];
 
 
 /**
@@ -30,14 +42,14 @@ export function useAdminLanguages() {
         queryFn: async (): Promise<ILanguage[]> => {
             return await AdminApi.getLanguages();
         },
-        enabled: !!isAuthenticated && !!getAccessToken(),
-        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        enabled: !!isAuthenticated,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.LANGUAGES.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.LANGUAGES.gcTime,
         retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
     });
 
     return {
-        languages: data || [],
+        languages: (data ?? EMPTY_LANGUAGES) as ILanguage[],
         isLoading,
         error,
     };
@@ -55,18 +67,16 @@ export function usePublicLanguages() {
             const response = await permissionAwareApiClient.get<IBaseApiResponse<ILanguage[]>>(API_CONFIG.ENDPOINTS.LANGUAGES);
             return response.data.data;
         },
-        enabled: true, // Always enabled for public languages
-        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        enabled: true,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.LANGUAGES.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.LANGUAGES.gcTime,
         retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
     });
 
     return {
-        languages: data || [],
+        languages: (data ?? EMPTY_LANGUAGES) as ILanguage[],
         isLoading,
         error,
-        defaultLanguage: data?.[0] || null // First language as default
+        defaultLanguage: data?.[0] ?? null,
     };
 }
-
- 

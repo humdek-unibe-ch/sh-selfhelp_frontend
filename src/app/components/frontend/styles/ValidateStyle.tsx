@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { Box, Card, Title, TextInput, Button, Group, Alert, Text, LoadingOverlay } from '@mantine/core';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { IValidateStyle } from '../../../../types/common/styles.types';
-import { usePageContentContext } from '../../contexts/PageContentContext';
+import { usePageContentValue } from '../../../../hooks/usePageContentValue';
 import { useSubmitFormMutation, useUpdateFormMutation } from '../../../../hooks/useFormSubmission';
 import { useParams, useRouter } from 'next/navigation';
 import { useValidateTokenMutation, useCompleteValidationMutation, useTokenValidation } from '../../../../hooks/mutations/useValidationMutations';
@@ -19,7 +19,7 @@ interface IValidateStyleProps {
 const ValidateStyle: React.FC<IValidateStyleProps> = ({ style, styleProps, cssClass }) => {
     const params = useParams();
     const router = useRouter();
-    const { pageContent } = usePageContentContext();
+    const pageContent = usePageContentValue();
     const [formKey, setFormKey] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);

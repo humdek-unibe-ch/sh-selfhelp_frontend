@@ -8,9 +8,18 @@ import { PERMISSIONS } from "../types/auth/jwt-payload.types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost/symfony';
 
+/**
+ * Full BFF routing:
+ *   - `BASE_URL` is the Next.js `/api/*` catch-all proxy. All app fetches go
+ *     here so the browser never talks to Symfony directly and never sees the
+ *     access/refresh tokens (they live in httpOnly cookies managed by the
+ *     proxy).
+ *   - `BACKEND_URL` is still needed for asset URLs (images, uploads) served
+ *     directly from Symfony.
+ */
 export const API_CONFIG = {
     BACKEND_URL: API_BASE_URL,
-    BASE_URL: `${API_BASE_URL}/cms-api/v1`,
+    BASE_URL: '/api',
     ENDPOINTS: {
         // Authentication endpoints
         AUTH_LOGIN: {
@@ -19,10 +28,6 @@ export const API_CONFIG = {
         },
         TWO_FACTOR_VERIFY: {
             route: '/auth/two-factor-verify',
-            permissions: []
-        },
-        AUTH_REFRESH_TOKEN: {
-            route: '/auth/refresh-token',
             permissions: []
         },
         AUTH_LOGOUT: {
@@ -84,8 +89,8 @@ export const API_CONFIG = {
             route: (languageId: number) => `/pages/language/${languageId}`,
             permissions: []
         },
-        PAGES_GET_ONE: {
-            route: (pageId: number) => `/pages/${pageId}`,
+        PAGES_GET_BY_KEYWORD: {
+            route: (keyword: string) => `/pages/by-keyword/${encodeURIComponent(keyword)}`,
             permissions: []
         },
 
@@ -611,58 +616,6 @@ export const API_CONFIG = {
             permissions: [PERMISSIONS.ADMIN_AUDIT_VIEW]
         },
 
-        // Legacy endpoints (keeping for backward compatibility)
-        PAGES_GET_ONE_WITH_LANGUAGE: {
-            route: (pageId: number, languageId: number) => `/pages/${pageId}?language_id=${languageId}`,
-            permissions: []
-        },
-        ADMIN_PAGES_GET_ONE_WITH_LANGUAGE: {
-            route: (pageId: number, languageId: number) => `/admin/pages/${pageId}?language_id=${languageId}`,
-            permissions: [PERMISSIONS.ADMIN_PAGE_READ]
-        },
-        ADMIN_SETTINGS: {
-            route: '/admin/settings',
-            permissions: [PERMISSIONS.ADMIN_SETTINGS]
-        },
-
-        ADMIN_SECTIONS_ADD_TO_SECTION: {
-            route: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections`,
-            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
-        },
-        ADMIN_SECTIONS_UPDATE_SECTION: {
-            route: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}`,
-            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
-        },
-        ADMIN_SECTIONS_REMOVE_FROM_SECTION: {
-            route: (pageId: number, parentSectionId: number, childSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections/${childSectionId}`,
-            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
-        },
-        ADMIN_SECTIONS_DELETE: {
-            route: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}`,
-            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
-        },
-        ADMIN_PAGES_SECTIONS_CREATE: {
-            route: (pageId: number) => `/admin/pages/${pageId}/sections/create`,
-            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
-        },
-        ADMIN_SECTIONS_CREATE_IN_SECTION: {
-            route: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections/create`,
-            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
-        },
-        USER_LANGUAGE_PREFERENCE: {
-            route: '/auth/set-language',
-            permissions: []
-        }
-    },
-    CORS_CONFIG: {
-        credentials: true, // Required for cookies, authorization headers with HTTPS
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-Client-Type': 'web'
-        },
     },
     TIMEOUT: 10000, // 10 seconds
-    TOKEN_REFRESH_INTERVAL: 5 * 60 * 1000, // 5 minutes in milliseconds
-    TOKEN_EXPIRY_THRESHOLD: 60 * 1000, // 1 minute in milliseconds
 };

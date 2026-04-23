@@ -47,7 +47,7 @@ export function useTokenValidation(userId: number, token: string) {
         queryKey: ['validation', 'token', userId, token],
         queryFn: () => AuthApi.validateToken(userId, token),
         enabled: !!userId && !!token,
-        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
         retry: false // Don't retry token validation failures
     });
 }

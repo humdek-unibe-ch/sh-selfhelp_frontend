@@ -24,8 +24,8 @@ export function usePageSections(pageId: number | null, enabled: boolean = true) 
             return { sections, page_id: pageId };
         },
         enabled: enabled && !!pageId,
-        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
         placeholderData: keepPreviousData, // Keep previous data for smooth transitions
         // Use global defaults for consistency and deduplication
         // refetchOnMount: false, // Use cached data first
@@ -48,8 +48,8 @@ export function usePageFields(pageId: number | null, enabled: boolean = true) {
             return data;
         },
         enabled: enabled && !!pageId,
-        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
         placeholderData: keepPreviousData, // Keep previous data for smooth transitions
         refetchOnMount: false, // Use cached data first
     });

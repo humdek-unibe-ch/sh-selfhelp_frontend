@@ -114,7 +114,7 @@ export const SectionInspector = React.memo(function SectionInspector({ pageId, s
                 queryClient.invalidateQueries({ queryKey: ['pageSections', pageId] });
                 queryClient.invalidateQueries({ queryKey: ['admin', 'sections', 'details', pageId, sectionId] });
                 queryClient.invalidateQueries({ queryKey: ['pages'] });
-                queryClient.invalidateQueries({ queryKey: ['page-content'] });
+                queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
                 queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
             }
         }

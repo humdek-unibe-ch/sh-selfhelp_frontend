@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Group,
   Box,
@@ -66,33 +66,55 @@ export function LinksGroup({ icon, label, initiallyOpened, links, link, selectab
   const pathname = usePathname();
   const hasLinks = Array.isArray(links);
   const storageKey = `navbar-${label.replace(/\s+/g, '-').toLowerCase()}-opened`;
-  
+
   // Check if this item or any nested item is active
   const isActive = link === pathname;
   const hasActiveChild = hasLinks && checkForActiveChild(links || [], pathname);
-  
-  // Initialize opened state from localStorage or initiallyOpened
-  const [opened, setOpened] = useState(() => {
-    if (typeof window !== 'undefined') {
+
+  // Initial render must be identical on server and client, so we do NOT read
+  // localStorage during useState init (that would cause a hydration mismatch
+  // — the server never has localStorage, the client does). Instead the
+  // `opened` state starts deterministically from `initiallyOpened` or
+  // `hasActiveChild`, and we reconcile with the persisted value in a
+  // post-mount effect below.
+  const [opened, setOpened] = useState<boolean>(
+    () => Boolean(initiallyOpened || hasActiveChild)
+  );
+  const hasHydratedFromStorage = useRef(false);
+
+  // Hydrate persisted open/closed state once, after mount.
+  useEffect(() => {
+    if (hasHydratedFromStorage.current) return;
+    hasHydratedFromStorage.current = true;
+    try {
       const stored = localStorage.getItem(storageKey);
       if (stored !== null) {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        if (typeof parsed === 'boolean') {
+          setOpened(parsed);
+        }
       }
+    } catch {
+      // Corrupt value — ignore and fall back to the deterministic default.
     }
-    return initiallyOpened || hasActiveChild || false;
-  });
+  }, [storageKey]);
 
-  // Auto-open if has active child
+  // Auto-open if has active child.
   useEffect(() => {
     if (hasActiveChild && !opened) {
       setOpened(true);
     }
   }, [hasActiveChild, opened]);
 
-  // Save state to localStorage
+  // Persist state to localStorage — but only *after* we've hydrated the
+  // stored value, so the hydration effect cannot overwrite a user's
+  // previously-persisted choice with the deterministic default.
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (!hasHydratedFromStorage.current) return;
+    try {
       localStorage.setItem(storageKey, JSON.stringify(opened));
+    } catch {
+      // Quota / private-mode — best-effort, don't throw.
     }
   }, [opened, storageKey]);
 
@@ -274,27 +296,39 @@ function NestedLinksGroup({ label, link, links, level, pathname, selectable = tr
   const storageKey = `navbar-nested-${label.replace(/\s+/g, '-').toLowerCase()}-${level}-opened`;
   const hasActiveChild = checkForActiveChild(links, pathname);
 
-  const [opened, setOpened] = useState(() => {
-    if (typeof window !== 'undefined') {
+  // Deterministic initial state to keep SSR and first client render in sync.
+  // See the matching comment in `LinksGroup` above.
+  const [opened, setOpened] = useState<boolean>(() => Boolean(hasActiveChild));
+  const hasHydratedFromStorage = useRef(false);
+
+  useEffect(() => {
+    if (hasHydratedFromStorage.current) return;
+    hasHydratedFromStorage.current = true;
+    try {
       const stored = localStorage.getItem(storageKey);
       if (stored !== null) {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        if (typeof parsed === 'boolean') {
+          setOpened(parsed);
+        }
       }
+    } catch {
+      // ignore
     }
-    return hasActiveChild || false;
-  });
+  }, [storageKey]);
 
-  // Auto-open if has active child
   useEffect(() => {
     if (hasActiveChild && !opened) {
       setOpened(true);
     }
   }, [hasActiveChild, opened]);
 
-  // Save state to localStorage
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (!hasHydratedFromStorage.current) return;
+    try {
       localStorage.setItem(storageKey, JSON.stringify(opened));
+    } catch {
+      // ignore
     }
   }, [opened, storageKey]);
 

@@ -1,389 +1,166 @@
 /**
- * Base API client configuration and interceptor setup.
- * Handles authentication token management, request/response interceptors,
- * and automatic token refresh functionality.
- * 
+ * Base Axios client.
+ *
+ * See `docs/architecture/ssr-bff-architecture.md` §4 for the bigger
+ * picture (why Axios stays, why it never attaches `Authorization`, and
+ * how it complements the BFF silent-refresh loop).
+ *
+ * After the full BFF migration this client only ever talks to the local
+ * Next.js `/api/*` proxy. The browser never sees the JWT; access & refresh
+ * tokens live in httpOnly cookies that the proxy rotates on our behalf.
+ *
+ * Why still Axios (vs. raw `fetch`)?
+ * - Interceptors give us a single choke point for CSRF header attachment,
+ *   response-denied redirects, and "session expired → go to login".
+ * - Every domain client under `src/api/` already uses the Axios type
+ *   surface. Replacing with fetch would be a pure renaming refactor
+ *   with no behavioural win.
+ * - We depend on `axios.isAxiosError`, `AxiosResponse<T>`, and the shape
+ *   of `InternalAxiosRequestConfig` across dozens of call sites.
+ *
+ * Responsibilities:
+ *   1. `baseURL = '/api'` so every call is relative to the current origin.
+ *   2. `withCredentials: true` so the httpOnly auth cookies are sent.
+ *   3. Attach `X-CSRF-Token` on unsafe methods from the `sh_csrf` cookie.
+ *   4. Transparent retry exactly once when the BFF signals a refresh
+ *      succeeded mid-flight (`401` + `logged_in: true`). This is the
+ *      client-side complement of the proxy's silent-refresh loop; it
+ *      handles the (rare) mutation race where the proxy rotated cookies
+ *      but chose to surface the original 401 to the caller.
+ *   5. Session-expired redirect: when the BFF returns `401` with
+ *      `logged_in: false` from a route under `/admin/*`, send the user
+ *      to the login page with a `redirect=` hint.
+ *   6. Permission-denied redirect for admin *non-data* operations.
+ *
  * @module api/base.api
  */
 
-import axios, { InternalAxiosRequestConfig } from 'axios';
+import axios from 'axios';
 import { API_CONFIG } from '../config/api.config';
-import { AuthApi } from './auth.api';
-import { authProvider } from '../providers/auth.provider';
 import { ROUTES } from '../config/routes.config';
-import { getAccessToken, getRefreshToken, storeTokens, removeTokens } from '../utils/auth.utils';
-import { warn, error } from '../utils/debug-logger';
+import { readCsrfToken } from '../utils/auth.utils';
 
-// Extend Axios request config to include our custom properties
 declare module 'axios' {
     export interface InternalAxiosRequestConfig {
         _retry?: boolean;
-        _loggedInRetry?: boolean;
     }
 }
 
-/**
- * Axios instance configured with base URL and default headers.
- * Used internally - DO NOT export directly to force permission-aware usage
- */
 const apiClientRaw = axios.create({
     baseURL: API_CONFIG.BASE_URL,
-    withCredentials: API_CONFIG.CORS_CONFIG.credentials,
-    headers: API_CONFIG.CORS_CONFIG.headers
+    withCredentials: true,
+    headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'X-Client-Type': 'web',
+    },
 });
 
-/**
- * Export for internal use only (e.g., in permission-aware-client.api.ts)
- * Applications should use permissionAwareApiClient instead
- *
- * NOTE: Keeping apiClientRaw export for backward compatibility during migration
- * TODO: Remove this after migration is complete
- */
 export const apiClient = apiClientRaw;
 
-// Shared refresh state to prevent multiple simultaneous refreshes
-let isRefreshing = false;
-let refreshPromise: Promise<string> | null = null;
-let failedQueue: Array<{
-    resolve: (token: string) => void;
-    reject: (error: any) => void;
-}> = [];
+const UNSAFE_METHODS = new Set(['post', 'put', 'patch', 'delete']);
 
-// Helper function to handle token refresh success
-const handleTokenRefreshSuccess = (accessToken: string, refreshToken?: string) => {
-    // If both tokens are provided, store them
-    if (refreshToken) {
-        storeTokens(accessToken, refreshToken);
-    } else {
-        // Otherwise just update the access token
-        localStorage.setItem('access_token', accessToken);
-        // Update cookie for middleware
-        document.cookie = `access_token=${accessToken}; path=/; max-age=${60 * 60}; SameSite=Strict`;
-    }
-
-    // Update axios default headers
-    apiClientRaw.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
-
-    // Notify Refine auth provider about successful refresh
-    authProvider.check().catch(() => {
-        // If check fails after refresh, something is wrong
-    });
-};
-
-// Helper function to handle token refresh failure
-const handleTokenRefreshFailure = (clearTokens: boolean = false) => {
-    if (clearTokens) {
-        // Only clear tokens when explicitly requested (e.g., when logged_in is false)
-        removeTokens();
-        delete apiClientRaw.defaults.headers.common.Authorization;
-    }
-
-    // Note: We don't redirect here anymore to prevent unwanted logouts
-    // The auth provider will handle navigation when it detects the user is not authenticated
-};
-
-const processQueue = (error: any, token: string | null = null) => {
-    failedQueue.forEach(prom => {
-        if (error) {
-            prom.reject(error);
-        } else {
-            prom.resolve(token!);
-        }
-    });
-    failedQueue = [];
-};
-
-// Centralized token refresh function with single execution guarantee
-const performTokenRefresh = async (): Promise<string> => {
-    // If already refreshing, return the existing promise
-    if (isRefreshing && refreshPromise) {
-        return refreshPromise;
-    }
-
-    // Set refreshing state and create new promise
-    isRefreshing = true;
-    refreshPromise = new Promise(async (resolve, reject) => {
-        try {
-
-            const response = await AuthApi.refreshToken();
-
-            if (response.data.access_token) {
-                // Store both tokens if refresh token is also returned
-                if (response.data.refresh_token) {
-                    handleTokenRefreshSuccess(response.data.access_token, response.data.refresh_token);
-                } else {
-                    handleTokenRefreshSuccess(response.data.access_token);
-                }
-
-                resolve(response.data.access_token);
-            } else {
-                throw new Error('Token refresh failed - no access token received');
-            }
-        } catch (refreshError) {
-            error('Token refresh failed', 'BaseApi', refreshError);
-            // AuthApi.refreshToken() already handles token clearing when logged_in is false
-            handleTokenRefreshFailure(false);
-            reject(refreshError);
-        } finally {
-            // Reset refresh state
-            isRefreshing = false;
-            refreshPromise = null;
-        }
-    });
-
-    return refreshPromise;
-};
-
-// Helper function to handle refresh with queue management
-const handleRefreshWithQueue = async (originalRequest: InternalAxiosRequestConfig): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        // Add to queue if already refreshing
-        if (isRefreshing) {
-            failedQueue.push({ resolve, reject });
-            return;
-        }
-
-        // Start refresh process
-        performTokenRefresh()
-            .then((token) => {
-                // Process queued requests
-                processQueue(null, token);
-                resolve(token);
-            })
-            .catch((refreshError) => {
-                // Process queued requests with error
-                processQueue(refreshError, null);
-                reject(refreshError);
-            });
-    });
-};
-
-// Helper functions to identify specific request types
-const isLogoutRequest = (config: any) =>
-    config.url === API_CONFIG.ENDPOINTS.AUTH_LOGOUT;
-const isRefreshTokenRequest = (config: any) =>
-    config.url === API_CONFIG.ENDPOINTS.AUTH_REFRESH_TOKEN;
-const isAdminRequest = (config: any) =>
-    config.url?.includes('/admin/');
-
-// Helper function to identify admin data operations (CRUD operations on data)
-// These should not trigger redirects to no-access page on 403 errors
-const isAdminDataOperation = (config: any) => {
-    if (!config.url?.includes('/admin/')) return false;
-
-    // Data operations that should show errors instead of redirecting
-    const dataOperationPatterns = [
-        '/admin/pages/',      // Page operations
-        '/admin/sections/',   // Section operations
-        '/admin/roles/',      // Role operations
-        '/admin/users/',      // User operations
-        '/admin/groups/',     // Group operations
-        '/admin/assets/',     // Asset operations
-        '/admin/actions/',    // Action operations
-        '/admin/data/',       // Data operations
-        '/admin/scheduled-jobs/' // Scheduled job operations
-    ];
-
-    return dataOperationPatterns.some(pattern => config.url?.includes(pattern));
-};
-
-/**
- * Request interceptor to add authentication token to outgoing requests.
- * Retrieves the access token and appends it to the Authorization header if available.
- * Also adds the X-Client-Type header for all requests.
- */
 apiClientRaw.interceptors.request.use(
     (config) => {
-        // Add client type header for all requests
-        config.headers['X-Client-Type'] = 'web';
-
-        // Add authorization header if token exists
-        const token = getAccessToken();
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        } else {
-            // Clear authorization header if no token
-            config.headers.Authorization = '';
+        const method = (config.method || 'get').toLowerCase();
+        if (UNSAFE_METHODS.has(method)) {
+            const csrf = readCsrfToken();
+            if (csrf) {
+                config.headers.set('X-CSRF-Token', csrf);
+            }
         }
         return config;
     },
-    (error) => {
+    (error) => Promise.reject(error)
+);
+
+function isAdminDataOperation(url: string | undefined): boolean {
+    if (!url) return false;
+    const dataOperationPatterns = [
+        '/admin/pages/',
+        '/admin/sections/',
+        '/admin/roles/',
+        '/admin/users/',
+        '/admin/groups/',
+        '/admin/assets/',
+        '/admin/actions/',
+        '/admin/data/',
+        '/admin/scheduled-jobs/',
+    ];
+    return dataOperationPatterns.some((p) => url.includes(p));
+}
+
+/**
+ * True for paths where a dead session *must* bounce to the login page
+ * (admin UI). Public / login / no-access paths never bounce — the UI on
+ * those pages can legitimately receive a 401 from `/auth/user-data` while
+ * sitting on the landing screen without it being an error.
+ */
+function shouldRedirectToLogin(pathname: string): boolean {
+    if (!pathname.startsWith('/admin')) return false;
+    if (pathname.startsWith(ROUTES.LOGIN)) return false;
+    if (pathname.startsWith(ROUTES.NO_ACCESS)) return false;
+    return true;
+}
+
+apiClientRaw.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+        const originalRequest = error.config;
+        const status = error.response?.status;
+        const responseData = error.response?.data;
+
+        // (a) Silent-refresh race: the proxy has already rotated cookies
+        //     and is telling us to retry.
+        if (
+            status === 401 &&
+            responseData?.logged_in === true &&
+            originalRequest &&
+            !originalRequest._retry
+        ) {
+            originalRequest._retry = true;
+            return apiClientRaw(originalRequest);
+        }
+
+        // (b) Session genuinely expired. The proxy cleared cookies; if we
+        //     are on a page that requires auth, bounce to login with a
+        //     redirect hint. Public pages see the 401 and continue as
+        //     anonymous (e.g. `/auth/user-data` returning null is fine on `/`).
+        if (
+            status === 401 &&
+            responseData?.logged_in === false &&
+            typeof window !== 'undefined'
+        ) {
+            const path = window.location.pathname + window.location.search;
+            if (shouldRedirectToLogin(window.location.pathname)) {
+                const loginUrl = `${ROUTES.LOGIN}?redirect=${encodeURIComponent(path)}`;
+                window.location.href = loginUrl;
+            }
+        }
+
+        // (c) Permission denied for an admin *non-data* operation. Data
+        //     operations surface the error so the caller can show an
+        //     inline message; navigation / list fetches bounce to
+        //     /no-access so the user isn't stuck on an empty shell.
+        if (
+            status === 403 &&
+            responseData?.logged_in === true &&
+            responseData?.error_type === 'permission_denied' &&
+            originalRequest?.url?.includes('/admin/') &&
+            !isAdminDataOperation(originalRequest.url)
+        ) {
+            if (typeof window !== 'undefined' && !window.location.pathname.startsWith(ROUTES.NO_ACCESS)) {
+                window.location.href = ROUTES.NO_ACCESS;
+            }
+        }
+
         return Promise.reject(error);
     }
 );
 
-/**
- * Response interceptor to handle:
- * 1. Authentication state based on logged_in flag from server
- * 2. Token refresh when logged_in is false or on 401 errors
- * 3. Automatic retry of failed requests after token refresh
- * 4. Integration with Refine auth provider
- */
-apiClientRaw.interceptors.response.use(
-    async (response) => {
-        // Skip check for logout requests and refresh token requests
-        if (isLogoutRequest(response.config) || isRefreshTokenRequest(response.config)) {
-            return response;
-        }
-
-        // Skip check for 204 No Content responses (no response body)
-        if (response.status === 204) {
-            return response;
-        }
-
-        // Check for logged_in flag in successful responses (only if response.data exists)
-        if (response.data && 'logged_in' in response.data) {
-            // If server says not logged in but we have tokens, attempt to refresh
-            // Only attempt refresh if we have both access and refresh tokens (user was previously authenticated)
-            if (!response.data.logged_in && getRefreshToken() && getAccessToken()) {
-                const originalRequest = response.config;
-
-                // Prevent infinite loops
-                if (originalRequest._loggedInRetry) {
-                    // Since we got logged_in: false and refresh failed, clear tokens
-                    handleTokenRefreshFailure(true);
-                    return response;
-                }
-
-                // Mark this request for retry
-                originalRequest._loggedInRetry = true;
-
-                try {
-
-                    // Use centralized refresh with queue management
-                    const newToken = await handleRefreshWithQueue(originalRequest);
-
-                    // Update the original request with the new token
-                    originalRequest.headers.Authorization = `Bearer ${newToken}`;
-
-                    // Retry the original request
-                    return await apiClientRaw(originalRequest);
-                } catch (refreshError) {
-                    warn('Token refresh failed for logged_in check', 'BaseApi', refreshError);
-
-                    // For frontend requests, return the original response
-                    // For admin requests, this should trigger a redirect
-                    if (isAdminRequest(originalRequest)) {
-                        // Admin requests need strict auth
-                        return Promise.reject(new Error('Authentication required for admin access'));
-                    }
-
-                    // Return the original response with logged_in: false for frontend
-                    return response;
-                }
-            }
-        }
-        return response;
-    },
-    async (error) => {
-        const originalRequest = error.config;
-
-        if (originalRequest._retry) {
-            // Handle 403 Forbidden errors (permission issues)
-            if (getAccessToken()) {
-                // Check if the response indicates the user is logged in but doesn't have permission
-                const responseData = error.response.data;
-
-                // Only redirect to no-access for specific permission-related errors
-                // Don't redirect for general API errors during data operations (like section saves)
-                if (responseData?.logged_in === true &&
-                    responseData?.error_type === 'permission_denied' &&
-                    !isAdminDataOperation(originalRequest)) {
-                    // User is logged in but doesn't have permission for non-data operations
-                    // Use Next.js router for client-side navigation
-                    if (typeof window !== 'undefined' && !window.location.pathname.startsWith(ROUTES.NO_ACCESS)) {
-                        import('next/navigation').then(({ redirect }) => {
-                            redirect(ROUTES.NO_ACCESS);
-                        }).catch(() => {
-                            // Fallback for edge cases
-                            window.location.href = ROUTES.NO_ACCESS;
-                        });
-                    }
-                } else if (!responseData.logged_in && getRefreshToken() && getAccessToken()) {
-
-                    // Prevent infinite loops
-                    if (originalRequest._loggedInRetry) {
-                        // Since we got logged_in: false and refresh failed, clear tokens
-                        handleTokenRefreshFailure(true);
-                        return error;
-                    }
-
-                    // Mark this request for retry
-                    originalRequest._loggedInRetry = true;
-
-                    try {
-
-                        // Use centralized refresh with queue management
-                        const newToken = await handleRefreshWithQueue(originalRequest);
-
-                        // Update the original request with the new token
-                        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-
-                        // Retry the original request
-                        return await apiClientRaw(originalRequest);
-                    } catch (refreshError) {
-                        warn('Token refresh failed for logged_in check', 'BaseApi', refreshError);
-
-                        // For frontend requests, return the original response
-                        // For admin requests, this should trigger a redirect
-                        if (isAdminRequest(originalRequest)) {
-                            // Admin requests need strict auth
-                            return Promise.reject(new Error('Authentication required for admin access'));
-                        }
-
-                        // Return the original response with logged_in: false for frontend
-                        return error;
-                    }
-                }
-            }
-            return Promise.reject(error);
-        }
-
-        // Don't retry refresh token or logout requests to avoid infinite loops
-        if (isLogoutRequest(originalRequest) || isRefreshTokenRequest(originalRequest)) {
-            return Promise.reject(error);
-        }
-
-        // Mark this request as retried
-        originalRequest._retry = true;
-
-        try {
-
-            // Use centralized refresh with queue management
-            const newToken = await handleRefreshWithQueue(originalRequest);
-
-            // Update the original request with the new token
-            originalRequest.headers.Authorization = `Bearer ${newToken}`;
-
-            // Retry the original request
-            return apiClientRaw(originalRequest);
-        } catch (refreshError) {
-            error('Token refresh failed for 401 error', 'BaseApi', refreshError);
-
-            // Don't automatically logout here - let the auth provider handle it
-            // This prevents unwanted logouts when token refresh fails due to temporary issues
-
-            return Promise.reject(refreshError);
-        }
-    }
-);
-
-// Initialize permission checking after all interceptors are set up
-// This avoids circular dependency issues
 import { initializePermissionChecking } from './permission-wrapper.api';
 import { permissionAwareApiClient } from './permission-aware-client.api';
 
 initializePermissionChecking(apiClient);
 
-/**
- * RECOMMENDED: Use permissionAwareApiClient for all API calls
- * This ensures permission metadata is always attached
- * 
- * Export this as the primary API client
- */
 export { permissionAwareApiClient };
-
-/**
- * For backward compatibility, apiClient is also exported
- * but will throw errors if permission metadata is missing
- */

@@ -1,26 +1,9 @@
 /**
- * JWT token payload structure returned from the backend after successful authentication
- * Updated structure - no longer contains permissions, language, or detailed user info
- */
-export interface IJwtPayload {
-    /** Token issued at timestamp */
-    iat: number;
-    /** Token expiration timestamp */
-    exp: number;
-    /** User roles array (simplified to role names only) */
-    roles: string[];
-    /** User ID */
-    id_users: number;
-    /** User email */
-    email: string;
-    /** User name */
-    user_name: string;
-    /** Username (nullable) */
-    username: string | null;
-}
-
-/**
- * User data response structure from /auth/user-data endpoint
+ * User data response structure from /auth/user-data endpoint.
+ *
+ * With the BFF migration the raw JWT is never exposed to the browser
+ * (httpOnly cookies only), so the `IJwtPayload` interface previously
+ * declared here is intentionally omitted.
  */
 export interface IUserDataResponse {
     status: number;
@@ -43,6 +26,12 @@ export interface IUserData {
     name: string | null;
     user_name: string | null;
     blocked: boolean;
+    /**
+     * Opaque token that rotates whenever this user's ACL/permissions are
+     * invalidated on the backend. The frontend compares it across requests
+     * to decide when to invalidate the navigation cache.
+     */
+    acl_version: string | null;
     language: {
         id: number | null;
         locale: string | null;
@@ -76,6 +65,8 @@ export interface IAuthUser {
     name: string;
     user_name: string | null;
     blocked: boolean;
+    /** ACL version mirrored from the user-data response */
+    aclVersion: string | null;
     roles: Array<{
         id: number;
         name: string;

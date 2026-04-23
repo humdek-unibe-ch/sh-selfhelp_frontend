@@ -9,7 +9,7 @@ export function usePageKeywords() {
   return useQuery<IPageKeyword[]>({
     queryKey: ['page-keywords'],
     queryFn: () => AdminPageKeywordsApi.getPageKeywords(),
-    staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
+    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
     refetchOnWindowFocus: false,
   });
 }

@@ -28,7 +28,7 @@ export function useRoles(params: IRolesListParams = {}) {
   return useQuery({
     queryKey: ROLES_QUERY_KEYS.list(params),
     queryFn: () => AdminRoleApi.getRoles(params),
-    staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.staleTime,
+    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.STATIC.staleTime,
   });
 }
 
@@ -38,7 +38,7 @@ export function useRoleDetails(roleId: number) {
     queryKey: ROLES_QUERY_KEYS.detail(roleId),
     queryFn: () => AdminRoleApi.getRoleById(roleId),
     enabled: !!roleId,
-    staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
+    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
   });
 }
 
@@ -48,7 +48,7 @@ export function useRolePermissions(roleId: number) {
     queryKey: ROLES_QUERY_KEYS.permissions(roleId),
     queryFn: () => AdminRoleApi.getRolePermissions(roleId),
     enabled: !!roleId,
-    staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
+    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
   });
 }
 

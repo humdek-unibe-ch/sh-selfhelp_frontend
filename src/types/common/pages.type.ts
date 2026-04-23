@@ -74,7 +74,10 @@ export interface IPageItem extends IBasePageInfo {
     acl_delete?: 0 | 1;
     id_type?: number;
     id_pageAccessTypes?: number;
+    /** Translated page title for the current language (backend `display=1` field). */
     title?: string | null;
+    /** Translated page description for the current language (backend `display=1` field). */
+    description?: string | null;
     children?: IPageItem[];
 }
 
@@ -139,6 +142,18 @@ export interface IPageContent {
     is_headless: boolean;
     nav_position: number | null;
     footer_position: number | null;
+    /**
+     * Translated page title for the requested language. Resolved server-side
+     * from the `pages_fields_translation` store; may be `null` when no
+     * translation exists (the frontend then falls back to the nav list
+     * entry or the root metadata template).
+     */
+    title?: string | null;
+    /**
+     * Translated page description for the requested language. Used to build
+     * `<meta name="description">` / OpenGraph description. May be `null`.
+     */
+    description?: string | null;
     sections: IPageSectionWithFields[];
 }
 

@@ -5,29 +5,27 @@ import {
     IFormUpdateRequest
 } from '../types/requests/frontend/form-submission.types';
 import { notifications } from '@mantine/notifications';
-import { useNavigationRefresh } from './useNavigationRefresh';
+import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 
 /**
- * Hook to submit a new form (anonymous users)
+ * Hook to submit a new form (anonymous users).
+ *
+ * We invalidate `['user-data']` so the user-data query refetches; if the form
+ * grant changed the user's ACL, `acl_version` will differ and the global
+ * useAclVersionWatcher hook invalidates `['frontend-pages']`. No unconditional
+ * nav refresh here.
  */
 export function useSubmitFormMutation() {
     const queryClient = useQueryClient();
-    const { refreshAfterUserAction } = useNavigationRefresh();
 
     return useMutation({
         mutationFn: (data: IFormSubmitRequest | FormData) => FormSubmissionApi.submitForm(data),
         onSuccess: async (response, variables) => {
 
-            // Invalidate page content so UI pulls latest data
-            queryClient.invalidateQueries({ queryKey: ['page-content'] });
-            queryClient.invalidateQueries({ queryKey: ['page-content-layout'] });
-            queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
+            queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
             queryClient.invalidateQueries({ queryKey: ['userInputEntries'] });
+            queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
 
-            // Refresh navigation in case form submission granted access to new pages
-            await refreshAfterUserAction();
-
-            // Show success notification if not handled by component
             if (response.data?.success && response.data?.message) {
                 notifications.show({
                     title: 'Form Submitted',
@@ -52,22 +50,15 @@ export function useSubmitFormMutation() {
  */
 export function useUpdateFormMutation() {
     const queryClient = useQueryClient();
-    const { refreshAfterUserAction } = useNavigationRefresh();
 
     return useMutation({
         mutationFn: (data: IFormUpdateRequest | FormData) => FormSubmissionApi.updateForm(data),
         onSuccess: async (response, variables) => {
 
-            // Invalidate page content so UI pulls latest data
-            queryClient.invalidateQueries({ queryKey: ['page-content'] });
-            queryClient.invalidateQueries({ queryKey: ['page-content-layout'] });
-            queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
+            queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
             queryClient.invalidateQueries({ queryKey: ['userInputEntries'] });
+            queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
 
-            // Refresh navigation in case form update granted access to new pages
-            await refreshAfterUserAction();
-
-            // Show success notification if not handled by component
             if (response.data?.success && response.data?.message) {
                 notifications.show({
                     title: 'Form Updated',
@@ -97,11 +88,9 @@ export function useDeleteFormMutation() {
         mutationFn: (data: { record_id: number; page_id: number; section_id: number }) =>
             FormSubmissionApi.deleteForm(data),
         onSuccess: (response, variables) => {
-            // Invalidate page content so UI pulls latest data
-            queryClient.invalidateQueries({ queryKey: ['page-content'] });
-            queryClient.invalidateQueries({ queryKey: ['page-content-layout'] });
-            queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
+            queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
             queryClient.invalidateQueries({ queryKey: ['userInputEntries'] });
+            queryClient.invalidateQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
 
             notifications.show({
                 title: 'Record Deleted',

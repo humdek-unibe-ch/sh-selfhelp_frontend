@@ -37,7 +37,7 @@ export function useActionTranslations(actionId: number) {
       return response.data.data || [];
     },
     enabled: !!actionId,
-    staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
+    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
     select: (data) => data,
   });
 }

@@ -13,6 +13,6 @@ export function usePermissions() {
   return useQuery({
     queryKey: PERMISSIONS_QUERY_KEYS.lists(),
     queryFn: () => AdminPermissionApi.getAllPermissions(),
-    staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.staleTime,
+    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.STATIC.staleTime,
   });
 } 

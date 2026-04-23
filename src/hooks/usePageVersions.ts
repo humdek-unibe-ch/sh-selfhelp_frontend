@@ -13,8 +13,8 @@ export function usePageVersions(pageId: number | null, params?: IVersionListPara
         queryKey: ['page-versions', pageId, params],
         queryFn: () => PageVersionApi.listVersions(pageId!, params),
         enabled: !!pageId,
-        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
     });
 }
 
@@ -23,8 +23,8 @@ export function usePageVersion(pageId: number | null, versionId: number | null, 
         queryKey: ['page-version', pageId, versionId, includePageJson],
         queryFn: () => PageVersionApi.getVersion(pageId!, versionId!, { include_page_json: includePageJson }),
         enabled: !!pageId && !!versionId,
-        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
     });
 }
 
@@ -38,8 +38,8 @@ export function useVersionComparison(
         queryKey: ['version-comparison', pageId, version1Id, version2Id, format],
         queryFn: () => PageVersionApi.compareVersions(pageId!, version1Id!, version2Id!, { format }),
         enabled: !!pageId && !!version1Id && !!version2Id,
-        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
     });
 }
 

@@ -11,8 +11,8 @@ export function useScheduledJobs(filters: IScheduledJobFilters = {}) {
     return useQuery({
         queryKey: ['scheduledJobs', filters],
         queryFn: () => AdminScheduledJobsApi.getScheduledJobs(filters),
-        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
         retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
         retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
         enabled: true, // Always enabled to fetch data
@@ -31,8 +31,8 @@ export function useScheduledJobsAll(filters: IScheduledJobFilters = {}) {
             // Page undefined → backend returns all jobs (with safety limit)
             page: undefined,
         }),
-        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
         retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
         retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
         select: (response) => {
@@ -55,8 +55,8 @@ export function useScheduledJob(jobId: number, enabled: boolean = true) {
         queryKey: ['scheduledJob', jobId],
         queryFn: () => AdminScheduledJobsApi.getScheduledJob(jobId),
         enabled: enabled && !!jobId,
-        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
         retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
         retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
     });
@@ -70,8 +70,8 @@ export function useScheduledJobTransactions(jobId: number, enabled: boolean = tr
         queryKey: ['scheduledJobTransactions', jobId],
         queryFn: () => AdminScheduledJobsApi.getScheduledJobTransactions(jobId),
         enabled: enabled && !!jobId,
-        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
         retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
         retryDelay: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retryDelay,
     });

@@ -40,13 +40,6 @@ export interface ILogoutSuccessData {
 }
 export type ILogoutSuccessResponse = IBaseApiResponse<ILogoutSuccessData>;
 
-// Refresh Token Success
-export interface IRefreshTokenSuccessData {
-    access_token: string;
-    refresh_token: string;
-}
-export type TRefreshTokenSuccessResponse = IBaseApiResponse<IRefreshTokenSuccessData>;
-
 // Language Preference Update Success
 export interface ILanguagePreferenceUpdateData {
     message: string;

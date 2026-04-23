@@ -5,7 +5,7 @@ import { IconGitCompare, IconAlertCircle, IconRefresh } from '@tabler/icons-reac
 import { useQuery } from '@tanstack/react-query';
 import { PageVersionApi } from '../../../../../api/admin/page-version.api';
 import styles from './AutoVersionComparison.module.css';
-import DOMPurify from 'dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 import { useMemo } from 'react';
 
 interface IAutoVersionComparisonProps {

@@ -1,23 +1,23 @@
-'use client';
+import { cookies } from 'next/headers';
+import { NotFoundClient } from './NotFoundClient';
+import { AUTH_COOKIE } from '../config/server.config';
 
-import { Container, Title, Text, Button, Group } from '@mantine/core';
-import { useRouter } from 'next/navigation';
+/**
+ * Global 404 page (Server Component).
+ *
+ * Shown when the slug resolver (`getPageByKeywordSSRCached`) returns `null`
+ * for a given keyword — e.g. a fresh install without a `home` page, or a
+ * broken internal link.
+ *
+ * We peek at the httpOnly `sh_auth` cookie here (only possible on the
+ * server) to decide whether to render the "Sign in" CTA. The actual UI is
+ * delegated to `NotFoundClient` because Mantine `Button component={Link}`
+ * passes a function prop, which would fail the RSC → Client Component
+ * serialization check if rendered directly in this file.
+ */
+export default async function NotFound() {
+    const cookieJar = await cookies();
+    const isAuthenticated = Boolean(cookieJar.get(AUTH_COOKIE)?.value);
 
-export default function NotFound() {
-  const router = useRouter();
-
-  return (
-    <Container size="md" style={{ textAlign: 'center', paddingTop: '100px' }}>
-      <Title order={1} size="3.5rem" mb="xl">404</Title>
-      <Text size="xl" mb="xl">Page not found</Text>
-      <Text color="dimmed" mb="xl">
-        The page you are looking for does not exist or has been moved.
-      </Text>
-      <Group justify="center">
-        <Button onClick={() => router.push('/home')}>
-          Take me back home
-        </Button>
-      </Group>
-    </Container>
-  );
+    return <NotFoundClient isAuthenticated={isAuthenticated} />;
 }

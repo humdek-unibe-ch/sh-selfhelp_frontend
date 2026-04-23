@@ -22,39 +22,38 @@ export function WebsiteFooter() {
     const { footerPages, isLoading } = useAppNavigation();
     const { createHoverPrefetch } = usePagePrefetch();
 
-    // Show nothing while loading to prevent layout shift
-    if (isLoading || footerPages.length === 0) {
-        return null;
-    }
+    // Render the footer shell even while the navigation query resolves so
+    // the privacy / legal link stays reachable on every page. Previously we
+    // returned `null` when CMS-backed footer links were empty, which hid
+    // the privacy link too.
+    const showCmsLinks = !isLoading && footerPages.length > 0;
 
     return (
-        <Box
-            component="footer"
-            w="100%"
-            py="xl"
-            className={styles.footer}
-        >
+        <Box component="footer" w="100%" py="xl" className={styles.footer}>
             <Container size="xl">
                 <Stack gap="lg">
                     <Group justify="center" gap="xl">
-                        {footerPages.map(page => (
-                            <InternalLink
-                                key={page.id_pages}
-                                href={page.url || ''}
-                                className="text-sm font-medium hover:text-blue-600 transition-colors"
-                                onMouseEnter={page.id_pages ? createHoverPrefetch(page.id_pages) : undefined}
-                            >
-                                {getPageTitle(page)}
-                            </InternalLink>
-                        ))}
+                        {showCmsLinks &&
+                            footerPages.map((page) => (
+                                <InternalLink
+                                    key={page.id_pages}
+                                    href={page.url || ''}
+                                    className="text-sm font-medium hover:text-blue-600 transition-colors"
+                                    onMouseEnter={page.keyword ? createHoverPrefetch(page.keyword) : undefined}
+                                >
+                                    {getPageTitle(page)}
+                                </InternalLink>
+                            ))}
+                        <InternalLink
+                            href="/privacy"
+                            className="text-sm font-medium hover:text-blue-600 transition-colors"
+                        >
+                            Privacy & cookies
+                        </InternalLink>
                     </Group>
 
-                    <Text
-                        size="sm"
-                        c="dimmed"
-                        ta="center"
-                    >
-                        © {new Date().getFullYear()} SelfHelp V2. All rights reserved.
+                    <Text size="sm" c="dimmed" ta="center">
+                        © {new Date().getFullYear()} SelfHelp. All rights reserved.
                     </Text>
                 </Stack>
             </Container>

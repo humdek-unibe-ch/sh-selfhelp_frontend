@@ -37,8 +37,8 @@ export function useCmsPreferences() {
     return useQuery<ICMSPreferences>({
         queryKey: ['admin', 'cms-preferences'],
         queryFn: PreferencesApi.getCmsPreferences,
-        staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.staleTime,
-        gcTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.gcTime,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.STATIC.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.STATIC.gcTime,
         retry: 2,
     });
 }
