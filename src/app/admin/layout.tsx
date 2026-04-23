@@ -16,6 +16,7 @@
  * unrecoverable 401 bubbles up so the shell can redirect.
  */
 
+import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { QueryClient, dehydrate, HydrationBoundary } from '@tanstack/react-query';
@@ -23,6 +24,30 @@ import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
 import { ROUTES } from '../../config/routes.config';
 import { getAdminLookupsSSR, getAdminPagesSSR, getAuthMeSSR } from '../_lib/server-fetch';
 import { AUTH_COOKIE } from '../../config/server.config';
+
+/**
+ * Admin route-group metadata.
+ *
+ * Overrides the root `title.template` for any admin child so the browser
+ * tab clearly shows both the section name and the product brand, e.g.:
+ *
+ *   Users page         → "Users · Admin · SelfHelp"
+ *   Index (no title)   → "Admin · SelfHelp"
+ *
+ * Individual admin pages only need `export const metadata = { title: 'X' }`
+ * — the template below composes the suffix automatically. Prevents the
+ * previous "every admin tab just says SelfHelp" problem.
+ *
+ * `robots` is also hardened here: admin pages should never be indexed even
+ * if the middleware is ever bypassed.
+ */
+export const metadata: Metadata = {
+    title: {
+        default: 'Admin · SelfHelp',
+        template: '%s · Admin · SelfHelp',
+    },
+    robots: { index: false, follow: false },
+};
 
 export default async function AdminRouteLayout({ children }: { children: React.ReactNode }) {
     const jar = await cookies();

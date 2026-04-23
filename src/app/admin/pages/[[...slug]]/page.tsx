@@ -19,9 +19,12 @@ import { PageSections } from '../../../components/cms/pages/page-sections/PageSe
 import { ConfigurationPageEditor } from '../../../components/cms/pages/configuration-page-editor/ConfigurationPageEditor';
 import { useAdminPages } from '../../../../hooks/useAdminPages';
 import { useSelectedAdminPage } from '../../../../hooks/useSelectedAdminPage';
+import { useSyncDocumentMetadata } from '../../../../hooks/useSyncDocumentMetadata';
 import type { IPageHierarchy } from '../../../../hooks/useAdminPages';
 import { PageInspector } from '../../../components/cms/pages/page-inspector/PageInspector';
 import { SectionInspector } from '../../../components/cms/sections';
+
+const ADMIN_TAB_SUFFIX = 'Pages · Admin · SelfHelp';
 
 /**
  * Utility function to flatten a hierarchical pages array into a flat array
@@ -73,6 +76,12 @@ function AdminPagesContent() {
   } = useSelectedAdminPage(keyword);
 
   const hasAnyPages = Boolean(selectedPage) || (configurationPages?.length ?? 0) > 0;
+
+  // Reflect the selected page in the browser tab. When no page is selected
+  // we leave the title alone so the server-rendered fallback from
+  // `/admin/pages/layout.tsx` ("Pages · Admin · SelfHelp") keeps showing.
+  const tabTitle = keyword ? `${keyword} · ${ADMIN_TAB_SUFFIX}` : null;
+  useSyncDocumentMetadata(tabTitle, null);
 
   const isConfigurationPage = useMemo(() => {
     if (!selectedPage || !configurationPages) return false;

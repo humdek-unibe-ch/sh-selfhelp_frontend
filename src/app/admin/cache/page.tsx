@@ -3,6 +3,8 @@ import { LoadingScreen } from '../../components/shared/common/LoadingScreen';
 import { CachePage } from '../../components/cms/cache/cache-page/CachePage';
 import { AdminShell } from '../../components/cms/admin-shell/AdminShell';
 
+export const metadata = { title: 'Cache' };
+
 export default function AdminCachePage() {
   return (
     <AdminShell>
