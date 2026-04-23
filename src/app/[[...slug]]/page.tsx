@@ -1,176 +1,112 @@
-'use client';
+/**
+ * Slug route page — Server Component.
+ *
+ * Uses the new `/pages/by-keyword/{keyword}` endpoint to fetch page content
+ * in a single network round-trip. The same fetch backs both
+ * `generateMetadata` (so the `<title>` is final at first paint and the tab
+ * never flashes the default) and the initial React Query cache consumed by
+ * the client child.
+ *
+ * Title / description resolution priority (per language):
+ *   1. `page.title` / `page.description` from the content payload — the
+ *      backend now resolves these from `pages_fields_translation` and
+ *      returns them directly on the page object (primary source).
+ *   2. Same fields from the `frontend-pages` nav list entry for this
+ *      keyword — secondary safety net if the content payload is briefly
+ *      unavailable or a translation row is missing.
+ *   3. Next.js default metadata template (`'SelfHelp'` from
+ *      `src/app/layout.tsx`) for title, `undefined` for description.
+ *
+ * The actual DOM output is produced by a small client component
+ * (`DynamicPageClient`) because page content is interactive (forms, modals,
+ * etc). The server half is intentionally thin.
+ */
 
-import { notFound, useParams } from 'next/navigation';
-import { Suspense, useMemo, useEffect } from 'react';
-import { Container, Loader, Center, Text } from '@mantine/core';
-import { PageContentProvider, usePageContentContext } from '../components/contexts/PageContentContext';
-import { usePageContent } from '../../hooks/usePageContent';
-import { useAppNavigation } from '../../hooks/useAppNavigation';
-import { useNavigationRefresh } from '../../hooks/useNavigationRefresh';
-import { useLanguageContext } from '../components/contexts/LanguageContext';
-import { usePreviewMode } from '../../hooks/usePreviewMode';
-import React from 'react';
-import { PageContentRenderer } from '../components';
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import {
+    getFrontendPageSeoSSR,
+    getPageByKeywordSSRCached,
+    resolveLanguageSSR,
+} from '../_lib/server-fetch';
+import DynamicPageClient from './DynamicPageClient';
 
-export default function DynamicPage() {
-    const { slug } = useParams();
-    const keyword = Array.isArray(slug) ? slug.join('/') : slug || '';
+const HOME_KEYWORD = 'home';
 
-    return (
-        <PageContentProvider>
-            <Suspense fallback={
-                <Center h="50vh">
-                    <Loader size="lg" />
-                </Center>
-            }>
-                <DynamicPageContent keyword={keyword} />
-            </Suspense>
-        </PageContentProvider>
-    );
+function keywordFromSlug(slug: string[] | undefined): string {
+    if (!slug || slug.length === 0) return HOME_KEYWORD;
+    return slug.join('/');
 }
 
-const DynamicPageContent = React.memo(function DynamicPageContent({ keyword }: { keyword: string }) {
-    const { currentLanguageId, isUpdatingLanguage } = useLanguageContext();
-    const { refreshOnPageChange } = useNavigationRefresh();
-    const { isPreviewMode } = usePreviewMode();
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ slug?: string[] }>;
+}): Promise<Metadata> {
+    const { slug } = await params;
+    const keyword = keywordFromSlug(slug);
+    const { id: languageId } = await resolveLanguageSSR();
 
-    const { routes, isLoading: navLoading, isFetching: navFetching } = useAppNavigation();
-    
-    // Convert keyword to pageId using navigation data
-    const pageId: number | null = useMemo(() => {
-        if (!keyword || routes.length === 0) return null;
+    // Kick off both fetches in parallel. `getPageByKeywordSSRCached` is
+    // React-`cache()`'d across the layout prefetch + this call + the page
+    // body, so Symfony is still hit at most once per request.
+    const [envelope, navSeo] = await Promise.all([
+        getPageByKeywordSSRCached(keyword, languageId, false),
+        getFrontendPageSeoSSR(keyword, languageId),
+    ]);
 
-        // First try exact keyword match
-        const exactMatch = routes.find(p => p.keyword === keyword);
-        if (exactMatch) {
-            return exactMatch.id_pages ?? null;
-        }
+    const page = envelope?.data?.page ?? envelope?.data ?? null;
 
-        // Try URL pattern matching for dynamic routes
-        const keywordPath = `/${keyword}`;
-        const patternMatch = routes.find(page => {
-            if (!page.url) return false;
+    // Prefer the payload fields (the backend now resolves translated
+    // title/description per language and returns them on the page object).
+    // Fall back to the nav list when an individual page row hasn't been
+    // translated yet.
+    const payloadTitle =
+        typeof page?.title === 'string' && page.title.trim() ? page.title.trim() : null;
+    const payloadDescription =
+        typeof page?.description === 'string' && page.description.trim()
+            ? page.description.trim()
+            : null;
 
-            // Convert URL pattern to regex
-            // e.g., "/validate/[i:uid]/[a:token]" -> "/validate/[^/]+/[^/]+"
-            const pattern = page.url
-                .replace(/\[i:[^\]]+\]/g, '[^/]+')  // integer parameters
-                .replace(/\[a:[^\]]+\]/g, '[^/]+')  // alphanumeric parameters
-                .replace(/\[s:[^\]]+\]/g, '[^/]+'); // string parameters
+    const title = payloadTitle || navSeo.title || undefined;
+    const description = payloadDescription || navSeo.description || undefined;
+    const isHeadless: boolean = Boolean(page?.is_headless);
 
-            const regex = new RegExp(`^${pattern}$`);
-            return regex.test(keywordPath);
-        });
+    return {
+        // When `title` is undefined Next falls back to the root template
+        // (see `src/app/layout.tsx`), keeping the tab consistent across
+        // all public pages without our hardcoded default.
+        title,
+        description,
+        robots: isHeadless ? { index: false, follow: false } : { index: true, follow: true },
+        openGraph: title
+            ? {
+                  title,
+                  description,
+              }
+            : undefined,
+    };
+}
 
-        return patternMatch?.id_pages ?? null;
-    }, [keyword, routes]);
-    
-    const { content: queryContent, isLoading: pageLoading, isFetching: pageFetching, isPlaceholderData } = usePageContent(pageId, { preview: isPreviewMode });
-    const { pageContent: contextContent, clearPageContent, setPageContent } = usePageContentContext();
-    
-    // Use React Query data as primary source, context as fallback for immediate display
-    const pageContent = queryContent || contextContent;
-    
-    // Refresh navigation when page changes (but don't clear content immediately)
-    useEffect(() => {
-        if (keyword) {
-            // Refresh navigation to ensure user sees updated navigation
-            refreshOnPageChange();
-        }
-    }, [keyword, refreshOnPageChange]);
-    
-    // Update context when new query data arrives, but keep previous data during transitions
-    useEffect(() => {
-        if (queryContent) {
-            setPageContent(queryContent);
-        }
-    }, [queryContent, setPageContent]);
-    
-    // Extract headless flag for rendering decisions
-    const isHeadless = Boolean(pageContent?.is_headless);
-    
-    // Check if content is being updated (either loading or fetching)
-    const isContentUpdating = pageFetching || isUpdatingLanguage;
-    
-    // Memoize navigation check
-    const existsInNavigation = useMemo(() => {
-        // First check for exact keyword match
-        if (routes.some(p => p.keyword === keyword)) {
-            return true;
-        }
+export default async function SlugPage({
+    params,
+}: {
+    params: Promise<{ slug?: string[] }>;
+}) {
+    const { slug } = await params;
+    const keyword = keywordFromSlug(slug);
+    const { id: languageId } = await resolveLanguageSSR();
 
-        // Check URL pattern matching for dynamic routes
-        const keywordPath = `/${keyword}`;
-        return routes.some(page => {
-            if (!page.url) return false;
-
-            // Convert URL pattern to regex
-            const pattern = page.url
-                .replace(/\[i:[^\]]+\]/g, '[^/]+')  // integer parameters
-                .replace(/\[a:[^\]]+\]/g, '[^/]+')  // alphanumeric parameters
-                .replace(/\[s:[^\]]+\]/g, '[^/]+'); // string parameters
-
-            const regex = new RegExp(`^${pattern}$`);
-            return regex.test(keywordPath);
-        });
-    }, [routes, keyword]);
-    
-    // Check if page content is available (more reliable than navigation check)
-    const hasValidContent = pageContent && pageContent.id;
-    
-    // Show loading spinner only on initial load when absolutely no data exists
-    // This prevents annoying loading spinners when navigating between pages
-    const showLoadingSpinner = (
-        // Show spinner only if we're loading AND have no content at all
-        (pageLoading && !pageContent && !isPlaceholderData) || 
-        // OR if navigation is loading and we have no routes at all
-        (navLoading && routes.length === 0)
-    );
-    
-    if (showLoadingSpinner) {
-        return (
-            <Center h="50vh">
-                <Loader size="lg" />
-            </Center>
-        );
-    }
-
-    // Only show 404 if both navigation check fails AND no content is available
-    if (!navLoading && routes.length > 0 && !existsInNavigation && !hasValidContent) {
+    // Minimal server check: if the page does not exist, fall through to the
+    // Next.js 404 handler. The heavy prefetch has already happened in the
+    // layout; here we only need to know whether the page resolves. The
+    // underlying call is React-`cache()`'d so `generateMetadata` + this call
+    // + the layout prefetch all share one network hit.
+    const envelope = await getPageByKeywordSSRCached(keyword, languageId, false);
+    const page = envelope?.data?.page ?? envelope?.data ?? null;
+    if (!page) {
         notFound();
     }
 
-    if (!hasValidContent) {
-        return (
-            <Container size="md">
-                <Center h="50vh">
-                    <Text size="lg" c="dimmed">No content found</Text>
-                </Center>
-            </Container>
-        );
-    }
-
-    // Extract sections from the page data
-    const sections = pageContent.sections || [];
-
-    // For headless pages, render without standard container and let content fill the viewport
-    if (isHeadless) {
-        return (
-            <div
-                className={`min-h-screen w-full page-content-transition ${isContentUpdating ? 'page-content-loading' : ''}`}
-                data-language-changing={isUpdatingLanguage}
-            >
-                <PageContentRenderer sections={sections as any} />
-            </div>
-        );
-    }
-
-    // For regular pages, use standard container layout
-    return (
-        <div
-            data-language-changing={isUpdatingLanguage}
-        >
-            <PageContentRenderer sections={sections as any} />
-        </div>
-    );
-});
+    return <DynamicPageClient keyword={keyword} initialPageId={page.id} />;
+}
