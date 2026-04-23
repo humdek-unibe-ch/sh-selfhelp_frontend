@@ -2,11 +2,20 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { IAdminPage } from '../../types/responses/admin/admin.types';
 
+/**
+ * Admin store — holds only *navigation UI state*, not page content.
+ *
+ * Previously we stored the full `IAdminPage` object here; because the admin
+ * pages tree comes from React Query and is re-derived on every refetch,
+ * every consumer of `useSelectedPage()` re-rendered whenever any field on
+ * any page changed. We now store only the selected *keyword* (a string) and
+ * let consumers look up the actual page via `useSelectedAdminPage(keyword)`
+ * which subscribes with a `select` to that one row only.
+ */
 export interface AdminState {
-    selectedPage: IAdminPage | null;
+    selectedKeyword: string | null;
     expandedPageIds: Set<number>;
-    setSelectedPage: (page: IAdminPage | null) => void;
-    clearSelectedPage: () => void;
+    setSelectedKeyword: (keyword: string | null) => void;
     setExpandedPageIds: (pageIds: Set<number>) => void;
     togglePageExpanded: (pageId: number) => void;
     expandPagePath: (page: IAdminPage, allPages: IAdminPage[]) => void;
@@ -15,21 +24,17 @@ export interface AdminState {
 export const useAdminStore = create<AdminState>()(
     persist(
         (set, get) => ({
-            selectedPage: null,
+            selectedKeyword: null,
             expandedPageIds: new Set<number>(),
-            
-            setSelectedPage: (page: IAdminPage | null) => {
-                set({ selectedPage: page });
+
+            setSelectedKeyword: (keyword: string | null) => {
+                set({ selectedKeyword: keyword });
             },
-            
-            clearSelectedPage: () => {
-                set({ selectedPage: null });
-            },
-            
+
             setExpandedPageIds: (pageIds: Set<number>) => {
                 set({ expandedPageIds: pageIds });
             },
-            
+
             togglePageExpanded: (pageId: number) => {
                 const { expandedPageIds } = get();
                 const newSet = new Set(expandedPageIds);
@@ -40,17 +45,16 @@ export const useAdminStore = create<AdminState>()(
                 }
                 set({ expandedPageIds: newSet });
             },
-            
+
             expandPagePath: (page: IAdminPage, allPages: IAdminPage[]) => {
                 const { expandedPageIds } = get();
                 const newSet = new Set(expandedPageIds);
-                
-                // Find the path to the page by walking up the parent chain
+
                 const pathToExpand: number[] = [];
                 let currentPage = page;
-                
+
                 while (currentPage.parent !== null) {
-                    const parentPage = allPages.find(p => p.id_pages === currentPage.parent);
+                    const parentPage = allPages.find((p) => p.id_pages === currentPage.parent);
                     if (parentPage) {
                         pathToExpand.push(parentPage.id_pages);
                         currentPage = parentPage;
@@ -58,46 +62,39 @@ export const useAdminStore = create<AdminState>()(
                         break;
                     }
                 }
-                
-                // Expand all parents in the path
-                pathToExpand.forEach(pageId => newSet.add(pageId));
-                
+
+                pathToExpand.forEach((pageId) => newSet.add(pageId));
+
                 if (pathToExpand.length > 0) {
                     set({ expandedPageIds: newSet });
                 }
-            }
+            },
         }),
         {
             name: 'admin-store',
-            // Only persist the expanded page IDs, not the selected page
             partialize: (state) => ({ expandedPageIds: Array.from(state.expandedPageIds) }),
-            // Custom merge function to handle Set conversion
             merge: (persistedState: any, currentState) => ({
                 ...currentState,
-                expandedPageIds: new Set(persistedState?.expandedPageIds || [])
-            })
+                expandedPageIds: new Set(persistedState?.expandedPageIds || []),
+            }),
         }
     )
 );
 
-// Type-safe selector hooks
-export const useSelectedPage = (): IAdminPage | null => 
-    useAdminStore((state) => state.selectedPage);
+export const useSelectedKeyword = (): string | null =>
+    useAdminStore((state) => state.selectedKeyword);
 
-export const useSetSelectedPage = () => 
-    useAdminStore((state) => state.setSelectedPage);
+export const useSetSelectedKeyword = () =>
+    useAdminStore((state) => state.setSelectedKeyword);
 
-export const useClearSelectedPage = () => 
-    useAdminStore((state) => state.clearSelectedPage);
-
-export const useExpandedPageIds = (): Set<number> => 
+export const useExpandedPageIds = (): Set<number> =>
     useAdminStore((state) => state.expandedPageIds);
 
-export const useSetExpandedPageIds = () => 
+export const useSetExpandedPageIds = () =>
     useAdminStore((state) => state.setExpandedPageIds);
 
-export const useTogglePageExpanded = () => 
+export const useTogglePageExpanded = () =>
     useAdminStore((state) => state.togglePageExpanded);
 
-export const useExpandPagePath = () => 
-    useAdminStore((state) => state.expandPagePath); 
+export const useExpandPagePath = () =>
+    useAdminStore((state) => state.expandPagePath);

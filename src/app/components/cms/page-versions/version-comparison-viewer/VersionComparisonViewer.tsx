@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { PageVersionApi } from '../../../../../api/admin/page-version.api';
 import { IPageVersion } from '../../../../../types/responses/admin/page-version.types';
-import DOMPurify from 'dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 
 interface IVersionComparisonViewerProps {
     opened: boolean;

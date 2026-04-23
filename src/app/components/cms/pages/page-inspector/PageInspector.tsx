@@ -152,7 +152,7 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
             queryClient.invalidateQueries({ queryKey: ['pageFields', pageId] });
             queryClient.invalidateQueries({ queryKey: ['pageSections', pageId] });
             queryClient.invalidateQueries({ queryKey: ['pages'] });
-            queryClient.invalidateQueries({ queryKey: ['page-content'] });
+            queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
             queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
             queryClient.invalidateQueries({ queryKey: ['admin', 'pages'] });
             queryClient.invalidateQueries({ queryKey: ['admin', 'page', pageId] });

@@ -3,7 +3,7 @@ import { Box } from '@mantine/core';
 import BasicStyle from '../BasicStyle';
 import { IBoxStyle } from '../../../../../types/common/styles.types';
 import parse from "html-react-parser";
-import DOMPurify from 'dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 
 /**
  * Props interface for BoxStyle component

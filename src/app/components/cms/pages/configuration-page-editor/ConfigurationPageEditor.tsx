@@ -95,7 +95,7 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
             queryClient.invalidateQueries({ queryKey: ['pageFields', page.keyword] }); // Page fields
             queryClient.invalidateQueries({ queryKey: ['pageSections', page.keyword] }); // Page sections
             queryClient.invalidateQueries({ queryKey: ['pages'] }); // Frontend pages
-            queryClient.invalidateQueries({ queryKey: ['page-content'] }); // Frontend page content
+            queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] }); // Frontend page content
             queryClient.invalidateQueries({ queryKey: ['frontend-pages'] }); // Frontend pages with language
             
             // Also invalidate any admin-specific queries that might exist

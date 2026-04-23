@@ -90,6 +90,9 @@ const NumberInputStyle: React.FC<INumberInputStyleProps> = ({ style, styleProps,
             name={name}
             label={label}
             description={description}
+            // See note in TextInputStyle — autofill extensions decorate
+            // numeric fields (phone / postal code / age) before hydration.
+            suppressHydrationWarning
         />
     );
 

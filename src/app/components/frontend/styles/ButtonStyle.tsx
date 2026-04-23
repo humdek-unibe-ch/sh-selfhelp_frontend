@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { IButtonStyle } from '../../../../types/common/styles.types';
 import IconComponent from '../../shared/common/IconComponent';
 import parse from "html-react-parser";
-import DOMPurify from 'dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 
 /**
  * Props interface for ButtonStyle component

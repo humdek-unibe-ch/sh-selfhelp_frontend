@@ -1,7 +1,7 @@
 import React from 'react';
 import { IHtmlTagStyle } from '../../../../types/common/styles.types';
 import BasicStyle from './BasicStyle';
-import DOMPurify from 'dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 
 /**
  * Props interface for IHtmlTagStyle component
