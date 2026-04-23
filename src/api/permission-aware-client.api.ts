@@ -42,7 +42,7 @@ type TEndpointConfig = {
  * await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_USERS_GET_ONE, userId);
  * 
  * // Dynamic route with multiple parameters
- * await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_PAGES_GET_ONE_WITH_LANGUAGE, pageId, languageId);
+ * await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_PAGES_GET_ONE, pageId);
  */
 async function get<T = any>(
     endpointConfig: TEndpointConfig,
@@ -118,19 +118,6 @@ async function post<T = any>(
             endpointKey: ''
         }
     };
-
-    console.log('📤 PermissionAwareApiClient: Making POST request', {
-        url,
-        hasData: !!data,
-        dataKeys: data ? Object.keys(data) : [],
-        enhancedConfig: {
-            ...enhancedConfig,
-            _permissionMetadata: enhancedConfig._permissionMetadata ? {
-                ...enhancedConfig._permissionMetadata,
-                permissions: enhancedConfig._permissionMetadata.permissions
-            } : undefined
-        }
-    });
 
     return apiClient.post<T>(url, data, enhancedConfig);
 }
