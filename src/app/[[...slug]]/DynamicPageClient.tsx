@@ -6,6 +6,7 @@ import { useIsFetching } from '@tanstack/react-query';
 import { useLanguageContext } from '../components/contexts/LanguageContext';
 import { usePreviewMode } from '../../hooks/usePreviewMode';
 import { usePageContentByKeyword } from '../../hooks/usePageContentByKeyword';
+import { useSyncDocumentMetadata } from '../../hooks/useSyncDocumentMetadata';
 import { PageContextProvider } from '../components/contexts/PageContext';
 import { PageContentRenderer } from '../components';
 
@@ -50,6 +51,12 @@ export default function DynamicPageClient({ keyword, initialPageId }: IDynamicPa
     const isHeadless = Boolean(pageContent?.is_headless);
     const isContentUpdating = isFetching || isLanguageChanging;
     const sections = useMemo(() => pageContent?.sections ?? [], [pageContent]);
+
+    // SSR `generateMetadata()` paints the correct tab title on first load.
+    // After that, language switches refresh the content via React Query but
+    // leave the server-rendered `<title>` / description untouched — this
+    // hook keeps them in sync without requiring a full reload.
+    useSyncDocumentMetadata(pageContent?.title ?? null, pageContent?.description ?? null);
 
     if (isLoading && !pageContent && !isPlaceholderData) {
         return (
