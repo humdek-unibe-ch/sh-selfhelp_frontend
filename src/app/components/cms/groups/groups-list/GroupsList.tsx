@@ -157,18 +157,20 @@ export function GroupsList({
   const columns = useMemo<ColumnDef<IGroupDetails>[]>(
     () => [
       {
-        accessorKey: 'id',
+        accessorKey: "id",
         header: ({ column }) => (
           <Group gap="xs">
             <Text fw={500}>ID</Text>
             <ActionIcon
               variant="transparent"
               size="xs"
-              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
             >
-              {column.getIsSorted() === 'asc' ? (
+              {column.getIsSorted() === "asc" ? (
                 <IconSortAscending size={14} />
-              ) : column.getIsSorted() === 'desc' ? (
+              ) : column.getIsSorted() === "desc" ? (
                 <IconSortDescending size={14} />
               ) : (
                 <IconSortAscending size={14} opacity={0.5} />
@@ -184,18 +186,20 @@ export function GroupsList({
         enableSorting: true,
       },
       {
-        accessorKey: 'name',
+        accessorKey: "name",
         header: ({ column }) => (
           <Group gap="xs">
             <Text fw={500}>Name</Text>
             <ActionIcon
               variant="transparent"
               size="xs"
-              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
             >
-              {column.getIsSorted() === 'asc' ? (
+              {column.getIsSorted() === "asc" ? (
                 <IconSortAscending size={14} />
-              ) : column.getIsSorted() === 'desc' ? (
+              ) : column.getIsSorted() === "desc" ? (
                 <IconSortDescending size={14} />
               ) : (
                 <IconSortAscending size={14} opacity={0.5} />
@@ -218,18 +222,20 @@ export function GroupsList({
         enableSorting: true,
       },
       {
-        accessorKey: 'users_count',
+        accessorKey: "users_count",
         header: ({ column }) => (
           <Group gap="xs">
             <Text fw={500}>Users</Text>
             <ActionIcon
               variant="transparent"
               size="xs"
-              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
             >
-              {column.getIsSorted() === 'asc' ? (
+              {column.getIsSorted() === "asc" ? (
                 <IconSortAscending size={14} />
-              ) : column.getIsSorted() === 'desc' ? (
+              ) : column.getIsSorted() === "desc" ? (
                 <IconSortDescending size={14} />
               ) : (
                 <IconSortAscending size={14} opacity={0.5} />
@@ -245,21 +251,41 @@ export function GroupsList({
         enableSorting: true,
       },
       {
-        accessorKey: 'requires_2fa',
-        header: '2FA Required',
+        accessorKey: "requires2fa",
+        header: ({ column }) => (
+          <Group gap="xs">
+            <Text fw={500}>2FA Required</Text>
+            <ActionIcon
+              variant="transparent"
+              size="xs"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              {column.getIsSorted() === "asc" ? (
+                <IconSortAscending size={14} />
+              ) : column.getIsSorted() === "desc" ? (
+                <IconSortDescending size={14} />
+              ) : (
+                <IconSortAscending size={14} opacity={0.5} />
+              )}
+            </ActionIcon>
+          </Group>
+        ),
         cell: ({ row }) => (
           <Badge
             variant="light"
-            color={row.original.requires_2fa ? 'orange' : 'gray'}
+            color={row.original.requires_2fa ? "orange" : "gray"}
             size="sm"
           >
-            {row.original.requires_2fa ? 'Enabled' : 'Disabled'}
+            {row.original.requires_2fa ? "Enabled" : "Disabled"}
           </Badge>
         ),
+        enableSorting: true,
       },
       {
-        id: 'actions',
-        header: 'Actions',
+        id: "actions",
+        header: "Actions",
         cell: ({ row }) => (
           <Group gap="xs">
             <Tooltip label="Edit Group">
@@ -271,13 +297,15 @@ export function GroupsList({
                 <IconEdit size={16} />
               </ActionIcon>
             </Tooltip>
-            
+
             <Tooltip label="Manage ACLs">
               <ActionIcon
                 variant="subtle"
                 size="sm"
                 color="blue"
-                                          onClick={() => onManageAcls?.(row.original.id, row.original.name)}
+                onClick={() =>
+                  onManageAcls?.(row.original.id, row.original.name)
+                }
               >
                 <IconShield size={16} />
               </ActionIcon>
@@ -293,7 +321,9 @@ export function GroupsList({
               <Menu.Dropdown>
                 <Menu.Item
                   leftSection={<IconUsers size={14} />}
-                  onClick={() => {/* Handle view members */}}
+                  onClick={() => {
+                    /* Handle view members */
+                  }}
                 >
                   View Members
                 </Menu.Item>
@@ -301,7 +331,9 @@ export function GroupsList({
                 <Menu.Item
                   leftSection={<IconTrash size={14} />}
                   color="red"
-                  onClick={() => onDeleteGroup?.(row.original.id, row.original.name)}
+                  onClick={() =>
+                    onDeleteGroup?.(row.original.id, row.original.name)
+                  }
                 >
                   Delete Group
                 </Menu.Item>
@@ -311,7 +343,7 @@ export function GroupsList({
         ),
       },
     ],
-    [onEditGroup, onDeleteGroup, onManageAcls]
+    [onEditGroup, onDeleteGroup, onManageAcls],
   );
 
   // Initialize table
