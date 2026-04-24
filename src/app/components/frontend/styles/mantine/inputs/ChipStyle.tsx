@@ -3,7 +3,7 @@ import { Chip, Tooltip } from '@mantine/core';
 import { IChipStyle } from '../../../../../../types/common/styles.types';
 import IconComponent from '../../../../shared/common/IconComponent';
 import { FormFieldValueContext } from '../../FormStyle';
-import DOMPurify from 'dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 import parse from "html-react-parser";
 /**
  * Props interface for ChipStyle component

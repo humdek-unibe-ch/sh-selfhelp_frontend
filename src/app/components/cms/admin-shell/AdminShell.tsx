@@ -5,9 +5,10 @@ import { AdminNavbar } from "./admin-navbar/AdminNavbar";
 import { useDisclosure } from '@mantine/hooks';
 import { useIsAuthenticated } from '@refinedev/core';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { ROUTES } from "../../../../config/routes.config";
 import { DebugMenu } from "../../shared/common/debug";
+import { useIsSidebarCollapsed } from "../../../store/ui.store";
 
 interface AdminShellProps {
     children: React.ReactNode;
@@ -17,40 +18,21 @@ interface AdminShellProps {
 
 export function AdminShell({ children, aside, asideWidth = 400 }: AdminShellProps) {
     const [opened, { toggle }] = useDisclosure();
+    const isSidebarCollapsed = useIsSidebarCollapsed();
     const { data: { authenticated } = {}, isLoading: isAuthLoading } = useIsAuthenticated();
-    const [localAuth, setLocalAuth] = useState<boolean | null>(null);
     const router = useRouter();
 
-    // Initialize auth state from localStorage
+    // The server layout (`src/app/admin/layout.tsx`) already verifies
+    // `sh_auth` exists and calls `/auth/user-data`. This effect only handles
+    // the *mid-session expiry* case: Refine sees a 401 from the BFF and
+    // returns `authenticated === false`, so we bounce the user to login.
     useEffect(() => {
-        const hasToken = Boolean(localStorage.getItem('access_token'));
-        setLocalAuth(hasToken);
-
-        if (!hasToken) {
+        if (!isAuthLoading && authenticated === false) {
             router.replace(ROUTES.LOGIN);
         }
-    }, [router]);
+    }, [authenticated, isAuthLoading, router]);
 
-    // Sync server auth state when it changes
-    useEffect(() => {
-        if (typeof authenticated !== 'undefined') {
-            // THIS IS HANDLED IN THE AXIOS BASE API INTERCEPTOR
-            // setLocalAuth(authenticated);
-            // if (!authenticated) {
-            //     // Use replace instead of push to prevent back button issues
-            //     router.replace(ROUTES.LOGIN);
-            // }
-            // THIS IS HANDLED IN THE AXIOS BASE API INTERCEPTOR
-        }
-    }, [authenticated, router]);
-
-    // Don't render anything until we have initial auth state
-    if (localAuth === null || isAuthLoading) {
-        return null;
-    }
-
-    // If not authenticated, don't render the admin shell
-    if (!localAuth) {
+    if (authenticated === false) {
         return null;
     }
 
@@ -60,7 +42,10 @@ export function AdminShell({ children, aside, asideWidth = 400 }: AdminShellProp
                 navbar={{
                     width: 300,
                     breakpoint: 'sm',
-                    collapsed: { mobile: !opened }
+                    // `mobile`: burger toggle (transient, useDisclosure).
+                    // `desktop`: persisted user pref in the UI store so the
+                    //            chosen layout survives navigation + reloads.
+                    collapsed: { mobile: !opened, desktop: isSidebarCollapsed },
                 }}
                 aside={aside ? {
                     width: asideWidth,

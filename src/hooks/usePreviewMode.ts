@@ -1,54 +1,33 @@
 /**
- * Custom hook for managing preview mode state in localStorage.
- * Provides functionality to enable/disable preview mode for CMS pages.
+ * `usePreviewMode` — thin wrapper over the global `useUiStore` preview slice.
+ *
+ * Previously each caller held its own `useState(false)` and synchronised via
+ * localStorage inside a `useEffect`. That meant:
+ *   - Multiple consumers could temporarily disagree on the preview flag.
+ *   - The first render always showed `false` on the server, then flipped on
+ *     the client, causing a visible "Preview banner flashes off" hydration
+ *     glitch.
+ *
+ * By delegating to a Zustand store (persisted to localStorage) every hook
+ * consumer shares the same value and the store reads the persisted value
+ * synchronously on first render, eliminating the flash.
+ *
+ * The public API is preserved so existing imports compile without changes.
  *
  * @module hooks/usePreviewMode
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useIsPreviewMode, useSetPreviewMode, useTogglePreviewMode } from '../app/store/ui.store';
 
-const PREVIEW_MODE_KEY = 'cms-preview-mode';
-
-/**
- * Hook for managing preview mode state in localStorage.
- * When enabled, all pages will be served with preview=true and be dynamic.
- *
- * @returns {Object} Preview mode state and controls
- */
 export function usePreviewMode() {
-    const [isPreviewMode, setIsPreviewMode] = useState<boolean>(false);
-
-    // Load preview mode from localStorage on mount
-    useEffect(() => {
-        const stored = localStorage.getItem(PREVIEW_MODE_KEY);
-        if (stored !== null) {
-            setIsPreviewMode(JSON.parse(stored));
-        }
-    }, []);
-
-    // Save to localStorage when state changes
-    const togglePreviewMode = useCallback(() => {
-        setIsPreviewMode(prev => {
-            const newValue = !prev;
-            localStorage.setItem(PREVIEW_MODE_KEY, JSON.stringify(newValue));
-            return newValue;
-        });
-    }, []);
-
-    const enablePreviewMode = useCallback(() => {
-        setIsPreviewMode(true);
-        localStorage.setItem(PREVIEW_MODE_KEY, JSON.stringify(true));
-    }, []);
-
-    const disablePreviewMode = useCallback(() => {
-        setIsPreviewMode(false);
-        localStorage.setItem(PREVIEW_MODE_KEY, JSON.stringify(false));
-    }, []);
+    const isPreviewMode = useIsPreviewMode();
+    const togglePreviewMode = useTogglePreviewMode();
+    const setPreviewMode = useSetPreviewMode();
 
     return {
         isPreviewMode,
         togglePreviewMode,
-        enablePreviewMode,
-        disablePreviewMode
+        enablePreviewMode: () => setPreviewMode(true),
+        disablePreviewMode: () => setPreviewMode(false),
     };
 }

@@ -10,7 +10,7 @@ export function useCssClasses() {
             const response = await FrontendApi.getCssClasses();
             return response.data.classes as ICssClassOption[];
         },
-        staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.staleTime,
-        gcTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.gcTime,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.STATIC.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.STATIC.gcTime,
     });
 } 

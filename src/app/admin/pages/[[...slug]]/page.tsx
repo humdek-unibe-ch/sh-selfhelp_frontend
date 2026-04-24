@@ -18,9 +18,13 @@ import { AdminShell } from '../../../components/cms/admin-shell/AdminShell';
 import { PageSections } from '../../../components/cms/pages/page-sections/PageSections';
 import { ConfigurationPageEditor } from '../../../components/cms/pages/configuration-page-editor/ConfigurationPageEditor';
 import { useAdminPages } from '../../../../hooks/useAdminPages';
+import { useSelectedAdminPage } from '../../../../hooks/useSelectedAdminPage';
+import { useSyncDocumentMetadata } from '../../../../hooks/useSyncDocumentMetadata';
 import type { IPageHierarchy } from '../../../../hooks/useAdminPages';
 import { PageInspector } from '../../../components/cms/pages/page-inspector/PageInspector';
 import { SectionInspector } from '../../../components/cms/sections';
+
+const ADMIN_TAB_SUFFIX = 'Pages · Admin · SelfHelp';
 
 /**
  * Utility function to flatten a hierarchical pages array into a flat array
@@ -43,38 +47,42 @@ function flattenPages(pages: IPageHierarchy[]): IPageHierarchy[] {
 
 function AdminPagesContent() {
   const params = useParams();
-  const { pages, configurationPages, hierarchicalPages, isLoading, isFetching, error } = useAdminPages();
+  const { configurationPages, isFetching, error } = useAdminPages();
 
   // Parse slug to get keyword and sectionId
   const { keyword, sectionId } = useMemo(() => {
     const slug = params.slug;
-    
+
     if (!slug || !Array.isArray(slug)) {
       return { keyword: null, sectionId: null };
     }
 
-    const keyword = slug[0] || null;
-    const sectionId = slug[1] ? parseInt(slug[1], 10) : null;
-    
-    return { 
-      keyword, 
-      sectionId: isNaN(sectionId!) ? null : sectionId 
+    const rawKeyword = slug[0] || null;
+    const rawSectionId = slug[1] ? parseInt(slug[1], 10) : null;
+
+    return {
+      keyword: rawKeyword,
+      sectionId: rawSectionId !== null && !isNaN(rawSectionId) ? rawSectionId : null,
     };
   }, [params.slug]);
 
-  // Find the selected page
-  // Note: React Query handles caching automatically - no need to manually invalidate on keyword change
-  // The staleTime config in react-query.config.ts controls when data is refetched
-  const selectedPage = useMemo(() => {
-    if (!pages || !keyword) return null;
+  // Subscribe only to the currently selected page. Unlike `useAdminPages`,
+  // this hook uses `select` to narrow the cache to one `IAdminPage`, so
+  // unrelated page mutations don't re-render this tree while the user is
+  // typing in the inspector.
+  const {
+    page: selectedPage,
+    isLoading: isPageLoading,
+  } = useSelectedAdminPage(keyword);
 
-    // Search in all pages (both regular and configuration pages)
-    const page = pages.find(p => p.keyword === keyword);
+  const hasAnyPages = Boolean(selectedPage) || (configurationPages?.length ?? 0) > 0;
 
-    return page || null;
-  }, [pages, keyword]);
+  // Reflect the selected page in the browser tab. When no page is selected
+  // we leave the title alone so the server-rendered fallback from
+  // `/admin/pages/layout.tsx` ("Pages · Admin · SelfHelp") keeps showing.
+  const tabTitle = keyword ? `${keyword} · ${ADMIN_TAB_SUFFIX}` : null;
+  useSyncDocumentMetadata(tabTitle, null);
 
-  // Check if it's a configuration page
   const isConfigurationPage = useMemo(() => {
     if (!selectedPage || !configurationPages) return false;
     return configurationPages.some(cp => cp.id_pages === selectedPage.id_pages);
@@ -134,7 +142,7 @@ function AdminPagesContent() {
     }
 
     // Show loading spinner on initial load when no data exists
-    if (isLoading && !pages?.length) {
+    if (isPageLoading && !hasAnyPages) {
       return (
         <Stack align="center" py="xl">
           <Loader size="lg" />

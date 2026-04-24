@@ -4,65 +4,56 @@ import { Select, Group, Text, Loader } from '@mantine/core';
 import { useLanguageContext } from '../../contexts/LanguageContext';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useUpdateLanguagePreferenceMutation } from '../../../../hooks/mutations/useUpdateLanguagePreferenceMutation';
-import { useInvalidateUserData } from '../../../../hooks/useUserData';
 import { useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 
 export function LanguageSelector() {
     const { user } = useAuth();
-    const { 
+    const {
         currentLanguageId,
-        setCurrentLanguageId, 
-        languages, 
-        isUpdatingLanguage
+        setCurrentLanguageId,
+        languages,
     } = useLanguageContext();
-    
-    const queryClient = useQueryClient();
+
     const updateLanguageMutation = useUpdateLanguagePreferenceMutation();
-    const invalidateUserData = useInvalidateUserData();
-    
+
+    // `setCurrentLanguageId` (LanguageContext) is the single source of truth
+    // for language-change cache invalidations — it fans out to
+    // `['frontend-pages']` and `['page-by-keyword']`. The authenticated
+    // mutation adds `['user-data']` on top of that. We intentionally do NOT
+    // re-invalidate those keys here to avoid double refetches.
     const handleLanguageChange = useCallback(async (value: string | null) => {
         if (!value) return;
-        
+
         const languageId = parseInt(value, 10);
-        
-        // Don't do anything if it's the same language
+
         if (languageId === currentLanguageId) return;
-        
-        // Update the context immediately
+
         setCurrentLanguageId(languageId);
-        
+
         if (user) {
-            // For authenticated users, update preference via API
             updateLanguageMutation.mutate(languageId, {
-                onSuccess: () => {
-                    // After successful language update, invalidate user data to get updated language info
-                    invalidateUserData();
-                },
                 onError: () => {
-                    // On error, revert to the user's current language from user data
                     if (user.languageId) {
-                        const userLanguageId = typeof user.languageId === 'number' 
-                            ? user.languageId 
+                        const userLanguageId = typeof user.languageId === 'number'
+                            ? user.languageId
                             : parseInt(String(user.languageId), 10);
                         setCurrentLanguageId(userLanguageId);
                     }
                 }
             });
-        } else {
-            // For non-authenticated users, invalidate queries to refresh with new language
-            await queryClient.invalidateQueries({ queryKey: ['page-content'] });
-            await queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
         }
-    }, [user, updateLanguageMutation, setCurrentLanguageId, currentLanguageId, queryClient, invalidateUserData]);
+    }, [user, updateLanguageMutation, setCurrentLanguageId, currentLanguageId]);
     
     // Don't show if languages are empty
     if (languages.length === 0) {
         return null;
     }
-    
-    // Check if currently updating
-    const isUpdating = isUpdatingLanguage || updateLanguageMutation.isPending;
+
+    // Spinner is tied strictly to the preference mutation, not to any ambient
+    // page refetch. Navigating to a new page may briefly mark
+    // `['page-by-keyword']` as fetching, but that has nothing to do with the
+    // language selector and flashing a spinner there is noise.
+    const isUpdating = updateLanguageMutation.isPending;
     
     // Use language ID as value and language name as label
     const languageOptions = languages.map(lang => ({

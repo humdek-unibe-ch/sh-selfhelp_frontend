@@ -19,8 +19,8 @@ export function useCacheStats() {
             const response = await AdminCacheApi.getCacheStats();
             return response.data;
         },
-        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
     });
 }
 
@@ -34,8 +34,8 @@ export function useCacheHealth() {
             const response = await AdminCacheApi.getCacheHealth();
             return response.data;
         },
-        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
     });
 }
 

@@ -10,7 +10,6 @@ import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { IAdminPage } from '../types/responses/admin/admin.types';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useAuth } from './useAuth';
-import { getAccessToken } from '../utils/auth.utils';
 import { parseCrudPermissions, ICrudPermissions } from '../utils/permissions.utils';
 import { AdminApi } from '../api/admin';
 
@@ -75,8 +74,11 @@ export interface IConfigurationPageLink {
 export function useAdminPages() {
     const { isAuthenticated, user } = useAuth();
     
-    // More robust authentication check: must have Refine auth state, user data, AND access token
-    const isActuallyAuthenticated = !!isAuthenticated && !!user && !!getAccessToken();
+    // The access token lives in an httpOnly cookie and is invisible to JS.
+    // We rely on Refine's `isAuthenticated` (served by the BFF catch-all
+    // at `/api/auth/user-data`) combined with the presence of a transformed
+    // user object.
+    const isActuallyAuthenticated = !!isAuthenticated && !!user;
     
     const { data, isLoading, error, isFetching } = useQuery({
         queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.ADMIN_PAGES,
@@ -84,10 +86,10 @@ export function useAdminPages() {
             return await AdminApi.getAdminPages();
         },
         enabled: isActuallyAuthenticated, // Only fetch when user is truly authenticated
-        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.ADMIN_PAGES.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.ADMIN_PAGES.gcTime,
         retry: REACT_QUERY_CONFIG.DEFAULT_OPTIONS.queries.retry,
-        placeholderData: keepPreviousData, // Keep previous data for smooth transitions
+        placeholderData: keepPreviousData,
         select: (data: IAdminPage[]) => {
             // Ensure data is an array to prevent undefined errors
             if (!data || !Array.isArray(data)) {
@@ -305,4 +307,3 @@ export function useAdminPages() {
         error
     };
 }
-

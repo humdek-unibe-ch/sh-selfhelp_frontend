@@ -22,7 +22,7 @@ import { IconPlayerPlay, IconTrash, IconMail, IconSettings, IconBell, IconCalend
 import { useScheduledJob, useScheduledJobTransactions } from '../../../../../hooks/useScheduledJobs';
 import { getStatusColor } from '../../../../../utils/status-color.utils';
 import { isJobActionAllowed } from '../utils/job-status';
-import DOMPurify from 'dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 import { ModalWrapper } from '../../../shared';
 
 

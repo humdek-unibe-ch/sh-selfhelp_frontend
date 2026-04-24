@@ -1,7 +1,19 @@
 /**
- * Custom mutation hook for updating user language preferences.
- * Handles API calls to update user's preferred language and manages JWT token refresh.
- * 
+ * Mutation hook for updating the authenticated user's language preference.
+ *
+ * The BFF's `/auth/set-language` endpoint returns a rotated access token in
+ * the response body; the catch-all proxy scrubs the token out and sets the
+ * new `sh_auth` cookie automatically. No client-side token handling is
+ * needed here.
+ *
+ * Cache invalidation is split across two owners to avoid duplicate refetches:
+ *  - `setCurrentLanguageId` (LanguageContext) invalidates the two page caches
+ *    `['frontend-pages']` + `['page-by-keyword']` — it already runs on every
+ *    language change, authenticated or not.
+ *  - This mutation is only responsible for the authenticated-user-only
+ *    `['user-data']` key (the profile envelope carries `language.id` /
+ *    `language.locale`, which needs to reflect the new preference).
+ *
  * @module hooks/mutations/useUpdateLanguagePreferenceMutation
  */
 
@@ -10,11 +22,8 @@ import { AuthApi } from '../../api/auth.api';
 import { ILanguagePreferenceUpdateResponse } from '../../types/responses/auth.types';
 import { notifications } from '@mantine/notifications';
 import { error } from '../../utils/debug-logger';
+import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
 
-/**
- * Hook for updating user's language preference
- * @returns Mutation object with methods and state for language preference updates
- */
 export function useUpdateLanguagePreferenceMutation() {
     const queryClient = useQueryClient();
 
@@ -22,37 +31,28 @@ export function useUpdateLanguagePreferenceMutation() {
         mutationFn: (languageId: number): Promise<ILanguagePreferenceUpdateResponse> => {
             return AuthApi.updateLanguagePreference(languageId);
         },
-        onSuccess: async (data, languageId) => {
-            
-            // Wait a bit for localStorage to be updated
-            await new Promise(resolve => setTimeout(resolve, 100));
-            
-            // Invalidate identity query to ensure useAuth gets updated user data
-            await queryClient.invalidateQueries({ queryKey: ['get_identity'] });
-            
-            // Invalidate all queries to refresh with new language
-            await queryClient.invalidateQueries({ queryKey: ['page-content'] });
-            await queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
-            
-            // Show success notification
+        onSuccess: async (data) => {
+            await queryClient.invalidateQueries({
+                queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA,
+            });
+
             notifications.show({
                 title: 'Language Updated',
                 message: `Language changed to ${data.data.language_name}`,
-                color: 'green'
+                color: 'green',
             });
         },
         onError: (err: any, languageId) => {
             error('Failed to update language preference', 'useUpdateLanguagePreferenceMutation', {
                 error: err,
-                requestedLanguageId: languageId
+                requestedLanguageId: languageId,
             });
-            
-            // Show error notification
+
             notifications.show({
                 title: 'Language Update Failed',
                 message: 'Could not save your language preference. Please try again.',
-                color: 'red'
+                color: 'red',
             });
-        }
+        },
     });
-} 
+}

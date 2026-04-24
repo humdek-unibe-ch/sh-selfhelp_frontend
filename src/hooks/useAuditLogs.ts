@@ -30,8 +30,8 @@ export function useAuditLogs(params?: IAuditLogsListParams) {
   return useQuery({
     queryKey: AUDIT_QUERY_KEYS.list(params),
     queryFn: () => AdminDataAccessApi.getAuditLogs(params),
-    staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-    gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+    gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
     select: (data: IAuditLogsListResponse) => ({
       ...data,
       // Transform data once for performance
@@ -54,8 +54,8 @@ export function useAuditLog(auditId: number) {
     queryKey: AUDIT_QUERY_KEYS.detail(auditId),
     queryFn: () => AdminDataAccessApi.getAuditLog(auditId),
     enabled: !!auditId,
-    staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-    gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
+    gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
   });
 }
 
@@ -66,7 +66,7 @@ export function useAuditStats(params?: IAuditStatsParams) {
   return useQuery({
     queryKey: AUDIT_QUERY_KEYS.stat(params),
     queryFn: () => AdminDataAccessApi.getAuditStats(params),
-    staleTime: REACT_QUERY_CONFIG.SPECIAL_CONFIGS.STATIC_DATA.staleTime,
-    gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.STATIC.staleTime,
+    gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.gcTime,
   });
 }

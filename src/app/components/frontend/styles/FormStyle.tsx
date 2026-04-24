@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import BasicStyle from './BasicStyle';
 import { Button, Alert, LoadingOverlay, Group } from '@mantine/core';
 import { IconAlertCircle, IconCheck } from '@tabler/icons-react';
-import { usePageContentContext } from '../../contexts/PageContentContext';
+import { usePageContentValue } from '../../../../hooks/usePageContentValue';
 import { useSubmitFormMutation, useUpdateFormMutation } from '../../../../hooks/useFormSubmission';
 import { IFileInputStyleRef } from './mantine/inputs/FileInputStyle';
 import { IFormLogStyle, IFormRecordStyle } from '../../../../types/common/styles.types';
@@ -32,7 +32,7 @@ const FormFieldValueContext = React.createContext<{
 export { FileInputRegistrationContext, FormFieldValueContext };
 
 const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) => {
-    const { pageContent } = usePageContentContext();
+    const pageContent = usePageContentValue();
     const [formKey, setFormKey] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -584,7 +584,20 @@ const FormStyle: React.FC<FormStyleProps> = ({ style, styleProps, cssClass }) =>
 
             
 
-            <form ref={formRef} key={formKey} onSubmit={handleSubmit}>
+            {/*
+              `suppressHydrationWarning` — browser autofill / password-manager
+              extensions (SharkID, Bitwarden, Dashlane, 1Password, …) mutate
+              form inputs *before* React hydrates: they inject attributes
+              (`data-sharkid`, `data-sharklabel`, `data-bitwarden-watching`)
+              onto the input itself and sibling nodes like
+              `<shark-icon-container>` beside it. The resulting DOM no
+              longer matches the SSR HTML, so every dynamic form throws a
+              "hydration mismatch" diagnostic. Scoped here to the generated
+              form only — the rest of the tree still enforces strict
+              hydration checks. See React's documented escape-hatch:
+              https://react.dev/reference/react-dom/client/hydrateRoot#suppressing-unavoidable-hydration-mismatch-errors
+            */}
+            <form ref={formRef} key={formKey} onSubmit={handleSubmit} suppressHydrationWarning>
                 <input type="hidden" name="__id_sections" value={style.id} />
                 {isRecord && existingRecordId ? (
                     <input type="hidden" name="record_id" value={String(existingRecordId)} />

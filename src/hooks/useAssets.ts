@@ -16,7 +16,7 @@ export function useAssets(params: IAssetsListParams = {}) {
   return useQuery<IAssetsListResponse>({
     queryKey: ['assets', params],
     queryFn: () => AdminAssetApi.getAssets(params),
-    staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
+    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
     refetchOnWindowFocus: false,
   });
 }
@@ -29,7 +29,7 @@ export function useAssetDetails(assetId: number) {
     queryKey: ['assets', 'details', assetId],
     queryFn: () => AdminAssetApi.getAssetById(assetId),
     enabled: assetId > 0,
-    staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
+    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.DEFAULT.staleTime,
     refetchOnWindowFocus: false,
   });
 }

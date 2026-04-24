@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text } from '@mantine/core';
 import { ITextStyle } from '../../../../../types/common/styles.types';
-import DOMPurify from 'dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 
 /**
  * Props interface for TextStyle component

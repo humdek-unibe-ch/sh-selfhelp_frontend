@@ -6,8 +6,6 @@ import { useAppNavigation } from '../../../../hooks/useAppNavigation';
 import { usePagePrefetch } from '../../../../hooks/usePagePrefetch';
 import { IPageItem } from '../../../../../src/types/responses/frontend/frontend.types';
 import { InternalLink } from '../../shared';
-import { useEffect } from 'react';
-import { usePathname } from 'next/navigation';
 
 interface IMenuItemProps {
     item: IPageItem;
@@ -41,7 +39,7 @@ function MenuItem({ item }: IMenuItemProps) {
                     {item.children?.map((child: IPageItem) => (
                         <Menu.Item 
                             key={child.id_pages}
-                            onMouseEnter={child.id_pages ? createHoverPrefetch(child.id_pages) : undefined}
+                            onMouseEnter={child.keyword ? createHoverPrefetch(child.keyword) : undefined}
                         >
                             <InternalLink href={child.url || ''}>
                                 <Text size="sm">{getPageTitle(child)}</Text>
@@ -55,7 +53,7 @@ function MenuItem({ item }: IMenuItemProps) {
 
     return (
         <InternalLink key={item.id_pages} href={item.url || ''}>
-            <UnstyledButton onMouseEnter={item.id_pages ? createHoverPrefetch(item.id_pages) : undefined}>
+            <UnstyledButton onMouseEnter={item.keyword ? createHoverPrefetch(item.keyword) : undefined}>
                 <Text size="sm" fw={500}>{pageTitle}</Text>
             </UnstyledButton>
         </InternalLink>
@@ -67,23 +65,12 @@ function MenuItem({ item }: IMenuItemProps) {
  */
 export function WebsiteHeaderMenu() {
     const { menuPages, isLoading } = useAppNavigation();
-    const pathname = usePathname();
 
-    // Find the current page by matching the current URL pathname
-    // If a matching page is found, set the browser tab title
-    // The title is generated using getPageTitle to ensure consistency with displayed menu titles
-    useEffect(() => {
-        if (isLoading || menuPages.length === 0) return;
-
-        // Find current page by matching URL
-        const currentPage = menuPages.find(page => page.url === pathname);
-
-        if (currentPage) {
-            document.title = getPageTitle(currentPage);
-        }else {
-            document.title = 'SelfHelp V2'
-        }
-    }, [pathname, menuPages, isLoading]);
+    // NOTE: Document title is now driven exclusively by per-segment
+    // `generateMetadata()` exports (see `src/app/[[...slug]]/page.tsx`). The
+    // previous effect that set `document.title` from the menu caused the
+    // well-known "Mantine template → real title" flicker on first load and
+    // is no longer necessary now that the server returns the right title.
 
     // Show nothing while loading to prevent layout shift
     if (isLoading || menuPages.length === 0) {

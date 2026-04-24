@@ -1,7 +1,7 @@
 import React from 'react';
 import { Title } from '@mantine/core';
 import { ITitleStyle } from '../../../../../types/common/styles.types';
-import DOMPurify from 'dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 
 /**
  * Props interface for TitleStyle component

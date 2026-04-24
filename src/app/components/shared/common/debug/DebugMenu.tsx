@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useIsFetching } from '@tanstack/react-query';
 import { 
     Button, 
     Modal, 
@@ -81,8 +82,12 @@ const captureDebugLog = (message: string, component: string, data?: any, level: 
     debugLogger.debug(message, component, data);
 };
 
-// Override the global debug function
-(window as any).captureDebug = captureDebugLog;
+// Override the global debug function. Guarded so the file can be imported
+// from Server Components without blowing up during SSR — the attachment is
+// only ever useful in the browser anyway.
+if (typeof window !== 'undefined') {
+    (window as any).captureDebug = captureDebugLog;
+}
 
 
 export function DebugMenu() {
@@ -99,7 +104,9 @@ export function DebugMenu() {
     // Navigation data for the navigation debug tab
     const { pages, menuPages, footerPages, routes, isLoading, profilePages } = useAppNavigation();
     const { systemPageLinks, categorizedSystemPages } = useAdminPages();
-    const { currentLanguageId, languages, isUpdatingLanguage, setCurrentLanguageId } = useLanguageContext();
+    const { currentLanguageId, languages, setCurrentLanguageId } = useLanguageContext();
+    const pendingPageFetches = useIsFetching({ queryKey: ['page-by-keyword'] });
+    const isUpdatingLanguage = pendingPageFetches > 0;
     const { permissionChecker } = useAuth();
 
     // Derived values for profile pages

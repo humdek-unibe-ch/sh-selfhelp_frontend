@@ -48,22 +48,22 @@ function flattenPages(pages: IPageItem[]): IPageItem[] {
  * @param {boolean} options.isAdmin - Whether to generate admin resources for Refine
  * @returns {Object} Object containing organized navigation data and query state
  */
-export function useAppNavigation(options: { isAdmin?: boolean; forceRefresh?: boolean } = {}) {
-    const { isAdmin = false, forceRefresh = false } = options;
+export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
+    const { isAdmin = false } = options;
     const { currentLanguageId } = useLanguageContext();
-    
+
     const { data, isLoading, error, isFetching } = useQuery({
         queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES(currentLanguageId),
         queryFn: () => {
             return NavigationApi.getPagesWithLanguage(currentLanguageId);
         },
-        enabled: true, // Always enabled since currentLanguageId will default to 1
-        staleTime: forceRefresh ? 0 : REACT_QUERY_CONFIG.CACHE.staleTime, // Force fresh data when needed
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
+        enabled: currentLanguageId > 0,
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.FRONTEND_PAGES.staleTime,
+        gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.FRONTEND_PAGES.gcTime,
         refetchOnWindowFocus: false,
-        refetchOnMount: forceRefresh, // Refetch when forced refresh is needed
-        retry: 3, // Use global retry setting
-        placeholderData: keepPreviousData, // Keep previous data during refetch for smooth transitions
+        refetchOnMount: false,
+        retry: 1,
+        placeholderData: keepPreviousData,
         select: (rawPages: any[]): INavigationData => {
             // Transform raw API data to IPageItem format (cached by React Query)
             const pages = rawPages.map(transformPageData);

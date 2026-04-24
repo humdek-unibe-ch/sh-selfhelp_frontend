@@ -3,6 +3,8 @@ import { LoadingScreen } from '../../components/shared/common/LoadingScreen';
 import { GroupsPage } from '../../components/cms/groups/groups-page/GroupsPage';
 import { AdminShell } from '../../components/cms/admin-shell/AdminShell';
 
+export const metadata = { title: 'Groups' };
+
 export default function AdminGroupsPage() {
   return (
     <AdminShell>

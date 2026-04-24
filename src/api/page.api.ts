@@ -1,11 +1,23 @@
 /**
- * API client for handling page content-related API calls.
- * Provides methods for fetching and updating page content.
- * 
+ * API client for public page content.
+ *
+ * After the SSR + BFF refactor the only surviving browser-side entry point
+ * is `getPageByKeyword`. Legacy helpers (`getPageContent`, `updatePageContent`,
+ * `getPublicLanguages`) were replaced by:
+ *   - `getPageByKeywordSSRCached` (server-fetch) for SSR prefetch + `generateMetadata`
+ *   - `usePageContentByKeyword` / `usePageContentValue` hooks for client consumers
+ *   - `usePublicLanguages` hook (and its SSR sibling `getPublicLanguagesSSR`) for languages
+ *
+ * ## Why by-keyword, not by-id
+ * Fetching by keyword collapses the old `nav → id → content` waterfall
+ * into a single parallel request, keys the React Query cache by the same
+ * string the URL carries, and makes `usePagePrefetch.createHoverPrefetch`
+ * warm the exact entry the next navigation will render. See
+ * `docs/architecture/ssr-bff-architecture.md` §5 for the full rationale.
+ *
  * @module api/page.api
  */
 
-import { ILanguage } from '../types/responses/admin/languages.types';
 import { permissionAwareApiClient } from './base.api';
 import { API_CONFIG } from '../config/api.config';
 import { IBaseApiResponse } from '../types/responses/common/response-envelope.types';
@@ -13,57 +25,21 @@ import { IPageContent } from '../types/common/pages.type';
 
 export const PageApi = {
     /**
-     * Fetches page content for a specific page ID.
-     * @param {number} pageId - The page identifier
-     * @param {number} [languageId] - The language ID for localized content
-     * @param {boolean} [preview] - Whether to force draft preview mode
-     * @returns {Promise<IPageContent>} Page content data
-     * @throws {Error} When API request fails
+     * Fetch a page's full content using its keyword. Avoids the navigation →
+     * page-id waterfall during slug navigation, and is the endpoint that the
+     * SSR layout + `generateMetadata` rely on for a single-round-trip
+     * initial render.
      */
-    // TODO: execued twice and more when executed in the beegigng, maybe add loading state
-    async getPageContent(pageId: number, languageId?: number, preview?: boolean): Promise<IPageContent> {
+    async getPageByKeyword(keyword: string, languageId?: number, preview?: boolean): Promise<IPageContent> {
         const queryParams: Record<string, string> = {};
-        if (languageId) {
-            queryParams.language_id = languageId.toString();
-        }
-        if (preview) {
-            queryParams.preview = 'true';
-        }
+        if (languageId) queryParams.language_id = languageId.toString();
+        if (preview) queryParams.preview = 'true';
 
         const response = await permissionAwareApiClient.get<IBaseApiResponse<{ page: IPageContent }>>(
-            API_CONFIG.ENDPOINTS.PAGES_GET_ONE,
-            pageId,
+            API_CONFIG.ENDPOINTS.PAGES_GET_BY_KEYWORD,
+            keyword,
             { params: queryParams }
         );
         return response.data.data.page;
     },
-    
-    /**
-     * Fetches available languages for public use (non-authenticated users).
-     * @returns {Promise<ILanguage[]>} Array of available languages
-     * @throws {Error} When API request fails
-     */
-    async getPublicLanguages(): Promise<ILanguage[]> {
-        const response = await permissionAwareApiClient.get<IBaseApiResponse<ILanguage[]>>(API_CONFIG.ENDPOINTS.LANGUAGES);
-        return response.data.data;
-    },
-
-    /**
-     * Updates page content for a specific page ID.
-     * @param {number} pageId - The page identifier
-     * @param {any} content - The new content to update
-     * @returns {Promise<IBaseApiResponse<any>>} API response with updated data
-     * @throws {Error} When update fails
-     */
-    async updatePageContent(pageId: number, content: any): Promise<IBaseApiResponse<any>> {
-        try {
-            const response = await permissionAwareApiClient.put<IBaseApiResponse<any>>(API_CONFIG.ENDPOINTS.PAGES_GET_ONE, pageId, content);
-            return response.data;
-        } catch (error: any) {
-            if (error.response?.data) {
-                return error.response.data;
-            }
-            throw error;
-        }
-    }
 };

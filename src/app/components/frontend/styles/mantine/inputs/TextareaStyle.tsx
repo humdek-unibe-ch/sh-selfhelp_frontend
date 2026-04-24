@@ -8,7 +8,7 @@ import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.u
 import { castMantineSize, castMantineRadius } from '../../../../../../utils/style-field-extractor';
 import LanguageTabsWrapper from '../../shared/LanguageTabsWrapper';
 import { getSpacingProps } from '../../BasicStyle';
-import DOMPurify from 'dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 
 interface ITextareaStyleProps {
     style: ITextareaStyle;
@@ -88,6 +88,9 @@ const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style, styleProps, cssCl
                     required={required}
                     placeholder={placeholder}
                     style={translatable ? undefined : spacingProps}
+                    // See note in TextInputStyle — autofill extensions decorate
+                    // form fields before hydration.
+                    suppressHydrationWarning
                 />
             );
         }
@@ -116,6 +119,9 @@ const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style, styleProps, cssCl
                     size={size}
                     variant={variant as 'default' | 'filled' | 'unstyled'}
                     radius={radius === 'none' ? 0 : radius}
+                    // See note in TextInputStyle — autofill extensions decorate
+                    // form fields before hydration.
+                    suppressHydrationWarning
                 />
             </Input.Wrapper>
         );

@@ -6,7 +6,7 @@ import { FormFieldValueContext } from '../../FormStyle';
 import { castMantineSize, castMantineRadius } from '../../../../../../utils/style-field-extractor';
 import LanguageTabsWrapper from '../../shared/LanguageTabsWrapper';
 import { getSpacingProps } from '../../BasicStyle';
-import DOMPurify from 'dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 import parse from "html-react-parser";
 import { sanitizeHtmlForInline } from '../../../../../../utils/html-sanitizer.utils';
 
@@ -87,6 +87,12 @@ const TextInputStyle: React.FC<ITextInputStyleProps> = ({ style, styleProps, css
                 size={size}
                 radius={radius === 'none' ? 0 : radius}
                 variant={variant as 'default' | 'filled' | 'unstyled'}
+                // Mantine forwards unknown props onto the underlying `<input>`.
+                // Autofill extensions (SharkID / 1Password / Bitwarden / …)
+                // decorate inputs with custom attributes before hydration,
+                // which produces a hydration-mismatch diagnostic. Suppressing
+                // here keeps the rest of the tree under strict hydration.
+                suppressHydrationWarning
             />
         );
     };

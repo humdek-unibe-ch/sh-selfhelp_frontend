@@ -1,95 +1,42 @@
-import { jwtDecode } from 'jwt-decode';
-import { IJwtPayload, IAuthUser } from '../types/auth/jwt-payload.types';
+/**
+ * Browser-side auth utilities.
+ *
+ * With the full BFF migration, tokens live only in httpOnly cookies managed
+ * by the Next.js `/api/auth/*` routes. The browser never has direct access
+ * to the access or refresh tokens, so the helpers below expose only the
+ * two non-httpOnly signals the client still needs: the CSRF double-submit
+ * token and the language preference cookie.
+ *
+ * Cookie names come from `@/config/cookie-names` — a browser-safe module
+ * (no `process.env`, no Node/Edge-only imports) — so both the client and the
+ * server runtime reference identical constants.
+ */
+
+import {
+    CSRF_COOKIE,
+    LANG_COOKIE,
+    LONG_LIVED_COOKIE_MAX_AGE,
+} from '../config/cookie-names';
 
 /**
- * Token storage keys
+ * CSRF double-submit helper. Reads the non-httpOnly `sh_csrf` cookie and
+ * returns its value so Axios can attach the `X-CSRF-Token` header.
  */
-export const TOKEN_KEYS = {
-    ACCESS_TOKEN: 'access_token',
-    REFRESH_TOKEN: 'refresh_token',
-};
+export function readCsrfToken(): string | null {
+    if (typeof document === 'undefined') return null;
+    const prefix = `${CSRF_COOKIE}=`;
+    const match = document.cookie.split('; ').find((c) => c.startsWith(prefix));
+    return match ? decodeURIComponent(match.slice(prefix.length)) : null;
+}
 
 /**
- * Store authentication tokens in localStorage
+ * Write the `sh_lang` cookie with the long-lived max-age used by middleware.
+ * The cookie always stores a numeric id that references the `languages`
+ * table; the raw locale hint from `Accept-Language` lives in the separate
+ * middleware-managed `sh_accept_locale` cookie.
  */
-export const storeTokens = (accessToken: string, refreshToken: string): void => {
-    if (typeof window === 'undefined') return;
-
-    localStorage.setItem(TOKEN_KEYS.ACCESS_TOKEN, accessToken);
-    localStorage.setItem(TOKEN_KEYS.REFRESH_TOKEN, refreshToken);
-};
-
-/**
- * Remove authentication tokens from localStorage
- */
-export const removeTokens = (): void => {
-    if (typeof window === 'undefined') return;
-
-    localStorage.removeItem(TOKEN_KEYS.ACCESS_TOKEN);
-    localStorage.removeItem(TOKEN_KEYS.REFRESH_TOKEN);
-};
-
-/**
- * Set the access token to INVALID
- */
-export const removeAccessToken = (): void => {
-    if (typeof window === 'undefined') return;
-
-    localStorage.setItem(TOKEN_KEYS.ACCESS_TOKEN, 'INVALID');
-
-};
-
-/**
- * Get access token from localStorage
- */
-export const getAccessToken = (): string | null => {
-    if (typeof window === 'undefined') return null;
-    return localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN);
-};
-
-/**
- * Get refresh token from localStorage
- */
-export const getRefreshToken = (): string | null => {
-    if (typeof window === 'undefined') return null;
-    return localStorage.getItem(TOKEN_KEYS.REFRESH_TOKEN);
-};
-
-/**
- * Decode JWT token and extract basic user information
- * Note: JWT no longer contains permissions, roles details, or language info
- * Use useUserData hook for complete user information
- */
-export const getUserPayload = (token: string | null): { id: number; email: string; name: string; roles: string[] } | null => {
-    if (!token) return null;
-
-    try {
-        const decoded = jwtDecode<IJwtPayload>(token);
-
-        // Check if token is expired
-        const currentTime = Math.floor(Date.now() / 1000);
-        if (decoded.exp < currentTime) {
-            return null;
-        }
-
-        return {
-            id: decoded.id_users,
-            email: decoded.email,
-            name: decoded.user_name || decoded.email,
-            roles: decoded.roles || [],
-        };
-    } catch (error) {
-
-        return null;
-    }
-};
-
-/**
- * Get basic user information from JWT token
- * Used for synchronous auth checks in providers and API functions
- * For comprehensive user data with permissions, use useAuthUser hook instead
- */
-export const getCurrentUser = (): { id: number; email: string; name: string; roles: string[] } | null => {
-    const token = getAccessToken();
-    return getUserPayload(token);
-};
+export function writeLangCookie(languageId: number): void {
+    if (typeof document === 'undefined') return;
+    const secure = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = `${LANG_COOKIE}=${languageId}; path=/; max-age=${LONG_LIVED_COOKIE_MAX_AGE}; SameSite=Lax${secure}`;
+}

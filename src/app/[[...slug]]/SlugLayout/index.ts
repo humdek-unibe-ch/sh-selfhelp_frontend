@@ -1,1 +1,1 @@
-export { default } from './SlugLayout';
+export { default } from './SlugShell';

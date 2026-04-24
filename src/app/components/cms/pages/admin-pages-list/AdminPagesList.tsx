@@ -24,9 +24,9 @@ import {
 } from '@tabler/icons-react';
 import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
-import { 
-    useSelectedPage, 
-    useSetSelectedPage,
+import {
+    useSelectedKeyword,
+    useSetSelectedKeyword,
     useExpandedPageIds,
     useTogglePageExpanded,
     useExpandPagePath
@@ -47,12 +47,19 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
     const { pages, isLoading, error } = useAdminPages();
     const [searchQuery, setSearchQuery] = useState('');
     
-    // Use persistent tree state from store
-    const selectedPage = useSelectedPage();
-    const setSelectedPage = useSetSelectedPage();
+    // Only the selected *keyword* lives in the store; the matching page
+    // object is derived from the React Query cache when needed so we don't
+    // re-render the whole tree on unrelated page mutations.
+    const selectedKeyword = useSelectedKeyword();
+    const setSelectedKeyword = useSetSelectedKeyword();
     const expandedPageIds = useExpandedPageIds();
     const togglePageExpanded = useTogglePageExpanded();
     const expandPagePath = useExpandPagePath();
+
+    const selectedPage = useMemo(() => {
+        if (!selectedKeyword || !pages) return null;
+        return pages.find((p) => p.keyword === selectedKeyword) ?? null;
+    }, [selectedKeyword, pages]);
 
     // Transform flat pages array into nested tree structure
     const pageTree = useMemo(() => {
@@ -126,14 +133,8 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
     }, [pageTree, searchQuery]);
 
     const handlePageClick = (page: IAdminPage) => {
-        
-        // Set selected page in store
-        setSelectedPage(page);
-        
-        // Call optional callback
+        setSelectedKeyword(page.keyword);
         onPageSelect?.(page);
-        
-        // Navigate to the page URL smoothly (client-side navigation)
         const pageUrl = `/admin/pages/${page.keyword}`;
         router.push(pageUrl);
     };
@@ -153,7 +154,7 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
     const renderPageItem = (page: PageTreeItem) => {
         const hasChildren = page.children.length > 0;
         const isOpen = expandedPageIds.has(page.id_pages);
-        const isSelected = selectedPage?.keyword === page.keyword;
+        const isSelected = selectedKeyword === page.keyword;
 
         return (
             <Box key={page.id_pages}>
