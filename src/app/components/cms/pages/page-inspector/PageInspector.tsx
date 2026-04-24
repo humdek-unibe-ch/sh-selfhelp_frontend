@@ -277,7 +277,7 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
 
     if (fieldsLoading || languagesLoading || !isStoreInitialized) {
         return (
-            <Paper p="xl" withBorder>
+            <Paper p="xl">
                 <Stack align="center" gap="md">
                     <Text>Loading page details...</Text>
                 </Stack>
@@ -298,306 +298,341 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
     const pageDetails = pageFieldsData?.page;
 
     return (
-        <Stack gap={0} h="100%">
-            {/* Fixed Save Button */}
-            <Paper p="md" withBorder style={{ borderBottom: 'none' }}>
-                <Group justify="space-between" align="center">
-                    <Group gap="xs">
-                        <Title order={2}>{page.keyword}</Title>
-                        <Badge color="blue" variant="light">
-                            ID: {pageDetails?.id}
-                        </Badge>
-                    </Group>
-                    <Button
-                        leftSection={<IconDeviceFloppy size="1rem" />}
-                        onClick={handleSave}
-                        variant="filled"
-                        loading={updatePageMutation.isPending}
-                        disabled={!page?.keyword}
-                    >
-                        Save
-                    </Button>
-                </Group>
-            </Paper>
+      <Stack gap={0} h="100%">
+        {/* Fixed Save Button */}
+        <Box
+          p="md"
+          style={(theme) => ({
+            backgroundColor: theme.white,
+            boxShadow: theme.shadows.lg,
+          })}
+        >
+          <Group justify="space-between" align="center">
+            <Group gap="xs">
+              <Title order={2}>{page.keyword}</Title>
+              <Badge color="blue" variant="light">
+                ID: {pageDetails?.id}
+              </Badge>
+            </Group>
+            <Button
+              leftSection={<IconDeviceFloppy size="1rem" />}
+              onClick={handleSave}
+              variant="filled"
+              loading={updatePageMutation.isPending}
+              disabled={!page?.keyword}
+            >
+              Save
+            </Button>
+          </Group>
+        </Box>
 
-            {/* Scrollable Content */}
-            <ScrollArea flex={1}>
-                <Stack gap="lg" p="md">
-                    {/* Page Information Section */}
-                    <PageInfoPanel
-                        page={page}
-                        pageId={pageDetails?.id}
-                        isConfigurationPage={isConfigurationPage}
-                    />
-
-                    {/* Content Section */}
-                    <CollapsibleSection
-                        title="Content"
-                        inspectorType={INSPECTOR_TYPES.PAGE}
-                        sectionName="content"
-                        defaultExpanded={true}
-                    >
-                        {contentFields.length > 0 ? (
-                            hasMultipleLanguages ? (
-                                <Tabs value={activeLanguageTab} onChange={(value) => setActiveLanguageTab(value || (languagesData[0]?.id.toString() || ''))}>
-                                    <Tabs.List>
-                                        {languagesData.map(lang => (
-                                            <Tabs.Tab key={lang.id} value={lang.id.toString()}>
-                                                {lang.language}
-                                            </Tabs.Tab>
-                                        ))}
-                                    </Tabs.List>
-
-                                    {languagesData.map(lang => (
-                                        <Tabs.Panel key={lang.id} value={lang.id.toString()} pt="md">
-                                            <Stack gap="md">
-                                                {contentFields.map(field => (
-                                                    <PageContentField
-                                                        key={`${field.id}-${lang.id}`}
-                                                        field={field}
-                                                        languageId={lang.id}
-                                                        locale={lang.locale}
-                                                        className={styles.fullWidthLabel}
-                                                        disabled={isConfigurationPage && field.name.toLowerCase() === 'title'}
-                                                    />
-                                                ))}
-                                            </Stack>
-                                        </Tabs.Panel>
-                                    ))}
-                                </Tabs>
-                            ) : (
-                                <Stack gap="md">
-                                    {contentFields.map(field => (
-                                        <PageContentField
-                                            key={`${field.id}-${defaultLanguageId}`}
-                                            field={field}
-                                            languageId={defaultLanguageId}
-                                            locale={languagesData[0]?.locale}
-                                            className={styles.fullWidthLabel}
-                                            disabled={isConfigurationPage && field.name.toLowerCase() === 'title'}
-                                        />
-                                    ))}
-                                </Stack>
-                            )
-                        ) : (
-                            <Alert icon={<IconInfoCircle size="1rem" />} color="blue">
-                                No content fields available for this page.
-                            </Alert>
-                        )}
-                    </CollapsibleSection>
-
-                    {/* Properties Section */}
-                    {!isConfigurationPage && (
-                        <CollapsibleSection
-                            title="Properties"
-                            inspectorType={INSPECTOR_TYPES.PAGE}
-                            sectionName="properties"
-                            defaultExpanded={true}
-                        >
-                            <PageBasicInfoFields />
-                            <PageAccessTypeGroup options={pageAccessTypes} />
-                            <PageMenuPositions page={page} parentPage={parentPage} />
-                            <PageSettings />
-                            <PageAdditionalProperties
-                                fields={propertyFields}
-                                defaultLanguageId={defaultLanguageId}
-                            />
-                        </CollapsibleSection>
-                    )}
-
-                    {/* Property Fields for Configuration Pages */}
-                    {isConfigurationPage && propertyFields.length > 0 && (
-                        <CollapsibleSection
-                            title="Configuration Properties"
-                            inspectorType={INSPECTOR_TYPES.PAGE}
-                            sectionName="configuration-properties"
-                            defaultExpanded={true}
-                        >
-                            {propertyFields.map(field => (
-                                <Box key={field.id}>
-                                    <PagePropertyField
-                                        field={field}
-                                        languageId={defaultLanguageId}
-                                    />
-                                </Box>
-                            ))}
-                        </CollapsibleSection>
-                    )}
-
-                    {/* Version Management Section */}
-                    {page?.id_pages && (
-                        <CollapsibleSection
-                            title="Publishing"
-                            inspectorType={INSPECTOR_TYPES.PAGE}
-                            sectionName="version-management"
-                            defaultExpanded={false}
-                        >
-                            <PublishingPanel
-                                pageId={page.id_pages}
-                                versions={versionsData?.versions || []}
-                                currentPublishedVersionId={versionsData?.current_published_version_id || null}
-                                isLoading={versionsLoading}
-                                error={versionsError as Error}
-                                onPublishNew={(data) => {
-                                    publishVersionMutation.mutate({
-                                        pageId: page.id_pages!,
-                                        data
-                                    });
-                                }}
-                                onPublishSpecific={(versionId) => {
-                                    publishSpecificVersionMutation.mutate({
-                                        pageId: page.id_pages!,
-                                        versionId
-                                    });
-                                }}
-                                onDelete={(versionId) => {
-                                    deleteVersionMutation.mutate({
-                                        pageId: page.id_pages!,
-                                        versionId
-                                    });
-                                }}
-                                onRestore={(versionId) => {
-                                    if (page?.id_pages) {
-                                        restoreVersionMutation.mutate({
-                                            pageId: page.id_pages,
-                                            versionId
-                                        });
-                                    }
-                                }}
-                                isPublishing={publishVersionMutation.isPending}
-                                isDeleting={unpublishPageMutation.isPending}
-                                isRestoring={restoreVersionMutation.isPending}
-                            />
-                        </CollapsibleSection>
-                    )}
-
-                    {/* Action Buttons */}
-                    {!isConfigurationPage && (
-                        <Paper p="md" withBorder>
-                            <Stack gap="md">
-                                <Title order={4}>Actions</Title>
-
-                                {Boolean(page?.is_system) && (
-                                    <Alert
-                                        icon={<IconInfoCircle size="1rem" />}
-                                        title="System Page"
-                                        color="blue"
-                                        variant="light"
-                                    >
-                                        This is a system page that provides core functionality.
-                                        It can be styled and edited but cannot be deleted.
-                                    </Alert>
-                                )}
-
-                                <Group>
-                                    <Button
-                                        leftSection={<IconFileExport size="1rem" />}
-                                        variant="outline"
-                                        color="blue"
-                                        onClick={handleExportPageSections}
-                                    >
-                                        Export Sections
-                                    </Button>
-
-                                    {!page?.is_system && (
-                                        <Button
-                                            leftSection={<IconPlus size="1rem" />}
-                                            variant="outline"
-                                            onClick={() => setCreateChildModalOpened(true)}
-                                        >
-                                            Create Child Page
-                                        </Button>
-                                    )}
-
-                                    <Tooltip
-                                        label={page?.is_system ? "System pages cannot be deleted" : "Delete this page"}
-                                        position="top"
-                                    >
-                                        <Button
-                                            leftSection={<IconTrash size="1rem" />}
-                                            color="red"
-                                            variant="outline"
-                                            onClick={() => setDeleteModalOpened(true)}
-                                            disabled={Boolean(page?.is_system)}
-                                        >
-                                            Delete Page
-                                        </Button>
-                                    </Tooltip>
-                                </Group>
-                            </Stack>
-                        </Paper>
-                    )}
-                </Stack>
-            </ScrollArea>
-
-            {/* Create Child Page Modal */}
-            <CreatePageModal
-                opened={createChildModalOpened}
-                onClose={() => setCreateChildModalOpened(false)}
-                parentPage={page}
+        {/* Scrollable Content */}
+        <ScrollArea flex={1}>
+          <Stack gap="lg" p="md">
+            {/* Page Information Section */}
+            <PageInfoPanel
+              page={page}
+              pageId={pageDetails?.id}
+              isConfigurationPage={isConfigurationPage}
             />
 
-            {/* Version Comparison Modal */}
-            {page?.id_pages && (
-                <VersionComparisonViewer
-                    opened={comparisonModalOpened}
-                    onClose={() => {
-                        setComparisonModalOpened(false);
-                        setSelectedComparisonVersionId(null);
-                    }}
-                    pageId={page.id_pages}
-                    versions={versionsData?.versions || []}
-                    initialVersion1Id={selectedComparisonVersionId || undefined}
-                    initialVersion2Id={versionsData?.current_published_version_id || undefined}
+            {/* Content Section */}
+            <CollapsibleSection
+              title="Content"
+              inspectorType={INSPECTOR_TYPES.PAGE}
+              sectionName="content"
+              defaultExpanded={true}
+            >
+              {contentFields.length > 0 ? (
+                hasMultipleLanguages ? (
+                  <Tabs
+                    value={activeLanguageTab}
+                    onChange={(value) =>
+                      setActiveLanguageTab(
+                        value || languagesData[0]?.id.toString() || "",
+                      )
+                    }
+                  >
+                    <Tabs.List>
+                      {languagesData.map((lang) => (
+                        <Tabs.Tab key={lang.id} value={lang.id.toString()}>
+                          {lang.language}
+                        </Tabs.Tab>
+                      ))}
+                    </Tabs.List>
+
+                    {languagesData.map((lang) => (
+                      <Tabs.Panel
+                        key={lang.id}
+                        value={lang.id.toString()}
+                        pt="md"
+                      >
+                        <Stack gap="md">
+                          {contentFields.map((field) => (
+                            <PageContentField
+                              key={`${field.id}-${lang.id}`}
+                              field={field}
+                              languageId={lang.id}
+                              locale={lang.locale}
+                              className={styles.fullWidthLabel}
+                              disabled={
+                                isConfigurationPage &&
+                                field.name.toLowerCase() === "title"
+                              }
+                            />
+                          ))}
+                        </Stack>
+                      </Tabs.Panel>
+                    ))}
+                  </Tabs>
+                ) : (
+                  <Stack gap="md">
+                    {contentFields.map((field) => (
+                      <PageContentField
+                        key={`${field.id}-${defaultLanguageId}`}
+                        field={field}
+                        languageId={defaultLanguageId}
+                        locale={languagesData[0]?.locale}
+                        className={styles.fullWidthLabel}
+                        disabled={
+                          isConfigurationPage &&
+                          field.name.toLowerCase() === "title"
+                        }
+                      />
+                    ))}
+                  </Stack>
+                )
+              ) : (
+                <Alert icon={<IconInfoCircle size="1rem" />} color="blue">
+                  No content fields available for this page.
+                </Alert>
+              )}
+            </CollapsibleSection>
+
+            {/* Properties Section */}
+            {!isConfigurationPage && (
+              <CollapsibleSection
+                title="Properties"
+                inspectorType={INSPECTOR_TYPES.PAGE}
+                sectionName="properties"
+                defaultExpanded={true}
+              >
+                <PageBasicInfoFields />
+                <PageAccessTypeGroup options={pageAccessTypes} />
+                <PageMenuPositions page={page} parentPage={parentPage} />
+                <PageSettings />
+                <PageAdditionalProperties
+                  fields={propertyFields}
+                  defaultLanguageId={defaultLanguageId}
                 />
+              </CollapsibleSection>
             )}
 
-            {/* Delete Confirmation Modal */}
-            <Modal
-                opened={deleteModalOpened}
-                onClose={() => {
-                    setDeleteModalOpened(false);
-                    setDeleteConfirmText('');
-                }}
-                title="Delete Page"
-                centered
-            >
-                <Stack gap="md">
-                    <Alert color="red" title="Warning">
-                        This action cannot be undone. The page and all its content will be permanently deleted.
-                    </Alert>
-
-                    <Text>
-                        To confirm deletion, type the page keyword: <Text span fw={700}>{page.keyword}</Text>
-                    </Text>
-
-                    <TextInput
-                        placeholder={`Type "${page.keyword}" to confirm`}
-                        value={deleteConfirmText}
-                        onChange={(e) => setDeleteConfirmText(e.target.value)}
+            {/* Property Fields for Configuration Pages */}
+            {isConfigurationPage && propertyFields.length > 0 && (
+              <CollapsibleSection
+                title="Configuration Properties"
+                inspectorType={INSPECTOR_TYPES.PAGE}
+                sectionName="configuration-properties"
+                defaultExpanded={true}
+              >
+                {propertyFields.map((field) => (
+                  <Box key={field.id}>
+                    <PagePropertyField
+                      field={field}
+                      languageId={defaultLanguageId}
                     />
+                  </Box>
+                ))}
+              </CollapsibleSection>
+            )}
 
-                    <Group justify="flex-end">
-                        <Button
-                            variant="outline"
-                            onClick={() => {
-                                setDeleteModalOpened(false);
-                                setDeleteConfirmText('');
-                            }}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            color="red"
-                            disabled={deleteConfirmText !== page.keyword}
-                            loading={deletePageMutation.isPending}
-                            onClick={handleDeletePage}
-                        >
-                            Delete Page
-                        </Button>
-                    </Group>
+            {/* Version Management Section */}
+            {page?.id_pages && (
+              <CollapsibleSection
+                title="Publishing"
+                inspectorType={INSPECTOR_TYPES.PAGE}
+                sectionName="version-management"
+                defaultExpanded={false}
+              >
+                <PublishingPanel
+                  pageId={page.id_pages}
+                  versions={versionsData?.versions || []}
+                  currentPublishedVersionId={
+                    versionsData?.current_published_version_id || null
+                  }
+                  isLoading={versionsLoading}
+                  error={versionsError as Error}
+                  onPublishNew={(data) => {
+                    publishVersionMutation.mutate({
+                      pageId: page.id_pages!,
+                      data,
+                    });
+                  }}
+                  onPublishSpecific={(versionId) => {
+                    publishSpecificVersionMutation.mutate({
+                      pageId: page.id_pages!,
+                      versionId,
+                    });
+                  }}
+                  onDelete={(versionId) => {
+                    deleteVersionMutation.mutate({
+                      pageId: page.id_pages!,
+                      versionId,
+                    });
+                  }}
+                  onRestore={(versionId) => {
+                    if (page?.id_pages) {
+                      restoreVersionMutation.mutate({
+                        pageId: page.id_pages,
+                        versionId,
+                      });
+                    }
+                  }}
+                  isPublishing={publishVersionMutation.isPending}
+                  isDeleting={unpublishPageMutation.isPending}
+                  isRestoring={restoreVersionMutation.isPending}
+                />
+              </CollapsibleSection>
+            )}
+
+            {/* Action Buttons */}
+            {!isConfigurationPage && (
+              <Paper p="md" withBorder>
+                <Stack gap="md">
+                  <Title order={4}>Actions</Title>
+
+                  {Boolean(page?.is_system) && (
+                    <Alert
+                      icon={<IconInfoCircle size="1rem" />}
+                      title="System Page"
+                      color="blue"
+                      variant="light"
+                    >
+                      This is a system page that provides core functionality. It
+                      can be styled and edited but cannot be deleted.
+                    </Alert>
+                  )}
+
+                  <Group>
+                    <Button
+                      leftSection={<IconFileExport size="1rem" />}
+                      variant="outline"
+                      color="blue"
+                      onClick={handleExportPageSections}
+                    >
+                      Export Sections
+                    </Button>
+
+                    {!page?.is_system && (
+                      <Button
+                        leftSection={<IconPlus size="1rem" />}
+                        variant="outline"
+                        onClick={() => setCreateChildModalOpened(true)}
+                      >
+                        Create Child Page
+                      </Button>
+                    )}
+
+                    <Tooltip
+                      label={
+                        page?.is_system
+                          ? "System pages cannot be deleted"
+                          : "Delete this page"
+                      }
+                      position="top"
+                    >
+                      <Button
+                        leftSection={<IconTrash size="1rem" />}
+                        color="red"
+                        variant="outline"
+                        onClick={() => setDeleteModalOpened(true)}
+                        disabled={Boolean(page?.is_system)}
+                      >
+                        Delete Page
+                      </Button>
+                    </Tooltip>
+                  </Group>
                 </Stack>
-            </Modal>
-        </Stack>
+              </Paper>
+            )}
+          </Stack>
+        </ScrollArea>
+
+        {/* Create Child Page Modal */}
+        <CreatePageModal
+          opened={createChildModalOpened}
+          onClose={() => setCreateChildModalOpened(false)}
+          parentPage={page}
+        />
+
+        {/* Version Comparison Modal */}
+        {page?.id_pages && (
+          <VersionComparisonViewer
+            opened={comparisonModalOpened}
+            onClose={() => {
+              setComparisonModalOpened(false);
+              setSelectedComparisonVersionId(null);
+            }}
+            pageId={page.id_pages}
+            versions={versionsData?.versions || []}
+            initialVersion1Id={selectedComparisonVersionId || undefined}
+            initialVersion2Id={
+              versionsData?.current_published_version_id || undefined
+            }
+          />
+        )}
+
+        {/* Delete Confirmation Modal */}
+        <Modal
+          opened={deleteModalOpened}
+          onClose={() => {
+            setDeleteModalOpened(false);
+            setDeleteConfirmText("");
+          }}
+          title="Delete Page"
+          centered
+        >
+          <Stack gap="md">
+            <Alert color="red" title="Warning">
+              This action cannot be undone. The page and all its content will be
+              permanently deleted.
+            </Alert>
+
+            <Text>
+              To confirm deletion, type the page keyword:{" "}
+              <Text span fw={700}>
+                {page.keyword}
+              </Text>
+            </Text>
+
+            <TextInput
+              placeholder={`Type "${page.keyword}" to confirm`}
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+            />
+
+            <Group justify="flex-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setDeleteModalOpened(false);
+                  setDeleteConfirmText("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                color="red"
+                disabled={deleteConfirmText !== page.keyword}
+                loading={deletePageMutation.isPending}
+                onClick={handleDeletePage}
+              >
+                Delete Page
+              </Button>
+            </Group>
+          </Stack>
+        </Modal>
+      </Stack>
     );
 });

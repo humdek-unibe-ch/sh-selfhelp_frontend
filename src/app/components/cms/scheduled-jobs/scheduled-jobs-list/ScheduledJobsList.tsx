@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   flexRender,
   getCoreRowModel,
@@ -28,18 +28,17 @@ import {
   Stack,
   Button,
   Menu,
-  Center,
   Box,
   Checkbox,
   Paper,
+  Container,
+  Tooltip,
 } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import {
   IconSearch,
   IconTrash,
   IconDots,
-  IconFilter,
-  IconRefresh,
   IconSortAscending,
   IconSortDescending,
   IconX,
@@ -53,7 +52,9 @@ import { IScheduledJobFilters, IScheduledJob, IScheduledJobTransaction } from '.
 import classes from './ScheduledJobsList.module.css';
 import { getJobStatusColor } from '../utils/job-status';
 import { ScheduledJobActionsMenuItems } from '../utils/ScheduledJobActionsMenuItems';
-
+import { FilterActions } from '../../../shared/common/FilterControls';
+import { EmptyState } from '../../../shared/common/EmptyState';
+import { PageHeader } from '../../../shared/common/PageHeader';
 interface IScheduledJobsListProps {
     onViewJob?: (jobId: number) => void;
     onExecuteJob?: (jobId: number) => void;
@@ -73,6 +74,20 @@ const formatDate = (dateString: string) => {
         second: '2-digit'
     });
 };
+
+// Format log to be user friendly
+const formatVerbalLog =(log: string) => {
+  try {
+    const parsed = JSON.parse(log);
+
+    if (parsed.verbal_log) {
+      return parsed.verbal_log;
+    }
+    return log;
+  } catch {
+    return log;
+  }
+}
 
 // Component for displaying transactions sub-table
 function TransactionsSubTable({ transactions }: { transactions: IScheduledJobTransaction[] }) {
@@ -104,9 +119,11 @@ function TransactionsSubTable({ transactions }: { transactions: IScheduledJobTra
                                 </TableTd>
                                 <TableTd>{transaction.user}</TableTd>
                                 <TableTd>
-                                    <Text size="sm" className={classes.descriptionText} truncate>
-                                        {transaction.transaction_verbal_log}
-                                    </Text>
+                                <Tooltip label={formatVerbalLog(transaction.transaction_verbal_log)}>
+                                <Text size="sm" className={classes.descriptionText} truncate>
+                                    {formatVerbalLog(transaction.transaction_verbal_log)}
+                                </Text>
+                                </Tooltip>
                                 </TableTd>
                             </TableTr>
                         ))}
@@ -124,7 +141,7 @@ export function ScheduledJobsList({
     onBulkDeleteJobs,
 }: IScheduledJobsListProps) {
     // State for table parameters
-    const [params, setParams] = useState<IScheduledJobFilters>({
+    const [filterParams, setFilterParams] = useState<IScheduledJobFilters>({
         page: 1,
         pageSize: 20,
         dateType: 'date_to_be_executed',
@@ -133,7 +150,8 @@ export function ScheduledJobsList({
         includeTransactions: true,
     });
 
-    const [showFilters, setShowFilters] = useState(true);
+    const [params, setParams] = useState<IScheduledJobFilters>(filterParams);
+
     const [selectedJobs, setSelectedJobs] = useState<Set<number>>(new Set());
     const [expandedJobs, setExpandedJobs] = useState<Set<number>>(new Set());
 
@@ -161,6 +179,28 @@ export function ScheduledJobsList({
         { id: 'date_created', desc: true }
     ]);
 
+    // Apply Filters
+    const handleApplyFilters = useCallback(() => {
+    setParams({
+        ...filterParams,
+        page: 1,
+    });
+    }, [filterParams]);
+
+    // Reset Filters
+  const handleResetFilters = useCallback(() => {
+    const defaultParams: IScheduledJobFilters = {
+      page: 1,
+      pageSize: 20,
+      dateType: "date_to_be_executed",
+      dateFrom: new Date().toISOString().split("T")[0],
+      dateTo: new Date().toISOString().split("T")[0],
+      includeTransactions: true,
+    };
+    setFilterParams(defaultParams);
+    setParams(defaultParams);
+  }, []);
+
     // Handle sorting change
     const handleSortingChange = useCallback<OnChangeFn<SortingState>>((updaterOrValue) => {
         const newSorting = typeof updaterOrValue === 'function' 
@@ -182,7 +222,7 @@ export function ScheduledJobsList({
 
     // Handle search
     const handleSearch = useCallback((search: string) => {
-        setParams(prev => ({
+        setFilterParams(prev => ({
             ...prev,
             search,
             page: 1,
@@ -191,7 +231,7 @@ export function ScheduledJobsList({
 
     // Handle search clear
     const handleClearSearch = useCallback(() => {
-        setParams(prev => ({
+        setFilterParams(prev => ({
             ...prev,
             search: '',
             page: 1,
@@ -200,13 +240,13 @@ export function ScheduledJobsList({
 
     // Handle page change
     const handlePageChange = useCallback((page: number) => {
-        setParams(prev => ({ ...prev, page }));
+        setFilterParams(prev => ({ ...prev, page }));
     }, []);
 
     // Handle page size change
     const handlePageSizeChange = useCallback((pageSize: string | null) => {
         if (pageSize) {
-            setParams(prev => ({
+            setFilterParams(prev => ({
                 ...prev,
                 pageSize: parseInt(pageSize, 10),
                 page: 1,
@@ -257,298 +297,281 @@ export function ScheduledJobsList({
         setExpandedJobs(newExpanded);
     }, [expandedJobs]);
 
+    // Close expanded on new set of data from api
+    useEffect(() => {
+    setExpandedJobs(new Set());
+    }, [scheduledJobsData]);
+
 
     // Define table columns
     const columns = useMemo<ColumnDef<IScheduledJob>[]>(
-        () => [
-            {
-                id: 'expand',
-                header: '',
-                cell: ({ row }) => {
-                    const hasTransactions = row.original.transactions && row.original.transactions.length > 0;
-                    const isExpanded = expandedJobs.has(row.original.id);
+      () => [
+        {
+          id: "expand",
+          header: "",
+          cell: ({ row }) => {
+            const hasTransactions =
+              row.original.transactions && row.original.transactions.length > 0;
+            const isExpanded = expandedJobs.has(row.original.id);
+            if (!hasTransactions) {
+              return <div style={{ width: 24 }} />;
+            }
 
-                    if (!hasTransactions) {
-                        return <div style={{ width: 24 }} />;
-                    }
+            return (
+              <ActionIcon
+                variant="subtle"
+                size="sm"
+                onClick={() => handleToggleExpand(row.original.id)}
+              >
+                {isExpanded ? <IconMinus size={14} /> : <IconPlus size={14} />}
+              </ActionIcon>
+            );
+          },
+          enableSorting: false,
+          size: 40,
+        },
+        {
+          id: "select",
+          header: ({ table }) => (
+            <Checkbox
+              checked={table.getIsAllPageRowsSelected()}
+              indeterminate={table.getIsSomePageRowsSelected()}
+              onChange={(event) => {
+                table.toggleAllPageRowsSelected(!!event.currentTarget.checked);
+                handleSelectAll(!!event.currentTarget.checked);
+              }}
+            />
+          ),
+          cell: ({ row }) => (
+            <Checkbox
+              checked={selectedJobs.has(row.original.id)}
+              onChange={(event) =>
+                handleSelectJob(row.original.id, event.currentTarget.checked)
+              }
+            />
+          ),
+          enableSorting: false,
+        },
+        {
+          accessorKey: "id",
+          header: ({ column }) => (
+            <Group
+              gap="xs"
+              style={{ cursor: "pointer", userSelect: "none" }}
+              onClick={() => column.toggleSorting()}
+            >
+              <Text fw={500}>ID</Text>
+              {{
+                asc: <IconSortAscending size={14} />,
+                desc: <IconSortDescending size={14} />,
+              }[column.getIsSorted() as string] || (
+                <IconSortAscending size={14} opacity={0.5} />
+              )}
+            </Group>
+          ),
+          cell: ({ row }) => (
+            <Text size="sm" fw={500}>
+              {row.original.id}
+            </Text>
+          ),
+          enableSorting: true,
+        },
+        {
+          accessorKey: "date_created",
+          header: ({ column }) => (
+            <Group gap="xs">
+              <Text fw={500}>Entry Date</Text>
+              <ActionIcon
+                variant="transparent"
+                size="xs"
+                onClick={() =>
+                  column.toggleSorting(column.getIsSorted() === "asc")
+                }
+              >
+                {column.getIsSorted() === "asc" ? (
+                  <IconSortAscending size={14} />
+                ) : column.getIsSorted() === "desc" ? (
+                  <IconSortDescending size={14} />
+                ) : (
+                  <IconSortAscending size={14} opacity={0.5} />
+                )}
+              </ActionIcon>
+            </Group>
+          ),
+          cell: ({ row }) => (
+            <Text size="sm">{formatDate(row.original.date_created)}</Text>
+          ),
+          enableSorting: true,
+        },
+        {
+          accessorKey: "date_to_be_executed",
+          header: ({ column }) => (
+            <Group gap="xs">
+              <Text fw={500}>Date to be Executed</Text>
+              <ActionIcon
+                variant="transparent"
+                size="xs"
+                onClick={() =>
+                  column.toggleSorting(column.getIsSorted() === "asc")
+                }
+              >
+                {column.getIsSorted() === "asc" ? (
+                  <IconSortAscending size={14} />
+                ) : column.getIsSorted() === "desc" ? (
+                  <IconSortDescending size={14} />
+                ) : (
+                  <IconSortAscending size={14} opacity={0.5} />
+                )}
+              </ActionIcon>
+            </Group>
+          ),
+          cell: ({ row }) => (
+            <Text size="sm">
+              {formatDate(row.original.date_to_be_executed)}
+            </Text>
+          ),
+          enableSorting: true,
+        },
+        {
+          accessorKey: "date_executed",
+          header: ({ column }) => (
+            <Group gap="xs">
+              <Text fw={500}>Execution Date</Text>
+              <ActionIcon
+                variant="transparent"
+                size="xs"
+                onClick={() =>
+                  column.toggleSorting(column.getIsSorted() === "asc")
+                }
+              >
+                {column.getIsSorted() === "asc" ? (
+                  <IconSortAscending size={14} />
+                ) : column.getIsSorted() === "desc" ? (
+                  <IconSortDescending size={14} />
+                ) : (
+                  <IconSortAscending size={14} opacity={0.5} />
+                )}
+              </ActionIcon>
+            </Group>
+          ),
+          cell: ({ row }) => (
+            <Text size="sm">
+              {row.original.date_executed
+                ? formatDate(row.original.date_executed)
+                : "-"}
+            </Text>
+          ),
+          enableSorting: true,
+        },
+        {
+          accessorKey: "status",
+          header: "Status",
+          cell: ({ row }) => (
+            <Badge
+              variant="light"
+              color={getJobStatusColor(row.original.status)}
+              size="sm"
+            >
+              {row.original.status}
+            </Badge>
+          ),
+          enableSorting: false,
+        },
+        {
+          accessorKey: "job_types",
+          header: "Type",
+          cell: ({ row }) => <Text size="sm">{row.original.job_types}</Text>,
+          enableSorting: true,
+        },
+        {
+          accessorKey: "description",
+          header: "Description",
+          cell: ({ row }) => (
+            <Tooltip
+              label={row.original.description}
+              position="top-start"
+              withArrow
+              multiline
+            >
+              <Text size="sm" className={classes.descriptionText} truncate>
+                {row.original.description}
+              </Text>
+            </Tooltip>
+          ),
+        },
+        {
+          accessorKey: "user_email",
+          header: "User Email",
+          cell: ({ row }) => (
+            <Tooltip
+              label={row.original.user_email || "-"}
+              position="top-start"
+              withArrow
+            >
+              <Text size="sm" className={classes.recipientText} truncate>
+                {row.original.user_email || "-"}
+              </Text>
+            </Tooltip>
+          ),
+        },
+        {
+          accessorKey: "config.email.subject",
+          header: "Email Subject",
+          cell: ({ row }) => (
+            <Tooltip
+              label={row.original.config?.email?.subject || "-"}
+              position="top-start"
+              withArrow
+              multiline
+            >
+              <Text size="sm" className={classes.titleText} truncate>
+                {row.original.config?.email?.subject || "-"}
+              </Text>
+            </Tooltip>
+          ),
+        },
+        {
+          accessorKey: "user_timezone",
+          header: "User Timezone",
+          cell: ({ row }) => (
+            <Text size="sm">{row.original.user_timezone || "-"}</Text>
+          ),
+        },
+        {
+          id: "actions",
+          header: "Actions",
+          cell: ({ row }) => (
+            <Menu shadow="md" width={200}>
+              <Menu.Target>
+                <ActionIcon variant="subtle" size="sm">
+                  <IconDots size={16} />
+                </ActionIcon>
+              </Menu.Target>
 
-                    return (
-                        <ActionIcon
-                            variant="subtle"
-                            size="sm"
-                            onClick={() => handleToggleExpand(row.original.id)}
-                        >
-                            {isExpanded ? (
-                                <IconMinus size={14} />
-                            ) : (
-                                <IconPlus size={14} />
-                            )}
-                        </ActionIcon>
-                    );
-                },
-                enableSorting: false,
-                size: 40,
-            },
-            {
-                id: 'select',
-                header: ({ table }) => (
-                    <Checkbox
-                        checked={table.getIsAllPageRowsSelected()}
-                        indeterminate={table.getIsSomePageRowsSelected()}
-                        onChange={(event) => {
-                            table.toggleAllPageRowsSelected(!!event.currentTarget.checked);
-                            handleSelectAll(!!event.currentTarget.checked);
-                        }}
-                    />
-                ),
-                cell: ({ row }) => (
-                    <Checkbox
-                        checked={selectedJobs.has(row.original.id)}
-                        onChange={(event) => handleSelectJob(row.original.id, event.currentTarget.checked)}
-                    />
-                ),
-                enableSorting: false,
-            },
-            {
-                accessorKey: 'id',
-                header: ({ column }) => (
-                    <Group gap="xs">
-                        <Text fw={500}>ID</Text>
-                        <ActionIcon
-                            variant="transparent"
-                            size="xs"
-                            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-                        >
-                            {column.getIsSorted() === 'asc' ? (
-                                <IconSortAscending size={14} />
-                            ) : column.getIsSorted() === 'desc' ? (
-                                <IconSortDescending size={14} />
-                            ) : (
-                                <IconSortAscending size={14} opacity={0.5} />
-                            )}
-                        </ActionIcon>
-                    </Group>
-                ),
-                cell: ({ row }) => (
-                    <Text size="sm" fw={500}>
-                        {row.original.id}
-                    </Text>
-                ),
-                enableSorting: true,
-            },
-            {
-                accessorKey: 'status',
-                header: ({ column }) => (
-                    <Group gap="xs">
-                        <Text fw={500}>Status</Text>
-                        <ActionIcon
-                            variant="transparent"
-                            size="xs"
-                            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-                        >
-                            {column.getIsSorted() === 'asc' ? (
-                                <IconSortAscending size={14} />
-                            ) : column.getIsSorted() === 'desc' ? (
-                                <IconSortDescending size={14} />
-                            ) : (
-                                <IconSortAscending size={14} opacity={0.5} />
-                            )}
-                        </ActionIcon>
-                    </Group>
-                ),
-                cell: ({ row }) => (
-                    <Badge
-                        variant="light"
-                        color={getJobStatusColor(row.original.status)}
-                        size="sm"
-                    >
-                        {row.original.status}
-                    </Badge>
-                ),
-                enableSorting: true,
-            },
-            {
-                accessorKey: 'job_types',
-                header: ({ column }) => (
-                    <Group gap="xs">
-                        <Text fw={500}>Type</Text>
-                        <ActionIcon
-                            variant="transparent"
-                            size="xs"
-                            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-                        >
-                            {column.getIsSorted() === 'asc' ? (
-                                <IconSortAscending size={14} />
-                            ) : column.getIsSorted() === 'desc' ? (
-                                <IconSortDescending size={14} />
-                            ) : (
-                                <IconSortAscending size={14} opacity={0.5} />
-                            )}
-                        </ActionIcon>
-                    </Group>
-                ),
-                cell: ({ row }) => (
-                    <Text size="sm">{row.original.job_types}</Text>
-                ),
-                enableSorting: true,
-            },
-            {
-                accessorKey: 'date_created',
-                header: ({ column }) => (
-                    <Group gap="xs">
-                        <Text fw={500}>Entry Date</Text>
-                        <ActionIcon
-                            variant="transparent"
-                            size="xs"
-                            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-                        >
-                            {column.getIsSorted() === 'asc' ? (
-                                <IconSortAscending size={14} />
-                            ) : column.getIsSorted() === 'desc' ? (
-                                <IconSortDescending size={14} />
-                            ) : (
-                                <IconSortAscending size={14} opacity={0.5} />
-                            )}
-                        </ActionIcon>
-                    </Group>
-                ),
-                cell: ({ row }) => (
-                    <Text size="sm">{formatDate(row.original.date_created)}</Text>
-                ),
-                enableSorting: true,
-            },
-            {
-                accessorKey: 'date_to_be_executed',
-                header: ({ column }) => (
-                    <Group gap="xs">
-                        <Text fw={500}>Date to be Executed</Text>
-                        <ActionIcon
-                            variant="transparent"
-                            size="xs"
-                            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-                        >
-                            {column.getIsSorted() === 'asc' ? (
-                                <IconSortAscending size={14} />
-                            ) : column.getIsSorted() === 'desc' ? (
-                                <IconSortDescending size={14} />
-                            ) : (
-                                <IconSortAscending size={14} opacity={0.5} />
-                            )}
-                        </ActionIcon>
-                    </Group>
-                ),
-                cell: ({ row }) => (
-                    <Text size="sm">{formatDate(row.original.date_to_be_executed)}</Text>
-                ),
-                enableSorting: true,
-            },
-            {
-                accessorKey: 'date_executed',
-                header: ({ column }) => (
-                    <Group gap="xs">
-                        <Text fw={500}>Execution Date</Text>
-                        <ActionIcon
-                            variant="transparent"
-                            size="xs"
-                            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-                        >
-                            {column.getIsSorted() === 'asc' ? (
-                                <IconSortAscending size={14} />
-                            ) : column.getIsSorted() === 'desc' ? (
-                                <IconSortDescending size={14} />
-                            ) : (
-                                <IconSortAscending size={14} opacity={0.5} />
-                            )}
-                        </ActionIcon>
-                    </Group>
-                ),
-                cell: ({ row }) => (
-                    <Text size="sm">
-                        {row.original.date_executed ? formatDate(row.original.date_executed) : '-'}
-                    </Text>
-                ),
-                enableSorting: true,
-            },
-            {
-                accessorKey: 'description',
-                header: ({ column }) => (
-                    <Group gap="xs">
-                        <Text fw={500}>Description</Text>
-                        <ActionIcon
-                            variant="transparent"
-                            size="xs"
-                            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-                        >
-                            {column.getIsSorted() === 'asc' ? (
-                                <IconSortAscending size={14} />
-                            ) : column.getIsSorted() === 'desc' ? (
-                                <IconSortDescending size={14} />
-                            ) : (
-                                <IconSortAscending size={14} opacity={0.5} />
-                            )}
-                        </ActionIcon>
-                    </Group>
-                ),
-                cell: ({ row }) => (
-                    <Text size="sm" className={classes.descriptionText} truncate>
-                        {row.original.description}
-                    </Text>
-                ),
-                enableSorting: true,
-            },
-            {
-                accessorKey: 'user_email',
-                header: 'User Email',
-                cell: ({ row }) => (
-                    <Text size="sm" className={classes.recipientText} truncate>
-                        {row.original.user_email || '-'}
-                    </Text>
-                ),
-            },
-            {
-                accessorKey: 'config.email.subject',
-                header: 'Email Subject',
-                cell: ({ row }) => (
-                    <Text size="sm" className={classes.titleText} truncate>
-                        {row.original.config?.email?.subject || '-'}
-                    </Text>
-                ),
-            },
-            {
-                accessorKey: 'user_timezone',
-                header: 'User Timezone',
-                cell: ({ row }) => (
-                    <Text size="sm">
-                        {row.original.user_timezone || '-'}
-                    </Text>
-                ),
-            },
-            {
-                id: 'actions',
-                header: 'Actions',
-                cell: ({ row }) => (
-                    <Menu shadow="md" width={200}>
-                        <Menu.Target>
-                            <ActionIcon variant="subtle" size="sm">
-                                <IconDots size={16} />
-                            </ActionIcon>
-                        </Menu.Target>
-
-                        <Menu.Dropdown>
-                            <ScheduledJobActionsMenuItems
-                                jobId={row.original.id}
-                                status={row.original.status}
-                                description={row.original.description}
-                                onViewJob={onViewJob}
-                                onExecuteJob={onExecuteJob}
-                                onDeleteJob={onDeleteJob}
-                            />
-                        </Menu.Dropdown>
-                    </Menu>
-                ),
-            },
-        ],
-        [selectedJobs, handleSelectJob, handleSelectAll, onViewJob, onExecuteJob, onDeleteJob, expandedJobs, handleToggleExpand]
+              <Menu.Dropdown>
+                <ScheduledJobActionsMenuItems
+                  jobId={row.original.id}
+                  status={row.original.status}
+                  description={row.original.description}
+                  onViewJob={onViewJob}
+                  onExecuteJob={onExecuteJob}
+                  onDeleteJob={onDeleteJob}
+                />
+              </Menu.Dropdown>
+            </Menu>
+          ),
+        },
+      ],
+      [
+        selectedJobs,
+        handleSelectJob,
+        handleSelectAll,
+        onViewJob,
+        onExecuteJob,
+        onDeleteJob,
+        expandedJobs,
+        handleToggleExpand,
+      ],
     );
 
     // Initialize table
@@ -576,228 +599,259 @@ export function ScheduledJobsList({
     }
 
     return (
-        <Card>
+      <Card>
+        <Stack gap="md">
+            {/* Standardized Header using PageHeader */}
+            <PageHeader
+            title="Scheduled Jobs"
+            subtitle="Manage and monitor scheduled jobs"
+            badge={pagination.totalCount > 0 ? pagination.totalCount : undefined}
+            >
+            {selectedJobs.size > 0 && (
+                <Button
+                color="red"
+                leftSection={<IconTrash size={16} />}
+                onClick={handleBulkDelete}
+                >
+                Delete Selected ({selectedJobs.size})
+                </Button>
+            )}
+            </PageHeader>
+
+          {/* Advanced Filters */}
+          <Paper p="md" withBorder>
             <Stack gap="md">
-                {/* Header */}
-                <Group justify="space-between">
-                    <div>
-                        <Text size="lg" fw={600}>
-                            Scheduled Jobs
-                        </Text>
-                        <Text size="sm" c="dimmed">
-                            Manage and monitor scheduled jobs
-                        </Text>
-                    </div>
-                    <Group>
-                        {selectedJobs.size > 0 && (
-                            <Button
-                                color="red"
-                                leftSection={<IconTrash size={16} />}
-                                onClick={handleBulkDelete}
-                            >
-                                Delete Selected ({selectedJobs.size})
-                            </Button>
-                        )}
-                    </Group>
-                </Group>
-
-                {/* Filters */}
-                <Group gap="md" wrap="nowrap">
-                    <TextInput
-                        placeholder="Search jobs..."
-                        leftSection={<IconSearch size={16} />}
-                        rightSection={
-                            params.search ? (
-                                <ActionIcon
-                                    variant="subtle"
-                                    size="sm"
-                                    onClick={handleClearSearch}
-                                >
-                                    <IconX size={14} />
-                                </ActionIcon>
-                            ) : null
-                        }
-                        value={params.search || ''}
-                        onChange={(event) => handleSearch(event.currentTarget.value)}
-                        className={classes.searchInput}
-                    />
-                    
-                    <Button
-                        variant={showFilters ? 'filled' : 'light'}
-                        leftSection={<IconFilter size={16} />}
-                        onClick={() => setShowFilters(!showFilters)}
-                    >
-                        Filters
-                    </Button>
-                    
-                    <Button
-                        variant="light"
-                        leftSection={<IconRefresh size={16} />}
-                        onClick={() => refetch()}
-                        loading={ isFetching}
-                        disabled={isFetching} 
-                    >
-                        Refresh
-                    </Button>
-                    
-                    <Select
-                        value={params.pageSize?.toString() || '20'}
-                        onChange={handlePageSizeChange}
-                        data={[
-                            { value: '10', label: '10 per page' },
-                            { value: '20', label: '20 per page' },
-                            { value: '50', label: '50 per page' },
-                            { value: '100', label: '100 per page' },
-                        ]}
-                        className={classes.pageSizeSelect}
-                    />
-                </Group>
-
-                {/* Advanced Filters */}
-                {showFilters && (
-                    <Paper p="md" withBorder>
-                        <Stack gap="md">
-                            <Group gap="md" wrap="nowrap">
-                                <Select
-                                    placeholder="Status"
-                                    data={statusOptions}
-                                    value={params.status || ''}
-                                    onChange={(value) => setParams(prev => ({ ...prev, status: value || undefined, page: 1 }))}
-                                    clearable
-                                    className={classes.filterSelect}
-                                />
-                                <Select
-                                    placeholder="Type"
-                                    data={typeOptions}
-                                    value={params.jobType || ''}
-                                    onChange={(value) => setParams(prev => ({ ...prev, jobType: value || undefined, page: 1 }))}
-                                    clearable
-                                    className={classes.filterSelect}
-                                />
-                                <Select
-                                    placeholder="Date Type"
-                                    data={dateTypeOptions}
-                                    value={params.dateType || ''}
-                                    onChange={(value) => setParams(prev => ({
-                                        ...prev,
-                                        dateType: value as IScheduledJobFilters['dateType'] || 'date_to_be_executed',
-                                        page: 1
-                                    }))}
-                                    className={classes.filterSelect}
-                                />
-                            </Group>
-                            <Group gap="md" wrap="nowrap">
-                                <DateInput
-                                    placeholder="Date From"
-                                    value={params.dateFrom ? new Date(params.dateFrom) : null}
-                                    onChange={(date) => setParams(prev => ({
-                                        ...prev,
-                                        dateFrom: date || undefined,
-                                        page: 1
-                                    }))}
-                                    clearable
-                                    className={classes.dateFilterInput}
-                                />
-                                <DateInput
-                                    placeholder="Date To"
-                                    value={params.dateTo ? new Date(params.dateTo) : null}
-                                    onChange={(date) => setParams(prev => ({
-                                        ...prev,
-                                        dateTo: date || undefined,
-                                        page: 1
-                                    }))}
-                                    clearable
-                                    className={classes.dateFilterInput}
-                                />
-                            </Group>
-                        </Stack>
-                    </Paper>
-                )}
-
-                {/* Table */}
-                <div className={classes.tableWrapper}>
-                    <LoadingOverlay visible={isFetching} />
-
-                    <Box className={classes.tableScrollContainer}>
-                        <Table striped highlightOnHover>
-                            <TableThead>
-                                {table.getHeaderGroups().map((headerGroup) => (
-                                    <TableTr key={headerGroup.id}>
-                                        {headerGroup.headers.map((header) => (
-                                            <TableTh key={header.id}>
-                                                {header.isPlaceholder
-                                                    ? null
-                                                    : flexRender(
-                                                        header.column.columnDef.header,
-                                                        header.getContext()
-                                                    )}
-                                            </TableTh>
-                                        ))}
-                                    </TableTr>
-                                ))}
-                            </TableThead>
-                            <TableTbody>
-                                {table.getRowModel().rows.map((row) => (
-                                    <React.Fragment key={row.id}>
-                                        <TableTr>
-                                            {row.getVisibleCells().map((cell) => (
-                                                <TableTd key={cell.id}>
-                                                    {flexRender(
-                                                        cell.column.columnDef.cell,
-                                                        cell.getContext()
-                                                    )}
-                                                </TableTd>
-                                            ))}
-                                        </TableTr>
-                                        {expandedJobs.has(row.original.id) && row.original.transactions && (
-                                            <TableTr>
-                                                <TableTd colSpan={table.getAllColumns().length} style={{ padding: 0, border: 'none' }}>
-                                                    <TransactionsSubTable transactions={row.original.transactions} />
-                                                </TableTd>
-                                            </TableTr>
-                                        )}
-                                    </React.Fragment>
-                                ))}
-                            </TableTbody>
-                        </Table>
-                    </Box>
-
-                    {/* Empty state */}
-                    {!isFetching && scheduledJobs.length === 0 && (
-                        <Center py="xl">
-                            <Stack align="center" gap="sm">
-                                <Text size="lg" c="dimmed">
-                                    No scheduled jobs found
-                                </Text>
-                                <Text size="sm" c="dimmed">
-                                    {params.search 
-                                        ? 'Try adjusting your search criteria'
-                                        : 'No jobs are currently scheduled'
-                                    }
-                                </Text>
-                            </Stack>
-                        </Center>
-                    )}
-                </div>
-
-                {/* Pagination */}
-                {pagination.totalPages > 1 && (
-                    <Group justify="center">
-                        <Pagination
-                            total={pagination.totalPages}
-                            value={pagination.page}
-                            onChange={handlePageChange}
-                        />
-                    </Group>
-                )}
-
-                {/* Results info */}
-                <Text size="sm" c="dimmed" ta="center">
-                    Showing {((pagination.page - 1) * pagination.pageSize) + 1} to{' '}
-                    {Math.min(pagination.page * pagination.pageSize, pagination.totalCount)} of{' '}
-                    {pagination.totalCount} entries
-                </Text>
+              <Group gap="md" wrap="nowrap">
+                <TextInput
+                  label="Search"
+                  placeholder="Search jobs..."
+                  leftSection={<IconSearch size={16} />}
+                  rightSection={
+                    filterParams.search ? (
+                      <ActionIcon
+                        variant="subtle"
+                        size="sm"
+                        onClick={handleClearSearch}
+                      >
+                        <IconX size={14} />
+                      </ActionIcon>
+                    ) : null
+                  }
+                  value={filterParams.search || ""}
+                  onChange={(event) => handleSearch(event.currentTarget.value)}
+                  className={classes.searchInput}
+                />
+                <Select
+                  label="Status"
+                  placeholder="Status"
+                  data={statusOptions}
+                  value={filterParams.status || ""}
+                  onChange={(value) =>
+                    setFilterParams((prev) => ({
+                      ...prev,
+                      status: value || undefined,
+                      page: 1,
+                    }))
+                  }
+                  clearable
+                  className={classes.filterSelect}
+                />
+                <Select
+                  label="Type"
+                  placeholder="Type"
+                  data={typeOptions}
+                  value={filterParams.jobType || ""}
+                  onChange={(value) =>
+                    setFilterParams((prev) => ({
+                      ...prev,
+                      jobType: value || undefined,
+                      page: 1,
+                    }))
+                  }
+                  clearable
+                  className={classes.filterSelect}
+                />
+                <Select
+                  label="Date Type"
+                  placeholder="Date Type"
+                  data={dateTypeOptions}
+                  value={filterParams.dateType || ""}
+                  onChange={(value) =>
+                    setFilterParams((prev) => ({
+                      ...prev,
+                      dateType:
+                        (value as IScheduledJobFilters["dateType"]) ||
+                        "date_to_be_executed",
+                      page: 1,
+                    }))
+                  }
+                  className={classes.filterSelect}
+                />
+              </Group>
+              <Group gap="md" wrap="nowrap">
+                <DateInput
+                  label="Date From"
+                  placeholder="Date From"
+                  value={
+                    filterParams.dateFrom
+                      ? new Date(filterParams.dateFrom)
+                      : null
+                  }
+                  onChange={(date) =>
+                    setFilterParams((prev) => ({
+                      ...prev,
+                      dateFrom: date || undefined,
+                      page: 1,
+                    }))
+                  }
+                  clearable
+                  className={classes.dateFilterInput}
+                />
+                <DateInput
+                  label="Date To"
+                  placeholder="Date To"
+                  value={
+                    filterParams.dateTo ? new Date(filterParams.dateTo) : null
+                  }
+                  onChange={(date) =>
+                    setFilterParams((prev) => ({
+                      ...prev,
+                      dateTo: date || undefined,
+                      page: 1,
+                    }))
+                  }
+                  clearable
+                  className={classes.dateFilterInput}
+                />
+                <Select
+                  label="Rows per page"
+                  value={filterParams.pageSize?.toString() || "20"}
+                  onChange={handlePageSizeChange}
+                  data={[
+                    { value: "10", label: "10 per page" },
+                    { value: "20", label: "20 per page" },
+                    { value: "50", label: "50 per page" },
+                    { value: "100", label: "100 per page" },
+                  ]}
+                  className={classes.pageSizeSelect}
+                />
+              </Group>
+              <FilterActions
+                onApply={handleApplyFilters}
+                onReset={handleResetFilters}
+                onRefresh={() => refetch()}
+                isFetching={isFetching}
+                isApplyDisabled={filterParams === params}
+              />
             </Stack>
-        </Card>
+          </Paper>
+
+          {/* Table Section */}
+          <div
+            className={classes.tableWrapper}
+            style={{ position: "relative", minHeight: 400 }}
+          >
+            <LoadingOverlay
+              visible={isFetching}
+              overlayProps={{ blur: 2, backgroundOpacity: 0.6 }}
+              loaderProps={{ size: "lg" }}
+            />
+
+            <Box className={classes.tableScrollContainer}>
+              <Table striped highlightOnHover>
+                <TableThead>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableTr key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <TableTh key={header.id}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
+                        </TableTh>
+                      ))}
+                    </TableTr>
+                  ))}
+                </TableThead>
+                <TableTbody>
+                  {table.getRowModel().rows.map((row) => (
+                    <React.Fragment key={row.id}>
+                      <TableTr>
+                        {row.getVisibleCells().map((cell) => (
+                          <TableTd key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
+                          </TableTd>
+                        ))}
+                      </TableTr>
+                      {expandedJobs.has(row.original.id) &&
+                        row.original.transactions && (
+                          <TableTr>
+                            <TableTd
+                              colSpan={table.getAllColumns().length}
+                              style={{ padding: 0, border: "none" }}
+                            >
+                              <TransactionsSubTable
+                                transactions={row.original.transactions}
+                              />
+                            </TableTd>
+                          </TableTr>
+                        )}
+                    </React.Fragment>
+                  ))}
+
+                  {/* No Results Empty State */}
+                  {!isFetching && scheduledJobs.length === 0 && (
+                    <Table.Tr>
+                      <Table.Td
+                        colSpan={table.getAllColumns().length}
+                        style={{ padding: "80px 20px", textAlign: "center" }}
+                      >
+                        <EmptyState
+                          title="No scheduled jobs found"
+                          description={
+                            params.search
+                              ? "Try adjusting your search criteria"
+                              : params.status ||
+                                  params.jobType ||
+                                  params.dateFrom !== params.dateTo
+                                ? "No jobs match your current filters"
+                                : "No jobs are currently scheduled in the selected period"
+                          }
+                        />
+                      </Table.Td>
+                    </Table.Tr>
+                  )}
+                </TableTbody>
+              </Table>
+            </Box>
+          </div>
+
+          {/* Pagination */}
+          {pagination.totalPages > 1 && (
+            <Group justify="center">
+              <Pagination
+                total={pagination.totalPages}
+                value={pagination.page}
+                onChange={handlePageChange}
+              />
+            </Group>
+          )}
+
+          {/* Results info */}
+          <Text size="sm" c="dimmed" ta="center">
+            {pagination.totalCount === 0
+              ? "Showing 0 entries"
+              : `Showing ${(pagination.page - 1) * pagination.pageSize + 1} to ${Math.min(
+                  pagination.page * pagination.pageSize,
+                  pagination.totalCount,
+                )} of ${pagination.totalCount} entries`}
+          </Text>
+        </Stack>
+      </Card>
     );
 }

@@ -11,6 +11,7 @@ import {
     Stack
 } from '@mantine/core';
 import { IconAlertTriangle } from '@tabler/icons-react';
+import { ModalWrapper } from '../../../shared';
 
 interface IDeleteJobModalProps {
     opened: boolean;
@@ -54,12 +55,16 @@ export function DeleteJobModal({
     };
 
     return (
-        <Modal
+        <ModalWrapper
             opened={opened}
-            onClose={handleClose}
-            title="Delete Scheduled Job"
-            size="md"
+            onClose={onClose}
+            title={`Scheduled Job ID: ${jobId}`}
+            size="xl"
             centered
+            closeOnClickOutside
+            closeOnEscape
+            withCloseButton
+            scrollAreaHeight={600}
         >
             <Stack gap="lg">
                 <Alert
@@ -112,6 +117,6 @@ export function DeleteJobModal({
                     </Button>
                 </Group>
             </Stack>
-        </Modal>
+        </ModalWrapper>
     );
 } 

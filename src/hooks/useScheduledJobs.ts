@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AdminScheduledJobsApi } from '../api/admin/scheduled-jobs.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
-import { IScheduledJob, IScheduledJobFilters } from '../types/responses/admin/scheduled-jobs.types';
+import { IScheduledJobFilters } from '../types/responses/admin/scheduled-jobs.types';
 import { notifications } from '@mantine/notifications';
 
 /**

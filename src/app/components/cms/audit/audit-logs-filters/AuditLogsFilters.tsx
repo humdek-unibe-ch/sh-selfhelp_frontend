@@ -4,24 +4,25 @@ import { useState, useEffect, useMemo } from 'react';
 import {
     Group,
     Select,
-    Button,
     Stack,
     Divider,
     Badge,
 } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
-import { IconX } from '@tabler/icons-react';
 import { useLookupsByType } from '../../../../../hooks/useLookups';
 import type { IAuditLogsListParams } from '../../../../../types/responses/admin/audit.types';
 import type { ILookup } from '../../../../../types/responses/admin/lookups.types';
+import { FilterActions } from '../../../shared/common/FilterControls';
 
 interface AuditLogsFiltersProps {
     filters: IAuditLogsListParams;
     onFiltersChange: (filters: Partial<IAuditLogsListParams>) => void;
+    onRefresh?: () => void;
+    isFetching: boolean;
 }
 
 
-export function AuditLogsFilters({ filters, onFiltersChange }: AuditLogsFiltersProps) {
+export function AuditLogsFilters({ filters, onFiltersChange, onRefresh, isFetching }: AuditLogsFiltersProps) {
     const [localFilters, setLocalFilters] = useState<IAuditLogsListParams>(filters);
 
     // Fetch dynamic lookups
@@ -106,104 +107,122 @@ export function AuditLogsFilters({ filters, onFiltersChange }: AuditLogsFiltersP
         return value !== undefined && value !== null && value !== '';
     });
 
+    const hasChanges = localFilters !== filters;
+
     return (
-        <div className="space-y-4">
-            <Divider />
+      <div className="space-y-4">
+        <Divider />
 
-            <Stack>
-                {/* Row 1: Resource type, Action */}
-                <Group grow>
-                    <Select
-                        label="Resource Type"
-                        placeholder="Select resource type"
-                        data={resourceTypeOptions}
-                        value={localFilters.resource_type || null}
-                        onChange={(value) => handleFilterChange('resource_type', value || undefined)}
-                        clearable
-                    />
-                    <Select
-                        label="Action"
-                        placeholder="Select action"
-                        data={actionOptions}
-                        value={localFilters.action || null}
-                        onChange={(value) => handleFilterChange('action', value || undefined)}
-                        clearable
-                    />
-                    <Select
-                        label="Permission Result"
-                        placeholder="Select result"
-                        data={permissionResultOptions}
-                        value={localFilters.permission_result || null}
-                        onChange={(value) => handleFilterChange('permission_result', value || undefined)}
-                        clearable
-                    />
-                </Group>
+        <Stack>
+          {/* Row 1: Resource type, Action */}
+          <Group grow>
+            <Select
+              label="Resource Type"
+              placeholder="Select resource type"
+              data={resourceTypeOptions}
+              value={localFilters.resource_type || null}
+              onChange={(value) =>
+                handleFilterChange("resource_type", value || undefined)
+              }
+              clearable
+            />
+            <Select
+              label="Action"
+              placeholder="Select action"
+              data={actionOptions}
+              value={localFilters.action || null}
+              onChange={(value) =>
+                handleFilterChange("action", value || undefined)
+              }
+              clearable
+            />
+            <Select
+              label="Permission Result"
+              placeholder="Select result"
+              data={permissionResultOptions}
+              value={localFilters.permission_result || null}
+              onChange={(value) =>
+                handleFilterChange("permission_result", value || undefined)
+              }
+              clearable
+            />
+          </Group>
 
-                {/* Row 2: HTTP method, Date range */}
-                <Group grow>
-                    <Select
-                        label="HTTP Method"
-                        placeholder="Select method"
-                        data={httpMethodOptions}
-                        value={localFilters.http_method || null}
-                        onChange={(value) => handleFilterChange('http_method', value || undefined)}
-                        clearable
-                    />
-                    <div className="grid grid-cols-2 gap-2">
-                        <DatePickerInput
-                            label="From Date"
-                            placeholder="YYYY-MM-DD"
-                            value={localFilters.date_from ? new Date(localFilters.date_from) : null}
-                            onChange={(date) => {
-                                let dateStr: string | undefined;
-                                if (date) {
-                                    const dateObj = typeof date === 'string' ? new Date(date) : date;
-                                    if (!isNaN(dateObj.getTime())) {
-                                        dateStr = dateObj.toISOString().split('T')[0];
-                                    }
-                                }
-                                handleImmediateFilterChange('date_from', dateStr);
-                            }}
-                            clearable
-                        />
-                        <DatePickerInput
-                            label="To Date"
-                            placeholder="YYYY-MM-DD"
-                            value={localFilters.date_to ? new Date(localFilters.date_to) : null}
-                            onChange={(date) => {
-                                let dateStr: string | undefined;
-                                if (date) {
-                                    const dateObj = typeof date === 'string' ? new Date(date) : date;
-                                    if (!isNaN(dateObj.getTime())) {
-                                        dateStr = dateObj.toISOString().split('T')[0];
-                                    }
-                                }
-                                handleImmediateFilterChange('date_to', dateStr);
-                            }}
-                            clearable
-                        />
-                    </div>
-                </Group>
+          {/* Row 2: HTTP method, Date range */}
+          <Group grow>
+            <Select
+              label="HTTP Method"
+              placeholder="Select method"
+              data={httpMethodOptions}
+              value={localFilters.http_method || null}
+              onChange={(value) =>
+                handleFilterChange("http_method", value || undefined)
+              }
+              clearable
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <DatePickerInput
+                label="From Date"
+                placeholder="YYYY-MM-DD"
+                value={
+                  localFilters.date_from
+                    ? new Date(localFilters.date_from)
+                    : null
+                }
+                onChange={(date) => {
+                  let dateStr: string | undefined;
+                  if (date) {
+                    const dateObj =
+                      typeof date === "string" ? new Date(date) : date;
+                    if (!isNaN(dateObj.getTime())) {
+                      dateStr = dateObj.toISOString().split("T")[0];
+                    }
+                  }
+                  handleImmediateFilterChange("date_from", dateStr);
+                }}
+                clearable
+              />
+              <DatePickerInput
+                label="To Date"
+                placeholder="YYYY-MM-DD"
+                value={
+                  localFilters.date_to ? new Date(localFilters.date_to) : null
+                }
+                onChange={(date) => {
+                  let dateStr: string | undefined;
+                  if (date) {
+                    const dateObj =
+                      typeof date === "string" ? new Date(date) : date;
+                    if (!isNaN(dateObj.getTime())) {
+                      dateStr = dateObj.toISOString().split("T")[0];
+                    }
+                  }
+                  handleImmediateFilterChange("date_to", dateStr);
+                }}
+                clearable
+              />
+            </div>
+          </Group>
 
-                {/* Action buttons */}
-                <Group justify="space-between">
-                    <div>
-                        {hasActiveFilters && (
-                            <Badge variant="light" color="blue">
-                                Filters active
-                            </Badge>
-                        )}
-                    </div>
-                    <Group>
-                        <Button variant="light" onClick={clearFilters} leftSection={<IconX size={16} />}>
-                            Clear Filters
-                        </Button>
-                        <Button onClick={applyFilters}>
-                            Apply Filters
-                        </Button>
-                    </Group>
-                </Group>
-            </Stack>
-        </div>
+          {/* Action buttons */}
+          <Group justify="space-between">
+            <div>
+              {hasActiveFilters && (
+                <Badge variant="light" color="blue">
+                  Filters active
+                </Badge>
+              )}
+            </div>
+            {/* Reusable FilterActions */}
+            <FilterActions
+              onApply={applyFilters}
+              onReset={clearFilters}
+              onRefresh={onRefresh || (() => {})}
+              isFetching={isFetching}
+              isApplyDisabled={!hasChanges}
+            />
+          </Group>
+        </Stack>
+      </div>
     );
 }

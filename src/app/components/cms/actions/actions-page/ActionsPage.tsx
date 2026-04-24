@@ -1,25 +1,76 @@
 "use client";
 
 import { useCallback, useMemo, useState } from 'react';
-import { Button, Group, Stack, Text, TextInput, ActionIcon, Card, Table, Pagination, Loader } from '@mantine/core';
+import { Button, Group, Stack, TextInput, ActionIcon, Card, Table, Pagination, Paper, Select, LoadingOverlay } from '@mantine/core';
 import { IconPlus, IconX, IconEdit, IconTrash } from '@tabler/icons-react';
 import { useActions, useDeleteAction } from '../../../../../hooks/useActions';
 import type { IActionsListParams, IActionDetails } from '../../../../../types/responses/admin/actions.types';
 import { DeleteActionModal } from '../delete-action-modal/DeleteActionModal';
 import { ActionFormModal } from '../action-form-modal/ActionFormModal';
+import { useDataTables } from '../../../../../hooks/useData';
+import { useLookupsByType } from '../../../../../hooks/useLookups';
+import { FilterActions } from '../../../shared/common/FilterControls';
+import { EmptyState } from '../../../shared/common/EmptyState';
+import { PageHeader } from '../../../shared/common/PageHeader';
 
 export function ActionsPage() {
-  const [params, setParams] = useState<IActionsListParams>({ page: 1, pageSize: 20, search: '', sort: 'name', sortDirection: 'asc' });
-  const { data, isLoading } = useActions(params);
+  const [filterParams, setFilterParams] = useState<IActionsListParams>({
+  page: 1,
+  pageSize: 20,
+  search: '',
+  sort: 'name',
+  sortDirection: 'asc',
+  triggerTypeId: undefined,
+  dataTableId: undefined,
+  });
+  const [params, setParams] = useState<IActionsListParams>(filterParams);
+
+  const { data, isFetching, refetch } = useActions(params);
   const deleteMutation = useDeleteAction();
+  const triggerTypes = useLookupsByType('actionTriggerTypes');
+  const { data: dataTablesData } = useDataTables();
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editAction, setEditAction] = useState<IActionDetails | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<IActionDetails | null>(null);
 
   const handleSearch = useCallback((value: string) => {
-    setParams(prev => ({ ...prev, search: value, page: 1 }));
+    setFilterParams(prev => ({ ...prev, search: value, page: 1 }));
   }, []);
+
+  const handleApplyFilters = useCallback(() => {
+    setParams({ ...filterParams, page: 1 });
+  }, [filterParams]);
+
+  const handleResetFilters = useCallback(() => {
+    const defaultParams: IActionsListParams = {
+      page: 1,
+      pageSize: 20,
+      search: "",
+      sort: "name",
+      sortDirection: "asc",
+      triggerTypeId: undefined,
+      dataTableId: undefined,
+    };
+    setFilterParams(defaultParams);
+    setParams(defaultParams);
+   }, []);
+
+  const triggerOptions = useMemo(() => {
+  return triggerTypes.map((t) => ({
+    value: String(t.id),
+    label: t.lookupValue || t.lookupCode,
+  }));
+}, [triggerTypes]);
+
+const dataTableOptions = useMemo(() => {
+  return (
+    dataTablesData?.dataTables?.map((dt) => ({
+      value: String(dt.id),
+      label: dt.displayName || dt.name,
+    })) ?? []
+  );
+}, [dataTablesData]);
 
   const clearSearch = useCallback(() => handleSearch(''), [handleSearch]);
 
@@ -42,66 +93,177 @@ export function ActionsPage() {
   }, [data]);
 
   return (
-    <Stack>
-      <Group justify="space-between">
-        <Text size="lg" fw={600}>Actions</Text>
-        <Button leftSection={<IconPlus size={16} />} onClick={() => setCreateOpen(true)}>New Action</Button>
-      </Group>
+    <Paper p="md" radius="md">
+      <Stack gap="md">
+           {/* Standardized Header */}
+        <PageHeader
+          title="Actions"
+          subtitle="Manage and monitor actions"
+          badge={data?.actions?.length || 0}
+        >
+          <Button
+            leftSection={<IconPlus size={16} />}
+            onClick={() => setCreateOpen(true)}
+          >
+            New Action
+          </Button>
+        </PageHeader>
 
-      <Group>
-        <TextInput
-          value={params.search || ''}
-          onChange={(e) => handleSearch(e.currentTarget.value)}
-          placeholder="Search actions"
-          rightSection={params.search ? (
-            <ActionIcon variant="subtle" color="gray" size="sm" onClick={clearSearch}><IconX size={14} /></ActionIcon>
-          ) : undefined}
-        />
-      </Group>
+        {/* Search */}
+        <Card withBorder>
+          <Stack gap="md">
+            {/* Filters row */}
+            <Group gap="md" wrap="nowrap">
+              <TextInput
+                label="Search"
+                value={filterParams.search || ""}
+                onChange={(e) => handleSearch(e.currentTarget.value)}
+                placeholder="Search actions"
+                style={{ flex: 1 }}
+                rightSection={
+                  filterParams.search ? (
+                    <ActionIcon
+                      variant="subtle"
+                      size="sm"
+                      onClick={clearSearch}
+                    >
+                      <IconX size={14} />
+                    </ActionIcon>
+                  ) : null
+                }
+              />
 
-      <Card withBorder>
-        {isLoading ? (
-          <Loader />
-        ) : (
-          <Table striped highlightOnHover withTableBorder>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>ID</Table.Th>
-                <Table.Th>Name</Table.Th>
-                <Table.Th>Trigger</Table.Th>
-                <Table.Th>Data table</Table.Th>
-                <Table.Th style={{ width: 120 }}></Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {rows}
-            </Table.Tbody>
-          </Table>
+              <Select
+                label="Trigger"
+                placeholder="Trigger"
+                data={triggerOptions}
+                value={filterParams.triggerTypeId ? String(filterParams.triggerTypeId) : null}
+                onChange={(value) =>
+                  {
+                    console.warn(triggerOptions);
+                    console.warn(value);
+                    setFilterParams((prev) => ({
+                    ...prev,
+                    triggerTypeId: value || undefined,
+                    page: 1,
+                  }))}
+                }
+                clearable
+              />
+
+              <Select
+                label="Data table"
+                placeholder="Data table"
+                data={dataTableOptions}
+                value={filterParams.dataTableId ? String(filterParams.dataTableId) : null}
+                onChange={(value) =>
+                  setFilterParams((prev) => ({
+                    ...prev,
+                    dataTableId: value || undefined,
+                    page: 1,
+                  }))
+                }
+                clearable
+              />
+            </Group>
+
+            {/* Actions row (same pattern as ScheduledJobsList) */}
+            <FilterActions
+              onApply={handleApplyFilters}
+              onReset={handleResetFilters}
+              onRefresh={() => refetch()}
+              isFetching={isFetching}
+              isApplyDisabled={filterParams === params}
+            />
+          </Stack>
+        </Card>
+
+        {/* Actions table */}
+        <div style={{ position: "relative" }}>
+          <LoadingOverlay
+            visible={isFetching}
+            overlayProps={{ blur: 0, backgroundOpacity: 0.35 }}
+            loaderProps={{ size: "md" }}
+          />
+
+          <Card withBorder>
+            <Table striped highlightOnHover style={{ fontSize: 14 }}>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>ID</Table.Th>
+                  <Table.Th>Name</Table.Th>
+                  <Table.Th>Trigger</Table.Th>
+                  <Table.Th>Data table</Table.Th>
+                  <Table.Th style={{ width: 120 }} />
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {data?.actions && data.actions.length > 0 ? (
+                  rows
+                ) : (
+                  <Table.Tr>
+                    <Table.Td
+                      colSpan={5}
+                      style={{ textAlign: "center", padding: "60px 20px" }}
+                    >
+                      <EmptyState
+                        title={
+                          isFetching ? "Loading actions..." : "No actions found"
+                        }
+                        description={
+                          !isFetching
+                            ? "Try adjusting your search or filter criteria"
+                            : undefined
+                        }
+                      />
+                    </Table.Td>
+                  </Table.Tr>
+                )}
+              </Table.Tbody>
+            </Table>
+          </Card>
+        </div>
+
+        {/* Pagination */}
+        {data?.pagination && (
+          <Group justify="center" mt="md">
+            <Pagination
+              value={params.page || 1}
+              total={data.pagination.totalPages}
+              onChange={(page) => setParams((prev) => ({ ...prev, page }))}
+            />
+          </Group>
         )}
-      </Card>
 
-      {data?.pagination && (
-        <Pagination
-          value={params.page || 1}
-          total={data.pagination.totalPages}
-          onChange={(page) => setParams(prev => ({ ...prev, page }))}
+        {/* Modals */}
+        <ActionFormModal
+          opened={createOpen}
+          onClose={() => setCreateOpen(false)}
+          mode="create"
         />
-      )}
-
-      <ActionFormModal opened={createOpen} onClose={() => setCreateOpen(false)} mode="create" />
-      {editAction && (
-        <ActionFormModal opened={!!editAction} onClose={() => setEditAction(null)} mode="edit" actionId={editAction.id} />
-      )}
-      {deleteTarget && (
-        <DeleteActionModal
-          opened={!!deleteTarget}
-          onClose={() => setDeleteTarget(null)}
-          onConfirm={() => deleteMutation.mutate(deleteTarget.id, { onSettled: () => setDeleteTarget(null) })}
-          actionName={deleteTarget.name}
-          isLoading={deleteMutation.isPending}
-        />
-      )}
-    </Stack>
+        {editAction && (
+          <ActionFormModal
+            opened={!!editAction}
+            onClose={() => setEditAction(null)}
+            mode="edit"
+            actionId={editAction.id}
+          />
+        )}
+        {deleteTarget && (
+          <DeleteActionModal
+            opened={!!deleteTarget}
+            onClose={() => setDeleteTarget(null)}
+            onConfirm={() =>
+              deleteMutation.mutate(deleteTarget.id, {
+                onSettled: () => setDeleteTarget(null),
+              })
+            }
+            actionName={deleteTarget.name}
+            isLoading={deleteMutation.isPending}
+          />
+        )}
+      </Stack>
+    </Paper>
   );
 }
 

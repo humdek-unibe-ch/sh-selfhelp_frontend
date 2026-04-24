@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Accordion, Card, Text } from '@mantine/core';
 import { useDataTables } from '../../../../../hooks/useData';
 import SingleDataTable from './SingleDataTable';
+import { EmptyState } from '../../../shared/common/EmptyState';
 
 interface IDataTablesViewerProps {
   activeTableIds: number[]; // includes -1 for all
@@ -16,6 +17,12 @@ export function DataTablesViewer({ activeTableIds, selectedUserId, showDeleted, 
   const { data: tablesResp, isLoading } = useDataTables();
   const tables = tablesResp?.dataTables || [];
   const [opened, setOpened] = useState<string[]>([]);
+
+  // stable key from IDs to avoid array reference changes triggering effects
+  const tableIdsKey = useMemo(
+  () => tables.map(t => t.id).join(','),
+  [tables]
+  );
 
   // Only reset opened panels when the actual selected tables change, not when filters change
   useEffect(() => {
@@ -31,7 +38,7 @@ export function DataTablesViewer({ activeTableIds, selectedUserId, showDeleted, 
         return prevOpened.filter(id => currentTableIds.has(id));
       }
     });
-  }, [activeTableIds, tables]); // Only depend on activeTableIds and tables, not filter parameters
+  }, [activeTableIds, tableIdsKey]); // Only depend on activeTableIds and tables, not filter parameters
 
   const selectedTables = useMemo(() => {
     if (!tables.length) return [] as { id: number; name: string; displayName: string }[];
@@ -49,13 +56,16 @@ export function DataTablesViewer({ activeTableIds, selectedUserId, showDeleted, 
     );
   }
 
-  if (selectedTables.length === 0) {
-    return (
-      <Card>
-        <Text c="dimmed">No data tables available.</Text>
-      </Card>
-    );
-  }
+if (selectedTables.length === 0) {
+  return (
+    <Card withBorder shadow="sm" radius="md">
+      <EmptyState
+        title="No data tables available"
+        description=""
+      />
+    </Card>
+  );
+}
 
   return (
     <Accordion multiple value={opened} onChange={setOpened}>

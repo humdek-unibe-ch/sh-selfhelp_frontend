@@ -12,6 +12,8 @@ export const AdminActionApi = {
     if (params.search) searchParams.append('search', params.search);
     if (params.sort) searchParams.append('sort', params.sort);
     if (params.sortDirection) searchParams.append('sortDirection', params.sortDirection);
+    if (params.triggerTypeId) {searchParams.append("triggerTypeId", String(params.triggerTypeId));}
+    if (params.dataTableId ) {searchParams.append("dataTableId", String(params.dataTableId)); }
 
     const response = await permissionAwareApiClient.get<IBaseApiResponse<IActionsListResponse>>(API_CONFIG.ENDPOINTS.ADMIN_ACTIONS_GET_ALL, { params: Object.fromEntries(searchParams) });
     return response.data.data;

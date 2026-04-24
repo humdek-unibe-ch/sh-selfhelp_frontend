@@ -31,7 +31,6 @@ import {
   Stack,
   Button,
   Menu,
-  Center,
   Box,
 } from '@mantine/core';
 import {
@@ -48,6 +47,9 @@ import {
 } from '@tabler/icons-react';
 import { useGroups } from '../../../../../hooks/useGroups';
 import type { IGroupDetails, IGroupsListParams } from '../../../../../types/responses/admin/groups.types';
+import { PageHeader } from '../../../shared/common/PageHeader';
+import { FilterActions } from '../../../shared/common/FilterControls';
+import { EmptyState } from '../../../shared/common/EmptyState';
 
 interface IGroupsListProps {
   onCreateGroup?: () => void;
@@ -62,8 +64,8 @@ export function GroupsList({
   onDeleteGroup,
   onManageAcls,
 }: IGroupsListProps) {
-  // State for table parameters
-  const [params, setParams] = useState<IGroupsListParams>({
+ // Filter form state (what user is editing)
+  const [filterParams, setFilterParams] = useState<IGroupsListParams>({
     page: 1,
     pageSize: 20,
     search: '',
@@ -71,8 +73,11 @@ export function GroupsList({
     sortDirection: 'asc',
   });
 
+  // Applied params (what is sent to the API)
+  const [params, setParams] = useState<IGroupsListParams>(filterParams);
+
   // Fetch groups data
-  const { data: groupsData, isLoading, error } = useGroups(params);
+  const { data: groupsData, isFetching, refetch, error } = useGroups(params);
 
   // Table sorting state
   const [sorting, setSorting] = useState<SortingState>([
@@ -100,7 +105,7 @@ export function GroupsList({
 
   // Handle search
   const handleSearch = useCallback((search: string) => {
-    setParams(prev => ({
+    setFilterParams(prev => ({
       ...prev,
       search,
       page: 1,
@@ -124,7 +129,7 @@ export function GroupsList({
   // Handle page size change
   const handlePageSizeChange = useCallback((pageSize: string | null) => {
     if (pageSize) {
-      setParams(prev => ({
+      setFilterParams(prev => ({
         ...prev,
         pageSize: parseInt(pageSize, 10),
         page: 1,
@@ -132,22 +137,40 @@ export function GroupsList({
     }
   }, []);
 
+    const handleApplyFilters = useCallback(() => {
+    setParams({ ...filterParams, page: 1 });
+  }, [filterParams]);
+
+  const handleResetFilters = useCallback(() => {
+    const defaultParams: IGroupsListParams = {
+      page: 1,
+      pageSize: 20,
+      search: '',
+      sort: 'name',
+      sortDirection: 'asc',
+    };
+    setFilterParams(defaultParams);
+    setParams(defaultParams);
+  }, []);
+
   // Define table columns
   const columns = useMemo<ColumnDef<IGroupDetails>[]>(
     () => [
       {
-        accessorKey: 'id',
+        accessorKey: "id",
         header: ({ column }) => (
           <Group gap="xs">
             <Text fw={500}>ID</Text>
             <ActionIcon
               variant="transparent"
               size="xs"
-              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
             >
-              {column.getIsSorted() === 'asc' ? (
+              {column.getIsSorted() === "asc" ? (
                 <IconSortAscending size={14} />
-              ) : column.getIsSorted() === 'desc' ? (
+              ) : column.getIsSorted() === "desc" ? (
                 <IconSortDescending size={14} />
               ) : (
                 <IconSortAscending size={14} opacity={0.5} />
@@ -163,18 +186,20 @@ export function GroupsList({
         enableSorting: true,
       },
       {
-        accessorKey: 'name',
+        accessorKey: "name",
         header: ({ column }) => (
           <Group gap="xs">
             <Text fw={500}>Name</Text>
             <ActionIcon
               variant="transparent"
               size="xs"
-              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
             >
-              {column.getIsSorted() === 'asc' ? (
+              {column.getIsSorted() === "asc" ? (
                 <IconSortAscending size={14} />
-              ) : column.getIsSorted() === 'desc' ? (
+              ) : column.getIsSorted() === "desc" ? (
                 <IconSortDescending size={14} />
               ) : (
                 <IconSortAscending size={14} opacity={0.5} />
@@ -197,18 +222,20 @@ export function GroupsList({
         enableSorting: true,
       },
       {
-        accessorKey: 'users_count',
+        accessorKey: "users_count",
         header: ({ column }) => (
           <Group gap="xs">
             <Text fw={500}>Users</Text>
             <ActionIcon
               variant="transparent"
               size="xs"
-              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
             >
-              {column.getIsSorted() === 'asc' ? (
+              {column.getIsSorted() === "asc" ? (
                 <IconSortAscending size={14} />
-              ) : column.getIsSorted() === 'desc' ? (
+              ) : column.getIsSorted() === "desc" ? (
                 <IconSortDescending size={14} />
               ) : (
                 <IconSortAscending size={14} opacity={0.5} />
@@ -224,21 +251,41 @@ export function GroupsList({
         enableSorting: true,
       },
       {
-        accessorKey: 'requires_2fa',
-        header: '2FA Required',
+        accessorKey: "requires2fa",
+        header: ({ column }) => (
+          <Group gap="xs">
+            <Text fw={500}>2FA Required</Text>
+            <ActionIcon
+              variant="transparent"
+              size="xs"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+            >
+              {column.getIsSorted() === "asc" ? (
+                <IconSortAscending size={14} />
+              ) : column.getIsSorted() === "desc" ? (
+                <IconSortDescending size={14} />
+              ) : (
+                <IconSortAscending size={14} opacity={0.5} />
+              )}
+            </ActionIcon>
+          </Group>
+        ),
         cell: ({ row }) => (
           <Badge
             variant="light"
-            color={row.original.requires_2fa ? 'orange' : 'gray'}
+            color={row.original.requires_2fa ? "orange" : "gray"}
             size="sm"
           >
-            {row.original.requires_2fa ? 'Enabled' : 'Disabled'}
+            {row.original.requires_2fa ? "Enabled" : "Disabled"}
           </Badge>
         ),
+        enableSorting: true,
       },
       {
-        id: 'actions',
-        header: 'Actions',
+        id: "actions",
+        header: "Actions",
         cell: ({ row }) => (
           <Group gap="xs">
             <Tooltip label="Edit Group">
@@ -250,13 +297,15 @@ export function GroupsList({
                 <IconEdit size={16} />
               </ActionIcon>
             </Tooltip>
-            
+
             <Tooltip label="Manage ACLs">
               <ActionIcon
                 variant="subtle"
                 size="sm"
                 color="blue"
-                                          onClick={() => onManageAcls?.(row.original.id, row.original.name)}
+                onClick={() =>
+                  onManageAcls?.(row.original.id, row.original.name)
+                }
               >
                 <IconShield size={16} />
               </ActionIcon>
@@ -272,7 +321,9 @@ export function GroupsList({
               <Menu.Dropdown>
                 <Menu.Item
                   leftSection={<IconUsers size={14} />}
-                  onClick={() => {/* Handle view members */}}
+                  onClick={() => {
+                    /* Handle view members */
+                  }}
                 >
                   View Members
                 </Menu.Item>
@@ -280,7 +331,9 @@ export function GroupsList({
                 <Menu.Item
                   leftSection={<IconTrash size={14} />}
                   color="red"
-                  onClick={() => onDeleteGroup?.(row.original.id, row.original.name)}
+                  onClick={() =>
+                    onDeleteGroup?.(row.original.id, row.original.name)
+                  }
                 >
                   Delete Group
                 </Menu.Item>
@@ -290,7 +343,7 @@ export function GroupsList({
         ),
       },
     ],
-    [onEditGroup, onDeleteGroup, onManageAcls]
+    [onEditGroup, onDeleteGroup, onManageAcls],
   );
 
   // Initialize table
@@ -321,61 +374,67 @@ export function GroupsList({
     <Card>
       <Stack gap="md">
         {/* Header */}
-        <Group justify="space-between">
-          <div>
-            <Text size="lg" fw={600}>
-              Groups Management
-            </Text>
-            <Text size="sm" c="dimmed">
-              Manage user groups and their permissions
-            </Text>
-          </div>
+        <PageHeader
+          title="Groups Management"
+          subtitle="Manage user groups and their permissions"
+        >
           <Button
             leftSection={<IconPlus size={16} />}
             onClick={onCreateGroup}
           >
             Create Group
           </Button>
-        </Group>
+        </PageHeader>
 
-        {/* Filters */}
-        <Group gap="md">
-          <TextInput
-            placeholder="Search groups..."
-            leftSection={<IconSearch size={16} />}
-            rightSection={
-              params.search ? (
-                <ActionIcon
-                  variant="subtle"
-                  color="gray"
-                  size="sm"
-                  onClick={handleClearSearch}
-                >
-                  <IconX size={14} />
-                </ActionIcon>
-              ) : null
-            }
-            value={params.search}
-            onChange={(e) => handleSearch(e.currentTarget.value)}
-            style={{ flex: 1 }}
-          />
-          <Select
-            placeholder="Per page"
-            value={params.pageSize?.toString()}
-            onChange={handlePageSizeChange}
-            data={[
-              { value: '10', label: '10' },
-              { value: '20', label: '20' },
-              { value: '50', label: '50' },
-              { value: '100', label: '100' },
-            ]}
-            w={100}
-          />
-        </Group>
+        {/* Filters Card */}
+        <Card withBorder p="md">
+          <Stack gap="md">
+            <Group gap="md" align="flex-end">
+              <TextInput
+                placeholder="Search groups..."
+                leftSection={<IconSearch size={16} />}
+                rightSection={
+                  filterParams.search ? (
+                    <ActionIcon variant="subtle" color="gray" size="sm" onClick={handleClearSearch}>
+                      <IconX size={14} />
+                    </ActionIcon>
+                  ) : null
+                }
+                value={filterParams.search}
+                onChange={(e) => handleSearch(e.currentTarget.value)}
+                style={{ flex: 1 }}
+              />
+
+              <Select
+                placeholder="Per page"
+                value={filterParams.pageSize?.toString() || "20"}
+                onChange={handlePageSizeChange}
+                data={[
+                  { value: "10", label: "10" },
+                  { value: "20", label: "20" },
+                  { value: "50", label: "50" },
+                  { value: "100", label: "100" },
+                ]}
+                w={100}
+              />
+            </Group>
+
+            {/* Filter Actions - Right aligned under the form */}
+            <Group justify="flex-end">
+              <FilterActions
+                onApply={handleApplyFilters}
+                onReset={handleResetFilters}
+                onRefresh={refetch}
+                isFetching={isFetching}
+                isApplyDisabled={filterParams === params}
+              />
+            </Group>
+          </Stack>
+        </Card>
 
         {/* Table */}
         <div style={{ position: 'relative' }}>
-          <LoadingOverlay visible={isLoading} />
+          <LoadingOverlay visible={isFetching} />
           
           <Box style={{ overflowX: 'auto' }}>
             <Table striped highlightOnHover>
@@ -412,30 +471,16 @@ export function GroupsList({
             </Table>
           </Box>
 
-          {/* Empty state */}
-          {!isLoading && (!groupsData?.groups || groupsData.groups.length === 0) && (
-            <Center py="xl">
-              <Stack align="center" gap="sm">
-                <Text size="lg" c="dimmed">
-                  No groups found
-                </Text>
-                <Text size="sm" c="dimmed">
-                  {params.search 
-                    ? 'Try adjusting your search criteria'
-                    : 'Get started by creating your first group'
-                  }
-                </Text>
-                {!params.search && (
-                  <Button
-                    leftSection={<IconPlus size={16} />}
-                    onClick={onCreateGroup}
-                    variant="light"
-                  >
-                    Create Group
-                  </Button>
-                )}
-              </Stack>
-            </Center>
+          {/* Empty State */}
+          {!isFetching && (!groupsData?.groups || groupsData.groups.length === 0) && (
+            <EmptyState
+              title="No groups found"
+              description={
+                params.search
+                  ? "Try adjusting your search criteria"
+                  : "Get started by creating your first group"
+              }
+            />
           )}
         </div>
 

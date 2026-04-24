@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Card, Group, Button, Text, LoadingOverlay, Select } from '@mantine/core';
-import { IconRefresh, IconFilter } from '@tabler/icons-react';
+import { IconFilter } from '@tabler/icons-react';
 import { useAuditLogs } from '../../../../../hooks/useAuditLogs';
 import { AuditLogsTable } from '../audit-logs-table/AuditLogsTable';
 import { AuditLogsFilters } from '../audit-logs-filters/AuditLogsFilters';
@@ -20,7 +20,7 @@ export function AuditLogsList({ onViewDetails }: AuditLogsListProps) {
   const [showFilters, setShowFilters] = useState(false);
   const [pageSize, setPageSize] = useState(20);
 
-  const { data, isLoading, error, refetch } = useAuditLogs(filters);
+  const { data, isFetching, error, refetch } = useAuditLogs(filters);
 
   const handleFiltersChange = (newFilters: Partial<IAuditLogsListParams>) => {
     // Merge new filters with current filters, ALWAYS resetting to page 1 when filters change
@@ -94,14 +94,6 @@ export function AuditLogsList({ onViewDetails }: AuditLogsListProps) {
             >
               Filters
             </Button>
-            <Button
-              variant="light"
-              leftSection={<IconRefresh size={16} />}
-              onClick={handleRefresh}
-              loading={isLoading}
-            >
-              Refresh
-            </Button>
           </Group>
         </Group>
 
@@ -110,19 +102,21 @@ export function AuditLogsList({ onViewDetails }: AuditLogsListProps) {
           <AuditLogsFilters
             filters={filters}
             onFiltersChange={handleFiltersChange}
+            onRefresh={handleRefresh}
+            isFetching={isFetching}
           />
         )}
       </Card>
 
       {/* Table */}
       <Card withBorder pos="relative">
-        <LoadingOverlay visible={isLoading} />
+        <LoadingOverlay visible={isFetching} />
         <AuditLogsTable
           data={auditLogs}
           pagination={pagination}
           onPageChange={handlePageChange}
           onViewDetails={onViewDetails}
-          loading={isLoading}
+          loading={isFetching}
           error={error}
         />
       </Card>

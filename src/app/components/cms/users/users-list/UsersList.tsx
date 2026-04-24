@@ -31,7 +31,6 @@ import {
   Stack,
   Button,
   Menu,
-  Center,
   Box,
 } from '@mantine/core';
 import {
@@ -47,12 +46,14 @@ import {
   IconSortAscending,
   IconSortDescending,
   IconX,
-  IconRefresh,
 } from '@tabler/icons-react';
 import { useUsers } from '../../../../../hooks/useUsers';
 import type { IUserBasic, IUsersListParams } from '../../../../../types/responses/admin/users.types';
 import { getUserStatusColor } from '../../../../../utils/status-color.utils';
 import classes from './UsersList.module.css';
+import { PageHeader } from '../../../shared/common/PageHeader';
+import { EmptyState } from '../../../shared/common/EmptyState';
+import { FilterActions } from '../../../shared/common/FilterControls';
 
 interface IUsersListProps {
   onCreateUser?: () => void;
@@ -80,45 +81,52 @@ export function UsersList({
   onImpersonateUser,
   permissions = {},
 }: IUsersListProps) {
-  // State for table parameters
-  const [params, setParams] = useState<IUsersListParams>({
+  // Filter form state (what user is editing)
+  const [filterParams, setFilterParams] = useState<IUsersListParams>({
     page: 1,
     pageSize: 20,
-    search: '',
-    sort: 'email',
-    sortDirection: 'asc',
+    search: "",
+    sort: "email",
+    sortDirection: "asc",
   });
 
+  // Applied params (what is sent to the API)
+  const [params, setParams] = useState<IUsersListParams>(filterParams);
+
   // Fetch users data
-  const { data: usersData, isFetching, error, refetch  } = useUsers(params);
+  const { data: usersData, isFetching, error, refetch } = useUsers(params);
 
   // Table sorting state
   const [sorting, setSorting] = useState<SortingState>([
-    { id: params.sort || 'email', desc: params.sortDirection === 'desc' }
+    { id: filterParams.sort || "email", desc: filterParams.sortDirection === "desc" },
   ]);
 
   // Handle sorting change
-  const handleSortingChange = useCallback<OnChangeFn<SortingState>>((updaterOrValue) => {
-    const newSorting = typeof updaterOrValue === 'function' 
-      ? updaterOrValue(sorting) 
-      : updaterOrValue;
-    
-    setSorting(newSorting);
-    
-    if (newSorting.length > 0) {
-      const sortField = newSorting[0];
-      setParams(prev => ({
-        ...prev,
-        sort: sortField.id as IUsersListParams['sort'],
-        sortDirection: sortField.desc ? 'desc' : 'asc',
-        page: 1, // Reset to first page when sorting
-      }));
-    }
-  }, [sorting]);
+  const handleSortingChange = useCallback<OnChangeFn<SortingState>>(
+    (updaterOrValue) => {
+      const newSorting =
+        typeof updaterOrValue === "function"
+          ? updaterOrValue(sorting)
+          : updaterOrValue;
+
+      setSorting(newSorting);
+
+      if (newSorting.length > 0) {
+        const sortField = newSorting[0];
+        setParams((prev) => ({
+          ...prev,
+          sort: sortField.id as IUsersListParams["sort"],
+          sortDirection: sortField.desc ? "desc" : "asc",
+          page: 1, // Reset to first page when sorting
+        }));
+      }
+    },
+    [sorting],
+  );
 
   // Handle search
   const handleSearch = useCallback((search: string) => {
-    setParams(prev => ({
+    setFilterParams((prev) => ({
       ...prev,
       search,
       page: 1, // Reset to first page when searching
@@ -127,22 +135,22 @@ export function UsersList({
 
   // Handle search clear
   const handleClearSearch = useCallback(() => {
-    setParams(prev => ({
+    setFilterParams((prev) => ({
       ...prev,
-      search: '',
+      search: "",
       page: 1,
     }));
   }, []);
 
   // Handle page change
   const handlePageChange = useCallback((page: number) => {
-    setParams(prev => ({ ...prev, page }));
+    setParams((prev) => ({ ...prev, page }));
   }, []);
 
   // Handle page size change
   const handlePageSizeChange = useCallback((pageSize: string | null) => {
     if (pageSize) {
-      setParams(prev => ({
+      setFilterParams((prev) => ({
         ...prev,
         pageSize: parseInt(pageSize, 10),
         page: 1, // Reset to first page when changing page size
@@ -150,22 +158,42 @@ export function UsersList({
     }
   }, []);
 
+  // Reset filters
+  const handleResetFilters = useCallback(() => {
+    const defaultParams: IUsersListParams = {
+      page: 1,
+      pageSize: 20,
+      search: "",
+      sort: "email",
+      sortDirection: "asc",
+    };
+    setFilterParams(defaultParams);
+    setParams(defaultParams);
+  }, []);
+
+  // Apply filters
+  const handleApplyFilters = useCallback(() => {
+    setParams({ ...filterParams, page: 1 });
+  }, [filterParams]);
+
   // Define table columns
   const columns = useMemo<ColumnDef<IUserBasic>[]>(
     () => [
       {
-        accessorKey: 'id',
+        accessorKey: "id",
         header: ({ column }) => (
           <Group gap="xs">
             <Text fw={500}>ID</Text>
             <ActionIcon
               variant="transparent"
               size="xs"
-              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
             >
-              {column.getIsSorted() === 'asc' ? (
+              {column.getIsSorted() === "asc" ? (
                 <IconSortAscending size={14} />
-              ) : column.getIsSorted() === 'desc' ? (
+              ) : column.getIsSorted() === "desc" ? (
                 <IconSortDescending size={14} />
               ) : (
                 <IconSortAscending size={14} opacity={0.5} />
@@ -181,18 +209,20 @@ export function UsersList({
         enableSorting: true,
       },
       {
-        accessorKey: 'email',
+        accessorKey: "email",
         header: ({ column }) => (
           <Group gap="xs">
             <Text fw={500}>Email</Text>
             <ActionIcon
               variant="transparent"
               size="xs"
-              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
             >
-              {column.getIsSorted() === 'asc' ? (
+              {column.getIsSorted() === "asc" ? (
                 <IconSortAscending size={14} />
-              ) : column.getIsSorted() === 'desc' ? (
+              ) : column.getIsSorted() === "desc" ? (
                 <IconSortDescending size={14} />
               ) : (
                 <IconSortAscending size={14} opacity={0.5} />
@@ -215,38 +245,38 @@ export function UsersList({
         enableSorting: true,
       },
       {
-        accessorKey: 'user_name',
-        header: 'Username',
+        accessorKey: "user_name",
+        header: "Username",
         cell: ({ row }) => (
-          <Text size="sm">
-            {row.original.user_name || '-'}
-          </Text>
+          <Text size="sm">{row.original.user_name || "-"}</Text>
         ),
         enableSorting: true,
       },
       {
-        accessorKey: 'code',
-        header: 'User Code',
+        accessorKey: "code",
+        header: "User Code",
         cell: ({ row }) => (
           <Text size="xs" ff="monospace" c="dimmed">
-            {row.original.code || '-'}
+            {row.original.code || "-"}
           </Text>
         ),
       },
 
       {
-        accessorKey: 'user_type',
+        accessorKey: "user_type",
         header: ({ column }) => (
           <Group gap="xs">
             <Text fw={500}>Type</Text>
             <ActionIcon
               variant="transparent"
               size="xs"
-              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
             >
-              {column.getIsSorted() === 'asc' ? (
+              {column.getIsSorted() === "asc" ? (
                 <IconSortAscending size={14} />
-              ) : column.getIsSorted() === 'desc' ? (
+              ) : column.getIsSorted() === "desc" ? (
                 <IconSortDescending size={14} />
               ) : (
                 <IconSortAscending size={14} opacity={0.5} />
@@ -257,7 +287,7 @@ export function UsersList({
         cell: ({ row }) => (
           <Badge
             variant="light"
-            color={row.original.user_type_code === 'admin' ? 'red' : 'blue'}
+            color={row.original.user_type_code === "admin" ? "red" : "blue"}
             size="sm"
           >
             {row.original.user_type}
@@ -266,18 +296,20 @@ export function UsersList({
         enableSorting: true,
       },
       {
-        accessorKey: 'status',
+        accessorKey: "status",
         header: ({ column }) => (
           <Group gap="xs">
             <Text fw={500}>Status</Text>
             <ActionIcon
               variant="transparent"
               size="xs"
-              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
             >
-              {column.getIsSorted() === 'asc' ? (
+              {column.getIsSorted() === "asc" ? (
                 <IconSortAscending size={14} />
-              ) : column.getIsSorted() === 'desc' ? (
+              ) : column.getIsSorted() === "desc" ? (
                 <IconSortDescending size={14} />
               ) : (
                 <IconSortAscending size={14} opacity={0.5} />
@@ -286,50 +318,48 @@ export function UsersList({
           </Group>
         ),
         cell: ({ row }) => {
-          const status = row.original.blocked ? 'blocked' : row.original.status;
+          const status = row.original.blocked ? "blocked" : row.original.status;
           return (
-            <Badge
-              variant="light"
-              color={getUserStatusColor(status)}
-              size="sm"
-            >
-              {row.original.blocked ? 'Blocked' : row.original.status}
+            <Badge variant="light" color={getUserStatusColor(status)} size="sm">
+              {row.original.blocked ? "Blocked" : row.original.status}
             </Badge>
           );
         },
         enableSorting: true,
       },
       {
-        accessorKey: 'groups',
-        header: 'Groups',
+        accessorKey: "groups",
+        header: "Groups",
         cell: ({ row }) => (
           <Text size="xs" c="dimmed" lineClamp={2}>
-            {row.original.groups || 'No groups'}
+            {row.original.groups || "No groups"}
           </Text>
         ),
       },
       {
-        accessorKey: 'roles',
-        header: 'Roles',
+        accessorKey: "roles",
+        header: "Roles",
         cell: ({ row }) => (
           <Text size="xs" c="dimmed" lineClamp={2}>
-            {row.original.roles || 'No roles'}
+            {row.original.roles || "No roles"}
           </Text>
         ),
       },
       {
-        accessorKey: 'last_login',
+        accessorKey: "last_login",
         header: ({ column }) => (
           <Group gap="xs">
             <Text fw={500}>Last Login</Text>
             <ActionIcon
               variant="transparent"
               size="xs"
-              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
             >
-              {column.getIsSorted() === 'asc' ? (
+              {column.getIsSorted() === "asc" ? (
                 <IconSortAscending size={14} />
-              ) : column.getIsSorted() === 'desc' ? (
+              ) : column.getIsSorted() === "desc" ? (
                 <IconSortDescending size={14} />
               ) : (
                 <IconSortAscending size={14} opacity={0.5} />
@@ -339,14 +369,14 @@ export function UsersList({
         ),
         cell: ({ row }) => (
           <Text size="xs" c="dimmed">
-            {row.original.last_login || 'Never'}
+            {row.original.last_login || "Never"}
           </Text>
         ),
         enableSorting: true,
       },
       {
-        accessorKey: 'user_activity',
-        header: 'Activity',
+        accessorKey: "user_activity",
+        header: "Activity",
         cell: ({ row }) => (
           <Text size="xs" c="dimmed">
             {row.original.user_activity}
@@ -354,8 +384,8 @@ export function UsersList({
         ),
       },
       {
-        id: 'actions',
-        header: 'Actions',
+        id: "actions",
+        header: "Actions",
         cell: ({ row }) => (
           <Group gap="xs">
             <Tooltip label="Edit User">
@@ -368,16 +398,28 @@ export function UsersList({
                 <IconEdit size={16} />
               </ActionIcon>
             </Tooltip>
-            
-            <Tooltip label={row.original.blocked ? 'Unblock User' : 'Block User'}>
+
+            <Tooltip
+              label={row.original.blocked ? "Unblock User" : "Block User"}
+            >
               <ActionIcon
                 variant="subtle"
                 size="sm"
-                color={row.original.blocked ? 'green' : 'red'}
-                onClick={() => onToggleBlock?.(row.original.id, !row.original.blocked)}
-                disabled={row.original.blocked ? !permissions.canUnblock : !permissions.canBlock}
+                color={row.original.blocked ? "green" : "red"}
+                onClick={() =>
+                  onToggleBlock?.(row.original.id, !row.original.blocked)
+                }
+                disabled={
+                  row.original.blocked
+                    ? !permissions.canUnblock
+                    : !permissions.canBlock
+                }
               >
-                {row.original.blocked ? <IconLockOpen size={16} /> : <IconLock size={16} />}
+                {row.original.blocked ? (
+                  <IconLockOpen size={16} />
+                ) : (
+                  <IconLock size={16} />
+                )}
               </ActionIcon>
             </Tooltip>
 
@@ -407,7 +449,9 @@ export function UsersList({
                 <Menu.Item
                   leftSection={<IconTrash size={14} />}
                   color="red"
-                  onClick={() => onDeleteUser?.(row.original.id, row.original.email)}
+                  onClick={() =>
+                    onDeleteUser?.(row.original.id, row.original.email)
+                  }
                   disabled={!permissions.canDelete}
                 >
                   Delete User
@@ -418,7 +462,13 @@ export function UsersList({
         ),
       },
     ],
-    [onEditUser, onDeleteUser, onToggleBlock, onSendActivationMail, onImpersonateUser]
+    [
+      onEditUser,
+      onDeleteUser,
+      onToggleBlock,
+      onSendActivationMail,
+      onImpersonateUser,
+    ],
   );
 
   // Initialize table
@@ -448,18 +498,12 @@ export function UsersList({
   return (
     <Card>
       <Stack gap="md">
-        {/* Header */}
-        <Group justify="space-between">
-          <div>
-            <Text size="lg" fw={600}>
-              Users Management
-            </Text>
-            <Text size="sm" c="dimmed">
-              Manage user accounts, permissions, and settings
-            </Text>
-          </div>
+        {/* Standardized Header */}
+        <PageHeader
+          title="Users Management"
+          subtitle="Manage user accounts, permissions, and settings"
+        >
           <Group gap="xs">
-            {/* Create User Button */}
             <Button
               leftSection={<IconPlus size={16} />}
               onClick={onCreateUser}
@@ -467,55 +511,58 @@ export function UsersList({
             >
               Create User
             </Button>
-
-            {/* Refresh Button */}
-            <Button
-              variant="light"
-              color="gray"
-              leftSection={<IconRefresh size={16} />}
-              onClick={() => refetch()}
-              loading={ isFetching}
-              disabled={isFetching} 
-            >
-              Refresh
-            </Button>
           </Group>
-        </Group>
+        </PageHeader>
 
-        {/* Filters */}
-        <Group gap="md">
-          <TextInput
-            placeholder="Search users..."
-            leftSection={<IconSearch size={16} />}
-            rightSection={
-              params.search ? (
-                <ActionIcon
-                  variant="subtle"
-                  color="gray"
-                  size="sm"
-                  onClick={handleClearSearch}
-                >
-                  <IconX size={14} />
-                </ActionIcon>
-              ) : null
-            }
-            value={params.search}
-            onChange={(e) => handleSearch(e.currentTarget.value)}
-            className={classes.searchInput}
-          />
-          <Select
-            placeholder="Per page"
-            value={params.pageSize?.toString()}
-            onChange={handlePageSizeChange}
-            data={[
-              { value: "10", label: "10" },
-              { value: "20", label: "20" },
-              { value: "50", label: "50" },
-              { value: "100", label: "100" },
-            ]}
-            w={100}
-          />
-        </Group>
+        {/* Filters Card with FilterActions */}
+        <Card withBorder p="md">
+          <Group gap="md" align="flex-end" justify="space-between">
+            <Group gap="md" style={{ flex: 1 }}>
+              <TextInput
+                placeholder="Search users by email, name, or code..."
+                leftSection={<IconSearch size={16} />}
+                rightSection={
+                  filterParams.search ? (
+                    <ActionIcon
+                      variant="subtle"
+                      color="gray"
+                      size="sm"
+                      onClick={handleClearSearch}
+                    >
+                      <IconX size={14} />
+                    </ActionIcon>
+                  ) : null
+                }
+                value={filterParams.search}
+                onChange={(e) => handleSearch(e.currentTarget.value)}
+                style={{ flex: 1 }}
+              />
+
+              <Select
+                placeholder="Per page"
+                value={filterParams.pageSize?.toString()}
+                onChange={handlePageSizeChange}
+                data={[
+                  { value: "10", label: "10" },
+                  { value: "20", label: "20" },
+                  { value: "50", label: "50" },
+                  { value: "100", label: "100" },
+                ]}
+                w={100}
+              />
+            </Group>
+
+             <Group justify="flex-end">
+              <FilterActions
+                onApply={handleApplyFilters}
+                onReset={handleResetFilters}
+                onRefresh={refetch}
+                isFetching={isFetching}
+                isApplyDisabled={filterParams === params}
+              />
+            </Group>
+          </Group>
+        </Card>
 
         {/* Table */}
         <div className={classes.tableWrapper}>
@@ -556,30 +603,17 @@ export function UsersList({
             </Table>
           </Box>
 
-          {/* Empty state */}
+          {/* Reusable Empty State */}
           {!isFetching &&
             (!usersData?.users || usersData.users.length === 0) && (
-              <Center py="xl">
-                <Stack align="center" gap="sm">
-                  <Text size="lg" c="dimmed">
-                    No users found
-                  </Text>
-                  <Text size="sm" c="dimmed">
-                    {params.search
-                      ? "Try adjusting your search criteria"
-                      : "Get started by creating your first user"}
-                  </Text>
-                  {!params.search && (
-                    <Button
-                      leftSection={<IconPlus size={16} />}
-                      onClick={onCreateUser}
-                      variant="light"
-                    >
-                      Create User
-                    </Button>
-                  )}
-                </Stack>
-              </Center>
+              <EmptyState
+                title="No users found"
+                description={
+                  params.search
+                    ? "Try adjusting your search criteria"
+                    : "Get started by creating your first user"
+                }
+              />
             )}
         </div>
 

@@ -27,6 +27,7 @@ import {
 } from '@tabler/icons-react';
 import { useAdminLanguages } from '../../../../../hooks/useLanguages';
 import { ILanguage } from '../../../../../types/responses/admin/languages.types';
+import { EmptyState } from '../../../shared/common/EmptyState';
 
 interface ILanguagesListProps {
     onCreateLanguage?: () => void;
@@ -74,18 +75,10 @@ export function LanguagesList({
             <Card withBorder shadow="sm" radius="md">
                 <Center h={200}>
                     <Stack align="center" gap="md">
-                        <IconLanguage size={48} style={{ color: 'var(--mantine-color-gray-4)' }} />
-                        <Text fw={500}>No languages found</Text>
-                        <Text size="sm" c="dimmed">
-                            Get started by creating your first language
-                        </Text>
-                        <Button
-                            leftSection={<IconPlus size={16} />}
-                            onClick={onCreateLanguage}
-                            variant="filled"
-                        >
-                            Create Language
-                        </Button>
+                        <EmptyState
+                        title="No languages found"
+                        description="Get started by creating your first language"
+                        />
                     </Stack>
                 </Center>
             </Card>
@@ -94,25 +87,6 @@ export function LanguagesList({
 
     return (
         <Card withBorder shadow="sm" radius="md">
-            <Card.Section withBorder inheritPadding py="sm">
-                <Group justify="space-between">
-                    <Group align="center" gap="xs">
-                        <IconLanguage size={20} />
-                        <Text fw={500}>Languages</Text>
-                        <Text size="sm" c="dimmed">
-                            ({languages.length} {languages.length === 1 ? 'language' : 'languages'})
-                        </Text>
-                    </Group>
-                    <Button
-                        leftSection={<IconPlus size={16} />}
-                        onClick={onCreateLanguage}
-                        variant="filled"
-                        size="sm"
-                    >
-                        Create Language
-                    </Button>
-                </Group>
-            </Card.Section>
 
             <Card.Section>
                 <Table striped highlightOnHover>

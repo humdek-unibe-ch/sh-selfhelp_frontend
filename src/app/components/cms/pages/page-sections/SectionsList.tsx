@@ -47,6 +47,7 @@ interface ISectionsListProps {
     onSectionSelect?: (sectionId: number) => void;
     selectedSectionId?: number | null;
     focusedSectionId?: number | null;
+    searchQuery?: string;
     pageId?: number;
     styleGroups?: IStyleGroup[];
 }
@@ -65,6 +66,7 @@ interface ISectionItemProps {
     onSectionSelect?: (sectionId: number) => void;
     selectedSectionId?: number | null;
     focusedSectionId?: number | null;
+    searchQuery?: string;
     styleGroups?: IStyleGroup[];
 }
 
@@ -117,6 +119,7 @@ const SectionItem = memo(function SectionItem({
     onSectionSelect,
     selectedSectionId,
     focusedSectionId,
+    searchQuery,
     styleGroups
 }: ISectionItemProps) {
     const dragContext = useContext(DragContext);
@@ -635,6 +638,7 @@ const SectionItem = memo(function SectionItem({
                 onSectionSelect={onSectionSelect}
                 selectedSectionId={selectedSectionId}
                 focusedSectionId={focusedSectionId}
+                searchQuery={searchQuery}
             />
 
             {/* Drop zone area for sections that can have children but don't have any */}
@@ -674,6 +678,7 @@ const SectionItem = memo(function SectionItem({
                             onSectionSelect={onSectionSelect}
                             selectedSectionId={selectedSectionId}
                             focusedSectionId={focusedSectionId}
+                            searchQuery={searchQuery}
                             styleGroups={styleGroups}
                         />
                     ))}
@@ -692,6 +697,7 @@ const SectionItem = memo(function SectionItem({
         prevProps.parentId === nextProps.parentId &&
         prevProps.selectedSectionId === nextProps.selectedSectionId &&
         prevProps.focusedSectionId === nextProps.focusedSectionId &&
+        prevProps.searchQuery === nextProps.searchQuery &&
         prevProps.pageId === nextProps.pageId &&
         JSON.stringify(prevProps.section.children) === JSON.stringify(nextProps.section.children)
     );
@@ -732,6 +738,7 @@ const SectionsListComponent = function SectionsList({
     onSectionSelect,
     selectedSectionId,
     focusedSectionId,
+    searchQuery,
     pageId,
     styleGroups,
 }: ISectionsListProps) {
@@ -985,6 +992,7 @@ const SectionsListComponent = function SectionsList({
                                         onSectionSelect={onSectionSelect}
                                         selectedSectionId={selectedSectionId}
                                         focusedSectionId={focusedSectionId}
+                                        searchQuery={searchQuery}
                                         styleGroups={styleGroups}
                                     />
                                 ))}

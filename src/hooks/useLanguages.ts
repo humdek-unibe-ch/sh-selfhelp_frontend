@@ -61,7 +61,7 @@ export function useAdminLanguages() {
  * @returns Object containing public languages data and query state
  */
 export function usePublicLanguages() {
-    const { data, isLoading, error } = useQuery({
+    const { data, isLoading, error, refetch } = useQuery({
         queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PUBLIC_LANGUAGES,
         queryFn: async (): Promise<ILanguage[]> => {
             const response = await permissionAwareApiClient.get<IBaseApiResponse<ILanguage[]>>(API_CONFIG.ENDPOINTS.LANGUAGES);

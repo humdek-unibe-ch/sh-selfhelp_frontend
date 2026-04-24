@@ -4,7 +4,6 @@ import {
   Paper,
   Select,
   Group,
-  Button,
   Stack,
   Box,
   Text,
@@ -14,6 +13,7 @@ import {
   Menu,
   Badge,
   NumberInput,
+  Container,
 } from "@mantine/core";
 import {
   Schedule,
@@ -34,12 +34,14 @@ import { useActions } from "../../../../../hooks/useActions";
 import { ScheduledJobDetailsModal } from "../scheduled-job-details-modal/ScheduledJobDetailsModal";
 import { useScheduledJobManager } from "../utils/hooks/useScheduledJobManager";
 import { DeleteJobModal } from "../delete-job-modal/DeleteJobModal";
-import { IconRefresh, IconCalendar } from "@tabler/icons-react";
 import { mapJobsToEvents, IJobEventPayload } from "./calendar-helpers";
 import { EventHoverDetails } from "./EventHoverDetails";
 import classes from "./ScheduledJobsCalendar.module.css";
 import { ScheduledJobActionsMenuItems } from "../utils/ScheduledJobActionsMenuItems";
 import { DateStringValue, getStartOfWeek } from "@mantine/dates";
+import { FilterActions } from "../../../shared/common/FilterControls";
+import { EmptyState } from "../../../shared/common/EmptyState";
+import { PageHeader } from "../../../shared/common/PageHeader";
 
 /**
  * Screen coordinates and metadata for the right-click context menu.
@@ -296,44 +298,6 @@ export default function ScheduledJobsCalendar() {
     [openContextMenu, openDetailsModal],
   );
 
-  const renderMoreEventBody = useCallback(
-    (event: ScheduleEventData) => {
-      const payload = event.payload as IJobEventPayload | undefined;
-
-      return (
-        <HoverCard
-          width={280}
-          position="right"
-          closeDelay={0}
-          openDelay={250}
-          transitionProps={{ duration: 80 }}
-          withinPortal
-        >
-          <HoverCard.Target>
-            <Box
-              className={classes.moreEventInteractive}
-              onClick={(e: React.MouseEvent) => {
-                e.stopPropagation();
-                openDetailsModal(event);
-              }}
-              onContextMenu={(e: React.MouseEvent) => openContextMenu(e, event)}
-            >
-              {event.title}
-            </Box>
-          </HoverCard.Target>
-          <HoverCard.Dropdown>
-            {payload ? (
-              <EventHoverDetails payload={payload} />
-            ) : (
-              <Text size="xs">No details available</Text>
-            )}
-          </HoverCard.Dropdown>
-        </HoverCard>
-      );
-    },
-    [openContextMenu, openDetailsModal],
-  );
-
   /** Closes the context menu on Escape key or scroll anywhere on the page. */
   useEffect(() => {
     if (!contextMenu) return;
@@ -352,7 +316,6 @@ export default function ScheduledJobsCalendar() {
     };
   }, [contextMenu]);
 
-  const totalEvents = events.length;
   const isFiltersActive =
     currentUserId !== null ||
     currentActionId !== null ||
@@ -409,36 +372,35 @@ export default function ScheduledJobsCalendar() {
   }
 
   return (
-    <Paper withBorder p="xs" radius="md" shadow="sm">
+    <Paper p="md" radius="md" shadow="sm">
       <Stack gap="xs">
-        <Group justify="space-between" align="center" wrap="wrap" gap="xs">
-          <Group gap="xs" align="center">
-            <IconCalendar size={18} />
-            <Text size="md" fw={700}>
-              Scheduled Jobs Calendar
-            </Text>
-            {totalEvents > 0 && (
-              <Badge variant="light" color="gray" size="sm">
-                {totalEvents}
-              </Badge>
-            )}
-          </Group>
-          <Group gap="sm" align="center">
-            {STATUS_LEGEND.map((s) => (
-              <Group key={s.label} gap={4} wrap="nowrap">
-                <div
-                  className={classes.legendDot}
-                  style={{ backgroundColor: s.color }}
-                />
-                <Text size="xs" c="dimmed">
-                  {s.label}
-                </Text>
-              </Group>
-            ))}
-          </Group>
-        </Group>
+          {/* Reusable PageHeader with Legend as children */}
+          <PageHeader
+            title="Scheduled Jobs Calendar"
+            subtitle="Manage and monitor scheduled jobs via calendar"
+            badge={
+              scheduledJobsData && scheduledJobsData.totalCount > 0
+                ? scheduledJobsData.totalCount
+                : undefined
+            }
+          >
+            {/* Legend as children */}
+            <Group gap="sm" align="center">
+              {STATUS_LEGEND.map((s) => (
+                <Group key={s.label} gap={4} wrap="nowrap">
+                  <div
+                    className={classes.legendDot}
+                    style={{ backgroundColor: s.color }}
+                  />
+                  <Text size="xs" c="dimmed">
+                    {s.label}
+                  </Text>
+                </Group>
+              ))}
+            </Group>
+          </PageHeader>
 
-        <Paper withBorder p="xs" className={classes.filterBar}>
+        <Paper p="xs" className={classes.filterBar}>
           <Group align="flex-end" gap="sm">
             <Select
               label="User"
@@ -451,7 +413,6 @@ export default function ScheduledJobsCalendar() {
               clearable
               searchable
               flex={1}
-              size="xs"
             />
             <Select
               label="Action"
@@ -462,36 +423,14 @@ export default function ScheduledJobsCalendar() {
               clearable
               searchable
               flex={1}
-              size="xs"
             />
-            <Button
-              variant="filled"
-              color="blue"
-              onClick={handleApplyFilters}
-              loading={isFetching}
-              size="xs"
-            >
-              Apply Filters
-            </Button>
-            <Button
-              variant="default"
-              onClick={handleResetFilters}
-              loading={isFetching}
-              size="xs"
-              disabled={!isFiltersActive}
-            >
-              Reset
-            </Button>
-            <Button
-              variant="light"
-              color="gray"
-              size="xs"
-              leftSection={<IconRefresh size={14} />}
-              onClick={handleRefresh}
-              loading={isFetching}
-            >
-              Refresh
-            </Button>
+            <FilterActions
+              onApply={handleApplyFilters}
+              onReset={handleResetFilters}
+              onRefresh={handleRefresh}
+              isFetching={isFetching}
+              isApplyDisabled={!isFiltersActive}
+            />
           </Group>
         </Paper>
 
@@ -501,6 +440,17 @@ export default function ScheduledJobsCalendar() {
             overlayProps={{ blur: 0, backgroundOpacity: 0.35 }}
             loaderProps={{ size: "md" }}
           />
+
+          {!isFetching && events.length === 0 && (
+            <EmptyState
+              title="No scheduled jobs found"
+              description={
+                isFiltersActive
+                  ? "No jobs match your current filters (User / Action)"
+                  : "There are no scheduled jobs in the selected time period"
+              }
+            />
+          )}
 
           <ScheduleHeader>
             <Group align="flex-end" gap="sm" w="100%">
@@ -566,9 +516,6 @@ export default function ScheduledJobsCalendar() {
             monthViewProps={{
               maxEventsPerDay,
               renderEvent: renderEventWithHover,
-              moreEventsProps: {
-                renderEventBody: renderMoreEventBody,
-              },
               highlightToday: true,
               firstDayOfWeek: 1,
               withHeader: false,
@@ -585,6 +532,10 @@ export default function ScheduledJobsCalendar() {
               renderEvent: renderEventWithHover,
               withCurrentTimeIndicator: true,
               withCurrentTimeBubble: true,
+              withHeader: false,
+            }}
+            yearViewProps={{
+              highlightToday: true,
               withHeader: false,
             }}
           />
