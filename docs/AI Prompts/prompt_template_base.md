@@ -212,6 +212,23 @@ each slot):
 | `progress-root` | `progress-section` |
 | `timeline`      | `timeline-item`  |
 
+### HTML nesting rules (avoid hydration errors)
+
+Several text-rendering styles resolve to a `<p>` under the hood
+(`text`, `blockquote`, `highlight`). React will throw a hydration error
+if a `<p>` contains another `<p>`, so follow these rules:
+
+- Do **not** place `text`, `blockquote`, or `highlight` inside an
+  `html-tag` whose `html_tag` is `"p"`. If you want a paragraph with
+  inline text, put the text directly into the `html-tag`'s
+  `html_tag_content` field instead of using child styles, OR pick an
+  `html_tag` that is not a paragraph (`"div"`, `"section"`, etc.).
+- Same rule applies when wrapping text in a `blockquote`: only put
+  inline content there, never another block-level text style.
+- `title` renders as `<h1>`…`<h6>` depending on `mantine_title_order`,
+  so it is always safe to nest inside `<div>`-like containers.
+- Never put another `button`, `a`, or form control inside a `button`.
+
 ### Form composition
 
 - `form-log` (append-only submissions) and `form-record` (upsert a single

@@ -217,18 +217,13 @@
                     "children": [
                       {
                         "style_name": "html-tag",
-                        "fields": {"html_tag": {"all": {"content": "p"}}},
-                        "children": [
-                          {
-                            "style_name": "text",
-                            "fields": {
-                              "text": {
-                                "en-GB": {"content": "Wrap arbitrary content with the typography style to apply consistent prose spacing; the html-tag style lets you render any HTML element (here a paragraph)."},
-                                "de-CH": {"content": "Die Typography-Komponente erzeugt konsistente Fliesstext-Abstände; die html-tag-Komponente rendert ein beliebiges HTML-Element (hier ein Absatz)."}
-                              }
-                            }
+                        "fields": {
+                          "html_tag": {"all": {"content": "p"}},
+                          "html_tag_content": {
+                            "en-GB": {"content": "Wrap arbitrary content with the typography style to apply consistent prose spacing; the html-tag style lets you render any HTML element (here a paragraph)."},
+                            "de-CH": {"content": "Die Typography-Komponente erzeugt konsistente Fliesstext-Abstände; die html-tag-Komponente rendert ein beliebiges HTML-Element (hier ein Absatz)."}
                           }
-                        ]
+                        }
                       }
                     ]
                   }
@@ -253,7 +248,7 @@
             "fields": {
               "mantine_cols": {"all": {"content": "3"}},
               "mantine_breakpoints": {"all": {"content": "[{\"maxWidth\":\"md\",\"cols\":2},{\"maxWidth\":\"sm\",\"cols\":1}]"}},
-              "mantine_spacing_margin_padding": {"all": {"content": "{\"mantine_horizontal_spacing\":\"md\",\"mantine_vertical_spacing\":\"md\"}"}}
+              "mantine_vertical_spacing": {"all": {"content": "md"}}
             },
             "children": [
               {
@@ -535,7 +530,7 @@
                 "fields": {
                   "mantine_cols": {"all": {"content": "3"}},
                   "mantine_breakpoints": {"all": {"content": "[{\"maxWidth\":\"md\",\"cols\":1}]"}},
-                  "mantine_spacing_margin_padding": {"all": {"content": "{\"mantine_horizontal_spacing\":\"md\",\"mantine_vertical_spacing\":\"md\"}"}}
+                  "mantine_vertical_spacing": {"all": {"content": "md"}}
                 },
                 "children": [
                   {
@@ -629,7 +624,7 @@
             "fields": {
               "mantine_cols": {"all": {"content": "3"}},
               "mantine_breakpoints": {"all": {"content": "[{\"maxWidth\":\"md\",\"cols\":2},{\"maxWidth\":\"sm\",\"cols\":1}]"}},
-              "mantine_spacing_margin_padding": {"all": {"content": "{\"mantine_horizontal_spacing\":\"md\",\"mantine_vertical_spacing\":\"md\"}"}}
+              "mantine_vertical_spacing": {"all": {"content": "md"}}
             },
             "children": [
               {
@@ -986,7 +981,7 @@
             "fields": {
               "mantine_cols": {"all": {"content": "2"}},
               "mantine_breakpoints": {"all": {"content": "[{\"maxWidth\":\"md\",\"cols\":1}]"}},
-              "mantine_spacing_margin_padding": {"all": {"content": "{\"mantine_horizontal_spacing\":\"md\",\"mantine_vertical_spacing\":\"md\"}"}}
+              "mantine_vertical_spacing": {"all": {"content": "md"}}
             },
             "children": [
               {
@@ -1125,7 +1120,7 @@
             "fields": {
               "mantine_cols": {"all": {"content": "2"}},
               "mantine_breakpoints": {"all": {"content": "[{\"maxWidth\":\"md\",\"cols\":1}]"}},
-              "mantine_spacing_margin_padding": {"all": {"content": "{\"mantine_horizontal_spacing\":\"md\",\"mantine_vertical_spacing\":\"md\"}"}}
+              "mantine_vertical_spacing": {"all": {"content": "md"}}
             },
             "children": [
               {
@@ -1311,7 +1306,7 @@
             "fields": {
               "mantine_cols": {"all": {"content": "3"}},
               "mantine_breakpoints": {"all": {"content": "[{\"maxWidth\":\"md\",\"cols\":1}]"}},
-              "mantine_spacing_margin_padding": {"all": {"content": "{\"mantine_horizontal_spacing\":\"md\",\"mantine_vertical_spacing\":\"md\"}"}}
+              "mantine_vertical_spacing": {"all": {"content": "md"}}
             },
             "children": [
               {
@@ -1823,7 +1818,7 @@
                     "fields": {
                       "mantine_cols": {"all": {"content": "2"}},
                       "mantine_breakpoints": {"all": {"content": "[{\"maxWidth\":\"sm\",\"cols\":1}]"}},
-                      "mantine_spacing_margin_padding": {"all": {"content": "{\"mantine_horizontal_spacing\":\"md\",\"mantine_vertical_spacing\":\"md\"}"}}
+                      "mantine_vertical_spacing": {"all": {"content": "md"}}
                     },
                     "children": [
                       {

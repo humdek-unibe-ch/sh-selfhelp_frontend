@@ -12,22 +12,31 @@ interface IHtmlTagStyleProps {
     cssClass: string;
 }
 
+// Inline-only HTML elements that must not wrap block-level content.
+// React/HTML's parsing rules forbid block-level descendants here, so
+// when a user-authored `html-tag` specifies one of these AND has child
+// styles (which frequently render as <p>/<div>/etc.), we downgrade the
+// wrapper to a <div> to avoid a hydration crash.
+const INLINE_ONLY_HTML_TAGS = new Set([
+    'p', 'span', 'em', 'strong', 'b', 'i', 'u', 'mark', 'small', 'sup',
+    'sub', 'cite', 'q', 'abbr', 'dfn', 'time', 'var', 'samp', 'kbd',
+    'del', 'ins', 's', 'label', 'a'
+]);
+
 const HtmlTagStyle: React.FC<IHtmlTagStyleProps> = ({ style, styleProps, cssClass }) => {
-    const htmlTag = style.html_tag?.content || 'div';
+    const requestedTag = style.html_tag?.content || 'div';
     const content = DOMPurify.sanitize(style.html_tag_content?.content ?? '') || '';
 
-    // Ensure children is an array before mapping
     const children = Array.isArray(style.children) ? style.children : [];
-    // Handle CSS field - use direct property from API response
 
-    // Create the element dynamically using React.createElement
     const elementProps = {
         ...styleProps,
         className: cssClass
     };
 
-    // If there are children, render them instead of using dangerouslySetInnerHTML
     if (children.length > 0) {
+        const htmlTag = INLINE_ONLY_HTML_TAGS.has(requestedTag) ? 'div' : requestedTag;
+
         return React.createElement(
             htmlTag,
             elementProps,
@@ -36,6 +45,8 @@ const HtmlTagStyle: React.FC<IHtmlTagStyleProps> = ({ style, styleProps, cssClas
             )
         );
     }
+
+    const htmlTag = requestedTag;
 
     // If there's HTML content but no children, use dangerouslySetInnerHTML
     if (content) {
