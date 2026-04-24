@@ -9,6 +9,8 @@ import { AdvancedAclModal } from '../advanced-acl-modal/AdvancedAclModal';
 import { useDeleteGroup } from '../../../../../hooks/useGroups';
 import { useCanReadGroups } from '../../../../../hooks/usePermissionChecks';
 import { notifications } from '@mantine/notifications';
+import { ROUTES } from '../../../../../config/routes.config';
+import { useAuth } from '../../../../../hooks/useAuth';
 
 export function GroupsPage() {
   const router = useRouter();
@@ -23,13 +25,15 @@ export function GroupsPage() {
   const [managingAclGroup, setManagingAclGroup] = useState<{ id: number; name: string } | null>(null);
 
   const deleteGroupMutation = useDeleteGroup();
+  const { isLoading } = useAuth();  
+
 
   // Check permissions and redirect if user doesn't have access
-  useEffect(() => {
-    if (!canReadGroups) {
-      router.push('/admin/no-access');
-    }
-  }, [canReadGroups, router]);
+  useEffect(() => {  
+  if (!isLoading && !canReadGroups) {  
+    router.push(ROUTES.NO_ACCESS);  
+  }  
+}, [canReadGroups, isLoading, router]);  
 
   // Handle create group
   const handleCreateGroup = () => {
