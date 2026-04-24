@@ -258,7 +258,7 @@ const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childInde
         // Accordion Styles
         case 'accordion':
             return wrapWithDebug(<AccordionStyle style={style as IAccordionStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'accordion-Item':
+        case 'accordion-item':
             return wrapWithDebug(<AccordionItemStyle style={style as IAccordionItemStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
 
         case 'avatar':

@@ -268,16 +268,27 @@ lines.push(banner);
 lines.push(`export type TStyleNameFromDb =\n    | ${styleNameUnion};\n`);
 
 lines.push(
+    'export interface IStyleFieldOption {',
+    '    /** Canonical value that MUST be written into the JSON payload. */',
+    '    value: string;',
+    '    /** Human-readable label shown in the admin UI. */',
+    '    text: string;',
+    '}',
+    '',
     'export interface IStyleFieldSchemaMeta {',
     "    /** SQL field type (e.g. 'text', 'checkbox', 'slider', 'select-css'). */",
     '    type: string;',
-    '    /** 1 = translatable / user-facing, 0 = property. */',
+    '    /** 1 = translatable / user-facing (real locale), 0 = property (locale "all"). */',
     '    display: 0 | 1;',
     '    /** DB default value (may be null). */',
     '    default_value: string | null;',
     '    help?: string | null;',
     '    title?: string | null;',
     '    hidden?: 0 | 1;',
+    '    /** Placeholder hint from fields.config (free-form fields). */',
+    '    placeholder?: string | null;',
+    '    /** Valid enum choices. Empty array means the field is free-form. */',
+    '    options?: IStyleFieldOption[];',
     '}',
     '',
     'export interface IStyleSchemaEntry {',
@@ -294,7 +305,27 @@ lines.push(
     ''
 );
 
-// Emit per-style field-shape interfaces.
+function sanitizeOptionValues(options) {
+    if (!Array.isArray(options) || options.length === 0) return [];
+    const seen = new Set();
+    const out = [];
+    for (const opt of options) {
+        if (!opt || typeof opt !== 'object') continue;
+        const raw = opt.value;
+        if (raw === undefined || raw === null) continue;
+        const value = String(raw);
+        if (value === '' || seen.has(value)) continue;
+        seen.add(value);
+        out.push(value);
+    }
+    return out;
+}
+
+function optionUnionOrFallback(optionValues, fallback) {
+    if (optionValues.length === 0) return fallback;
+    return optionValues.map((v) => tsStringLiteral(v)).join(' | ');
+}
+
 const perStyleInterfaces = [];
 for (const styleName of styleNames) {
     const entry = schema[styleName];
@@ -304,14 +335,19 @@ for (const styleName of styleNames) {
         .sort()
         .map((fieldName) => {
             const meta = fields[fieldName] ?? {};
-            const type = fieldTypeToTs[meta.type] ?? 'string';
+            const fallbackType = fieldTypeToTs[meta.type] ?? 'string';
+            const optionValues = sanitizeOptionValues(meta.options);
+            const type = optionUnionOrFallback(optionValues, fallbackType);
             const doc = [
                 meta.type ? `@type ${meta.type}` : null,
                 meta.default_value !== null && meta.default_value !== undefined
                     ? `@default ${JSON.stringify(meta.default_value)}`
                     : null,
-                meta.display === 1 ? '@translatable' : null,
+                meta.display === 1 ? '@translatable' : '@property (locale="all")',
                 meta.hidden === 1 ? '@hidden' : null,
+                optionValues.length > 0
+                    ? `@options ${optionValues.map((v) => JSON.stringify(v)).join(' | ')}`
+                    : null,
             ]
                 .filter(Boolean)
                 .join(' ');
@@ -355,6 +391,28 @@ for (const styleName of styleNames) {
         });
     lines.push(`    ${tsStringLiteral(styleName)}: {`);
     for (const line of entries) lines.push(line);
+    lines.push('    },');
+}
+lines.push('};', '');
+
+// Runtime enum-options map — used by import validators, admin UI dropdown
+// synthesis, and the AI prompt generator.
+lines.push(
+    '// --- Runtime option map (enum choices per field) ----------------------',
+    'export const STYLE_FIELD_OPTIONS: Record<TStyleNameFromDb, Record<string, readonly string[]>> = {'
+);
+for (const styleName of styleNames) {
+    const fields = schema[styleName]?.fields ?? {};
+    lines.push(`    ${tsStringLiteral(styleName)}: {`);
+    for (const fieldName of Object.keys(fields).sort()) {
+        const values = sanitizeOptionValues(fields[fieldName]?.options);
+        if (values.length === 0) continue;
+        const safeKey = /^[a-zA-Z_][\w]*$/.test(fieldName)
+            ? fieldName
+            : JSON.stringify(fieldName);
+        const arr = values.map((v) => tsStringLiteral(v)).join(', ');
+        lines.push(`        ${safeKey}: [${arr}] as const,`);
+    }
     lines.push('    },');
 }
 lines.push('};', '');

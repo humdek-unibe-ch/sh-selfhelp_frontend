@@ -1,1238 +1,591 @@
 [
   {
-    "name": "team-page-container",
+    "section_name": "team-list",
     "style_name": "container",
-    "children": [
-      {
-        "name": "team-header-section",
-        "style_name": "div",
-        "children": [
-          {
-            "name": "team-main-title",
-            "style_name": "heading",
-            "children": [],
-            "fields": {
-              "level": {
-                "all": {
-                  "content": "1",
-                  "meta": null
-                }
-              },
-              "title": {
-                "en-GB": {
-                  "content": "Meet Our Amazing Team",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Lernen Sie unser fantastisches Team kennen",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "text-4xl md:text-5xl font-bold text-center mb-4 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 dark:from-blue-400 dark:via-purple-400 dark:to-indigo-400 bg-clip-text text-transparent",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "team-subtitle",
-            "style_name": "plaintext",
-            "children": [],
-            "fields": {
-              "text": {
-                "en-GB": {
-                  "content": "Passionate professionals dedicated to delivering exceptional results and innovative solutions.",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Leidenschaftliche Fachkräfte, die sich für aussergewöhnliche Ergebnisse und innovative Lösungen einsetzen.",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "text-xl text-gray-600 dark:text-gray-400 dark:text-gray-300 text-center max-w-3xl mx-auto mb-12",
-              "css_mobile": null,
-              "debug": false
-            }
-          }
-        ],
-        "fields": {},
-        "global_fields": {
-          "condition": null,
-          "data_config": null,
-          "css": "text-center mb-16",
-          "css_mobile": null,
-          "debug": false
+    "fields": {
+      "mantine_size": {
+        "all": {
+          "content": "lg"
         }
       },
-      {
-        "name": "team-grid-container",
-        "style_name": "div",
-        "children": [
-          {
-            "name": "sarah-johnson-card",
-            "style_name": "div",
-            "children": [
-              {
-                "name": "sarah-profile-section",
-                "style_name": "div",
-                "children": [
-                  {
-                    "name": "sarah-avatar",
-                    "style_name": "image",
-                    "children": [],
-                    "fields": {
-                      "img_src": {
-                        "all": {
-                          "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
-                          "meta": null
-                        }
-                      },
-                      "alt": {
-                        "en-GB": {
-                          "content": "Sarah Johnson - Chief Technology Officer",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Sarah Johnson - Chief Technology Officer",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "w-32 h-32 rounded-full mx-auto mb-6 object-cover border-4 border-white dark:border-gray-700 shadow-lg dark:shadow-2xl dark:shadow-2xl",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "sarah-name",
-                    "style_name": "heading",
-                    "children": [],
-                    "fields": {
-                      "level": {
-                        "all": {
-                          "content": "3",
-                          "meta": null
-                        }
-                      },
-                      "title": {
-                        "en-GB": {
-                          "content": "Sarah Johnson",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Sarah Johnson",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-2xl font-bold text-gray-900 dark:text-white dark:text-white text-center mb-2",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "sarah-position",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "Chief Technology Officer",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Chief Technology Officer",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-lg font-semibold text-blue-600 dark:text-blue-400 text-center mb-3",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "sarah-company",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "TechInnovate Solutions",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "TechInnovate Solutions",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-gray-600 dark:text-gray-400 dark:text-gray-400 text-center mb-4",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "sarah-description",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "With over 12 years of experience in software architecture and team leadership, Sarah drives our technical vision and ensures cutting-edge solutions for our clients.",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Mit über 12 Jahren Erfahrung in Softwarearchitektur und Teamführung treibt Sarah unsere technische Vision voran und sorgt für modernste Lösungen für unsere Kunden.",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-gray-700 dark:text-gray-300 dark:text-gray-300 text-center mb-6 leading-relaxed",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "sarah-contact-info",
-                    "style_name": "div",
-                    "children": [
-                      {
-                        "name": "sarah-email",
-                        "style_name": "link",
-                        "children": [],
-                        "fields": {
-                          "label": {
-                            "en-GB": {
-                              "content": "sarah.johnson@techinnovate.com",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "sarah.johnson@techinnovate.com",
-                              "meta": null
-                            }
-                          },
-                          "url": {
-                            "all": {
-                              "content": "mailto:sarah.johnson@techinnovate.com",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm mb-2 block text-center",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      },
-                      {
-                        "name": "sarah-phone",
-                        "style_name": "plaintext",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "+1 (555) 123-4567",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "+1 (555) 123-4567",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-gray-600 dark:text-gray-400 dark:text-gray-400 text-sm text-center",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      }
-                    ],
-                    "fields": {},
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "border-t border-gray-200 dark:border-gray-700 dark:border-gray-700 pt-4",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {},
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "p-8",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {},
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "bg-white dark:bg-gray-900 dark:bg-gray-800 rounded-2xl shadow-xl dark:shadow-2xl hover:shadow-2xl dark:hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 dark:border-gray-700",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "marcus-rodriguez-card",
-            "style_name": "div",
-            "children": [
-              {
-                "name": "marcus-profile-section",
-                "style_name": "div",
-                "children": [
-                  {
-                    "name": "marcus-avatar",
-                    "style_name": "image",
-                    "children": [],
-                    "fields": {
-                      "img_src": {
-                        "all": {
-                          "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
-                          "meta": null
-                        }
-                      },
-                      "alt": {
-                        "en-GB": {
-                          "content": "Marcus Rodriguez - Senior UX Designer",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Marcus Rodriguez - Senior UX Designer",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "w-32 h-32 rounded-full mx-auto mb-6 object-cover border-4 border-white dark:border-gray-700 shadow-lg dark:shadow-2xl dark:shadow-2xl",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "marcus-name",
-                    "style_name": "heading",
-                    "children": [],
-                    "fields": {
-                      "level": {
-                        "all": {
-                          "content": "3",
-                          "meta": null
-                        }
-                      },
-                      "title": {
-                        "en-GB": {
-                          "content": "Marcus Rodriguez",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Marcus Rodriguez",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-2xl font-bold text-gray-900 dark:text-white dark:text-white text-center mb-2",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "marcus-position",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "Senior UX Designer",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Senior UX Designer",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-lg font-semibold text-purple-600 dark:text-purple-400 text-center mb-3",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "marcus-company",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "Creative Design Studio",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Creative Design Studio",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-gray-600 dark:text-gray-400 dark:text-gray-400 text-center mb-4",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "marcus-description",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "Marcus specializes in creating intuitive user experiences and beautiful interfaces. His design philosophy focuses on user-centered design and accessibility for all.",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Marcus ist spezialisiert auf die Gestaltung intuitiver Benutzererfahrungen und schöner Benutzeroberflächen. Seine Designphilosophie konzentriert sich auf benutzerzentriertes Design und Barrierefreiheit für alle.",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-gray-700 dark:text-gray-300 dark:text-gray-300 text-center mb-6 leading-relaxed",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "marcus-contact-info",
-                    "style_name": "div",
-                    "children": [
-                      {
-                        "name": "marcus-email",
-                        "style_name": "link",
-                        "children": [],
-                        "fields": {
-                          "label": {
-                            "en-GB": {
-                              "content": "marcus.rodriguez@creativestudio.com",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "marcus.rodriguez@creativestudio.com",
-                              "meta": null
-                            }
-                          },
-                          "url": {
-                            "all": {
-                              "content": "mailto:marcus.rodriguez@creativestudio.com",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 text-sm mb-2 block text-center",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      },
-                      {
-                        "name": "marcus-phone",
-                        "style_name": "plaintext",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "+1 (555) 234-5678",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "+1 (555) 234-5678",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-gray-600 dark:text-gray-400 dark:text-gray-400 text-sm text-center",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      }
-                    ],
-                    "fields": {},
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "border-t border-gray-200 dark:border-gray-700 dark:border-gray-700 pt-4",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {},
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "p-8",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {},
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "bg-white dark:bg-gray-900 dark:bg-gray-800 rounded-2xl shadow-xl dark:shadow-2xl hover:shadow-2xl dark:hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 dark:border-gray-700",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "elena-kowalski-card",
-            "style_name": "div",
-            "children": [
-              {
-                "name": "elena-profile-section",
-                "style_name": "div",
-                "children": [
-                  {
-                    "name": "elena-avatar",
-                    "style_name": "image",
-                    "children": [],
-                    "fields": {
-                      "img_src": {
-                        "all": {
-                          "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
-                          "meta": null
-                        }
-                      },
-                      "alt": {
-                        "en-GB": {
-                          "content": "Elena Kowalski - Data Science Lead",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Elena Kowalski - Data Science Lead",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "w-32 h-32 rounded-full mx-auto mb-6 object-cover border-4 border-white dark:border-gray-700 shadow-lg dark:shadow-2xl dark:shadow-2xl",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "elena-name",
-                    "style_name": "heading",
-                    "children": [],
-                    "fields": {
-                      "level": {
-                        "all": {
-                          "content": "3",
-                          "meta": null
-                        }
-                      },
-                      "title": {
-                        "en-GB": {
-                          "content": "Elena Kowalski",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Elena Kowalski",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-2xl font-bold text-gray-900 dark:text-white dark:text-white text-center mb-2",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "elena-position",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "Data Science Lead",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Data Science Lead",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-lg font-semibold text-green-600 dark:text-green-400 text-center mb-3",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "elena-company",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "DataInsights Analytics",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "DataInsights Analytics",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-gray-600 dark:text-gray-400 dark:text-gray-400 text-center mb-4",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "elena-description",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "Elena transforms complex data into actionable insights. With expertise in machine learning and statistical analysis, she helps organizations make data-driven decisions.",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Elena verwandelt komplexe Daten in umsetzbare Erkenntnisse. Mit ihrer Expertise in maschinellem Lernen und statistischer Analyse hilft sie Organisationen bei datengestützten Entscheidungen.",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-gray-700 dark:text-gray-300 dark:text-gray-300 text-center mb-6 leading-relaxed",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "elena-contact-info",
-                    "style_name": "div",
-                    "children": [
-                      {
-                        "name": "elena-email",
-                        "style_name": "link",
-                        "children": [],
-                        "fields": {
-                          "label": {
-                            "en-GB": {
-                              "content": "elena.kowalski@datainsights.com",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "elena.kowalski@datainsights.com",
-                              "meta": null
-                            }
-                          },
-                          "url": {
-                            "all": {
-                              "content": "mailto:elena.kowalski@datainsights.com",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 text-sm mb-2 block text-center",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      },
-                      {
-                        "name": "elena-phone",
-                        "style_name": "plaintext",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "+1 (555) 345-6789",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "+1 (555) 345-6789",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-gray-600 dark:text-gray-400 dark:text-gray-400 text-sm text-center",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      }
-                    ],
-                    "fields": {},
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "border-t border-gray-200 dark:border-gray-700 dark:border-gray-700 pt-4",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {},
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "p-8",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {},
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "bg-white dark:bg-gray-900 dark:bg-gray-800 rounded-2xl shadow-xl dark:shadow-2xl hover:shadow-2xl dark:hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 dark:border-gray-700",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "david-chen-card",
-            "style_name": "div",
-            "children": [
-              {
-                "name": "david-profile-section",
-                "style_name": "div",
-                "children": [
-                  {
-                    "name": "david-avatar",
-                    "style_name": "image",
-                    "children": [],
-                    "fields": {
-                      "img_src": {
-                        "all": {
-                          "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
-                          "meta": null
-                        }
-                      },
-                      "alt": {
-                        "en-GB": {
-                          "content": "David Chen - DevOps Engineer",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "David Chen - DevOps Engineer",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "w-32 h-32 rounded-full mx-auto mb-6 object-cover border-4 border-white dark:border-gray-700 shadow-lg dark:shadow-2xl dark:shadow-2xl",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "david-name",
-                    "style_name": "heading",
-                    "children": [],
-                    "fields": {
-                      "level": {
-                        "all": {
-                          "content": "3",
-                          "meta": null
-                        }
-                      },
-                      "title": {
-                        "en-GB": {
-                          "content": "David Chen",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "David Chen",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-2xl font-bold text-gray-900 dark:text-white dark:text-white text-center mb-2",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "david-position",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "DevOps Engineer",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "DevOps Engineer",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-lg font-semibold text-orange-600 dark:text-orange-400 text-center mb-3",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "david-company",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "CloudOps Solutions",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "CloudOps Solutions",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-gray-600 dark:text-gray-400 dark:text-gray-400 text-center mb-4",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "david-description",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "David ensures seamless deployment and infrastructure management. His expertise in cloud technologies and automation keeps our systems running smoothly 24/7.",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "David sorgt für nahtlose Bereitstellung und Infrastrukturverwaltung. Seine Expertise in Cloud-Technologien und Automatisierung hält unsere Systeme rund um die Uhr reibungslos am Laufen.",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-gray-700 dark:text-gray-300 dark:text-gray-300 text-center mb-6 leading-relaxed",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "david-contact-info",
-                    "style_name": "div",
-                    "children": [
-                      {
-                        "name": "david-email",
-                        "style_name": "link",
-                        "children": [],
-                        "fields": {
-                          "label": {
-                            "en-GB": {
-                              "content": "david.chen@cloudops.com",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "david.chen@cloudops.com",
-                              "meta": null
-                            }
-                          },
-                          "url": {
-                            "all": {
-                              "content": "mailto:david.chen@cloudops.com",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 text-sm mb-2 block text-center",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      },
-                      {
-                        "name": "david-phone",
-                        "style_name": "plaintext",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "+1 (555) 456-7890",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "+1 (555) 456-7890",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-gray-600 dark:text-gray-400 dark:text-gray-400 text-sm text-center",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      }
-                    ],
-                    "fields": {},
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "border-t border-gray-200 dark:border-gray-700 dark:border-gray-700 pt-4",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {},
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "p-8",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {},
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "bg-white dark:bg-gray-900 dark:bg-gray-800 rounded-2xl shadow-xl dark:shadow-2xl hover:shadow-2xl dark:hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 dark:border-gray-700",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "amelia-thompson-card",
-            "style_name": "div",
-            "children": [
-              {
-                "name": "amelia-profile-section",
-                "style_name": "div",
-                "children": [
-                  {
-                    "name": "amelia-avatar",
-                    "style_name": "image",
-                    "children": [],
-                    "fields": {
-                      "img_src": {
-                        "all": {
-                          "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
-                          "meta": null
-                        }
-                      },
-                      "alt": {
-                        "en-GB": {
-                          "content": "Amelia Thompson - Product Manager",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Amelia Thompson - Product Manager",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "w-32 h-32 rounded-full mx-auto mb-6 object-cover border-4 border-white dark:border-gray-700 shadow-lg dark:shadow-2xl dark:shadow-2xl",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "amelia-name",
-                    "style_name": "heading",
-                    "children": [],
-                    "fields": {
-                      "level": {
-                        "all": {
-                          "content": "3",
-                          "meta": null
-                        }
-                      },
-                      "title": {
-                        "en-GB": {
-                          "content": "Amelia Thompson",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Amelia Thompson",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-2xl font-bold text-gray-900 dark:text-white dark:text-white text-center mb-2",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "amelia-position",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "Product Manager",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Product Manager",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-lg font-semibold text-pink-600 dark:text-pink-400 text-center mb-3",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "amelia-company",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "Innovation Hub",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Innovation Hub",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-gray-600 dark:text-gray-400 dark:text-gray-400 text-center mb-4",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "amelia-description",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "Amelia bridges the gap between user needs and technical solutions. Her strategic vision and market insights drive product innovation and customer satisfaction.",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Amelia überbrückt die Kluft zwischen Benutzerbedürfnissen und technischen Lösungen. Ihre strategische Vision und Markteinblicke treiben Produktinnovation und Kundenzufriedenheit voran.",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-gray-700 dark:text-gray-300 dark:text-gray-300 text-center mb-6 leading-relaxed",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "amelia-contact-info",
-                    "style_name": "div",
-                    "children": [
-                      {
-                        "name": "amelia-email",
-                        "style_name": "link",
-                        "children": [],
-                        "fields": {
-                          "label": {
-                            "en-GB": {
-                              "content": "amelia.thompson@innovationhub.com",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "amelia.thompson@innovationhub.com",
-                              "meta": null
-                            }
-                          },
-                          "url": {
-                            "all": {
-                              "content": "mailto:amelia.thompson@innovationhub.com",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-pink-600 dark:text-pink-400 hover:text-pink-800 dark:hover:text-pink-300 text-sm mb-2 block text-center",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      },
-                      {
-                        "name": "amelia-phone",
-                        "style_name": "plaintext",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "+1 (555) 567-8901",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "+1 (555) 567-8901",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-gray-600 dark:text-gray-400 dark:text-gray-400 text-sm text-center",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      }
-                    ],
-                    "fields": {},
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "border-t border-gray-200 dark:border-gray-700 dark:border-gray-700 pt-4",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {},
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "p-8",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {},
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "bg-white dark:bg-gray-900 dark:bg-gray-800 rounded-2xl shadow-xl dark:shadow-2xl hover:shadow-2xl dark:hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 dark:border-gray-700",
-              "css_mobile": null,
-              "debug": false
-            }
-          }
-        ],
-        "fields": {},
-        "global_fields": {
-          "condition": null,
-          "data_config": null,
-          "css": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto",
-          "css_mobile": null,
-          "debug": false
+      "mantine_py": {
+        "all": {
+          "content": "xl"
         }
       }
-    ],
-    "fields": {},
+    },
     "global_fields": {
-      "condition": null,
-      "data_config": null,
-      "css": "min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-16 px-4",
-      "css_mobile": null,
-      "debug": false
-    }
+      "css": "py-16 px-4 bg-white dark:bg-gray-950",
+      "css_mobile": "py-10 px-4"
+    },
+    "children": [
+      {
+        "style_name": "stack",
+        "fields": {
+          "mantine_gap": {
+            "all": {
+              "content": "xl"
+            }
+          }
+        },
+        "children": [
+          {
+            "section_name": "team-intro",
+            "style_name": "stack",
+            "fields": {
+              "mantine_align": {
+                "all": {
+                  "content": "center"
+                }
+              },
+              "mantine_gap": {
+                "all": {
+                  "content": "sm"
+                }
+              }
+            },
+            "global_fields": {
+              "css": "text-center"
+            },
+            "children": [
+              {
+                "style_name": "badge",
+                "fields": {
+                  "label": {
+                    "en-GB": {
+                      "content": "Our People"
+                    },
+                    "de-CH": {
+                      "content": "Unser Team"
+                    }
+                  },
+                  "mantine_color": {
+                    "all": {
+                      "content": "indigo"
+                    }
+                  },
+                  "mantine_variant": {
+                    "all": {
+                      "content": "light"
+                    }
+                  }
+                }
+              },
+              {
+                "style_name": "title",
+                "fields": {
+                  "content": {
+                    "en-GB": {
+                      "content": "Meet the team"
+                    },
+                    "de-CH": {
+                      "content": "Lernen Sie das Team kennen"
+                    }
+                  },
+                  "mantine_title_order": {
+                    "all": {
+                      "content": "1"
+                    }
+                  }
+                },
+                "global_fields": {
+                  "css": "text-4xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-50",
+                  "css_mobile": "text-3xl"
+                }
+              },
+              {
+                "style_name": "text",
+                "fields": {
+                  "text": {
+                    "en-GB": {
+                      "content": "A small, senior group shipping thoughtful product work every week."
+                    },
+                    "de-CH": {
+                      "content": "Ein kleines, erfahrenes Team, das jede Woche durchdachte Produktarbeit liefert."
+                    }
+                  },
+                  "mantine_size": {
+                    "all": {
+                      "content": "lg"
+                    }
+                  }
+                },
+                "global_fields": {
+                  "css": "max-w-2xl mx-auto text-gray-600 dark:text-gray-400"
+                }
+              }
+            ]
+          },
+          {
+            "section_name": "team-members",
+            "style_name": "list",
+            "fields": {
+              "mantine_list_list_style_type": {
+                "all": {
+                  "content": "none"
+                }
+              },
+              "mantine_list_spacing": {
+                "all": {
+                  "content": "md"
+                }
+              }
+            },
+            "global_fields": {
+              "css": "max-w-3xl mx-auto w-full"
+            },
+            "children": [
+              {
+                "style_name": "list-item",
+                "global_fields": {
+                  "css": "py-4 border-b border-gray-200 dark:border-gray-800 last:border-0"
+                },
+                "children": [
+                  {
+                    "style_name": "group",
+                    "fields": {
+                      "mantine_align": {
+                        "all": {
+                          "content": "center"
+                        }
+                      },
+                      "mantine_justify": {
+                        "all": {
+                          "content": "space-between"
+                        }
+                      },
+                      "mantine_group_wrap": {
+                        "all": {
+                          "content": "1"
+                        }
+                      }
+                    },
+                    "children": [
+                      {
+                        "style_name": "group",
+                        "fields": {
+                          "mantine_align": {
+                            "all": {
+                              "content": "center"
+                            }
+                          },
+                          "mantine_gap": {
+                            "all": {
+                              "content": "md"
+                            }
+                          }
+                        },
+                        "children": [
+                          {
+                            "style_name": "avatar",
+                            "fields": {
+                              "alt": {
+                                "en-GB": {
+                                  "content": "Dr. Sarah Müller"
+                                },
+                                "de-CH": {
+                                  "content": "Dr. Sarah Müller"
+                                }
+                              },
+                              "img_src": {
+                                "en-GB": {
+                                  "content": "/assets/image-holder.png"
+                                }
+                              },
+                              "mantine_size": {
+                                "all": {
+                                  "content": "lg"
+                                }
+                              },
+                              "mantine_radius": {
+                                "all": {
+                                  "content": "50%"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "style_name": "stack",
+                            "fields": {
+                              "mantine_gap": {
+                                "all": {
+                                  "content": "0"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "style_name": "title",
+                                "fields": {
+                                  "content": {
+                                    "en-GB": {
+                                      "content": "Dr. Sarah Müller"
+                                    },
+                                    "de-CH": {
+                                      "content": "Dr. Sarah Müller"
+                                    }
+                                  },
+                                  "mantine_title_order": {
+                                    "all": {
+                                      "content": "4"
+                                    }
+                                  }
+                                },
+                                "global_fields": {
+                                  "css": "text-base font-semibold text-gray-900 dark:text-gray-100"
+                                }
+                              },
+                              {
+                                "style_name": "text",
+                                "fields": {
+                                  "text": {
+                                    "en-GB": {
+                                      "content": "CEO & Founder · sarah@selfhelp.dev"
+                                    },
+                                    "de-CH": {
+                                      "content": "CEO & Gründerin · sarah@selfhelp.dev"
+                                    }
+                                  },
+                                  "mantine_size": {
+                                    "all": {
+                                      "content": "sm"
+                                    }
+                                  }
+                                },
+                                "global_fields": {
+                                  "css": "text-gray-500 dark:text-gray-400"
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "style_name": "badge",
+                        "fields": {
+                          "label": {
+                            "en-GB": {
+                              "content": "Leadership"
+                            }
+                          },
+                          "mantine_color": {
+                            "all": {
+                              "content": "indigo"
+                            }
+                          },
+                          "mantine_variant": {
+                            "all": {
+                              "content": "light"
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "style_name": "list-item",
+                "global_fields": {
+                  "css": "py-4 border-b border-gray-200 dark:border-gray-800 last:border-0"
+                },
+                "children": [
+                  {
+                    "style_name": "group",
+                    "fields": {
+                      "mantine_align": {
+                        "all": {
+                          "content": "center"
+                        }
+                      },
+                      "mantine_justify": {
+                        "all": {
+                          "content": "space-between"
+                        }
+                      },
+                      "mantine_group_wrap": {
+                        "all": {
+                          "content": "1"
+                        }
+                      }
+                    },
+                    "children": [
+                      {
+                        "style_name": "group",
+                        "fields": {
+                          "mantine_align": {
+                            "all": {
+                              "content": "center"
+                            }
+                          },
+                          "mantine_gap": {
+                            "all": {
+                              "content": "md"
+                            }
+                          }
+                        },
+                        "children": [
+                          {
+                            "style_name": "avatar",
+                            "fields": {
+                              "alt": {
+                                "en-GB": {
+                                  "content": "Michael Chen"
+                                },
+                                "de-CH": {
+                                  "content": "Michael Chen"
+                                }
+                              },
+                              "img_src": {
+                                "en-GB": {
+                                  "content": "/assets/image-holder.png"
+                                }
+                              },
+                              "mantine_size": {
+                                "all": {
+                                  "content": "lg"
+                                }
+                              },
+                              "mantine_radius": {
+                                "all": {
+                                  "content": "50%"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "style_name": "stack",
+                            "fields": {
+                              "mantine_gap": {
+                                "all": {
+                                  "content": "0"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "style_name": "title",
+                                "fields": {
+                                  "content": {
+                                    "en-GB": {
+                                      "content": "Michael Chen"
+                                    },
+                                    "de-CH": {
+                                      "content": "Michael Chen"
+                                    }
+                                  },
+                                  "mantine_title_order": {
+                                    "all": {
+                                      "content": "4"
+                                    }
+                                  }
+                                },
+                                "global_fields": {
+                                  "css": "text-base font-semibold text-gray-900 dark:text-gray-100"
+                                }
+                              },
+                              {
+                                "style_name": "text",
+                                "fields": {
+                                  "text": {
+                                    "en-GB": {
+                                      "content": "CTO · cloud architecture & scale"
+                                    },
+                                    "de-CH": {
+                                      "content": "CTO · Cloud-Architektur & Skalierung"
+                                    }
+                                  },
+                                  "mantine_size": {
+                                    "all": {
+                                      "content": "sm"
+                                    }
+                                  }
+                                },
+                                "global_fields": {
+                                  "css": "text-gray-500 dark:text-gray-400"
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "style_name": "badge",
+                        "fields": {
+                          "label": {
+                            "en-GB": {
+                              "content": "Engineering"
+                            }
+                          },
+                          "mantine_color": {
+                            "all": {
+                              "content": "teal"
+                            }
+                          },
+                          "mantine_variant": {
+                            "all": {
+                              "content": "light"
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "style_name": "list-item",
+                "global_fields": {
+                  "css": "py-4 border-b border-gray-200 dark:border-gray-800 last:border-0"
+                },
+                "children": [
+                  {
+                    "style_name": "group",
+                    "fields": {
+                      "mantine_align": {
+                        "all": {
+                          "content": "center"
+                        }
+                      },
+                      "mantine_justify": {
+                        "all": {
+                          "content": "space-between"
+                        }
+                      },
+                      "mantine_group_wrap": {
+                        "all": {
+                          "content": "1"
+                        }
+                      }
+                    },
+                    "children": [
+                      {
+                        "style_name": "group",
+                        "fields": {
+                          "mantine_align": {
+                            "all": {
+                              "content": "center"
+                            }
+                          },
+                          "mantine_gap": {
+                            "all": {
+                              "content": "md"
+                            }
+                          }
+                        },
+                        "children": [
+                          {
+                            "style_name": "avatar",
+                            "fields": {
+                              "alt": {
+                                "en-GB": {
+                                  "content": "Anna Kowalski"
+                                },
+                                "de-CH": {
+                                  "content": "Anna Kowalski"
+                                }
+                              },
+                              "img_src": {
+                                "en-GB": {
+                                  "content": "/assets/image-holder.png"
+                                }
+                              },
+                              "mantine_size": {
+                                "all": {
+                                  "content": "lg"
+                                }
+                              },
+                              "mantine_radius": {
+                                "all": {
+                                  "content": "50%"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "style_name": "stack",
+                            "fields": {
+                              "mantine_gap": {
+                                "all": {
+                                  "content": "0"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "style_name": "title",
+                                "fields": {
+                                  "content": {
+                                    "en-GB": {
+                                      "content": "Anna Kowalski"
+                                    },
+                                    "de-CH": {
+                                      "content": "Anna Kowalski"
+                                    }
+                                  },
+                                  "mantine_title_order": {
+                                    "all": {
+                                      "content": "4"
+                                    }
+                                  }
+                                },
+                                "global_fields": {
+                                  "css": "text-base font-semibold text-gray-900 dark:text-gray-100"
+                                }
+                              },
+                              {
+                                "style_name": "text",
+                                "fields": {
+                                  "text": {
+                                    "en-GB": {
+                                      "content": "Head of Design · product UX"
+                                    },
+                                    "de-CH": {
+                                      "content": "Design-Leitung · Produkt-UX"
+                                    }
+                                  },
+                                  "mantine_size": {
+                                    "all": {
+                                      "content": "sm"
+                                    }
+                                  }
+                                },
+                                "global_fields": {
+                                  "css": "text-gray-500 dark:text-gray-400"
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "style_name": "badge",
+                        "fields": {
+                          "label": {
+                            "en-GB": {
+                              "content": "Design"
+                            }
+                          },
+                          "mantine_color": {
+                            "all": {
+                              "content": "violet"
+                            }
+                          },
+                          "mantine_variant": {
+                            "all": {
+                              "content": "light"
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
   }
 ]
