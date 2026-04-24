@@ -66,37 +66,58 @@ export const getCssClass = (style: TStyle): string => {
 /**
  * Extract spacing props from a style object
  * Priority: mantine_spacing_margin_padding field (new) > individual spacing fields (legacy)
+ *
+ * The spacing field value is expected to be a JSON object, e.g.
+ *   {"mt":"md","mb":"md","pt":"lg","pb":"lg","ms":"sm","me":"sm","ps":"xs","pe":"xs"}
+ * If the stored value is not valid JSON (for example an AI-generated
+ * Tailwind class string like "pt-10"), we silently ignore it so the page
+ * does not crash. The invalid value remains in the DB until an editor
+ * saves a new value.
  */
 export const getSpacingProps = (style: IStyleWithSpacing) => {
     const spacingProps: Record<string, any> = {};
 
-    // Check for new mantine_spacing_margin_padding field first
-    if (style.mantine_spacing_margin_padding || style.mantine_spacing_margin) {
-        const spacingJson = style.mantine_spacing_margin_padding?.content ?? style.mantine_spacing_margin?.content;
-        if (typeof spacingJson === 'string' && spacingJson !== '') {
-            const parsedSpacing = JSON.parse(spacingJson);
-
-            // Extract and convert each spacing value
-            const mt = convertSpacingValue(parsedSpacing.mt);
-            const mb = convertSpacingValue(parsedSpacing.mb);
-            const ms = convertSpacingValue(parsedSpacing.ms);
-            const me = convertSpacingValue(parsedSpacing.me);
-            const pt = convertSpacingValue(parsedSpacing.pt);
-            const pb = convertSpacingValue(parsedSpacing.pb);
-            const ps = convertSpacingValue(parsedSpacing.ps);
-            const pe = convertSpacingValue(parsedSpacing.pe);
-
-            // Add to spacing props if they exist
-            if (mt) spacingProps.mt = mt;
-            if (mb) spacingProps.mb = mb;
-            if (ms) spacingProps.ms = ms;
-            if (me) spacingProps.me = me;
-            if (pt) spacingProps.pt = pt;
-            if (pb) spacingProps.pb = pb;
-            if (ps) spacingProps.ps = ps;
-            if (pe) spacingProps.pe = pe;
-        }
+    if (!style.mantine_spacing_margin_padding && !style.mantine_spacing_margin) {
+        return spacingProps;
     }
+
+    const spacingJson = style.mantine_spacing_margin_padding?.content ?? style.mantine_spacing_margin?.content;
+    if (typeof spacingJson !== 'string' || spacingJson.trim() === '') {
+        return spacingProps;
+    }
+
+    const trimmed = spacingJson.trim();
+    if (trimmed[0] !== '{' && trimmed[0] !== '[') {
+        return spacingProps;
+    }
+
+    let parsedSpacing: Record<string, string | undefined>;
+    try {
+        parsedSpacing = JSON.parse(trimmed);
+    } catch {
+        return spacingProps;
+    }
+    if (!parsedSpacing || typeof parsedSpacing !== 'object') {
+        return spacingProps;
+    }
+
+    const mt = convertSpacingValue(parsedSpacing.mt);
+    const mb = convertSpacingValue(parsedSpacing.mb);
+    const ms = convertSpacingValue(parsedSpacing.ms);
+    const me = convertSpacingValue(parsedSpacing.me);
+    const pt = convertSpacingValue(parsedSpacing.pt);
+    const pb = convertSpacingValue(parsedSpacing.pb);
+    const ps = convertSpacingValue(parsedSpacing.ps);
+    const pe = convertSpacingValue(parsedSpacing.pe);
+
+    if (mt) spacingProps.mt = mt;
+    if (mb) spacingProps.mb = mb;
+    if (ms) spacingProps.ms = ms;
+    if (me) spacingProps.me = me;
+    if (pt) spacingProps.pt = pt;
+    if (pb) spacingProps.pb = pb;
+    if (ps) spacingProps.ps = ps;
+    if (pe) spacingProps.pe = pe;
 
     return spacingProps;
 };

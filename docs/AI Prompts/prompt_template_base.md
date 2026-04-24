@@ -66,7 +66,55 @@ Markdown fences):
     behave correctly if you write one of those exact `value` strings. Do not
     invent new values. Free-form fields (`text`, `textarea`, `markdown-inline`,
     `json`) have no options list — write what makes sense.
-12. Do NOT include `id`, `position`, `timestamp`, or any ID-like key — the
+12. **Mantine spacing fields are JSON objects, NOT Tailwind strings.** Any
+    field whose catalog type is `mantine_spacing_margin`,
+    `mantine_spacing_padding`, or `mantine_spacing_margin_padding` expects a
+    JSON-encoded object keyed by Mantine spacing keys with Mantine size
+    tokens as values. Tailwind utility classes belong in
+    `global_fields.css` / `global_fields.css_mobile`, never inside these
+    fields. The keys are (margin first, then padding):
+    - `mt` — margin-top
+    - `mb` — margin-bottom
+    - `ms` — margin-inline-start (left in LTR)
+    - `me` — margin-inline-end   (right in LTR)
+    - `pt` — padding-top
+    - `pb` — padding-bottom
+    - `ps` — padding-inline-start
+    - `pe` — padding-inline-end
+
+    Valid values: the Mantine size tokens `"none"`, `"xs"`, `"sm"`, `"md"`,
+    `"lg"`, `"xl"`, or a numeric pixel string (e.g. `"0"`, `"8"`, `"24"`).
+    `mantine_spacing_padding` only accepts the four `p*` keys;
+    `mantine_spacing_margin` only accepts the four `m*` keys;
+    `mantine_spacing_margin_padding` accepts all eight. Omit keys you do
+    not set rather than writing empty strings.
+
+    Correct shape (stringified JSON stored under the `all` locale — always
+    a property field):
+
+    ```json
+    "mantine_spacing_margin_padding": {
+      "all": {
+        "content": "{\"mt\":\"md\",\"mb\":\"md\",\"pt\":\"lg\",\"pb\":\"lg\"}"
+      }
+    }
+    ```
+
+    WRONG — do NOT put Tailwind classes here (they will crash the frontend):
+
+    ```json
+    "mantine_spacing_margin_padding": {
+      "all": { "content": "pt-10" }
+    }
+    "mantine_spacing_margin_padding": {
+      "all": { "content": "mx-auto max-w-sm" }
+    }
+    ```
+
+    Rule of thumb: if the value you want is a Mantine size token use the
+    spacing field, otherwise omit it entirely and express the spacing with
+    Tailwind classes inside `global_fields.css`.
+13. Do NOT include `id`, `position`, `timestamp`, or any ID-like key — the
     backend assigns those.
 
 ---
