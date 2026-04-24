@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Group } from '@mantine/core';
-import { IconRefresh } from '@tabler/icons-react';
+import { IconRefresh, IconRestore } from '@tabler/icons-react';
 
 interface FilterActionsProps {
   onApply: () => void;
@@ -34,8 +34,8 @@ export function FilterActions({
 
       {showReset && (
         <Button
-          color="red"
-          variant="filled"
+          leftSection={<IconRestore size={16} />}
+          color="gray"
           onClick={onReset}
           loading={isFetching}
         >

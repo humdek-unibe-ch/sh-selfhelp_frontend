@@ -5,8 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
     Paper,
-    Title,
-    Text,
     Alert,
     Group,
     Badge,
@@ -15,12 +13,10 @@ import {
     ActionIcon,
     Tooltip,
     Box,
-    Card,
     Stack
 } from '@mantine/core';
 import {
     IconAlertCircle,
-    IconFile,
     IconPlus,
     IconSearch,
     IconChevronUp,
@@ -36,7 +32,6 @@ import { IPageSectionWithFields } from '../../../../../types/common/pages.type';
 import { SectionsList } from './SectionsList';
 import { AddSectionModal } from './AddSectionModal';
 import { calculateSiblingBelowPosition } from '../../../../../utils/position-calculator';
-import styles from './PageSections.module.css';
 import { PageHeader } from '../../../shared/common/PageHeader';
 
 // Helper function to recursively sort sections and their children by position
@@ -622,38 +617,85 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
            </Group>
          </PageHeader>
 
-        {/* 2. Advanced Search Bar - No extra Card to avoid double border */}
-        <TextInput
-          placeholder="Search sections by name, ID, or style..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.currentTarget.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && searchResults.length > 0) {
-              e.preventDefault();
-              handleSearchNext();
+        {/* 2. Advanced Search Bar with match counter + Prev/Next navigation */}
+        <Group gap="xs" wrap="nowrap" align="center">
+          <TextInput
+            placeholder="Search sections by name, ID, or style..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.currentTarget.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && searchResults.length > 0) {
+                e.preventDefault();
+                if (e.shiftKey) {
+                  handleSearchPrevious();
+                } else {
+                  handleSearchNext();
+                }
+              }
+              if (e.key === "Escape") {
+                e.preventDefault();
+                handleSearchClear();
+              }
+            }}
+            leftSection={<IconSearch size={16} />}
+            rightSection={
+              searchQuery && (
+                <ActionIcon
+                  size="sm"
+                  variant="subtle"
+                  color="gray"
+                  onClick={handleSearchClear}
+                  aria-label="Clear search"
+                >
+                  <IconX size={14} />
+                </ActionIcon>
+              )
             }
-            if (e.key === "Escape") {
-              e.preventDefault();
-              handleSearchClear();
-            }
-          }}
-          leftSection={<IconSearch size={16} />}
-          rightSection={
-            searchQuery && (
-              <ActionIcon
-                size="sm"
-                variant="subtle"
-                onClick={handleSearchClear}
-              >
-                <IconX size={14} />
-              </ActionIcon>
-            )
-          }
-          size="md"
-        />
+            size="md"
+            style={{ flex: 1 }}
+          />
+
+          {searchQuery && (
+            <Badge
+              size="lg"
+              variant="light"
+              color={searchResults.length > 0 ? "yellow" : "gray"}
+              radius="sm"
+            >
+              {searchResults.length > 0
+                ? `${currentSearchIndex + 1}/${searchResults.length}`
+                : "0/0"}
+            </Badge>
+          )}
+
+          {searchResults.length > 0 && (
+            <Group gap={4} wrap="nowrap">
+              <Tooltip label="Previous match (Shift+Enter)" withArrow>
+                <ActionIcon
+                  size="lg"
+                  variant="default"
+                  onClick={handleSearchPrevious}
+                  aria-label="Previous match"
+                >
+                  <IconArrowLeft size={16} />
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label="Next match (Enter)" withArrow>
+                <ActionIcon
+                  size="lg"
+                  variant="default"
+                  onClick={handleSearchNext}
+                  aria-label="Next match"
+                >
+                  <IconArrowRight size={16} />
+                </ActionIcon>
+              </Tooltip>
+            </Group>
+          )}
+        </Group>
 
          {/* 4. Main Content */}
-         <Box className={styles.contentContainer}>
+         <Box>
            <SectionsList
              sections={
                isLoading
@@ -672,6 +714,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
              onSectionSelect={handleSectionSelect}
              selectedSectionId={selectedSectionId}
              focusedSectionId={focusedSectionId}
+             searchQuery={searchQuery}
              pageId={pageId || undefined}
              styleGroups={styleGroups}
            />

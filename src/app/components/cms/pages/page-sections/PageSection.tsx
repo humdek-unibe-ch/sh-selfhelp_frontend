@@ -16,6 +16,7 @@ import { IPageSectionWithFields } from '../../../../../types/common/pages.type';
 import { RemoveSectionModal } from './RemoveSectionModal';
 import styles from './PageSection.module.css';
 import SectionLink from './SectionLink';
+import { HighlightText } from './HighlightText';
 
 interface IPageSectionProps {
     section: IPageSectionWithFields;
@@ -31,6 +32,7 @@ interface IPageSectionProps {
     onSectionSelect?: (sectionId: number) => void;
     selectedSectionId?: number | null;
     focusedSectionId?: number | null;
+    searchQuery?: string;
     isDragActive: boolean;
     overId: string | number | null;
     draggedSectionId?: number | null;
@@ -54,6 +56,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     onSectionSelect,
     selectedSectionId,
     focusedSectionId,
+    searchQuery,
     isDragActive,
     overId,
     draggedSectionId,
@@ -205,7 +208,10 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                                     className={styles.sectionName}
                                     title={section.section_name}
                                 >
-                                    {section.section_name}
+                                    <HighlightText
+                                        text={section.section_name}
+                                        query={searchQuery}
+                                    />
                                 </Text>
                                 <Badge 
                                     size="xs" 
@@ -213,7 +219,10 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                                     color={getSectionTypeColor()}
                                     className={styles.styleBadge}
                                 >
-                                    {section.style_name}
+                                    <HighlightText
+                                        text={section.style_name}
+                                        query={searchQuery}
+                                    />
                                 </Badge>
                                 {hasChildren && (
                                     <Badge size="xs" variant="outline" color="gray" className={styles.childCount}>
@@ -222,7 +231,10 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                                 )}
                             </Group>
                             <Text size="xs" c="dimmed" className={styles.sectionMeta}>
-                                #{section.id} • pos:{section.position}
+                                #<HighlightText
+                                    text={String(section.id)}
+                                    query={searchQuery}
+                                /> • pos:{section.position}
                             </Text>
                         </Box>
 

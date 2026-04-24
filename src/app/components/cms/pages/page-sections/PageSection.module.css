@@ -33,10 +33,11 @@
     box-shadow: 0 2px 6px light-dark(rgba(37, 99, 235, 0.15), rgba(37, 99, 235, 0.3));
 }
 
-/* Focused state - Yellow highlight for search results */
+/* Focused state - matches the `2/3` match-counter badge styling for consistency:
+   yellow-light background + yellow-light-color (orange/amber) border and accent. */
 .sectionItem.focused .sectionPaper {
-    border-color: var(--mantine-color-yellow-5);
-    background-color: light-dark(var(--mantine-color-yellow-0), var(--mantine-color-yellow-9));
+    border-color: var(--mantine-color-yellow-light-color);
+    background-color: var(--mantine-color-yellow-light);
     box-shadow: 0 2px 6px light-dark(rgba(234, 179, 8, 0.25), rgba(234, 179, 8, 0.4));
     animation: focusPulse 1s ease-in-out 2;
 }
@@ -48,6 +49,15 @@
     50% {
         box-shadow: 0 4px 12px light-dark(rgba(234, 179, 8, 0.4), rgba(234, 179, 8, 0.6));
     }
+}
+
+/* Search-match highlight - mirrors Mantine `<Badge variant="light" color="yellow">`
+   (the `N/M` match counter) so the inline highlights read as the same visual
+   language: pale yellow background with the amber/red "light-color" foreground. */
+.searchMatch {
+    background-color: var(--mantine-color-yellow-light) !important;
+    color: var(--mantine-color-yellow-light-color) !important;
+    padding: 0 3px !important;
 }
 
 /* Ultra compact group spacing */
