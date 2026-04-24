@@ -17,6 +17,8 @@ import {
     Select,
     SimpleGrid,
     Tooltip,
+    Anchor,
+    List,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
@@ -25,7 +27,9 @@ import {
     IconInfoCircle,
     IconAlertCircle,
     IconUpload,
-    IconX
+    IconX,
+    IconCopy,
+    IconBrandOpenai,
 } from '@tabler/icons-react';
 import { ModalWrapper } from '../../../shared';
 import { useStyleGroups } from '../../../../../hooks/useStyleGroups';
@@ -33,7 +37,8 @@ import { useSectionOperations } from '../../../../../hooks/useSectionOperations'
 import { useUnusedSections, useRefContainerSections } from '../../../../../hooks/useSectionUtility';
 import { useSectionDetails } from '../../../../../hooks/useSectionDetails';
 import { IStyle, IStyleGroup } from '../../../../../types/responses/admin/styles.types';
-import { readJsonFile } from '../../../../../utils/export-import.utils';
+import { readJsonFile, parseImportValidationErrors } from '../../../../../utils/export-import.utils';
+import { fetchAiSectionPromptTemplate, IImportValidationError } from '../../../../../api/admin/section.api';
 import { ISectionOperationOptions } from '../../../../../utils/section-operations.utils';
 import { isStyleRelationshipValid, findStyleById } from '../../../../../utils/style-relationship.utils';
 
@@ -64,6 +69,8 @@ export function AddSectionModal({
     const [sectionName, setSectionName] = useState('');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isImporting, setIsImporting] = useState(false);
+    const [importErrors, setImportErrors] = useState<IImportValidationError[]>([]);
+    const [isCopyingPrompt, setIsCopyingPrompt] = useState(false);
     const [selectedUnusedSection, setSelectedUnusedSection] = useState<string | null>(null);
     const [selectedRefContainerSection, setSelectedRefContainerSection] = useState<string | null>(null);
 
@@ -224,6 +231,8 @@ export function AddSectionModal({
         setActiveTab('new-section');
         setSelectedFile(null);
         setIsImporting(false);
+        setImportErrors([]);
+        setIsCopyingPrompt(false);
         setSelectedUnusedSection(null);
         setSelectedRefContainerSection(null);
         onClose();
@@ -330,6 +339,7 @@ export function AddSectionModal({
         if (!selectedFile || !pageId) return;
 
         setIsImporting(true);
+        setImportErrors([]);
 
         try {
             // Read and parse the JSON file
@@ -350,15 +360,52 @@ export function AddSectionModal({
 
             handleClose();
         } catch (error) {
-            console.error('Import sections error:', error);
-            // Show error notification if the hook doesn't handle it
-            notifications.show({
-                title: 'Import Failed',
-                message: error instanceof Error ? error.message : 'An unknown error occurred during import',
-                color: 'red'
-            });
+            const validationErrors = parseImportValidationErrors(error);
+            if (validationErrors.length > 0) {
+                setImportErrors(validationErrors);
+                notifications.show({
+                    title: 'Import validation failed',
+                    message: `${validationErrors.length} issue(s) found in the JSON. See details below.`,
+                    color: 'red',
+                });
+            } else {
+                notifications.show({
+                    title: 'Import Failed',
+                    message: error instanceof Error ? error.message : 'An unknown error occurred during import',
+                    color: 'red',
+                });
+            }
         } finally {
             setIsImporting(false);
+        }
+    };
+
+    const handleCopyAiPrompt = async () => {
+        setIsCopyingPrompt(true);
+        try {
+            const prompt = await fetchAiSectionPromptTemplate();
+
+            if (!navigator?.clipboard?.writeText) {
+                throw new Error('Clipboard API is not available in this browser');
+            }
+            await navigator.clipboard.writeText(prompt);
+
+            notifications.show({
+                title: 'AI prompt copied',
+                message:
+                    'Paste it into ChatGPT / Gemini, describe what you need, ' +
+                    'download the returned JSON, then upload it here.',
+                color: 'teal',
+                autoClose: 6000,
+            });
+        } catch (error) {
+            notifications.show({
+                title: 'Failed to copy AI prompt',
+                message: error instanceof Error ? error.message : 'Unknown error',
+                color: 'red',
+            });
+        } finally {
+            setIsCopyingPrompt(false);
         }
     };
 
@@ -798,8 +845,66 @@ export function AddSectionModal({
             <Stack gap="md">
               <Alert icon={<IconInfoCircle size={16} />} color="blue">
                 Import sections from a previously exported JSON file. The file
-                should contain section data in the correct format.
+                should contain section data in the correct (minimized) format
+                — fields equal to the style default can be omitted, and the
+                backend will fill them in.
               </Alert>
+
+              <Card withBorder p="sm">
+                <Stack gap="xs">
+                  <Group justify="space-between" align="center" wrap="nowrap">
+                    <Stack gap={2}>
+                      <Text size="sm" fw={600}>
+                        No JSON yet? Generate one with AI.
+                      </Text>
+                      <Text size="xs" c="dimmed">
+                        Copy the full prompt template, paste it into any
+                        LLM web UI together with what you need, then upload
+                        the returned JSON here.
+                      </Text>
+                    </Stack>
+                    <Button
+                      variant="light"
+                      color="teal"
+                      size="xs"
+                      leftSection={<IconCopy size={14} />}
+                      loading={isCopyingPrompt}
+                      onClick={handleCopyAiPrompt}
+                    >
+                      Copy AI prompt
+                    </Button>
+                  </Group>
+                  <Group gap="sm">
+                    <Anchor
+                      href="https://chat.openai.com/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      size="xs"
+                    >
+                      <Group gap={4} wrap="nowrap">
+                        <IconBrandOpenai size={12} />
+                        ChatGPT
+                      </Group>
+                    </Anchor>
+                    <Anchor
+                      href="https://gemini.google.com/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      size="xs"
+                    >
+                      Gemini
+                    </Anchor>
+                    <Anchor
+                      href="https://claude.ai/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      size="xs"
+                    >
+                      Claude
+                    </Anchor>
+                  </Group>
+                </Stack>
+              </Card>
 
               <FileInput
                 label="Select JSON file to import"
@@ -832,6 +937,44 @@ export function AddSectionModal({
                     import may fail if the file is not valid JSON.
                   </Alert>
                 )}
+
+              {importErrors.length > 0 && (
+                <Alert
+                  color="red"
+                  icon={<IconAlertCircle size={16} />}
+                  title={`Import validation failed (${importErrors.length} issue${importErrors.length === 1 ? "" : "s"})`}
+                  withCloseButton
+                  onClose={() => setImportErrors([])}
+                >
+                  <Text size="xs" mb="xs" c="dimmed">
+                    Nothing was written. Fix these issues in the JSON and try again:
+                  </Text>
+                  <List size="xs" spacing={4} withPadding>
+                    {importErrors.map((err, idx) => (
+                      <List.Item key={`${err.path}-${err.type}-${idx}`}>
+                        <Group gap={6} wrap="nowrap" align="flex-start">
+                          <Badge size="xs" variant="light" color="red">
+                            {err.type}
+                          </Badge>
+                          <Text size="xs">
+                            {err.path && (
+                              <Text
+                                component="code"
+                                size="xs"
+                                c="dimmed"
+                                mr={4}
+                              >
+                                {err.path}
+                              </Text>
+                            )}
+                            {err.detail}
+                          </Text>
+                        </Group>
+                      </List.Item>
+                    ))}
+                  </List>
+                </Alert>
+              )}
             </Stack>
           </Tabs.Panel>
         </Tabs>

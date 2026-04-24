@@ -2484,6 +2484,35 @@ const expensiveValue = useMemo(() => {
 npm run dev
 ```
 
+**Regenerate style types from the live schema endpoint:**
+
+```bash
+npm run gen:styles
+```
+
+The script auto-derives the schema URL from `NEXT_PUBLIC_API_URL` +
+`SYMFONY_API_PREFIX` (defaulting to `http://localhost/symfony/cms-api/v1`)
+and reads credentials from `.env.local`. The endpoint is behind the admin
+ACL, so configure authentication via one of these options in `.env.local`
+(see `.env.example` at the repo root for the full template):
+
+| Option | Variables | When to use |
+|---|---|---|
+| Paste a JWT | `STYLES_SCHEMA_TOKEN=eyJhbGciOi...` | You already copied an admin access token from DevTools / another script |
+| Auto-login | `STYLES_SCHEMA_EMAIL=admin@…` + `STYLES_SCHEMA_PASSWORD=…` | Local dev — the script POSTs to `/auth/login` and grabs `data.access_token` |
+
+Extra knobs: `STYLES_SCHEMA_URL` overrides the derived URL;
+`STYLES_SCHEMA_OUTPUT` overrides the default output path.
+
+Writes `src/types/common/styles.types.generated.ts` with a `TStyleNameFromDb`
+union, per-style field shapes, a `STYLE_FIELD_DEFAULTS` map, and relationship
+maps. Re-run this manually whenever styles / fields change in the DB (or
+whenever you pull a migration that touches the `styles`, `fields`, or
+`styles_fields` tables). The generated file is supplementary to the
+hand-crafted `src/types/common/styles.types` — nothing imports from it
+automatically, but new tooling (the AI-prompt flow, the import validation
+UI, codegen consumers) can rely on the precise DB-backed types.
+
 **Key File Locations:**
 - API Configuration: `src/config/api.config.ts`
 - React Query Config: `src/config/react-query.config.ts`

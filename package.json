@@ -13,7 +13,8 @@
         "lint:fix": "eslint . --ext .ts,.tsx --fix",
         "dead": "knip",
         "unused": "npx ts-unused-exports tsconfig.json --excludePathsFromReport=.next --ignoreFiles=\"page.tsx\"",
-        "prune": "ts-prune"
+        "prune": "ts-prune",
+        "gen:styles": "node scripts/gen-styles-types.mjs"
     },
     "dependencies": {
         "@atlaskit/pragmatic-drag-and-drop": "^1.8.0",

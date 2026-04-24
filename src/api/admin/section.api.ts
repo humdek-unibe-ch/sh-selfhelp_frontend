@@ -209,21 +209,23 @@ export const AdminSectionApi = {
 };
 
 // Types for export/import operations
+export interface ISectionExportFieldEntry {
+    content: string;
+    meta?: any;
+}
+
 export interface ISectionExportData {
-    name: string;
+    section_name?: string;
     style_name: string;
-    children: ISectionExportData[];
-    fields: Record<string, Record<string, {
-        content: string;
-        meta: any;
-    }>>;
-    global_fields?: {
+    fields?: Record<string, Record<string, ISectionExportFieldEntry>>;
+    global_fields?: Partial<{
         condition: string | null;
         data_config: string | null;
         css: string | null;
         css_mobile: string | null;
         debug: boolean;
-    };
+    }>;
+    children?: ISectionExportData[];
 }
 
 export interface IPageSectionsExportResponse {
@@ -238,6 +240,34 @@ export interface IImportSectionsRequest {
     sections: ISectionExportData[];
     position?: number;
 }
+
+export interface IImportValidationError {
+    path: string;
+    type: string;
+    detail: string;
+}
+
+// Types for the styles schema endpoint
+export interface IStyleFieldSchema {
+    type: string;
+    display: 0 | 1;
+    default_value: string | null;
+    help?: string | null;
+    title?: string | null;
+    hidden?: 0 | 1;
+}
+
+export interface IStyleSchema {
+    id: number;
+    group: string;
+    can_have_children: boolean;
+    description?: string | null;
+    fields: Record<string, IStyleFieldSchema>;
+    allowed_children: string[];
+    allowed_parents: string[];
+}
+
+export type IStylesSchemaResponse = Record<string, IStyleSchema>;
 
 /**
  * Export all sections from a page
@@ -275,10 +305,11 @@ export async function importSectionsToPage(
         ...(position !== undefined && { position })
     };
     
+    // permissionAwareApiClient.post signature: (endpointConfig, data, ...routeParams)
     const response = await permissionAwareApiClient.post(
         API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_IMPORT_TO_PAGE,
-        pageId,
-        requestBody
+        requestBody,
+        pageId
     );
     return response.data;
 }
@@ -296,12 +327,42 @@ export async function importSectionsToSection(
         sections,
         ...(position !== undefined && { position })
     };
-    
+
+    // permissionAwareApiClient.post signature: (endpointConfig, data, ...routeParams)
     const response = await permissionAwareApiClient.post(
         API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_IMPORT_TO_SECTION,
+        requestBody,
         pageId,
-        parentSectionId,
-        requestBody
+        parentSectionId
     );
     return response.data;
-} 
+}
+
+/**
+ * Fetch the full style schema (styles, fields, defaults, relationships).
+ * Powers the codegen script and import pre-validation UI.
+ */
+export async function fetchStylesSchema(): Promise<IStylesSchemaResponse> {
+    const response = await permissionAwareApiClient.get<IBaseApiResponse<IStylesSchemaResponse>>(
+        API_CONFIG.ENDPOINTS.ADMIN_STYLES_SCHEMA
+    );
+    return response.data.data;
+}
+
+/**
+ * Fetch the static AI section-generation prompt template as raw markdown text.
+ * Used by the `Copy AI prompt` button in the import UI.
+ */
+export async function fetchAiSectionPromptTemplate(): Promise<string> {
+    const response = await permissionAwareApiClient.get<string>(
+        API_CONFIG.ENDPOINTS.ADMIN_AI_SECTION_PROMPT_TEMPLATE,
+        {
+            headers: { Accept: 'text/markdown' },
+            responseType: 'text',
+            transformResponse: [(raw: any) => raw],
+        } as any
+    );
+    return typeof response.data === 'string'
+        ? response.data
+        : JSON.stringify(response.data);
+}

@@ -1,3 +1,17 @@
+/**
+ * Hand-crafted Mantine style types consumed by the runtime rendering layer
+ * (`StyleRenderer` + the per-style React components). These interfaces encode
+ * domain knowledge the DB schema doesn't expose — literal unions for Mantine
+ * sizes/variants, grouped base interfaces, and legacy fields kept for
+ * backwards compatibility.
+ *
+ * For DB-sourced tooling (import validation, AI prompt pipeline, style-name
+ * allowlists, relationship maps) see the auto-generated companion file:
+ *   `styles.types.generated.ts`
+ * Regenerate it via `npm run gen:styles` after any change to the `styles`
+ * / `fields` / `styles_fields` tables.
+ */
+
 import type {
   TMantineSize,
   TMantineRadius,
