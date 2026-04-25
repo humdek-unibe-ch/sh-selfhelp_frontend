@@ -3,17 +3,9 @@
 import { Box, Container, Group, Stack, Text } from '@mantine/core';
 import { useAppNavigation } from '../../../../../hooks/useAppNavigation';
 import { usePagePrefetch } from '../../../../../hooks/usePagePrefetch';
-import { IPageItem } from '../../../../../types/responses/frontend/frontend.types';
 import styles from './WebsiteFooter.module.css';
 import { InternalLink } from '../../../shared';
-
-// Helper function to get page title
-const getPageTitle = (item: IPageItem): string => {
-    if (item.title && item.title.trim()) {
-        return item.title;
-    }
-    return item.keyword.charAt(0).toUpperCase() + item.keyword.slice(1).replace(/_/g, ' ').replace(/-/g, ' ');
-};
+import { getPageTitle } from '../../../../../utils/navigation.utils';
 
 /**
  * Website Footer with optimized loading behavior

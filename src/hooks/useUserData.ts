@@ -9,78 +9,62 @@ import { createPermissionChecker, PermissionChecker } from '../utils/permissions
 import { permissionManager } from '../api/permission-wrapper.api';
 
 /**
- * Hook to fetch current user data from /auth/user-data endpoint
- * This replaces JWT-based user information with comprehensive user data
- * Also syncs permissions with the global permission manager for API access control
- * 
- * @returns User data query result with user information, permissions, roles, and language
+ * Fetch + cache the current user envelope from `/auth/user-data` and keep
+ * the global `permissionManager` in sync.
+ *
+ * `refetchOnMount: false` is intentional: `ServerProviders` SSR-seeds the
+ * cache with either the real envelope or an anonymous sentinel, so the
+ * first client paint already knows the auth state. Stale-window + focus
+ * refetches still keep the cache honest after that.
  */
 export function useUserData() {
     const query = useQuery({
         queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA,
-        queryFn: async (): Promise<IUserDataResponse> => {
-            return AuthApi.getUserData();
-        },
-        // Always enabled: the BFF translates missing auth into a 401 and we
-        // let React Query cache that negative state. No client-visible token
-        // to gate on now that auth lives in httpOnly cookies.
-        enabled: true,
+        queryFn: async (): Promise<IUserDataResponse> => AuthApi.getUserData(),
         staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.USER_DATA.staleTime,
         gcTime: REACT_QUERY_CONFIG.CACHE_TIERS.USER_DATA.gcTime,
         refetchOnWindowFocus: REACT_QUERY_CONFIG.CACHE_TIERS.USER_DATA.refetchOnWindowFocus,
+        refetchOnMount: false,
         retry: (failureCount, error: any) => {
-            if (error?.response?.status === 401) {
-                return false;
-            }
+            if (error?.response?.status === 401) return false;
             return failureCount < 1;
         },
-        meta: {
-            errorMessage: 'Failed to fetch user data'
-        }
+        meta: { errorMessage: 'Failed to fetch user data' },
     });
 
-    // Sync permissions with global permission manager whenever user data changes
+    const permissions = query.data?.data?.permissions;
+    const settled = !query.isLoading;
+    const errored = query.isError;
     useEffect(() => {
-        if (query.data?.data?.permissions) {
-            permissionManager.setPermissions(query.data.data.permissions);
-        } else if (query.isError || (!query.isLoading && !query.data)) {
+        if (permissions) {
+            permissionManager.setPermissions(permissions);
+        } else if (errored || settled) {
             permissionManager.clearPermissions();
         }
-    }, [query.data?.data?.permissions, query.isError, query.isLoading, query.data]);
+    }, [permissions, errored, settled]);
 
     return query;
 }
 
 /**
- * Hook to get transformed user data in IAuthUser format
- * Converts the API response to the expected user interface
- *
- * @returns Transformed user data, permission checker, and loading state
+ * Returns the transformed user payload, a memo-stable permission checker,
+ * and the query's loading state. Use this for any component that needs the
+ * full profile (header avatar, admin gating, etc).
  */
 export function useAuthUser(): {
     user: IAuthUser | null;
     permissionChecker: PermissionChecker | null;
     isLoading: boolean;
-    error: any
+    error: unknown;
 } {
     const { data: userDataResponse, isLoading, error } = useUserData();
-
-    const user: IAuthUser | null = userDataResponse?.data ? transformUserData(userDataResponse.data) : null;
-    const permissionChecker: PermissionChecker | null = userDataResponse?.data
+    const user = userDataResponse?.data ? transformUserData(userDataResponse.data) : null;
+    const permissionChecker = userDataResponse?.data
         ? createPermissionChecker(userDataResponse.data.permissions)
         : null;
-
-    return {
-        user,
-        permissionChecker,
-        isLoading,
-        error
-    };
+    return { user, permissionChecker, isLoading, error };
 }
 
-/**
- * Transform user data from API response to IAuthUser interface
- */
 function transformUserData(userData: IUserData): IAuthUser {
     return {
         id: userData.id,
@@ -97,29 +81,22 @@ function transformUserData(userData: IUserData): IAuthUser {
         languageName: userData.language.name,
         timezoneId: userData.timezone.id,
         timezoneLookupCode: userData.timezone.lookupCode,
-        timezoneLookupValue: userData.timezone.lookupValue
+        timezoneLookupValue: userData.timezone.lookupValue,
     };
 }
 
 /**
- * Hook to check if user has specific permission using new user data structure
+ * Lightweight `{ isAuthenticated, isLoading, user }` view over `useAuthUser`
+ * for UI components that only need to gate render on auth state (header
+ * profile button, admin shell). Replaces Refine's `useIsAuthenticated`,
+ * whose own internal query starts every mount with `isLoading: true` and
+ * defeated our SSR-hydrated cache.
  */
-export function useHasPermission() {
-    const { user } = useAuthUser();
-    
-    return (permission: string): boolean => {
-        if (!user || !user.permissions) return false;
-        return user.permissions.includes(permission);
-    };
-}
-
-/**
- * Hook to check if user has admin access using new user data structure
- */
-export function useHasAdminAccess() {
-    const hasPermission = useHasPermission();
-    
-    return (): boolean => {
-        return hasPermission('admin.access');
-    };
+export function useAuthStatus(): {
+    isAuthenticated: boolean;
+    isLoading: boolean;
+    user: IAuthUser | null;
+} {
+    const { user, isLoading } = useAuthUser();
+    return { isAuthenticated: user !== null, isLoading, user };
 }

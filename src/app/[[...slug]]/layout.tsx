@@ -20,8 +20,11 @@ import {
     getFrontendPagesSSR,
     getPageByKeywordSSRCached,
     resolveLanguageSSR,
+    resolvePreviewSSR,
 } from '../_lib/server-fetch';
 import SlugShell from './SlugLayout/SlugShell';
+import { WebsiteHeader } from '../components/frontend/layout/WebsiteHeader';
+import { WebsiteFooter } from '../components/frontend/layout/WebsiteFooter/WebsiteFooter';
 
 /** Backend keyword used for the landing page (matches Symfony's `home` page). */
 const HOME_KEYWORD = 'home';
@@ -40,12 +43,20 @@ export default async function SlugRouteLayout({
 }) {
     const { slug } = await params;
     const keyword = keywordFromSlug(slug);
-    const { id: languageId } = await resolveLanguageSSR();
+    const [{ id: languageId }, preview] = await Promise.all([
+        resolveLanguageSSR(),
+        resolvePreviewSSR(),
+    ]);
 
     const queryClient = new QueryClient({
         defaultOptions: REACT_QUERY_CONFIG.DEFAULT_OPTIONS,
     });
 
+    // Prefetch the page content under the SAME cache key the client hook
+    // will read (`['page-by-keyword', keyword, languageId, preview]`). The
+    // preview flag is resolved from `sh_preview` on the server, so admins
+    // toggling preview mode see a single request per navigation instead of
+    // published-then-preview double fetches.
     const [navEnvelope, pageEnvelope] = await Promise.all([
         queryClient.prefetchQuery({
             queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES(languageId),
@@ -62,13 +73,13 @@ export default async function SlugRouteLayout({
             },
         }).then(() => queryClient.getQueryData(REACT_QUERY_CONFIG.QUERY_KEYS.FRONTEND_PAGES(languageId))),
         queryClient.prefetchQuery({
-            queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD(keyword, languageId, false),
+            queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD(keyword, languageId, preview),
             queryFn: async () => {
-                const raw = await getPageByKeywordSSRCached(keyword, languageId, false);
+                const raw = await getPageByKeywordSSRCached(keyword, languageId, preview);
                 return raw?.data?.page ?? raw?.data ?? null;
             },
         }).then(() =>
-            queryClient.getQueryData(REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD(keyword, languageId, false))
+            queryClient.getQueryData(REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD(keyword, languageId, preview))
         ),
     ]);
 
@@ -83,9 +94,20 @@ export default async function SlugRouteLayout({
 
     const dehydratedState = dehydrate(queryClient);
 
+    // The header is a Server Component that resolves the menu HTML on the
+    // server (`getMenuPagesSSR` shares the cached `/pages/language/{id}`
+    // round-trip with the prefetch above). Passing it as a slot to the
+    // `'use client'` `SlugShell` is what lets the menu items appear in the
+    // very first painted frame — no flash, no client-side waterfall.
     return (
         <HydrationBoundary state={dehydratedState}>
-            <SlugShell isHeadless={isHeadless}>{children}</SlugShell>
+            <SlugShell
+                isHeadless={isHeadless}
+                header={!isHeadless ? <WebsiteHeader /> : undefined}
+                footer={!isHeadless ? <WebsiteFooter /> : undefined}
+            >
+                {children}
+            </SlugShell>
         </HydrationBoundary>
     );
 }

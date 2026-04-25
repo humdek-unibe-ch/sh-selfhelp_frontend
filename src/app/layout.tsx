@@ -7,7 +7,7 @@ import '@mantine/tiptap/styles.css';
 import '../globals.css';
 
 import { ServerProviders } from '../providers/server-providers';
-import { resolveLanguageSSR } from './_lib/server-fetch';
+import { resolveColorSchemeSSR, resolveLanguageSSR } from './_lib/server-fetch';
 import { ColorSchemeInjector } from './components/shared/common/ColorSchemeInjector';
 
 /**
@@ -37,10 +37,27 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     // Only `htmlLang` is needed here; the id + full language list is
     // resolved inside `ServerProviders` (which shares the same React-cached
     // `resolveLanguageSSR` call, so this does *not* double-hit Symfony).
-    const { htmlLang } = await resolveLanguageSSR();
+    // Color scheme is resolved in parallel so the `<html>` tag emitted on
+    // the very first painted frame already carries the right
+    // `data-mantine-color-scheme` attribute for explicit light/dark users.
+    const [{ htmlLang }, colorScheme] = await Promise.all([
+        resolveLanguageSSR(),
+        resolveColorSchemeSSR(),
+    ]);
+
+    // For `'auto'` we leave the attribute OFF and let the pre-hydration
+    // bootstrap script resolve it from `prefers-color-scheme`. Setting it
+    // to a concrete value server-side would lock in the wrong scheme if the
+    // user's OS preference differed from whatever we arbitrarily picked.
+    const htmlColorSchemeAttr =
+        colorScheme === 'light' || colorScheme === 'dark' ? colorScheme : undefined;
 
     return (
-        <html lang={htmlLang} suppressHydrationWarning>
+        <html
+            lang={htmlLang}
+            data-mantine-color-scheme={htmlColorSchemeAttr}
+            suppressHydrationWarning
+        >
             <head>
                 <link rel="shortcut icon" href="/favicon.svg" />
                 <meta

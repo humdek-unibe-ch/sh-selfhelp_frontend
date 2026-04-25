@@ -1,10 +1,10 @@
 // Client Components - Safe to import in client components
-export { WebsiteHeader } from './WebsiteHeader';
 export { WebsiteHeaderMenu } from './WebsiteHeaderMenu';
 export { WebsiteFooter } from './WebsiteFooter/WebsiteFooter';
 
-// Server Components - Import directly from their files to avoid client component issues
-// These contain server-only imports like 'next/headers' that don't work in client components
-// export { WebsiteHeaderServer } from './WebsiteHeaderServer';
-// export { WebsiteHeaderMenuServer } from './WebsiteHeaderMenuServer';
-// export { WebsiteFooterServer } from './WebsiteFooterServer';
+// `WebsiteHeader` is intentionally NOT re-exported through this barrel.
+// It is now a Server Component (uses `next/headers` via `resolveLanguageSSR`)
+// and re-exporting it here would risk pulling server-only modules into
+// any client bundle that imports anything else from this barrel. The
+// only consumer (`src/app/[[...slug]]/layout.tsx`) imports it directly
+// from `./WebsiteHeader`.

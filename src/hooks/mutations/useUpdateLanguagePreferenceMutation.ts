@@ -1,15 +1,16 @@
 /**
  * Mutation hook for updating the authenticated user's language preference.
  *
- * The BFF's `/auth/set-language` endpoint returns a rotated access token in
- * the response body; the catch-all proxy scrubs the token out and sets the
- * new `sh_auth` cookie automatically. No client-side token handling is
- * needed here.
+ * The BFF's `/auth/set-language` endpoint persists the user's preferred
+ * language; it does not rotate JWTs and does not change `acl_version`, so no
+ * cookie or permission handling is needed here.
  *
- * Cache invalidation is split across two owners to avoid duplicate refetches:
- *  - `setCurrentLanguageId` (LanguageContext) invalidates the two page caches
- *    `['frontend-pages']` + `['page-by-keyword']` — it already runs on every
- *    language change, authenticated or not.
+ * Cache responsibilities are minimal and deliberately scoped:
+ *  - `setCurrentLanguageId` (LanguageContext) writes the cookie and updates
+ *    the in-memory language id. The language-scoped query keys
+ *    (`['frontend-pages', languageId]`, `['page-by-keyword', kw, languageId,
+ *    …]`) include the id, so a state change alone routes consumers to the
+ *    correct cache entry — no manual invalidation is needed.
  *  - This mutation is only responsible for the authenticated-user-only
  *    `['user-data']` key (the profile envelope carries `language.id` /
  *    `language.locale`, which needs to reflect the new preference).

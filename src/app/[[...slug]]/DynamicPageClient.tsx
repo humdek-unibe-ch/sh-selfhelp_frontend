@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { Container, Loader, Center, Text } from '@mantine/core';
 import { useIsFetching } from '@tanstack/react-query';
 import { useLanguageContext } from '../components/contexts/LanguageContext';
-import { usePreviewMode } from '../../hooks/usePreviewMode';
+import { usePreviewMode } from '../components/contexts/PreviewModeContext';
 import { usePageContentByKeyword } from '../../hooks/usePageContentByKeyword';
 import { useSyncDocumentMetadata } from '../../hooks/useSyncDocumentMetadata';
 import { PageContextProvider } from '../components/contexts/PageContext';

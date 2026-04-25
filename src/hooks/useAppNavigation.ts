@@ -7,10 +7,16 @@
  */
 
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
-import { NavigationApi, transformPageData } from '../api/navigation.api';
+import { NavigationApi } from '../api/navigation.api';
 import { IPageItem } from '../types/responses/frontend/frontend.types';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useLanguageContext } from '../app/components/contexts/LanguageContext';
+import {
+    selectFooterPages,
+    selectMenuPages,
+    selectProfilePages,
+    transformNavigationPages,
+} from '../utils/navigation.utils';
 
 interface INavigationData {
     pages: IPageItem[];
@@ -65,43 +71,19 @@ export function useAppNavigation(options: { isAdmin?: boolean } = {}) {
         retry: 1,
         placeholderData: keepPreviousData,
         select: (rawPages: any[]): INavigationData => {
-            // Transform raw API data to IPageItem format (cached by React Query)
-            const pages = rawPages.map(transformPageData);
+            // Apply the shared transform (`transformPageData` + child URL
+            // fix). The same helper backs the SSR `getMenuPagesSSR` call so
+            // server-rendered menu HTML matches what we render after
+            // hydration char-for-char (no React hydration warning, no flash).
+            const fixedPages = transformNavigationPages(rawPages);
+            const pages = fixedPages;
 
-            // Fix child page URLs to use direct paths instead of nested paths
-            const fixChildPageUrls = (pageList: IPageItem[]): IPageItem[] => {
-                return pageList.map(page => {
-                    const fixedPage = { ...page };
-                    
-                    // For child pages (pages with parent), use direct URL based on keyword
-                    if (page.parent_page_id && page.keyword) {
-                        fixedPage.url = `/${page.keyword}`;
-                    }
-                    
-                    // Recursively fix children URLs
-                    if (page.children && page.children.length > 0) {
-                        fixedPage.children = fixChildPageUrls(page.children);
-                    }
-                    
-                    return fixedPage;
-                });
-            };
-
-            // Apply URL fixes to all pages
-            const fixedPages = fixChildPageUrls(pages);
-
-            // Transform data once and cache the result
-            const menuPages = fixedPages
-                .filter(page => page.navPosition !== null && !page.is_headless)
-                .sort((a, b) => (a.navPosition ?? 0) - (b.navPosition ?? 0));
-
-            const footerPages = fixedPages
-                .filter(page => page.footerPosition !== null && !page.is_headless)
-                .sort((a, b) => (a.footerPosition ?? 0) - (b.footerPosition ?? 0));
-
-            const profilePages = fixedPages
-                .filter(page => page.is_system === true && page.keyword === 'profile-link')
-                .sort((a, b) => (a.navPosition ?? 0) - (b.navPosition ?? 0));
+            const menuPages = selectMenuPages(fixedPages);
+            const footerPages = selectFooterPages(fixedPages);
+            // Same helper as `getProfilePagesSSR` (server-fetch.ts) so the
+            // SSR-rendered profile button text ("Profil") matches the
+            // post-hydration render char-for-char.
+            const profilePages = selectProfilePages(fixedPages);
 
             // Flatten ALL pages (including children) for route checking
             const routes = flattenPages(fixedPages);

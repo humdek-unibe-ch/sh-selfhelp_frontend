@@ -28,6 +28,7 @@ import {
     getFrontendPageSeoSSR,
     getPageByKeywordSSRCached,
     resolveLanguageSSR,
+    resolvePreviewSSR,
 } from '../_lib/server-fetch';
 import DynamicPageClient from './DynamicPageClient';
 
@@ -45,13 +46,18 @@ export async function generateMetadata({
 }): Promise<Metadata> {
     const { slug } = await params;
     const keyword = keywordFromSlug(slug);
-    const { id: languageId } = await resolveLanguageSSR();
+    const [{ id: languageId }, preview] = await Promise.all([
+        resolveLanguageSSR(),
+        resolvePreviewSSR(),
+    ]);
 
     // Kick off both fetches in parallel. `getPageByKeywordSSRCached` is
     // React-`cache()`'d across the layout prefetch + this call + the page
-    // body, so Symfony is still hit at most once per request.
+    // body, so Symfony is still hit at most once per request. Pass the
+    // preview flag from the cookie so admins in preview mode don't trigger
+    // a second call after hydration.
     const [envelope, navSeo] = await Promise.all([
-        getPageByKeywordSSRCached(keyword, languageId, false),
+        getPageByKeywordSSRCached(keyword, languageId, preview),
         getFrontendPageSeoSSR(keyword, languageId),
     ]);
 
@@ -95,14 +101,17 @@ export default async function SlugPage({
 }) {
     const { slug } = await params;
     const keyword = keywordFromSlug(slug);
-    const { id: languageId } = await resolveLanguageSSR();
+    const [{ id: languageId }, preview] = await Promise.all([
+        resolveLanguageSSR(),
+        resolvePreviewSSR(),
+    ]);
 
     // Minimal server check: if the page does not exist, fall through to the
     // Next.js 404 handler. The heavy prefetch has already happened in the
     // layout; here we only need to know whether the page resolves. The
     // underlying call is React-`cache()`'d so `generateMetadata` + this call
     // + the layout prefetch all share one network hit.
-    const envelope = await getPageByKeywordSSRCached(keyword, languageId, false);
+    const envelope = await getPageByKeywordSSRCached(keyword, languageId, preview);
     const page = envelope?.data?.page ?? envelope?.data ?? null;
     if (!page) {
         notFound();

@@ -8,6 +8,5 @@ export { PreviewModeToggle } from './PreviewModeToggle';
 export { SelfHelpLogo } from './SelfHelpLogo';
 export { SelectIconField } from './SelectIconField';
 export { ThemeToggle } from './ThemeToggle';
-export { ThemeToggleClient } from './ThemeToggleClient';
 export { LinksGroup } from './navbar-links-group/NavbarLinksGroup';
 export * from './debug';

@@ -10,11 +10,11 @@ import {
     useEffect,
     useRef,
 } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { ILanguage } from '../../../types/responses/admin/languages.types';
 import { useAuthUser } from '../../../hooks/useUserData';
 import { usePublicLanguages } from '../../../hooks/useLanguages';
-import { writeLangCookie } from '../../../utils/auth.utils';
+import { writeBrowserCookie } from '../../../utils/auth.utils';
+import { LANG_COOKIE, LONG_LIVED_COOKIE_MAX_AGE } from '../../../config/cookie-names';
 
 /**
  * Language context.
@@ -27,9 +27,14 @@ import { writeLangCookie } from '../../../utils/auth.utils';
  *   3. First public language if the current id is not in the list.
  *
  * Every successful change writes the `sh_lang` cookie so subsequent server
- * renders and middleware see the new value without a round-trip, and
- * invalidates the language-scoped React Query caches
- * (`frontend-pages`, `page-by-keyword`).
+ * renders and middleware see the new value without a round-trip. The
+ * language-scoped React Query caches (`['frontend-pages', languageId]` /
+ * `['page-by-keyword', keyword, languageId, ...]`) include `languageId` in
+ * their key, so a state change automatically routes consumers to a different
+ * cache entry — no manual invalidation is needed and adding one inside the
+ * state updater triggers a redundant refetch of the *previous* language plus
+ * a Strict-Mode-driven double-invalidation that fires the previous-language
+ * fetch a second time after it completes.
  *
  * The provider does NOT expose an `isUpdatingLanguage` flag: consumers that
  * need a "loading during language switch" signal use
@@ -66,7 +71,6 @@ interface ILanguageProviderProps {
 }
 
 export function LanguageProvider({ children, initialLanguageId, initialLanguages }: ILanguageProviderProps) {
-    const queryClient = useQueryClient();
     const { user, isLoading: isAuthLoading } = useAuthUser();
     const { languages: publicLanguages } = usePublicLanguages();
 
@@ -88,17 +92,15 @@ export function LanguageProvider({ children, initialLanguageId, initialLanguages
     }, [publicLanguages]);
 
     const setCurrentLanguageId = useCallback((languageId: number) => {
-        setCurrentLanguageIdState((prev) => {
-            if (prev === languageId) return prev;
-            writeLangCookie(languageId);
-            // Scope invalidation to language-dependent caches only. A global
-            // invalidation would refetch unrelated entries (lookups,
-            // admin-pages, user-data) and defeat the tiered caching.
-            queryClient.invalidateQueries({ queryKey: ['frontend-pages'] });
-            queryClient.invalidateQueries({ queryKey: ['page-by-keyword'] });
-            return languageId;
-        });
-    }, [queryClient]);
+        // The cookie write is idempotent and safe to run twice; we keep it
+        // here (rather than in an effect) so server-rendered subroutes see
+        // the new value on the very next request without waiting for a
+        // commit. Cache invalidation is intentionally NOT performed: every
+        // language-scoped query key already includes `languageId`, so the
+        // state change alone routes consumers to the correct cache entry.
+        writeBrowserCookie(LANG_COOKIE, String(languageId), LONG_LIVED_COOKIE_MAX_AGE);
+        setCurrentLanguageIdState((prev) => (prev === languageId ? prev : languageId));
+    }, []);
 
     const lastSyncedUserRef = useRef<number | null>(null);
     useEffect(() => {

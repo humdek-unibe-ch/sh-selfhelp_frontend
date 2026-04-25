@@ -3,12 +3,12 @@
 import { AppShell } from "@mantine/core";
 import { AdminNavbar } from "./admin-navbar/AdminNavbar";
 import { useDisclosure } from '@mantine/hooks';
-import { useIsAuthenticated } from '@refinedev/core';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { ROUTES } from "../../../../config/routes.config";
 import { DebugMenu } from "../../shared/common/debug";
 import { useIsSidebarCollapsed } from "../../../store/ui.store";
+import { useAuthStatus } from "../../../../hooks/useUserData";
 
 interface AdminShellProps {
     children: React.ReactNode;
@@ -19,20 +19,26 @@ interface AdminShellProps {
 export function AdminShell({ children, aside, asideWidth = 400 }: AdminShellProps) {
     const [opened, { toggle }] = useDisclosure();
     const isSidebarCollapsed = useIsSidebarCollapsed();
-    const { data: { authenticated } = {}, isLoading: isAuthLoading } = useIsAuthenticated();
+    // Derive auth from our SSR-hydrated `['user-data']` cache rather than
+    // Refine's separate `useIsAuthenticated` query, which starts every
+    // render with `isLoading: true` and caused the admin shell to flash
+    // empty on every reload even though the cookie + user payload were
+    // already present.
+    const { isAuthenticated, isLoading: isAuthLoading } = useAuthStatus();
     const router = useRouter();
 
     // The server layout (`src/app/admin/layout.tsx`) already verifies
     // `sh_auth` exists and calls `/auth/user-data`. This effect only handles
-    // the *mid-session expiry* case: Refine sees a 401 from the BFF and
-    // returns `authenticated === false`, so we bounce the user to login.
+    // the *mid-session expiry* case: the BFF returns a 401 and
+    // `useAuthStatus` resolves to `isAuthenticated === false`, so we bounce
+    // the user to login.
     useEffect(() => {
-        if (!isAuthLoading && authenticated === false) {
+        if (!isAuthLoading && !isAuthenticated) {
             router.replace(ROUTES.LOGIN);
         }
-    }, [authenticated, isAuthLoading, router]);
+    }, [isAuthenticated, isAuthLoading, router]);
 
-    if (authenticated === false) {
+    if (!isAuthLoading && !isAuthenticated) {
         return null;
     }
 
