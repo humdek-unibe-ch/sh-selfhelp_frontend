@@ -83,8 +83,14 @@ catch (error) {
 ```
 
 **File Validation:**
-- **Before:** Button disabled if `!isValidJsonFile(file)` (MIME type check)
-- **After:** Button enabled for any file, warning shown for non-`.json` extensions
+- **Historical:** A pre-flight `isValidJsonFile(file)` MIME-type gate was
+  used to disable the import button until the user picked a `.json` file.
+- **Current:** That helper has been removed. The button is now always
+  enabled for any picked file; `readJsonFile()` (in
+  `src/utils/export-import.utils.ts`) parses + structurally validates the
+  payload, and 422 responses from the backend are surfaced via
+  `parseImportValidationErrors()` so the user gets the precise field /
+  section path that failed instead of a generic "invalid file".
 
 ---
 

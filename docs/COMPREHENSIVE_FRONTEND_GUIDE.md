@@ -34,6 +34,7 @@ This comprehensive guide has been organized into modular sections for better mai
 ### 🏛️ Architecture Reference
 | Section | Description |
 |---------|-------------|
+| [SSR + BFF Architecture](./architecture/ssr-bff-architecture.md) | **Read this first.** Why every request is shaped the way it is — Server Components, BFF proxy, cookie model, real-time ACL push. |
 | [Component Hierarchy](./architecture/component-hierarchy.md) | Detailed component organization and usage |
 | [Data Flow Patterns](./architecture/data-flow.md) | Application data flow and state management |
 | [Styling System](./architecture/styling-system.md) | CSS architecture and Tailwind integration |
@@ -41,7 +42,8 @@ This comprehensive guide has been organized into modular sections for better mai
 ### 📖 Reference Materials
 | Section | Description |
 |---------|-------------|
-| [API Endpoints](./reference/api-endpoints.md) | Complete API endpoint reference |
+| [API Endpoints](./reference/api-endpoints.md) | Complete API endpoint reference (incl. `/api/auth/events` SSE proxy and `/admin/ai/section-prompt-template`) |
+| [SSR Helpers](./reference/ssr-helpers.md) | Flat lookup table for every helper, hook, BFF route, and cookie introduced by the SSR/BFF refactor |
 | [Component Patterns](./reference/component-patterns.md) | Reusable component patterns and examples |
 | [Configuration Files](./reference/configuration-files.md) | Configuration file reference and usage |
 | [Troubleshooting](./reference/troubleshooting.md) | Common issues and solutions |
@@ -141,28 +143,10 @@ src/
 
 ### JWT Token Management
 
-The authentication system uses a dual-token approach with automatic refresh:
-
-```typescript
-// Token Storage (src/utils/auth.utils.ts)
-export const storeTokens = (accessToken: string, refreshToken: string) => {
-    localStorage.setItem('access_token', accessToken);
-    localStorage.setItem('refresh_token', refreshToken);
-};
-
-// Automatic Token Refresh (src/api/base.api.ts)
-apiClient.interceptors.response.use(
-    (response) => response,
-    async (error) => {
-        if (error.response?.status === 401) {
-            const newToken = await AuthApi.refreshToken();
-            // Retry original request with new token
-            return apiClient(originalRequest);
-        }
-        return Promise.reject(error);
-    }
-);
-```
+The browser never stores JWTs directly. Login/logout calls go through Next.js
+auth routes, which set or clear httpOnly `sh_auth` / `sh_refresh` cookies. All
+application API traffic goes through the `/api/*` BFF catch-all, where silent
+refresh and request replay are handled server-side.
 
 ### Authentication Flow
 
@@ -172,7 +156,7 @@ graph TD
     B -->|Yes| C{2FA Required?}
     B -->|No| D[Login Error]
     C -->|Yes| E[2FA Verification]
-    C -->|No| F[Store JWT Tokens]
+    C -->|No| F[Set httpOnly Auth Cookies]
     E --> G{2FA Valid?}
     G -->|Yes| F
     G -->|No| H[2FA Error]
@@ -181,11 +165,11 @@ graph TD
 ```
 
 ### Key Features
-- **JWT Tokens**: Access token (short-lived) + Refresh token (long-lived)
+- **JWT Cookies**: Access token (short-lived) + Refresh token (long-lived), both httpOnly
 - **2FA Support**: Time-based one-time passwords
-- **Auto Refresh**: Transparent token renewal
+- **Auto Refresh**: Transparent token renewal in the BFF proxy
 - **Permission Checking**: Role-based access control
-- **Language Preferences**: Stored in JWT payload
+- **Language Preferences**: Stored in backend profile data and mirrored by cookies for SSR
 
 ### Auth API Methods
 ```typescript
@@ -194,9 +178,6 @@ await AuthApi.login({ email, password });
 
 // Verify 2FA code
 await AuthApi.verifyTwoFactor({ user_id, code });
-
-// Refresh tokens
-await AuthApi.refreshToken();
 
 // Update language preference
 await AuthApi.updateLanguagePreference(languageId);
@@ -267,10 +248,11 @@ const styleComponents = {
 
 ### Page Rendering Process
 
-1. **Route Resolution**: `[[...slug]]/page.tsx` catches all dynamic routes
-2. **Content Fetching**: `usePageContent(keyword, languageId)` fetches page data
-3. **Section Rendering**: `BasicStyle` component routes to appropriate style component
-4. **Field Extraction**: Helper functions extract content from dual structure
+1. **Route Resolution**: `[[...slug]]/page.tsx` catches all dynamic routes (Server Component)
+2. **SSR Prefetch**: `getPageByKeywordSSRCached(keyword, languageId, preview)` (in `src/app/_lib/server-fetch.ts`) fetches the page payload server-side and dehydrates it into the React Query cache
+3. **Content Fetching (client)**: `usePageContentByKeyword(keyword)` reads the dehydrated cache; on language change or admin preview toggle the query refetches via the BFF
+4. **Section Rendering**: `BasicStyle` component routes to appropriate style component
+5. **Field Extraction**: Helper functions extract content from dual structure
 
 ```typescript
 // Field extraction pattern
@@ -332,14 +314,17 @@ export const REACT_QUERY_CONFIG = {
 ### Custom Hooks Pattern
 
 ```typescript
-// Standard query hook pattern
-export function usePageContent(keyword: string, languageId?: number) {
+// Standard query hook pattern (current — keyword-only, language-aware via context)
+// See src/hooks/usePageContentByKeyword.ts
+export function usePageContentByKeyword(keyword: string) {
+    const { currentLanguageId } = useLanguageContext();
+    const { isPreviewMode } = usePreviewMode();
     return useQuery({
-        queryKey: ['page-content', keyword, languageId],
-        queryFn: () => PageApi.getPageContent(keyword, languageId),
-        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
-        enabled: !!keyword && !!languageId,
+        queryKey: ['page-by-keyword', keyword, currentLanguageId, isPreviewMode],
+        queryFn: () => PageApi.getPageByKeyword(keyword, currentLanguageId, isPreviewMode),
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.PAGE_CONTENT.staleTime,
+        gcTime: isPreviewMode ? 0 : REACT_QUERY_CONFIG.CACHE_TIERS.PAGE_CONTENT.gcTime,
+        enabled: !!keyword,
     });
 }
 
@@ -761,8 +746,7 @@ src/app/components/
 │       └── ... (75+ more style components)
 ├── shared/             # Components Used in Both CMS and Frontend
 │   ├── auth/           # Authentication components
-│   │   ├── AuthButton.tsx             # Login/logout button
-│   │   └── AuthButtonClient.tsx       # Client-side auth button
+│   │   └── AuthButton.tsx             # Login/logout button
 │   ├── common/         # Common utilities and UI
 │   │   ├── LoadingScreen.tsx          # Loading spinner
 │   │   ├── CustomModal.tsx            # Modal wrapper
@@ -1610,14 +1594,14 @@ interface ILanguageContextValue {
 ### Authentication-Aware Language System
 
 **Non-Authenticated Users**:
-- Language preference stored in localStorage
+- Language preference stored in `sh_lang` cookie for SSR
 - Uses public `/languages` endpoint
-- URL parameter persistence for language state
+- Server and client both resolve the same initial language
 
 **Authenticated Users**:
-- Language preference stored in JWT token
+- Language preference stored in the backend user profile
 - API call to `/auth/set-language` updates preference
-- Returns new JWT with updated language info
+- BFF handles any token rotation through httpOnly cookies
 
 ### Content Translation System
 
@@ -1661,10 +1645,9 @@ POST /auth/set-language
     "language_id": 3
 }
 
-// Response includes updated JWT
+// Response includes the selected language; token rotation is handled by the BFF
 {
     "data": {
-        "access_token": "new_jwt_token",
         "language_id": 3,
         "language_locale": "de-CH"
     }
@@ -2484,34 +2467,13 @@ const expensiveValue = useMemo(() => {
 npm run dev
 ```
 
-**Regenerate style types from the live schema endpoint:**
+**AI section prompt template:**
 
-```bash
-npm run gen:styles
-```
-
-The script auto-derives the schema URL from `NEXT_PUBLIC_API_URL` +
-`SYMFONY_API_PREFIX` (defaulting to `http://localhost/symfony/cms-api/v1`)
-and reads credentials from `.env.local`. The endpoint is behind the admin
-ACL, so configure authentication via one of these options in `.env.local`
-(see `.env.example` at the repo root for the full template):
-
-| Option | Variables | When to use |
-|---|---|---|
-| Paste a JWT | `STYLES_SCHEMA_TOKEN=eyJhbGciOi...` | You already copied an admin access token from DevTools / another script |
-| Auto-login | `STYLES_SCHEMA_EMAIL=admin@…` + `STYLES_SCHEMA_PASSWORD=…` | Local dev — the script POSTs to `/auth/login` and grabs `data.access_token` |
-
-Extra knobs: `STYLES_SCHEMA_URL` overrides the derived URL;
-`STYLES_SCHEMA_OUTPUT` overrides the default output path.
-
-Writes `src/types/common/styles.types.generated.ts` with a `TStyleNameFromDb`
-union, per-style field shapes, a `STYLE_FIELD_DEFAULTS` map, and relationship
-maps. Re-run this manually whenever styles / fields change in the DB (or
-whenever you pull a migration that touches the `styles`, `fields`, or
-`styles_fields` tables). The generated file is supplementary to the
-hand-crafted `src/types/common/styles.types` — nothing imports from it
-automatically, but new tooling (the AI-prompt flow, the import validation
-UI, codegen consumers) can rely on the precise DB-backed types.
+The frontend does not generate style type files. The admin import UI fetches
+the user-facing AI section prompt through the BFF endpoint
+`/api/admin/ai/section-prompt-template`, which proxies to Symfony. The backend
+owns the live style/field catalog so there is one schema-derived source of
+truth.
 
 **Key File Locations:**
 - API Configuration: `src/config/api.config.ts`

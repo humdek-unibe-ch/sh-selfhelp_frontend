@@ -93,8 +93,7 @@ src/app/components/
 │       └── [Component]Style.tsx (75+ components)
 ├── shared/                # Cross-Context Components
 │   ├── auth/              # Authentication
-│   │   ├── AuthButton.tsx
-│   │   └── AuthButtonClient.tsx
+│   │   └── AuthButton.tsx
 │   ├── common/            # Utilities
 │   │   ├── LoadingScreen.tsx
 │   │   ├── CustomModal.tsx

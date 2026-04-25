@@ -34,8 +34,8 @@ TanStack Query.
 - ACL-versioned navigation refresh: `useAclVersionWatcher` invalidates
   `frontend-pages` and `page-by-keyword` only when the backend rotates
   `user.acl_version`, instead of on every route change.
-- `usePreviewMode` and sidebar-collapsed state moved to a persisted
-  Zustand store (`ui.store.ts`) so SSR hydration is flicker-free.
+- Preview mode is cookie-backed and SSR-resolved via `PreviewModeProvider`;
+  sidebar-collapsed state remains in the persisted Zustand UI store.
 - `GET /cms-api/v1/pages/by-keyword/{keyword}` on the backend so the
   frontend never has to chain `nav → id → content`.
 - Dark/light color-scheme bootstrap streamed via `useServerInsertedHTML`
@@ -45,6 +45,37 @@ TanStack Query.
   per language (returned by `/pages/by-keyword/{keyword}` and by the nav
   list endpoint). `<title>` and `<meta name="description">` are populated
   from the payload directly; the nav list is used only as a safety net.
+- Public website header is now a Server Component
+  (`WebsiteHeader.tsx`). The menu items are fetched via
+  `getMenuPagesSSR` and rendered into the SSR HTML, so the navigation
+  appears at the same instant as the language selector / theme toggle /
+  auth button — no more "menu builds in front of your eyes" flash.
+  `WebsiteHeaderMenu` is a thin client wrapper that takes
+  `initialMenuPages` and falls back to `useAppNavigation` once the
+  client query is live.
+- Real-time ACL push (Mercure): BFF route at `/api/auth/events` is now a
+  thin Mercure-subscription proxy. It calls Symfony for a short-lived
+  subscriber JWT, opens an upstream subscription against the Mercure hub
+  (`{ hubUrl, topic, token }` discovery payload), and pipes the upstream
+  `text/event-stream` body straight back to the browser as same-origin
+  SSE. `useAclEventStream` listens for `acl-changed` events and
+  invalidates `['user-data']`, which — combined with
+  `useAclVersionWatcher` — refreshes the public navigation, the admin
+  sidebar, and any per-page content within ~1 RTT, without requiring the
+  user to click. Async backend jobs that grant new permissions surface
+  in the menu immediately. The previous PHP-FPM-blocking polling
+  implementation has been removed; PHP no longer holds long-lived SSE
+  connections. Backend setup (Mercure hub Docker compose, JWT secret
+  coordination) is documented in `sh-selfhelp_backend/README.md`.
+- Shared navigation transform helpers in `src/utils/navigation.utils.ts`
+  (`transformNavigationPages`, `selectMenuPages`, `selectFooterPages`,
+  `selectProfilePages`) used by both the SSR menu / profile fetch and
+  the client `useAppNavigation` hook so SSR and client renders produce
+  identical DOM.
+- The auth button's profile label is now part of the SSR HTML too
+  (`getProfilePagesSSR` + `AuthButton.initialProfilePages`). German
+  users no longer see "Profile" flash into "Profil"; the translated
+  text is in the very first painted frame.
 
 ### Changed
 - `axios` base URL is now `/api` (the BFF). All `localStorage` token
@@ -79,6 +110,10 @@ TanStack Query.
   body-carried pair, so the newest tokens win.
 - Hover-prefetch and page-content caches now share the same key
   (`page-by-keyword`), so the prefetch actually warms the render path.
+- `DebugMenu` no longer issues `/admin/pages` and a redundant
+  `/pages/language/{id}` request on every public page load. Heavy
+  data subscriptions moved into a panel that is only mounted while
+  the menu is open.
 
 ### Removed
 - Every browser-side JWT / `localStorage` token helper and related

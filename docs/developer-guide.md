@@ -1,5 +1,10 @@
 # SelfHelp Frontend Developer Guide
 
+> **New here?** Read these in order:
+> 1. [SSR + BFF Architecture](architecture/ssr-bff-architecture.md) — why every request is shaped the way it is.
+> 2. [SSR helpers reference](reference/ssr-helpers.md) — flat lookup table for every helper, hook, BFF route, and cookie introduced by the refactor.
+> 3. The guide you're reading right now — patterns and conventions for day-to-day work.
+
 ## Table of Contents
 1. [Project Overview](#project-overview)
 2. [Technology Stack](#technology-stack)
@@ -165,21 +170,24 @@ export function MyComponent({ title, onAction }: IMyComponentProps) {
 
 ### 5. API Integration Pattern
 ```typescript
-// API service layer
+// API service layer (BFF-routed — Axios baseURL is `/api`, never the
+// upstream Symfony origin)
 export class PageApi {
-  static async getPageContent(pageId: number, languageId: number) {
-    return apiClient.get(API_CONFIG.ENDPOINTS.PAGES_GET_ONE(pageId), {
-      params: { language_id: languageId }
+  static async getPageByKeyword(keyword: string, languageId: number, preview: boolean) {
+    return apiClient.get(API_CONFIG.ENDPOINTS.PAGE_BY_KEYWORD(keyword), {
+      params: { language_id: languageId, preview: preview ? 1 : 0 }
     });
   }
 }
 
-// Custom hook
-export function usePageContent(pageId: number | null) {
+// Custom hook (current — see src/hooks/usePageContentByKeyword.ts)
+export function usePageContentByKeyword(keyword: string) {
+  const { currentLanguageId } = useLanguageContext();
+  const { isPreviewMode } = usePreviewMode();
   return useQuery({
-    queryKey: ['page-content', pageId],
-    queryFn: () => PageApi.getPageContent(pageId!, currentLanguageId),
-    enabled: !!pageId,
+    queryKey: ['page-by-keyword', keyword, currentLanguageId, isPreviewMode],
+    queryFn: () => PageApi.getPageByKeyword(keyword, currentLanguageId, isPreviewMode),
+    enabled: !!keyword,
   });
 }
 ```
@@ -257,13 +265,15 @@ npm run lint
 ## Core Concepts
 
 ### Language Management
-The application uses **ID-based language system**:
+The application uses **ID-based language system**, persisted in the
+`sh_lang` cookie and resolved server-side by `resolveLanguageSSR()`:
 ```typescript
-// Language context provides current language ID
-const { currentLanguageId, setCurrentLanguage } = useLanguageContext();
+// Language context provides current language ID (seeded from SSR)
+const { currentLanguageId, setCurrentLanguageId } = useLanguageContext();
 
-// API calls use language_id parameter
-const { data } = usePageContent(pageId, currentLanguageId);
+// Page content is fetched by keyword; the hook reads the language id
+// from context, so call sites stay simple
+const { data } = usePageContentByKeyword(keyword);
 ```
 
 ### Content vs Property Fields
@@ -271,11 +281,16 @@ const { data } = usePageContent(pageId, currentLanguageId);
 - **Property Fields** (`display: false`) - System configuration (CSS, settings)
 
 ### Permission System
-Role-based access control with granular permissions:
+Role-based access control with granular permissions. ACL data is
+cached in the `['user-data']` React Query slot and pushed to the
+browser via the Mercure SSE stream (`/api/auth/events` → `useAclEventStream`).
+Admin pages additionally carry per-row `acl_select / insert / update /
+delete` flags.
+
 ```typescript
-// Check permissions
-const { hasPermission } = useHasPermission();
-if (hasPermission('admin.users.create')) {
+// Read the current user / permissions from the SSR-seeded cache
+const { data: user } = useAuthUser();
+if (user?.permissions?.includes('admin.users.create')) {
   // Show create user button
 }
 ```

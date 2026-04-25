@@ -192,8 +192,7 @@ src/app/components/
 │       └── ... (75+ more style components)
 ├── shared/             # Components Used in Both CMS and Frontend
 │   ├── auth/           # Authentication components
-│   │   ├── AuthButton.tsx             # Login/logout button
-│   │   └── AuthButtonClient.tsx       # Client-side auth button
+│   │   └── AuthButton.tsx             # Login/logout button
 │   ├── common/         # Common utilities and UI
 │   │   ├── LoadingScreen.tsx          # Loading spinner
 │   │   ├── CustomModal.tsx            # Modal wrapper

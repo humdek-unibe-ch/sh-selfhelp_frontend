@@ -317,7 +317,8 @@ If you think you need a new key, first ask: can you derive it with a
 |---------------|------|
 | **Server data** (page content, nav, lookups, user profile) | TanStack Query |
 | **URL-driven state** (filters, tabs, pagination) | `nuqs` (URL) |
-| **UI state that must persist across reloads** (preview mode, sidebar collapsed) | Zustand with `persist` (`ui.store.ts`) |
+| **SSR-visible UI preference** (preview mode) | Cookie + `PreviewModeProvider` |
+| **Client-only UI preference** (sidebar collapsed) | Zustand with `persist` (`ui.store.ts`) |
 | **Admin selection state** (`selectedKeyword`) | Zustand (`admin.store.ts`) |
 | **Ephemeral widget state** (dropdown open, form dirty) | `useState` |
 

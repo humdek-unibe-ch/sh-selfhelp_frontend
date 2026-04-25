@@ -17,6 +17,260 @@ Components) live in `docs/architecture/ssr-bff-architecture.md`.
 
 ## v0.1.0 — SSR + BFF refactor (2026-04)
 
+### DebugMenu lazy mount (2026-04-25)
+
+**Problem.** Reloading any public route (`/all`, `/form`, etc.) as an
+authenticated user logged a stray `/admin/pages` round-trip in the
+Symfony request log. Every page also made a redundant
+`/pages/language/{id}` client fetch even though the slug layout had
+already SSR-prefetched the navigation tree under
+`['frontend-pages', languageId]` and `useAppNavigation` is configured
+with `refetchOnMount: false`.
+
+**Cause.** `DebugMenu` is mounted unconditionally inside `SlugShell`,
+and at the *top of its function body* it called `useAdminPages()` and
+`useAppNavigation()` so the modal could populate its tabs the moment
+the user opened it. Both hooks subscribed to React Query the second
+the component mounted, regardless of whether the user ever clicked
+the bug icon. `useAdminPages` then fired `/admin/pages` (no SSR seed
+on a public page), and the extra `useAppNavigation` subscription
+opened an additional observer window that occasionally tripped
+React Query into refetching `/pages/language/{id}` immediately after
+hydration.
+
+**Fix.** Split the component into a lightweight outer shell
+(`DebugMenu` — only renders the floating IconBug button + the
+target-less bottom-right `Menu`) and a heavyweight panel
+(`DebugMenuPanel`) that owns *all* the data subscriptions. The panel
+is conditionally rendered with `{opened && <DebugMenuPanel … />}`,
+so its hooks are not invoked until the user actually opens the
+menu. Closing the menu unmounts the panel and tears the
+subscriptions back down, so a public page load now generates zero
+admin/navigation traffic from the debug surface.
+
+**Note on remaining duplicates.** A fresh reload of a public page
+still shows two SSR fetches each for `/auth/user-data` and
+`/pages/language/{id}` in the dev backend log even though both
+helpers are wrapped in React's `cache()`. This is a Next.js 16 +
+Turbopack dev-mode quirk: when the same `cache()`-memoised function
+is consumed from both `app/layout.tsx` (root) and
+`app/[[...slug]]/layout.tsx` (nested), the request-scoped
+memoisation is occasionally skipped under turbopack's per-module
+recompilation. The duplicates collapse to one fetch each in
+`next build` / `next start`. We are intentionally not adding a
+manual dedup wrapper because that would only paper over a tooling
+issue that production builds do not exhibit.
+
+### Server-rendered public menu + real-time ACL push (2026-04-25)
+
+**Problem.** Two related UX papercuts on the public site:
+
+1. The website header was a Client Component. The language selector,
+   theme toggle and auth button rendered immediately on first paint
+   (they have no async dependency), but the menu items waited on the
+   client `useAppNavigation` query to settle. Result: a visible
+   "build-in" flash where the menu items appear *after* the rest of the
+   header — even though the data is already in the SSR-hydrated cache.
+2. ACL changes from async backend jobs (e.g. a form submission queues a
+   job that grants the user a new group → the new group reveals an extra
+   page on the menu) needed *something* to invalidate `['user-data']`
+   before the user could see them. The only triggers for a user-data
+   refetch were the 30-second stale window and `refetchOnWindowFocus`,
+   so the user could sit on the page indefinitely with stale navigation.
+
+**Fix — SSR-first menu render.**
+
+- `WebsiteHeader.tsx` is now a Server Component. It calls
+  `resolveLanguageSSR()` + `getMenuPagesSSR(languageId)` and passes the
+  resulting `IPageItem[]` into `<WebsiteHeaderMenu initialMenuPages={…} />`
+  as a prop. The full menu HTML is therefore part of the SSR payload.
+- `WebsiteHeaderMenu.tsx` (client) prefers `useAppNavigation`'s live
+  data once it arrives but falls back to `initialMenuPages` for first
+  paint, so the SSR HTML and first client render produce identical DOM
+  (no hydration mismatch, no flash).
+- `SlugShell.tsx` was refactored to accept `header` and `footer` as
+  `React.ReactNode` slot props. The route-group `layout.tsx` then
+  renders `<WebsiteHeader />` and `<WebsiteFooter />` as Server
+  Components and threads them through. Avoids the "Server Component
+  imported from a Client Component" anti-pattern entirely.
+- New `src/utils/navigation.utils.ts` extracts
+  `transformNavigationPages`, `selectMenuPages` and `selectFooterPages`.
+  Both `getMenuPagesSSR` and the client `useAppNavigation` hook now go
+  through the same helpers, so SSR and CSR cannot disagree about which
+  pages belong on the menu.
+
+**Fix — real-time ACL push via SSE.**
+
+- New BFF route `src/app/api/auth/events/route.ts` proxies Symfony's
+  `GET /cms-api/v1/auth/events` to the browser. It pulls the JWT out of
+  the httpOnly `sh_auth` cookie, attaches it as
+  `Authorization: Bearer <token>`, and pipes the upstream
+  `text/event-stream` response straight through. The response is
+  flagged `Cache-Control: no-cache, no-store, no-transform` and
+  `X-Accel-Buffering: no` so any reverse proxy (nginx, CDN) cannot
+  buffer SSE frames.
+- A dedicated route is required because the catch-all proxy at
+  `src/app/api/[...path]/route.ts` calls `await upstream.text()` to
+  unwrap JSON envelopes / handle token rotation, which would buffer the
+  SSE response forever. SSE also never carries rotated tokens (the
+  stream pre-dates any new access token), so it does not need that
+  machinery. CSRF is skipped because `EventSource` cannot attach
+  custom headers and SSE is GET-only and idempotent.
+- New client hook `useAclEventStream` opens an `EventSource` against
+  `/api/auth/events`, reconnects with capped exponential backoff after
+  hard failures (browser auto-reconnect handles the soft case), and on
+  every `acl-changed` event invalidates `['user-data']`. The existing
+  `useAclVersionWatcher` then notices the bumped `acl_version` and
+  cascades into `['frontend-pages']`, `['admin-pages']` and
+  `['page-by-keyword']` — exactly the same code path that was already
+  in production for the polled case, just kicked off by a push instead
+  of a stale-window expiry.
+- Mounted in `RefineWrapper` (inside `ClientProviders`) right next to
+  `useAclVersionWatcher`. Anonymous visitors short-circuit (no
+  `EventSource` opened) — there is nothing to listen for if there is no
+  user.
+
+**Backend contract (must be implemented in Symfony).**
+
+```
+GET /cms-api/v1/auth/events
+Headers:  Authorization: Bearer <jwt>
+          Accept: text/event-stream
+Response: 200 OK
+          Content-Type: text/event-stream
+          Cache-Control: no-cache, no-transform
+          Connection: keep-alive
+
+Events:
+  event: acl-changed
+  data: { "aclVersion": "<new acl_version>" }
+       — fired whenever the authenticated user's ACL membership changes
+         (group/role mutation, async job grant, admin role change, etc.).
+
+  event: ping
+  data: { "ts": <unix-ms> }
+       — fired every ~15s to keep idle proxies / load balancers from
+         dropping the keep-alive connection.
+```
+
+The frontend doesn't actually parse the `data` payload — receiving any
+`acl-changed` event is enough to trigger the `['user-data']`
+invalidation, because the freshly-fetched envelope already contains
+the new `acl_version`. Carrying the version inline is purely
+informational / for future optimisations.
+
+**Net effect.** The menu and admin sidebar are now part of the SSR
+HTML (no flash on first paint). When a backend job hands a user new
+permissions, the SSE channel pushes `acl-changed`, the cache cascade
+runs, and the new menu entries appear within ~1 RTT — no click, no
+window-focus, no manual refresh.
+
+**Follow-up: profile button text was still flashing.** The
+`AuthButton` (header avatar + dropdown) read `profilePages` from
+`useAppNavigation` and fell back to the hardcoded English literal
+`'Profile'` whenever the live array was empty. On first paint the
+React Query data wasn't always settled in time, so a German user saw
+`Profile` flicker into `Profil`.
+
+The fix is the same SSR pattern we used for the menu:
+- `selectProfilePages(pages)` extracted into `utils/navigation.utils.ts`
+  alongside `selectMenuPages` / `selectFooterPages`.
+- `getProfilePagesSSR(languageId)` added to `_lib/server-fetch.ts`.
+  Reuses the React-`cache()`'d `/pages/language/{id}` fetch, so it
+  shares one round-trip with the SSR menu and the slug-layout
+  prefetch.
+- `WebsiteHeader` (Server Component) now fetches both menu and
+  profile slices in parallel and passes
+  `initialProfilePages` to `AuthButton`.
+- `AuthButton` accepts `initialProfilePages` and uses it as the
+  fallback whenever `useAppNavigation`'s live `profilePages` is empty.
+  Live data still wins once it arrives — both go through the same
+  `selectProfilePages` helper, so SSR HTML and post-hydration render
+  match char-for-char.
+- `useAppNavigation` was retro-fitted to call the shared helper too,
+  so the filter logic lives in exactly one place.
+
+End result: the German user sees `Profil` in the *first* painted
+frame; no English flicker, no jump.
+
+**Rollout note: real-time push migrated to Mercure (2026-04-25).**
+
+The interim PHP-side SSE implementation (a `StreamedResponse` loop in
+`AuthEventsController` polling `users.acl_version` every 2 seconds via
+raw DBAL) was replaced with a proper [Mercure](https://mercure.rocks)
+hub. Two reasons drove the swap:
+
+1. **PHP-FPM bottleneck.** Every open SSE connection pinned one
+   PHP-FPM worker for up to 5 minutes (the loop's hard cap). At
+   even modest concurrency the worker pool ran out and other API
+   requests starved.
+2. **Polling every 2 seconds is just polling.** The whole point of
+   pushing real-time events was to avoid that pattern; the old loop
+   just moved it inside Symfony.
+
+The new architecture, end to end:
+
+- **Backend publisher.** `App\EventListener\AclVersionMercurePublisher`
+  is a Doctrine listener on `onFlush` + `postFlush`. `onFlush` collects
+  every User entity whose changeset includes `acl_version`. `postFlush`
+  publishes one Mercure update per buffered user once the SQL has
+  actually committed (so a rolled-back transaction does not leak a
+  stale notification). Update is `type=acl-changed`,
+  `topic=https://selfhelp.app/users/{id}/acl`, `data={"aclVersion":"..."}`.
+  Topic format is centralised in `App\Service\Mercure\MercureTopicResolver`.
+- **Backend bootstrap endpoint.** `AuthEventsController::events` no
+  longer streams — it returns a discovery payload
+  `{ hubUrl, topic, token, expiresIn }`. The token is a short-lived
+  HMAC-SHA256 JWT (Lcobucci) scoped to the caller's per-user topic.
+  Lifetime defaults to 1 hour (`MERCURE_SUBSCRIBER_TTL`) and the BFF
+  re-mints on every reconnect.
+- **Backend hub.** A dockerised `dunglas/mercure` container holds the
+  long-lived SSE connections. Setup is documented in the backend's
+  `README.md` "Real-time push (Mercure)" section, with a ready-to-use
+  `docker-compose.mercure.yml` exposing the hub on
+  `http://localhost:3001/.well-known/mercure`.
+- **Frontend BFF.** `src/app/api/auth/events/route.ts` was rewritten
+  as a Mercure subscription proxy: it calls Symfony for the discovery
+  payload, then opens an upstream `${hubUrl}?topic=${topic}` request
+  with `Authorization: Bearer ${token}`, and pipes the body straight
+  back to the browser. The browser keeps a same-origin
+  `EventSource('/api/auth/events')`; nothing about the wire contract
+  visible to the hook changed.
+- **Frontend hook.** `useAclEventStream` is unchanged — it still
+  listens for `acl-changed` events and invalidates `['user-data']`,
+  `useAclVersionWatcher` still cascades the rest. The "1 user request
+  → 1 RTT to UI refresh" guarantee is preserved.
+
+Why proxy through the BFF instead of letting the browser talk to the
+hub directly? Mercure authenticates subscribers with a JWT (header or
+`mercureAuthorization` cookie). `EventSource` cannot set custom
+headers, and cross-origin (`localhost:3000 → localhost:3001`) cookies
+need `SameSite=None; Secure`, which fails on `http://localhost`. The
+BFF proxy keeps the auth token entirely server-side (it never reaches
+the browser) and makes the browser-side subscription same-origin so
+none of those constraints apply. In production, a reverse proxy that
+serves `/.well-known/mercure` from the same hostname as the app would
+let us drop the proxy and have the browser subscribe directly — the
+hook does not need to change for that switch.
+
+What was removed from the previous SSE implementation:
+
+1. The 5-minute self-terminating poll loop in `AuthEventsController`.
+2. The 15-second `ping` heartbeat (the hub provides protocol-level
+   keep-alives).
+3. The `NEXT_PUBLIC_ACL_EVENTS_ENABLED` feature flag (already gone in
+   the previous rollout pass).
+4. The BFF's 404 → 501 translation.
+
+End-to-end behaviour after this change: an admin grants a new role in
+one tab → `User::bumpAclVersion()` is called → Doctrine listener
+publishes to Mercure on `postFlush` → the hub fans out the update to
+the affected user's open subscription → BFF pipes it to the browser
+→ `useAclEventStream` invalidates `['user-data']` →
+`useAclVersionWatcher` cascades into navigation / admin / page-content
+invalidations → the affected menu / sidebar items appear without the
+user clicking anything. Same UX, no PHP-FPM blocking, no polling.
+
 ### SEO title + description returned by the backend (2026-04-23)
 
 **Problem.** `http://localhost:3000/test3` rendered the fallback
@@ -53,9 +307,8 @@ Two separate gaps were responsible:
 **Frontend fix (`sh-selfhelp_frontend`).**
 - `IPageContent` and `IPageItem` now declare `title?: string | null` /
   `description?: string | null` so TypeScript mirrors the backend contract.
-- `getFrontendPageTitleSSR` has been generalised to `getFrontendPageSeoSSR` which
-  returns `{ title, description }` from the SSR-cached nav list. The old title-only
-  function is kept as a thin wrapper for backward compatibility.
+- The old title-only SSR helper has been replaced by `getFrontendPageSeoSSR`,
+  which returns `{ title, description }` from the SSR-cached nav list.
 - `generateMetadata` in `src/app/[[...slug]]/page.tsx` now prefers the payload's
   `page.title` / `page.description` and only falls back to the nav list when the
   payload is missing those fields (defence in depth for brief backend outages or
@@ -239,11 +492,8 @@ cache keys with the SSR prefetch story documented above.
     `by-keyword` refactor.
   - Config: `REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_CONTENT` — no
     callers; every consumer goes through `PAGE_BY_KEYWORD` now.
-  - API: `AuthApi.refreshToken()` (and its
-    `TRefreshTokenSuccessResponse` type, `AUTH_REFRESH_TOKEN` endpoint
-    entry) — the `/api/auth/refresh` BFF route stays for API-only
-    clients but has zero in-repo callers. `API_CONFIG.TOKEN_REFRESH_INTERVAL`
-    and `TOKEN_EXPIRY_THRESHOLD` (stale client-side refresh constants).
+  - API: client-side token refresh helpers and stale refresh constants. Token
+    refresh now happens only in the BFF proxy.
   - BFF helper: `forwardToSymfony` (only ever an alias for
     `forwardBufferedToSymfony` with no override).
   - SSR fetch: `TAG_LANGUAGES` and the `next: { tags: [...] }` option —
@@ -334,9 +584,8 @@ cache keys with the SSR prefetch story documented above.
   triggering large unnecessary re-renders on each route change.
 
 ### State management
-- New `src/app/store/ui.store.ts` (Zustand, persisted) owns `isPreviewMode`.
-  `usePreviewMode` now reads from it so all consumers share one truth and
-  SSR hydration is flicker-free.
+- Preview mode now lives in `PreviewModeProvider`, backed by the `sh_preview`
+  cookie so server and client render from the same request-scoped value.
 - `src/app/store/admin.store.ts` now stores only `selectedKeyword` instead
   of the whole page object; leaf components use the new
   `useSelectedAdminPage(keyword)` selector hook which subscribes to a single

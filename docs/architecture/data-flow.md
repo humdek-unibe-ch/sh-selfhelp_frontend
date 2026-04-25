@@ -15,12 +15,15 @@ User Action → React Component → React Query Hook → API Service → Backend
 - **Benefits**: Automatic caching, background updates, optimistic updates
 
 ```typescript
-// Query pattern
-export function usePageContent(keyword: string, languageId?: number) {
+// Query pattern (current — see src/hooks/usePageContentByKeyword.ts)
+// language + preview are pulled from contexts so callers stay simple
+export function usePageContentByKeyword(keyword: string) {
+    const { currentLanguageId } = useLanguageContext();
+    const { isPreviewMode } = usePreviewMode();
     return useQuery({
-        queryKey: ['page-content', keyword, languageId],
-        queryFn: () => PageApi.getPageContent(keyword, languageId),
-        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
+        queryKey: ['page-by-keyword', keyword, currentLanguageId, isPreviewMode],
+        queryFn: () => PageApi.getPageByKeyword(keyword, currentLanguageId, isPreviewMode),
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.PAGE_CONTENT.staleTime,
     });
 }
 

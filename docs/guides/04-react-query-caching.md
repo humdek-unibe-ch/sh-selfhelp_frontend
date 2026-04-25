@@ -1,5 +1,38 @@
 # 4. ⚡ React Query & Caching Strategy
 
+## Client factory: `getQueryClient()`
+
+`src/providers/query-client.ts` exposes a single factory used by both
+runtimes:
+
+```typescript
+import { QueryClient, isServer } from '@tanstack/react-query';
+
+export function getQueryClient(): QueryClient {
+  if (isServer) return new QueryClient({ defaultOptions: REACT_QUERY_CONFIG.DEFAULT_OPTIONS });
+  return (browserQueryClient ??= new QueryClient({ defaultOptions: REACT_QUERY_CONFIG.DEFAULT_OPTIONS }));
+}
+```
+
+- **Server**: a fresh client per request (sharing across requests would
+  leak one visitor's cache into another's render).
+- **Browser**: a singleton for the lifetime of the tab so SPA-style
+  navigations share the cache.
+
+Always call `getQueryClient()` rather than `new QueryClient(...)` —
+that's how non-React callers (Refine's `authProvider`,
+`server-providers.tsx`, the admin layout SSR prefetch) read and write
+the same cache the `<QueryClientProvider>` mounts.
+
+## SSR seeding
+
+Server-side prefetches in `src/app/_lib/server-fetch.ts`
+(`getFrontendPagesSSR`, `getPageByKeywordSSRCached`,
+`getAdminLookupsSSR`, …) are dehydrated by
+`src/providers/server-providers.tsx` into a `<HydrationBoundary>`. The
+first client render therefore starts with the same cache the server
+just used — zero refetches, zero waterfalls.
+
 ## Global Configuration
 
 ```typescript
@@ -41,14 +74,17 @@ export const REACT_QUERY_CONFIG = {
 ## Custom Hooks Pattern
 
 ```typescript
-// Standard query hook pattern
-export function usePageContent(keyword: string, languageId?: number) {
+// Standard query hook pattern (current — keyword-only, language + preview from context)
+// See src/hooks/usePageContentByKeyword.ts
+export function usePageContentByKeyword(keyword: string) {
+    const { currentLanguageId } = useLanguageContext();
+    const { isPreviewMode } = usePreviewMode();
     return useQuery({
-        queryKey: ['page-content', keyword, languageId],
-        queryFn: () => PageApi.getPageContent(keyword, languageId),
-        staleTime: REACT_QUERY_CONFIG.CACHE.staleTime,
-        gcTime: REACT_QUERY_CONFIG.CACHE.gcTime,
-        enabled: !!keyword && !!languageId,
+        queryKey: ['page-by-keyword', keyword, currentLanguageId, isPreviewMode],
+        queryFn: () => PageApi.getPageByKeyword(keyword, currentLanguageId, isPreviewMode),
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.PAGE_CONTENT.staleTime,
+        gcTime: isPreviewMode ? 0 : REACT_QUERY_CONFIG.CACHE_TIERS.PAGE_CONTENT.gcTime,
+        enabled: !!keyword,
     });
 }
 
