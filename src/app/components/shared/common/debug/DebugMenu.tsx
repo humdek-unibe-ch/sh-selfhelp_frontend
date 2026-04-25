@@ -18,7 +18,6 @@ import {
     Paper,
     Box,
     Menu,
-    Loader
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { 
@@ -90,8 +89,89 @@ if (typeof window !== 'undefined') {
 }
 
 
+/**
+ * Lightweight outer shell — only renders the floating IconBug button and
+ * the (currently target-less) bottom-right `Menu`. The heavy
+ * `useAppNavigation` / `useAdminPages` subscriptions live in
+ * `DebugMenuPanel`, which is conditionally mounted on `opened` so the
+ * `/admin/pages` round-trip never fires on public pages where the user
+ * never opens the debug menu. This was previously costing every
+ * authenticated visitor an `/admin/pages` request on every public page
+ * load (and an unrelated `/pages/language/{id}` refetch through the
+ * same pull).
+ */
 export function DebugMenu() {
-    const [opened, { toggle }] = useDisclosure(false);
+    const [opened, { toggle, close }] = useDisclosure(false);
+    const { languages, setCurrentLanguageId } = useLanguageContext();
+
+    const handleLanguageTest = () => {
+        if (languages.length > 0) {
+            const randomLanguage = languages[Math.floor(Math.random() * languages.length)];
+            setCurrentLanguageId(randomLanguage.id);
+            notifications.show({
+                title: 'Debug: Language Changed',
+                message: `Switched to ${randomLanguage.language}`,
+                color: 'blue'
+            });
+        }
+    };
+
+    return (
+        <>
+            <Tooltip label="Debug Menu" position="right">
+                <ActionIcon
+                    onClick={toggle}
+                    variant="subtle"
+                    size="lg"
+                    style={{
+                        position: 'fixed',
+                        top: 16,
+                        left: 16,
+                        zIndex: 1000,
+                        backgroundColor: 'var(--mantine-color-blue-6)',
+                        color: 'white'
+                    }}
+                >
+                    <IconBug size={20} />
+                </ActionIcon>
+            </Tooltip>
+
+            {opened && <DebugMenuPanel opened={opened} onClose={close} />}
+
+            <Menu shadow="md" width={300} position="bottom-end">
+                <Menu.Dropdown>
+                    <Menu.Item
+                        leftSection={<IconLanguage size={16} />}
+                        onClick={handleLanguageTest}
+                        disabled={languages.length === 0}
+                    >
+                        Test Random Language
+                    </Menu.Item>
+
+                    <Menu.Item
+                        leftSection={<IconInfoCircle size={16} />}
+                        onClick={() => {
+                            notifications.show({
+                                title: 'Language Debug Info',
+                                message: `Available: ${languages.length}`,
+                                color: 'blue'
+                            });
+                        }}
+                    >
+                        Show Language Info
+                    </Menu.Item>
+                </Menu.Dropdown>
+            </Menu>
+        </>
+    );
+}
+
+interface IDebugMenuPanelProps {
+    opened: boolean;
+    onClose: () => void;
+}
+
+function DebugMenuPanel({ opened, onClose }: IDebugMenuPanelProps) {
     const [activeTab, setActiveTab] = useState<string>('all');
     const [logs, setLogs] = useState<IDebugLogEntry[]>([]);
     const [filterSectionInspector, setFilterSectionInspector] = useState(false);
@@ -100,8 +180,11 @@ export function DebugMenu() {
     const [performanceStats, setPerformanceStats] = useState(getRenderStats());
     const [performanceWarnings, setPerformanceWarnings] = useState(getWarnings());
     const [reportCopied, setReportCopied] = useState(false);
-    
-    // Navigation data for the navigation debug tab
+
+    // Heavy subscriptions — only run while the panel is mounted (i.e. the
+    // user has actually opened the menu). On a public page where the menu
+    // stays closed these queries never fire, so `/admin/pages` no longer
+    // hits Symfony on every reload of a public route.
     const { pages, menuPages, footerPages, routes, isLoading, profilePages } = useAppNavigation();
     const { systemPageLinks, categorizedSystemPages } = useAdminPages();
     const { currentLanguageId, languages, setCurrentLanguageId } = useLanguageContext();
@@ -243,32 +326,13 @@ export function DebugMenu() {
     };
 
     return (
-        <>
-            <Tooltip label="Debug Menu" position="right">
-                <ActionIcon
-                    onClick={toggle}
-                    variant="subtle"
-                    size="lg"
-                    style={{
-                        position: 'fixed',
-                        top: 16,
-                        left: 16,
-                        zIndex: 1000,
-                        backgroundColor: 'var(--mantine-color-blue-6)',
-                        color: 'white'
-                    }}
-                >
-                    <IconBug size={20} />
-                </ActionIcon>
-            </Tooltip>
-
-            <Modal
-                opened={opened}
-                onClose={toggle}
-                title="Debug Information"
-                size="xl"
-                scrollAreaComponent={ScrollArea.Autosize}
-            >
+        <Modal
+            opened={opened}
+            onClose={onClose}
+            title="Debug Information"
+            size="xl"
+            scrollAreaComponent={ScrollArea.Autosize}
+        >
                 <Tabs defaultValue="navigation">
                     <Tabs.List>
                         <Tabs.Tab value="navigation">Navigation</Tabs.Tab>
@@ -1410,33 +1474,6 @@ function MyComponent(props) {
                         </Stack>
                     </Tabs.Panel>
                 </Tabs>
-            </Modal>
-
-            <Menu shadow="md" width={300} position="bottom-end">
-                <Menu.Dropdown>
-                    <Menu.Item
-                        leftSection={<IconLanguage size={16} />}
-                        onClick={handleLanguageTest}
-                        disabled={isUpdatingLanguage || languages.length === 0}
-                    >
-                        Test Random Language
-                        {isUpdatingLanguage && <Loader size="xs" ml="auto" />}
-                    </Menu.Item>
-                    
-                    <Menu.Item
-                        leftSection={<IconInfoCircle size={16} />}
-                        onClick={() => {
-                            notifications.show({
-                                title: 'Language Debug Info',
-                                message: `Current: ${currentLanguage?.language || 'None'}, Available: ${languages.length}`,
-                                color: 'blue'
-                            });
-                        }}
-                    >
-                        Show Language Info
-                    </Menu.Item>
-                </Menu.Dropdown>
-            </Menu>
-        </>
+        </Modal>
     );
-} 
+}
