@@ -100,13 +100,6 @@ export function readJsonFile(file: File): Promise<ISectionExportData[]> {
 }
 
 /**
- * Validates if a file is a valid JSON file
- */
-export function isValidJsonFile(file: File): boolean {
-    return file.type === 'application/json' || file.name.toLowerCase().endsWith('.json');
-}
-
-/**
  * Extracts the structured `errors[]` array from a 422 import-validation error.
  * The backend returns them inside `response.data.errors` via `ServiceException`.
  * Falls back to an empty array when the error doesn't match that shape.

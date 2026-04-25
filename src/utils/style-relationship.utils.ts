@@ -12,7 +12,7 @@ export function isStyleAllowedAsChildOfParent(childStyle: IStyle, parentStyle: I
         return true;
     }
 
-    // If parent has no relationships defined, allow all styles (backward compatibility)
+    // If parent has no relationships defined, it has no restrictions.
     if (!parentStyle.relationships) {
         return true;
     }

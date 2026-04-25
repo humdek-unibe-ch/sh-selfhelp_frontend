@@ -64,40 +64,51 @@ export const getCssClass = (style: TStyle): string => {
 };
 
 /**
- * Extract spacing props from a style object
- * Priority: mantine_spacing_margin_padding field (new) > individual spacing fields (legacy)
+ * Extract spacing props from a style object.
  *
  * The spacing field value is expected to be a JSON object, e.g.
  *   {"mt":"md","mb":"md","pt":"lg","pb":"lg","ms":"sm","me":"sm","ps":"xs","pe":"xs"}
- * If the stored value is not valid JSON (for example an AI-generated
- * Tailwind class string like "pt-10"), we silently ignore it so the page
- * does not crash. The invalid value remains in the DB until an editor
- * saves a new value.
+ * Anything that fails to parse or isn't a JSON object is ignored so the page
+ * keeps rendering; in development we surface the bad value via `console.warn`
+ * so the editor can fix it. The invalid value stays in the DB until an
+ * editor saves a new value.
  */
 export const getSpacingProps = (style: IStyleWithSpacing) => {
-    const spacingProps: Record<string, any> = {};
+    const spacingProps: Record<string, string> = {};
+    const warnInvalid = (reason: string, value: unknown): void => {
+        if (process.env.NODE_ENV === 'development') {
+            // eslint-disable-next-line no-console
+            console.warn(
+                `[getSpacingProps] section ${style.id} (${style.style_name}): ${reason}`,
+                value
+            );
+        }
+    };
 
-    if (!style.mantine_spacing_margin_padding && !style.mantine_spacing_margin) {
+    if (!style.mantine_spacing_margin_padding) {
         return spacingProps;
     }
 
-    const spacingJson = style.mantine_spacing_margin_padding?.content ?? style.mantine_spacing_margin?.content;
+    const spacingJson = style.mantine_spacing_margin_padding.content;
     if (typeof spacingJson !== 'string' || spacingJson.trim() === '') {
         return spacingProps;
     }
 
     const trimmed = spacingJson.trim();
     if (trimmed[0] !== '{' && trimmed[0] !== '[') {
+        warnInvalid('spacing value is not a JSON object', trimmed);
         return spacingProps;
     }
 
     let parsedSpacing: Record<string, string | undefined>;
     try {
         parsedSpacing = JSON.parse(trimmed);
-    } catch {
+    } catch (error) {
+        warnInvalid('spacing JSON parse failed', { trimmed, error });
         return spacingProps;
     }
     if (!parsedSpacing || typeof parsedSpacing !== 'object') {
+        warnInvalid('spacing JSON did not produce an object', parsedSpacing);
         return spacingProps;
     }
 

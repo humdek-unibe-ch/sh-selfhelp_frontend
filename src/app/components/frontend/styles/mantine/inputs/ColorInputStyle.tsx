@@ -23,7 +23,6 @@ interface IColorInputStyleProps {
  * - Configurable field name for form submission
  * - Controlled component with state management
  * - Support for required field validation
- * - Backward compatibility with legacy fields
  * - Hidden input to ensure form submission captures the value
  *
  * @component

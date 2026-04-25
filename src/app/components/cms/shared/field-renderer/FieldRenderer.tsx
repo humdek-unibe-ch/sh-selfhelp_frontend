@@ -607,8 +607,8 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
         );
     }
 
-    // Spacing fields (margin only or margin + padding)
-    if (field.type === 'mantine_spacing_margin_padding' || field.type === 'mantine_spacing_margin') {
+    // Spacing field (margin + padding)
+    if (field.type === 'mantine_spacing_margin_padding') {
         return renderFieldWithBadge(
             <SpacingField
                 fieldId={field.id}

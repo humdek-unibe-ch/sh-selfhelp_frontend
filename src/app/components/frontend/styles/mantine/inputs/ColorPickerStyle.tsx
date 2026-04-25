@@ -26,7 +26,6 @@ interface IColorPickerStyleProps {
  * - Controlled component with state management
  * - Support for required field validation
  * - Optional button mode for compact display
- * - Backward compatibility with legacy fields
  * - Hidden input to ensure form submission captures the value
  *
  * @component
@@ -37,7 +36,7 @@ const ColorPickerStyle: React.FC<IColorPickerStyleProps> = ({ style, styleProps,
 
     // Extract field values using the new unified field structure
     const format = style.mantine_color_format?.content || 'hex';
-    const swatchesPerRow = parseInt((style as any).mantine_color_picker_swatches_per_row?.content || '7');
+    const swatchesPerRow = parseInt(style.mantine_color_picker_swatches_per_row?.content || '7');
     const size = style.mantine_size?.content || 'sm';
 
     // New field values

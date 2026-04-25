@@ -35,7 +35,15 @@ const HtmlTagStyle: React.FC<IHtmlTagStyleProps> = ({ style, styleProps, cssClas
     };
 
     if (children.length > 0) {
-        const htmlTag = INLINE_ONLY_HTML_TAGS.has(requestedTag) ? 'div' : requestedTag;
+        const isInlineOnly = INLINE_ONLY_HTML_TAGS.has(requestedTag);
+        if (isInlineOnly && process.env.NODE_ENV === 'development') {
+            // eslint-disable-next-line no-console
+            console.warn(
+                `[HtmlTagStyle] section ${style.id}: inline-only tag <${requestedTag}> ` +
+                `had ${children.length} child style(s); rendered as <div> to avoid a hydration crash.`
+            );
+        }
+        const htmlTag = isInlineOnly ? 'div' : requestedTag;
 
         return React.createElement(
             htmlTag,
