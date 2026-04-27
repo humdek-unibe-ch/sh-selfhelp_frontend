@@ -4,6 +4,7 @@ import { ISliderStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";
 import { sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
+import DOMPurify from 'isomorphic-dompurify';
 
 /**
  * Props interface for SliderStyle component
@@ -148,7 +149,7 @@ const SliderStyle: React.FC<ISliderStyleProps> = ({ style, styleProps, cssClass 
     // Wrap component with label or description if present
     const wrappedComponent = label || description ? (
         <Input.Wrapper
-            label={label}
+            label={ DOMPurify.sanitize(label || '', { ALLOWED_TAGS: [] })}
             description={parse(sanitizeHtmlForParsing(description))}
             {...styleProps} className={cssClass}
             style={styleObj}

@@ -23,7 +23,7 @@ interface IInputStyleProps {
 const InputStyle: React.FC<IInputStyleProps> = ({ style, cssClass }) => {
     // Extract field values using the new unified field structure
     const inputType = style.type_input?.content || 'text';
-    const placeholder = style.placeholder?.content;
+    const placeholder =  DOMPurify.sanitize(style.placeholder?.content || '', { ALLOWED_TAGS: [] });
     const name = style.name?.content;
     const initialValue = style.value?.content || '';
     const required = style.is_required?.content === '1';
@@ -77,7 +77,7 @@ const InputStyle: React.FC<IInputStyleProps> = ({ style, cssClass }) => {
                 onChange={handleChange}
                 type={inputType}
                 name={translatable ? undefined : name} // Don't set name for translatable fields - handled by wrapper
-                placeholder={ DOMPurify.sanitize(placeholder || '', { ALLOWED_TAGS: [] })}
+                placeholder={placeholder}
                 required={required}
                 min={min}
                 max={max}

@@ -7,6 +7,7 @@ import { IconAlertTriangle, IconCheck, IconX, IconUpload, IconFile, IconTrash, I
 import { useDropzone } from 'react-dropzone';
 import { FileInputRegistrationContext } from '../../FormStyle';
 import { castMantineRadius, castMantineSize } from '../../../../../../utils/style-field-extractor';
+import DOMPurify from 'isomorphic-dompurify';
 
 /**
  * Props interface for FileInputStyle component
@@ -60,7 +61,10 @@ const FileInputStyle = forwardRef<IFileInputStyleRef, IFileInputStyleProps>(({ s
     const dropzoneInputRef = useRef<HTMLInputElement>(null);
 
     // Extract field values using the new unified field structure
-    const placeholder = style.placeholder?.content || 'Select files';
+    const placeholder =
+       DOMPurify.sanitize(style.placeholder?.content ?? "", {
+         ALLOWED_TAGS: [],
+       }) || "Select files";
     const multiple = style.mantine_file_input_multiple?.content === '1';
     const accept = style.mantine_file_input_accept?.content;
     const clearable = style.mantine_file_input_clearable?.content === '1';

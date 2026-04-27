@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { ISelectStyle } from '../../../../types/common/styles.types';
 import { FormFieldValueContext } from './FormStyle';
+import DOMPurify from 'isomorphic-dompurify';
+import { Select, MultiSelect } from '@mantine/core';
 
 /**
  * Props interface for SelectStyle component
@@ -11,13 +13,17 @@ interface ISelectStyleProps {
 }
 
 /**
- * SelectStyle component renders a dropdown selection field using HTML select elements
+ * SelectStyle component renders a dropdown selection field using Mantine Select components
  * Supports single and multiple selection
- * Uses plain HTML select elements for form compatibility
+ * Uses Mantine Select / MultiSelect for better UX and form handling
  */
 const SelectStyle: React.FC<ISelectStyleProps> = ({ style, cssClass }) => {
     // Extract field values using the new unified field structure
-    const placeholder = style.placeholder?.content || 'Select an option';
+    const placeholder =
+        DOMPurify.sanitize(style.placeholder?.content ?? '', {
+            ALLOWED_TAGS: [],
+        }) || 'Select an option';
+
     const name = style.name?.content;
     const value = style.value?.content;
     const required = style.is_required?.content === '1';
@@ -35,6 +41,16 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style, cssClass }) => {
     } catch (error) {
         optionsArray = [];
     }
+
+    // Convert options into Mantine format
+    const data = useMemo(
+        () =>
+            optionsArray.map((option: any) => ({
+                value: option.value,
+                label: option.label || option.text,
+            })),
+        [optionsArray]
+    );
 
     // Get form context for pre-populated values
     const formContext = useContext(FormFieldValueContext);
@@ -54,33 +70,36 @@ const SelectStyle: React.FC<ISelectStyleProps> = ({ style, cssClass }) => {
         }
     }, [formValue, isMultiple]);
 
-    const handleSingleValueChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedValue(event.target.value);
+    const handleChange = (val: string | string[] | null) => {
+        setSelectedValue(val ?? (isMultiple ? [] : ''));
     };
 
-    const handleMultiValueChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        const selectedOptions = Array.from(event.target.selectedOptions, option => option.value);
-        setSelectedValue(selectedOptions);
-    };
-
-    return (
-        <select
-            name={isMultiple ? `${name}[]` : name}
-            value={selectedValue}
-            onChange={isMultiple ? handleMultiValueChange : handleSingleValueChange}
-            multiple={isMultiple}
-            required={required}
+    return isMultiple ? (
+        <MultiSelect
+            className={cssClass}
+            data={data}
+            value={selectedValue as string[]}
+            onChange={handleChange}
+            placeholder={placeholder}
             disabled={disabled}
-            size={isMultiple ? Math.min(optionsArray.length + 1, 6) : undefined} // Show more options for multiple select
-        >
-            {!isMultiple && !required && <option value="">{placeholder}</option>}
-            {optionsArray.map((option: any, index: number) => (
-                <option key={index} value={option.value}>
-                    {option.label || option.text}
-                </option>
-            ))}
-        </select>
+            required={required}
+            searchable
+            clearable={!required}
+            maxValues={maxValues}
+        />
+    ) : (
+        <Select
+            className={cssClass}
+            data={data}
+            value={selectedValue as string}
+            onChange={handleChange}
+            placeholder={placeholder}
+            disabled={disabled}
+            required={required}
+            searchable
+            clearable={!required}
+        />
     );
 };
 
-export default SelectStyle; 
+export default SelectStyle;

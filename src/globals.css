@@ -82,3 +82,8 @@
 .selfhelp-condition-builder .rule {
     align-items: baseline !important;
 }
+
+/* Fix placeholder overflow */
+.mantine-MultiSelect-input{
+    display: block !important;
+}

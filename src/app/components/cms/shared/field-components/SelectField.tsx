@@ -151,7 +151,7 @@ export function SelectField({
             data={options}
             value={value ?? ''}
             onChange={(selectedValue) => onChange(selectedValue ?? '')}
-            placeholder={config.placeholder || placeholder}
+            placeholder={'config.placeholder || placeholder'}
             description={config.description}
             error={config.error}
             required={config.required}

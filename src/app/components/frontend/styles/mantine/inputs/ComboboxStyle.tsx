@@ -18,6 +18,7 @@ import { IComboboxStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
 import parse from "html-react-parser";
 import { sanitizeHtmlForInline, sanitizeHtmlForParsing } from '../../../../../../utils/html-sanitizer.utils';
+import DOMPurify from 'isomorphic-dompurify';
 
 /**
  * Props interface for ComboboxStyle component
@@ -49,8 +50,11 @@ interface IComboboxStyleProps {
 const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
     const use_mantine_style = style.use_mantine_style?.content === '1';
-    const placeholder = style.placeholder?.content || 'Select option...';
-    const disabled = style.disabled?.content === '1';
+    const placeholder =
+       DOMPurify.sanitize(style.placeholder?.content ?? "", {
+         ALLOWED_TAGS: [],
+       }) || "Select option...";
+    const disabled = style.disabled?.content === "1";
 
     // Form configuration fields
     const label = style.label?.content;

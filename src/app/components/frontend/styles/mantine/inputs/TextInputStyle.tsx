@@ -25,7 +25,7 @@ const TextInputStyle: React.FC<ITextInputStyleProps> = ({ style, styleProps, css
     // Extract field values
     const label = style.label?.content;
     const description = style.description?.content;
-    const placeholder = style.placeholder?.content;
+    const placeholder = DOMPurify.sanitize(style.placeholder?.content || '', { ALLOWED_TAGS: [] });
     const initialValue = style.value?.content;
     const name = style.name?.content;
     const required = style.is_required?.content === '1';
@@ -74,7 +74,7 @@ const TextInputStyle: React.FC<ITextInputStyleProps> = ({ style, styleProps, css
         return (
             <TextInput
                 {...(translatable ? undefined : { ...styleProps, ...spacingProps })} className={translatable ? undefined : cssClass}
-                placeholder={ DOMPurify.sanitize(placeholder || '', { ALLOWED_TAGS: [] })}
+                placeholder={placeholder}
                 required={required}
                 value={currentValue}
                 label={parse(sanitizeHtmlForInline(DOMPurify.sanitize(label || '')))}
