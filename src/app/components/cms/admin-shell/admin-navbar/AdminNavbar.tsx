@@ -98,11 +98,19 @@ export function AdminNavbar() {
         ) || [];
 
 
-        // Get footer pages
+        // Get footer pages — INCLUDING system pages that have a footer
+        // position. Legal pages (privacy, agb, impressum, disclaimer) are
+        // marked `is_system = 1` AND have a `footer_position`; previously
+        // the `is_system` filter dropped them out of the admin sidebar
+        // entirely so admins had no way to find them under "Footer Pages".
+        // They still appear in the dedicated "System Pages → Legal"
+        // bucket below — the duplication is intentional, since both
+        // mental models (browse-by-purpose vs browse-by-position) are
+        // valid and the admins we asked preferred to see footer content
+        // listed where it shows up on the website.
         const footerPages = pages?.filter(page =>
             page.footer_position !== null &&
-            page.footer_position !== undefined &&
-            !Boolean(page.is_system)
+            page.footer_position !== undefined
         ).sort((a, b) => (a.footer_position || 0) - (b.footer_position || 0)) || [];
 
         const menuItems = [];

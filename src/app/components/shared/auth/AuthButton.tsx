@@ -119,15 +119,30 @@ export function AuthButton({ initialProfilePages = [] }: IAuthButtonProps = {}) 
                         </Menu.Item>
                     ))
                 ) : (
-                    // Fallback if no children found
-                    <Menu.Item
-                        color="red"
-                        leftSection={<IconLogout size={14} />}
-                        onClick={handleLogout}
-                        disabled={isLoggingOut}
-                    >
-                        {isLoggingOut ? 'Logging out...' : 'Logout'}
-                    </Menu.Item>
+                    // Fallback when the `profile-link` page is absent from
+                    // the CMS catalogue (the recent migration deletes it,
+                    // since `profile-link` was a pure-label page with no
+                    // body content). We still want the avatar dropdown to
+                    // be useful, so we synthesize the two minimum-viable
+                    // entries: a link to the user's profile page and the
+                    // sign-out action.
+                    <>
+                        <Menu.Item
+                            leftSection={<IconSettings size={14} />}
+                            onClick={() => router.push(ROUTES.PROFILE)}
+                        >
+                            Profile
+                        </Menu.Item>
+                        <Menu.Divider />
+                        <Menu.Item
+                            color="red"
+                            leftSection={<IconLogout size={14} />}
+                            onClick={handleLogout}
+                            disabled={isLoggingOut}
+                        >
+                            {isLoggingOut ? 'Logging out...' : 'Logout'}
+                        </Menu.Item>
+                    </>
                 )}
             </Menu.Dropdown>
         </Menu>
