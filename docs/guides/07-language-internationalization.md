@@ -28,14 +28,41 @@ interface ILanguageContextValue {
 ## Authentication-Aware Language System
 
 **Non-Authenticated Users**:
-- Language preference stored in localStorage
+- Language preference stored in `sh_lang` cookie for SSR
 - Uses public `/languages` endpoint
-- URL parameter persistence for language state
+- Server and client both resolve the same initial language
 
 **Authenticated Users**:
-- Language preference stored in JWT token
+- Language preference stored in the backend user profile
 - API call to `/auth/set-language` updates preference
-- Returns new JWT with updated language info
+- BFF handles any token rotation through httpOnly cookies
+
+## SSR resolution
+
+Language is resolved server-side **once per request** by
+`resolveLanguageSSR()` (in `src/app/_lib/server-fetch.ts`) using a strict
+priority chain:
+
+1. `sh_lang` cookie — the explicit user choice, stamped on every change
+2. `sh_accept_locale` hint — set by `src/proxy.ts` from the
+   browser's `Accept-Language` header on the very first visit
+3. First language returned by the live `/languages` endpoint — the DB is
+   the source of truth, so no hardcoded id can drift when an admin
+   renames or deletes a language
+
+The function returns `{ id, locale, htmlLang, languages }` — `htmlLang`
+is dropped onto `<html lang="…">` in the root layout, the rest is
+threaded through `ServerProviders` into `LanguageProvider`. The same
+call is wrapped in React's `cache()` so calling it from the layout, the
+page, and `generateMetadata` only hits Symfony once.
+
+## Switching language (browser)
+
+`LanguageContext.setCurrentLanguageId` stamps the `sh_lang` cookie via
+the shared `writeBrowserCookie` helper (`src/utils/auth.utils.ts`) and
+invalidates the language-scoped query keys. The next SSR pass picks
+the cookie up automatically; the URL is **not** modified — there is no
+`?language=…` parameter anymore.
 
 ## Content Translation System
 
@@ -79,10 +106,9 @@ POST /auth/set-language
     "language_id": 3
 }
 
-// Response includes updated JWT
+// Response includes selected language; token rotation is handled by the BFF
 {
     "data": {
-        "access_token": "new_jwt_token",
         "language_id": 3,
         "language_locale": "de-CH"
     }

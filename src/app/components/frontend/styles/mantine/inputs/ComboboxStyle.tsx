@@ -40,7 +40,6 @@ interface IComboboxStyleProps {
  * - Controlled component with state management
  * - Support for required field validation
  * - Optional label and description
- * - Backward compatibility with legacy fields
  * - Hidden input to ensure form submission captures the value
  *
  * @component
@@ -66,20 +65,28 @@ const ComboboxStyle: React.FC<IComboboxStyleProps> = ({ style, styleProps, cssCl
     const creatable = style.mantine_combobox_creatable?.content === '1';
     const clearable = style.mantine_combobox_clearable?.content === '1';
     const separator = style.mantine_combobox_separator?.content || ' ';
-    const maxValues = style.mantine_multi_select_max_values?.content ? parseInt((style as any).mantine_multi_select_max_values?.content!) : undefined;
+    const maxValues = style.mantine_multi_select_max_values?.content
+        ? parseInt(style.mantine_multi_select_max_values.content)
+        : undefined;
 
     // Handle CSS field - use direct property from API response
     
 
     // Parse combobox options from JSON textarea
+    interface IComboboxOption {
+        value: string;
+        label?: string;
+        text?: string;
+    }
+
     let predefinedOptions: Array<{ value: string; label: string }> = [];
     try {
         const dataJson = style.mantine_combobox_options?.content;
 
         if (dataJson && dataJson.trim()) {
-            const parsed = JSON.parse(dataJson);
+            const parsed = JSON.parse(dataJson) as IComboboxOption[];
             // Handle both formats: {value, label} and {value, text}
-            predefinedOptions = parsed.map((option: any) => ({
+            predefinedOptions = parsed.map((option) => ({
                 value: option.value,
                 label: option.label || option.text || option.value
             }));

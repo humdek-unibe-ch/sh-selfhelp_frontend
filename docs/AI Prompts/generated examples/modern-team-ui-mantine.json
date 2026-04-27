@@ -1,3559 +1,642 @@
 [
   {
-    "name": "team-container",
+    "section_name": "team-mantine",
     "style_name": "container",
-    "children": [
-      {
-        "name": "team-header",
-        "style_name": "stack",
-        "children": [
-          {
-            "name": "team-title",
-            "style_name": "title",
-            "children": [],
-            "fields": {
-              "content": {
-                "en-GB": {
-                  "content": "Meet Our Executive Team",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Lernen Sie unser Führungsteam kennen",
-                  "meta": null
-                }
-              },
-              "mantine_title_order": {
-                "all": {
-                  "content": "2",
-                  "meta": null
-                }
-              },
-              "use_mantine_style": {
-                "all": {
-                  "content": "1",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "text-center",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "team-subtitle",
-            "style_name": "text",
-            "children": [],
-            "fields": {
-              "text": {
-                "en-GB": {
-                  "content": "Our diverse leadership team brings together decades of experience in technology, innovation, and business excellence to drive our mission forward.",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Unser diverses Führungsteam vereint Jahrzehnte an Erfahrung in Technologie, Innovation und Geschäftsexzellenz, um unsere Mission voranzutreiben.",
-                  "meta": null
-                }
-              },
-              "mantine_text_size": {
-                "all": {
-                  "content": "lg",
-                  "meta": null
-                }
-              },
-              "mantine_text_align": {
-                "all": {
-                  "content": "center",
-                  "meta": null
-                }
-              },
-              "use_mantine_style": {
-                "all": {
-                  "content": "1",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "text-center text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed",
-              "css_mobile": "text-center px-4",
-              "debug": false
-            }
-          }
-        ],
-        "fields": {
-          "mantine_gap": {
-            "all": {
-              "content": "lg",
-              "meta": null
-            }
-          },
-          "mantine_justify": {
-            "all": {
-              "content": "center",
-              "meta": null
-            }
-          },
-          "mantine_align": {
-            "all": {
-              "content": "center",
-              "meta": null
-            }
-          }
-        },
-        "global_fields": {
-          "condition": null,
-          "data_config": null,
-          "css": "mb-16",
-          "css_mobile": "mb-12",
-          "debug": false
-        }
-      },
-      {
-        "name": "team-grid",
-        "style_name": "simple-grid",
-        "children": [
-          {
-            "name": "team-member-1",
-            "style_name": "card",
-            "children": [
-              {
-                "name": "member-image-container-1",
-                "style_name": "stack",
-                "children": [
-                  {
-                    "name": "member-image-1",
-                    "style_name": "image",
-                    "children": [],
-                    "fields": {
-                      "img_src": {
-                        "all": {
-                          "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
-                          "meta": null
-                        }
-                      },
-                      "alt": {
-                        "en-GB": {
-                          "content": "Dr. Sarah Müller - CEO & Founder",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Dr. Sarah Müller - Geschäftsführerin & Gründerin",
-                          "meta": null
-                        }
-                      },
-                      "is_fluid": {
-                        "all": {
-                          "content": "1",
-                          "meta": null
-                        }
-                      },
-                      "mantine_radius": {
-                        "all": {
-                          "content": "lg",
-                          "meta": null
-                        }
-                      },
-                      "use_mantine_style": {
-                        "all": {
-                          "content": "1",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "aspect-square object-cover",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {
-                  "mantine_spacing_margin_padding": {
-                    "all": {
-                      "content": "{\"bottom\":\"lg\"}",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "member-info-1",
-                "style_name": "stack",
-                "children": [
-                  {
-                    "name": "member-info-header-1",
-                    "style_name": "stack",
-                    "children": [
-                      {
-                        "name": "member-name-1",
-                        "style_name": "text",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Dr. Sarah Müller",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "Dr. Sarah Müller",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_size": {
-                            "all": {
-                              "content": "xl",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_align": {
-                            "all": {
-                              "content": "center",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_font_weight": {
-                            "all": {
-                              "content": "700",
-                              "meta": null
-                            }
-                          },
-                          "use_mantine_style": {
-                            "all": {
-                              "content": "1",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-gray-900 dark:text-white",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      },
-                      {
-                        "name": "member-role-1",
-                        "style_name": "text",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Chief Executive Officer & Founder",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "Geschäftsführerin & Gründerin",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_size": {
-                            "all": {
-                              "content": "lg",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_align": {
-                            "all": {
-                              "content": "center",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_font_weight": {
-                            "all": {
-                              "content": "600",
-                              "meta": null
-                            }
-                          },
-                          "use_mantine_style": {
-                            "all": {
-                              "content": "1",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-blue-600 dark:text-blue-400",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      }
-                    ],
-                    "fields": {
-                      "mantine_gap": {
-                        "all": {
-                          "content": "xs",
-                          "meta": null
-                        }
-                      },
-                      "mantine_align": {
-                        "all": {
-                          "content": "center",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "member-contact-section-1",
-                    "style_name": "stack",
-                    "children": [
-                      {
-                        "name": "contact-label-1",
-                        "style_name": "text",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Contact Information",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "Kontaktinformationen",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_size": {
-                            "all": {
-                              "content": "sm",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_align": {
-                            "all": {
-                              "content": "left",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_font_weight": {
-                            "all": {
-                              "content": "600",
-                              "meta": null
-                            }
-                          },
-                          "use_mantine_style": {
-                            "all": {
-                              "content": "1",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-gray-800 dark:text-gray-200 mb-2",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      },
-                      {
-                        "name": "office-info-1",
-                        "style_name": "text",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "🏢 Office: Zurich HQ, Executive Suite",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "🏢 Büro: Zürich HQ, Executive Suite",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_size": {
-                            "all": {
-                              "content": "sm",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_align": {
-                            "all": {
-                              "content": "left",
-                              "meta": null
-                            }
-                          },
-                          "use_mantine_style": {
-                            "all": {
-                              "content": "1",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-gray-600 dark:text-gray-400",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      },
-                      {
-                        "name": "phone-info-1",
-                        "style_name": "text",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "📞 Phone: +41 44 123 45 67 (Direct)",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "📞 Telefon: +41 44 123 45 67 (Direkt)",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_size": {
-                            "all": {
-                              "content": "sm",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_align": {
-                            "all": {
-                              "content": "left",
-                              "meta": null
-                            }
-                          },
-                          "use_mantine_style": {
-                            "all": {
-                              "content": "1",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-gray-600 dark:text-gray-400",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      },
-                      {
-                        "name": "email-info-1",
-                        "style_name": "text",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "✉️ Email: sarah.mueller@company.ch",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "✉️ E-Mail: sarah.mueller@company.ch",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_size": {
-                            "all": {
-                              "content": "sm",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_align": {
-                            "all": {
-                              "content": "left",
-                              "meta": null
-                            }
-                          },
-                          "use_mantine_style": {
-                            "all": {
-                              "content": "1",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-gray-600 dark:text-gray-400",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      }
-                    ],
-                    "fields": {
-                      "mantine_gap": {
-                        "all": {
-                          "content": "xs",
-                          "meta": null
-                        }
-                      },
-                      "mantine_align": {
-                        "all": {
-                          "content": "flex-start",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "member-bio-section-1",
-                    "style_name": "stack",
-                    "children": [
-                      {
-                        "name": "bio-label-1",
-                        "style_name": "text",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Professional Background",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "Beruflicher Hintergrund",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_size": {
-                            "all": {
-                              "content": "sm",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_align": {
-                            "all": {
-                              "content": "left",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_font_weight": {
-                            "all": {
-                              "content": "600",
-                              "meta": null
-                            }
-                          },
-                          "use_mantine_style": {
-                            "all": {
-                              "content": "1",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-gray-800 dark:text-gray-200 mb-2",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      },
-                      {
-                        "name": "member-bio-1",
-                        "style_name": "text",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Dr. Müller holds a PhD in Business Administration and brings over 18 years of experience in digital transformation and strategic leadership. She excels in scaling technology companies from startup to enterprise level, with a proven track record of driving innovation and sustainable growth. Her expertise includes strategic planning, organizational development, and technology-driven business transformation.",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "Dr. Müller verfügt über eine Promotion in Betriebswirtschaftslehre und bringt über 18 Jahre Erfahrung in der digitalen Transformation und strategischen Führung mit. Sie zeichnet sich durch die Skalierung von Technologieunternehmen vom Startup zum Enterprise aus und hat eine nachgewiesene Erfolgsbilanz bei der Förderung von Innovation und nachhaltigem Wachstum. Ihre Expertise umfasst strategische Planung, Organisationsentwicklung und technologiegetriebene Geschäftstransformation.",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_size": {
-                            "all": {
-                              "content": "sm",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_align": {
-                            "all": {
-                              "content": "left",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_line_clamp": {
-                            "all": {
-                              "content": "6",
-                              "meta": null
-                            }
-                          },
-                          "use_mantine_style": {
-                            "all": {
-                              "content": "1",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-gray-700 dark:text-gray-300 leading-relaxed",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      }
-                    ],
-                    "fields": {
-                      "mantine_gap": {
-                        "all": {
-                          "content": "sm",
-                          "meta": null
-                        }
-                      },
-                      "mantine_align": {
-                        "all": {
-                          "content": "flex-start",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {
-                  "mantine_gap": {
-                    "all": {
-                      "content": "lg",
-                      "meta": null
-                    }
-                  },
-                  "mantine_align": {
-                    "all": {
-                      "content": "center",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {
-              "mantine_card_shadow": {
-                "all": {
-                  "content": "md",
-                  "meta": null
-                }
-              },
-              "mantine_border": {
-                "all": {
-                  "content": "0",
-                  "meta": null
-                }
-              },
-              "mantine_radius": {
-                "all": {
-                  "content": "xl",
-                  "meta": null
-                }
-              },
-              "mantine_spacing_margin_padding": {
-                "all": {
-                  "content": "{\"all\":\"xl\"}",
-                  "meta": null
-                }
-              },
-              "use_mantine_style": {
-                "all": {
-                  "content": "1",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "team-member-2",
-            "style_name": "card",
-            "children": [
-              {
-                "name": "member-image-container-2",
-                "style_name": "stack",
-                "children": [
-                  {
-                    "name": "member-image-2",
-                    "style_name": "image",
-                    "children": [],
-                    "fields": {
-                      "img_src": {
-                        "all": {
-                          "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
-                          "meta": null
-                        }
-                      },
-                      "alt": {
-                        "en-GB": {
-                          "content": "Prof. Dr. Thomas Weber - CTO",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Prof. Dr. Thomas Weber - Technischer Leiter",
-                          "meta": null
-                        }
-                      },
-                      "is_fluid": {
-                        "all": {
-                          "content": "1",
-                          "meta": null
-                        }
-                      },
-                      "mantine_radius": {
-                        "all": {
-                          "content": "lg",
-                          "meta": null
-                        }
-                      },
-                      "use_mantine_style": {
-                        "all": {
-                          "content": "1",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "aspect-square object-cover",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {
-                  "mantine_spacing_margin_padding": {
-                    "all": {
-                      "content": "{\"bottom\":\"lg\"}",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "member-info-2",
-                "style_name": "stack",
-                "children": [
-                  {
-                    "name": "member-info-header-2",
-                    "style_name": "stack",
-                    "children": [
-                      {
-                        "name": "member-name-2",
-                        "style_name": "text",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Prof. Dr. Thomas Weber",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "Prof. Dr. Thomas Weber",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_size": {
-                            "all": {
-                              "content": "xl",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_align": {
-                            "all": {
-                              "content": "center",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_font_weight": {
-                            "all": {
-                              "content": "700",
-                              "meta": null
-                            }
-                          },
-                          "use_mantine_style": {
-                            "all": {
-                              "content": "1",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-gray-900 dark:text-white",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      },
-                      {
-                        "name": "member-role-2",
-                        "style_name": "text",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Chief Technology Officer",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "Technischer Leiter",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_size": {
-                            "all": {
-                              "content": "lg",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_align": {
-                            "all": {
-                              "content": "center",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_font_weight": {
-                            "all": {
-                              "content": "600",
-                              "meta": null
-                            }
-                          },
-                          "use_mantine_style": {
-                            "all": {
-                              "content": "1",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-green-600 dark:text-green-400",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      }
-                    ],
-                    "fields": {
-                      "mantine_gap": {
-                        "all": {
-                          "content": "xs",
-                          "meta": null
-                        }
-                      },
-                      "mantine_align": {
-                        "all": {
-                          "content": "center",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "member-contact-section-2",
-                    "style_name": "stack",
-                    "children": [
-                      {
-                        "name": "contact-label-2",
-                        "style_name": "text",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Contact Information",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "Kontaktinformationen",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_size": {
-                            "all": {
-                              "content": "sm",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_align": {
-                            "all": {
-                              "content": "left",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_font_weight": {
-                            "all": {
-                              "content": "600",
-                              "meta": null
-                            }
-                          },
-                          "use_mantine_style": {
-                            "all": {
-                              "content": "1",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-gray-800 dark:text-gray-200 mb-2",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      },
-                      {
-                        "name": "office-info-2",
-                        "style_name": "text",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "🏢 Office: Tech Innovation Lab",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "🏢 Büro: Tech Innovationslabor",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_size": {
-                            "all": {
-                              "content": "sm",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_align": {
-                            "all": {
-                              "content": "left",
-                              "meta": null
-                            }
-                          },
-                          "use_mantine_style": {
-                            "all": {
-                              "content": "1",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-gray-600 dark:text-gray-400",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      },
-                      {
-                        "name": "phone-info-2",
-                        "style_name": "text",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "📞 Phone: +41 44 123 45 68 (Direct)",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "📞 Telefon: +41 44 123 45 68 (Direkt)",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_size": {
-                            "all": {
-                              "content": "sm",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_align": {
-                            "all": {
-                              "content": "left",
-                              "meta": null
-                            }
-                          },
-                          "use_mantine_style": {
-                            "all": {
-                              "content": "1",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-gray-600 dark:text-gray-400",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      },
-                      {
-                        "name": "email-info-2",
-                        "style_name": "text",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "✉️ Email: thomas.weber@company.ch",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "✉️ E-Mail: thomas.weber@company.ch",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_size": {
-                            "all": {
-                              "content": "sm",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_align": {
-                            "all": {
-                              "content": "left",
-                              "meta": null
-                            }
-                          },
-                          "use_mantine_style": {
-                            "all": {
-                              "content": "1",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-gray-600 dark:text-gray-400",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      }
-                    ],
-                    "fields": {
-                      "mantine_gap": {
-                        "all": {
-                          "content": "xs",
-                          "meta": null
-                        }
-                      },
-                      "mantine_align": {
-                        "all": {
-                          "content": "flex-start",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "member-bio-section-2",
-                    "style_name": "stack",
-                    "children": [
-                      {
-                        "name": "bio-label-2",
-                        "style_name": "text",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Professional Background",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "Beruflicher Hintergrund",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_size": {
-                            "all": {
-                              "content": "sm",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_align": {
-                            "all": {
-                              "content": "left",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_font_weight": {
-                            "all": {
-                              "content": "600",
-                              "meta": null
-                            }
-                          },
-                          "use_mantine_style": {
-                            "all": {
-                              "content": "1",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-gray-800 dark:text-gray-200 mb-2",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      },
-                      {
-                        "name": "member-bio-2",
-                        "style_name": "text",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Professor Weber is a leading expert in enterprise software architecture with 16+ years of experience in scalable system design. As former Principal Engineer at Google, he specializes in distributed systems, cloud-native applications, and AI-driven development. He is a published author on scalable architecture patterns and frequently speaks at international tech conferences.",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "Professor Weber ist ein führender Experte für Enterprise-Softwarearchitektur mit 16+ Jahren Erfahrung in der skalierbaren Systemgestaltung. Als ehemaliger Principal Engineer bei Google spezialisiert er sich auf verteilte Systeme, Cloud-native Anwendungen und KI-gestützte Entwicklung. Er ist Verfasser von Fachbüchern zu skalierbaren Architekturmuster und spricht regelmässig auf internationalen Tech-Konferenzen.",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_size": {
-                            "all": {
-                              "content": "sm",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_align": {
-                            "all": {
-                              "content": "left",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_line_clamp": {
-                            "all": {
-                              "content": "6",
-                              "meta": null
-                            }
-                          },
-                          "use_mantine_style": {
-                            "all": {
-                              "content": "1",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-gray-700 dark:text-gray-300 leading-relaxed",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      }
-                    ],
-                    "fields": {
-                      "mantine_gap": {
-                        "all": {
-                          "content": "sm",
-                          "meta": null
-                        }
-                      },
-                      "mantine_align": {
-                        "all": {
-                          "content": "flex-start",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {
-                  "mantine_gap": {
-                    "all": {
-                      "content": "lg",
-                      "meta": null
-                    }
-                  },
-                  "mantine_align": {
-                    "all": {
-                      "content": "center",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {
-              "mantine_card_shadow": {
-                "all": {
-                  "content": "md",
-                  "meta": null
-                }
-              },
-              "mantine_border": {
-                "all": {
-                  "content": "0",
-                  "meta": null
-                }
-              },
-              "mantine_radius": {
-                "all": {
-                  "content": "xl",
-                  "meta": null
-                }
-              },
-              "mantine_spacing_margin_padding": {
-                "all": {
-                  "content": "{\"all\":\"xl\"}",
-                  "meta": null
-                }
-              },
-              "use_mantine_style": {
-                "all": {
-                  "content": "1",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "team-member-1",
-            "style_name": "card",
-            "children": [
-              {
-                "name": "member-image-container-1",
-                "style_name": "stack",
-                "children": [
-                  {
-                    "name": "member-image-1",
-                    "style_name": "image",
-                    "children": [],
-                    "fields": {
-                      "img_src": {
-                        "all": {
-                          "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
-                          "meta": null
-                        }
-                      },
-                      "alt": {
-                        "en-GB": {
-                          "content": "Dr. Sarah Müller - CEO & Founder",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Dr. Sarah Müller - Geschäftsführerin & Gründerin",
-                          "meta": null
-                        }
-                      },
-                      "is_fluid": {
-                        "all": {
-                          "content": "1",
-                          "meta": null
-                        }
-                      },
-                      "mantine_radius": {
-                        "all": {
-                          "content": "lg",
-                          "meta": null
-                        }
-                      },
-                      "use_mantine_style": {
-                        "all": {
-                          "content": "1",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "aspect-square object-cover",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {
-                  "mantine_spacing_margin_padding": {
-                    "all": {
-                      "content": "{\"bottom\":\"lg\"}",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "member-info-1",
-                "style_name": "stack",
-                "children": [
-              {
-                "name": "member-info-header-1",
-                "style_name": "stack",
-                "children": [
-                  {
-                    "name": "member-name-1",
-                    "style_name": "text",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "Dr. Sarah Müller",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Dr. Sarah Müller",
-                          "meta": null
-                        }
-                      },
-                      "mantine_text_size": {
-                        "all": {
-                          "content": "xl",
-                          "meta": null
-                        }
-                      },
-                      "mantine_text_align": {
-                        "all": {
-                          "content": "center",
-                          "meta": null
-                        }
-                      },
-                      "mantine_text_font_weight": {
-                        "all": {
-                          "content": "700",
-                          "meta": null
-                        }
-                      },
-                      "use_mantine_style": {
-                        "all": {
-                          "content": "1",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-gray-900 dark:text-white",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "member-role-1",
-                    "style_name": "text",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "Chief Executive Officer & Founder",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Geschäftsführerin & Gründerin",
-                          "meta": null
-                        }
-                      },
-                      "mantine_text_size": {
-                        "all": {
-                          "content": "lg",
-                          "meta": null
-                        }
-                      },
-                      "mantine_text_align": {
-                        "all": {
-                          "content": "center",
-                          "meta": null
-                        }
-                      },
-                      "mantine_text_font_weight": {
-                        "all": {
-                          "content": "600",
-                          "meta": null
-                        }
-                      },
-                      "use_mantine_style": {
-                        "all": {
-                          "content": "1",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-blue-600 dark:text-blue-400",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {
-                  "mantine_gap": {
-                    "all": {
-                      "content": "xs",
-                      "meta": null
-                    }
-                  },
-                  "mantine_align": {
-                    "all": {
-                      "content": "center",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "member-contact-section-1",
-                "style_name": "stack",
-                "children": [
-                  {
-                    "name": "contact-label-1",
-                    "style_name": "text",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "Contact Information",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Kontaktinformationen",
-                          "meta": null
-                        }
-                      },
-                      "mantine_text_size": {
-                        "all": {
-                          "content": "sm",
-                          "meta": null
-                        }
-                      },
-                      "mantine_text_align": {
-                        "all": {
-                          "content": "left",
-                          "meta": null
-                        }
-                      },
-                      "mantine_text_font_weight": {
-                        "all": {
-                          "content": "600",
-                          "meta": null
-                        }
-                      },
-                      "use_mantine_style": {
-                        "all": {
-                          "content": "1",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-gray-800 dark:text-gray-200 mb-2",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "office-info-1",
-                    "style_name": "text",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "🏢 Office: Zurich HQ, Executive Suite",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "🏢 Büro: Zürich HQ, Executive Suite",
-                          "meta": null
-                        }
-                      },
-                      "mantine_text_size": {
-                        "all": {
-                          "content": "sm",
-                          "meta": null
-                        }
-                      },
-                      "mantine_text_align": {
-                        "all": {
-                          "content": "left",
-                          "meta": null
-                        }
-                      },
-                      "use_mantine_style": {
-                        "all": {
-                          "content": "1",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-gray-600 dark:text-gray-400",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "phone-info-1",
-                    "style_name": "text",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "📞 Phone: +41 44 123 45 67 (Direct)",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "📞 Telefon: +41 44 123 45 67 (Direkt)",
-                          "meta": null
-                        }
-                      },
-                      "mantine_text_size": {
-                        "all": {
-                          "content": "sm",
-                          "meta": null
-                        }
-                      },
-                      "mantine_text_align": {
-                        "all": {
-                          "content": "left",
-                          "meta": null
-                        }
-                      },
-                      "use_mantine_style": {
-                        "all": {
-                          "content": "1",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-gray-600 dark:text-gray-400",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "email-info-1",
-                    "style_name": "text",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "✉️ Email: sarah.mueller@company.ch",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "✉️ E-Mail: sarah.mueller@company.ch",
-                          "meta": null
-                        }
-                      },
-                      "mantine_text_size": {
-                        "all": {
-                          "content": "sm",
-                          "meta": null
-                        }
-                      },
-                      "mantine_text_align": {
-                        "all": {
-                          "content": "left",
-                          "meta": null
-                        }
-                      },
-                      "use_mantine_style": {
-                        "all": {
-                          "content": "1",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-gray-600 dark:text-gray-400",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {
-                  "mantine_gap": {
-                    "all": {
-                      "content": "xs",
-                      "meta": null
-                    }
-                  },
-                  "mantine_align": {
-                    "all": {
-                      "content": "flex-start",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "member-bio-section-1",
-                "style_name": "stack",
-                "children": [
-                  {
-                    "name": "bio-label-1",
-                    "style_name": "text",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "Professional Background",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Beruflicher Hintergrund",
-                          "meta": null
-                        }
-                      },
-                      "mantine_text_size": {
-                        "all": {
-                          "content": "sm",
-                          "meta": null
-                        }
-                      },
-                      "mantine_text_align": {
-                        "all": {
-                          "content": "left",
-                          "meta": null
-                        }
-                      },
-                      "mantine_text_font_weight": {
-                        "all": {
-                          "content": "600",
-                          "meta": null
-                        }
-                      },
-                      "use_mantine_style": {
-                        "all": {
-                          "content": "1",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-gray-800 dark:text-gray-200 mb-2",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "member-bio-1",
-                    "style_name": "text",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "Dr. Müller holds a PhD in Business Administration and brings over 18 years of experience in digital transformation and strategic leadership. She excels in scaling technology companies from startup to enterprise level, with a proven track record of driving innovation and sustainable growth. Her expertise includes strategic planning, organizational development, and technology-driven business transformation.",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Dr. Müller verfügt über eine Promotion in Betriebswirtschaftslehre und bringt über 18 Jahre Erfahrung in der digitalen Transformation und strategischen Führung mit. Sie zeichnet sich durch die Skalierung von Technologieunternehmen vom Startup zum Enterprise aus und hat eine nachgewiesene Erfolgsbilanz bei der Förderung von Innovation und nachhaltigem Wachstum. Ihre Expertise umfasst strategische Planung, Organisationsentwicklung und technologiegetriebene Geschäftstransformation.",
-                          "meta": null
-                        }
-                      },
-                      "mantine_text_size": {
-                        "all": {
-                          "content": "sm",
-                          "meta": null
-                        }
-                      },
-                      "mantine_text_align": {
-                        "all": {
-                          "content": "left",
-                          "meta": null
-                        }
-                      },
-                      "mantine_text_line_clamp": {
-                        "all": {
-                          "content": "6",
-                          "meta": null
-                        }
-                      },
-                      "use_mantine_style": {
-                        "all": {
-                          "content": "1",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-gray-700 dark:text-gray-300 leading-relaxed",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {
-                  "mantine_gap": {
-                    "all": {
-                      "content": "sm",
-                      "meta": null
-                    }
-                  },
-                  "mantine_align": {
-                    "all": {
-                      "content": "flex-start",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-                ],
-                "fields": {
-                  "mantine_gap": {
-                    "all": {
-                      "content": "md",
-                      "meta": null
-                    }
-                  },
-                  "mantine_align": {
-                    "all": {
-                      "content": "center",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {
-              "mantine_card_shadow": {
-                "all": {
-                  "content": "md",
-                  "meta": null
-                }
-              },
-              "mantine_border": {
-                "all": {
-                  "content": "0",
-                  "meta": null
-                }
-              },
-              "mantine_radius": {
-                "all": {
-                  "content": "xl",
-                  "meta": null
-                }
-              },
-              "mantine_spacing_margin_padding": {
-                "all": {
-                  "content": "{\"all\":\"xl\"}",
-                  "meta": null
-                }
-              },
-              "use_mantine_style": {
-                "all": {
-                  "content": "1",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "team-member-2",
-            "style_name": "card",
-            "children": [
-              {
-                "name": "member-image-container-2",
-                "style_name": "stack",
-                "children": [
-                  {
-                    "name": "member-image-2",
-                    "style_name": "image",
-                    "children": [],
-                    "fields": {
-                      "img_src": {
-                        "all": {
-                          "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
-                          "meta": null
-                        }
-                      },
-                      "alt": {
-                        "en-GB": {
-                          "content": "Prof. Dr. Thomas Weber - CTO",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Prof. Dr. Thomas Weber - Technischer Leiter",
-                          "meta": null
-                        }
-                      },
-                      "is_fluid": {
-                        "all": {
-                          "content": "1",
-                          "meta": null
-                        }
-                      },
-                      "mantine_radius": {
-                        "all": {
-                          "content": "lg",
-                          "meta": null
-                        }
-                      },
-                      "use_mantine_style": {
-                        "all": {
-                          "content": "1",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "aspect-square object-cover",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {
-                  "mantine_spacing_margin_padding": {
-                    "all": {
-                      "content": "{\"bottom\":\"lg\"}",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "member-info-2",
-                "style_name": "stack",
-                "children": [
-                  {
-                    "name": "member-info-header-2",
-                    "style_name": "stack",
-                    "children": [
-                      {
-                        "name": "member-name-2",
-                        "style_name": "text",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Prof. Dr. Thomas Weber",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "Prof. Dr. Thomas Weber",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_size": {
-                            "all": {
-                              "content": "xl",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_align": {
-                            "all": {
-                              "content": "center",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_font_weight": {
-                            "all": {
-                              "content": "700",
-                              "meta": null
-                            }
-                          },
-                          "use_mantine_style": {
-                            "all": {
-                              "content": "1",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-gray-900 dark:text-white",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      },
-                      {
-                        "name": "member-role-2",
-                        "style_name": "text",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Chief Technology Officer",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "Technischer Leiter",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_size": {
-                            "all": {
-                              "content": "lg",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_align": {
-                            "all": {
-                              "content": "center",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_font_weight": {
-                            "all": {
-                              "content": "600",
-                              "meta": null
-                            }
-                          },
-                          "use_mantine_style": {
-                            "all": {
-                              "content": "1",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-green-600 dark:text-green-400",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      }
-                    ],
-                    "fields": {
-                      "mantine_gap": {
-                        "all": {
-                          "content": "xs",
-                          "meta": null
-                        }
-                      },
-                      "mantine_align": {
-                        "all": {
-                          "content": "center",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "member-contact-section-2",
-                    "style_name": "stack",
-                    "children": [
-                      {
-                        "name": "contact-label-2",
-                        "style_name": "text",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Contact Information",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "Kontaktinformationen",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_size": {
-                            "all": {
-                              "content": "sm",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_align": {
-                            "all": {
-                              "content": "left",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_font_weight": {
-                            "all": {
-                              "content": "600",
-                              "meta": null
-                            }
-                          },
-                          "use_mantine_style": {
-                            "all": {
-                              "content": "1",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-gray-800 dark:text-gray-200 mb-2",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      },
-                      {
-                        "name": "office-info-2",
-                        "style_name": "text",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "🏢 Office: Tech Innovation Lab",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "🏢 Büro: Tech Innovationslabor",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_size": {
-                            "all": {
-                              "content": "sm",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_align": {
-                            "all": {
-                              "content": "left",
-                              "meta": null
-                            }
-                          },
-                          "use_mantine_style": {
-                            "all": {
-                              "content": "1",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-gray-600 dark:text-gray-400",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      },
-                      {
-                        "name": "phone-info-2",
-                        "style_name": "text",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "📞 Phone: +41 44 123 45 68 (Direct)",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "📞 Telefon: +41 44 123 45 68 (Direkt)",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_size": {
-                            "all": {
-                              "content": "sm",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_align": {
-                            "all": {
-                              "content": "left",
-                              "meta": null
-                            }
-                          },
-                          "use_mantine_style": {
-                            "all": {
-                              "content": "1",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-gray-600 dark:text-gray-400",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      },
-                      {
-                        "name": "email-info-2",
-                        "style_name": "text",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "✉️ Email: thomas.weber@company.ch",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "✉️ E-Mail: thomas.weber@company.ch",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_size": {
-                            "all": {
-                              "content": "sm",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_align": {
-                            "all": {
-                              "content": "left",
-                              "meta": null
-                            }
-                          },
-                          "use_mantine_style": {
-                            "all": {
-                              "content": "1",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-gray-600 dark:text-gray-400",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      }
-                    ],
-                    "fields": {
-                      "mantine_gap": {
-                        "all": {
-                          "content": "xs",
-                          "meta": null
-                        }
-                      },
-                      "mantine_align": {
-                        "all": {
-                          "content": "flex-start",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "member-bio-section-2",
-                    "style_name": "stack",
-                    "children": [
-                      {
-                        "name": "bio-label-2",
-                        "style_name": "text",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Professional Background",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "Beruflicher Hintergrund",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_size": {
-                            "all": {
-                              "content": "sm",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_align": {
-                            "all": {
-                              "content": "left",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_font_weight": {
-                            "all": {
-                              "content": "600",
-                              "meta": null
-                            }
-                          },
-                          "use_mantine_style": {
-                            "all": {
-                              "content": "1",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-gray-800 dark:text-gray-200 mb-2",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      },
-                      {
-                        "name": "member-bio-2",
-                        "style_name": "text",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Professor Weber is a leading expert in enterprise software architecture with 16+ years of experience in scalable system design. As former Principal Engineer at Google, he specializes in distributed systems, cloud-native applications, and AI-driven development. He is a published author on scalable architecture patterns and frequently speaks at international tech conferences.",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "Professor Weber ist ein führender Experte für Enterprise-Softwarearchitektur mit 16+ Jahren Erfahrung in der skalierbaren Systemgestaltung. Als ehemaliger Principal Engineer bei Google spezialisiert er sich auf verteilte Systeme, Cloud-native Anwendungen und KI-gestützte Entwicklung. Er ist Verfasser von Fachbüchern zu skalierbaren Architekturmuster und spricht regelmässig auf internationalen Tech-Konferenzen.",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_size": {
-                            "all": {
-                              "content": "sm",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_align": {
-                            "all": {
-                              "content": "left",
-                              "meta": null
-                            }
-                          },
-                          "mantine_text_line_clamp": {
-                            "all": {
-                              "content": "6",
-                              "meta": null
-                            }
-                          },
-                          "use_mantine_style": {
-                            "all": {
-                              "content": "1",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "text-gray-700 dark:text-gray-300 leading-relaxed",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      }
-                    ],
-                    "fields": {
-                      "mantine_gap": {
-                        "all": {
-                          "content": "sm",
-                          "meta": null
-                        }
-                      },
-                      "mantine_align": {
-                        "all": {
-                          "content": "flex-start",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {
-                  "mantine_gap": {
-                    "all": {
-                      "content": "lg",
-                      "meta": null
-                    }
-                  },
-                  "mantine_align": {
-                    "all": {
-                      "content": "center",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {
-              "mantine_card_shadow": {
-                "all": {
-                  "content": "sm",
-                  "meta": null
-                }
-              },
-              "mantine_border": {
-                "all": {
-                  "content": "0",
-                  "meta": null
-                }
-              },
-              "mantine_radius": {
-                "all": {
-                  "content": "lg",
-                  "meta": null
-                }
-              },
-              "use_mantine_style": {
-                "all": {
-                  "content": "1",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "p-6 text-center hover:shadow-lg transition-shadow duration-300",
-              "css_mobile": "p-4 text-center",
-              "debug": false
-            }
-          },
-          {
-            "name": "team-member-3",
-            "style_name": "card",
-            "children": [
-              {
-                "name": "member-avatar-3",
-                "style_name": "avatar",
-                "children": [],
-                "fields": {
-                  "src": {
-                    "all": {
-                      "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
-                      "meta": null
-                    }
-                  },
-                  "alt": {
-                    "en-GB": {
-                      "content": "Emily Rodriguez - Head of Design",
-                      "meta": null
-                    }
-                  },
-                  "mantine_avatar_size": {
-                    "all": {
-                      "content": "xl",
-                      "meta": null
-                    }
-                  },
-                  "mantine_avatar_radius": {
-                    "all": {
-                      "content": "xl",
-                      "meta": null
-                    }
-                  },
-                  "mantine_color": {
-                    "all": {
-                      "content": "violet",
-                      "meta": null
-                    }
-                  },
-                  "use_mantine_style": {
-                    "all": {
-                      "content": "1",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "mx-auto mb-4",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "member-name-3",
-                "style_name": "text",
-                "children": [],
-                "fields": {
-                  "text": {
-                    "en-GB": {
-                      "content": "Anna Zimmermann",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Anna Zimmermann",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_size": {
-                    "all": {
-                      "content": "lg",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_align": {
-                    "all": {
-                      "content": "center",
-                      "meta": null
-                    }
-                  },
-                  "use_mantine_style": {
-                    "all": {
-                      "content": "1",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "font-semibold text-gray-900 dark:text-white mb-2",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "member-role-3",
-                "style_name": "text",
-                "children": [],
-                "fields": {
-                  "text": {
-                    "en-GB": {
-                      "content": "Chief Design Officer",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Design-Leiterin",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_size": {
-                    "all": {
-                      "content": "sm",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_align": {
-                    "all": {
-                      "content": "center",
-                      "meta": null
-                    }
-                  },
-                  "use_mantine_style": {
-                    "all": {
-                      "content": "1",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "text-violet-600 dark:text-violet-400 font-medium mb-1",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "member-contact-3",
-                "style_name": "text",
-                "children": [],
-                "fields": {
-                  "text": {
-                    "en-GB": {
-                      "content": "Office: Creative Studio • Tel: +41 44 123 45 69 • anna.zimmermann@company.ch",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Büro: Creative Studio • Tel: +41 44 123 45 69 • anna.zimmermann@company.ch",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_size": {
-                    "all": {
-                      "content": "xs",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_align": {
-                    "all": {
-                      "content": "center",
-                      "meta": null
-                    }
-                  },
-                  "use_mantine_style": {
-                    "all": {
-                      "content": "1",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "text-gray-500 dark:text-gray-400 mb-3",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "member-bio-3",
-                "style_name": "text",
-                "children": [],
-                "fields": {
-                  "text": {
-                    "en-GB": {
-                      "content": "Award-winning UX/UI designer with 14+ years crafting exceptional digital experiences. Former Design Director at IDEO, expert in user research, interaction design, and brand identity. Passionate about inclusive design and accessibility.",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Preisgekrönte UX/UI-Designerin mit 14+ Jahren Erfahrung in der Gestaltung aussergewöhnlicher digitaler Erlebnisse. Ehemalige Design Director bei IDEO, Expertin in User Research, Interaktionsdesign und Brand Identity. Leidenschaftlich für inklusives Design und Barrierefreiheit.",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_size": {
-                    "all": {
-                      "content": "sm",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_align": {
-                    "all": {
-                      "content": "center",
-                      "meta": null
-                    }
-                  },
-                  "use_mantine_style": {
-                    "all": {
-                      "content": "1",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "text-gray-600 dark:text-gray-300 leading-relaxed",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {
-              "mantine_card_shadow": {
-                "all": {
-                  "content": "sm",
-                  "meta": null
-                }
-              },
-              "mantine_border": {
-                "all": {
-                  "content": "0",
-                  "meta": null
-                }
-              },
-              "mantine_radius": {
-                "all": {
-                  "content": "lg",
-                  "meta": null
-                }
-              },
-              "use_mantine_style": {
-                "all": {
-                  "content": "1",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "p-6 text-center hover:shadow-lg transition-shadow duration-300",
-              "css_mobile": "p-4 text-center",
-              "debug": false
-            }
-          },
-          {
-            "name": "team-member-4",
-            "style_name": "card",
-            "children": [
-              {
-                "name": "member-avatar-4",
-                "style_name": "avatar",
-                "children": [],
-                "fields": {
-                  "src": {
-                    "all": {
-                      "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
-                      "meta": null
-                    }
-                  },
-                  "alt": {
-                    "en-GB": {
-                      "content": "David Kim - Lead Developer",
-                      "meta": null
-                    }
-                  },
-                  "mantine_avatar_size": {
-                    "all": {
-                      "content": "xl",
-                      "meta": null
-                    }
-                  },
-                  "mantine_avatar_radius": {
-                    "all": {
-                      "content": "xl",
-                      "meta": null
-                    }
-                  },
-                  "mantine_color": {
-                    "all": {
-                      "content": "orange",
-                      "meta": null
-                    }
-                  },
-                  "use_mantine_style": {
-                    "all": {
-                      "content": "1",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "mx-auto mb-4",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "member-name-4",
-                "style_name": "text",
-                "children": [],
-                "fields": {
-                  "text": {
-                    "en-GB": {
-                      "content": "Marcus Schneider",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Marcus Schneider",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_size": {
-                    "all": {
-                      "content": "lg",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_align": {
-                    "all": {
-                      "content": "center",
-                      "meta": null
-                    }
-                  },
-                  "use_mantine_style": {
-                    "all": {
-                      "content": "1",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "font-semibold text-gray-900 dark:text-white mb-2",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "member-role-4",
-                "style_name": "text",
-                "children": [],
-                "fields": {
-                  "text": {
-                    "en-GB": {
-                      "content": "VP of Engineering",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Vizepräsident Entwicklung",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_size": {
-                    "all": {
-                      "content": "sm",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_align": {
-                    "all": {
-                      "content": "center",
-                      "meta": null
-                    }
-                  },
-                  "use_mantine_style": {
-                    "all": {
-                      "content": "1",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "text-orange-600 dark:text-orange-400 font-medium mb-1",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "member-contact-4",
-                "style_name": "text",
-                "children": [],
-                "fields": {
-                  "text": {
-                    "en-GB": {
-                      "content": "Office: Development Hub • Tel: +41 44 123 45 70 • marcus.schneider@company.ch",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Büro: Development Hub • Tel: +41 44 123 45 70 • marcus.schneider@company.ch",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_size": {
-                    "all": {
-                      "content": "xs",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_align": {
-                    "all": {
-                      "content": "center",
-                      "meta": null
-                    }
-                  },
-                  "use_mantine_style": {
-                    "all": {
-                      "content": "1",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "text-gray-500 dark:text-gray-400 mb-3",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "member-bio-4",
-                "style_name": "text",
-                "children": [],
-                "fields": {
-                  "text": {
-                    "en-GB": {
-                      "content": "Senior engineering leader with 15+ years building high-performance teams and scalable platforms. Former Engineering Director at Spotify, expert in microservices architecture, DevOps, and agile methodologies. Open source contributor and conference speaker.",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Senior Engineering Leader mit 15+ Jahren Erfahrung im Aufbau von Hochleistungsteams und skalierbaren Plattformen. Ehemaliger Engineering Director bei Spotify, Experte für Microservices-Architektur, DevOps und agile Methoden. Open-Source-Beitragender und Konferenzsprecher.",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_size": {
-                    "all": {
-                      "content": "sm",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_align": {
-                    "all": {
-                      "content": "center",
-                      "meta": null
-                    }
-                  },
-                  "use_mantine_style": {
-                    "all": {
-                      "content": "1",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "text-gray-600 dark:text-gray-300 leading-relaxed",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {
-              "mantine_card_shadow": {
-                "all": {
-                  "content": "sm",
-                  "meta": null
-                }
-              },
-              "mantine_border": {
-                "all": {
-                  "content": "0",
-                  "meta": null
-                }
-              },
-              "mantine_radius": {
-                "all": {
-                  "content": "lg",
-                  "meta": null
-                }
-              },
-              "use_mantine_style": {
-                "all": {
-                  "content": "1",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "p-6 text-center hover:shadow-lg transition-shadow duration-300",
-              "css_mobile": "p-4 text-center",
-              "debug": false
-            }
-          },
-          {
-            "name": "team-member-5",
-            "style_name": "card",
-            "children": [
-              {
-                "name": "member-avatar-5",
-                "style_name": "avatar",
-                "children": [],
-                "fields": {
-                  "src": {
-                    "all": {
-                      "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
-                      "meta": null
-                    }
-                  },
-                  "alt": {
-                    "en-GB": {
-                      "content": "Lisa Wang - Marketing Director",
-                      "meta": null
-                    }
-                  },
-                  "mantine_avatar_size": {
-                    "all": {
-                      "content": "xl",
-                      "meta": null
-                    }
-                  },
-                  "mantine_avatar_radius": {
-                    "all": {
-                      "content": "xl",
-                      "meta": null
-                    }
-                  },
-                  "mantine_color": {
-                    "all": {
-                      "content": "red",
-                      "meta": null
-                    }
-                  },
-                  "use_mantine_style": {
-                    "all": {
-                      "content": "1",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "mx-auto mb-4",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "member-name-5",
-                "style_name": "text",
-                "children": [],
-                "fields": {
-                  "text": {
-                    "en-GB": {
-                      "content": "Sophie Fournier",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Sophie Fournier",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_size": {
-                    "all": {
-                      "content": "lg",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_align": {
-                    "all": {
-                      "content": "center",
-                      "meta": null
-                    }
-                  },
-                  "use_mantine_style": {
-                    "all": {
-                      "content": "1",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "font-semibold text-gray-900 dark:text-white mb-2",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "member-role-5",
-                "style_name": "text",
-                "children": [],
-                "fields": {
-                  "text": {
-                    "en-GB": {
-                      "content": "Chief Marketing Officer",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Marketing-Leiterin",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_size": {
-                    "all": {
-                      "content": "sm",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_align": {
-                    "all": {
-                      "content": "center",
-                      "meta": null
-                    }
-                  },
-                  "use_mantine_style": {
-                    "all": {
-                      "content": "1",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "text-red-600 dark:text-red-400 font-medium mb-1",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "member-contact-5",
-                "style_name": "text",
-                "children": [],
-                "fields": {
-                  "text": {
-                    "en-GB": {
-                      "content": "Office: Marketing Suite • Tel: +41 44 123 45 71 • sophie.fournier@company.ch",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Büro: Marketing Suite • Tel: +41 44 123 45 71 • sophie.fournier@company.ch",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_size": {
-                    "all": {
-                      "content": "xs",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_align": {
-                    "all": {
-                      "content": "center",
-                      "meta": null
-                    }
-                  },
-                  "use_mantine_style": {
-                    "all": {
-                      "content": "1",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "text-gray-500 dark:text-gray-400 mb-3",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "member-bio-5",
-                "style_name": "text",
-                "children": [],
-                "fields": {
-                  "text": {
-                    "en-GB": {
-                      "content": "Global marketing strategist with 13+ years driving brand transformation and customer acquisition. Former CMO at leading SaaS companies, expert in digital marketing, content strategy, and data-driven growth. Award-winning campaigns across 15+ countries.",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Globale Marketing-Strategin mit 13+ Jahren Erfahrung in der Markenentwicklung und Kundenakquise. Ehemalige CMO bei führenden SaaS-Unternehmen, Expertin für digitales Marketing, Content-Strategie und datengetriebenes Wachstum. Preisträgerin für Kampagnen in 15+ Ländern.",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_size": {
-                    "all": {
-                      "content": "sm",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_align": {
-                    "all": {
-                      "content": "center",
-                      "meta": null
-                    }
-                  },
-                  "use_mantine_style": {
-                    "all": {
-                      "content": "1",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "text-gray-600 dark:text-gray-300 leading-relaxed",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {
-              "mantine_card_shadow": {
-                "all": {
-                  "content": "sm",
-                  "meta": null
-                }
-              },
-              "mantine_border": {
-                "all": {
-                  "content": "0",
-                  "meta": null
-                }
-              },
-              "mantine_radius": {
-                "all": {
-                  "content": "lg",
-                  "meta": null
-                }
-              },
-              "use_mantine_style": {
-                "all": {
-                  "content": "1",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "p-6 text-center hover:shadow-lg transition-shadow duration-300",
-              "css_mobile": "p-4 text-center",
-              "debug": false
-            }
-          },
-          {
-            "name": "team-member-6",
-            "style_name": "card",
-            "children": [
-              {
-                "name": "member-avatar-6",
-                "style_name": "avatar",
-                "children": [],
-                "fields": {
-                  "src": {
-                    "all": {
-                      "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
-                      "meta": null
-                    }
-                  },
-                  "alt": {
-                    "en-GB": {
-                      "content": "James Thompson - Operations Manager",
-                      "meta": null
-                    }
-                  },
-                  "mantine_avatar_size": {
-                    "all": {
-                      "content": "xl",
-                      "meta": null
-                    }
-                  },
-                  "mantine_avatar_radius": {
-                    "all": {
-                      "content": "xl",
-                      "meta": null
-                    }
-                  },
-                  "mantine_color": {
-                    "all": {
-                      "content": "cyan",
-                      "meta": null
-                    }
-                  },
-                  "use_mantine_style": {
-                    "all": {
-                      "content": "1",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "mx-auto mb-4",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "member-name-6",
-                "style_name": "text",
-                "children": [],
-                "fields": {
-                  "text": {
-                    "en-GB": {
-                      "content": "Dr. Andreas Müller",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Dr. Andreas Müller",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_size": {
-                    "all": {
-                      "content": "lg",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_align": {
-                    "all": {
-                      "content": "center",
-                      "meta": null
-                    }
-                  },
-                  "use_mantine_style": {
-                    "all": {
-                      "content": "1",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "font-semibold text-gray-900 dark:text-white mb-2",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "member-role-6",
-                "style_name": "text",
-                "children": [],
-                "fields": {
-                  "text": {
-                    "en-GB": {
-                      "content": "Chief Operations Officer",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Betriebsleiter",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_size": {
-                    "all": {
-                      "content": "sm",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_align": {
-                    "all": {
-                      "content": "center",
-                      "meta": null
-                    }
-                  },
-                  "use_mantine_style": {
-                    "all": {
-                      "content": "1",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "text-cyan-600 dark:text-cyan-400 font-medium mb-1",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "member-contact-6",
-                "style_name": "text",
-                "children": [],
-                "fields": {
-                  "text": {
-                    "en-GB": {
-                      "content": "Office: Operations Center • Tel: +41 44 123 45 72 • andreas.mueller@company.ch",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Büro: Operations Center • Tel: +41 44 123 45 72 • andreas.mueller@company.ch",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_size": {
-                    "all": {
-                      "content": "xs",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_align": {
-                    "all": {
-                      "content": "center",
-                      "meta": null
-                    }
-                  },
-                  "use_mantine_style": {
-                    "all": {
-                      "content": "1",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "text-gray-500 dark:text-gray-400 mb-3",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "member-bio-6",
-                "style_name": "text",
-                "children": [],
-                "fields": {
-                  "text": {
-                    "en-GB": {
-                      "content": "Operations excellence expert with 17+ years optimizing enterprise-scale processes. Former COO at Fortune 500 companies, master of Lean Six Sigma methodologies, supply chain optimization, and organizational transformation. Certified in change management and strategic planning.",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Operations Excellence Experte mit 17+ Jahren Erfahrung in der Optimierung von Unternehmensprozessen im Grossmassstab. Ehemaliger COO bei Fortune 500-Unternehmen, Meister der Lean Six Sigma-Methoden, Lieferkettenoptimierung und organisatorischen Transformation. Zertifiziert in Change Management und strategischer Planung.",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_size": {
-                    "all": {
-                      "content": "sm",
-                      "meta": null
-                    }
-                  },
-                  "mantine_text_align": {
-                    "all": {
-                      "content": "center",
-                      "meta": null
-                    }
-                  },
-                  "use_mantine_style": {
-                    "all": {
-                      "content": "1",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "text-gray-600 dark:text-gray-300 leading-relaxed",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {
-              "mantine_card_shadow": {
-                "all": {
-                  "content": "sm",
-                  "meta": null
-                }
-              },
-              "mantine_border": {
-                "all": {
-                  "content": "0",
-                  "meta": null
-                }
-              },
-              "mantine_radius": {
-                "all": {
-                  "content": "lg",
-                  "meta": null
-                }
-              },
-              "use_mantine_style": {
-                "all": {
-                  "content": "1",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "p-6 text-center hover:shadow-lg transition-shadow duration-300",
-              "css_mobile": "p-4 text-center",
-              "debug": false
-            }
-          }
-        ],
-        "fields": {
-          "mantine_cols": {
-            "all": {
-              "content": "3",
-              "meta": null
-            }
-          },
-          "mantine_spacing": {
-            "all": {
-              "content": "xl",
-              "meta": null
-            }
-          },
-          "mantine_vertical_spacing": {
-            "all": {
-              "content": "xl",
-              "meta": null
-            }
-          },
-          "use_mantine_style": {
-            "all": {
-              "content": "1",
-              "meta": null
-            }
-          }
-        },
-        "global_fields": {
-          "condition": null,
-          "data_config": null,
-          "css": "max-w-7xl",
-          "css_mobile": null,
-          "debug": false
-        }
-      }
-    ],
     "fields": {
       "mantine_size": {
         "all": {
-          "content": "md",
-          "meta": null
-        }
-      },
-      "mantine_fluid": {
-        "all": {
-          "content": "0",
-          "meta": null
-        }
-      },
-      "use_mantine_style": {
-        "all": {
-          "content": "1",
-          "meta": null
+          "content": "xl"
         }
       }
     },
     "global_fields": {
-      "condition": null,
-      "data_config": null,
-      "css": "py-16 px-4 bg-gray-50 dark:bg-gray-900",
-      "css_mobile": "py-8 px-4",
-      "debug": false
-    }
+      "css": "py-16 px-4 bg-gray-50 dark:bg-gray-950",
+      "css_mobile": "py-10 px-4"
+    },
+    "children": [
+      {
+        "style_name": "stack",
+        "fields": {
+          "mantine_gap": {
+            "all": {
+              "content": "xl"
+            }
+          },
+          "mantine_align": {
+            "all": {
+              "content": "stretch"
+            }
+          }
+        },
+        "children": [
+          {
+            "section_name": "team-mantine-header",
+            "style_name": "stack",
+            "fields": {
+              "mantine_align": {
+                "all": {
+                  "content": "center"
+                }
+              },
+              "mantine_gap": {
+                "all": {
+                  "content": "sm"
+                }
+              }
+            },
+            "global_fields": {
+              "css": "text-center max-w-3xl mx-auto"
+            },
+            "children": [
+              {
+                "style_name": "title",
+                "fields": {
+                  "content": {
+                    "en-GB": {
+                      "content": "Meet our executive team"
+                    },
+                    "de-CH": {
+                      "content": "Unser Führungsteam"
+                    }
+                  },
+                  "mantine_title_order": {
+                    "all": {
+                      "content": "1"
+                    }
+                  }
+                },
+                "global_fields": {
+                  "css": "text-4xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-50",
+                  "css_mobile": "text-3xl"
+                }
+              },
+              {
+                "style_name": "text",
+                "fields": {
+                  "text": {
+                    "en-GB": {
+                      "content": "Seasoned operators across engineering, design, and go-to-market."
+                    },
+                    "de-CH": {
+                      "content": "Erfahrene Führungskräfte aus Engineering, Design und Go-to-Market."
+                    }
+                  },
+                  "mantine_size": {
+                    "all": {
+                      "content": "lg"
+                    }
+                  }
+                },
+                "global_fields": {
+                  "css": "text-gray-600 dark:text-gray-400"
+                }
+              }
+            ]
+          },
+          {
+            "style_name": "simple-grid",
+            "fields": {
+              "mantine_cols": {
+                "all": {
+                  "content": "3"
+                }
+              },
+              "mantine_spacing_margin_padding": {
+                "all": {
+                  "content": "{\"mantine_horizontal_spacing\":\"lg\",\"mantine_vertical_spacing\":\"lg\"}"
+                }
+              }
+            },
+            "children": [
+              {
+                "style_name": "card",
+                "fields": {
+                  "mantine_border": {
+                    "all": {
+                      "content": "1"
+                    }
+                  },
+                  "mantine_radius": {
+                    "all": {
+                      "content": "lg"
+                    }
+                  },
+                  "mantine_card_shadow": {
+                    "all": {
+                      "content": "sm"
+                    }
+                  },
+                  "mantine_card_padding": {
+                    "all": {
+                      "content": "lg"
+                    }
+                  }
+                },
+                "global_fields": {
+                  "css": "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:shadow-lg transition-shadow"
+                },
+                "children": [
+                  {
+                    "style_name": "card-segment",
+                    "global_fields": {
+                      "css": "flex flex-col items-center text-center"
+                    },
+                    "children": [
+                      {
+                        "style_name": "avatar",
+                        "fields": {
+                          "alt": {
+                            "en-GB": {
+                              "content": "Dr. Sarah Müller"
+                            },
+                            "de-CH": {
+                              "content": "Dr. Sarah Müller"
+                            }
+                          },
+                          "img_src": {
+                            "en-GB": {
+                              "content": "/assets/image-holder.png"
+                            }
+                          },
+                          "mantine_size": {
+                            "all": {
+                              "content": "xl"
+                            }
+                          },
+                          "mantine_radius": {
+                            "all": {
+                              "content": "50%"
+                            }
+                          }
+                        },
+                        "global_fields": {
+                          "css": "mb-4 ring-2 ring-indigo-100 dark:ring-indigo-900"
+                        }
+                      },
+                      {
+                        "style_name": "title",
+                        "fields": {
+                          "content": {
+                            "en-GB": {
+                              "content": "Dr. Sarah Müller"
+                            },
+                            "de-CH": {
+                              "content": "Dr. Sarah Müller"
+                            }
+                          },
+                          "mantine_title_order": {
+                            "all": {
+                              "content": "3"
+                            }
+                          }
+                        },
+                        "global_fields": {
+                          "css": "text-lg font-semibold text-gray-900 dark:text-gray-100"
+                        }
+                      },
+                      {
+                        "style_name": "text",
+                        "fields": {
+                          "text": {
+                            "en-GB": {
+                              "content": "CEO & Founder"
+                            },
+                            "de-CH": {
+                              "content": "CEO & Gründerin"
+                            }
+                          },
+                          "mantine_size": {
+                            "all": {
+                              "content": "sm"
+                            }
+                          }
+                        },
+                        "global_fields": {
+                          "css": "text-indigo-600 dark:text-indigo-400 font-medium mb-2"
+                        }
+                      },
+                      {
+                        "style_name": "text",
+                        "fields": {
+                          "text": {
+                            "en-GB": {
+                              "content": "15+ years scaling digital products from prototype to enterprise."
+                            },
+                            "de-CH": {
+                              "content": "Über 15 Jahre Erfahrung im Skalieren digitaler Produkte."
+                            }
+                          }
+                        },
+                        "global_fields": {
+                          "css": "text-sm text-gray-600 dark:text-gray-400 leading-relaxed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "style_name": "card-segment",
+                    "global_fields": {
+                      "css": "flex justify-center gap-2 pt-4 border-t border-gray-200 dark:border-gray-800"
+                    },
+                    "children": [
+                      {
+                        "style_name": "badge",
+                        "fields": {
+                          "label": {
+                            "en-GB": {
+                              "content": "Strategy"
+                            }
+                          },
+                          "mantine_color": {
+                            "all": {
+                              "content": "indigo"
+                            }
+                          },
+                          "mantine_variant": {
+                            "all": {
+                              "content": "light"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "style_name": "badge",
+                        "fields": {
+                          "label": {
+                            "en-GB": {
+                              "content": "Leadership"
+                            }
+                          },
+                          "mantine_color": {
+                            "all": {
+                              "content": "grape"
+                            }
+                          },
+                          "mantine_variant": {
+                            "all": {
+                              "content": "light"
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "style_name": "card",
+                "fields": {
+                  "mantine_border": {
+                    "all": {
+                      "content": "1"
+                    }
+                  },
+                  "mantine_radius": {
+                    "all": {
+                      "content": "lg"
+                    }
+                  },
+                  "mantine_card_shadow": {
+                    "all": {
+                      "content": "sm"
+                    }
+                  },
+                  "mantine_card_padding": {
+                    "all": {
+                      "content": "lg"
+                    }
+                  }
+                },
+                "global_fields": {
+                  "css": "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:shadow-lg transition-shadow"
+                },
+                "children": [
+                  {
+                    "style_name": "card-segment",
+                    "global_fields": {
+                      "css": "flex flex-col items-center text-center"
+                    },
+                    "children": [
+                      {
+                        "style_name": "avatar",
+                        "fields": {
+                          "alt": {
+                            "en-GB": {
+                              "content": "Michael Chen"
+                            },
+                            "de-CH": {
+                              "content": "Michael Chen"
+                            }
+                          },
+                          "img_src": {
+                            "en-GB": {
+                              "content": "/assets/image-holder.png"
+                            }
+                          },
+                          "mantine_size": {
+                            "all": {
+                              "content": "xl"
+                            }
+                          },
+                          "mantine_radius": {
+                            "all": {
+                              "content": "50%"
+                            }
+                          }
+                        },
+                        "global_fields": {
+                          "css": "mb-4 ring-2 ring-teal-100 dark:ring-teal-900"
+                        }
+                      },
+                      {
+                        "style_name": "title",
+                        "fields": {
+                          "content": {
+                            "en-GB": {
+                              "content": "Michael Chen"
+                            },
+                            "de-CH": {
+                              "content": "Michael Chen"
+                            }
+                          },
+                          "mantine_title_order": {
+                            "all": {
+                              "content": "3"
+                            }
+                          }
+                        },
+                        "global_fields": {
+                          "css": "text-lg font-semibold text-gray-900 dark:text-gray-100"
+                        }
+                      },
+                      {
+                        "style_name": "text",
+                        "fields": {
+                          "text": {
+                            "en-GB": {
+                              "content": "CTO & Technical Director"
+                            },
+                            "de-CH": {
+                              "content": "CTO & Technischer Leiter"
+                            }
+                          },
+                          "mantine_size": {
+                            "all": {
+                              "content": "sm"
+                            }
+                          }
+                        },
+                        "global_fields": {
+                          "css": "text-teal-600 dark:text-teal-400 font-medium mb-2"
+                        }
+                      },
+                      {
+                        "style_name": "text",
+                        "fields": {
+                          "text": {
+                            "en-GB": {
+                              "content": "Cloud architecture expert building resilient systems that scale."
+                            },
+                            "de-CH": {
+                              "content": "Cloud-Architektur-Experte für resiliente, skalierbare Systeme."
+                            }
+                          }
+                        },
+                        "global_fields": {
+                          "css": "text-sm text-gray-600 dark:text-gray-400 leading-relaxed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "style_name": "card-segment",
+                    "global_fields": {
+                      "css": "flex justify-center gap-2 pt-4 border-t border-gray-200 dark:border-gray-800"
+                    },
+                    "children": [
+                      {
+                        "style_name": "badge",
+                        "fields": {
+                          "label": {
+                            "en-GB": {
+                              "content": "Engineering"
+                            }
+                          },
+                          "mantine_color": {
+                            "all": {
+                              "content": "teal"
+                            }
+                          },
+                          "mantine_variant": {
+                            "all": {
+                              "content": "light"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "style_name": "badge",
+                        "fields": {
+                          "label": {
+                            "en-GB": {
+                              "content": "Infra"
+                            }
+                          },
+                          "mantine_color": {
+                            "all": {
+                              "content": "cyan"
+                            }
+                          },
+                          "mantine_variant": {
+                            "all": {
+                              "content": "light"
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "style_name": "card",
+                "fields": {
+                  "mantine_border": {
+                    "all": {
+                      "content": "1"
+                    }
+                  },
+                  "mantine_radius": {
+                    "all": {
+                      "content": "lg"
+                    }
+                  },
+                  "mantine_card_shadow": {
+                    "all": {
+                      "content": "sm"
+                    }
+                  },
+                  "mantine_card_padding": {
+                    "all": {
+                      "content": "lg"
+                    }
+                  }
+                },
+                "global_fields": {
+                  "css": "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:shadow-lg transition-shadow"
+                },
+                "children": [
+                  {
+                    "style_name": "card-segment",
+                    "global_fields": {
+                      "css": "flex flex-col items-center text-center"
+                    },
+                    "children": [
+                      {
+                        "style_name": "avatar",
+                        "fields": {
+                          "alt": {
+                            "en-GB": {
+                              "content": "Anna Kowalski"
+                            },
+                            "de-CH": {
+                              "content": "Anna Kowalski"
+                            }
+                          },
+                          "img_src": {
+                            "en-GB": {
+                              "content": "/assets/image-holder.png"
+                            }
+                          },
+                          "mantine_size": {
+                            "all": {
+                              "content": "xl"
+                            }
+                          },
+                          "mantine_radius": {
+                            "all": {
+                              "content": "50%"
+                            }
+                          }
+                        },
+                        "global_fields": {
+                          "css": "mb-4 ring-2 ring-pink-100 dark:ring-pink-900"
+                        }
+                      },
+                      {
+                        "style_name": "title",
+                        "fields": {
+                          "content": {
+                            "en-GB": {
+                              "content": "Anna Kowalski"
+                            },
+                            "de-CH": {
+                              "content": "Anna Kowalski"
+                            }
+                          },
+                          "mantine_title_order": {
+                            "all": {
+                              "content": "3"
+                            }
+                          }
+                        },
+                        "global_fields": {
+                          "css": "text-lg font-semibold text-gray-900 dark:text-gray-100"
+                        }
+                      },
+                      {
+                        "style_name": "text",
+                        "fields": {
+                          "text": {
+                            "en-GB": {
+                              "content": "Head of Design & UX"
+                            },
+                            "de-CH": {
+                              "content": "Design- & UX-Leitung"
+                            }
+                          },
+                          "mantine_size": {
+                            "all": {
+                              "content": "sm"
+                            }
+                          }
+                        },
+                        "global_fields": {
+                          "css": "text-pink-600 dark:text-pink-400 font-medium mb-2"
+                        }
+                      },
+                      {
+                        "style_name": "text",
+                        "fields": {
+                          "text": {
+                            "en-GB": {
+                              "content": "Human-centered designer turning complex problems into clear interfaces."
+                            },
+                            "de-CH": {
+                              "content": "Human-Centered-Designerin, die komplexe Probleme klar visualisiert."
+                            }
+                          }
+                        },
+                        "global_fields": {
+                          "css": "text-sm text-gray-600 dark:text-gray-400 leading-relaxed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "style_name": "card-segment",
+                    "global_fields": {
+                      "css": "flex justify-center gap-2 pt-4 border-t border-gray-200 dark:border-gray-800"
+                    },
+                    "children": [
+                      {
+                        "style_name": "badge",
+                        "fields": {
+                          "label": {
+                            "en-GB": {
+                              "content": "Design"
+                            }
+                          },
+                          "mantine_color": {
+                            "all": {
+                              "content": "pink"
+                            }
+                          },
+                          "mantine_variant": {
+                            "all": {
+                              "content": "light"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "style_name": "badge",
+                        "fields": {
+                          "label": {
+                            "en-GB": {
+                              "content": "Research"
+                            }
+                          },
+                          "mantine_color": {
+                            "all": {
+                              "content": "violet"
+                            }
+                          },
+                          "mantine_variant": {
+                            "all": {
+                              "content": "light"
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
   }
 ]

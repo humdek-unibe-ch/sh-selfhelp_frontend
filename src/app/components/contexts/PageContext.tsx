@@ -9,8 +9,8 @@
  * (`['page-by-keyword', keyword, languageId, 'published']`) that the SSR
  * layout prefetches into, giving a true zero-refetch hydration path.
  *
- * `pageId` is kept on the context purely for convenience (some legacy call
- * sites still index by id). It is NOT part of the React Query cache key.
+ * `pageId` is kept on the context for components that need to perform
+ * page-scoped mutations. It is NOT part of the React Query cache key.
  *
  * @module contexts/PageContext
  */

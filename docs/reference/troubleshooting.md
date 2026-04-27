@@ -40,7 +40,16 @@ const expensiveValue = useMemo(() => {
 
 **Problem**: Token refresh fails
 - Check network connectivity
-- Verify token storage in localStorage
+- Verify the `sh_auth` and `sh_refresh` cookies are present (DevTools →
+  Application → Cookies). Both are `httpOnly` so they will not appear in
+  `document.cookie`; **never** look for tokens in `localStorage` — they
+  are not stored there in this app.
+- Confirm `sh_csrf` is set; mutating requests that fail CSRF validation
+  return 401 even if the access token is valid
+- Check the BFF proxy logs (`/api/[...path]`) for `401 logged_in: false`
+  — that means refresh was attempted and Symfony rejected the refresh
+  token (most often: refresh token rotated on another tab and this tab's
+  cookie is now stale)
 - Check server availability
 
 **Problem**: 2FA not working

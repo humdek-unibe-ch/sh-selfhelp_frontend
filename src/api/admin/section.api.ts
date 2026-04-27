@@ -9,6 +9,7 @@ import { permissionAwareApiClient } from '../base.api';
 import { API_CONFIG } from '../../config/api.config';
 import { IBaseApiResponse } from '../../types/responses/common/response-envelope.types';
 import { TSectionDetailsResponse, ISectionDetailsData } from '../../types/responses/admin/admin.types';
+import type { AxiosRequestConfig } from 'axios';
 import { 
     IAddSectionToPageData,
     IAddSectionToSectionData,
@@ -209,21 +210,23 @@ export const AdminSectionApi = {
 };
 
 // Types for export/import operations
+export interface ISectionExportFieldEntry {
+    content: string;
+    meta?: string;
+}
+
 export interface ISectionExportData {
-    name: string;
+    section_name?: string;
     style_name: string;
-    children: ISectionExportData[];
-    fields: Record<string, Record<string, {
-        content: string;
-        meta: any;
-    }>>;
-    global_fields?: {
+    fields?: Record<string, Record<string, ISectionExportFieldEntry>>;
+    global_fields?: Partial<{
         condition: string | null;
         data_config: string | null;
         css: string | null;
         css_mobile: string | null;
         debug: boolean;
-    };
+    }>;
+    children?: ISectionExportData[];
 }
 
 export interface IPageSectionsExportResponse {
@@ -237,6 +240,18 @@ export interface ISectionExportResponse {
 export interface IImportSectionsRequest {
     sections: ISectionExportData[];
     position?: number;
+}
+
+export interface IImportValidationError {
+    path: string;
+    type: string;
+    detail: string;
+}
+
+export interface IImportSectionsResponse {
+    sections?: ISectionExportData[];
+    imported_count?: number;
+    [key: string]: unknown;
 }
 
 /**
@@ -269,16 +284,17 @@ export async function importSectionsToPage(
     pageId: number, 
     sections: ISectionExportData[],
     position?: number
-): Promise<IBaseApiResponse<any>> {
+): Promise<IBaseApiResponse<IImportSectionsResponse>> {
     const requestBody: IImportSectionsRequest = {
         sections,
         ...(position !== undefined && { position })
     };
     
+    // permissionAwareApiClient.post signature: (endpointConfig, data, ...routeParams)
     const response = await permissionAwareApiClient.post(
         API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_IMPORT_TO_PAGE,
-        pageId,
-        requestBody
+        requestBody,
+        pageId
     );
     return response.data;
 }
@@ -291,17 +307,36 @@ export async function importSectionsToSection(
     parentSectionId: number, 
     sections: ISectionExportData[],
     position?: number
-): Promise<IBaseApiResponse<any>> {
+): Promise<IBaseApiResponse<IImportSectionsResponse>> {
     const requestBody: IImportSectionsRequest = {
         sections,
         ...(position !== undefined && { position })
     };
-    
+
+    // permissionAwareApiClient.post signature: (endpointConfig, data, ...routeParams)
     const response = await permissionAwareApiClient.post(
         API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_IMPORT_TO_SECTION,
+        requestBody,
         pageId,
-        parentSectionId,
-        requestBody
+        parentSectionId
     );
     return response.data;
-} 
+}
+
+/**
+ * Fetch the static AI section-generation prompt template as raw markdown text.
+ * Used by the `Copy AI prompt` button in the import UI.
+ */
+export async function fetchAiSectionPromptTemplate(): Promise<string> {
+    const textResponseConfig: AxiosRequestConfig = {
+        headers: { Accept: 'text/markdown' },
+        responseType: 'text',
+        transformResponse: [(raw: string): string => raw],
+    };
+
+    const response = await permissionAwareApiClient.get<string>(
+        API_CONFIG.ENDPOINTS.ADMIN_AI_SECTION_PROMPT_TEMPLATE,
+        textResponseConfig
+    );
+    return response.data;
+}

@@ -6,18 +6,11 @@ import { useAppNavigation } from '../../../../hooks/useAppNavigation';
 import { usePagePrefetch } from '../../../../hooks/usePagePrefetch';
 import { IPageItem } from '../../../../../src/types/responses/frontend/frontend.types';
 import { InternalLink } from '../../shared';
+import { getPageTitle } from '../../../../utils/navigation.utils';
 
 interface IMenuItemProps {
     item: IPageItem;
 }
-
-// Helper function to get page title
-const getPageTitle = (item: IPageItem): string => {
-    if (item.title && item.title.trim()) {
-        return item.title;
-    }
-    return item.keyword.charAt(0).toUpperCase() + item.keyword.slice(1).replace(/_/g, ' ').replace(/-/g, ' ');
-};
 
 function MenuItem({ item }: IMenuItemProps) {
     const hasChildren = item.children && item.children.length > 0;
@@ -37,7 +30,7 @@ function MenuItem({ item }: IMenuItemProps) {
                 </Menu.Target>
                 <Menu.Dropdown>
                     {item.children?.map((child: IPageItem) => (
-                        <Menu.Item 
+                        <Menu.Item
                             key={child.id_pages}
                             onMouseEnter={child.keyword ? createHoverPrefetch(child.keyword) : undefined}
                         >
@@ -60,24 +53,40 @@ function MenuItem({ item }: IMenuItemProps) {
     );
 }
 
+interface IWebsiteHeaderMenuProps {
+    /**
+     * Server-rendered menu list. Resolved by the parent Server Component
+     * (`WebsiteHeader`) via `getMenuPagesSSR`, then passed down so the
+     * very first painted frame already shows the real menu items —
+     * eliminating the old "render header → menu pops in" flash.
+     *
+     * The client `useAppNavigation` query takes over after hydration and
+     * any newer data (e.g. after an ACL refresh) replaces this list
+     * automatically.
+     */
+    initialMenuPages?: IPageItem[];
+}
+
 /**
- * Website Header Menu with optimized loading behavior
+ * Website Header Menu.
+ *
+ * Renders the top-level navigation links + hover dropdowns. The list is
+ * always derived from `initialMenuPages` first (server-resolved on every
+ * SSR), and overridden by the live React Query `useAppNavigation` data once
+ * it differs — so subsequent ACL changes refresh the menu without a click.
  */
-export function WebsiteHeaderMenu() {
-    const { menuPages, isLoading } = useAppNavigation();
+export function WebsiteHeaderMenu({ initialMenuPages = [] }: IWebsiteHeaderMenuProps) {
+    const { menuPages: liveMenuPages } = useAppNavigation();
 
-    // NOTE: Document title is now driven exclusively by per-segment
-    // `generateMetadata()` exports (see `src/app/[[...slug]]/page.tsx`). The
-    // previous effect that set `document.title` from the menu caused the
-    // well-known "Mantine template → real title" flicker on first load and
-    // is no longer necessary now that the server returns the right title.
+    // Prefer live data when available — it picks up ACL-driven changes via
+    // `useAclVersionWatcher` and `useAclEventStream`. Fall back to the SSR
+    // list so the very first paint always renders the real menu HTML.
+    const menuPages = liveMenuPages.length > 0 ? liveMenuPages : initialMenuPages;
 
-    // Show nothing while loading to prevent layout shift
-    if (isLoading || menuPages.length === 0) {
+    if (menuPages.length === 0) {
         return null;
     }
 
-    // Use only top-level items (parent === null) since children are already included
     const menuItems = menuPages
         .filter(page => page.parent_page_id === null)
         .map(item => (

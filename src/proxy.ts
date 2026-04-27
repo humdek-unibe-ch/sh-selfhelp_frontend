@@ -16,12 +16,15 @@
  *      loop in the `/api/*` BFF catch-all, but moved one level earlier so
  *      SSR page renders benefit from the same guarantee.
  *
- *   2. **Admin cookie gate (fast path only)**: redirect to `/auth/login` if
- *      `/admin/*` is requested without an `sh_auth` cookie. The cookie is
- *      httpOnly so the proxy can read it even though the browser JS
- *      cannot. *This is NOT a full auth check*; a forged cookie would still
- *      reach Symfony which then rejects the request. It only avoids rendering
- *      the admin shell for obviously-unauthenticated users.
+ *   2. **Admin cookie gate (fast path only)**: redirect to `/login` (the
+ *      CMS-managed login page) if `/admin/*` is requested without an
+ *      `sh_auth` cookie. The cookie is httpOnly so the proxy can read it
+ *      even though the browser JS cannot. *This is NOT a full auth check*;
+ *      a forged cookie would still reach Symfony which then rejects the
+ *      request. It only avoids rendering the admin shell for obviously-
+ *      unauthenticated users. The slug catch-all
+ *      (`src/app/[[...slug]]/page.tsx`) takes care of the static
+ *      `/auth/login` fallback when the CMS payload is empty.
  *
  *   3. **`sh_accept_locale` bootstrap**: capture the browser's preferred
  *      locale tag (e.g. `en-GB`, `de-CH`) as a *hint*. The actual locale →
@@ -173,10 +176,14 @@ export async function proxy(req: NextRequest): Promise<NextResponse> {
 
     // ── (2) Admin fast-path gate ────────────────────────────────────────
     // Use the *updated* req.cookies (after any refresh above).
+    //
+    // Send the visitor at the public-facing CMS login page (`/login`).
+    // The slug catch-all redirects to the static `/auth/login` fallback if
+    // the CMS payload is empty or errors, so this never strands the user.
     if (pathname.startsWith('/admin')) {
         if (!req.cookies.get(AUTH_COOKIE)?.value) {
             const loginUrl = req.nextUrl.clone();
-            loginUrl.pathname = '/auth/login';
+            loginUrl.pathname = '/login';
             loginUrl.searchParams.set('redirect', pathname + req.nextUrl.search);
             const redirectResponse = NextResponse.redirect(loginUrl);
             if (sessionCleared) {

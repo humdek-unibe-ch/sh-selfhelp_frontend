@@ -1,20 +1,30 @@
 /**
- * Module-level TanStack Query client.
+ * TanStack Query client factory.
  *
- * One instance per client bundle, shared by every component tree via
- * `QueryClientProvider` (see `providers.tsx`) and also consumed by code that
- * runs *outside* the React tree — most notably Refine's `authProvider`,
- * whose `check()` / `getIdentity()` lifecycle methods need to read the
- * hydrated `['user-data']` cache without forcing a fresh network round-trip.
+ * Follows the official SSR pattern from
+ * https://tanstack.com/query/v5/docs/framework/react/guides/advanced-ssr:
  *
- * Kept in its own module (rather than inlined in `providers.tsx`) so both
- * the React-facing provider and the non-React consumers can import the same
- * singleton without creating a circular dependency.
+ *  - Server: a fresh client per request (sharing across requests would leak
+ *    one visitor's cache into another's render).
+ *  - Browser: a single client for the lifetime of the tab so navigations
+ *    share the cache.
+ *
+ * Callers outside the React tree (Refine's `authProvider`) use this same
+ * factory so they read/write the same cache `<QueryClientProvider>` does.
  */
 
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, isServer } from '@tanstack/react-query';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 
-export const queryClient = new QueryClient({
-    defaultOptions: REACT_QUERY_CONFIG.DEFAULT_OPTIONS,
-});
+function makeQueryClient(): QueryClient {
+    return new QueryClient({
+        defaultOptions: REACT_QUERY_CONFIG.DEFAULT_OPTIONS,
+    });
+}
+
+let browserQueryClient: QueryClient | undefined;
+
+export function getQueryClient(): QueryClient {
+    if (isServer) return makeQueryClient();
+    return (browserQueryClient ??= makeQueryClient());
+}

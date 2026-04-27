@@ -1,5 +1,20 @@
 # 6. 🔗 API Layer & Endpoint Management
 
+> **BFF routing.** Axios is configured with `baseURL = '/api'`, so every
+> `apiClient.get('/admin/...')` call lands on the Next.js BFF proxy
+> (`src/app/api/[...path]/route.ts`), not on Symfony directly. The proxy
+> attaches `Authorization: Bearer <sh_auth>`, validates `X-CSRF-Token`,
+> handles silent refresh, and rewrites token-bearing response bodies into
+> httpOnly cookies. See `docs/architecture/ssr-bff-architecture.md` §15
+> for the full lifecycle.
+>
+> A single non-`/api/[...path]/...` BFF route exists today:
+> `src/app/api/auth/events/route.ts` — a custom Server-Sent Events (SSE)
+> proxy to the Mercure hub used for real-time ACL invalidation. The
+> browser hook `useAclEventStream` opens an `EventSource` to it; on every
+> `acl-changed` message we invalidate `['user-data']`, which cascades
+> into the navigation / page-content caches via `useAclVersionWatcher`.
+
 ## Centralized Configuration
 
 All API endpoints are centralized in `src/config/api.config.ts`:
@@ -14,13 +29,20 @@ export const API_CONFIG = {
         AUTH_LOGOUT: '/auth/logout',
 
         // Pages
-        PAGES_GET_ONE: (keyword: string) => `/pages/${keyword}`,
+        PAGE_BY_KEYWORD: (keyword: string) => `/pages/by-keyword/${keyword}`,
         ADMIN_PAGES_GET_ALL: '/admin/pages',
         ADMIN_PAGES_CREATE: '/admin/pages',
 
         // Sections
         ADMIN_SECTIONS_CREATE_CHILD: (keyword: string, parentId: number) =>
             `/admin/pages/${keyword}/sections/${parentId}/sections/create`,
+        ADMIN_PAGE_SECTIONS_IMPORT: (keyword: string) =>
+            `/admin/pages/${keyword}/sections/import`,
+        ADMIN_SECTION_SECTIONS_IMPORT: (sectionId: number) =>
+            `/admin/sections/${sectionId}/sections/import`,
+
+        // AI / section generation
+        ADMIN_AI_SECTION_PROMPT_TEMPLATE: '/admin/ai/section-prompt-template',
 
         // ... 50+ more endpoints
     },
@@ -34,6 +56,21 @@ export const API_CONFIG = {
     },
 };
 ```
+
+### Non-JSON endpoints
+
+Most endpoints exchange JSON, with two intentional exceptions wired
+through the same `apiClient`:
+
+- `ADMIN_AI_SECTION_PROMPT_TEMPLATE` — the frontend sends
+  `Accept: text/markdown` and reads the response body as a markdown
+  string (used by the "Copy AI prompt" button in the import-sections
+  modal). See `fetchAiSectionPromptTemplate()` in
+  `src/api/admin/section.api.ts`.
+- `/api/auth/events` — opened with `EventSource`, **not** Axios. The
+  body is a `text/event-stream` and the connection is held open by the
+  browser; reconnection logic with exponential backoff lives in
+  `src/hooks/useAclEventStream.ts`.
 
 ## API Client Structure
 

@@ -244,7 +244,7 @@ export function useAdminPages() {
             const hierarchicalPages = buildHierarchy(regularPages);
 
 
-            // Categorize regular pages based on their positions (for backward compatibility)
+            // Categorize regular pages based on their configured positions.
             const menuPages = hierarchicalPages.filter(page =>
                 page.nav_position !== null && page.nav_position !== undefined
             );

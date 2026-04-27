@@ -16,11 +16,13 @@ export function LanguageSelector() {
 
     const updateLanguageMutation = useUpdateLanguagePreferenceMutation();
 
-    // `setCurrentLanguageId` (LanguageContext) is the single source of truth
-    // for language-change cache invalidations — it fans out to
-    // `['frontend-pages']` and `['page-by-keyword']`. The authenticated
-    // mutation adds `['user-data']` on top of that. We intentionally do NOT
-    // re-invalidate those keys here to avoid double refetches.
+    // The language-scoped query keys (`['frontend-pages', languageId]`,
+    // `['page-by-keyword', kw, languageId, ...]`) all include `languageId`,
+    // so changing the language state alone routes every active observer to
+    // a different cache entry — no `invalidateQueries` fan-out is needed
+    // here, and adding one would double-fetch the previous language under
+    // React Strict Mode (the updater would run twice and queue two
+    // refetches before the state has even committed).
     const handleLanguageChange = useCallback(async (value: string | null) => {
         if (!value) return;
 

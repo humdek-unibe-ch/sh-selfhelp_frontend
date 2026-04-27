@@ -1,3 +1,13 @@
+/**
+ * Hand-crafted Mantine style types consumed by the runtime rendering layer
+ * (`StyleRenderer` + the per-style React components). These interfaces encode
+ * domain knowledge the DB schema doesn't expose — literal unions for Mantine
+ * sizes/variants and grouped base interfaces.
+ *
+ * The DB-sourced AI prompt template is owned by the backend and exposed to
+ * the frontend through `/admin/ai/section-prompt-template`.
+ */
+
 import type {
   TMantineSize,
   TMantineRadius,
@@ -204,7 +214,6 @@ export interface IBaseStyle {
 
 export interface IStyleWithSpacing extends IBaseStyle {
     mantine_spacing_margin_padding?: IContentField<string>;
-    mantine_spacing_margin?: IContentField<string>;
 }
 
 // Authentication & User Management Styles
@@ -309,7 +318,7 @@ export interface IProfileStyle extends IStyleWithSpacing {
     // Layout Configuration
     profile_columns?: IContentField<string>;
 
-    // Legacy fields (keeping for compatibility)
+    // Status message fields
     alert_fail?: IContentField<string>;
     alert_del_fail?: IContentField<string>;
     alert_del_success?: IContentField<string>;
@@ -611,11 +620,6 @@ export interface ISliderStyle extends IStyleWithSpacing {
     mantine_slider_inverted?: IContentField<string>;
     mantine_slider_thumb_size?: IContentField<string>;
     mantine_slider_required?: IContentField<string>;
-    // Legacy fields for backward compatibility
-    labels?: IContentField<any[]>;
-    min?: IContentField<string>;
-    max?: IContentField<string>;
-    locked_after_submit?: IContentField<string>;
 }
 
 export interface ICheckboxStyle extends IStyleWithSpacing {
@@ -781,10 +785,6 @@ export interface ITabStyle extends IBaseStyle {
     mantine_width?: IContentField<TMantineWidth>;             // Select field for width
     mantine_height?: IContentField<TMantineHeight>;            // Select field for height
     use_mantine_style?: IContentField<string>;         // Checkbox for Mantine vs custom styling
-    // Legacy fields for backward compatibility
-    type?: IContentField<string>;
-    is_active?: IContentField<string>;
-    icon?: IContentField<string>;
 }
 
 export interface IVersionStyle extends IBaseStyle {
@@ -1149,7 +1149,6 @@ export interface IChipStyle extends IStyleWithSpacing {
     // Form configuration fields
     name?: IContentField<string>;                     // Field name for form submission
     value?: IContentField<string>;                    // Default value for the chip field
-    chip_value?: IContentField<string>;               // Legacy field - value to be submitted when checked
     mantine_chip_on_value?: IContentField<string>;    // Value when chip is checked
     mantine_chip_off_value?: IContentField<string>;   // Value when chip is unchecked
     is_required?: IContentField<string>;              // Makes the chip field required

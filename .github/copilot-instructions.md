@@ -33,7 +33,12 @@
 ## Quick References
 - **architecture.md**: Always consult for up-to-date structure, API, and workflow details.
 - **design.md**: For UI/UX, admin, and plugin system details.
-- **docs/AI Prompts/ai_generate.md**: For AI JSON generation conventions and import/export structure.
+- **AI section generation prompt**: The frontend fetches the canonical
+  template at runtime from the backend endpoint
+  `/admin/ai/section-prompt-template` (see
+  `src/api/admin/section.api.ts → fetchAiSectionPromptTemplate`). The
+  backend is the single source of truth — there is no checked-in copy in
+  this repo.
 
 ---
 

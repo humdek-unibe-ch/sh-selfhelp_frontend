@@ -23,6 +23,8 @@ export {
     CSRF_COOKIE,
     LANG_COOKIE,
     LOCALE_HINT_COOKIE,
+    PREVIEW_COOKIE,
+    COLOR_SCHEME_COOKIE,
     LONG_LIVED_COOKIE_MAX_AGE,
 } from './cookie-names';
 

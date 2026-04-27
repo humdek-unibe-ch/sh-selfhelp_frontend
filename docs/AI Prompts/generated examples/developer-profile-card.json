@@ -1,454 +1,445 @@
 [
   {
-    "name": "developer-profile-container",
-    "style_name": "container",
+    "section_name": "developer-profile",
+    "style_name": "center",
+    "global_fields": {
+      "css": "py-16 px-4 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-950 dark:to-gray-900 min-h-screen",
+      "css_mobile": "py-10 px-4"
+    },
     "children": [
       {
-        "name": "profile-card",
-        "style_name": "div",
+        "style_name": "card",
+        "fields": {
+          "mantine_border": {
+            "all": {
+              "content": "1"
+            }
+          },
+          "mantine_card_padding": {
+            "all": {
+              "content": "0"
+            }
+          },
+          "mantine_radius": {
+            "all": {
+              "content": "xl"
+            }
+          },
+          "mantine_card_shadow": {
+            "all": {
+              "content": "xl"
+            }
+          }
+        },
+        "global_fields": {
+          "css": "w-full max-w-sm overflow-hidden bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"
+        },
         "children": [
           {
-            "name": "background-header",
-            "style_name": "div",
-            "children": [
-              {
-                "name": "code-background-image",
-                "style_name": "image",
-                "children": [],
-                "fields": {
-                  "img_src": {
-                    "all": {
-                      "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
-                      "meta": null
-                    }
-                  },
-                  "alt": {
-                    "en-GB": {
-                      "content": "Code editor background with programming syntax",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Code-Editor-Hintergrund mit Programmiersyntax",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "w-full h-32 object-cover rounded-t-lg opacity-80",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {},
+            "section_name": "profile-header",
+            "style_name": "card-segment",
             "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "relative bg-gradient-to-r from-indigo-900 via-purple-900 to-pink-900 rounded-t-lg",
-              "css_mobile": null,
-              "debug": false
+              "css": "h-28 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 dark:from-indigo-700 dark:via-purple-700 dark:to-pink-700"
             }
           },
           {
-            "name": "profile-avatar-section",
-            "style_name": "div",
+            "section_name": "profile-avatar-segment",
+            "style_name": "card-segment",
+            "global_fields": {
+              "css": "-mt-12 flex justify-center"
+            },
             "children": [
               {
-                "name": "profile-avatar",
-                "style_name": "image",
-                "children": [],
+                "style_name": "avatar",
                 "fields": {
-                  "img_src": {
-                    "all": {
-                      "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
-                      "meta": null
-                    }
-                  },
                   "alt": {
                     "en-GB": {
-                      "content": "Bill Headbanger profile photo",
-                      "meta": null
+                      "content": "Bill Headbanger profile photo"
                     },
                     "de-CH": {
-                      "content": "Bill Headbanger Profilbild",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "w-20 h-20 rounded-full border-4 border-white shadow-lg mx-auto -mt-10 relative z-10",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {},
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "flex justify-center",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "profile-info-section",
-            "style_name": "div",
-            "children": [
-              {
-                "name": "developer-name",
-                "style_name": "heading",
-                "children": [],
-                "fields": {
-                  "level": {
-                    "all": {
-                      "content": "2",
-                      "meta": null
+                      "content": "Profilfoto von Bill Headbanger"
                     }
                   },
-                  "title": {
+                  "img_src": {
                     "en-GB": {
-                      "content": "Bill Headbanger",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Bill Headbanger",
-                      "meta": null
+                      "content": "/assets/image-holder.png"
+                    }
+                  },
+                  "mantine_size": {
+                    "all": {
+                      "content": "xl"
+                    }
+                  },
+                  "mantine_radius": {
+                    "all": {
+                      "content": "50%"
                     }
                   }
                 },
                 "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "text-2xl font-bold text-gray-900 text-center mt-4 mb-2",
-                  "css_mobile": null,
-                  "debug": false
+                  "css": "ring-4 ring-white dark:ring-gray-900 shadow-lg"
+                }
+              }
+            ]
+          },
+          {
+            "section_name": "profile-identity",
+            "style_name": "card-segment",
+            "global_fields": {
+              "css": "px-6 pt-4 pb-2 text-center"
+            },
+            "children": [
+              {
+                "style_name": "title",
+                "fields": {
+                  "content": {
+                    "en-GB": {
+                      "content": "Bill Headbanger"
+                    },
+                    "de-CH": {
+                      "content": "Bill Headbanger"
+                    }
+                  },
+                  "mantine_title_order": {
+                    "all": {
+                      "content": "2"
+                    }
+                  }
+                },
+                "global_fields": {
+                  "css": "text-2xl font-bold text-gray-900 dark:text-gray-50"
                 }
               },
               {
-                "name": "job-title",
-                "style_name": "plaintext",
-                "children": [],
+                "style_name": "text",
                 "fields": {
                   "text": {
                     "en-GB": {
-                      "content": "Fullstack engineer",
-                      "meta": null
+                      "content": "Fullstack engineer · Zürich"
                     },
                     "de-CH": {
-                      "content": "Fullstack-Entwickler",
-                      "meta": null
+                      "content": "Fullstack-Entwickler · Zürich"
                     }
                   }
                 },
                 "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "text-gray-600 text-center mb-6",
-                  "css_mobile": null,
-                  "debug": false
+                  "css": "text-sm text-gray-500 dark:text-gray-400 mt-1"
                 }
               }
-            ],
-            "fields": {},
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "px-6",
-              "css_mobile": null,
-              "debug": false
-            }
+            ]
           },
           {
-            "name": "stats-section",
-            "style_name": "div",
-            "children": [
-              {
-                "name": "followers-stat",
-                "style_name": "div",
-                "children": [
-                  {
-                    "name": "followers-count",
-                    "style_name": "heading",
-                    "children": [],
-                    "fields": {
-                      "level": {
-                        "all": {
-                          "content": "3",
-                          "meta": null
-                        }
-                      },
-                      "title": {
-                        "en-GB": {
-                          "content": "34K",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "34K",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-xl font-bold text-gray-900 text-center",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "followers-label",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "Followers",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Follower",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-gray-600 text-center text-sm",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {},
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "flex flex-col",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "follows-stat",
-                "style_name": "div",
-                "children": [
-                  {
-                    "name": "follows-count",
-                    "style_name": "heading",
-                    "children": [],
-                    "fields": {
-                      "level": {
-                        "all": {
-                          "content": "3",
-                          "meta": null
-                        }
-                      },
-                      "title": {
-                        "en-GB": {
-                          "content": "187",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "187",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-xl font-bold text-gray-900 text-center",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "follows-label",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "Follows",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Folgt",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-gray-600 text-center text-sm",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {},
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "flex flex-col",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "posts-stat",
-                "style_name": "div",
-                "children": [
-                  {
-                    "name": "posts-count",
-                    "style_name": "heading",
-                    "children": [],
-                    "fields": {
-                      "level": {
-                        "all": {
-                          "content": "3",
-                          "meta": null
-                        }
-                      },
-                      "title": {
-                        "en-GB": {
-                          "content": "1.6K",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "1.6K",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-xl font-bold text-gray-900 text-center",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "posts-label",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "Posts",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Beiträge",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-gray-600 text-center text-sm",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {},
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "flex flex-col",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {},
+            "section_name": "profile-skills",
+            "style_name": "card-segment",
             "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "flex justify-around py-4 border-t border-gray-200 mx-6",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "follow-button-section",
-            "style_name": "div",
+              "css": "px-6 py-3 flex flex-wrap justify-center gap-2"
+            },
             "children": [
               {
-                "name": "follow-button",
-                "style_name": "button",
-                "children": [],
+                "style_name": "badge",
                 "fields": {
                   "label": {
                     "en-GB": {
-                      "content": "Follow",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Folgen",
-                      "meta": null
+                      "content": "TypeScript"
                     }
                   },
-                  "type": {
+                  "mantine_color": {
                     "all": {
-                      "content": "primary",
-                      "meta": null
+                      "content": "blue"
                     }
                   },
-                  "url": {
+                  "mantine_variant": {
                     "all": {
-                      "content": "#",
-                      "meta": null
+                      "content": "light"
+                    }
+                  }
+                }
+              },
+              {
+                "style_name": "badge",
+                "fields": {
+                  "label": {
+                    "en-GB": {
+                      "content": "React"
+                    }
+                  },
+                  "mantine_color": {
+                    "all": {
+                      "content": "cyan"
+                    }
+                  },
+                  "mantine_variant": {
+                    "all": {
+                      "content": "light"
+                    }
+                  }
+                }
+              },
+              {
+                "style_name": "badge",
+                "fields": {
+                  "label": {
+                    "en-GB": {
+                      "content": "PHP"
+                    }
+                  },
+                  "mantine_color": {
+                    "all": {
+                      "content": "violet"
+                    }
+                  },
+                  "mantine_variant": {
+                    "all": {
+                      "content": "light"
+                    }
+                  }
+                }
+              },
+              {
+                "style_name": "badge",
+                "fields": {
+                  "label": {
+                    "en-GB": {
+                      "content": "Symfony"
+                    }
+                  },
+                  "mantine_color": {
+                    "all": {
+                      "content": "grape"
+                    }
+                  },
+                  "mantine_variant": {
+                    "all": {
+                      "content": "light"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "section_name": "profile-stats",
+            "style_name": "card-segment",
+            "global_fields": {
+              "css": "px-6 py-4 border-t border-gray-200 dark:border-gray-800"
+            },
+            "children": [
+              {
+                "style_name": "simple-grid",
+                "fields": {
+                  "mantine_cols": {
+                    "all": {
+                      "content": "3"
+                    }
+                  },
+                  "mantine_spacing_margin_padding": {
+                    "all": {
+                      "content": "{\"mantine_horizontal_spacing\":\"xs\",\"mantine_vertical_spacing\":\"xs\"}"
                     }
                   }
                 },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "w-full mx-6 mb-6 py-2 px-4 bg-white border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors duration-200",
-                  "css_mobile": null,
-                  "debug": false
+                "children": [
+                  {
+                    "style_name": "stack",
+                    "fields": {
+                      "mantine_align": {
+                        "all": {
+                          "content": "center"
+                        }
+                      },
+                      "mantine_gap": {
+                        "all": {
+                          "content": "0"
+                        }
+                      }
+                    },
+                    "children": [
+                      {
+                        "style_name": "title",
+                        "fields": {
+                          "content": {
+                            "en-GB": {
+                              "content": "34K"
+                            }
+                          },
+                          "mantine_title_order": {
+                            "all": {
+                              "content": "3"
+                            }
+                          }
+                        },
+                        "global_fields": {
+                          "css": "text-xl font-bold text-gray-900 dark:text-gray-50"
+                        }
+                      },
+                      {
+                        "style_name": "text",
+                        "fields": {
+                          "text": {
+                            "en-GB": {
+                              "content": "Followers"
+                            },
+                            "de-CH": {
+                              "content": "Follower"
+                            }
+                          }
+                        },
+                        "global_fields": {
+                          "css": "text-xs text-gray-500 dark:text-gray-400"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "style_name": "stack",
+                    "fields": {
+                      "mantine_align": {
+                        "all": {
+                          "content": "center"
+                        }
+                      },
+                      "mantine_gap": {
+                        "all": {
+                          "content": "0"
+                        }
+                      }
+                    },
+                    "children": [
+                      {
+                        "style_name": "title",
+                        "fields": {
+                          "content": {
+                            "en-GB": {
+                              "content": "187"
+                            }
+                          },
+                          "mantine_title_order": {
+                            "all": {
+                              "content": "3"
+                            }
+                          }
+                        },
+                        "global_fields": {
+                          "css": "text-xl font-bold text-gray-900 dark:text-gray-50"
+                        }
+                      },
+                      {
+                        "style_name": "text",
+                        "fields": {
+                          "text": {
+                            "en-GB": {
+                              "content": "Following"
+                            },
+                            "de-CH": {
+                              "content": "Folgt"
+                            }
+                          }
+                        },
+                        "global_fields": {
+                          "css": "text-xs text-gray-500 dark:text-gray-400"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "style_name": "stack",
+                    "fields": {
+                      "mantine_align": {
+                        "all": {
+                          "content": "center"
+                        }
+                      },
+                      "mantine_gap": {
+                        "all": {
+                          "content": "0"
+                        }
+                      }
+                    },
+                    "children": [
+                      {
+                        "style_name": "title",
+                        "fields": {
+                          "content": {
+                            "en-GB": {
+                              "content": "1.6K"
+                            }
+                          },
+                          "mantine_title_order": {
+                            "all": {
+                              "content": "3"
+                            }
+                          }
+                        },
+                        "global_fields": {
+                          "css": "text-xl font-bold text-gray-900 dark:text-gray-50"
+                        }
+                      },
+                      {
+                        "style_name": "text",
+                        "fields": {
+                          "text": {
+                            "en-GB": {
+                              "content": "Posts"
+                            },
+                            "de-CH": {
+                              "content": "Beiträge"
+                            }
+                          }
+                        },
+                        "global_fields": {
+                          "css": "text-xs text-gray-500 dark:text-gray-400"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "section_name": "profile-cta",
+            "style_name": "card-segment",
+            "global_fields": {
+              "css": "px-6 pb-6"
+            },
+            "children": [
+              {
+                "style_name": "button",
+                "fields": {
+                  "label": {
+                    "en-GB": {
+                      "content": "Follow"
+                    },
+                    "de-CH": {
+                      "content": "Folgen"
+                    }
+                  },
+                  "mantine_color": {
+                    "all": {
+                      "content": "blue"
+                    }
+                  },
+                  "mantine_variant": {
+                    "all": {
+                      "content": "filled"
+                    }
+                  },
+                  "mantine_fullwidth": {
+                    "all": {
+                      "content": "1"
+                    }
+                  },
+                  "mantine_radius": {
+                    "all": {
+                      "content": "md"
+                    }
+                  }
                 }
               }
-            ],
-            "fields": {},
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "flex justify-center",
-              "css_mobile": null,
-              "debug": false
-            }
+            ]
           }
-        ],
-        "fields": {},
-        "global_fields": {
-          "condition": null,
-          "data_config": null,
-          "css": "bg-white rounded-lg shadow-xl max-w-sm mx-auto overflow-hidden",
-          "css_mobile": null,
-          "debug": false
-        }
+        ]
       }
-    ],
-    "fields": {},
-    "global_fields": {
-      "condition": null,
-      "data_config": null,
-      "css": "container mx-auto px-4 py-8 flex justify-center items-center min-h-screen bg-gray-100",
-      "css_mobile": null,
-      "debug": false
-    }
+    ]
   }
 ]

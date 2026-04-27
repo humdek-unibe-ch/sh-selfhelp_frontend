@@ -163,6 +163,10 @@ export const API_CONFIG = {
             route: '/admin/styles',
             permissions: []
         },
+        ADMIN_AI_SECTION_PROMPT_TEMPLATE: {
+            route: '/admin/ai/section-prompt-template',
+            permissions: [PERMISSIONS.ADMIN_PAGE_EXPORT]
+        },
 
         // Admin CMS preferences endpoints
         ADMIN_CMS_PREFERENCES_GET: {

@@ -18,7 +18,7 @@ export interface ISpacingValues {
     pe?: TSpacingValue; // padding-end
 }
 
-export type TSpacingFieldType = 'mantine_spacing_margin_padding' | 'mantine_spacing_margin';
+export type TSpacingFieldType = 'mantine_spacing_margin_padding';
 
 interface ISpacingFieldProps {
     fieldId: number;
@@ -254,33 +254,25 @@ export function SpacingField({
         return controlGroup;
     };
 
-    // Determine which controls to show based on field type
-    const showMargin = fieldType === 'mantine_spacing_margin_padding' || fieldType === 'mantine_spacing_margin';
-    const showPadding = fieldType === 'mantine_spacing_margin_padding';
-
     return (
         <Stack gap="sm">
             {/* Box Model Visualization */}
             <Box ref={boxModelRef} className={classes.boxModel}>
                 {/* Margin Layer */}
-                {showMargin && (
-                    <Box className={classes.marginLayer}>
-                        {renderSpacingControl('mt', 'marginTop', 'Margin Top')}
-                        {renderSpacingControl('mb', 'marginBottom', 'Margin Bottom')}
-                        {renderSpacingControl('ms', 'marginStart', 'Margin Start')}
-                        {renderSpacingControl('me', 'marginEnd', 'Margin End')}
-                    </Box>
-                )}
+                <Box className={classes.marginLayer}>
+                    {renderSpacingControl('mt', 'marginTop', 'Margin Top')}
+                    {renderSpacingControl('mb', 'marginBottom', 'Margin Bottom')}
+                    {renderSpacingControl('ms', 'marginStart', 'Margin Start')}
+                    {renderSpacingControl('me', 'marginEnd', 'Margin End')}
+                </Box>
 
                 {/* Padding Layer */}
-                {showPadding && (
-                    <Box className={classes.paddingLayer}>
-                        {renderSpacingControl('pt', 'paddingTop', 'Padding Top')}
-                        {renderSpacingControl('pb', 'paddingBottom', 'Padding Bottom')}
-                        {renderSpacingControl('ps', 'paddingStart', 'Padding Start')}
-                        {renderSpacingControl('pe', 'paddingEnd', 'Padding End')}
-                    </Box>
-                )}
+                <Box className={classes.paddingLayer}>
+                    {renderSpacingControl('pt', 'paddingTop', 'Padding Top')}
+                    {renderSpacingControl('pb', 'paddingBottom', 'Padding Bottom')}
+                    {renderSpacingControl('ps', 'paddingStart', 'Padding Start')}
+                    {renderSpacingControl('pe', 'paddingEnd', 'Padding End')}
+                </Box>
 
                 {/* Content Area - Fixed position inside padding layer */}
                 <Paper className={classes.contentArea} withBorder radius="sm" bg="gray.1">

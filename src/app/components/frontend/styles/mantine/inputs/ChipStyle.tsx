@@ -24,7 +24,6 @@ interface IChipStyleProps {
  * Form Integration Features:
  * - Configurable on/off values for form submission
  * - Proper form field naming and validation
- * - Backward compatibility with legacy chip_value field
  * - Support for required field validation
  * - Controlled component with state management
  * - Optional tooltip support that appears on hover with configurable position
@@ -44,8 +43,7 @@ const ChipStyle: React.FC<IChipStyleProps> = ({ style, styleProps, cssClass }) =
 
     // Form configuration fields (similar to checkbox)
     const name = style.name?.content || `section-${style.id}`;
-    const legacyChipValue = style.chip_value?.content || '1'; // Legacy field for backward compatibility
-    const onValue = style.chip_on_value?.content || legacyChipValue; // Value when checked
+    const onValue = style.chip_on_value?.content || '1'; // Value when checked
     const offValue = style.chip_off_value?.content || '0'; // Value when unchecked
     const isRequired = style.is_required?.content === '1';
 
@@ -59,7 +57,7 @@ const ChipStyle: React.FC<IChipStyleProps> = ({ style, styleProps, cssClass }) =
 
     // Icon field configuration
     const iconName = style.mantine_left_icon?.content;
-    const iconSize = parseInt((style as any).mantine_icon_size?.content || '16');
+    const iconSize = parseInt(style.mantine_icon_size?.content || '16');
 
     const chipIcon = iconName ? <IconComponent iconName={iconName} size={iconSize} /> : null;
 

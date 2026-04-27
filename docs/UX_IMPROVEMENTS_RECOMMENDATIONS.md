@@ -318,7 +318,6 @@ interface ISectionComment {
 - Test drag & drop on different devices
 - Verify accessibility features
 
-### Backward Compatibility
-- Maintain existing API contracts
-- Provide migration paths for data structures
-- Support legacy section formats 
+### Current Data Contracts
+- Keep frontend contracts aligned with the current backend schema.
+- Remove stale section formats instead of layering migration paths into the UI.

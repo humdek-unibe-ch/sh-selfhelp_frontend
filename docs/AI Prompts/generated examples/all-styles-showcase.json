@@ -1,2791 +1,1890 @@
 [
   {
-    "name": "all-styles-showcase",
+    "section_name": "styles-showcase",
     "style_name": "container",
-    "children": [
-      {
-        "name": "showcase-title",
-        "style_name": "heading",
-        "children": [],
-        "fields": {
-          "level": {
-            "all": {
-              "content": "1",
-              "meta": null
-            }
-          },
-          "title": {
-            "en-GB": {
-              "content": "SH-SelfHelp CMS - Complete Styles Showcase",
-              "meta": null
-            },
-            "de-CH": {
-              "content": "SH-SelfHelp CMS - Vollständige Stile Showcase",
-              "meta": null
-            }
-          }
-        },
-        "global_fields": {
-          "condition": null,
-          "data_config": null,
-          "css": "text-center mb-8",
-          "css_mobile": null,
-          "debug": false
-        }
-      },
-      {
-        "name": "auth-styles-card",
-        "style_name": "div",
-        "children": [
-          {
-            "name": "auth-title",
-            "style_name": "heading",
-            "children": [],
-            "fields": {
-              "level": {
-                "all": {
-                  "content": "2",
-                  "meta": null
-                }
-              },
-              "title": {
-                "en-GB": {
-                  "content": "Authentication Styles",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Authentifizierungsstile",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "text-center mb-6",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "login-demo",
-            "style_name": "login",
-            "children": [],
-            "fields": {
-              "login_title": {
-                "en-GB": {
-                  "content": "Login Example",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Login Beispiel",
-                  "meta": null
-                }
-              },
-              "label_user": {
-                "en-GB": {
-                  "content": "Username",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Benutzername",
-                  "meta": null
-                }
-              },
-              "label_pw": {
-                "en-GB": {
-                  "content": "Password",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Passwort",
-                  "meta": null
-                }
-              },
-              "label_login": {
-                "en-GB": {
-                  "content": "Sign In",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Anmelden",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "mb-6",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "register-demo",
-            "style_name": "register",
-            "children": [],
-            "fields": {
-              "title": {
-                "en-GB": {
-                  "content": "Register Example",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Registrierungsbeispiel",
-                  "meta": null
-                }
-              },
-              "label_user": {
-                "en-GB": {
-                  "content": "Email",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "E-Mail",
-                  "meta": null
-                }
-              },
-              "label_pw": {
-                "en-GB": {
-                  "content": "Password",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Passwort",
-                  "meta": null
-                }
-              },
-              "label_submit": {
-                "en-GB": {
-                  "content": "Create Account",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Konto erstellen",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "mb-6",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "validate-demo",
-            "style_name": "validate",
-            "children": [],
-            "fields": {
-              "title": {
-                "en-GB": {
-                  "content": "Profile Validation",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Profil-Validierung",
-                  "meta": null
-                }
-              },
-              "label_name": {
-                "en-GB": {
-                  "content": "Full Name",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Vollständiger Name",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "mb-6",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "two-factor-demo",
-            "style_name": "twoFactorAuth",
-            "children": [],
-            "fields": {
-              "title": {
-                "en-GB": {
-                  "content": "Two-Factor Authentication",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Zwei-Faktor-Authentifizierung",
-                  "meta": null
-                }
-              },
-              "label_code": {
-                "en-GB": {
-                  "content": "Verification Code",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Bestätigungscode",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "mb-6",
-              "css_mobile": null,
-              "debug": false
-            }
-          }
-        ],
-        "fields": {
-          "title": {
-            "en-GB": {
-              "content": "Authentication Components",
-              "meta": null
-            },
-            "de-CH": {
-              "content": "Authentifizierungskomponenten",
-              "meta": null
-            }
-          },
-          "type": {
-            "all": {
-              "content": "primary",
-              "meta": null
-            }
-          },
-          "is_expanded": {
-            "all": {
-              "content": "1",
-              "meta": null
-            }
-          }
-        },
-        "global_fields": {
-          "condition": null,
-          "data_config": null,
-          "css": "mb-8",
-          "css_mobile": null,
-          "debug": false
-        }
-      },
-      {
-        "name": "layout-styles-card",
-        "style_name": "div",
-        "children": [
-          {
-            "name": "layout-title",
-            "style_name": "heading",
-            "children": [],
-            "fields": {
-              "level": {
-                "all": {
-                  "content": "2",
-                  "meta": null
-                }
-              },
-              "title": {
-                "en-GB": {
-                  "content": "Layout & Container Styles",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Layout & Container Stile",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "text-center mb-6",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "container-demo",
-            "style_name": "container",
-            "children": [
-              {
-                "name": "container-text",
-                "style_name": "plaintext",
-                "children": [],
-                "fields": {
-                  "text": {
-                    "en-GB": {
-                      "content": "Standard Container Component",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Standard-Container-Komponente",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "p-4 bg-gray-50 dark:bg-gray-800 dark:bg-gray-800 rounded",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {
-              "is_fluid": {
-                "all": {
-                  "content": "0",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "mb-6 p-4 border rounded-lg",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "jumbotron-demo",
-            "style_name": "div",
-            "children": [
-              {
-                "name": "jumbotron-heading",
-                "style_name": "heading",
-                "children": [],
-                "fields": {
-                  "level": {
-                    "all": {
-                      "content": "1",
-                      "meta": null
-                    }
-                  },
-                  "title": {
-                    "en-GB": {
-                      "content": "Jumbotron Hero Section",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Jumbotron Hero-Bereich",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "text-center mb-4",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {},
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "mb-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white p-8 rounded-lg",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "alerts-demo",
-            "style_name": "div",
-            "children": [
-              {
-                "name": "alert-primary",
-                "style_name": "div",
-                "children": [
-                  {
-                    "name": "alert-primary-text",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "Primary Alert Message",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Primäre Warnmeldung",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {
-                  "type": {
-                    "all": {
-                      "content": "primary",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "p-4 mb-4 rounded-lg border bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "alert-success",
-                "style_name": "div",
-                "children": [
-                  {
-                    "name": "alert-success-text",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "Success! Operation completed.",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Erfolg! Vorgang abgeschlossen.",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {
-                  "type": {
-                    "all": {
-                      "content": "success",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "p-4 mb-4 rounded-lg border bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "alert-danger",
-                "style_name": "div",
-                "children": [
-                  {
-                    "name": "alert-danger-text",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "Error! Something went wrong.",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Fehler! Etwas ist schief gelaufen.",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {
-                  "type": {
-                    "all": {
-                      "content": "danger",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "p-4 mb-4 rounded-lg border bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {},
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "card-demo",
-            "style_name": "div",
-            "children": [
-              {
-                "name": "card-content",
-                "style_name": "plaintext",
-                "children": [],
-                "fields": {
-                  "text": {
-                    "en-GB": {
-                      "content": "This is a collapsible card component.",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Dies ist eine zusammenklappbare Kartenkomponente.",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {
-              "title": {
-                "en-GB": {
-                  "content": "Card Example",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Kartenbeispiel",
-                  "meta": null
-                }
-              },
-              "type": {
-                "all": {
-                  "content": "info",
-                  "meta": null
-                }
-              },
-              "is_collapsible": {
-                "all": {
-                  "content": "1",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "bg-white dark:bg-gray-900 rounded-lg shadow-lg dark:shadow-2xl border border-gray-200 dark:border-gray-700 p-6 mb-4",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "div-demo",
-            "style_name": "div",
-            "children": [
-              {
-                "name": "div-text",
-                "style_name": "plaintext",
-                "children": [],
-                "fields": {
-                  "text": {
-                    "en-GB": {
-                      "content": "Div container with custom colors",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Div-Container mit benutzerdefinierten Farben",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {
-              "color_background": {
-                "all": {
-                  "content": "#f8f9fa",
-                  "meta": null
-                }
-              },
-              "color_border": {
-                "all": {
-                  "content": "#dee2e6",
-                  "meta": null
-                }
-              },
-              "color_text": {
-                "all": {
-                  "content": "#495057",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "",
-              "css_mobile": null,
-              "debug": false
-            }
-          }
-        ],
-        "fields": {
-          "title": {
-            "en-GB": {
-              "content": "Layout Components",
-              "meta": null
-            },
-            "de-CH": {
-              "content": "Layout-Komponenten",
-              "meta": null
-            }
-          },
-          "type": {
-            "all": {
-              "content": "secondary",
-              "meta": null
-            }
-          },
-          "is_expanded": {
-            "all": {
-              "content": "1",
-              "meta": null
-            }
-          }
-        },
-        "global_fields": {
-          "condition": null,
-          "data_config": null,
-          "css": "bg-white dark:bg-gray-900 rounded-lg shadow-lg dark:shadow-2xl border border-gray-200 dark:border-gray-700 p-6 mb-4",
-          "css_mobile": null,
-          "debug": false
-        }
-      },
-      {
-        "name": "text-styles-card",
-        "style_name": "div",
-        "children": [
-          {
-            "name": "text-title",
-            "style_name": "heading",
-            "children": [],
-            "fields": {
-              "level": {
-                "all": {
-                  "content": "2",
-                  "meta": null
-                }
-              },
-              "title": {
-                "en-GB": {
-                  "content": "Text & Content Styles",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Text & Inhalt Stile",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "heading-demo-h1",
-            "style_name": "heading",
-            "children": [],
-            "fields": {
-              "level": {
-                "all": {
-                  "content": "1",
-                  "meta": null
-                }
-              },
-              "title": {
-                "en-GB": {
-                  "content": "Heading Level 1",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Überschrift Ebene 1",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "heading-demo-h3",
-            "style_name": "heading",
-            "children": [],
-            "fields": {
-              "level": {
-                "all": {
-                  "content": "3",
-                  "meta": null
-                }
-              },
-              "title": {
-                "en-GB": {
-                  "content": "Heading Level 3",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Überschrift Ebene 3",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "markdown-demo",
-            "style_name": "markdown",
-            "children": [],
-            "fields": {
-              "text_md": {
-                "en-GB": {
-                  "content": "# Markdown Example\n\nThis is **bold text** and *italic text*.\n\n- List item 1\n- List item 2\n- List item 3\n\n[Link example](https://example.com)",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "# Markdown Beispiel\n\nDies ist **fetter Text** und *kursiver Text*.\n\n- Listenelement 1\n- Listenelement 2\n- Listenelement 3\n\n[Link Beispiel](https://example.com)",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "plaintext-demo",
-            "style_name": "plaintext",
-            "children": [],
-            "fields": {
-              "text": {
-                "en-GB": {
-                  "content": "This is plain text without any formatting. It can be wrapped in paragraph tags.",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Dies ist einfacher Text ohne Formatierung. Er kann in Absatz-Tags eingeschlossen werden.",
-                  "meta": null
-                }
-              },
-              "is_paragraph": {
-                "all": {
-                  "content": "1",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "rawtext-demo",
-            "style_name": "rawText",
-            "children": [],
-            "fields": {
-              "text": {
-                "en-GB": {
-                  "content": "Raw text without any processing or HTML wrapping",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Roher Text ohne Verarbeitung oder HTML-Umhüllung",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "",
-              "css_mobile": null,
-              "debug": false
-            }
-          }
-        ],
-        "fields": {
-          "title": {
-            "en-GB": {
-              "content": "Text Components",
-              "meta": null
-            },
-            "de-CH": {
-              "content": "Text-Komponenten",
-              "meta": null
-            }
-          },
-          "type": {
-            "all": {
-              "content": "success",
-              "meta": null
-            }
-          },
-          "is_expanded": {
-            "all": {
-              "content": "1",
-              "meta": null
-            }
-          }
-        },
-        "global_fields": {
-          "condition": null,
-          "data_config": null,
-          "css": "bg-white dark:bg-gray-900 rounded-lg shadow-lg dark:shadow-2xl border border-gray-200 dark:border-gray-700 p-6 mb-4",
-          "css_mobile": null,
-          "debug": false
-        }
-      },
-      {
-        "name": "media-styles-card",
-        "style_name": "div",
-        "children": [
-          {
-            "name": "media-title",
-            "style_name": "heading",
-            "children": [],
-            "fields": {
-              "level": {
-                "all": {
-                  "content": "2",
-                  "meta": null
-                }
-              },
-              "title": {
-                "en-GB": {
-                  "content": "Media Styles",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Medien-Stile",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "image-demo",
-            "style_name": "image",
-            "children": [],
-            "fields": {
-              "img_src": {
-                "all": {
-                  "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
-                  "meta": null
-                }
-              },
-              "alt": {
-                "en-GB": {
-                  "content": "Sample image placeholder",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Beispiel-Bild-Platzhalter",
-                  "meta": null
-                }
-              },
-              "title": {
-                "en-GB": {
-                  "content": "Image Example",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Bild-Beispiel",
-                  "meta": null
-                }
-              },
-              "width": {
-                "all": {
-                  "content": "300",
-                  "meta": null
-                }
-              },
-              "height": {
-                "all": {
-                  "content": "200",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "video-demo",
-            "style_name": "video",
-            "children": [],
-            "fields": {
-              "sources": {
-                "all": {
-                  "content": "[{\"src\": \"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4\", \"type\": \"video/mp4\"}]",
-                  "meta": null
-                }
-              },
-              "alt": {
-                "en-GB": {
-                  "content": "Sample video",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Beispiel-Video",
-                  "meta": null
-                }
-              },
-              "is_fluid": {
-                "all": {
-                  "content": "1",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "audio-demo",
-            "style_name": "audio",
-            "children": [],
-            "fields": {
-              "sources": {
-                "all": {
-                  "content": "[{\"src\": \"https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3\", \"type\": \"audio/mp3\"}]",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "figure-demo",
-            "style_name": "figure",
-            "children": [
-              {
-                "name": "figure-image",
-                "style_name": "image",
-                "children": [],
-                "fields": {
-                  "img_src": {
-                    "all": {
-                      "content": "http://127.0.0.1/selfhelp/assets/image-holder.png",
-                      "meta": null
-                    }
-                  },
-                  "alt": {
-                    "en-GB": {
-                      "content": "Figure image",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Abbildung",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {
-              "caption_title": {
-                "en-GB": {
-                  "content": "Figure Caption",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Abbildungsunterschrift",
-                  "meta": null
-                }
-              },
-              "caption": {
-                "en-GB": {
-                  "content": "This is a figure with a caption",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Dies ist eine Abbildung mit Untertitel",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "carousel-demo",
-            "style_name": "carousel",
-            "children": [],
-            "fields": {
-              "sources": {
-                "all": {
-                  "content": "[{\"src\": \"http://127.0.0.1/selfhelp/assets/image-holder.png\", \"alt\": \"Image 1\"}, {\"src\": \"http://127.0.0.1/selfhelp/assets/image-holder.png\", \"alt\": \"Image 2\"}, {\"src\": \"http://127.0.0.1/selfhelp/assets/image-holder.png\", \"alt\": \"Image 3\"}]",
-                  "meta": null
-                }
-              },
-              "has_controls": {
-                "all": {
-                  "content": "1",
-                  "meta": null
-                }
-              },
-              "has_indicators": {
-                "all": {
-                  "content": "1",
-                  "meta": null
-                }
-              },
-              "id_prefix": {
-                "all": {
-                  "content": "demo-carousel",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "",
-              "css_mobile": null,
-              "debug": false
-            }
-          }
-        ],
-        "fields": {
-          "title": {
-            "en-GB": {
-              "content": "Media Components",
-              "meta": null
-            },
-            "de-CH": {
-              "content": "Medien-Komponenten",
-              "meta": null
-            }
-          },
-          "type": {
-            "all": {
-              "content": "warning",
-              "meta": null
-            }
-          },
-          "is_expanded": {
-            "all": {
-              "content": "1",
-              "meta": null
-            }
-          }
-        },
-        "global_fields": {
-          "condition": null,
-          "data_config": null,
-          "css": "bg-white dark:bg-gray-900 rounded-lg shadow-lg dark:shadow-2xl border border-gray-200 dark:border-gray-700 p-6 mb-4",
-          "css_mobile": null,
-          "debug": false
-        }
-      },
-      {
-        "name": "form-styles-card",
-        "style_name": "div",
-        "children": [
-          {
-            "name": "form-title",
-            "style_name": "heading",
-            "children": [],
-            "fields": {
-              "level": {
-                "all": {
-                  "content": "2",
-                  "meta": null
-                }
-              },
-              "title": {
-                "en-GB": {
-                  "content": "Form & Input Styles",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Formular & Eingabe Stile",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "form-demo",
-            "style_name": "form",
-            "children": [
-              {
-                "name": "form-input",
-                "style_name": "input",
-                "children": [],
-                "fields": {
-                  "label": {
-                    "en-GB": {
-                      "content": "Name",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Name",
-                      "meta": null
-                    }
-                  },
-                  "type_input": {
-                    "all": {
-                      "content": "text",
-                      "meta": null
-                    }
-                  },
-                  "placeholder": {
-                    "en-GB": {
-                      "content": "Enter your name",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Geben Sie Ihren Namen ein",
-                      "meta": null
-                    }
-                  },
-                  "is_required": {
-                    "all": {
-                      "content": "1",
-                      "meta": null
-                    }
-                  },
-                  "name": {
-                    "all": {
-                      "content": "user_name",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "form-textarea",
-                "style_name": "textarea",
-                "children": [],
-                "fields": {
-                  "label": {
-                    "en-GB": {
-                      "content": "Message",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Nachricht",
-                      "meta": null
-                    }
-                  },
-                  "placeholder": {
-                    "en-GB": {
-                      "content": "Enter your message",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Geben Sie Ihre Nachricht ein",
-                      "meta": null
-                    }
-                  },
-                  "name": {
-                    "all": {
-                      "content": "message",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "form-select",
-                "style_name": "select",
-                "children": [],
-                "fields": {
-                  "label": {
-                    "en-GB": {
-                      "content": "Country",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Land",
-                      "meta": null
-                    }
-                  },
-                  "name": {
-                    "all": {
-                      "content": "country",
-                      "meta": null
-                    }
-                  },
-                  "items": {
-                    "all": {
-                      "content": "[{\"value\": \"us\", \"text\": \"United States\"}, {\"value\": \"uk\", \"text\": \"United Kingdom\"}, {\"value\": \"de\", \"text\": \"Germany\"}, {\"value\": \"ch\", \"text\": \"Switzerland\"}]",
-                      "meta": null
-                    }
-                  },
-                  "live_search": {
-                    "all": {
-                      "content": "1",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "form-radio",
-                "style_name": "radio",
-                "children": [],
-                "fields": {
-                  "label": {
-                    "en-GB": {
-                      "content": "Gender",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Geschlecht",
-                      "meta": null
-                    }
-                  },
-                  "name": {
-                    "all": {
-                      "content": "gender",
-                      "meta": null
-                    }
-                  },
-                  "items": {
-                    "all": {
-                      "content": "[{\"value\": \"male\", \"text\": \"Male\"}, {\"value\": \"female\", \"text\": \"Female\"}, {\"value\": \"other\", \"text\": \"Other\"}]",
-                      "meta": null
-                    }
-                  },
-                  "is_inline": {
-                    "all": {
-                      "content": "1",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "form-checkbox",
-                "style_name": "checkbox",
-                "children": [],
-                "fields": {
-                  "label": {
-                    "en-GB": {
-                      "content": "Subscribe to newsletter",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Newsletter abonnieren",
-                      "meta": null
-                    }
-                  },
-                  "name": {
-                    "all": {
-                      "content": "newsletter",
-                      "meta": null
-                    }
-                  },
-                  "checkbox_value": {
-                    "all": {
-                      "content": "yes",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "form-slider",
-                "style_name": "slider",
-                "children": [],
-                "fields": {
-                  "label": {
-                    "en-GB": {
-                      "content": "Rating",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Bewertung",
-                      "meta": null
-                    }
-                  },
-                  "name": {
-                    "all": {
-                      "content": "rating",
-                      "meta": null
-                    }
-                  },
-                  "min": {
-                    "all": {
-                      "content": "1",
-                      "meta": null
-                    }
-                  },
-                  "max": {
-                    "all": {
-                      "content": "10",
-                      "meta": null
-                    }
-                  },
-                  "value": {
-                    "all": {
-                      "content": "5",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {
-              "label": {
-                "en-GB": {
-                  "content": "Demo Form",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Demo-Formular",
-                  "meta": null
-                }
-              },
-              "url": {
-                "all": {
-                  "content": "#",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "",
-              "css_mobile": null,
-              "debug": false
-            }
-          }
-        ],
-        "fields": {
-          "title": {
-            "en-GB": {
-              "content": "Form Components",
-              "meta": null
-            },
-            "de-CH": {
-              "content": "Formular-Komponenten",
-              "meta": null
-            }
-          },
-          "type": {
-            "all": {
-              "content": "info",
-              "meta": null
-            }
-          },
-          "is_expanded": {
-            "all": {
-              "content": "1",
-              "meta": null
-            }
-          }
-        },
-        "global_fields": {
-          "condition": null,
-          "data_config": null,
-          "css": "bg-white dark:bg-gray-900 rounded-lg shadow-lg dark:shadow-2xl border border-gray-200 dark:border-gray-700 p-6 mb-4",
-          "css_mobile": null,
-          "debug": false
-        }
-      },
-      {
-        "name": "interactive-styles-card",
-        "style_name": "div",
-        "children": [
-          {
-            "name": "interactive-title",
-            "style_name": "heading",
-            "children": [],
-            "fields": {
-              "level": {
-                "all": {
-                  "content": "2",
-                  "meta": null
-                }
-              },
-              "title": {
-                "en-GB": {
-                  "content": "Interactive Elements",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Interaktive Elemente",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "button-demo",
-            "style_name": "button",
-            "children": [],
-            "fields": {
-              "label": {
-                "en-GB": {
-                  "content": "Click Me",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Klicken Sie mich",
-                  "meta": null
-                }
-              },
-              "url": {
-                "all": {
-                  "content": "#",
-                  "meta": null
-                }
-              },
-              "type": {
-                "all": {
-                  "content": "primary",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "link-demo",
-            "style_name": "link",
-            "children": [],
-            "fields": {
-              "label": {
-                "en-GB": {
-                  "content": "External Link",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Externer Link",
-                  "meta": null
-                }
-              },
-              "url": {
-                "all": {
-                  "content": "https://example.com",
-                  "meta": null
-                }
-              },
-              "open_in_new_tab": {
-                "all": {
-                  "content": "1",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "progress-demo",
-            "style_name": "progressBar",
-            "children": [],
-            "fields": {
-              "count": {
-                "all": {
-                  "content": "75",
-                  "meta": null
-                }
-              },
-              "count_max": {
-                "all": {
-                  "content": "100",
-                  "meta": null
-                }
-              },
-              "type": {
-                "all": {
-                  "content": "success",
-                  "meta": null
-                }
-              },
-              "has_label": {
-                "all": {
-                  "content": "1",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "",
-              "css_mobile": null,
-              "debug": false
-            }
-          }
-        ],
-        "fields": {
-          "title": {
-            "en-GB": {
-              "content": "Interactive Components",
-              "meta": null
-            },
-            "de-CH": {
-              "content": "Interaktive Komponenten",
-              "meta": null
-            }
-          },
-          "type": {
-            "all": {
-              "content": "danger",
-              "meta": null
-            }
-          },
-          "is_expanded": {
-            "all": {
-              "content": "1",
-              "meta": null
-            }
-          }
-        },
-        "global_fields": {
-          "condition": null,
-          "data_config": null,
-          "css": "bg-white dark:bg-gray-900 rounded-lg shadow-lg dark:shadow-2xl border border-gray-200 dark:border-gray-700 p-6 mb-4",
-          "css_mobile": null,
-          "debug": false
-        }
-      },
-      {
-        "name": "navigation-styles-card",
-        "style_name": "div",
-        "children": [
-          {
-            "name": "nav-title",
-            "style_name": "heading",
-            "children": [],
-            "fields": {
-              "level": {
-                "all": {
-                  "content": "2",
-                  "meta": null
-                }
-              },
-              "title": {
-                "en-GB": {
-                  "content": "Navigation & Lists",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Navigation & Listen",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "tabs-demo",
-            "style_name": "tabs",
-            "children": [
-              {
-                "name": "tab-1",
-                "style_name": "tab",
-                "children": [
-                  {
-                    "name": "tab-1-content",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "Content of first tab",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Inhalt des ersten Tabs",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {
-                  "label": {
-                    "en-GB": {
-                      "content": "Tab 1",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Tab 1",
-                      "meta": null
-                    }
-                  },
-                  "is_active": {
-                    "all": {
-                      "content": "1",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "tab-2",
-                "style_name": "tab",
-                "children": [
-                  {
-                    "name": "tab-2-content",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "Content of second tab",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "Inhalt des zweiten Tabs",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {
-                  "label": {
-                    "en-GB": {
-                      "content": "Tab 2",
-                      "meta": null
-                    },
-                    "de-CH": {
-                      "content": "Tab 2",
-                      "meta": null
-                    }
-                  }
-                },
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {},
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "accordion-demo",
-            "style_name": "div",
-            "children": [
-              {
-                "name": "accordion-item-0",
-                "style_name": "div",
-                "children": [
-                  {
-                    "name": "accordion-header-0",
-                    "style_name": "button",
-                    "children": [],
-                    "fields": {
-                      "label": {
-                        "en-GB": {
-                          "content": "Accordion Item 1",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "DE: Accordion Item 1",
-                          "meta": null
-                        }
-                      },
-                      "url": {
-                        "all": {
-                          "content": "#",
-                          "meta": null
-                        }
-                      },
-                      "type": {
-                        "all": {
-                          "content": "secondary",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "w-full text-left p-4 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "accordion-content-0",
-                    "style_name": "div",
-                    "children": [
-                      {
-                        "name": "accordion-text-0",
-                        "style_name": "plaintext",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Content of first accordion item",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "DE: Content of first accordion item",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "p-4 text-gray-700 dark:text-gray-300",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      }
-                    ],
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "hidden",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {},
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "accordion-item-1",
-                "style_name": "div",
-                "children": [
-                  {
-                    "name": "accordion-header-1",
-                    "style_name": "button",
-                    "children": [],
-                    "fields": {
-                      "label": {
-                        "en-GB": {
-                          "content": "Accordion Item 2",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "DE: Accordion Item 2",
-                          "meta": null
-                        }
-                      },
-                      "url": {
-                        "all": {
-                          "content": "#",
-                          "meta": null
-                        }
-                      },
-                      "type": {
-                        "all": {
-                          "content": "secondary",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "w-full text-left p-4 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "accordion-content-1",
-                    "style_name": "div",
-                    "children": [
-                      {
-                        "name": "accordion-text-1",
-                        "style_name": "plaintext",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Content of second accordion item",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "DE: Content of second accordion item",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "p-4 text-gray-700 dark:text-gray-300",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      }
-                    ],
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "hidden",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {},
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "accordion-item-2",
-                "style_name": "div",
-                "children": [
-                  {
-                    "name": "accordion-header-2",
-                    "style_name": "button",
-                    "children": [],
-                    "fields": {
-                      "label": {
-                        "en-GB": {
-                          "content": "Accordion Item 3",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "DE: Accordion Item 3",
-                          "meta": null
-                        }
-                      },
-                      "url": {
-                        "all": {
-                          "content": "#",
-                          "meta": null
-                        }
-                      },
-                      "type": {
-                        "all": {
-                          "content": "secondary",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "w-full text-left p-4 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "accordion-content-2",
-                    "style_name": "div",
-                    "children": [
-                      {
-                        "name": "accordion-text-2",
-                        "style_name": "plaintext",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Content of third accordion item",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "DE: Content of third accordion item",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "p-4 text-gray-700 dark:text-gray-300",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      }
-                    ],
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "hidden",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {},
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {
-              "id_prefix": {
-                "all": {
-                  "content": "demo-accordion",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "space-y-2",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "nested-list-demo",
-            "style_name": "div",
-            "children": [
-              {
-                "name": "list-item-0",
-                "style_name": "div",
-                "children": [
-                  {
-                    "name": "list-item-text-0",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "• Parent Item 1",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "• DE: Parent Item 1",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "font-medium mb-2",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "list-child-0-0",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "  ◦ Child Item 1.1",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "  ◦ DE: Child Item 1.1",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-gray-600 dark:text-gray-400 ml-4",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "list-child-0-1",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "  ◦ Child Item 1.2",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "  ◦ DE: Child Item 1.2",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-gray-600 dark:text-gray-400 ml-4",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {},
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "list-item-1",
-                "style_name": "div",
-                "children": [
-                  {
-                    "name": "list-item-text-1",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "• Parent Item 2",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "• DE: Parent Item 2",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "font-medium mb-2",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "list-child-1-0",
-                    "style_name": "plaintext",
-                    "children": [],
-                    "fields": {
-                      "text": {
-                        "en-GB": {
-                          "content": "  ◦ Child Item 2.1",
-                          "meta": null
-                        },
-                        "de-CH": {
-                          "content": "  ◦ DE: Child Item 2.1",
-                          "meta": null
-                        }
-                      }
-                    },
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "text-gray-600 dark:text-gray-400 ml-4",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {},
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {
-              "is_collapsible": {
-                "all": {
-                  "content": "1",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "space-y-2",
-              "css_mobile": null,
-              "debug": false
-            }
-          }
-        ],
-        "fields": {
-          "title": {
-            "en-GB": {
-              "content": "Navigation Components",
-              "meta": null
-            },
-            "de-CH": {
-              "content": "Navigationskomponenten",
-              "meta": null
-            }
-          },
-          "type": {
-            "all": {
-              "content": "light",
-              "meta": null
-            }
-          },
-          "is_expanded": {
-            "all": {
-              "content": "1",
-              "meta": null
-            }
-          }
-        },
-        "global_fields": {
-          "condition": null,
-          "data_config": null,
-          "css": "bg-white dark:bg-gray-900 rounded-lg shadow-lg dark:shadow-2xl border border-gray-200 dark:border-gray-700 p-6 mb-4",
-          "css_mobile": null,
-          "debug": false
-        }
-      },
-      {
-        "name": "table-styles-card",
-        "style_name": "div",
-        "children": [
-          {
-            "name": "table-title",
-            "style_name": "heading",
-            "children": [],
-            "fields": {
-              "level": {
-                "all": {
-                  "content": "2",
-                  "meta": null
-                }
-              },
-              "title": {
-                "en-GB": {
-                  "content": "Table Styles",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Tabellen-Stile",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "table-demo",
-            "style_name": "table",
-            "children": [
-              {
-                "name": "table-header-row",
-                "style_name": "tableRow",
-                "children": [
-                  {
-                    "name": "header-cell-1",
-                    "style_name": "tableCell",
-                    "children": [
-                      {
-                        "name": "header-text-1",
-                        "style_name": "plaintext",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Name",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "Name",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      }
-                    ],
-                    "fields": {},
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "header-cell-2",
-                    "style_name": "tableCell",
-                    "children": [
-                      {
-                        "name": "header-text-2",
-                        "style_name": "plaintext",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "Age",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "Alter",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      }
-                    ],
-                    "fields": {},
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {},
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              },
-              {
-                "name": "table-data-row",
-                "style_name": "tableRow",
-                "children": [
-                  {
-                    "name": "data-cell-1",
-                    "style_name": "tableCell",
-                    "children": [
-                      {
-                        "name": "data-text-1",
-                        "style_name": "plaintext",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "John Doe",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "John Doe",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      }
-                    ],
-                    "fields": {},
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  },
-                  {
-                    "name": "data-cell-2",
-                    "style_name": "tableCell",
-                    "children": [
-                      {
-                        "name": "data-text-2",
-                        "style_name": "plaintext",
-                        "children": [],
-                        "fields": {
-                          "text": {
-                            "en-GB": {
-                              "content": "30",
-                              "meta": null
-                            },
-                            "de-CH": {
-                              "content": "30",
-                              "meta": null
-                            }
-                          }
-                        },
-                        "global_fields": {
-                          "condition": null,
-                          "data_config": null,
-                          "css": "",
-                          "css_mobile": null,
-                          "debug": false
-                        }
-                      }
-                    ],
-                    "fields": {},
-                    "global_fields": {
-                      "condition": null,
-                      "data_config": null,
-                      "css": "",
-                      "css_mobile": null,
-                      "debug": false
-                    }
-                  }
-                ],
-                "fields": {},
-                "global_fields": {
-                  "condition": null,
-                  "data_config": null,
-                  "css": "",
-                  "css_mobile": null,
-                  "debug": false
-                }
-              }
-            ],
-            "fields": {},
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "",
-              "css_mobile": null,
-              "debug": false
-            }
-          }
-        ],
-        "fields": {
-          "title": {
-            "en-GB": {
-              "content": "Table Components",
-              "meta": null
-            },
-            "de-CH": {
-              "content": "Tabellen-Komponenten",
-              "meta": null
-            }
-          },
-          "type": {
-            "all": {
-              "content": "dark",
-              "meta": null
-            }
-          },
-          "is_expanded": {
-            "all": {
-              "content": "1",
-              "meta": null
-            }
-          }
-        },
-        "global_fields": {
-          "condition": null,
-          "data_config": null,
-          "css": "bg-white dark:bg-gray-900 rounded-lg shadow-lg dark:shadow-2xl border border-gray-200 dark:border-gray-700 p-6 mb-4",
-          "css_mobile": null,
-          "debug": false
-        }
-      },
-      {
-        "name": "misc-styles-card",
-        "style_name": "div",
-        "children": [
-          {
-            "name": "misc-title",
-            "style_name": "heading",
-            "children": [],
-            "fields": {
-              "level": {
-                "all": {
-                  "content": "2",
-                  "meta": null
-                }
-              },
-              "title": {
-                "en-GB": {
-                  "content": "Miscellaneous Styles",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Verschiedene Stile",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "json-demo",
-            "style_name": "plaintext",
-            "children": [],
-            "fields": {
-              "text": {
-                "all": {
-                  "content": "{\n  \"example\": \"data\",\n  \"number\": 42,\n  \"array\": [\n    1,\n    2,\n    3\n  ]\n}",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "font-mono text-sm bg-gray-100 dark:bg-gray-800 p-4 rounded border overflow-x-auto",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "quiz-demo",
-            "style_name": "div",
-            "children": [],
-            "fields": {
-              "caption": {
-                "en-GB": {
-                  "content": "Sample Quiz Question",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Beispiel-Quiz-Frage",
-                  "meta": null
-                }
-              },
-              "label_right": {
-                "en-GB": {
-                  "content": "Correct!",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Richtig!",
-                  "meta": null
-                }
-              },
-              "label_wrong": {
-                "en-GB": {
-                  "content": "Incorrect",
-                  "meta": null
-                },
-                "de-CH": {
-                  "content": "Falsch",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "p-6 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700",
-              "css_mobile": null,
-              "debug": false
-            }
-          },
-          {
-            "name": "show-user-input-demo",
-            "style_name": "showUserInput",
-            "children": [],
-            "fields": {
-              "form_name": {
-                "all": {
-                  "content": "demo_form",
-                  "meta": null
-                }
-              },
-              "load_as_table": {
-                "all": {
-                  "content": "1",
-                  "meta": null
-                }
-              }
-            },
-            "global_fields": {
-              "condition": null,
-              "data_config": null,
-              "css": "",
-              "css_mobile": null,
-              "debug": false
-            }
-          }
-        ],
-        "fields": {
-          "title": {
-            "en-GB": {
-              "content": "Miscellaneous Components",
-              "meta": null
-            },
-            "de-CH": {
-              "content": "Verschiedene Komponenten",
-              "meta": null
-            }
-          },
-          "type": {
-            "all": {
-              "content": "secondary",
-              "meta": null
-            }
-          },
-          "is_expanded": {
-            "all": {
-              "content": "1",
-              "meta": null
-            }
-          }
-        },
-        "global_fields": {
-          "condition": null,
-          "data_config": null,
-          "css": "bg-white dark:bg-gray-900 rounded-lg shadow-lg dark:shadow-2xl border border-gray-200 dark:border-gray-700 p-6 mb-4",
-          "css_mobile": null,
-          "debug": false
-        }
-      }
-    ],
     "fields": {
-      "is_fluid": {
+      "mantine_size": {
         "all": {
-          "content": "0",
-          "meta": null
+          "content": "xl"
         }
       }
     },
     "global_fields": {
-      "condition": null,
-      "data_config": null,
-      "css": "",
-      "css_mobile": null,
-      "debug": false
-    }
+      "css": "py-16 px-4 bg-white dark:bg-gray-950",
+      "css_mobile": "py-10 px-4"
+    },
+    "children": [
+      {
+        "style_name": "stack",
+        "fields": {
+          "mantine_gap": {
+            "all": {
+              "content": "xl"
+            }
+          }
+        },
+        "children": [
+          {
+            "section_name": "showcase-header",
+            "style_name": "stack",
+            "fields": {
+              "mantine_align": {
+                "all": {
+                  "content": "center"
+                }
+              },
+              "mantine_gap": {
+                "all": {
+                  "content": "sm"
+                }
+              }
+            },
+            "global_fields": {
+              "css": "text-center max-w-3xl mx-auto"
+            },
+            "children": [
+              {
+                "style_name": "badge",
+                "fields": {
+                  "label": {
+                    "en-GB": {"content": "Style showcase"},
+                    "de-CH": {"content": "Stil-Übersicht"}
+                  },
+                  "mantine_color": {"all": {"content": "violet"}},
+                  "mantine_variant": {"all": {"content": "light"}}
+                }
+              },
+              {
+                "style_name": "title",
+                "fields": {
+                  "content": {
+                    "en-GB": {"content": "Every SelfHelp style — one page"},
+                    "de-CH": {"content": "Alle SelfHelp Styles – eine Seite"}
+                  },
+                  "mantine_title_order": {"all": {"content": "1"}}
+                },
+                "global_fields": {
+                  "css": "text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-violet-600 to-pink-600 dark:from-blue-400 dark:via-violet-400 dark:to-pink-400 bg-clip-text text-transparent",
+                  "css_mobile": "text-3xl"
+                }
+              },
+              {
+                "style_name": "text",
+                "fields": {
+                  "text": {
+                    "en-GB": {"content": "Importable demo that exercises one example of every visual style registered in the CMS — typography, layout, media, interactions, feedback, progress, navigation, and forms."},
+                    "de-CH": {"content": "Importierbares Demo mit je einem Beispiel für jeden im CMS registrierten Style – Typografie, Layout, Medien, Interaktion, Feedback, Fortschritt, Navigation und Formulare."}
+                  },
+                  "mantine_size": {"all": {"content": "lg"}}
+                },
+                "global_fields": {
+                  "css": "text-gray-600 dark:text-gray-400"
+                }
+              }
+            ]
+          },
+
+          {
+            "style_name": "divider",
+            "fields": {
+              "mantine_divider_label": {
+                "en-GB": {"content": "1. Typography"},
+                "de-CH": {"content": "1. Typografie"}
+              },
+              "mantine_divider_label_position": {"all": {"content": "center"}}
+            }
+          },
+          {
+            "section_name": "showcase-typography",
+            "style_name": "card",
+            "fields": {
+              "mantine_border": {"all": {"content": "1"}},
+              "mantine_radius": {"all": {"content": "lg"}},
+              "mantine_card_padding": {"all": {"content": "lg"}}
+            },
+            "global_fields": {
+              "css": "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"
+            },
+            "children": [
+              {
+                "style_name": "stack",
+                "fields": {"mantine_gap": {"all": {"content": "md"}}},
+                "children": [
+                  {
+                    "style_name": "title",
+                    "fields": {
+                      "content": {"en-GB": {"content": "Heading level 2"}, "de-CH": {"content": "Überschrift Ebene 2"}},
+                      "mantine_title_order": {"all": {"content": "2"}}
+                    },
+                    "global_fields": {"css": "text-3xl font-semibold text-gray-900 dark:text-gray-50"}
+                  },
+                  {
+                    "style_name": "title",
+                    "fields": {
+                      "content": {"en-GB": {"content": "Heading level 3"}, "de-CH": {"content": "Überschrift Ebene 3"}},
+                      "mantine_title_order": {"all": {"content": "3"}}
+                    },
+                    "global_fields": {"css": "text-2xl font-semibold text-gray-800 dark:text-gray-100"}
+                  },
+                  {
+                    "style_name": "text",
+                    "fields": {
+                      "text": {
+                        "en-GB": {"content": "Body copy. SelfHelp renders Mantine typography inside a Tailwind page shell so layout, spacing and color tokens stay consistent across both systems."},
+                        "de-CH": {"content": "Fliesstext. SelfHelp rendert Mantine-Typografie innerhalb eines Tailwind-Layouts – Abstände und Farb-Tokens bleiben in beiden Systemen konsistent."}
+                      },
+                      "mantine_size": {"all": {"content": "md"}}
+                    },
+                    "global_fields": {"css": "text-gray-600 dark:text-gray-400 leading-relaxed"}
+                  },
+                  {
+                    "style_name": "highlight",
+                    "fields": {
+                      "text": {
+                        "en-GB": {"content": "Highlight component: emphasise a key phrase inside a paragraph."},
+                        "de-CH": {"content": "Highlight-Komponente: eine wichtige Passage innerhalb eines Absatzes hervorheben."}
+                      },
+                      "mantine_highlight_highlight": {
+                        "en-GB": {"content": "key phrase"},
+                        "de-CH": {"content": "wichtige Passage"}
+                      },
+                      "mantine_color": {"all": {"content": "yellow"}}
+                    },
+                    "global_fields": {"css": "text-gray-700 dark:text-gray-300"}
+                  },
+                  {
+                    "style_name": "blockquote",
+                    "fields": {
+                      "content": {
+                        "en-GB": {"content": "Design is as much about what you leave out as what you put in."},
+                        "de-CH": {"content": "Gestaltung heisst auch, das Richtige wegzulassen."}
+                      },
+                      "cite": {
+                        "en-GB": {"content": "SelfHelp design notes"},
+                        "de-CH": {"content": "SelfHelp Design-Notizen"}
+                      },
+                      "mantine_color": {"all": {"content": "violet"}}
+                    },
+                    "global_fields": {"css": "bg-gray-50 dark:bg-gray-900/50 border-l-4 border-violet-500 dark:border-violet-400"}
+                  },
+                  {
+                    "style_name": "group",
+                    "fields": {"mantine_gap": {"all": {"content": "sm"}}, "mantine_align": {"all": {"content": "center"}}},
+                    "children": [
+                      {
+                        "style_name": "text",
+                        "fields": {
+                          "text": {
+                            "en-GB": {"content": "Inline code:"},
+                            "de-CH": {"content": "Inline-Code:"}
+                          }
+                        },
+                        "global_fields": {"css": "text-sm text-gray-500 dark:text-gray-400"}
+                      },
+                      {
+                        "style_name": "code",
+                        "fields": {
+                          "content": {
+                            "en-GB": {"content": "const page = await import('@/pages/home');"},
+                            "de-CH": {"content": "const page = await import('@/pages/home');"}
+                          }
+                        },
+                        "global_fields": {"css": "text-xs text-pink-600 dark:text-pink-400"}
+                      }
+                    ]
+                  },
+                  {
+                    "style_name": "group",
+                    "fields": {"mantine_gap": {"all": {"content": "xs"}}, "mantine_align": {"all": {"content": "center"}}},
+                    "children": [
+                      {
+                        "style_name": "text",
+                        "fields": {
+                          "text": {"en-GB": {"content": "Save with"}, "de-CH": {"content": "Speichern mit"}}
+                        }
+                      },
+                      {
+                        "style_name": "kbd",
+                        "fields": {"label": {"en-GB": {"content": "Ctrl"}}}
+                      },
+                      {"style_name": "text", "fields": {"text": {"en-GB": {"content": "+"}}}},
+                      {"style_name": "kbd", "fields": {"label": {"en-GB": {"content": "S"}}}}
+                    ]
+                  },
+                  {
+                    "style_name": "typography",
+                    "global_fields": {"css": "prose prose-slate max-w-none dark:prose-invert"},
+                    "children": [
+                      {
+                        "style_name": "html-tag",
+                        "fields": {
+                          "html_tag": {"all": {"content": "p"}},
+                          "html_tag_content": {
+                            "en-GB": {"content": "Wrap arbitrary content with the typography style to apply consistent prose spacing; the html-tag style lets you render any HTML element (here a paragraph)."},
+                            "de-CH": {"content": "Die Typography-Komponente erzeugt konsistente Fliesstext-Abstände; die html-tag-Komponente rendert ein beliebiges HTML-Element (hier ein Absatz)."}
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "style_name": "divider",
+            "fields": {
+              "mantine_divider_label": {
+                "en-GB": {"content": "2. Layout & surfaces"},
+                "de-CH": {"content": "2. Layout & Flächen"}
+              },
+              "mantine_divider_label_position": {"all": {"content": "center"}}
+            }
+          },
+          {
+            "section_name": "showcase-layout",
+            "style_name": "simple-grid",
+            "fields": {
+              "mantine_cols": {"all": {"content": "3"}},
+              "mantine_breakpoints": {"all": {"content": "[{\"maxWidth\":\"md\",\"cols\":2},{\"maxWidth\":\"sm\",\"cols\":1}]"}},
+              "mantine_vertical_spacing": {"all": {"content": "md"}}
+            },
+            "children": [
+              {
+                "style_name": "paper",
+                "fields": {
+                  "mantine_paper_shadow": {"all": {"content": "sm"}},
+                  "mantine_border": {"all": {"content": "1"}},
+                  "mantine_radius": {"all": {"content": "md"}}
+                },
+                "global_fields": {
+                  "css": "p-6 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"
+                },
+                "children": [
+                  {
+                    "style_name": "stack",
+                    "fields": {"mantine_gap": {"all": {"content": "xs"}}},
+                    "children": [
+                      {
+                        "style_name": "title",
+                        "fields": {"content": {"en-GB": {"content": "paper"}}, "mantine_title_order": {"all": {"content": "4"}}},
+                        "global_fields": {"css": "text-base font-semibold text-gray-900 dark:text-gray-50"}
+                      },
+                      {
+                        "style_name": "text",
+                        "fields": {
+                          "text": {
+                            "en-GB": {"content": "Paper is a surface primitive with shadow, radius and border props."},
+                            "de-CH": {"content": "Paper ist eine Flächen-Komponente mit Schatten, Radius und Rahmen."}
+                          },
+                          "mantine_size": {"all": {"content": "sm"}}
+                        },
+                        "global_fields": {"css": "text-gray-600 dark:text-gray-400"}
+                      }
+                    ]
+                  }
+                ]
+              },
+
+              {
+                "style_name": "box",
+                "global_fields": {
+                  "css": "p-6 rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 text-white"
+                },
+                "children": [
+                  {
+                    "style_name": "stack",
+                    "fields": {"mantine_gap": {"all": {"content": "xs"}}},
+                    "children": [
+                      {
+                        "style_name": "title",
+                        "fields": {"content": {"en-GB": {"content": "box"}}, "mantine_title_order": {"all": {"content": "4"}}},
+                        "global_fields": {"css": "text-base font-semibold text-white"}
+                      },
+                      {
+                        "style_name": "text",
+                        "fields": {
+                          "text": {
+                            "en-GB": {"content": "Box is a polymorphic container — pair it with Tailwind for gradients."},
+                            "de-CH": {"content": "Box ist ein polymorpher Container – mit Tailwind für Farbverläufe."}
+                          },
+                          "mantine_size": {"all": {"content": "sm"}}
+                        },
+                        "global_fields": {"css": "text-blue-100"}
+                      }
+                    ]
+                  }
+                ]
+              },
+
+              {
+                "style_name": "center",
+                "global_fields": {
+                  "css": "p-6 rounded-lg bg-gray-50 dark:bg-gray-900 border border-dashed border-gray-300 dark:border-gray-700 min-h-[120px]"
+                },
+                "children": [
+                  {
+                    "style_name": "stack",
+                    "fields": {
+                      "mantine_gap": {"all": {"content": "xs"}},
+                      "mantine_align": {"all": {"content": "center"}}
+                    },
+                    "children": [
+                      {
+                        "style_name": "title",
+                        "fields": {"content": {"en-GB": {"content": "center"}}, "mantine_title_order": {"all": {"content": "4"}}},
+                        "global_fields": {"css": "text-base font-semibold text-gray-900 dark:text-gray-50"}
+                      },
+                      {
+                        "style_name": "text",
+                        "fields": {
+                          "text": {
+                            "en-GB": {"content": "Centers its children horizontally and vertically."},
+                            "de-CH": {"content": "Zentriert Inhalte horizontal und vertikal."}
+                          },
+                          "mantine_size": {"all": {"content": "sm"}}
+                        },
+                        "global_fields": {"css": "text-gray-600 dark:text-gray-400 text-center"}
+                      }
+                    ]
+                  }
+                ]
+              },
+
+              {
+                "style_name": "fieldset",
+                "fields": {
+                  "label": {
+                    "en-GB": {"content": "fieldset"},
+                    "de-CH": {"content": "fieldset"}
+                  },
+                  "mantine_fieldset_variant": {"all": {"content": "default"}},
+                  "mantine_radius": {"all": {"content": "md"}}
+                },
+                "global_fields": {"css": "bg-white dark:bg-gray-900"},
+                "children": [
+                  {
+                    "style_name": "text",
+                    "fields": {
+                      "text": {
+                        "en-GB": {"content": "Group related content — often used for form sections."},
+                        "de-CH": {"content": "Gruppiert zusammengehörige Inhalte – häufig für Formularabschnitte."}
+                      },
+                      "mantine_size": {"all": {"content": "sm"}}
+                    },
+                    "global_fields": {"css": "text-gray-600 dark:text-gray-400"}
+                  }
+                ]
+              },
+
+              {
+                "style_name": "spoiler",
+                "fields": {
+                  "mantine_spoiler_show_label": {"en-GB": {"content": "Show more"}, "de-CH": {"content": "Mehr anzeigen"}},
+                  "mantine_spoiler_hide_label": {"en-GB": {"content": "Hide"}, "de-CH": {"content": "Ausblenden"}}
+                },
+                "global_fields": {
+                  "css": "p-6 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800"
+                },
+                "children": [
+                  {
+                    "style_name": "stack",
+                    "fields": {"mantine_gap": {"all": {"content": "xs"}}},
+                    "children": [
+                      {
+                        "style_name": "title",
+                        "fields": {"content": {"en-GB": {"content": "spoiler"}}, "mantine_title_order": {"all": {"content": "4"}}},
+                        "global_fields": {"css": "text-base font-semibold text-gray-900 dark:text-gray-50"}
+                      },
+                      {
+                        "style_name": "text",
+                        "fields": {
+                          "text": {
+                            "en-GB": {"content": "Collapses long content and shows a toggle. This paragraph is intentionally verbose to demonstrate the spoiler's maxHeight, label swap, and gradient fade — every SelfHelp Mantine style supports the standard `css` and `css_mobile` fields for Tailwind-driven overrides, which means that a single site can mix Mantine primitives for functionality with Tailwind utilities for visual polish."},
+                            "de-CH": {"content": "Faltet lange Inhalte zusammen und zeigt einen Umschalter. Dieser Absatz ist bewusst ausführlich, um die maxHeight, den Label-Wechsel und den Farbverlauf des Spoilers zu zeigen – alle SelfHelp-Mantine-Styles unterstützen zudem die Felder `css` und `css_mobile` für Tailwind-Overrides, sodass Mantine-Funktionalität und Tailwind-Gestaltung frei kombiniert werden können."}
+                          },
+                          "mantine_size": {"all": {"content": "sm"}}
+                        },
+                        "global_fields": {"css": "text-gray-600 dark:text-gray-400"}
+                      }
+                    ]
+                  }
+                ]
+              },
+
+              {
+                "style_name": "aspect-ratio",
+                "fields": {
+                  "mantine_aspect_ratio": {"all": {"content": "16/9"}}
+                },
+                "global_fields": {"css": "rounded-lg overflow-hidden"},
+                "children": [
+                  {
+                    "style_name": "background-image",
+                    "fields": {
+                      "img_src": {
+                        "en-GB": {"content": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=60"},
+                        "de-CH": {"content": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=60"}
+                      },
+                      "mantine_radius": {"all": {"content": "md"}}
+                    },
+                    "global_fields": {
+                      "css": "h-full w-full flex items-end p-6 bg-gradient-to-t from-black/60 to-transparent"
+                    },
+                    "children": [
+                      {
+                        "style_name": "stack",
+                        "fields": {"mantine_gap": {"all": {"content": "xs"}}},
+                        "children": [
+                          {
+                            "style_name": "title",
+                            "fields": {
+                              "content": {"en-GB": {"content": "aspect-ratio + background-image"}},
+                              "mantine_title_order": {"all": {"content": "4"}}
+                            },
+                            "global_fields": {"css": "text-base font-semibold text-white"}
+                          },
+                          {
+                            "style_name": "text",
+                            "fields": {
+                              "text": {
+                                "en-GB": {"content": "Keeps a 16:9 ratio and layers gradient + image."},
+                                "de-CH": {"content": "Hält ein 16:9-Verhältnis und kombiniert Gradient und Bild."}
+                              },
+                              "mantine_size": {"all": {"content": "xs"}}
+                            },
+                            "global_fields": {"css": "text-white/80"}
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "style_name": "space",
+            "fields": {"mantine_size": {"all": {"content": "xs"}}}
+          },
+
+          {
+            "style_name": "divider",
+            "fields": {
+              "mantine_divider_label": {
+                "en-GB": {"content": "3. Grid systems"},
+                "de-CH": {"content": "3. Grid-Systeme"}
+              },
+              "mantine_divider_variant": {"all": {"content": "dashed"}},
+              "mantine_divider_label_position": {"all": {"content": "center"}}
+            }
+          },
+          {
+            "section_name": "showcase-grids",
+            "style_name": "stack",
+            "fields": {"mantine_gap": {"all": {"content": "md"}}},
+            "children": [
+              {
+                "style_name": "title",
+                "fields": {
+                  "content": {"en-GB": {"content": "grid + grid-column"}, "de-CH": {"content": "grid + grid-column"}},
+                  "mantine_title_order": {"all": {"content": "4"}}
+                },
+                "global_fields": {"css": "text-base font-semibold text-gray-900 dark:text-gray-50"}
+              },
+              {
+                "style_name": "grid",
+                "fields": {
+                  "mantine_cols": {"all": {"content": "12"}},
+                  "mantine_gap": {"all": {"content": "md"}}
+                },
+                "children": [
+                  {
+                    "style_name": "grid-column",
+                    "fields": {"mantine_grid_span": {"all": {"content": "{\"base\":12,\"sm\":8}"}}},
+                    "global_fields": {"css": "p-4 rounded-md bg-blue-50 dark:bg-blue-950 text-blue-900 dark:text-blue-200"},
+                    "children": [
+                      {"style_name": "text", "fields": {"text": {"en-GB": {"content": "Span 8 on sm+, full on xs"}, "de-CH": {"content": "8 Spalten ab sm, voll auf xs"}}}}
+                    ]
+                  },
+                  {
+                    "style_name": "grid-column",
+                    "fields": {"mantine_grid_span": {"all": {"content": "{\"base\":12,\"sm\":4}"}}},
+                    "global_fields": {"css": "p-4 rounded-md bg-violet-50 dark:bg-violet-950 text-violet-900 dark:text-violet-200"},
+                    "children": [
+                      {"style_name": "text", "fields": {"text": {"en-GB": {"content": "Span 4 on sm+"}, "de-CH": {"content": "4 Spalten ab sm"}}}}
+                    ]
+                  }
+                ]
+              },
+
+              {
+                "style_name": "title",
+                "fields": {"content": {"en-GB": {"content": "flex / group / stack"}}, "mantine_title_order": {"all": {"content": "4"}}},
+                "global_fields": {"css": "text-base font-semibold text-gray-900 dark:text-gray-50 mt-4"}
+              },
+              {
+                "style_name": "simple-grid",
+                "fields": {
+                  "mantine_cols": {"all": {"content": "3"}},
+                  "mantine_breakpoints": {"all": {"content": "[{\"maxWidth\":\"md\",\"cols\":1}]"}},
+                  "mantine_vertical_spacing": {"all": {"content": "md"}}
+                },
+                "children": [
+                  {
+                    "style_name": "flex",
+                    "fields": {
+                      "mantine_direction": {"all": {"content": "row"}},
+                      "mantine_wrap": {"all": {"content": "wrap"}},
+                      "mantine_gap": {"all": {"content": "xs"}}
+                    },
+                    "global_fields": {"css": "p-4 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800"},
+                    "children": [
+                      {"style_name": "badge", "fields": {"label": {"en-GB": {"content": "flex"}}, "mantine_color": {"all": {"content": "blue"}}}},
+                      {"style_name": "badge", "fields": {"label": {"en-GB": {"content": "row"}}, "mantine_color": {"all": {"content": "cyan"}}}},
+                      {"style_name": "badge", "fields": {"label": {"en-GB": {"content": "wrap"}}, "mantine_color": {"all": {"content": "teal"}}}}
+                    ]
+                  },
+                  {
+                    "style_name": "group",
+                    "fields": {
+                      "mantine_justify": {"all": {"content": "space-between"}},
+                      "mantine_align": {"all": {"content": "center"}}
+                    },
+                    "global_fields": {"css": "p-4 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800"},
+                    "children": [
+                      {"style_name": "text", "fields": {"text": {"en-GB": {"content": "group"}, "de-CH": {"content": "group"}}}, "global_fields": {"css": "font-medium"}},
+                      {"style_name": "badge", "fields": {"label": {"en-GB": {"content": "end"}}, "mantine_color": {"all": {"content": "violet"}}}}
+                    ]
+                  },
+                  {
+                    "style_name": "stack",
+                    "fields": {
+                      "mantine_gap": {"all": {"content": "xs"}},
+                      "mantine_align": {"all": {"content": "flex-start"}}
+                    },
+                    "global_fields": {"css": "p-4 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800"},
+                    "children": [
+                      {"style_name": "text", "fields": {"text": {"en-GB": {"content": "stack"}}}, "global_fields": {"css": "font-medium"}},
+                      {"style_name": "text", "fields": {"text": {"en-GB": {"content": "item A"}}, "mantine_size": {"all": {"content": "sm"}}}},
+                      {"style_name": "text", "fields": {"text": {"en-GB": {"content": "item B"}}, "mantine_size": {"all": {"content": "sm"}}}}
+                    ]
+                  }
+                ]
+              },
+
+              {
+                "style_name": "title",
+                "fields": {"content": {"en-GB": {"content": "scroll-area"}}, "mantine_title_order": {"all": {"content": "4"}}},
+                "global_fields": {"css": "text-base font-semibold text-gray-900 dark:text-gray-50 mt-4"}
+              },
+              {
+                "style_name": "scroll-area",
+                "fields": {
+                  "mantine_scroll_area_type": {"all": {"content": "hover"}},
+                  "mantine_scroll_area_scrollbar_size": {"all": {"content": "8"}}
+                },
+                "global_fields": {"css": "rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 h-40 overflow-auto"},
+                "children": [
+                  {
+                    "style_name": "stack",
+                    "fields": {"mantine_gap": {"all": {"content": "xs"}}},
+                    "global_fields": {"css": "p-4"},
+                    "children": [
+                      {"style_name": "text", "fields": {"text": {"en-GB": {"content": "Scrollable line 1"}, "de-CH": {"content": "Scrollbare Zeile 1"}}, "mantine_size": {"all": {"content": "sm"}}}},
+                      {"style_name": "text", "fields": {"text": {"en-GB": {"content": "Scrollable line 2"}}, "mantine_size": {"all": {"content": "sm"}}}},
+                      {"style_name": "text", "fields": {"text": {"en-GB": {"content": "Scrollable line 3"}}, "mantine_size": {"all": {"content": "sm"}}}},
+                      {"style_name": "text", "fields": {"text": {"en-GB": {"content": "Scrollable line 4"}}, "mantine_size": {"all": {"content": "sm"}}}},
+                      {"style_name": "text", "fields": {"text": {"en-GB": {"content": "Scrollable line 5"}}, "mantine_size": {"all": {"content": "sm"}}}},
+                      {"style_name": "text", "fields": {"text": {"en-GB": {"content": "Scrollable line 6"}}, "mantine_size": {"all": {"content": "sm"}}}},
+                      {"style_name": "text", "fields": {"text": {"en-GB": {"content": "Scrollable line 7"}}, "mantine_size": {"all": {"content": "sm"}}}},
+                      {"style_name": "text", "fields": {"text": {"en-GB": {"content": "Scrollable line 8"}}, "mantine_size": {"all": {"content": "sm"}}}}
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "style_name": "divider",
+            "fields": {
+              "mantine_divider_label": {
+                "en-GB": {"content": "4. Media"},
+                "de-CH": {"content": "4. Medien"}
+              },
+              "mantine_divider_label_position": {"all": {"content": "center"}}
+            }
+          },
+          {
+            "section_name": "showcase-media",
+            "style_name": "simple-grid",
+            "fields": {
+              "mantine_cols": {"all": {"content": "3"}},
+              "mantine_breakpoints": {"all": {"content": "[{\"maxWidth\":\"md\",\"cols\":2},{\"maxWidth\":\"sm\",\"cols\":1}]"}},
+              "mantine_vertical_spacing": {"all": {"content": "md"}}
+            },
+            "children": [
+              {
+                "style_name": "card",
+                "fields": {
+                  "mantine_border": {"all": {"content": "1"}},
+                  "mantine_radius": {"all": {"content": "lg"}},
+                  "mantine_card_padding": {"all": {"content": "md"}}
+                },
+                "global_fields": {"css": "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"},
+                "children": [
+                  {
+                    "style_name": "stack",
+                    "fields": {"mantine_gap": {"all": {"content": "xs"}}, "mantine_align": {"all": {"content": "center"}}},
+                    "children": [
+                      {
+                        "style_name": "image",
+                        "fields": {
+                          "img_src": {"all": {"content": "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=600&q=60"}},
+                          "alt": {"en-GB": {"content": "Mountain landscape"}, "de-CH": {"content": "Berglandschaft"}},
+                          "mantine_radius": {"all": {"content": "md"}}
+                        },
+                        "global_fields": {"css": "w-full h-32 object-cover rounded-md"}
+                      },
+                      {
+                        "style_name": "text",
+                        "fields": {"text": {"en-GB": {"content": "image"}, "de-CH": {"content": "image"}}, "mantine_size": {"all": {"content": "sm"}}},
+                        "global_fields": {"css": "text-gray-600 dark:text-gray-400"}
+                      }
+                    ]
+                  }
+                ]
+              },
+
+              {
+                "style_name": "card",
+                "fields": {
+                  "mantine_border": {"all": {"content": "1"}},
+                  "mantine_radius": {"all": {"content": "lg"}},
+                  "mantine_card_padding": {"all": {"content": "md"}}
+                },
+                "global_fields": {"css": "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"},
+                "children": [
+                  {
+                    "style_name": "stack",
+                    "fields": {"mantine_gap": {"all": {"content": "xs"}}, "mantine_align": {"all": {"content": "center"}}},
+                    "children": [
+                      {
+                        "style_name": "avatar",
+                        "fields": {
+                          "img_src": {"all": {"content": "https://i.pravatar.cc/150?img=12"}},
+                          "alt": {"en-GB": {"content": "User avatar"}},
+                          "mantine_radius": {"all": {"content": "xl"}},
+                          "mantine_size": {"all": {"content": "xl"}}
+                        }
+                      },
+                      {
+                        "style_name": "text",
+                        "fields": {"text": {"en-GB": {"content": "avatar"}}, "mantine_size": {"all": {"content": "sm"}}},
+                        "global_fields": {"css": "text-gray-600 dark:text-gray-400"}
+                      }
+                    ]
+                  }
+                ]
+              },
+
+              {
+                "style_name": "figure",
+                "fields": {
+                  "caption": {
+                    "en-GB": {"content": "A figure with a caption."},
+                    "de-CH": {"content": "Abbildung mit Bildunterschrift."}
+                  },
+                  "caption_title": {
+                    "en-GB": {"content": "Forest canopy"},
+                    "de-CH": {"content": "Waldkronen"}
+                  }
+                },
+                "global_fields": {"css": "bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4"},
+                "children": [
+                  {
+                    "style_name": "image",
+                    "fields": {
+                      "img_src": {"all": {"content": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=600&q=60"}},
+                      "alt": {"en-GB": {"content": "Forest canopy"}, "de-CH": {"content": "Waldkronen"}},
+                      "mantine_radius": {"all": {"content": "md"}}
+                    },
+                    "global_fields": {"css": "w-full h-32 object-cover rounded-md"}
+                  }
+                ]
+              },
+
+              {
+                "section_name": "showcase-carousel",
+                "style_name": "carousel",
+                "fields": {
+                  "mantine_carousel_slide_size": {"all": {"content": "100"}},
+                  "mantine_carousel_slide_gap": {"all": {"content": "sm"}},
+                  "mantine_carousel_align": {"all": {"content": "center"}},
+                  "mantine_loop": {"all": {"content": "1"}}
+                },
+                "global_fields": {"css": "bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden h-48"},
+                "children": [
+                  {
+                    "style_name": "image",
+                    "fields": {
+                      "img_src": {"all": {"content": "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&w=800&q=60"}},
+                      "alt": {"en-GB": {"content": "Slide 1"}}
+                    },
+                    "global_fields": {"css": "w-full h-full object-cover"}
+                  },
+                  {
+                    "style_name": "image",
+                    "fields": {
+                      "img_src": {"all": {"content": "https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=800&q=60"}},
+                      "alt": {"en-GB": {"content": "Slide 2"}}
+                    },
+                    "global_fields": {"css": "w-full h-full object-cover"}
+                  },
+                  {
+                    "style_name": "image",
+                    "fields": {
+                      "img_src": {"all": {"content": "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=800&q=60"}},
+                      "alt": {"en-GB": {"content": "Slide 3"}}
+                    },
+                    "global_fields": {"css": "w-full h-full object-cover"}
+                  }
+                ]
+              },
+
+              {
+                "style_name": "card",
+                "fields": {
+                  "mantine_border": {"all": {"content": "1"}},
+                  "mantine_radius": {"all": {"content": "lg"}},
+                  "mantine_card_padding": {"all": {"content": "md"}}
+                },
+                "global_fields": {"css": "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"},
+                "children": [
+                  {
+                    "style_name": "stack",
+                    "fields": {"mantine_gap": {"all": {"content": "xs"}}},
+                    "children": [
+                      {
+                        "style_name": "text",
+                        "fields": {"text": {"en-GB": {"content": "video"}}, "mantine_size": {"all": {"content": "sm"}}},
+                        "global_fields": {"css": "text-gray-600 dark:text-gray-400 font-medium"}
+                      },
+                      {
+                        "style_name": "video",
+                        "fields": {
+                          "alt": {
+                            "en-GB": {"content": "Cat on a wooden floor"},
+                            "de-CH": {"content": "Katze auf Holzboden"}
+                          },
+                          "video_src": {"all": {"content": "https://cdn.coverr.co/videos/coverr-a-cat-on-a-wooden-floor-7062/1080p.mp4"}},
+                          "is_fluid": {"all": {"content": "1"}}
+                        },
+                        "global_fields": {"css": "w-full rounded-md"}
+                      }
+                    ]
+                  }
+                ]
+              },
+
+              {
+                "style_name": "card",
+                "fields": {
+                  "mantine_border": {"all": {"content": "1"}},
+                  "mantine_radius": {"all": {"content": "lg"}},
+                  "mantine_card_padding": {"all": {"content": "md"}}
+                },
+                "global_fields": {"css": "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"},
+                "children": [
+                  {
+                    "style_name": "stack",
+                    "fields": {"mantine_gap": {"all": {"content": "xs"}}},
+                    "children": [
+                      {
+                        "style_name": "text",
+                        "fields": {"text": {"en-GB": {"content": "audio"}}, "mantine_size": {"all": {"content": "sm"}}},
+                        "global_fields": {"css": "text-gray-600 dark:text-gray-400 font-medium"}
+                      },
+                      {
+                        "style_name": "audio",
+                        "fields": {
+                          "alt": {
+                            "en-GB": {"content": "Sample audio track"},
+                            "de-CH": {"content": "Beispielton"}
+                          },
+                          "sources": {
+                            "en-GB": {"content": "[{\"src\":\"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3\",\"type\":\"audio/mpeg\"}]"},
+                            "de-CH": {"content": "[{\"src\":\"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3\",\"type\":\"audio/mpeg\"}]"}
+                          }
+                        },
+                        "global_fields": {"css": "w-full"}
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "style_name": "divider",
+            "fields": {
+              "mantine_divider_label": {
+                "en-GB": {"content": "5. Interactive"},
+                "de-CH": {"content": "5. Interaktion"}
+              },
+              "mantine_divider_label_position": {"all": {"content": "center"}}
+            }
+          },
+          {
+            "section_name": "showcase-interactive",
+            "style_name": "card",
+            "fields": {
+              "mantine_border": {"all": {"content": "1"}},
+              "mantine_radius": {"all": {"content": "lg"}},
+              "mantine_card_padding": {"all": {"content": "0"}}
+            },
+            "global_fields": {"css": "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 overflow-hidden"},
+            "children": [
+              {
+                "style_name": "card-segment",
+                "global_fields": {"css": "p-6"},
+                "children": [
+                  {
+                    "style_name": "stack",
+                    "fields": {"mantine_gap": {"all": {"content": "xs"}}},
+                    "children": [
+                      {
+                        "style_name": "title",
+                        "fields": {
+                          "content": {"en-GB": {"content": "Buttons, links & icons"}, "de-CH": {"content": "Buttons, Links & Icons"}},
+                          "mantine_title_order": {"all": {"content": "4"}}
+                        },
+                        "global_fields": {"css": "text-base font-semibold text-gray-900 dark:text-gray-50"}
+                      },
+                      {
+                        "style_name": "group",
+                        "fields": {"mantine_gap": {"all": {"content": "sm"}}, "mantine_align": {"all": {"content": "center"}}},
+                        "children": [
+                          {
+                            "style_name": "button",
+                            "fields": {
+                              "label": {"en-GB": {"content": "Primary"}, "de-CH": {"content": "Primär"}},
+                              "mantine_color": {"all": {"content": "blue"}},
+                              "mantine_variant": {"all": {"content": "filled"}},
+                              "mantine_radius": {"all": {"content": "md"}}
+                            }
+                          },
+                          {
+                            "style_name": "button",
+                            "fields": {
+                              "label": {"en-GB": {"content": "Secondary"}, "de-CH": {"content": "Sekundär"}},
+                              "mantine_color": {"all": {"content": "gray"}},
+                              "mantine_variant": {"all": {"content": "light"}},
+                              "mantine_radius": {"all": {"content": "md"}}
+                            }
+                          },
+                          {
+                            "style_name": "button",
+                            "fields": {
+                              "label": {"en-GB": {"content": "Danger"}, "de-CH": {"content": "Gefahr"}},
+                              "mantine_color": {"all": {"content": "red"}},
+                              "mantine_variant": {"all": {"content": "outline"}},
+                              "mantine_radius": {"all": {"content": "md"}}
+                            }
+                          },
+                          {
+                            "style_name": "link",
+                            "fields": {
+                              "label": {"en-GB": {"content": "Text link"}, "de-CH": {"content": "Textlink"}},
+                              "url": {"all": {"content": "https://example.com"}},
+                              "open_in_new_tab": {"all": {"content": "1"}}
+                            },
+                            "global_fields": {"css": "text-blue-600 dark:text-blue-400 underline underline-offset-4"}
+                          },
+                          {
+                            "style_name": "action-icon",
+                            "fields": {
+                              "mantine_left_icon": {"all": {"content": "IconHeart"}},
+                              "mantine_color": {"all": {"content": "pink"}},
+                              "mantine_variant": {"all": {"content": "light"}},
+                              "mantine_radius": {"all": {"content": "md"}},
+                              "mantine_size": {"all": {"content": "lg"}}
+                            }
+                          },
+                          {
+                            "style_name": "theme-icon",
+                            "fields": {
+                              "mantine_left_icon": {"all": {"content": "IconStar"}},
+                              "mantine_color": {"all": {"content": "yellow"}},
+                              "mantine_variant": {"all": {"content": "light"}},
+                              "mantine_radius": {"all": {"content": "md"}},
+                              "mantine_size": {"all": {"content": "lg"}}
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+
+              {
+                "style_name": "card-segment",
+                "global_fields": {"css": "px-6 py-4 bg-gray-50 dark:bg-gray-900/60 border-t border-gray-200 dark:border-gray-800"},
+                "children": [
+                  {
+                    "style_name": "group",
+                    "fields": {
+                      "mantine_gap": {"all": {"content": "md"}},
+                      "mantine_justify": {"all": {"content": "space-between"}},
+                      "mantine_align": {"all": {"content": "center"}}
+                    },
+                    "children": [
+                      {
+                        "style_name": "text",
+                        "fields": {"text": {"en-GB": {"content": "Rate this showcase"}, "de-CH": {"content": "Showcase bewerten"}}, "mantine_size": {"all": {"content": "sm"}}},
+                        "global_fields": {"css": "text-gray-600 dark:text-gray-400"}
+                      },
+                      {
+                        "style_name": "rating",
+                        "fields": {
+                          "mantine_rating_count": {"all": {"content": "5"}},
+                          "mantine_color": {"all": {"content": "yellow"}},
+                          "mantine_size": {"all": {"content": "md"}},
+                          "value": {"all": {"content": "4"}}
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "style_name": "divider",
+            "fields": {
+              "mantine_divider_label": {
+                "en-GB": {"content": "6. Feedback"},
+                "de-CH": {"content": "6. Feedback"}
+              },
+              "mantine_divider_label_position": {"all": {"content": "center"}}
+            }
+          },
+          {
+            "section_name": "showcase-feedback",
+            "style_name": "simple-grid",
+            "fields": {
+              "mantine_cols": {"all": {"content": "2"}},
+              "mantine_breakpoints": {"all": {"content": "[{\"maxWidth\":\"md\",\"cols\":1}]"}},
+              "mantine_vertical_spacing": {"all": {"content": "md"}}
+            },
+            "children": [
+              {
+                "style_name": "alert",
+                "fields": {
+                  "mantine_alert_title": {
+                    "en-GB": {"content": "All systems operational"},
+                    "de-CH": {"content": "Alle Systeme laufen"}
+                  },
+                  "content": {
+                    "en-GB": {"content": "Background jobs and the API are healthy."},
+                    "de-CH": {"content": "Hintergrundjobs und API laufen einwandfrei."}
+                  },
+                  "mantine_color": {"all": {"content": "teal"}},
+                  "mantine_variant": {"all": {"content": "light"}},
+                  "mantine_radius": {"all": {"content": "md"}}
+                }
+              },
+              {
+                "style_name": "alert",
+                "fields": {
+                  "mantine_alert_title": {
+                    "en-GB": {"content": "Scheduled maintenance"},
+                    "de-CH": {"content": "Geplante Wartung"}
+                  },
+                  "content": {
+                    "en-GB": {"content": "We will be rotating database credentials this Saturday at 02:00 UTC."},
+                    "de-CH": {"content": "Datenbankzugangsdaten werden am Samstag um 02:00 UTC rotiert."}
+                  },
+                  "mantine_color": {"all": {"content": "yellow"}},
+                  "mantine_variant": {"all": {"content": "light"}},
+                  "mantine_radius": {"all": {"content": "md"}}
+                }
+              },
+              {
+                "style_name": "notification",
+                "fields": {
+                  "title": {
+                    "en-GB": {"content": "New release shipped"},
+                    "de-CH": {"content": "Neues Release veröffentlicht"}
+                  },
+                  "content": {
+                    "en-GB": {"content": "Import/export now supports HTTP 422 pre-validation."},
+                    "de-CH": {"content": "Import/Export unterstützt neu HTTP 422 Pre-Validierung."}
+                  },
+                  "mantine_color": {"all": {"content": "violet"}},
+                  "mantine_notification_loading": {"all": {"content": "0"}},
+                  "mantine_notification_with_close_button": {"all": {"content": "1"}},
+                  "mantine_border": {"all": {"content": "1"}},
+                  "mantine_radius": {"all": {"content": "md"}}
+                }
+              },
+              {
+                "style_name": "group",
+                "fields": {"mantine_gap": {"all": {"content": "md"}}, "mantine_align": {"all": {"content": "center"}}},
+                "global_fields": {"css": "p-4 rounded-md bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800"},
+                "children": [
+                  {
+                    "style_name": "indicator",
+                    "fields": {
+                      "mantine_indicator_processing": {"all": {"content": "1"}},
+                      "mantine_color": {"all": {"content": "red"}},
+                      "mantine_indicator_position": {"all": {"content": "top-end"}},
+                      "mantine_indicator_size": {"all": {"content": "14"}},
+                      "label": {"en-GB": {"content": "3"}}
+                    },
+                    "children": [
+                      {
+                        "style_name": "avatar",
+                        "fields": {
+                          "img_src": {"all": {"content": "https://i.pravatar.cc/80?img=3"}},
+                          "mantine_radius": {"all": {"content": "xl"}},
+                          "mantine_size": {"all": {"content": "md"}}
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "style_name": "stack",
+                    "fields": {"mantine_gap": {"all": {"content": "xs"}}},
+                    "children": [
+                      {
+                        "style_name": "group",
+                        "fields": {"mantine_gap": {"all": {"content": "xs"}}},
+                        "children": [
+                          {"style_name": "badge", "fields": {"label": {"en-GB": {"content": "badge"}}, "mantine_color": {"all": {"content": "blue"}}}},
+                          {"style_name": "badge", "fields": {"label": {"en-GB": {"content": "filled"}}, "mantine_color": {"all": {"content": "violet"}}, "mantine_variant": {"all": {"content": "filled"}}}},
+                          {"style_name": "badge", "fields": {"label": {"en-GB": {"content": "outline"}}, "mantine_color": {"all": {"content": "teal"}}, "mantine_variant": {"all": {"content": "outline"}}}}
+                        ]
+                      },
+                      {
+                        "style_name": "group",
+                        "fields": {"mantine_gap": {"all": {"content": "xs"}}},
+                        "children": [
+                          {
+                            "style_name": "chip",
+                            "fields": {
+                              "label": {"en-GB": {"content": "chip on"}, "de-CH": {"content": "Chip an"}},
+                              "value": {"all": {"content": "on"}},
+                              "chip_checked": {"all": {"content": "1"}},
+                              "mantine_color": {"all": {"content": "blue"}},
+                              "mantine_chip_variant": {"all": {"content": "filled"}}
+                            }
+                          },
+                          {
+                            "style_name": "chip",
+                            "fields": {
+                              "label": {"en-GB": {"content": "chip off"}, "de-CH": {"content": "Chip aus"}},
+                              "value": {"all": {"content": "off"}},
+                              "mantine_color": {"all": {"content": "gray"}},
+                              "mantine_chip_variant": {"all": {"content": "outline"}}
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "style_name": "divider",
+            "fields": {
+              "mantine_divider_label": {
+                "en-GB": {"content": "7. Progress & timeline"},
+                "de-CH": {"content": "7. Fortschritt & Timeline"}
+              },
+              "mantine_divider_label_position": {"all": {"content": "center"}}
+            }
+          },
+          {
+            "section_name": "showcase-progress",
+            "style_name": "simple-grid",
+            "fields": {
+              "mantine_cols": {"all": {"content": "2"}},
+              "mantine_breakpoints": {"all": {"content": "[{\"maxWidth\":\"md\",\"cols\":1}]"}},
+              "mantine_vertical_spacing": {"all": {"content": "md"}}
+            },
+            "children": [
+              {
+                "style_name": "card",
+                "fields": {
+                  "mantine_border": {"all": {"content": "1"}},
+                  "mantine_radius": {"all": {"content": "lg"}},
+                  "mantine_card_padding": {"all": {"content": "lg"}}
+                },
+                "global_fields": {"css": "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"},
+                "children": [
+                  {
+                    "style_name": "stack",
+                    "fields": {"mantine_gap": {"all": {"content": "sm"}}},
+                    "children": [
+                      {
+                        "style_name": "text",
+                        "fields": {"text": {"en-GB": {"content": "progress"}}, "mantine_size": {"all": {"content": "sm"}}},
+                        "global_fields": {"css": "text-gray-600 dark:text-gray-400 font-medium"}
+                      },
+                      {
+                        "style_name": "progress",
+                        "fields": {
+                          "value": {"all": {"content": "65"}},
+                          "mantine_color": {"all": {"content": "blue"}},
+                          "mantine_size": {"all": {"content": "md"}},
+                          "mantine_radius": {"all": {"content": "xl"}},
+                          "mantine_progress_striped": {"all": {"content": "1"}}
+                        }
+                      },
+
+                      {
+                        "style_name": "text",
+                        "fields": {"text": {"en-GB": {"content": "progress-root + sections"}}, "mantine_size": {"all": {"content": "sm"}}},
+                        "global_fields": {"css": "text-gray-600 dark:text-gray-400 font-medium pt-2"}
+                      },
+                      {
+                        "style_name": "progress-root",
+                        "fields": {
+                          "mantine_size": {"all": {"content": "xl"}}
+                        },
+                        "children": [
+                          {
+                            "style_name": "progress-section",
+                            "fields": {
+                              "value": {"all": {"content": "40"}},
+                              "mantine_color": {"all": {"content": "blue"}}
+                            }
+                          },
+                          {
+                            "style_name": "progress-section",
+                            "fields": {
+                              "value": {"all": {"content": "25"}},
+                              "mantine_color": {"all": {"content": "violet"}}
+                            }
+                          },
+                          {
+                            "style_name": "progress-section",
+                            "fields": {
+                              "value": {"all": {"content": "15"}},
+                              "mantine_color": {"all": {"content": "pink"}}
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+
+              {
+                "section_name": "showcase-timeline",
+                "style_name": "card",
+                "fields": {
+                  "mantine_border": {"all": {"content": "1"}},
+                  "mantine_radius": {"all": {"content": "lg"}},
+                  "mantine_card_padding": {"all": {"content": "lg"}}
+                },
+                "global_fields": {"css": "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"},
+                "children": [
+                  {
+                    "style_name": "timeline",
+                    "fields": {
+                      "mantine_timeline_active": {"all": {"content": "1"}},
+                      "mantine_timeline_bullet_size": {"all": {"content": "24"}},
+                      "mantine_timeline_line_width": {"all": {"content": "2"}},
+                      "mantine_color": {"all": {"content": "blue"}},
+                      "mantine_timeline_align": {"all": {"content": "left"}}
+                    },
+                    "children": [
+                      {
+                        "style_name": "timeline-item",
+                        "fields": {
+                          "title": {
+                            "en-GB": {"content": "Draft"},
+                            "de-CH": {"content": "Entwurf"}
+                          },
+                          "mantine_timeline_item_bullet": {"all": {"content": "IconPencil"}},
+                          "mantine_timeline_item_line_variant": {"all": {"content": "solid"}}
+                        },
+                        "children": [
+                          {
+                            "style_name": "text",
+                            "fields": {
+                              "text": {
+                                "en-GB": {"content": "Author writes the page in the CMS."},
+                                "de-CH": {"content": "Autor:in erstellt die Seite im CMS."}
+                              },
+                              "mantine_size": {"all": {"content": "sm"}}
+                            },
+                            "global_fields": {"css": "text-gray-600 dark:text-gray-400"}
+                          }
+                        ]
+                      },
+                      {
+                        "style_name": "timeline-item",
+                        "fields": {
+                          "title": {
+                            "en-GB": {"content": "Review"},
+                            "de-CH": {"content": "Freigabe"}
+                          },
+                          "mantine_timeline_item_bullet": {"all": {"content": "IconEye"}},
+                          "mantine_timeline_item_line_variant": {"all": {"content": "dashed"}}
+                        },
+                        "children": [
+                          {
+                            "style_name": "text",
+                            "fields": {
+                              "text": {
+                                "en-GB": {"content": "Editor reviews and approves the content."},
+                                "de-CH": {"content": "Redaktion prüft und gibt den Inhalt frei."}
+                              },
+                              "mantine_size": {"all": {"content": "sm"}}
+                            },
+                            "global_fields": {"css": "text-gray-600 dark:text-gray-400"}
+                          }
+                        ]
+                      },
+                      {
+                        "style_name": "timeline-item",
+                        "fields": {
+                          "title": {
+                            "en-GB": {"content": "Published"},
+                            "de-CH": {"content": "Veröffentlicht"}
+                          },
+                          "mantine_timeline_item_bullet": {"all": {"content": "IconCheck"}},
+                          "mantine_timeline_item_line_variant": {"all": {"content": "solid"}}
+                        },
+                        "children": [
+                          {
+                            "style_name": "text",
+                            "fields": {
+                              "text": {
+                                "en-GB": {"content": "Page goes live to all visitors."},
+                                "de-CH": {"content": "Seite wird für alle Besucher:innen veröffentlicht."}
+                              },
+                              "mantine_size": {"all": {"content": "sm"}}
+                            },
+                            "global_fields": {"css": "text-gray-600 dark:text-gray-400"}
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "style_name": "divider",
+            "fields": {
+              "mantine_divider_label": {
+                "en-GB": {"content": "8. Lists, accordion & tabs"},
+                "de-CH": {"content": "8. Listen, Accordion & Tabs"}
+              },
+              "mantine_divider_label_position": {"all": {"content": "center"}}
+            }
+          },
+          {
+            "section_name": "showcase-navigation",
+            "style_name": "simple-grid",
+            "fields": {
+              "mantine_cols": {"all": {"content": "3"}},
+              "mantine_breakpoints": {"all": {"content": "[{\"maxWidth\":\"md\",\"cols\":1}]"}},
+              "mantine_vertical_spacing": {"all": {"content": "md"}}
+            },
+            "children": [
+              {
+                "section_name": "showcase-list",
+                "style_name": "card",
+                "fields": {
+                  "mantine_border": {"all": {"content": "1"}},
+                  "mantine_radius": {"all": {"content": "lg"}},
+                  "mantine_card_padding": {"all": {"content": "lg"}}
+                },
+                "global_fields": {"css": "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"},
+                "children": [
+                  {
+                    "style_name": "title",
+                    "fields": {"content": {"en-GB": {"content": "list"}, "de-CH": {"content": "Liste"}}, "mantine_title_order": {"all": {"content": "4"}}},
+                    "global_fields": {"css": "text-base font-semibold text-gray-900 dark:text-gray-50 mb-3"}
+                  },
+                  {
+                    "style_name": "list",
+                    "fields": {
+                      "mantine_list_list_style_type": {"all": {"content": "disc"}},
+                      "mantine_list_spacing": {"all": {"content": "sm"}},
+                      "mantine_size": {"all": {"content": "sm"}}
+                    },
+                    "children": [
+                      {
+                        "style_name": "list-item",
+                        "fields": {
+                          "mantine_list_item_content": {
+                            "en-GB": {"content": "Transactional import with HTTP 422 pre-validation"},
+                            "de-CH": {"content": "Transaktionaler Import mit HTTP 422 Pre-Validierung"}
+                          },
+                          "mantine_list_item_icon": {"all": {"content": "IconCheck"}}
+                        }
+                      },
+                      {
+                        "style_name": "list-item",
+                        "fields": {
+                          "mantine_list_item_content": {
+                            "en-GB": {"content": "Minimized JSON — only non-default fields are exported"},
+                            "de-CH": {"content": "Minimiertes JSON – nur Nicht-Default-Felder werden exportiert"}
+                          },
+                          "mantine_list_item_icon": {"all": {"content": "IconCheck"}}
+                        }
+                      },
+                      {
+                        "style_name": "list-item",
+                        "fields": {
+                          "mantine_list_item_content": {
+                            "en-GB": {"content": "AI prompt template regenerated from the live DB schema"},
+                            "de-CH": {"content": "KI-Prompt aus dem Live-DB-Schema regeneriert"}
+                          },
+                          "mantine_list_item_icon": {"all": {"content": "IconCheck"}}
+                        }
+                      },
+                      {
+                        "style_name": "list-item",
+                        "fields": {
+                          "mantine_list_item_content": {
+                            "en-GB": {"content": "Dark-mode-ready Tailwind palette"},
+                            "de-CH": {"content": "Dark-Mode-taugliche Tailwind-Palette"}
+                          },
+                          "mantine_list_item_icon": {"all": {"content": "IconCheck"}}
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+
+              {
+                "section_name": "showcase-accordion",
+                "style_name": "card",
+                "fields": {
+                  "mantine_border": {"all": {"content": "1"}},
+                  "mantine_radius": {"all": {"content": "lg"}},
+                  "mantine_card_padding": {"all": {"content": "sm"}}
+                },
+                "global_fields": {"css": "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"},
+                "children": [
+                  {
+                    "style_name": "accordion",
+                    "fields": {
+                      "mantine_accordion_variant": {"all": {"content": "separated"}},
+                      "mantine_accordion_chevron_position": {"all": {"content": "right"}},
+                      "mantine_accordion_default_value": {"all": {"content": "what"}},
+                      "mantine_radius": {"all": {"content": "md"}}
+                    },
+                    "children": [
+                      {
+                        "style_name": "accordion-item",
+                        "fields": {
+                          "label": {
+                            "en-GB": {"content": "What is SelfHelp?"},
+                            "de-CH": {"content": "Was ist SelfHelp?"}
+                          },
+                          "mantine_accordion_item_value": {"all": {"content": "what"}},
+                          "mantine_accordion_item_icon": {"all": {"content": "IconHelp"}}
+                        },
+                        "children": [
+                          {
+                            "style_name": "text",
+                            "fields": {
+                              "text": {
+                                "en-GB": {"content": "A modular PHP-based CMS with a React-first renderer."},
+                                "de-CH": {"content": "Ein modulares, PHP-basiertes CMS mit React-first Renderer."}
+                              },
+                              "mantine_size": {"all": {"content": "sm"}}
+                            },
+                            "global_fields": {"css": "text-gray-600 dark:text-gray-400"}
+                          }
+                        ]
+                      },
+                      {
+                        "style_name": "accordion-item",
+                        "fields": {
+                          "label": {
+                            "en-GB": {"content": "Does it support Mantine?"},
+                            "de-CH": {"content": "Unterstützt es Mantine?"}
+                          },
+                          "mantine_accordion_item_value": {"all": {"content": "mantine"}},
+                          "mantine_accordion_item_icon": {"all": {"content": "IconBrandMantine"}}
+                        },
+                        "children": [
+                          {
+                            "style_name": "text",
+                            "fields": {
+                              "text": {
+                                "en-GB": {"content": "Yes — every Mantine primitive has a corresponding style you can drop into any page."},
+                                "de-CH": {"content": "Ja – zu jedem Mantine-Primitive gibt es einen Style, den man direkt auf jeder Seite verwenden kann."}
+                              },
+                              "mantine_size": {"all": {"content": "sm"}}
+                            },
+                            "global_fields": {"css": "text-gray-600 dark:text-gray-400"}
+                          }
+                        ]
+                      },
+                      {
+                        "style_name": "accordion-item",
+                        "fields": {
+                          "label": {
+                            "en-GB": {"content": "Is Tailwind required?"},
+                            "de-CH": {"content": "Muss Tailwind eingesetzt werden?"}
+                          },
+                          "mantine_accordion_item_value": {"all": {"content": "tailwind"}},
+                          "mantine_accordion_item_icon": {"all": {"content": "IconPalette"}}
+                        },
+                        "children": [
+                          {
+                            "style_name": "text",
+                            "fields": {
+                              "text": {
+                                "en-GB": {"content": "Tailwind is recommended for the css/css_mobile fields but you can mix it with Mantine properties freely."},
+                                "de-CH": {"content": "Tailwind ist für css/css_mobile empfohlen, lässt sich aber mit Mantine-Properties frei kombinieren."}
+                              },
+                              "mantine_size": {"all": {"content": "sm"}}
+                            },
+                            "global_fields": {"css": "text-gray-600 dark:text-gray-400"}
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+
+              {
+                "section_name": "showcase-tabs",
+                "style_name": "card",
+                "fields": {
+                  "mantine_border": {"all": {"content": "1"}},
+                  "mantine_radius": {"all": {"content": "lg"}},
+                  "mantine_card_padding": {"all": {"content": "md"}}
+                },
+                "global_fields": {"css": "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"},
+                "children": [
+                  {
+                    "style_name": "tabs",
+                    "fields": {
+                      "mantine_tabs_variant": {"all": {"content": "default"}},
+                      "mantine_color": {"all": {"content": "blue"}},
+                      "mantine_radius": {"all": {"content": "md"}}
+                    },
+                    "children": [
+                      {
+                        "style_name": "tab",
+                        "fields": {
+                          "label": {"en-GB": {"content": "Overview"}, "de-CH": {"content": "Übersicht"}},
+                          "mantine_left_icon": {"all": {"content": "IconHome"}}
+                        },
+                        "children": [
+                          {
+                            "style_name": "text",
+                            "fields": {
+                              "text": {
+                                "en-GB": {"content": "Introduce the page and what readers will find."},
+                                "de-CH": {"content": "Stelle die Seite und die wichtigsten Inhalte vor."}
+                              },
+                              "mantine_size": {"all": {"content": "sm"}}
+                            },
+                            "global_fields": {"css": "text-gray-600 dark:text-gray-400 mt-3"}
+                          }
+                        ]
+                      },
+                      {
+                        "style_name": "tab",
+                        "fields": {
+                          "label": {"en-GB": {"content": "Details"}, "de-CH": {"content": "Details"}},
+                          "mantine_left_icon": {"all": {"content": "IconList"}}
+                        },
+                        "children": [
+                          {
+                            "style_name": "text",
+                            "fields": {
+                              "text": {
+                                "en-GB": {"content": "Provide more context and structured information."},
+                                "de-CH": {"content": "Mehr Kontext und strukturierte Informationen liefern."}
+                              },
+                              "mantine_size": {"all": {"content": "sm"}}
+                            },
+                            "global_fields": {"css": "text-gray-600 dark:text-gray-400 mt-3"}
+                          }
+                        ]
+                      },
+                      {
+                        "style_name": "tab",
+                        "fields": {
+                          "label": {"en-GB": {"content": "Changelog"}, "de-CH": {"content": "Changelog"}},
+                          "mantine_left_icon": {"all": {"content": "IconHistory"}}
+                        },
+                        "children": [
+                          {
+                            "style_name": "list",
+                            "fields": {
+                              "mantine_list_list_style_type": {"all": {"content": "disc"}},
+                              "mantine_list_spacing": {"all": {"content": "xs"}},
+                              "mantine_size": {"all": {"content": "sm"}}
+                            },
+                            "global_fields": {"css": "mt-3"},
+                            "children": [
+                              {"style_name": "list-item", "fields": {"mantine_list_item_content": {"en-GB": {"content": "v1.4 — full style showcase"}, "de-CH": {"content": "v1.4 – vollständiger Style-Showcase"}}}},
+                              {"style_name": "list-item", "fields": {"mantine_list_item_content": {"en-GB": {"content": "v1.3 — import pre-validation"}, "de-CH": {"content": "v1.3 – Import-Pre-Validierung"}}}},
+                              {"style_name": "list-item", "fields": {"mantine_list_item_content": {"en-GB": {"content": "v1.2 — minimized JSON"}, "de-CH": {"content": "v1.2 – minimiertes JSON"}}}}
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "style_name": "divider",
+            "fields": {
+              "mantine_divider_label": {
+                "en-GB": {"content": "9. Form inputs (form-record)"},
+                "de-CH": {"content": "9. Formular-Eingaben (form-record)"}
+              },
+              "mantine_divider_label_position": {"all": {"content": "center"}}
+            }
+          },
+          {
+            "section_name": "showcase-form",
+            "style_name": "form-record",
+            "fields": {
+              "name": {"all": {"content": "showcase-form-record"}},
+              "alert_success": {
+                "en-GB": {"content": "Saved."},
+                "de-CH": {"content": "Gespeichert."}
+              },
+              "btn_save_label": {"en-GB": {"content": "Save"}, "de-CH": {"content": "Speichern"}},
+              "btn_update_label": {"en-GB": {"content": "Update"}, "de-CH": {"content": "Aktualisieren"}},
+              "btn_cancel_label": {"en-GB": {"content": "Cancel"}, "de-CH": {"content": "Abbrechen"}},
+              "mantine_btn_save_color": {"all": {"content": "blue"}},
+              "mantine_btn_update_color": {"all": {"content": "orange"}},
+              "mantine_btn_cancel_color": {"all": {"content": "gray"}},
+              "mantine_buttons_order": {"all": {"content": "save-cancel"}},
+              "mantine_buttons_position": {"all": {"content": "flex-end"}}
+            },
+            "global_fields": {"css": "bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-6"},
+            "children": [
+              {
+                "style_name": "fieldset",
+                "fields": {
+                  "label": {
+                    "en-GB": {"content": "Text inputs"},
+                    "de-CH": {"content": "Text-Eingaben"}
+                  },
+                  "mantine_fieldset_variant": {"all": {"content": "default"}},
+                  "mantine_radius": {"all": {"content": "md"}}
+                },
+                "children": [
+                  {
+                    "style_name": "stack",
+                    "fields": {"mantine_gap": {"all": {"content": "sm"}}},
+                    "children": [
+                      {
+                        "style_name": "text-input",
+                        "fields": {
+                          "name": {"all": {"content": "first_name"}},
+                          "label": {
+                            "en-GB": {"content": "First name"},
+                            "de-CH": {"content": "Vorname"}
+                          },
+                          "placeholder": {"en-GB": {"content": "e.g. Ada"}, "de-CH": {"content": "z. B. Ada"}},
+                          "mantine_left_icon": {"all": {"content": "IconUser"}},
+                          "mantine_size": {"all": {"content": "sm"}},
+                          "mantine_radius": {"all": {"content": "md"}}
+                        }
+                      },
+                      {
+                        "style_name": "textarea",
+                        "fields": {
+                          "name": {"all": {"content": "bio"}},
+                          "label": {"en-GB": {"content": "Short bio"}, "de-CH": {"content": "Kurzbio"}},
+                          "placeholder": {
+                            "en-GB": {"content": "Tell us about yourself…"},
+                            "de-CH": {"content": "Erzähle etwas über dich…"}
+                          },
+                          "mantine_textarea_autosize": {"all": {"content": "1"}},
+                          "mantine_textarea_min_rows": {"all": {"content": "3"}},
+                          "mantine_size": {"all": {"content": "sm"}},
+                          "mantine_radius": {"all": {"content": "md"}}
+                        }
+                      },
+                      {
+                        "style_name": "rich-text-editor",
+                        "fields": {
+                          "name": {"all": {"content": "bio_rich"}},
+                          "label": {"en-GB": {"content": "Rich bio"}, "de-CH": {"content": "Rich-Text Bio"}},
+                          "mantine_rich_text_editor_placeholder": {"en-GB": {"content": "Use bold, italic, lists…"}, "de-CH": {"content": "Fett, kursiv, Listen…"}}
+                        }
+                      },
+                      {
+                        "style_name": "number-input",
+                        "fields": {
+                          "name": {"all": {"content": "age"}},
+                          "label": {"en-GB": {"content": "Age"}, "de-CH": {"content": "Alter"}},
+                          "mantine_numeric_min": {"all": {"content": "0"}},
+                          "mantine_numeric_max": {"all": {"content": "100"}},
+                          "value": {"all": {"content": "30"}},
+                          "mantine_size": {"all": {"content": "sm"}},
+                          "mantine_radius": {"all": {"content": "md"}}
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+
+              {
+                "style_name": "fieldset",
+                "fields": {
+                  "label": {
+                    "en-GB": {"content": "Choice inputs"},
+                    "de-CH": {"content": "Auswahl-Eingaben"}
+                  },
+                  "mantine_fieldset_variant": {"all": {"content": "default"}},
+                  "mantine_radius": {"all": {"content": "md"}}
+                },
+                "children": [
+                  {
+                    "style_name": "stack",
+                    "fields": {"mantine_gap": {"all": {"content": "sm"}}},
+                    "children": [
+                      {
+                        "style_name": "select",
+                        "fields": {
+                          "name": {"all": {"content": "country"}},
+                          "label": {"en-GB": {"content": "Country"}, "de-CH": {"content": "Land"}},
+                          "placeholder": {"en-GB": {"content": "Pick one"}, "de-CH": {"content": "Wähle eines"}},
+                          "options": {
+                            "en-GB": {"content": "[{\"value\":\"ch\",\"label\":\"Switzerland\"},{\"value\":\"de\",\"label\":\"Germany\"},{\"value\":\"gb\",\"label\":\"United Kingdom\"}]"},
+                            "de-CH": {"content": "[{\"value\":\"ch\",\"label\":\"Schweiz\"},{\"value\":\"de\",\"label\":\"Deutschland\"},{\"value\":\"gb\",\"label\":\"Grossbritannien\"}]"}
+                          },
+                          "mantine_size": {"all": {"content": "sm"}},
+                          "mantine_radius": {"all": {"content": "md"}}
+                        }
+                      },
+                      {
+                        "style_name": "combobox",
+                        "fields": {
+                          "name": {"all": {"content": "framework"}},
+                          "label": {"en-GB": {"content": "Favourite framework"}, "de-CH": {"content": "Lieblings-Framework"}},
+                          "mantine_combobox_options": {
+                            "en-GB": {"content": "[{\"value\":\"next\",\"text\":\"Next.js\"},{\"value\":\"remix\",\"text\":\"Remix\"},{\"value\":\"astro\",\"text\":\"Astro\"}]"},
+                            "de-CH": {"content": "[{\"value\":\"next\",\"text\":\"Next.js\"},{\"value\":\"remix\",\"text\":\"Remix\"},{\"value\":\"astro\",\"text\":\"Astro\"}]"}
+                          },
+                          "mantine_combobox_searchable": {"all": {"content": "1"}}
+                        }
+                      },
+                      {
+                        "style_name": "radio",
+                        "fields": {
+                          "name": {"all": {"content": "plan"}},
+                          "label": {"en-GB": {"content": "Plan"}, "de-CH": {"content": "Tarif"}},
+                          "description": {"en-GB": {"content": "Choose one"}, "de-CH": {"content": "Wähle einen Tarif"}},
+                          "mantine_radio_options": {
+                            "en-GB": {"content": "[{\"value\":\"starter\",\"text\":\"Starter\"},{\"value\":\"team\",\"text\":\"Team\"},{\"value\":\"enterprise\",\"text\":\"Enterprise\"}]"},
+                            "de-CH": {"content": "[{\"value\":\"starter\",\"text\":\"Starter\"},{\"value\":\"team\",\"text\":\"Team\"},{\"value\":\"enterprise\",\"text\":\"Enterprise\"}]"}
+                          },
+                          "value": {"all": {"content": "team"}},
+                          "mantine_color": {"all": {"content": "blue"}},
+                          "mantine_size": {"all": {"content": "sm"}}
+                        }
+                      },
+                      {
+                        "style_name": "segmented-control",
+                        "fields": {
+                          "name": {"all": {"content": "billing_cycle"}},
+                          "label": {"en-GB": {"content": "Billing cycle"}, "de-CH": {"content": "Abrechnungsperiode"}},
+                          "mantine_segmented_control_data": {
+                            "en-GB": {"content": "[{\"value\":\"monthly\",\"label\":\"Monthly\"},{\"value\":\"yearly\",\"label\":\"Yearly\"}]"},
+                            "de-CH": {"content": "[{\"value\":\"monthly\",\"label\":\"Monatlich\"},{\"value\":\"yearly\",\"label\":\"Jährlich\"}]"}
+                          },
+                          "value": {"all": {"content": "yearly"}},
+                          "mantine_color": {"all": {"content": "blue"}},
+                          "mantine_radius": {"all": {"content": "md"}},
+                          "mantine_size": {"all": {"content": "sm"}}
+                        }
+                      },
+                      {
+                        "style_name": "checkbox",
+                        "fields": {
+                          "name": {"all": {"content": "newsletter"}},
+                          "label": {"en-GB": {"content": "Subscribe to newsletter"}, "de-CH": {"content": "Newsletter abonnieren"}},
+                          "mantine_checkbox_checked": {"all": {"content": "1"}},
+                          "mantine_color": {"all": {"content": "blue"}},
+                          "mantine_size": {"all": {"content": "sm"}}
+                        }
+                      },
+                      {
+                        "style_name": "switch",
+                        "fields": {
+                          "name": {"all": {"content": "dark_mode"}},
+                          "label": {"en-GB": {"content": "Enable dark mode"}, "de-CH": {"content": "Dark Mode aktivieren"}},
+                          "mantine_switch_on_label": {"en-GB": {"content": "ON"}},
+                          "mantine_switch_off_label": {"en-GB": {"content": "OFF"}},
+                          "mantine_color": {"all": {"content": "blue"}},
+                          "mantine_size": {"all": {"content": "md"}}
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+
+              {
+                "style_name": "fieldset",
+                "fields": {
+                  "label": {
+                    "en-GB": {"content": "Range & numeric"},
+                    "de-CH": {"content": "Bereich & Zahlen"}
+                  },
+                  "mantine_fieldset_variant": {"all": {"content": "default"}},
+                  "mantine_radius": {"all": {"content": "md"}}
+                },
+                "children": [
+                  {
+                    "style_name": "stack",
+                    "fields": {"mantine_gap": {"all": {"content": "md"}}},
+                    "children": [
+                      {
+                        "style_name": "slider",
+                        "fields": {
+                          "name": {"all": {"content": "volume"}},
+                          "label": {"en-GB": {"content": "Volume"}, "de-CH": {"content": "Lautstärke"}},
+                          "mantine_numeric_min": {"all": {"content": "0"}},
+                          "mantine_numeric_max": {"all": {"content": "100"}},
+                          "value": {"all": {"content": "42"}},
+                          "mantine_numeric_step": {"all": {"content": "1"}},
+                          "mantine_color": {"all": {"content": "blue"}},
+                          "mantine_size": {"all": {"content": "sm"}}
+                        }
+                      },
+                      {
+                        "style_name": "range-slider",
+                        "fields": {
+                          "name": {"all": {"content": "price_range"}},
+                          "label": {"en-GB": {"content": "Price range"}, "de-CH": {"content": "Preisspanne"}},
+                          "mantine_numeric_min": {"all": {"content": "0"}},
+                          "mantine_numeric_max": {"all": {"content": "1000"}},
+                          "value": {"all": {"content": "[200,700]"}},
+                          "mantine_color": {"all": {"content": "violet"}},
+                          "mantine_size": {"all": {"content": "sm"}}
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+
+              {
+                "style_name": "fieldset",
+                "fields": {
+                  "label": {
+                    "en-GB": {"content": "Date, colour & file"},
+                    "de-CH": {"content": "Datum, Farbe & Datei"}
+                  },
+                  "mantine_fieldset_variant": {"all": {"content": "default"}},
+                  "mantine_radius": {"all": {"content": "md"}}
+                },
+                "children": [
+                  {
+                    "style_name": "simple-grid",
+                    "fields": {
+                      "mantine_cols": {"all": {"content": "2"}},
+                      "mantine_breakpoints": {"all": {"content": "[{\"maxWidth\":\"sm\",\"cols\":1}]"}},
+                      "mantine_vertical_spacing": {"all": {"content": "md"}}
+                    },
+                    "children": [
+                      {
+                        "style_name": "datepicker",
+                        "fields": {
+                          "name": {"all": {"content": "birthday"}},
+                          "label": {"en-GB": {"content": "Birthday"}, "de-CH": {"content": "Geburtsdatum"}},
+                          "mantine_datepicker_placeholder": {"en-GB": {"content": "Pick a date"}, "de-CH": {"content": "Datum wählen"}},
+                          "mantine_datepicker_date_format": {"all": {"content": "DD.MM.YYYY"}}
+                        }
+                      },
+                      {
+                        "style_name": "file-input",
+                        "fields": {
+                          "name": {"all": {"content": "avatar_upload"}},
+                          "label": {"en-GB": {"content": "Avatar"}, "de-CH": {"content": "Avatar"}},
+                          "placeholder": {"en-GB": {"content": "Choose image…"}, "de-CH": {"content": "Bild auswählen…"}},
+                          "mantine_size": {"all": {"content": "sm"}},
+                          "mantine_radius": {"all": {"content": "md"}}
+                        }
+                      },
+                      {
+                        "style_name": "color-input",
+                        "fields": {
+                          "name": {"all": {"content": "accent_color"}},
+                          "label": {"en-GB": {"content": "Accent colour"}, "de-CH": {"content": "Akzentfarbe"}},
+                          "value": {"all": {"content": "#4f46e5"}},
+                          "mantine_size": {"all": {"content": "sm"}},
+                          "mantine_radius": {"all": {"content": "md"}}
+                        }
+                      },
+                      {
+                        "style_name": "color-picker",
+                        "fields": {
+                          "name": {"all": {"content": "brand_color"}},
+                          "label": {"en-GB": {"content": "Brand colour"}, "de-CH": {"content": "Markenfarbe"}},
+                          "value": {"all": {"content": "#ec4899"}},
+                          "mantine_color_format": {"all": {"content": "hex"}},
+                          "mantine_fullwidth": {"all": {"content": "1"}},
+                          "mantine_size": {"all": {"content": "sm"}}
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+
+          {
+            "style_name": "space",
+            "fields": {"mantine_size": {"all": {"content": "xl"}}}
+          },
+          {
+            "style_name": "text",
+            "fields": {
+              "text": {
+                "en-GB": {"content": "End of showcase — each section above represents one registered style. Import this JSON into any SelfHelp page to render the full catalogue."},
+                "de-CH": {"content": "Ende des Showcase – jeder Abschnitt oben zeigt einen registrierten Style. Diese JSON-Datei kann in jede SelfHelp-Seite importiert werden, um den vollständigen Katalog zu rendern."}
+              },
+              "mantine_size": {"all": {"content": "sm"}}
+            },
+            "global_fields": {"css": "text-center text-gray-500 dark:text-gray-400 italic"}
+          }
+        ]
+      }
+    ]
   }
 ]

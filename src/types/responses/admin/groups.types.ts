@@ -21,15 +21,6 @@ export interface IGroupPageAcl {
   acl_delete: boolean;
 }
 
-// Legacy interface for backward compatibility
-export interface IGroupAcl {
-  id: number;
-  name: string;
-  description: string | null;
-  resource: string;
-  action: string;
-}
-
 export interface IGroupsPagination {
   page: number;
   pageSize: number;

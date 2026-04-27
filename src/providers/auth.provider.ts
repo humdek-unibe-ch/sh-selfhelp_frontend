@@ -1,20 +1,15 @@
 /**
  * Refine AuthProvider — cookie-driven.
  *
- * All authentication state now lives in httpOnly cookies managed by the BFF.
- * Refine's lifecycle methods call the BFF catch-all (`/api/auth/user-data`)
- * rather than poking `localStorage`; the catch-all handles silent refresh
- * transparently so no dedicated "me" handler is needed. The UI should prefer
- * the `useAuthUser` hook for reactive user data; Refine still uses this
- * provider for initial guard decisions on admin routes.
+ * Auth state lives in httpOnly cookies managed by the BFF; Refine's
+ * lifecycle methods call the BFF catch-all (`/api/auth/user-data`) which
+ * also handles silent refresh. UI code should prefer the `useAuthUser`
+ * hook; Refine still uses this provider for initial guard decisions.
  *
- * Caching: `check()` and `getIdentity()` share the same `['user-data']`
- * React Query cache as `useAuthUser` (via the module-level `queryClient`
- * singleton in `providers/query-client.ts`). This means a warm SSR-hydrated
- * cache serves Refine's first guard decision without any XHR, and cold
- * cache entries are filled via `queryClient.fetchQuery`, which dedupes
- * concurrent callers and publishes the result into the same cache slot the
- * hook reads from.
+ * `check()` and `getIdentity()` share the `['user-data']` React Query
+ * cache with `useAuthUser`, so a hydrated cache serves Refine's first
+ * guard with zero XHR, and cold reads dedupe via `fetchQuery` into the
+ * same slot the hook observes.
  */
 
 import { AuthProvider } from '@refinedev/core';
@@ -26,24 +21,19 @@ import { ROUTES } from '../config/routes.config';
 import { info, warn, error } from '../utils/debug-logger';
 import { permissionManager } from '../api/permission-wrapper.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
-import { queryClient } from './query-client';
+import { getQueryClient } from './query-client';
 
 const PENDING_2FA_KEY = 'pending_2fa_user_id';
 
 /**
- * Resolve the current user, preferring the hydrated `['user-data']` React
- * Query cache and only firing a network request when the cache is cold /
- * stale. Shares the cache slot with `useAuthUser` so one network round-trip
- * per page load serves Refine's guards, the admin navbar, and every
- * permission check.
- *
- * Silent refresh on 401 is still handled by the catch-all (see
- * `src/app/api/[...path]/route.ts`). Any non-ok response is treated as
- * "not logged in" so Refine can redirect to `/auth/login`.
+ * Resolve the current user from the shared `['user-data']` cache, falling
+ * back to a network fetch only when the slot is cold or stale. Any non-ok
+ * response (including a refresh failure surfaced by the BFF) is treated as
+ * "not logged in" so Refine redirects to `/auth/login`.
  */
 async function fetchMeOrNull(): Promise<IUserData | null> {
     try {
-        const envelope = await queryClient.fetchQuery<IUserDataResponse>({
+        const envelope = await getQueryClient().fetchQuery<IUserDataResponse>({
             queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA,
             queryFn: () => AuthApi.getUserData(),
             staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.USER_DATA.staleTime,
@@ -73,9 +63,24 @@ export const authProvider: AuthProvider = {
                 };
             }
 
-            // Force the next `check()` (or any `useAuthUser` consumer) to
-            // fetch fresh user data for the newly authenticated session.
-            queryClient.removeQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
+            // Replace the cached anonymous sentinel with the real envelope
+            // BEFORE redirecting. The login page has no `AuthButton` mounted
+            // (no active observers to wake via `invalidateQueries`) and
+            // `useUserData` is `refetchOnMount: false`, so we proactively
+            // seed the slot to avoid a "Login → Login → User" flash.
+            const qc = getQueryClient();
+            qc.removeQueries({
+                queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA,
+            });
+            try {
+                await qc.fetchQuery({
+                    queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA,
+                    queryFn: () => AuthApi.getUserData(),
+                    staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.USER_DATA.staleTime,
+                });
+            } catch (fetchErr) {
+                warn('Post-login user-data prefetch failed', 'AuthProvider', fetchErr);
+            }
             info('Login successful', 'AuthProvider');
             return { success: true, redirectTo: ROUTES.HOME };
         } catch (apiError: any) {
@@ -99,11 +104,10 @@ export const authProvider: AuthProvider = {
             warn('Logout error', 'AuthProvider', err);
             permissionManager.clearPermissions();
         }
-        // Evict the cached user envelope so the next `check()` resolves to
-        // "not authenticated" without waiting for the React Query observers
-        // to invalidate. This also prevents stale admin navbar items from
-        // lingering for a tick after logout.
-        queryClient.removeQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
+        // Evict the cached envelope so the next `check()` resolves to
+        // "not authenticated" immediately, without waiting for observers
+        // to invalidate (avoids stale admin navbar after logout).
+        getQueryClient().removeQueries({ queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA });
         return { success: true, redirectTo: ROUTES.LOGIN };
     },
 

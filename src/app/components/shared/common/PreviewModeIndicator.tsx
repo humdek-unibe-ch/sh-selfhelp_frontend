@@ -9,7 +9,7 @@
 
 import { Box } from '@mantine/core';
 import { IconEye } from '@tabler/icons-react';
-import { usePreviewMode } from '../../../../hooks/usePreviewMode';
+import { usePreviewMode } from '../../contexts/PreviewModeContext';
 
 interface IPreviewModeIndicatorProps {
   /** Whether to show the indicator only when in preview mode */

@@ -400,6 +400,13 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
                 }
                 size="xs"
                 mb="xs"
+                // Autofill / form-helper extensions (SharkID, 1Password,
+                // Bitwarden, Dashlane, …) decorate <input> elements with
+                // custom data-* attributes (e.g. `data-sharkid`) before
+                // React hydrates, producing a hydration mismatch warning.
+                // Suppressing the check on this single input keeps strict
+                // hydration everywhere else.
+                suppressHydrationWarning
             />
 
             {/* Search Results */}

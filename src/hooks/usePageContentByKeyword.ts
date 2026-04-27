@@ -20,9 +20,12 @@ interface IUsePageContentByKeywordOptions {
  * can prefetch the same entry the client will mount, eliminating the
  * navigation → page-id waterfall on first paint.
  *
- * The hook mirrors `usePageContent` in semantics (shares the same cache
- * tier) but uses the `/pages/by-keyword/{keyword}` endpoint so we do not
- * depend on navigation being loaded first.
+ * Replaces the legacy id-based `usePageContent` hook — that hook required
+ * the navigation list to load first to translate keyword → id, which
+ * forced a serial waterfall on every page load. Going through the
+ * `/pages/by-keyword/{keyword}` endpoint lets SSR (`getPageByKeywordSSRCached`)
+ * and the client mount the same query slot in parallel with navigation
+ * fetching.
  */
 export function usePageContentByKeyword(keyword: string, options: IUsePageContentByKeywordOptions = {}) {
     const { currentLanguageId } = useLanguageContext();
@@ -34,7 +37,17 @@ export function usePageContentByKeyword(keyword: string, options: IUsePageConten
         queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.PAGE_BY_KEYWORD(keyword, languageId, preview),
         queryFn: () => PageApi.getPageByKeyword(keyword, languageId, preview),
         enabled,
-        staleTime: preview ? 0 : REACT_QUERY_CONFIG.CACHE_TIERS.PAGE_CONTENT.staleTime,
+        // Preview keeps the short `PAGE_CONTENT` stale window rather than 0
+        // so the SSR-hydrated payload is considered fresh for a second after
+        // hydration. Without this, `refetchOnMount: true` below refires the
+        // request the moment the client mounts, giving admins the same
+        // request twice per navigation (the original published→preview double
+        // fetch was only half the problem — the other half was a hydrated-
+        // then-instantly-stale second call). Admin mutations still invalidate
+        // the preview key explicitly so fresh edits never get stuck behind
+        // this 1s window, and `refetchOnWindowFocus` keeps long-idle tabs
+        // honest.
+        staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.PAGE_CONTENT.staleTime,
         gcTime: preview ? 0 : REACT_QUERY_CONFIG.CACHE_TIERS.PAGE_CONTENT.gcTime,
         placeholderData: keepPreviousData,
         refetchOnWindowFocus: preview,

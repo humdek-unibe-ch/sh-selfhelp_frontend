@@ -1,5 +1,5 @@
 import { notifications } from '@mantine/notifications';
-import { ISectionExportData } from '../api/admin/section.api';
+import { ISectionExportData, IImportValidationError } from '../api/admin/section.api';
 
 /**
  * Downloads JSON data as a file
@@ -58,18 +58,33 @@ export function readJsonFile(file: File): Promise<ISectionExportData[]> {
                 const jsonString = event.target?.result as string;
                 const data = JSON.parse(jsonString);
                 
-                // Validate that it's an array of sections
+                // Validate that it's an array of sections. With the minimized
+                // export shape, `section_name` is optional (backend will auto-
+                // generate one). Only `style_name` is strictly required — every
+                // other field/default is filled in by the backend from the
+                // style schema.
                 if (!Array.isArray(data)) {
                     throw new Error('Invalid file format: Expected an array of sections');
                 }
-                
-                // Basic validation of section structure
-                for (const section of data) {
-                    if (!section.section_name || !section.style_name) {
-                        throw new Error('Invalid section format: Missing required fields (name, style_name)');
+
+                const checkSection = (section: any, path: string): void => {
+                    if (!section || typeof section !== 'object') {
+                        throw new Error(`Invalid section at ${path}: expected an object`);
                     }
-                }
-                
+                    if (!section.style_name || typeof section.style_name !== 'string') {
+                        throw new Error(`Invalid section at ${path}: missing required field "style_name"`);
+                    }
+                    if (Array.isArray(section.children)) {
+                        section.children.forEach((child: any, idx: number) =>
+                            checkSection(child, `${path}.children[${idx}]`)
+                        );
+                    }
+                };
+
+                data.forEach((section: any, idx: number) =>
+                    checkSection(section, `[${idx}]`)
+                );
+
                 resolve(data);
             } catch (error) {
                 reject(new Error(`Failed to parse JSON file: ${error instanceof Error ? error.message : 'Unknown error'}`));
@@ -85,8 +100,31 @@ export function readJsonFile(file: File): Promise<ISectionExportData[]> {
 }
 
 /**
- * Validates if a file is a valid JSON file
+ * Extracts the structured `errors[]` array from a 422 import-validation error.
+ * The backend returns them inside `response.data.errors` via `ServiceException`.
+ * Falls back to an empty array when the error doesn't match that shape.
  */
-export function isValidJsonFile(file: File): boolean {
-    return file.type === 'application/json' || file.name.toLowerCase().endsWith('.json');
-} 
+export function parseImportValidationErrors(error: unknown): IImportValidationError[] {
+    if (!error || typeof error !== 'object') return [];
+
+    const err = error as {
+        response?: { status?: number; data?: { errors?: unknown } };
+        errors?: unknown;
+    };
+
+    if (err.response?.status !== 422) return [];
+
+    const raw = err.response?.data?.errors ?? err.errors;
+    if (!Array.isArray(raw)) return [];
+
+    return raw
+        .filter(
+            (item): item is Record<string, unknown> =>
+                !!item && typeof item === 'object'
+        )
+        .map((item) => ({
+            path: typeof item.path === 'string' ? item.path : '',
+            type: typeof item.type === 'string' ? item.type : 'unknown',
+            detail: typeof item.detail === 'string' ? item.detail : String(item.detail ?? ''),
+        }));
+}

@@ -1,51 +1,61 @@
 'use client';
 
-import { useCallback } from 'react';
-import { useIsAuthenticated } from '@refinedev/core';
+import { useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '../config/routes.config';
-import { useAuthUser, useHasPermission, useHasAdminAccess } from './useUserData';
+import { useAuthUser } from './useUserData';
 
 /**
- * Hook to access authentication state, user data, and permission checking
- * Updated to use new user data endpoint instead of JWT-based user info
- * 
- * @returns Authentication utilities and user data
+ * Convenience hook bundling auth + permission helpers around a single
+ * `useUserData` subscription. Components that only need a slice should call
+ * `useAuthUser` directly to avoid pulling unrelated dependencies.
  */
 export const useAuth = () => {
     const router = useRouter();
-    const { data: isAuthenticated, isLoading: isAuthLoading } = useIsAuthenticated();
-    const { user, permissionChecker, isLoading: isUserDataLoading } = useAuthUser();
-    const hasPermission = useHasPermission();
-    const hasAdminAccess = useHasAdminAccess();
+    const { user, permissionChecker, isLoading } = useAuthUser();
+    const isAuthenticated = user !== null;
 
-    // Combined loading state
-    const isLoading = isAuthLoading || isUserDataLoading;
+    const hasPermission = useCallback(
+        (permission: string): boolean =>
+            !!user?.permissions?.includes(permission),
+        [user]
+    );
 
-    /**
-     * Redirect to no access page if user doesn't have admin access
-     */
-    const requireAdminAccess = useCallback(() => {
+    const hasAdminAccess = useCallback(
+        (): boolean => hasPermission('admin.access'),
+        [hasPermission]
+    );
+
+    const requireAdminAccess = useCallback((): boolean => {
         if (!isAuthenticated) {
             router.push(ROUTES.LOGIN);
             return false;
         }
-
         if (!hasAdminAccess()) {
             router.push(ROUTES.NO_ACCESS);
             return false;
         }
-
         return true;
     }, [isAuthenticated, hasAdminAccess, router]);
 
-    return {
-        isAuthenticated,
-        isLoading,
-        user,
-        permissionChecker,
-        hasPermission,
-        hasAdminAccess,
-        requireAdminAccess,
-    };
+    return useMemo(
+        () => ({
+            isAuthenticated,
+            isLoading,
+            user,
+            permissionChecker,
+            hasPermission,
+            hasAdminAccess,
+            requireAdminAccess,
+        }),
+        [
+            isAuthenticated,
+            isLoading,
+            user,
+            permissionChecker,
+            hasPermission,
+            hasAdminAccess,
+            requireAdminAccess,
+        ]
+    );
 };

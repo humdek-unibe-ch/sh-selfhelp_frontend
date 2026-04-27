@@ -26,7 +26,23 @@ This document outlines the frontend architecture for the SH-Self-help project. T
 *   **Performance**: Optimize for Web Vitals (LCP, CLS, FID).
 *   **Accessibility (a11y)**: Build inclusive interfaces.
 
-## 2.1. Dynamic Page Content Rendering with Multi-Language Support (Latest Update)
+## 2.1. Dynamic Page Content Rendering with Multi-Language Support (Historical)
+
+> **⚠️ Superseded.** The URL-parameter-driven language flow and the
+> `usePageContent(keyword, language)` hook described in this section have
+> been replaced by the cookie-driven SSR pipeline:
+>
+> - Language is now persisted in `sh_lang` and resolved server-side by
+>   `resolveLanguageSSR()` (see [`docs/architecture/ssr-bff-architecture.md`](./docs/architecture/ssr-bff-architecture.md) §15).
+> - Page content is fetched by the keyword-only hook
+>   `usePageContentByKeyword` (see `src/hooks/usePageContentByKeyword.ts`)
+>   which is SSR-seeded by `getPageByKeywordSSRCached()`.
+> - Anonymous users no longer get a `?language=...` redirect; the cookie
+>   plus the `Accept-Language` fallback (`sh_accept_locale`) cover the
+>   same ground without polluting the URL.
+>
+> The text below is preserved for historical reference only — do **not**
+> use it as a guide for new work.
 
 ### Comprehensive Page Content System
 Implemented a complete page content rendering system with dynamic style component loading, multi-language support, and fallback handling for unknown styles.
@@ -719,11 +735,9 @@ POST /cms-api/v1/auth/set-language
     "language_id": 3
 }
 
-// Response includes updated JWT with language info
+// Response includes user language info; token rotation is handled by the BFF
 {
     "data": {
-        "access_token": "new_jwt_token",
-        "refresh_token": "refresh_token",
         "user": {
             "id": 1,
             "email": "user@example.com", 
@@ -736,7 +750,7 @@ POST /cms-api/v1/auth/set-language
 ```
 
 #### User Experience Flow
-1. **Non-Authenticated Users**: Language ID stored locally, uses default language from API
+1. **Non-Authenticated Users**: Language ID stored in `sh_lang`, uses default language from API
 2. **Authenticated Users**: Language preference stored in database, included in JWT token
 3. **Language Changes**: 
    - Non-authenticated: Immediate local update with language ID
@@ -1891,7 +1905,7 @@ sequenceDiagram
 flowchart LR
     User[User picks language] --> LS[LanguageSelector]
     LS --> LC[LanguageContext.<br/>setCurrentLanguageId]
-    LC -->|writeLangCookie| Cookie[sh_lang cookie<br/>max-age 1y]
+    LC -->|writeBrowserCookie| Cookie[sh_lang cookie<br/>max-age 1y]
     LC -->|invalidate scoped| RQ[(React Query)]
     RQ --> K1["['frontend-pages']"]
     RQ --> K2["['page-content']"]
@@ -1931,9 +1945,10 @@ graph TB
         CP[src/providers/providers.tsx<br/>ClientProviders]
         Axios[src/api/base.api.ts<br/>baseURL = /api]
         LCtx[LanguageContext]
-        Zu[src/app/store/ui.store.ts<br/>Zustand: isPreviewMode]
-        Watch[useAclVersionWatcher]
-        Hooks[hooks/*<br/>useUserData, usePageContent,<br/>useAdminPages, useSelectedAdminPage]
+        PCtx[PreviewModeContext<br/>sh_preview cookie]
+        Zu[src/app/store/ui.store.ts<br/>Zustand: isSidebarCollapsed]
+        Watch[useAclVersionWatcher + useAclEventStream]
+        Hooks[hooks/*<br/>useUserData, usePageContentByKeyword,<br/>useAdminPages, useSelectedAdminPage]
     end
 
     MW --> RL --> SL --> SP
@@ -1942,6 +1957,7 @@ graph TB
     Proxy --> ProxyLib
     Csrf --> ProxyLib
     CP --> LCtx
+    CP --> PCtx
     CP --> Watch
     Hooks --> Axios --> Proxy
 ```
@@ -1964,7 +1980,12 @@ Centralised in `src/config/react-query.config.ts` → `CACHE_TIERS`:
 
 - Server state → React Query (one cache key per concept).
 - Cross-component UI state → `src/app/store/ui.store.ts` (Zustand).
-  Currently tracks `isPreviewMode` only.
+  Currently tracks `isSidebarCollapsed` only.
+- **Preview mode** (admin draft-vs-published toggle) → `PreviewModeContext`
+  (`src/app/components/contexts/PreviewModeContext.tsx`), backed by the
+  `sh_preview` cookie. Deliberately **not** in Zustand because it must be
+  resolved server-side (`resolvePreviewSSR`) to avoid an SSR/CSR flash of
+  the wrong content tree on every navigation.
 - Admin selection → `src/app/store/admin.store.ts` stores only
   `selectedKeyword` (a string); the full page object is looked up by
   `useSelectedAdminPage(keyword)` (in `src/hooks/useSelectedAdminPage.ts`)
@@ -1996,16 +2017,23 @@ Component that runs during SSR.
 
 ### 15.9 Cookies in use
 
-| Cookie               | HttpOnly | Written by                                        | Read by                                             | Purpose                                          |
-|----------------------|----------|---------------------------------------------------|-----------------------------------------------------|--------------------------------------------------|
-| `sh_auth`            | yes      | `/api/auth/login`, `/api/auth/refresh`, proxy     | `cookies()` in RSC + `/api/*` proxy                 | Access token (short-lived)                       |
-| `sh_refresh`         | yes      | `/api/auth/login`, `/api/auth/refresh`            | `/api/*` proxy only                                 | Refresh token (30d)                              |
-| `sh_csrf`            | no       | `src/proxy.ts`                                    | Axios (client), `validateCsrf()` in proxy           | CSRF double-submit                               |
-| `sh_lang`            | no       | `LanguageContext.setCurrentLanguageId` (browser)  | `resolveLanguageSSR()` in RSC                       | Persisted numeric language id                    |
-| `sh_accept_locale`   | no       | `src/proxy.ts` (from `Accept-Language`)           | `resolveLanguageSSR()` in RSC                       | Raw locale hint, mapped to id via live DB        |
+| Cookie               | HttpOnly | Written by                                                            | Read by                                                          | Purpose                                          |
+|----------------------|----------|-----------------------------------------------------------------------|------------------------------------------------------------------|--------------------------------------------------|
+| `sh_auth`            | yes      | `/api/auth/login`, `/api/auth/refresh`, proxy                         | `cookies()` in RSC + `/api/*` proxy                              | Access token (short-lived)                       |
+| `sh_refresh`         | yes      | `/api/auth/login`, `/api/auth/refresh`                                | `/api/*` proxy only                                              | Refresh token (30d)                              |
+| `sh_csrf`            | no       | `src/proxy.ts`                                                        | Axios (client), `validateCsrf()` in proxy                        | CSRF double-submit                               |
+| `sh_lang`            | no       | `LanguageContext.setCurrentLanguageId` via `writeBrowserCookie`       | `resolveLanguageSSR()` in RSC                                    | Persisted numeric language id                    |
+| `sh_accept_locale`   | no       | `src/proxy.ts` (from `Accept-Language`)                               | `resolveLanguageSSR()` in RSC                                    | Raw locale hint, mapped to id via live DB        |
+| `sh_preview`         | no       | `PreviewModeContext.togglePreview` via `writeBrowserCookie`           | `resolvePreviewSSR()` in RSC + `usePageContentByKeyword`         | Persists admin preview-draft toggle across SSR   |
+| `sh_color_scheme`    | no       | `cookieColorSchemeManager` (Mantine adapter) via `writeBrowserCookie` | `resolveColorSchemeSSR()` in RSC + `mantine-color-scheme.js`     | Persists `light` / `dark` / `auto` across SSR    |
 
-All five are strictly necessary → no consent banner required. A static
+All seven are strictly necessary → no consent banner required. A static
 `/privacy` page documents them for transparency.
+
+The three cookies written from the browser (`sh_lang`, `sh_preview`,
+`sh_color_scheme`) all go through the single `writeBrowserCookie` helper
+in `src/utils/auth.utils.ts` so attributes (`SameSite`, `Secure`, path,
+`max-age`) stay consistent — there is no second writer for any of them.
 
 ### 15.10 Plan deviations (intentional)
 

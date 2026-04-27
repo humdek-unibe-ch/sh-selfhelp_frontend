@@ -1,22 +1,38 @@
 /**
- * Browser-side auth utilities.
+ * Browser-side auth / preference cookie helpers.
  *
- * With the full BFF migration, tokens live only in httpOnly cookies managed
- * by the Next.js `/api/auth/*` routes. The browser never has direct access
- * to the access or refresh tokens, so the helpers below expose only the
- * two non-httpOnly signals the client still needs: the CSRF double-submit
- * token and the language preference cookie.
+ * Authentication state lives in httpOnly cookies managed by the Next.js
+ * `/api/auth/*` BFF routes — the browser never sees the access or refresh
+ * token. This module exposes the two pieces the client still needs:
+ *
+ *   - `readCsrfToken()` to read the non-httpOnly `sh_csrf` cookie for the
+ *     double-submit header,
+ *   - `writeBrowserCookie()` for the long-lived preference cookies (lang,
+ *     preview, color scheme) that Server Components also read on the next
+ *     SSR request.
  *
  * Cookie names come from `@/config/cookie-names` — a browser-safe module
- * (no `process.env`, no Node/Edge-only imports) — so both the client and the
- * server runtime reference identical constants.
+ * (no `process.env`, no Node/Edge-only imports) — so both client and server
+ * runtimes reference identical constants.
  */
 
-import {
-    CSRF_COOKIE,
-    LANG_COOKIE,
-    LONG_LIVED_COOKIE_MAX_AGE,
-} from '../config/cookie-names';
+import { CSRF_COOKIE } from '../config/cookie-names';
+
+/**
+ * Write a cookie from the browser. Pass `maxAge = 0` to delete; the helper
+ * also stamps an `expires` in the past so a small number of legacy proxies
+ * that ignore `Max-Age=0` still drop the cookie.
+ */
+export function writeBrowserCookie(name: string, value: string, maxAge: number): void {
+    if (typeof document === 'undefined') return;
+    const secure =
+        typeof window !== 'undefined' && window.location.protocol === 'https:'
+            ? '; Secure'
+            : '';
+    const expires =
+        maxAge <= 0 ? '; expires=Thu, 01 Jan 1970 00:00:00 GMT' : '';
+    document.cookie = `${name}=${value}; path=/; max-age=${maxAge}${expires}; SameSite=Lax${secure}`;
+}
 
 /**
  * CSRF double-submit helper. Reads the non-httpOnly `sh_csrf` cookie and
@@ -27,16 +43,4 @@ export function readCsrfToken(): string | null {
     const prefix = `${CSRF_COOKIE}=`;
     const match = document.cookie.split('; ').find((c) => c.startsWith(prefix));
     return match ? decodeURIComponent(match.slice(prefix.length)) : null;
-}
-
-/**
- * Write the `sh_lang` cookie with the long-lived max-age used by middleware.
- * The cookie always stores a numeric id that references the `languages`
- * table; the raw locale hint from `Accept-Language` lives in the separate
- * middleware-managed `sh_accept_locale` cookie.
- */
-export function writeLangCookie(languageId: number): void {
-    if (typeof document === 'undefined') return;
-    const secure = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : '';
-    document.cookie = `${LANG_COOKIE}=${languageId}; path=/; max-age=${LONG_LIVED_COOKIE_MAX_AGE}; SameSite=Lax${secure}`;
 }

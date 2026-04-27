@@ -14,13 +14,22 @@
 
 import { cache } from 'react';
 import { cookies } from 'next/headers';
+import type { MantineColorScheme } from '@mantine/core';
 import {
     AUTH_COOKIE,
+    COLOR_SCHEME_COOKIE,
     LANG_COOKIE,
     LOCALE_HINT_COOKIE,
+    PREVIEW_COOKIE,
     SYMFONY_API_PREFIX,
     SYMFONY_INTERNAL_URL,
 } from '../../config/server.config';
+import {
+    selectMenuPages,
+    selectProfilePages,
+    transformNavigationPages,
+} from '../../utils/navigation.utils';
+import type { IPageItem } from '../../types/common/pages.type';
 
 /** SSR cache lifetime for `/languages` in seconds. */
 const LANGUAGES_REVALIDATE_SECONDS = 300;
@@ -57,12 +66,56 @@ async function fetchJson<T>(path: string, init: RequestInit = {}): Promise<T | n
  * React Query `['frontend-pages', languageId]` entry expects so the client
  * can hydrate without a refetch.
  *
- * Wrapped in `cache()` so the slug layout prefetch, `generateMetadata`,
- * and the title-fallback helper below all share one round-trip per
- * request.
+ * Wrapped in `cache()` so the slug layout prefetch and `generateMetadata`
+ * share one round-trip per request.
  */
 export const getFrontendPagesSSR = cache(async (languageId: number): Promise<any | null> => {
     return fetchJson(`/pages/language/${languageId}`);
+});
+
+/**
+ * Resolve the server-rendered top-level menu items for a given language.
+ *
+ * Performs the same transform + filter as `useAppNavigation`'s `select`
+ * (via the shared helpers in `utils/navigation.utils`) so the HTML emitted
+ * by the Server Component header matches the post-hydration client render
+ * char-for-char. Wrapped in `cache()` so the slug layout, the SSR header,
+ * and `generateMetadata` all share a single `/pages/language/{id}` round-trip
+ * per request.
+ *
+ * Returns an empty array when the upstream call fails — the client menu
+ * still mounts and the React Query refetch will fill in the gap.
+ */
+export const getMenuPagesSSR = cache(async (languageId: number): Promise<IPageItem[]> => {
+    const raw = await getFrontendPagesSSR(languageId);
+    const list = Array.isArray(raw?.data) ? raw.data : Array.isArray(raw) ? raw : [];
+    if (list.length === 0) return [];
+    const transformed = transformNavigationPages(list);
+    return selectMenuPages(transformed);
+});
+
+/**
+ * Resolve the server-rendered profile-link entries for a given language.
+ *
+ * Used by the Server Component `WebsiteHeader` to seed the auth button's
+ * profile dropdown title (e.g. "Profil" in German) so the SSR HTML and
+ * the first client render do not flash the hardcoded English `'Profile'`
+ * fallback while React Query rehydrates.
+ *
+ * Anonymous visitors get an empty list because the backend only returns
+ * the system `profile-link` page when the request carries an
+ * authenticated bearer token — which is exactly what we want, since the
+ * auth button shows `Login` for them and never reads `profilePages`.
+ *
+ * Wrapped in `cache()` so the slug layout, SSR header and metadata calls
+ * share the same `/pages/language/{id}` round-trip per request.
+ */
+export const getProfilePagesSSR = cache(async (languageId: number): Promise<IPageItem[]> => {
+    const raw = await getFrontendPagesSSR(languageId);
+    const list = Array.isArray(raw?.data) ? raw.data : Array.isArray(raw) ? raw : [];
+    if (list.length === 0) return [];
+    const transformed = transformNavigationPages(list);
+    return selectProfilePages(transformed);
 });
 
 /**
@@ -111,17 +164,6 @@ export async function getFrontendPageSeoSSR(
 }
 
 /**
- * @deprecated Use `getFrontendPageSeoSSR` which also returns description.
- * Kept as a thin wrapper so older callers keep working until fully migrated.
- */
-export async function getFrontendPageTitleSSR(
-    keyword: string,
-    languageId: number
-): Promise<string | null> {
-    return (await getFrontendPageSeoSSR(keyword, languageId)).title;
-}
-
-/**
  * Fetch a page's full content by keyword. Module-private so all consumers
  * go through `getPageByKeywordSSRCached` and benefit from the per-request
  * deduplication.
@@ -156,13 +198,16 @@ export async function getAdminLookupsSSR(): Promise<any | null> {
 }
 
 /**
- * Fetch the current authenticated user's profile + ACL version. Used by the
- * admin layout to seed the `['user-data']` cache and gate access server-side
- * (a missing user means the cookie is invalid → redirect to login).
+ * Fetch the current authenticated user's profile + ACL version.
+ *
+ * Wrapped in `cache()` so `ServerProviders` (which seeds `['user-data']`
+ * for every render that has an `sh_auth` cookie) and `admin/layout.tsx`
+ * (which uses the same payload to gate access via redirect) share a single
+ * Symfony round-trip per request.
  */
-export async function getAuthMeSSR(): Promise<any | null> {
+export const getAuthMeSSR = cache(async (): Promise<any | null> => {
     return fetchJson(`/auth/user-data`);
-}
+});
 
 /**
  * Fetch the public languages list. Languages are the source of truth for
@@ -258,3 +303,52 @@ export const getPageByKeywordSSRCached = cache(
         return getPageByKeywordSSR(keyword, languageId, preview);
     }
 );
+
+/**
+ * Resolve whether the current request should be rendered in preview mode.
+ *
+ * Authoritative source: the `sh_preview` cookie written by
+ * `PreviewModeProvider`. Any truthy value ("1", "true") counts; absent or
+ * "0" means the published view. Keeping
+ * the resolver in the same file as `resolveLanguageSSR` makes it obvious that
+ * both are SSR-scoped request-derived flags, and lets Server Components
+ * pick the right `preview=true|false` before prefetching page content — which
+ * eliminates the published → preview double round-trip admins previously
+ * saw on every page load.
+ *
+ * Wrapped in `cache()` so the slug layout prefetch, `generateMetadata`,
+ * and the slug page body share a single cookie read per request.
+ */
+export const resolvePreviewSSR = cache(async (): Promise<boolean> => {
+    const jar = await cookies();
+    const raw = jar.get(PREVIEW_COOKIE)?.value;
+    if (!raw) return false;
+    // Accept only truthy literals; anything else (including '0' and '') is
+    // treated as published. This matches the cookie writer, which either
+    // sets '1' or clears the cookie outright.
+    return raw === '1' || raw.toLowerCase() === 'true';
+});
+
+/**
+ * Resolve the Mantine color-scheme choice for the current SSR request from
+ * the `sh_color_scheme` cookie.
+ *
+ * - `'light'` / `'dark'`: explicit user choice → root layout sets
+ *   `<html data-mantine-color-scheme="...">` directly so CSS picks the right
+ *   tokens on the *first* painted frame (no white flash on dark reloads).
+ * - `'auto'`: user chose "follow system". The server cannot read the client's
+ *   `prefers-color-scheme` from a cookie, so the attribute is left unset and
+ *   the pre-hydration bootstrap script (`/mantine-color-scheme.js`) computes
+ *   it from `matchMedia` before React hydrates.
+ * - absent cookie: defaults to `'auto'`, matching the historical behaviour.
+ *
+ * The browser-side counterpart (writing the cookie on user toggle) lives in
+ * `cookieColorSchemeManager` — the same cookie is the single source of truth
+ * for both server and client renders.
+ */
+export const resolveColorSchemeSSR = cache(async (): Promise<MantineColorScheme> => {
+    const jar = await cookies();
+    const raw = jar.get(COLOR_SCHEME_COOKIE)?.value;
+    if (raw === 'light' || raw === 'dark' || raw === 'auto') return raw;
+    return 'auto';
+});

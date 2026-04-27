@@ -69,15 +69,22 @@ The frontend integration for the Page Versioning & Publishing System has been su
 
 #### Page API Updates
 - **File**: `src/api/page.api.ts`
-- **Changes**: Added `preview` parameter to `getPageContent()` for draft mode
+- **Changes**: `getPageByKeyword()` accepts a `preview` flag forwarded as
+  a query param to the BFF.
 
-#### Hook Updates
-- **File**: `src/hooks/usePageContent.ts`
-- **Changes**: 
-  - Added `preview` option to force draft mode
-  - Separate cache keys for draft vs published
-  - No caching for preview mode (always fresh)
-  - Auto-refetch on focus for previews
+#### Hook + context updates
+- **File**: `src/hooks/usePageContentByKeyword.ts` (replaces the old
+  `src/hooks/usePageContent.ts`).
+- **Changes**:
+  - Reads the preview flag from `usePreviewMode()` (cookie-backed
+    `PreviewModeContext`), so caller code stays a single-arg hook
+  - Cache key is `['page-by-keyword', keyword, languageId, isPreviewMode]`
+    so draft and published payloads cannot collide
+  - `gcTime: 0` while preview is on so stale draft payloads cannot leak
+    back when an admin toggles preview off
+  - SSR seed (`getPageByKeywordSSRCached`) honours the same preview flag
+    via `resolvePreviewSSR()`, so the very first paint already shows the
+    correct tree
 
 ### 5. UI Components ✅
 
@@ -229,7 +236,7 @@ src/
 ├── hooks/
 │   ├── mutations/
 │   │   └── usePageVersionMutations.ts   ✅ NEW
-│   ├── usePageContent.ts                ✅ MODIFIED (preview mode)
+│   ├── usePageContentByKeyword.ts       ✅ REPLACES usePageContent (preview-aware)
 │   └── usePageVersions.ts               ✅ NEW
 └── app/components/cms/
     ├── page-versions/                   ✅ NEW
@@ -298,14 +305,22 @@ const { data: comparison } = useVersionComparison(
 
 ### Using Preview Mode
 
+Preview mode is a **per-user toggle**, not a per-call argument. Admins
+flip it via `<PreviewModeToggle />`, which writes the `sh_preview` cookie
+through `PreviewModeContext`. The cookie is read on the server by
+`resolvePreviewSSR()` and on the client by `usePreviewMode()`, so the
+SSR payload and the client cache stay in sync without prop-drilling.
+
 ```typescript
-import { usePageContent } from '@/hooks/usePageContent';
+import { usePageContentByKeyword } from '@/hooks/usePageContentByKeyword';
+import { usePreviewMode } from '@/app/components/contexts/PreviewModeContext';
 
-// For admins - see draft changes
-const { content } = usePageContent(pageId, { preview: true });
-
-// For users - see published version
-const { content } = usePageContent(pageId, { preview: false });
+const { isPreviewMode, togglePreview } = usePreviewMode();
+const { data: content } = usePageContentByKeyword(keyword);
+// `content` is automatically the draft tree when isPreviewMode is true,
+// the published tree otherwise. Non-admin users cannot toggle preview
+// (the SSR resolver gates the cookie behind a permission check), so for
+// them this hook always yields the published tree.
 ```
 
 ## 🚀 Next Steps & Usage

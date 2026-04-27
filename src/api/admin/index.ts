@@ -16,7 +16,7 @@ export { AdminPermissionApi } from './permission.api';
 export { AdminScheduledJobsApi } from './scheduled-jobs.api';
 export { AdminDataAccessApi } from './data-access.api';
 
-// Legacy compatibility - re-export as AdminApi for backward compatibility
+// Aggregated admin API used by hooks that need multiple admin domains.
 import { AdminPageApi } from './page.api';
 import { AdminPageKeywordsApi } from './page-keywords.api';
 import { AdminSectionApi } from './section.api';

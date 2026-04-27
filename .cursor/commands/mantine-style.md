@@ -298,9 +298,9 @@ The system has hundreds of pre-existing fields that should be reused when possib
 | 55 | size_select | Size selection (xs, sm, md, lg, xl) |
 | 233 | image_url | Image URL input |
 
-## Complete Style Reference (Matching styles.types.ts)
+## Complete Style Reference (Matching styles.types)
 
-This section documents every style defined in `styles.types.ts` with their exact fields and allowed values.
+This section documents every style defined in `styles.types` with their exact fields and allowed values.
 
 ### Authentication & User Management Styles
 
