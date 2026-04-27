@@ -22,6 +22,7 @@ import parse from "html-react-parser";
 import { sanitizeHtmlForInline, sanitizeHtmlForParsing } from '../../../../../../../utils/html-sanitizer.utils';
 import LanguageTabsWrapper from '../../../shared/LanguageTabsWrapper';
 import { getSpacingProps } from '../../../BasicStyle';
+import DOMPurify from 'isomorphic-dompurify';
 
 /**
  * Props interface for IRichTextEditorStyle component
@@ -40,7 +41,7 @@ const RichTextEditorStyle: React.FC<IRichTextEditorStyleProps> = ({ style, style
     const translatable = style.translatable?.content === '1';
     const label = style.label?.content;
     const description = style.description?.content || '';
-    const placeholder = style.placeholder?.content;
+    const placeholder = DOMPurify.sanitize(style.placeholder?.content || '', { ALLOWED_TAGS: [] });
     const initialValue = style.value?.content || '';
     const required = style.is_required?.content === '1';
     const disabled = style.disabled?.content === '1';

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { ColorInput } from '@mantine/core';
 import { IColorInputStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
+import DOMPurify from 'isomorphic-dompurify';
 
 /**
  * Props interface for ColorInputStyle component
@@ -31,7 +32,10 @@ interface IColorInputStyleProps {
  */
 const ColorInputStyle: React.FC<IColorInputStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
-    const placeholder = style.placeholder?.content;
+    const placeholder =
+       DOMPurify.sanitize(style.placeholder?.content ?? "", {
+         ALLOWED_TAGS: [],
+       }) || "Pick a color";
     const format = style.mantine_color_format?.content || 'hex';
     const size = style.mantine_size?.content || 'sm';
     const radius = style.mantine_radius?.content || 'sm';
@@ -80,7 +84,7 @@ const ColorInputStyle: React.FC<IColorInputStyleProps> = ({ style, styleProps, c
 
     const colorInputComponent = (
         <ColorInput
-            placeholder={placeholder || 'Pick a color'}
+            placeholder={placeholder}
             format={format as 'hex' | 'rgba' | 'hsla'}
             size={size as 'xs' | 'sm' | 'md' | 'lg' | 'xl'}
             radius={radius === 'none' ? 0 : radius}

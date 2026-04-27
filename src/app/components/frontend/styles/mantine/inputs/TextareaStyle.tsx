@@ -27,7 +27,10 @@ const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style, styleProps, cssCl
 
     const label = style.label?.content;
     const description = style.description?.content || '';
-    const placeholder = style.placeholder?.content;
+    const placeholder =
+    DOMPurify.sanitize(style.placeholder?.content ?? "", {
+        ALLOWED_TAGS: [],
+    });
     const initialValue = style.value?.content;
     const required = style.is_required?.content === '1';
     const disabled = style.disabled?.content === '1';
@@ -104,7 +107,7 @@ const TextareaStyle: React.FC<ITextareaStyleProps> = ({ style, styleProps, cssCl
                 {...(translatable ? undefined : { ...styleProps, ...spacingProps })}
             >
                 <Textarea
-                    placeholder={DOMPurify.sanitize(placeholder || '', { ALLOWED_TAGS: [] })}
+                    placeholder={placeholder}
                     required={required}
                     value={currentValue}
                     name={translatable ? undefined : name} // Don't set name for translatable fields - handled by wrapper

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Box, Card, TextInput, Button, Alert } from '@mantine/core';
 import { IconCheck, IconMail } from '@tabler/icons-react';
 import { IResetPasswordStyle } from '../../../../types/common/styles.types';
+import DOMPurify from 'isomorphic-dompurify';
 
 /**
  * Props interface for IResetPasswordStyle component
@@ -21,7 +22,7 @@ const ResetPasswordStyle: React.FC<IResetPasswordStyleProps> = ({ style, stylePr
     const textMd = style.text_md?.content;
     const type = style.type?.content || 'primary';
     const alertSuccess = style.alert_success?.content || 'Password reset email sent successfully';
-    const placeholder = style.placeholder?.content || 'Enter your email address';
+    const placeholder =  DOMPurify.sanitize(style.placeholder?.content || 'Enter your email address', { ALLOWED_TAGS: [] });
     const emailUser = style.email_user?.content;
     const subjectUser = style.subject_user?.content;
     const isHtml = style.is_html?.content === '1';
