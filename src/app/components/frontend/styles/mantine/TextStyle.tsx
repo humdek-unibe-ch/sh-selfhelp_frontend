@@ -35,7 +35,9 @@ const TextStyle: React.FC<ITextStyleProps> = ({ style, styleProps, cssClass }) =
     }
 
     // Extract text content
-    const text =  DOMPurify.sanitize(style.text?.content ?? '') || '';
+    const text = DOMPurify.sanitize(style.text?.content ?? "", {
+         ALLOWED_TAGS: [],
+       }) || '';
 
     // Extract Mantine-specific props
     const size = style.mantine_size?.content || 'md';
@@ -90,11 +92,9 @@ const TextStyle: React.FC<ITextStyleProps> = ({ style, styleProps, cssClass }) =
             lineClamp={lineClamp}
             inherit={inherit}
             span={span}
-            dangerouslySetInnerHTML={{ __html: text }}
-
             {...styleProps} className={cssClass}
         >
-            {/* {text} */}
+            {text}
         </Text>
     );
 };

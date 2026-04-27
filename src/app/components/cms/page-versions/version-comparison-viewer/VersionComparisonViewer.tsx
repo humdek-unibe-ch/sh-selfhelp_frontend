@@ -58,95 +58,96 @@ export function VersionComparisonViewer({
     }));
 
     const cleanDiff = useMemo(() => {
-      return DOMPurify.sanitize((comparison?.diff as string) || "");
+        return DOMPurify.sanitize((comparison?.diff as string) || "", {
+        ALLOWED_TAGS: [],
+      });
     }, [comparison]);
 
     return (
-        <Modal
-            opened={opened}
-            onClose={onClose}
-            title="Compare Versions"
-            size="xl"
-            fullScreen
-        >
-            <Stack gap="md" h="calc(100vh - 120px)">
-                <Paper p="md" withBorder>
-                    <Group grow>
-                        <Select
-                            label="Version 1"
-                            placeholder="Select first version"
-                            data={versionOptions}
-                            value={version1Id?.toString() || null}
-                            onChange={(value) => setVersion1Id(value ? parseInt(value) : null)}
-                        />
-                        <Select
-                            label="Version 2"
-                            placeholder="Select second version"
-                            data={versionOptions}
-                            value={version2Id?.toString() || null}
-                            onChange={(value) => setVersion2Id(value ? parseInt(value) : null)}
-                        />
-                        <Select
-                            label="Format"
-                            data={[
-                                { value: 'side_by_side', label: 'Side by Side' },
-                                { value: 'unified', label: 'Unified Diff' },
-                                { value: 'json_patch', label: 'JSON Patch' },
-                                { value: 'summary', label: 'Summary' }
-                            ]}
-                            value={format}
-                            onChange={(value) => setFormat(value as any)}
-                        />
-                    </Group>
-                </Paper>
+      <Modal
+        opened={opened}
+        onClose={onClose}
+        title="Compare Versions"
+        size="xl"
+        fullScreen
+      >
+        <Stack gap="md" h="calc(100vh - 120px)">
+          <Paper p="md" withBorder>
+            <Group grow>
+              <Select
+                label="Version 1"
+                placeholder="Select first version"
+                data={versionOptions}
+                value={version1Id?.toString() || null}
+                onChange={(value) =>
+                  setVersion1Id(value ? parseInt(value) : null)
+                }
+              />
+              <Select
+                label="Version 2"
+                placeholder="Select second version"
+                data={versionOptions}
+                value={version2Id?.toString() || null}
+                onChange={(value) =>
+                  setVersion2Id(value ? parseInt(value) : null)
+                }
+              />
+              <Select
+                label="Format"
+                data={[
+                  { value: "side_by_side", label: "Side by Side" },
+                  { value: "unified", label: "Unified Diff" },
+                  { value: "json_patch", label: "JSON Patch" },
+                  { value: "summary", label: "Summary" },
+                ]}
+                value={format}
+                onChange={(value) => setFormat(value as any)}
+              />
+            </Group>
+          </Paper>
 
-                <Box style={{ flex: 1, overflow: 'hidden' }}>
-                    {isLoading && (
-                        <Stack align="center" justify="center" h="100%">
-                            <Loader size="lg" />
-                            <Text>Loading comparison...</Text>
-                        </Stack>
-                    )}
+          <Box style={{ flex: 1, overflow: "hidden" }}>
+            {isLoading && (
+              <Stack align="center" justify="center" h="100%">
+                <Loader size="lg" />
+                <Text>Loading comparison...</Text>
+              </Stack>
+            )}
 
-                    {error && (
-                        <Alert color="red" title="Error">
-                            Failed to load comparison
-                        </Alert>
-                    )}
+            {error && (
+              <Alert color="red" title="Error">
+                Failed to load comparison
+              </Alert>
+            )}
 
-                    {!isLoading && !error && comparison && (
-                        <ScrollArea h="100%">
-                            {format === 'side_by_side' && (
-                                <div 
-                                    dangerouslySetInnerHTML={{ __html: cleanDiff }}
-                                    style={{ fontSize: '12px' }}
-                                />
-                            )}
-                            
-                            {format === 'unified' && (
-                                <Code block style={{ whiteSpace: 'pre-wrap' }}>
-                                    {cleanDiff}
-                                </Code>
-                            )}
-                            
-                            {(format === 'json_patch' || format === 'summary') && (
-                                <Code block style={{ whiteSpace: 'pre-wrap' }}>
-                                    {JSON.stringify(cleanDiff, null, 2)}
-                                </Code>
-                            )}
-                        </ScrollArea>
-                    )}
+            {!isLoading && !error && comparison && (
+              <ScrollArea h="100%">
+                {format === "side_by_side" && (
+                  <div style={{ fontSize: "12px" }}>{cleanDiff}</div>
+                )}
 
-                    {(!version1Id || !version2Id) && (
-                        <Stack align="center" justify="center" h="100%">
-                            <Text c="dimmed">
-                                Select two versions to compare
-                            </Text>
-                        </Stack>
-                    )}
-                </Box>
-            </Stack>
-        </Modal>
+                {format === "unified" && (
+                  <Code block style={{ whiteSpace: "pre-wrap" }}>
+                    {cleanDiff}
+                  </Code>
+                )}
+
+                {(format === "json_patch" || format === "summary") && (
+                  <Code block style={{ whiteSpace: "pre-wrap" }}>
+                    {JSON.stringify(cleanDiff, null, 2)}
+                  </Code>
+                )}
+              </ScrollArea>
+            )}
+
+            {(!version1Id || !version2Id) && (
+              <Stack align="center" justify="center" h="100%">
+                <Text c="dimmed">Select two versions to compare</Text>
+              </Stack>
+            )}
+          </Box>
+        </Stack>
+      </Modal>
     );
 }
 

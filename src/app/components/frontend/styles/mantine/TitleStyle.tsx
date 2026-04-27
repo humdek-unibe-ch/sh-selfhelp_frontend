@@ -26,7 +26,9 @@ interface ITitleStyleProps {
  */
 const TitleStyle: React.FC<ITitleStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
-    const title =  DOMPurify.sanitize(style.content?.content ?? '') || 'Title'; // HTML Content
+    const title = DOMPurify.sanitize(style.content?.content ?? "", {
+         ALLOWED_TAGS: [],
+       }) || 'Title';
     const order = Number(style.mantine_title_order?.content) as 1 | 2 | 3 | 4 | 5 | 6 || 1
     const size = style.mantine_size?.content || 'lg';
     const textWrap = style.mantine_title_text_wrap?.content as 'wrap' | 'balance' | 'nowrap' | undefined;
@@ -43,7 +45,7 @@ const TitleStyle: React.FC<ITitleStyleProps> = ({ style, styleProps, cssClass })
             // inherit={inherit}
             {...styleProps} className={cssClass}
         >
-            <span dangerouslySetInnerHTML={{ __html: title }} />
+            <span>{title}</span>
         </Title>
     );
 

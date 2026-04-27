@@ -25,7 +25,9 @@ const INLINE_ONLY_HTML_TAGS = new Set([
 
 const HtmlTagStyle: React.FC<IHtmlTagStyleProps> = ({ style, styleProps, cssClass }) => {
     const requestedTag = style.html_tag?.content || 'div';
-    const content = DOMPurify.sanitize(style.html_tag_content?.content ?? '') || '';
+    const content = DOMPurify.sanitize(style.html_tag_content?.content ?? '', {
+    ALLOWED_TAGS: [],
+  });
 
     const children = Array.isArray(style.children) ? style.children : [];
 
@@ -56,11 +58,11 @@ const HtmlTagStyle: React.FC<IHtmlTagStyleProps> = ({ style, styleProps, cssClas
 
     const htmlTag = requestedTag;
 
-    // If there's HTML content but no children, use dangerouslySetInnerHTML
+    // If there's HTML content but no children
     if (content) {
         return React.createElement(htmlTag, {
             ...elementProps,
-            dangerouslySetInnerHTML: { __html: content }
+            content
         });
     }
 
