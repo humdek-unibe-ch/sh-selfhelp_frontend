@@ -28,6 +28,7 @@ import {
     selectMenuPages,
     selectProfilePages,
     transformNavigationPages,
+    selectFooterPages
 } from '../../utils/navigation.utils';
 import type { IPageItem } from '../../types/common/pages.type';
 
@@ -92,6 +93,18 @@ export const getMenuPagesSSR = cache(async (languageId: number): Promise<IPageIt
     if (list.length === 0) return [];
     const transformed = transformNavigationPages(list);
     return selectMenuPages(transformed);
+});
+
+/**
+ * Resolve the server-rendered footer items for a given language.
+ * Matches the logic in useAppNavigation().footerPages.
+ */
+export const getFooterPagesSSR = cache(async (languageId: number): Promise<IPageItem[]> => {
+    const raw = await getFrontendPagesSSR(languageId);
+    const list = Array.isArray(raw?.data) ? raw.data : Array.isArray(raw) ? raw : [];
+    if (list.length === 0) return [];
+        const transformed = transformNavigationPages(list);
+        return selectFooterPages(transformed);
 });
 
 /**

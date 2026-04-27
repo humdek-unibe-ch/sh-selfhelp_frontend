@@ -2,7 +2,7 @@
 "use server";
 import { Box, Container, Group, Stack, Text } from '@mantine/core';
 import styles from './WebsiteFooter.module.css';
-import { resolveLanguageSSR, getMenuPagesSSR } from '../../../../_lib/server-fetch';
+import { resolveLanguageSSR, getFooterPagesSSR } from '../../../../_lib/server-fetch';
 import { FooterLinks } from './FooterLinks';
 
 /**
@@ -16,16 +16,14 @@ import { FooterLinks } from './FooterLinks';
  * pages already use.
  */
 export async function WebsiteFooter() {
-    // These calls to next/headers will now work because this is a Server Component
     const { id: languageId } = await resolveLanguageSSR();
-    const footerPages = await getMenuPagesSSR(languageId);
+    const footerPages = await getFooterPagesSSR(languageId);
 
     return (
         <Box component="footer" w="100%" py="xl" className={styles.footer}>
             <Container size="xl">
                 <Stack gap="lg">
                     <Group justify="center" gap="xl">
-                        {/* Pass the server-fetched data to the Client Component */}
                         <FooterLinks footerPages={footerPages} />
                     </Group>
 
