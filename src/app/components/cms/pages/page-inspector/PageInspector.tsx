@@ -302,10 +302,6 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
         {/* Fixed Save Button */}
         <Box
           p="md"
-          style={(theme) => ({
-            backgroundColor: theme.white,
-            boxShadow: theme.shadows.lg,
-          })}
         >
           <Group justify="space-between" align="center">
             <Group gap="xs">

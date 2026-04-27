@@ -36,7 +36,6 @@
     min-height: 120px;
     border: 2px dashed var(--mantine-color-gray-4);
     border-radius: var(--mantine-radius-sm);
-    background-color: var(--mantine-color-gray-0);
     max-height: 260px;
     overflow-y: auto;
     overflow-x: hidden;
@@ -44,11 +43,9 @@
 
 .dragArea:hover {
     border-color: var(--mantine-color-blue-4);
-    background-color: var(--mantine-color-blue-0);
 }
 
 .newPageItem {
-    background-color: var(--mantine-color-blue-0) !important;
     border-color: var(--mantine-color-blue-4) !important;
 }
 

@@ -178,7 +178,8 @@ export function PublishingPanel({
     return (
         <Stack gap="lg">
             {/* Publish Section */}
-            <Paper p="lg" withBorder radius="md" bg="gray.0">
+            <Paper p="lg" withBorder radius="md"   bg="light-dark(var(--mantine-color-gray-0), var(--mantine-color-gray-9))"
+>
                 <Stack gap="md">
                     <Group justify="space-between" align="center">
                         <Stack gap="xs">
