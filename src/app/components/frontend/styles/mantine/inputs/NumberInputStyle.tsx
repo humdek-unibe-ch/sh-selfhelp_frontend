@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { NumberInput } from '@mantine/core';
 import { INumberInputStyle } from '../../../../../../types/common/styles.types';
 import { FormFieldValueContext } from '../../FormStyle';
+import DOMPurify from 'isomorphic-dompurify';
 
 /**
  * Props interface for NumberInputStyle component
@@ -32,7 +33,7 @@ interface INumberInputStyleProps {
  */
 const NumberInputStyle: React.FC<INumberInputStyleProps> = ({ style, styleProps, cssClass }) => {
     // Extract field values using the new unified field structure
-    const placeholder = style.placeholder?.content;
+    const placeholder = DOMPurify.sanitize(style.placeholder?.content ?? '');
     const label = style.label?.content;
     const description = style.description?.content;
     const min = style.mantine_numeric_min?.content;
@@ -74,7 +75,7 @@ const NumberInputStyle: React.FC<INumberInputStyleProps> = ({ style, styleProps,
     // NumberInput component
     const numberInputComponent = (
         <NumberInput
-            placeholder={placeholder || 'Enter number'}
+            placeholder={ DOMPurify.sanitize(placeholder || 'Enter a number', { ALLOWED_TAGS: [] })}
             value={selectedValue ? parseFloat(selectedValue) : undefined}
             onChange={handleValueChange}
             min={min ? parseFloat(min) : undefined}
