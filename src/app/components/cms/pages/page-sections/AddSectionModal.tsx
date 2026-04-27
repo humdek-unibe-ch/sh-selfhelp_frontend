@@ -19,6 +19,7 @@ import {
     Tooltip,
     Anchor,
     List,
+    NumberInput,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
@@ -64,14 +65,18 @@ export function AddSectionModal({
     onSectionsImported
 }: IAddSectionModalProps) {
     const [activeTab, setActiveTab] = useState<string>('new-section');
-    const [selectedStyle, setSelectedStyle] = useState<IStyle | null>(null);
-    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedStyles, setSelectedStyles] = useState<
+    { style: IStyle; quantity: number }[]
+    >([]);
+    const [searchQuery, setSearchQuery] = useState("");
     const [sectionName, setSectionName] = useState('');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isImporting, setIsImporting] = useState(false);
     const [importErrors, setImportErrors] = useState<IImportValidationError[]>([]);
     const [isCopyingPrompt, setIsCopyingPrompt] = useState(false);
-    const [selectedUnusedSection, setSelectedUnusedSection] = useState<string | null>(null);
+    const [selectedUnusedSections, setSelectedUnusedSections] = useState<
+    { id: number; quantity: number }[]
+    >([]);
     const [selectedRefContainerSection, setSelectedRefContainerSection] = useState<string | null>(null);
 
     const { data: styleGroups, isLoading: isLoadingStyles, error: stylesError } = useStyleGroups();
@@ -225,7 +230,7 @@ export function AddSectionModal({
     };
 
     const handleClose = () => {
-        setSelectedStyle(null);
+        setSelectedStyles([]);
         setSectionName('');
         setSearchQuery('');
         setActiveTab('new-section');
@@ -233,32 +238,52 @@ export function AddSectionModal({
         setIsImporting(false);
         setImportErrors([]);
         setIsCopyingPrompt(false);
-        setSelectedUnusedSection(null);
+        setSelectedUnusedSections([]);
         setSelectedRefContainerSection(null);
         onClose();
     };
 
-    const handleStyleSelect = (style: IStyle) => {
-        setSelectedStyle(style);
+    const handleStyleToggle = (style: IStyle) => {
+      setSelectedStyles((prev) => {
+        const exists = prev.find((s) => s.style.id === style.id);
+
+        if (exists) {
+          return prev.filter((s) => s.style.id !== style.id);
+        }
+
+        return [...prev, { style, quantity: 1 }];
+      });
+    };
+
+    const toggleUnusedSection = (sectionId: number) => {
+      setSelectedUnusedSections((prev) => {
+        const exists = prev.find((s) => s.id === sectionId);
+
+        if (exists) {
+          return prev.filter((s) => s.id !== sectionId);
+        }
+
+        return [...prev, { id: sectionId, quantity: 1 }];
+      });
     };
 
     const handleAddUnusedSection = async () => {
-        if (!selectedUnusedSection) {
+        if (selectedUnusedSections.length === 0) {
             return;
         }
 
-        const sectionId = parseInt(selectedUnusedSection);
+        // const sectionId = parseInt(selectedUnusedSection);
 
         // Additional safety check: validate relationship before adding
-        if (parentStyleWithRelationships && styleGroups) {
-            const unusedSection = unusedSections.find(s => s.id === sectionId);
-            if (unusedSection) {
-                const sectionStyle = findStyleById(unusedSection.idStyles, styleGroups);
-                if (sectionStyle && !isStyleRelationshipValid(sectionStyle, parentStyleWithRelationships)) {
-                    return;
-                }
-            }
-        }
+        // if (parentStyleWithRelationships && styleGroups) {
+        //     const unusedSection = unusedSections.find(s => s.id === sectionId);
+        //     if (unusedSection) {
+        //         const sectionStyle = findStyleById(unusedSection.idStyles, styleGroups);
+        //         if (sectionStyle && !isStyleRelationshipValid(sectionStyle, parentStyleWithRelationships)) {
+        //             return;
+        //         }
+        //     }
+        // }
 
         const operationOptions: ISectionOperationOptions = {
             specificPosition,
@@ -267,10 +292,10 @@ export function AddSectionModal({
         try {
             if (parentSectionId !== null) {
                 // Add unused section to another section
-                await sectionOperations.addSectionToSection(parentSectionId, sectionId, operationOptions);
+                // await sectionOperations.addSectionToSection(parentSectionId, sectionId, operationOptions);
             } else if (pageId) {
                 // Add unused section to page
-                await sectionOperations.addSectionToPage(sectionId, operationOptions);
+                // await sectionOperations.addSectionToPage(sectionId, operationOptions);
             }
         } catch (error) {
             // Error is handled by the hook
@@ -313,7 +338,7 @@ export function AddSectionModal({
     };
 
     const handleAddSection = async () => {
-        if (!selectedStyle) {
+        if (selectedStyles.length === 0) {
             return;
         }
 
@@ -323,12 +348,13 @@ export function AddSectionModal({
         };
 
         try {
+            console.log(selectedStyles);
             if (parentSectionId !== null) {
                 // Create section in another section
-                await sectionOperations.createSectionInSection(parentSectionId, selectedStyle.id, operationOptions);
+                // await sectionOperations.createSectionInSection(parentSectionId, selectedStyle.id, operationOptions);
             } else if (pageId) {
                 // Create section in page
-                await sectionOperations.createSectionInPage(selectedStyle.id, operationOptions);
+                // await sectionOperations.createSectionInPage(selectedStyle.id, operationOptions);
             }
         } catch (error) {
             // Error is handled by the hook
@@ -409,6 +435,20 @@ export function AddSectionModal({
         }
     };
 
+    const updateStyleQuantity = (styleId: number, quantity: number) => {
+      setSelectedStyles((prev) =>
+        prev.map((item) =>
+          item.style.id === styleId ? { ...item, quantity } : item,
+        ),
+      );
+    };
+
+    const updateUnusedQuantity = (id: number, quantity: number) => {
+      setSelectedUnusedSections((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, quantity } : item)),
+      );
+    };
+
 
     const isProcessing = sectionOperations.isLoading || isImporting;
 
@@ -419,10 +459,10 @@ export function AddSectionModal({
                 {activeTab === 'import-section'
                     ? (selectedFile ? `Ready to import from "${selectedFile.name}"` : 'Select a JSON file to import')
                     : activeTab === 'unassigned-section'
-                    ? (selectedUnusedSection ? `Ready to add unused section` : 'Select an unused section to continue')
+                    ? (selectedUnusedSections.length > 0 ? `Ready to add unused section` : 'Select an unused section to continue')
                     : activeTab === 'reference-section'
                     ? (selectedRefContainerSection ? `Ready to add reference container` : 'Select a reference container to continue')
-                    : (selectedStyle ? `Ready to add "${selectedStyle.name}" section` : 'Select a style to continue')
+                    : (selectedStyles.length > 0 ? `Ready to add "${selectedStyles.length}" section` : 'Select a style to continue')
                 }
             </Text>
             <Group gap="sm">
@@ -444,7 +484,7 @@ export function AddSectionModal({
                     <Button
                         leftSection={<IconPlus size={16} />}
                         onClick={handleAddUnusedSection}
-                        disabled={!selectedUnusedSection || isProcessing}
+                        disabled={selectedUnusedSections.length === 0 || isProcessing}
                         loading={sectionOperations.isLoading}
                         size="sm"
                         color="orange"
@@ -466,7 +506,7 @@ export function AddSectionModal({
                     <Button
                         leftSection={<IconPlus size={16} />}
                         onClick={handleAddSection}
-                        disabled={!selectedStyle || isProcessing}
+                        disabled={!selectedStyles || isProcessing}
                         loading={sectionOperations.isLoading}
                         size="sm"
                     >
@@ -524,29 +564,45 @@ export function AddSectionModal({
           )}
 
           {/* Selected Style Display - only for new-section tab */}
-          {activeTab === "new-section" && selectedStyle && (
-            <Card withBorder p="xs" bg="blue.0" mb="sm">
-              <Group justify="space-between" gap="xs">
-                <Group gap="xs" flex={1} style={{ minWidth: 0 }}>
-                  <Text fw={500} size="sm">
-                    Selected:
-                  </Text>
-                  <Text size="sm" truncate>
-                    {selectedStyle.name}
-                  </Text>
-                  <Badge size="xs" variant="light" color="blue">
-                    {selectedStyle.type}
-                  </Badge>
-                </Group>
-                <ActionIcon
-                  variant="subtle"
-                  size="sm"
-                  onClick={() => setSelectedStyle(null)}
-                >
-                  <IconX size={14} />
-                </ActionIcon>
-              </Group>
-            </Card>
+          {activeTab === "new-section" && selectedStyles.length > 0 && (
+            <Stack mb="sm">
+              {selectedStyles.map((item) => (
+                <Card key={item.style.id} withBorder p="xs" bg="blue.0">
+                  <Group justify="space-between" align="center">
+                    <Group gap="xs">
+                      <Text size="sm" fw={500}>
+                        {item.style.name}
+                      </Text>
+                      <Badge size="xs">{item.style.type}</Badge>
+                    </Group>
+
+                    <Group gap="xs">
+                      <NumberInput
+                        size="xs"
+                        min={1}
+                        value={item.quantity}
+                        onChange={(val) =>
+                          updateStyleQuantity(item.style.id, Number(val) || 1)
+                        }
+                        style={{ width: 70 }}
+                      />
+
+                      <ActionIcon
+                        size="sm"
+                        variant="subtle"
+                        onClick={() =>
+                          setSelectedStyles((prev) =>
+                            prev.filter((s) => s.style.id !== item.style.id),
+                          )
+                        }
+                      >
+                        <IconX size={14} />
+                      </ActionIcon>
+                    </Group>
+                  </Group>
+                </Card>
+              ))}
+            </Stack>
           )}
 
           {/* Instructions - only for new-section tab */}
@@ -611,23 +667,27 @@ export function AddSectionModal({
                             cursor: "pointer",
                             transition: "box-shadow 0.1s ease",
                             justifyContent: "space-between",
-                            backgroundColor:
-                              selectedStyle?.id === style.id
-                                ? "var(--mantine-color-blue-0)"
-                                : undefined,
-                            borderColor:
-                              selectedStyle?.id === style.id
-                                ? "var(--mantine-color-blue-4)"
-                                : undefined,
+                            backgroundColor: selectedStyles.some(
+                              (s) => s.style.id === style.id,
+                            )
+                              ? "var(--mantine-color-blue-0)"
+                              : undefined,
+                            borderColor: selectedStyles.some(
+                              (s) => s.style.id === style.id,
+                            )
+                              ? "var(--mantine-color-blue-4)"
+                              : undefined,
                           }}
-                          onClick={() => handleStyleSelect(style)}
+                          onClick={() => handleStyleToggle(style)}
                         >
                           <Stack gap={4}>
                             <Group justify="space-between" wrap="nowrap">
                               <Text fw={600} size="sm" truncate>
                                 {style.name}
                               </Text>
-                              {selectedStyle?.id === style.id && (
+                              {selectedStyles.some(
+                                (s) => s.style.id === style.id,
+                              ) && (
                                 <Badge size="xs" variant="filled" color="blue">
                                   Selected
                                 </Badge>
@@ -721,79 +781,80 @@ export function AddSectionModal({
                     </Text>
 
                     {/* Grid Layout */}
-                    <SimpleGrid
-                      cols={{ base: 1, sm: 2, lg: 3, xl: 4 }}
-                      spacing="md"
-                    >
-                      {filteredUnusedSections.map((section) => (
+                    <SimpleGrid cols={{ base: 1, sm: 2, lg: 3, xl: 4 }} spacing="md">
+                    {filteredUnusedSections.map((section) => {
+                        const selectedItem = selectedUnusedSections.find(
+                        (s) => s.id === section.id,
+                        );
+
+                        const isSelected = !!selectedItem;
+
+                        return (
                         <Card
-                          key={section.id}
-                          withBorder
-                          p="md"
-                          style={{
+                            key={section.id}
+                            withBorder
+                            p="md"
+                            style={{
                             cursor: "pointer",
                             transition: "all 0.1s ease",
-                            backgroundColor:
-                              selectedUnusedSection === String(section.id)
+                            backgroundColor: isSelected
                                 ? "var(--mantine-color-blue-0)"
                                 : undefined,
-                            borderColor:
-                              selectedUnusedSection === String(section.id)
+                            borderColor: isSelected
                                 ? "var(--mantine-color-blue-5)"
                                 : undefined,
-                          }}
-                          onClick={() =>
-                            setSelectedUnusedSection(
-                              selectedUnusedSection === String(section.id)
-                                ? null
-                                : String(section.id),
-                            )
-                          }
+                            }}
+                            onClick={() => toggleUnusedSection(section.id)}
                         >
-                          <Stack gap="xs">
-                            <Group
-                              justify="space-between"
-                              align="flex-start"
-                              wrap="nowrap"
-                            >
-                              <Text
-                                fw={600}
-                                size="sm"
-                                truncate
-                                style={{ flex: 1 }}
-                              >
+                            <Stack gap="xs">
+                            <Group justify="space-between" align="flex-start" wrap="nowrap">
+                                <Text fw={600} size="sm" truncate style={{ flex: 1 }}>
                                 {section.name}
-                              </Text>
-                              {selectedUnusedSection === String(section.id) && (
+                                </Text>
+
+                                {isSelected && (
                                 <Badge size="xs" color="blue" variant="filled">
-                                  Selected
+                                    Selected
                                 </Badge>
-                              )}
+                                )}
                             </Group>
 
                             <Text size="xs" c="dimmed">
-                              ID: {section.id}
+                                ID: {section.id}
                             </Text>
 
                             {section.styleName && (
-                              <Badge
+                                <Badge
                                 size="xs"
                                 variant="light"
                                 color="blue"
                                 style={{ alignSelf: "flex-start" }}
-                              >
+                                >
                                 {section.styleName}
-                              </Badge>
+                                </Badge>
                             )}
 
                             {!!section.idStyles && (
-                              <Text size="xs" c="dimmed">
+                                <Text size="xs" c="dimmed">
                                 Style ID: {section.idStyles}
-                              </Text>
+                                </Text>
                             )}
-                          </Stack>
+
+                            {/* Quantity input (only when selected) */}
+                            {isSelected && (
+                                <NumberInput
+                                size="xs"
+                                min={1}
+                                value={selectedItem?.quantity ?? 1}
+                                onChange={(val) =>
+                                    updateUnusedQuantity(section.id, Number(val) || 1)
+                                }
+                                />
+                            )}
+                            </Stack>
                         </Card>
-                      ))}
+                        );
+                    })}
                     </SimpleGrid>
                   </>
                 )}
@@ -845,8 +906,8 @@ export function AddSectionModal({
             <Stack gap="md">
               <Alert icon={<IconInfoCircle size={16} />} color="blue">
                 Import sections from a previously exported JSON file. The file
-                should contain section data in the correct (minimized) format
-                — fields equal to the style default can be omitted, and the
+                should contain section data in the correct (minimized) format —
+                fields equal to the style default can be omitted, and the
                 backend will fill them in.
               </Alert>
 
@@ -858,9 +919,9 @@ export function AddSectionModal({
                         No JSON yet? Generate one with AI.
                       </Text>
                       <Text size="xs" c="dimmed">
-                        Copy the full prompt template, paste it into any
-                        LLM web UI together with what you need, then upload
-                        the returned JSON here.
+                        Copy the full prompt template, paste it into any LLM web
+                        UI together with what you need, then upload the returned
+                        JSON here.
                       </Text>
                     </Stack>
                     <Button
@@ -947,7 +1008,8 @@ export function AddSectionModal({
                   onClose={() => setImportErrors([])}
                 >
                   <Text size="xs" mb="xs" c="dimmed">
-                    Nothing was written. Fix these issues in the JSON and try again:
+                    Nothing was written. Fix these issues in the JSON and try
+                    again:
                   </Text>
                   <List size="xs" spacing={4} withPadding>
                     {importErrors.map((err, idx) => (
