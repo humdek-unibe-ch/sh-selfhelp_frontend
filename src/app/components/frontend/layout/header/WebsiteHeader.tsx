@@ -1,14 +1,14 @@
 import { Container, Group, Text, Flex } from '@mantine/core';
-import { ThemeToggle } from '../../shared/common/ThemeToggle';
-import { AuthButton } from '../../shared/auth/AuthButton';
-import { LanguageSelector } from '../../shared/common/LanguageSelector';
-import { BurgerMenuClient } from '../../shared/common/BurgerMenuClient';
+import { ThemeToggle } from '../../../shared/common/ThemeToggle';
+import { AuthButton } from '../../../shared/auth/AuthButton';
+import { LanguageSelector } from '../../../shared/common/LanguageSelector';
+import { BurgerMenuClient } from '../../../shared/common/BurgerMenuClient';
 import { WebsiteHeaderMenu } from './WebsiteHeaderMenu';
 import {
     getMenuPagesSSR,
     getProfilePagesSSR,
     resolveLanguageSSR,
-} from '../../../_lib/server-fetch';
+} from '../../../../_lib/server-fetch';
 
 /**
  * Website header — **Server Component**.

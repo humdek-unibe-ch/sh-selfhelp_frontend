@@ -1,6 +1,6 @@
 // Client Components - Safe to import in client components
-export { WebsiteHeaderMenu } from './WebsiteHeaderMenu';
-export { WebsiteFooter } from './WebsiteFooter/WebsiteFooter';
+export { WebsiteHeaderMenu } from './header/WebsiteHeaderMenu';
+export { WebsiteFooter } from './footer/WebsiteFooter';
 
 // `WebsiteHeader` is intentionally NOT re-exported through this barrel.
 // It is now a Server Component (uses `next/headers` via `resolveLanguageSSR`)

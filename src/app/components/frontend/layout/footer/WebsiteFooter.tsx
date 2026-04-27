@@ -1,11 +1,9 @@
-'use client';
 
+"use server";
 import { Box, Container, Group, Stack, Text } from '@mantine/core';
-import { useAppNavigation } from '../../../../../hooks/useAppNavigation';
-import { usePagePrefetch } from '../../../../../hooks/usePagePrefetch';
 import styles from './WebsiteFooter.module.css';
-import { InternalLink } from '../../../shared';
-import { getPageTitle } from '../../../../../utils/navigation.utils';
+import { resolveLanguageSSR, getMenuPagesSSR } from '../../../../_lib/server-fetch';
+import { FooterLinks } from './FooterLinks';
 
 /**
  * Website Footer with optimized loading behavior.
@@ -17,27 +15,18 @@ import { getPageTitle } from '../../../../../utils/navigation.utils';
  * which is the same single source of truth the impressum / agb / disclaimer
  * pages already use.
  */
-export function WebsiteFooter() {
-    const { footerPages } = useAppNavigation();
-    const { createHoverPrefetch } = usePagePrefetch();
+export async function WebsiteFooter() {
+    // These calls to next/headers will now work because this is a Server Component
+    const { id: languageId } = await resolveLanguageSSR();
+    const footerPages = await getMenuPagesSSR(languageId);
 
     return (
         <Box component="footer" w="100%" py="xl" className={styles.footer}>
             <Container size="xl">
                 <Stack gap="lg">
                     <Group justify="center" gap="xl">
-                        {footerPages.map((page) => (
-                            <InternalLink
-                                key={page.id_pages}
-                                href={page.url || ''}
-                                className="text-sm font-medium hover:text-blue-600 transition-colors"
-                                onMouseEnter={
-                                    page.keyword ? createHoverPrefetch(page.keyword) : undefined
-                                }
-                            >
-                                {getPageTitle(page)}
-                            </InternalLink>
-                        ))}
+                        {/* Pass the server-fetched data to the Client Component */}
+                        <FooterLinks footerPages={footerPages} />
                     </Group>
 
                     <Text size="sm" c="dimmed" ta="center">
