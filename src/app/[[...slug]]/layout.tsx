@@ -23,8 +23,8 @@ import {
     resolvePreviewSSR,
 } from '../_lib/server-fetch';
 import SlugShell from './SlugLayout/SlugShell';
-import { WebsiteHeader } from '../components/frontend/layout/WebsiteHeader';
-import { WebsiteFooter } from '../components/frontend/layout/WebsiteFooter/WebsiteFooter';
+import { WebsiteHeader } from '../components/frontend/layout/header/WebsiteHeader';
+import { WebsiteFooter } from '../components/frontend/layout/footer/WebsiteFooter';
 
 /** Backend keyword used for the landing page (matches Symfony's `home` page). */
 const HOME_KEYWORD = 'home';

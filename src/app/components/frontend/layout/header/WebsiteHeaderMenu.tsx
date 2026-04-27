@@ -2,11 +2,11 @@
 
 import { IconChevronDown } from '@tabler/icons-react';
 import { Group, Menu, UnstyledButton, Text } from '@mantine/core';
-import { useAppNavigation } from '../../../../hooks/useAppNavigation';
-import { usePagePrefetch } from '../../../../hooks/usePagePrefetch';
-import { IPageItem } from '../../../../../src/types/responses/frontend/frontend.types';
-import { InternalLink } from '../../shared';
-import { getPageTitle } from '../../../../utils/navigation.utils';
+import { useAppNavigation } from '../../../../../hooks/useAppNavigation';
+import { usePagePrefetch } from '../../../../../hooks/usePagePrefetch';
+import { IPageItem } from '../../../../../types/responses/frontend/frontend.types';
+import { InternalLink } from '../../../shared';
+import { getPageTitle } from '../../../../../utils/navigation.utils';
 
 interface IMenuItemProps {
     item: IPageItem;

@@ -65,82 +65,104 @@ function formatTransactionLog(log: string): { type: 'text' | 'json', content: an
 
 // Component to render email job configuration
 function EmailJobConfig({ config }: { config: any }) {
-    const emailConfig = config.email || {};
-    const cleanBody = DOMPurify.sanitize(emailConfig.body || '');
+  const emailConfig = config.email || {};
+  const cleanBody = DOMPurify.sanitize(emailConfig.body || "", {
+    ALLOWED_TAGS: [],
+  });
 
-    return (
-        <Stack gap="md">
-            <Group>
-                <Text size="sm" fw={500}>From:</Text>
-                <Text size="sm">{emailConfig.from_name} &lt;{emailConfig.from_email}&gt;</Text>
-            </Group>
+  return (
+    <Stack gap="md">
+      <Group>
+        <Text size="sm" fw={500}>
+          From:
+        </Text>
+        <Text size="sm">
+          {emailConfig.from_name} &lt;{emailConfig.from_email}&gt;
+        </Text>
+      </Group>
 
-            <Group>
-                <Text size="sm" fw={500}>Reply To:</Text>
-                <Text size="sm">{emailConfig.reply_to}</Text>
-            </Group>
+      <Group>
+        <Text size="sm" fw={500}>
+          Reply To:
+        </Text>
+        <Text size="sm">{emailConfig.reply_to}</Text>
+      </Group>
 
-            <Group>
-                <Text size="sm" fw={500}>Subject:</Text>
-                <Text size="sm">{emailConfig.subject}</Text>
-            </Group>
+      <Group>
+        <Text size="sm" fw={500}>
+          Subject:
+        </Text>
+        <Text size="sm">{emailConfig.subject}</Text>
+      </Group>
 
-            <Group>
-                <Text size="sm" fw={500}>Content Type:</Text>
-                <Badge color={emailConfig.is_html ? 'blue' : 'gray'}>
-                    {emailConfig.is_html ? 'HTML' : 'Plain Text'}
-                </Badge>
-            </Group>
+      <Group>
+        <Text size="sm" fw={500}>
+          Content Type:
+        </Text>
+        <Badge color={emailConfig.is_html ? "blue" : "gray"}>
+          {emailConfig.is_html ? "HTML" : "Plain Text"}
+        </Badge>
+      </Group>
 
-            {emailConfig.recipient_emails && (
-                <Group>
-                    <Text size="sm" fw={500}>Recipients:</Text>
-                    <Text size="sm">{emailConfig.recipient_emails}</Text>
-                </Group>
-            )}
+      {emailConfig.recipient_emails && (
+        <Group>
+          <Text size="sm" fw={500}>
+            Recipients:
+          </Text>
+          <Text size="sm">{emailConfig.recipient_emails}</Text>
+        </Group>
+      )}
 
-            {emailConfig.cc_emails && (
-                <Group>
-                    <Text size="sm" fw={500}>CC:</Text>
-                    <Text size="sm">{emailConfig.cc_emails}</Text>
-                </Group>
-            )}
+      {emailConfig.cc_emails && (
+        <Group>
+          <Text size="sm" fw={500}>
+            CC:
+          </Text>
+          <Text size="sm">{emailConfig.cc_emails}</Text>
+        </Group>
+      )}
 
-            {emailConfig.bcc_emails && (
-                <Group>
-                    <Text size="sm" fw={500}>BCC:</Text>
-                    <Text size="sm">{emailConfig.bcc_emails}</Text>
-                </Group>
-            )}
+      {emailConfig.bcc_emails && (
+        <Group>
+          <Text size="sm" fw={500}>
+            BCC:
+          </Text>
+          <Text size="sm">{emailConfig.bcc_emails}</Text>
+        </Group>
+      )}
 
-            <Divider />
+      <Divider />
 
-            <Text size="sm" fw={500}>Email Body:</Text>
-            {emailConfig.is_html ? (
-                <Paper p="sm" withBorder style={{ backgroundColor: '#f8f9fa' }}>
-                    <div dangerouslySetInnerHTML={{ __html: cleanBody }} />
-                </Paper>
-            ) : (
-                <Paper p="sm" withBorder>
-                    <Text style={{ whiteSpace: 'pre-wrap' }}>{cleanBody}</Text>
-                </Paper>
-            )}
+      <Text size="sm" fw={500}>
+        Email Body:
+      </Text>
+      {emailConfig.is_html ? (
+        <Paper p="sm" withBorder style={{ backgroundColor: "#f8f9fa" }}>
+          <div>{cleanBody}</div>
+        </Paper>
+      ) : (
+        <Paper p="sm" withBorder>
+          <Text style={{ whiteSpace: "pre-wrap" }}>{cleanBody}</Text>
+        </Paper>
+      )}
 
-            {emailConfig.attachments && emailConfig.attachments.length > 0 && (
-                <>
-                    <Divider />
-                    <Text size="sm" fw={500}>Attachments:</Text>
-                    <List size="sm">
-                        {emailConfig.attachments.map((attachment: any, index: number) => (
-                            <List.Item key={index}>
-                                {attachment.filename || attachment.path}
-                            </List.Item>
-                        ))}
-                    </List>
-                </>
-            )}
-        </Stack>
-    );
+      {emailConfig.attachments && emailConfig.attachments.length > 0 && (
+        <>
+          <Divider />
+          <Text size="sm" fw={500}>
+            Attachments:
+          </Text>
+          <List size="sm">
+            {emailConfig.attachments.map((attachment: any, index: number) => (
+              <List.Item key={index}>
+                {attachment.filename || attachment.path}
+              </List.Item>
+            ))}
+          </List>
+        </>
+      )}
+    </Stack>
+  );
 }
 
 // Component to render task job configuration

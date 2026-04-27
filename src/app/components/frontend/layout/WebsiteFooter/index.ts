@@ -1,1 +1,1 @@
-export { WebsiteFooter } from './WebsiteFooter';
+export { WebsiteFooter } from '../footer/WebsiteFooter';

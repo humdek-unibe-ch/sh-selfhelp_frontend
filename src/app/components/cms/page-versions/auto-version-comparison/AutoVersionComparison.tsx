@@ -29,7 +29,9 @@ export function AutoVersionComparison({
     });
 
     const cleanDiff = useMemo(() => {
-      return DOMPurify.sanitize((comparison?.diff as string) || "");
+      return DOMPurify.sanitize((comparison?.diff as string) || "", {
+        ALLOWED_TAGS: [],
+      });
     }, [comparison]);
 
     // If no published version, show info
@@ -100,10 +102,7 @@ export function AutoVersionComparison({
                 </Group>
 
                 {/* Render the comparison diff */}
-                <div 
-                    className={styles.diffContainer}
-                    dangerouslySetInnerHTML={{ __html: cleanDiff }} 
-                />
+                <div  className={styles.diffContainer}>{cleanDiff}</div>
             </Stack>
         </Paper>
     );
