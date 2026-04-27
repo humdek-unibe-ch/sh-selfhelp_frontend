@@ -17,6 +17,308 @@ Components) live in `docs/architecture/ssr-bff-architecture.md`.
 
 ## v0.1.0 — SSR + BFF refactor (2026-04)
 
+### `/privacy` becomes a CMS-managed system page (2026-04-25)
+
+**Problem.** The original `/privacy` page was a static Next.js route
+(`src/app/privacy/page.tsx`) hardcoded in English. Going live with EU
+users meant we needed a much broader privacy notice (personal data
+processed, legal basis, retention, recipients, international transfers,
+GDPR rights, cookies, contact) **and** the ability to translate it into
+every language the operator supports — German for our first deployment,
+more later. A static file would have forced every operator to fork the
+repo to localise the wording, which is exactly what the rest of the
+platform avoids by being CMS-driven.
+
+**Decision.** Move the page into the CMS, mark it as a system page so
+it cannot be deleted, and keep `is_open_access = 1` so unauthenticated
+visitors can still read it (regulators expect the privacy notice to be
+reachable *before* you sign up).
+
+**What changed on the backend (`sh-selfhelp_backend`):**
+
+- New Doctrine migration `migrations/Version20260425090000.php`. The
+  migration is data-only (no schema changes) and idempotent at the
+  page-level via `INSERT IGNORE` on `pages.keyword = 'privacy'`. It
+  emits:
+  - One row in `pages` with `keyword = 'privacy'`, `url = '/privacy'`,
+    `id_type = core`, `id_pageAccessTypes = mobile_and_web`,
+    `is_open_access = 1`, `is_system = 1`, `footer_position = 400`.
+    Looking up the FK ids inline via subquery (`SELECT id FROM pageType
+    WHERE name = 'core'`, etc.) means the migration is portable across
+    installs where lookup ids drift.
+  - 4 rows in `pages_fields_translation` for the SEO `title` and
+    `description` fields (en-GB + de-CH).
+  - 3 rows in `acl_groups` mirroring the impressum / agb / disclaimer
+    pattern: admin gets select+update, therapist and subject get
+    read-only. Anonymous visitors bypass ACL via the `is_open_access`
+    flag, so no entry is required for them.
+  - 38 rows in `sections` (21 top-level blocks + 17 nested list-items),
+    covering the full GDPR notice structure: H1 + intro, "Personal Data
+    We Process" (paragraph + 4-item list), "Legal Basis", "Data
+    Retention", "Recipients", "International Transfers", "Your Rights"
+    (paragraph + 6-item list), "Strictly Necessary Cookies" (paragraph
+    + 7-item list documenting `sh_auth`, `sh_refresh`, `sh_csrf`,
+    `sh_lang`, `sh_accept_locale`, `sh_color_scheme`, `sh_preview`),
+    and "Contact". Top-level sections wire into `pages_sections` with
+    `position` increments of 10 so admins can insert custom blocks
+    between the seeded ones without renumbering. List children wire
+    into `sections_hierarchy` with the same +10 step.
+  - 82 rows in `sections_fields_translation` — one per non-translatable
+    field (e.g. `mantine_title_order = 2`, `mantine_list_list_style_type
+    = disc`) at language id 1, plus one per translatable field per
+    locale (`content` for `title`, `text` for `text`,
+    `mantine_list_item_content` for `list-item`).
+  - `down()` deletes sections by `name LIKE 'privacy-%'` and the page
+    row by keyword. FK CASCADE cleans up `pages_sections`,
+    `pages_fields_translation`, `acl_groups`, and the
+    `sections_fields_translation` / `sections_hierarchy` rows tied to
+    the deleted sections.
+- `src/Service/CMS/Admin/AdminPageService.php`: `deletePage()` now
+  rejects pages flagged `is_system = 1` with HTTP 403 *before* the
+  child / linked-page checks, so an admin who tries to delete the
+  privacy notice (or any future seeded system page like impressum, agb,
+  disclaimer) gets an immediate, actionable error message. Editing,
+  translating, and adding new sections is unaffected.
+
+**What changed on the frontend (this repo):**
+
+- `src/app/privacy/page.tsx`, `src/app/privacy/layout.tsx`, and the
+  empty `src/app/privacy/` directory were deleted. The slug catch-all
+  (`src/app/[[...slug]]`) renders the CMS page like any other public
+  route.
+- `src/app/components/frontend/layout/WebsiteFooter/WebsiteFooter.tsx`:
+  removed the hardcoded `<InternalLink href="/privacy">`. The footer
+  is now a single `footerPages.map(...)` over the CMS-driven list,
+  matching the way impressum / agb / disclaimer were already rendered.
+  This removes the last "footer link with two sources of truth" in
+  the codebase.
+
+**Why the migration uses raw SQL instead of Doctrine entities.** The
+seeded data spans nine tables that all already exist in production
+(`pages`, `pages_fields_translation`, `acl_groups`, `sections`,
+`pages_sections`, `sections_hierarchy`, `sections_fields_translation`,
+plus the FK targets `pageType`, `lookups`, `groups`, `fields`,
+`languages`, `styles`). Going through the entity layer would force the
+migration to know the entity classes for every one of them — including
+the `Style` / `Field` lookup associations the rest of the CMS resolves
+through a service. Raw SQL with subquery-based FK resolution is the
+established pattern for CMS data migrations in this project (see the
+`mantine-styles.sql` style/field seed) and keeps the migration
+self-contained and replayable.
+
+**Cache invalidation gotcha.** After running the migration the
+authenticated nav list initially still returned only the legacy two
+pages because `cache.permissions` and `cache.user_frontend` (both APCu
+pools) had memoised the pre-migration ACL/page list. `php bin/console
+cache:pool:clear cache.permissions cache.user_frontend cache.global
+cache.admin` made the new privacy entry visible immediately. The
+admin-side seed of a system page should ideally trigger an explicit
+ACL/permission cache bust; for a one-shot migration the manual clear is
+acceptable, but a future iteration of the migration could call into
+`CacheService::invalidateAllListsInCategory(CATEGORY_PERMISSIONS)` to
+make this automatic.
+
+### All system pages migrate to CMS (2026-04-25)
+
+**Problem.** With `/privacy` proven as a CMS-managed system page, the
+remaining critical pages — `login`, `two-factor-authentication`,
+`reset_password`, `validate`, `profile`, `home`, `missing`, `no_access`,
+`no_access_guest`, `agb`, `impressum`, `disclaimer` — were still
+hardcoded in the frontend (or empty in the CMS). That meant operators
+had no way to localise a missing-page screen, tweak a legal disclaimer,
+or change the wording of the login form labels without forking the
+Next.js codebase. The `/privacy` migration showed the seeding pattern
+worked end-to-end; we needed to apply it to the rest of the system
+catalogue.
+
+**Approach.** Two new Doctrine migrations in the backend:
+
+1. `Version20260425100000` — bulk seeder for all twelve pages.
+   - Form pages (`login`, `two-factor-authentication`, `reset_password`,
+     `validate`) are seeded with their dedicated styled components
+     (`login`, `twoFactorAuth`, `resetPassword`, `validate`) wrapped in
+     a Mantine `container`. Every label, placeholder, success / error
+     message and helper text is translated en-GB + de-CH.
+   - `profile` uses the `profile` style with the full set of label
+     fields populated (account, name change, password reset, timezone,
+     account deletion, accordion). Operators can flip `profile_use_accordion`
+     and column counts straight from the CMS.
+   - Landing / status pages (`home`, `missing`, `no_access`,
+     `no_access_guest`) are composed from generic content components
+     (`paper` hero card, `theme-icon`, `title`, `text`, `button`) so the
+     visual chrome is consistent and the content is editable like any
+     other CMS page.
+   - Legal pages (`agb`, `disclaimer`) get sensible default copy +
+     a yellow `alert` reminding the operator to replace the
+     placeholders before going live. `impressum` ships with a
+     three-card layout — operator details, components & versions,
+     frameworks & libraries — built from `card` / `list` / `list-item`
+     because a dynamic `version` style component does not yet exist.
+   - Every page is marked `is_open_access = 1` where appropriate
+     (login, validate, missing, no_access_guest, legal pages) and
+     `is_system = 1` so `AdminPageService::deletePage()` rejects the
+     row.
+   - The `down()` method scopes its delete to section names with
+     unique prefixes (`login-sys-%`, `twofa-sys-%`, `profile-sys-%`,
+     etc.) so a partial rollback never touches sections an admin
+     created by hand.
+
+2. `Version20260425100100` — non-destructive cosmetic polish for the
+   `/privacy` page. Adds `css` Tailwind utility classes
+   (`mt-10 mb-2 pb-1 border-b border-gray-200 dark:border-gray-700`,
+   `pl-5 mb-6`, `mb-3 leading-relaxed`, etc.) to the existing privacy
+   sections so headings get vertical breathing room, lists are properly
+   indented and bullet points sit inside the readable column. Content
+   rows are untouched — admins who already extended the page with
+   their own paragraphs lose nothing on rollback.
+
+**Auth-critical fallback in the slug catch-all.** Even with the seed in
+place, an operator could lock themselves out by deleting every section
+on the `login` page or skipping the migration on a fresh install. The
+slug catch-all (`src/app/[[...slug]]/page.tsx`) now keeps a
+`STATIC_FALLBACK_BY_KEYWORD` map: when the CMS payload for `login` /
+`two-factor-authentication` is missing or returns zero sections, the
+request is `redirect()`-ed to the static React route
+(`/auth/login` / `/auth/two-factor-authentication`) that ships in the
+codebase. The static routes are intentionally kept around as the
+runtime escape hatch — every other CMS page still falls through to
+`notFound()` so we don't paper over real 404s.
+
+**Documentation.** A new canonical guide lives at
+`docs/developer/21-seeding-system-pages.md` (in the backend) and is
+linked from `docs/developer/README.md`. It walks through the
+`is_system` semantics, the available styled vs generic content
+components, the anatomy of a seeding migration, common pitfalls
+(SQL escaping, `up()`/`down()` symmetry, idempotent inserts, APCu
+cache invalidation) and a catalogue of the migrations that already
+ship.
+
+**Cache invalidation, again.** Same gotcha as the `/privacy` seed — the
+new pages did not appear in the authenticated nav response until we
+cleared `cache.permissions cache.user_frontend cache.global cache.admin`
+manually. Any future seeding migration should bake a
+`CacheService::invalidateAllListsInCategory(CATEGORY_PERMISSIONS)`
+call into the migration body so this stops surprising people.
+
+### System-page publishing, cleanup, and styling pass (2026-04-25)
+
+**Problem.** Once the bulk seeder shipped a few real-world issues
+surfaced that the initial migration had not anticipated:
+
+1. The login button still bounced visitors to `/auth/login` (the
+   static fallback) even though the CMS page `/login` existed. The
+   slug catch-all was working correctly, but `is_open_access = 0` on
+   the auth pages meant the BFF refused to return the payload to
+   anonymous users — so the catch-all dutifully fell through to the
+   static fallback. The fallback is meant to be a last-resort escape
+   hatch, not the primary user path.
+2. Footer-attached system pages (`privacy`, `agb`, `impressum`,
+   `disclaimer`) were invisible in the CMS admin sidebar's "Footer
+   Pages" group. The navbar filter explicitly excluded
+   `is_system = 1` rows, so admins had no UI to edit the legal copy
+   they had just been told they were responsible for.
+3. `profile-link` and `logout` were seeded as content-less pages. They
+   exist in the CMS catalogue purely to satisfy the navigation tree
+   ("show this label in the avatar dropdown"), but nothing on the page
+   ever rendered. They were a confusing artefact: the admin would open
+   the page editor, see zero sections, and assume the migration was
+   broken.
+4. `missing`, `no_access`, and `no_access_guest` rendered with full
+   website chrome. A 404 wrapped in a header / footer / locale switcher
+   tends to convince admins the platform itself is broken; SEO bots
+   also occasionally indexed the pages and reported soft-404 warnings.
+5. The `/validate/[i:uid]/[a:token]` URL pattern (the legacy AltoRouter
+   path used in registration emails) was not resolving in the slug
+   catch-all. The keyword lookup tried `validate/<uid>/<token>` and got
+   a 404; the user was sent to a generic missing page from a link that
+   had been tested in dev with a static URL.
+6. The seeded sections shipped with no `css` value, so the rendered
+   pages were left-aligned, full-width, and visually flat. This
+   exposed an earlier bug too: `Version20260425100100` had tried to
+   write CSS via `sections_fields_translation`, but `css` is a direct
+   column on `sections` — the migration ran cleanly but applied
+   nothing.
+
+**Fix.** A single new migration `Version20260425110000` plus four
+matching frontend edits.
+
+Migration changes (all idempotent `UPDATE` / `DELETE` statements):
+
+- `is_open_access = 1` for `login`, `two-factor-authentication`,
+  `reset_password`, `validate`, `missing`, `no_access`,
+  `no_access_guest`, `agb`, `impressum`, `disclaimer`. The
+  `get_user_acl` stored procedure has a `UNION ALL` branch that
+  exposes open-access pages to anonymous visitors; without the flag
+  the BFF returned a 403 and the catch-all bounced to the fallback.
+- `is_headless = 1` on `missing`, `no_access`, `no_access_guest`.
+- `DELETE FROM pages WHERE keyword IN ('profile-link', 'logout')`,
+  preceded by cascade-deletes on `acl_groups`, `pages_fields`, and
+  `pages_fields_translation` for those keywords. `is_system = 1` was
+  cleared first so `AdminPageService` did not block the rollback path.
+- `UPDATE sections SET css = '<tailwind classes>'` per section name.
+  The class lists are tuned per page family — auth pages get
+  `max-w-md mx-auto px-4 py-12` containers, status pages get a
+  centred hero card, legal pages get `max-w-3xl prose mx-auto`, and
+  individual headings get `mt-10 mb-2 pb-1 border-b` so paragraph
+  spacing is no longer flat. This also cleaned up the privacy CSS
+  that `Version20260425100100` had failed to apply.
+
+Frontend changes:
+
+- `src/app/[[...slug]]/page.tsx` (in this repo) gained a
+  `SLUG_TO_KEYWORD` alias map (`no-access` → `no_access`,
+  `no-access-guest` → `no_access_guest`, `reset` → `reset_password`)
+  and a special case for the validate URL: when the slug has three
+  segments and the first is `validate`, the lookup keyword is plain
+  `validate` and `ValidateStyle` reads `uid` / `token` from
+  `params.slug` itself.
+- `src/app/no-access/page.tsx` and
+  `src/app/two-factor-authentication/page.tsx` deleted. They were
+  static re-exports that took precedence over the catch-all and
+  prevented the CMS-managed pages from ever being reached. The static
+  `/auth/login` and `/auth/two-factor-authentication` routes are
+  retained as the documented fallback target.
+- `src/proxy.ts` admin gate now redirects to `/login` (CMS) instead
+  of `/auth/login` (fallback). The fallback is still reachable via
+  the catch-all when the CMS payload is empty.
+- `src/config/routes.config.ts` updated to publish the canonical
+  CMS-managed URLs (`/login`, `/two-factor-authentication`,
+  `/reset`, `/validate`, `/profile`, `/no-access`, `/missing`, plus
+  legal pages). Every callsite that used the old `/auth/login`
+  string was migrated.
+- `src/app/components/cms/admin-shell/admin-navbar/AdminNavbar.tsx`
+  filter for "Footer Pages" no longer excludes `is_system = 1` rows.
+  System pages with a `footer_position` (privacy / agb / impressum /
+  disclaimer) now appear under both the "Footer Pages" group (mental
+  model: "where it shows up on the website") and the dedicated
+  "System Pages → Legal" bucket (mental model: "what kind of page is
+  this"). The duplication is intentional and matches admin
+  expectation in usability testing.
+- `src/app/components/shared/auth/AuthButton.tsx` provides a fallback
+  profile dropdown when the CMS catalogue contains no profile-related
+  pages (which is now the default after `profile-link` was deleted).
+  The fallback synthesises two menu items: `Profile` (linking to
+  `ROUTES.PROFILE`) and `Logout` (the existing logout handler).
+
+**Redis cache gotcha.** `php bin/console cache:pool:clear
+cache.permissions ...` only invalidates the in-memory Symfony locks,
+not the Redis-backed cache pool. Setting `is_open_access = 1` had no
+effect on the BFF's authorisation check until we ran
+`docker exec redis redis-cli FLUSHALL` to nuke the actual data. The
+seeding-system-pages doc (in the backend repo) now calls this out as
+the canonical fix for "permission flag is set but the API still
+401s/403s".
+
+**What we deliberately did not do.** We did not remove the static
+`/auth/login` and `/auth/two-factor-authentication` routes. They are
+the runtime escape hatch when an admin nukes every section on the
+login page or skips the migration on a fresh install — both are
+realistic failure modes for a self-hosted CMS, and the cost of
+keeping the static React forms around is one file per page. We also
+did not centralise the `SLUG_TO_KEYWORD` aliasing in a shared util:
+the catch-all is the only consumer and giving it its own private map
+keeps the routing logic readable.
+
 ### DebugMenu lazy mount (2026-04-25)
 
 **Problem.** Reloading any public route (`/all`, `/form`, etc.) as an
