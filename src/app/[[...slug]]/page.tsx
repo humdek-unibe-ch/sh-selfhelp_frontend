@@ -23,7 +23,7 @@
  */
 
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import {
     getFrontendPageSeoSSR,
     getPageByKeywordSSRCached,
@@ -34,9 +34,79 @@ import DynamicPageClient from './DynamicPageClient';
 
 const HOME_KEYWORD = 'home';
 
+/**
+ * Static-route fallbacks for the auth-critical CMS keywords.
+ *
+ * If the CMS payload for one of these keywords is missing, errored, or has
+ * zero rendered sections, we redirect to the equivalent hardcoded React
+ * route instead of showing `notFound()` or an empty page. Without this
+ * escape hatch an operator who accidentally deletes every section on the
+ * `login` page (or runs the install before the seeding migration is
+ * applied) would be permanently locked out — there is no way back into
+ * the admin to fix the content if you cannot reach the login screen.
+ *
+ * `logout` is handled by `useAppNavigation` as a pure action, so it is
+ * intentionally absent here. `profile-link` is the avatar dropdown label
+ * and never produces a route.
+ */
+const STATIC_FALLBACK_BY_KEYWORD: Record<string, string> = {
+    login: '/auth/login',
+    'two-factor-authentication': '/auth/two-factor-authentication',
+};
+
+/**
+ * URL → page keyword aliases.
+ *
+ * Some system pages keep a "kebab-case URL" (`/no-access`, `/no-access-guest`,
+ * `/reset`) but their CMS keyword uses underscores (`no_access`,
+ * `no_access_guest`, `reset_password`) — that's the historical SelfHelp
+ * convention and we do not want to rename keywords that are referenced
+ * from hooks, ACL rows, plugin code, and existing migrations.
+ *
+ * The slug catch-all therefore consults this map BEFORE falling back to
+ * the literal `slug.join('/')` so the API lookup uses the canonical
+ * keyword.
+ */
+const SLUG_TO_KEYWORD: Record<string, string> = {
+    'no-access': 'no_access',
+    'no-access-guest': 'no_access_guest',
+    reset: 'reset_password',
+};
+
+/**
+ * Resolve a CMS page keyword from the dynamic slug.
+ *
+ *   `[]`                        → `home`
+ *   `['validate', uid, token]`  → `validate` (the uid + token are read by
+ *                                 `ValidateStyle` from `params.slug`)
+ *   `['no-access']`             → `no_access` (keyword alias)
+ *   anything else               → `slug.join('/')`
+ */
 function keywordFromSlug(slug: string[] | undefined): string {
     if (!slug || slug.length === 0) return HOME_KEYWORD;
-    return slug.join('/');
+
+    // Parameterised system page: `/validate/<uid>/<token>` resolves to the
+    // `validate` CMS page; the `ValidateStyle` component reads the trailing
+    // path parts from `params.slug` itself.
+    if (slug[0] === 'validate' && slug.length === 3) {
+        return 'validate';
+    }
+
+    const joined = slug.join('/');
+    return SLUG_TO_KEYWORD[joined] ?? joined;
+}
+
+/**
+ * Returns true when `page` cannot be rendered as a CMS page — i.e. the
+ * envelope is null/undefined or the page carries no sections at all. We
+ * treat both as "CMS payload is empty" so the fallback redirect kicks in
+ * symmetrically whether the row was never seeded or all sections were
+ * removed by an admin.
+ */
+function isPagePayloadEmpty(page: any): boolean {
+    if (!page) return true;
+    const sections = Array.isArray(page?.sections) ? page.sections : [];
+    return sections.length === 0;
 }
 
 export async function generateMetadata({
@@ -113,6 +183,18 @@ export default async function SlugPage({
     // + the layout prefetch all share one network hit.
     const envelope = await getPageByKeywordSSRCached(keyword, languageId, preview);
     const page = envelope?.data?.page ?? envelope?.data ?? null;
+
+    // Auth-critical fallback: if the CMS payload is empty for `login` or
+    // `two-factor-authentication`, redirect to the static React route so
+    // operators are never locked out of their own install. See
+    // `STATIC_FALLBACK_BY_KEYWORD` for the rationale.
+    if (
+        Object.prototype.hasOwnProperty.call(STATIC_FALLBACK_BY_KEYWORD, keyword) &&
+        isPagePayloadEmpty(page)
+    ) {
+        redirect(STATIC_FALLBACK_BY_KEYWORD[keyword]);
+    }
+
     if (!page) {
         notFound();
     }
