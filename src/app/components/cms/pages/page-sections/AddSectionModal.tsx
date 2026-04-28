@@ -639,7 +639,7 @@ export function AddSectionModal({
 
                       <ActionIcon
                         size="sm"
-                        variant="subtle"
+                        variant="filled"
                         onClick={() =>
                           setSelectedStyles((prev) =>
                             prev.filter((s) => s.style.id !== item.style.id),
