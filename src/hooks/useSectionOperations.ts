@@ -156,14 +156,14 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
         }
         const { specificPosition, name } = options;
 
-          const sections = styles.flatMap((item) =>
-        Array.from({ length: item.quantity }).map(() =>
+        const sections = styles.flatMap((item) =>
             prepareSectionCreateData(item.style.id, {
-                specificPosition,
-                name,
-            })
-        )
-    );
+            specificPosition,
+            name,
+            quantity: item.quantity,
+            }),
+        );
+
         await createSectionInPageMutation.mutateAsync({
             pageId: pageId,
             sections: sections,
@@ -171,23 +171,34 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
     }, [pageId, createSectionInPageMutation]);
 
     // Create section in section
-    const createSectionInSection = useCallback(async (
-        parentSectionId: number,
-        styleId: number, 
-        options: ISectionOperationOptions & { name?: string } = {}
-    ) => {
-        if (!pageId) {
-            throw new Error('Page ID is required for section operations');
-        }
+   const createSectionInSection = useCallback(
+     async (
+       parentSectionId: number,
+       styles: { style: IStyle; quantity: number }[],
+       options: ISectionOperationOptions & { name?: string } = {},
+     ) => {
+       if (!pageId) {
+         throw new Error("Page ID is required for section operations");
+       }
 
-        const sectionData = prepareSectionCreateData(styleId, options);
+       const { specificPosition, name } = options;
 
-        await createSectionInSectionMutation.mutateAsync({
-            pageId: pageId,
-            parentSectionId,
-            sectionData
-        });
-    }, [pageId, createSectionInSectionMutation]);
+       const sections = styles.flatMap((item) =>
+         prepareSectionCreateData(item.style.id, {
+           specificPosition,
+           name,
+           quantity: item.quantity,
+         }),
+       );
+
+       await createSectionInSectionMutation.mutateAsync({
+         pageId,
+         parentSectionId,
+         sections: sections,
+       });
+     },
+     [pageId, createSectionInSectionMutation],
+   );
 
     // Add existing section to page
     const addSectionToPage = useCallback(async (

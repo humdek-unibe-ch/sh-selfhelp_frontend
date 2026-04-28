@@ -165,7 +165,7 @@ export const AdminSectionApi = {
      * @returns {Promise<any>} The created section data
      * @throws {Error} When API request fails
      */
-    async createSectionInSection(pageId: number, parentSectionId: number, sectionData: ICreateSectionInSectionData): Promise<any> {
+    async createSectionInSection(pageId: number, parentSectionId: number, sectionData: ICreateSectionInSectionData[]): Promise<any> {
         const response = await permissionAwareApiClient.post<IBaseApiResponse<any>>(
             API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_CREATE_CHILD,
             sectionData,

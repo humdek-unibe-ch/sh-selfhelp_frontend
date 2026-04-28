@@ -27,7 +27,7 @@ interface ICreateSectionInSectionData {
 interface ICreateSectionInSectionVariables {
     pageId: number;
     parentSectionId: number;
-    sectionData: ICreateSectionInSectionData;
+    sections: ICreateSectionInSectionData[];
 }
 
 /**
@@ -40,8 +40,8 @@ export function useCreateSectionInSectionMutation(options: ICreateSectionInSecti
     const { onSuccess, onError, showNotifications = true, pageId: cachePageId } = options;
 
     return useMutation({
-        mutationFn: ({ pageId, parentSectionId, sectionData }: ICreateSectionInSectionVariables) => 
-            AdminApi.createSectionInSection(pageId, parentSectionId, sectionData),
+        mutationFn: ({ pageId, parentSectionId, sections }: ICreateSectionInSectionVariables) => 
+            AdminApi.createSectionInSection(pageId, parentSectionId, sections),
         
         onSuccess: async (createdSection: any, variables: ICreateSectionInSectionVariables) => {
             

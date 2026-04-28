@@ -97,14 +97,17 @@ export function prepareSectionImportData(
  */
 export function prepareSectionCreateData(
     styleId: number,
-    options: ISectionOperationOptions & { name?: string } = {}
-): { styleId: number; position: number; name?: string } {
+    options: ISectionOperationOptions & { 
+        name?: string;
+        quantity?: number;
+    } = {}
+): Array<{ styleId: number; position: number; name?: string }> {
     const { position } = calculateSectionOperationPosition(options);
-    const { name } = options;
-    
-    return {
+    const { name, quantity = 1 } = options;
+
+    return Array.from({ length: quantity }).map(() => ({
         styleId,
         position,
         ...(name && { name })
-    };
+    }));
 }
