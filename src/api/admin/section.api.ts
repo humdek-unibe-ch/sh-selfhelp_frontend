@@ -17,22 +17,30 @@ import {
     ICreateSectionInSectionData,
     IUpdateSectionInPageData
 } from '../../types/requests/admin/create-section.types';
+import { SectionBulkItem } from '../../hooks/useSectionOperations';
 
 export const AdminSectionApi = {
     /**
      * Adds an existing section to a page
      * @param {number} pageId - The page ID
-     * @param {number} sectionId - The section ID to add
+     * @param {SectionBulkItem[]} sections - The sections to add
      * @param {IAddSectionToPageData} sectionData - The section data to add (position)
      * @returns {Promise<any>} The created section data
      * @throws {Error} When API request fails
      */
-    async addSectionToPage(pageId: number, sectionId: number, sectionData: IAddSectionToPageData): Promise<any> {
+    async addSectionToPage(pageId: number, sections: SectionBulkItem[], sectionData: IAddSectionToPageData): Promise<any> {
         const requestBody = {
-            sectionId: sectionId,
-            position: sectionData.position,
-            ...(sectionData.oldParentPageId && { oldParentPageId: sectionData.oldParentPageId }),
-            ...(sectionData.oldParentSectionId && { oldParentSectionId: sectionData.oldParentSectionId })
+        sections: sections.map(s => ({
+            sectionId: s.id,
+            quantity: s.quantity,
+        })),
+        position: sectionData.position,
+        ...(sectionData.oldParentPageId !== undefined && {
+            oldParentPageId: sectionData.oldParentPageId
+        }),
+        ...(sectionData.oldParentSectionId !== undefined && {
+            oldParentSectionId: sectionData.oldParentSectionId
+        }),
         };
         
         const response = await permissionAwareApiClient.put(
@@ -100,17 +108,24 @@ export const AdminSectionApi = {
      * Adds an existing section to another section
      * @param {number} pageId - The page ID
      * @param {number} parentSectionId - The parent section ID
-     * @param {number} sectionId - The section ID to add
+     * @param {SectionBulkItem[]} sections - The sections to add
      * @param {IAddSectionToSectionData} sectionData - The section data to add (position)
      * @returns {Promise<any>} The created section data
      * @throws {Error} When API request fails
      */
-    async addSectionToSection(pageId: number, parentSectionId: number, sectionId: number, sectionData: IAddSectionToSectionData): Promise<any> {
+    async addSectionToSection(pageId: number, parentSectionId: number, sections: SectionBulkItem[], sectionData: IAddSectionToSectionData): Promise<any> {
         const requestBody = {
-            childSectionId: sectionId,
-            position: sectionData.position,
-            ...(sectionData.oldParentPageId && { oldParentPageId: sectionData.oldParentPageId }),
-            ...(sectionData.oldParentSectionId && { oldParentSectionId: sectionData.oldParentSectionId })
+        sections: sections.map(s => ({
+        sectionId: s.id,
+        quantity: s.quantity,
+        })),
+        position: sectionData.position,
+        ...(sectionData.oldParentPageId !== undefined && {
+            oldParentPageId: sectionData.oldParentPageId,
+        }),
+        ...(sectionData.oldParentSectionId !== undefined && {
+            oldParentSectionId: sectionData.oldParentSectionId,
+        }),
         };
         
         const response = await permissionAwareApiClient.put(

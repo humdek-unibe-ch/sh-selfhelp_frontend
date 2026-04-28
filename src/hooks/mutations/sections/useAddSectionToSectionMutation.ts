@@ -12,18 +12,36 @@ import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 import { IAddSectionToSectionData } from '../../../types/requests/admin/create-section.types';
+import { SectionBulkItem } from '../../useSectionOperations';
 
 interface IAddSectionToSectionMutationOptions {
-    onSuccess?: (data: any, variables: { pageId: number; parentSectionId: number; sectionId: number; sectionData: IAddSectionToSectionData }) => void;
-    onError?: (error: any, variables: { pageId: number; parentSectionId: number; sectionId: number; sectionData: IAddSectionToSectionData }) => void;
-    showNotifications?: boolean;
-    pageId?: number; // Optional page ID for cache invalidation
+  onSuccess?: (
+    data: any,
+    variables: {
+      pageId: number;
+      parentSectionId: number;
+      sections: SectionBulkItem[];
+      sectionData: IAddSectionToSectionData;
+    },
+  ) => void;
+
+  onError?: (
+    error: any,
+    variables: {
+      pageId: number;
+      parentSectionId: number;
+      sections: SectionBulkItem[];
+      sectionData: IAddSectionToSectionData;
+    },
+  ) => void;
+  showNotifications?: boolean;
+  pageId?: number; // Optional page ID for cache invalidation
 }
 
 interface IAddSectionToSectionVariables {
     pageId: number;
     parentSectionId: number;
-    sectionId: number;
+    sections: SectionBulkItem[];
     sectionData: IAddSectionToSectionData;
 }
 
@@ -37,8 +55,8 @@ export function useAddSectionToSectionMutation(options: IAddSectionToSectionMuta
     const { onSuccess, onError, showNotifications = true, pageId: cachePageId } = options;
 
     return useMutation({
-        mutationFn: ({ pageId, parentSectionId, sectionId, sectionData }: IAddSectionToSectionVariables) => 
-            AdminApi.addSectionToSection(pageId, parentSectionId, sectionId, sectionData),
+        mutationFn: ({ pageId, parentSectionId, sections, sectionData }: IAddSectionToSectionVariables) => 
+            AdminApi.addSectionToSection(pageId, parentSectionId, sections, sectionData),
         
         onSuccess: async (createdSection: any, variables: IAddSectionToSectionVariables) => {
 

@@ -278,40 +278,54 @@ export function AddSectionModal({
       });
     };
 
-    const handleAddUnusedSection = async () => {
-        if (selectedUnusedSections.length === 0) {
-            return;
-        }
+   const handleAddUnusedSection = async () => {
+     if (selectedUnusedSections.length === 0) return;
 
-        // const sectionId = parseInt(selectedUnusedSection);
+     const operationOptions: ISectionOperationOptions = {
+       specificPosition,
+     };
 
+     try {
         // Additional safety check: validate relationship before adding
-        // if (parentStyleWithRelationships && styleGroups) {
-        //     const unusedSection = unusedSections.find(s => s.id === sectionId);
-        //     if (unusedSection) {
-        //         const sectionStyle = findStyleById(unusedSection.idStyles, styleGroups);
-        //         if (sectionStyle && !isStyleRelationshipValid(sectionStyle, parentStyleWithRelationships)) {
-        //             return;
-        //         }
-        //     }
-        // }
+       const validSections = selectedUnusedSections.filter((item) => {
+         if (!parentStyleWithRelationships || !styleGroups) return true;
 
-        const operationOptions: ISectionOperationOptions = {
-            specificPosition,
-        };
+         const unusedSection = unusedSections.find((s) => s.id === item.id);
+         if (!unusedSection) return false;
 
-        try {
-            if (parentSectionId !== null) {
-                // Add unused section to another section
-                // await sectionOperations.addSectionToSection(parentSectionId, sectionId, operationOptions);
-            } else if (pageId) {
-                // Add unused section to page
-                // await sectionOperations.addSectionToPage(sectionId, operationOptions);
-            }
-        } catch (error) {
-            // Error is handled by the hook
-        }
-    };
+         const sectionStyle = findStyleById(
+           unusedSection.idStyles,
+           styleGroups,
+         );
+
+         return sectionStyle
+           ? isStyleRelationshipValid(
+               sectionStyle,
+               parentStyleWithRelationships,
+             )
+           : true;
+       });
+
+       if (validSections.length === 0) return;
+
+       if (parentSectionId !== null) {
+         await sectionOperations.addSectionToSection(
+           parentSectionId,
+           validSections,
+           operationOptions,
+         );
+       } else if (pageId) {
+         await sectionOperations.addSectionToPage(
+           validSections,
+           operationOptions,
+         );
+       }
+
+       handleClose();
+     } catch (error) {
+       // handled by hook
+     }
+   };
 
     const handleAddRefContainerSection = async () => {
         if (!selectedRefContainerSection) {
@@ -338,10 +352,10 @@ export function AddSectionModal({
         try {
             if (parentSectionId !== null) {
                 // Add ref container section to another section
-                await sectionOperations.addSectionToSection(parentSectionId, sectionId, operationOptions);
+                await sectionOperations.addSectionToSection(parentSectionId,[{ id: sectionId, quantity: 1 }], operationOptions);
             } else if (pageId) {
                 // Add ref container section to page
-                await sectionOperations.addSectionToPage(sectionId, operationOptions);
+                await sectionOperations.addSectionToPage([{ id: sectionId, quantity: 1 }], operationOptions);
             }
         } catch (error) {
             // Error is handled by the hook
@@ -447,19 +461,23 @@ export function AddSectionModal({
         }
     };
 
-  const updateStyleQuantity = (styleId: number, quantity: number) => {
-    setSelectedStyles((prev) =>
-      prev.map((item) =>
-        item.style.id === styleId
-          ? { ...item, quantity: Math.min(Math.max(quantity, 1), 10) }
-          : item,
-      ),
-    );
-  };
+    const updateStyleQuantity = (styleId: number, quantity: number) => {
+        setSelectedStyles((prev) =>
+        prev.map((item) =>
+            item.style.id === styleId
+            ? { ...item, quantity: Math.min(Math.max(quantity, 1), 10) }
+            : item,
+        ),
+        );
+    };
 
     const updateUnusedQuantity = (id: number, quantity: number) => {
       setSelectedUnusedSections((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, quantity } : item)),
+        prev.map((item) =>
+          item.id === id
+            ? { ...item, quantity: Math.min(Math.max(quantity, 1), 10) }
+            : item,
+        ),
       );
     };
 
@@ -882,7 +900,17 @@ export function AddSectionModal({
                                 ? "var(--mantine-color-blue-5)"
                                 : undefined,
                             }}
-                            onClick={() => toggleUnusedSection(section.id)}
+                            onClick={(e) => {
+                            const target = e.target as HTMLElement;
+
+                            const isInteractive = target.closest(
+                                'input, button, textarea, select, [role="spinbutton"]'
+                            );
+
+                            if (isInteractive) return;
+
+                            toggleUnusedSection(section.id);
+                            }}
                           >
                             <Stack gap="xs">
                               <Group

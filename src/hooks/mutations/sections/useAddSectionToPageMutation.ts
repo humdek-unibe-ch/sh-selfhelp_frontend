@@ -12,16 +12,32 @@ import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 import { IAddSectionToPageData } from '../../../types/requests/admin/create-section.types';
+import { SectionBulkItem } from '../../useSectionOperations';
 
 interface IAddSectionToPageMutationOptions {
-    onSuccess?: (data: any, variables: { pageId: number; sectionId: number; sectionData: IAddSectionToPageData }) => void;
-    onError?: (error: any, variables: { pageId: number; sectionId: number; sectionData: IAddSectionToPageData }) => void;
-    showNotifications?: boolean;
+  onSuccess?: (
+    data: any,
+    variables: {
+      pageId: number;
+      sections: SectionBulkItem[];
+      sectionData?: IAddSectionToPageData;
+    },
+  ) => void;
+
+  onError?: (
+    error: any,
+    variables: {
+      pageId: number;
+      sections: SectionBulkItem[];
+      sectionData?: IAddSectionToPageData;
+    },
+  ) => void;
+  showNotifications?: boolean;
 }
 
 interface IAddSectionToPageVariables {
     pageId: number;
-    sectionId: number;
+    sections: SectionBulkItem[];
     sectionData: IAddSectionToPageData;
 }
 
@@ -35,8 +51,8 @@ export function useAddSectionToPageMutation(options: IAddSectionToPageMutationOp
     const { onSuccess, onError, showNotifications = true } = options;
 
     return useMutation({
-        mutationFn: ({ pageId, sectionId, sectionData }: IAddSectionToPageVariables) => 
-            AdminApi.addSectionToPage(pageId, sectionId, sectionData),
+        mutationFn: ({ pageId, sections, sectionData }: IAddSectionToPageVariables) => 
+            AdminApi.addSectionToPage(pageId, sections, sectionData),
         
         onSuccess: async (createdSection: any, variables: IAddSectionToPageVariables) => {
             
