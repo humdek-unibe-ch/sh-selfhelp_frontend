@@ -55,6 +55,7 @@ interface IAddSectionModalProps {
 }
 
 const MAX_STYLES = 20;
+const MAX_UNUSED_SECTIONS = 20;
 
 export function AddSectionModal({
     opened,
@@ -267,15 +268,24 @@ export function AddSectionModal({
    };
    
     const toggleUnusedSection = (sectionId: number) => {
-      setSelectedUnusedSections((prev) => {
+    setSelectedUnusedSections((prev) => {
         const exists = prev.find((s) => s.id === sectionId);
 
         if (exists) {
-          return prev.filter((s) => s.id !== sectionId);
+        return prev.filter((s) => s.id !== sectionId);
+        }
+
+        if (prev.length >= MAX_UNUSED_SECTIONS) {
+        notifications.show({
+            title: "Limit reached",
+            message: "Maximum of 20 sections allowed",
+            color: "orange",
+        });
+        return prev;
         }
 
         return [...prev, { id: sectionId, quantity: 1 }];
-      });
+    });
     };
 
    const handleAddUnusedSection = async () => {
@@ -488,8 +498,12 @@ export function AddSectionModal({
       selectedStyles.length === 1 && selectedStyles[0].quantity === 1;
 
     const styleCount = selectedStyles.length;
-    const isNearLimit = styleCount >= 18 && styleCount < MAX_STYLES;
+    const isNearLimit = styleCount >= MAX_STYLES - 2;
     const isLimit = styleCount >= MAX_STYLES;
+
+    const unusedCount = selectedUnusedSections.length;
+    const isUnusedNearLimit = unusedCount >= MAX_UNUSED_SECTIONS - 2;
+    const isUnusedLimit = unusedCount >= MAX_UNUSED_SECTIONS;
 
     const getStatusText = () => {
       switch (activeTab) {
@@ -499,9 +513,16 @@ export function AddSectionModal({
             : "Select a JSON file to import";
 
         case "unassigned-section":
-          return selectedUnusedSections.length > 0
-            ? "Ready to add unused section"
-            : "Select an unused section to continue";
+          if (isUnusedLimit)
+            return `Limit reached (${unusedCount}/${MAX_UNUSED_SECTIONS})`;
+
+          if (isUnusedNearLimit)
+            return `Almost at limit (${unusedCount}/${MAX_UNUSED_SECTIONS})`;
+
+          if (unusedCount > 0)
+            return `Ready to add "${unusedCount}" section(s)`;
+
+          return "Select an unused section to continue";
 
         case "reference-section":
           return selectedRefContainerSection
@@ -509,8 +530,11 @@ export function AddSectionModal({
             : "Select a reference container to continue";
 
         default:
-          if (isLimit) return `Limit reached (${styleCount}/20)`;
-          if (isNearLimit) return `Almost at limit (${styleCount}/20)`;
+          if (isLimit) return `Limit reached (${styleCount}/${MAX_STYLES})`;
+
+          if (isNearLimit)
+            return `Almost at limit (${styleCount}/${MAX_STYLES})`;
+
           if (styleCount > 0) return `Ready to add "${styleCount}" style(s)`;
 
           return "Select a style to continue";
