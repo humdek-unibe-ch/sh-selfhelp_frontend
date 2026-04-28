@@ -473,87 +473,97 @@ export function AddSectionModal({
     const isNearLimit = styleCount >= 18 && styleCount < MAX_STYLES;
     const isLimit = styleCount >= MAX_STYLES;
 
+    const getStatusText = () => {
+      switch (activeTab) {
+        case "import-section":
+          return selectedFile
+            ? `Ready to import from "${selectedFile.name}"`
+            : "Select a JSON file to import";
+
+        case "unassigned-section":
+          return selectedUnusedSections.length > 0
+            ? "Ready to add unused section"
+            : "Select an unused section to continue";
+
+        case "reference-section":
+          return selectedRefContainerSection
+            ? "Ready to add reference container"
+            : "Select a reference container to continue";
+
+        default:
+          if (isLimit) return `Limit reached (${styleCount}/20)`;
+          if (isNearLimit) return `Almost at limit (${styleCount}/20)`;
+          if (styleCount > 0) return `Ready to add "${styleCount}" style(s)`;
+
+          return "Select a style to continue";
+      }
+    };
+
     // Custom actions for the footer based on active tab
     const getCustomActions = () => (
-        <Group justify="space-between" align="center" w="100%">
- <Text size="sm" c={isLimit ? "orange" : isNearLimit ? "orange" : "dimmed"}>
-  {activeTab === 'import-section'
-    ? (selectedFile
-        ? `Ready to import from "${selectedFile.name}"`
-        : 'Select a JSON file to import')
-
-    : activeTab === 'unassigned-section'
-    ? (selectedUnusedSections.length > 0
-        ? 'Ready to add unused section'
-        : 'Select an unused section to continue')
-
-    : activeTab === 'reference-section'
-    ? (selectedRefContainerSection
-        ? 'Ready to add reference container'
-        : 'Select a reference container to continue')
-
-    : isLimit
-    ? `Limit reached (${styleCount}/20)`
-
-    : isNearLimit
-    ? `Almost at limit (${styleCount}/20)`
-
-    : styleCount > 0
-    ? `Ready to add "${styleCount}" style(s)`
-
-    : 'Select a style to continue'
-  }
-</Text>
-            <Group gap="sm">
-                <Button variant="outline" onClick={handleClose} disabled={isProcessing} size="sm">
-                    Cancel
-                </Button>
-                {activeTab === 'import-section' ? (
-                    <Button
-                        leftSection={<IconUpload size={16} />}
-                        onClick={handleImportSections}
-                        disabled={!selectedFile || isProcessing}
-                        loading={isImporting}
-                        size="sm"
-                        color="green"
-                    >
-                        Import Sections
-                    </Button>
-                ) : activeTab === 'unassigned-section' ? (
-                    <Button
-                        leftSection={<IconPlus size={16} />}
-                        onClick={handleAddUnusedSection}
-                        disabled={selectedUnusedSections.length === 0 || isProcessing}
-                        loading={sectionOperations.isLoading}
-                        size="sm"
-                        color="orange"
-                    >
-                        Add Unused Section
-                    </Button>
-                ) : activeTab === 'reference-section' ? (
-                    <Button
-                        leftSection={<IconPlus size={16} />}
-                        onClick={handleAddRefContainerSection}
-                        disabled={!selectedRefContainerSection || isProcessing}
-                        loading={sectionOperations.isLoading}
-                        size="sm"
-                        color="violet"
-                    >
-                        Add Reference Section
-                    </Button>
-                ) : (
-                    <Button
-                        leftSection={<IconPlus size={16} />}
-                        onClick={handleAddSection}
-                        disabled={selectedStyles.length === 0 || selectedStyles.length > 20 || isProcessing}
-                        loading={sectionOperations.isLoading}
-                        size="sm"
-                    >
-                        Add Section
-                    </Button>
-                )}
-            </Group>
+      <Group justify="space-between" align="center" w="100%">
+       <Text size="sm" c={isLimit || isNearLimit ? "orange" : "dimmed"}>
+        {getStatusText()}
+        </Text>
+        <Group gap="sm">
+          <Button
+            variant="outline"
+            onClick={handleClose}
+            disabled={isProcessing}
+            size="sm"
+          >
+            Cancel
+          </Button>
+          {activeTab === "import-section" ? (
+            <Button
+              leftSection={<IconUpload size={16} />}
+              onClick={handleImportSections}
+              disabled={!selectedFile || isProcessing}
+              loading={isImporting}
+              size="sm"
+              color="green"
+            >
+              Import Sections
+            </Button>
+          ) : activeTab === "unassigned-section" ? (
+            <Button
+              leftSection={<IconPlus size={16} />}
+              onClick={handleAddUnusedSection}
+              disabled={selectedUnusedSections.length === 0 || isProcessing}
+              loading={sectionOperations.isLoading}
+              size="sm"
+              color="orange"
+            >
+              Add Unused Section
+            </Button>
+          ) : activeTab === "reference-section" ? (
+            <Button
+              leftSection={<IconPlus size={16} />}
+              onClick={handleAddRefContainerSection}
+              disabled={!selectedRefContainerSection || isProcessing}
+              loading={sectionOperations.isLoading}
+              size="sm"
+              color="violet"
+            >
+              Add Reference Section
+            </Button>
+          ) : (
+            <Button
+              leftSection={<IconPlus size={16} />}
+              onClick={handleAddSection}
+              disabled={
+                selectedStyles.length === 0 ||
+                selectedStyles.length > 20 ||
+                isProcessing
+              }
+              loading={sectionOperations.isLoading}
+              size="sm"
+            >
+              Add Section
+            </Button>
+          )}
         </Group>
+      </Group>
     );
 
     return (
@@ -621,8 +631,6 @@ export function AddSectionModal({
                         min={1}
                         max={10}
                         value={item.quantity}
-                        onMouseDown={(e) => e.stopPropagation()}
-                        onClick={(e) => e.stopPropagation()}
                         onChange={(val) =>
                           updateStyleQuantity(item.style.id, Number(val) || 1)
                         }
