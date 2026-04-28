@@ -54,6 +54,8 @@ interface IAddSectionModalProps {
     onSectionsImported?: (sectionIds: number[]) => void;
 }
 
+const MAX_STYLES = 20;
+
 export function AddSectionModal({
     opened,
     onClose,
@@ -243,29 +245,27 @@ export function AddSectionModal({
         onClose();
     };
 
-    const handleStyleToggle = (style: IStyle) => {
-    setSelectedStyles((prev) => {
-        const exists = prev.find((s) => s.style.id === style.id);
+   const handleStyleToggle = (style: IStyle) => {
+     const exists = selectedStyles.some((s) => s.style.id === style.id);
 
-        if (exists) {
-        return prev.filter((s) => s.style.id !== style.id);
-        }
+     if (!exists && selectedStyles.length >= MAX_STYLES) {
+       notifications.show({
+         title: "Limit reached",
+         message: "Maximum of 20 styles allowed",
+         color: "orange",
+       });
+       return;
+     }
 
-        const total = prev.reduce((sum, s) => sum + s.quantity, 0);
+     setSelectedStyles((prev) => {
+       if (exists) {
+         return prev.filter((s) => s.style.id !== style.id);
+       }
 
-        if (total >= 20) {
-        notifications.show({
-            title: 'Limit reached',
-            message: 'Maximum of 20 sections allowed',
-            color: 'orange',
-        });
-        return prev;
-        }
-
-        return [...prev, { style, quantity: 1 }];
-    });
-    };
-
+       return [...prev, { style, quantity: 1 }];
+     });
+   };
+   
     const toggleUnusedSection = (sectionId: number) => {
       setSelectedUnusedSections((prev) => {
         const exists = prev.find((s) => s.id === sectionId);
@@ -447,23 +447,15 @@ export function AddSectionModal({
         }
     };
 
-    const updateStyleQuantity = (styleId: number, quantity: number) => {
-    setSelectedStyles((prev) => {
-        const otherTotal = prev
-        .filter((item) => item.style.id !== styleId)
-        .reduce((sum, item) => sum + item.quantity, 0);
-
-        const maxAllowedForThis = Math.min(10, 20 - otherTotal);
-
-        const clamped = Math.min(Math.max(quantity, 1), maxAllowedForThis);
-
-        return prev.map((item) =>
+  const updateStyleQuantity = (styleId: number, quantity: number) => {
+    setSelectedStyles((prev) =>
+      prev.map((item) =>
         item.style.id === styleId
-            ? { ...item, quantity: clamped }
-            : item
-        );
-    });
-    };
+          ? { ...item, quantity: Math.min(Math.max(quantity, 1), 10) }
+          : item,
+      ),
+    );
+  };
 
     const updateUnusedQuantity = (id: number, quantity: number) => {
       setSelectedUnusedSections((prev) =>
@@ -477,21 +469,41 @@ export function AddSectionModal({
     const isSingleMode =
       selectedStyles.length === 1 && selectedStyles[0].quantity === 1;
 
-      const isDisabled = selectedStyles.length >= 20;
+    const styleCount = selectedStyles.length;
+    const isNearLimit = styleCount >= 18 && styleCount < MAX_STYLES;
+    const isLimit = styleCount >= MAX_STYLES;
 
     // Custom actions for the footer based on active tab
     const getCustomActions = () => (
         <Group justify="space-between" align="center" w="100%">
-            <Text size="sm" c="dimmed">
-                {activeTab === 'import-section'
-                    ? (selectedFile ? `Ready to import from "${selectedFile.name}"` : 'Select a JSON file to import')
-                    : activeTab === 'unassigned-section'
-                    ? (selectedUnusedSections.length > 0 ? `Ready to add unused section` : 'Select an unused section to continue')
-                    : activeTab === 'reference-section'
-                    ? (selectedRefContainerSection ? `Ready to add reference container` : 'Select a reference container to continue')
-                    : (selectedStyles.length > 0 ? `Ready to add "${selectedStyles.length}" section` : 'Select a style to continue')
-                }
-            </Text>
+ <Text size="sm" c={isLimit ? "orange" : isNearLimit ? "orange" : "dimmed"}>
+  {activeTab === 'import-section'
+    ? (selectedFile
+        ? `Ready to import from "${selectedFile.name}"`
+        : 'Select a JSON file to import')
+
+    : activeTab === 'unassigned-section'
+    ? (selectedUnusedSections.length > 0
+        ? 'Ready to add unused section'
+        : 'Select an unused section to continue')
+
+    : activeTab === 'reference-section'
+    ? (selectedRefContainerSection
+        ? 'Ready to add reference container'
+        : 'Select a reference container to continue')
+
+    : isLimit
+    ? `Limit reached (${styleCount}/20)`
+
+    : isNearLimit
+    ? `Almost at limit (${styleCount}/20)`
+
+    : styleCount > 0
+    ? `Ready to add "${styleCount}" style(s)`
+
+    : 'Select a style to continue'
+  }
+</Text>
             <Group gap="sm">
                 <Button variant="outline" onClick={handleClose} disabled={isProcessing} size="sm">
                     Cancel
@@ -533,7 +545,7 @@ export function AddSectionModal({
                     <Button
                         leftSection={<IconPlus size={16} />}
                         onClick={handleAddSection}
-                        disabled={selectedStyles.length === 0 || isProcessing}
+                        disabled={selectedStyles.length === 0 || selectedStyles.length > 20 || isProcessing}
                         loading={sectionOperations.isLoading}
                         size="sm"
                     >
@@ -609,6 +621,8 @@ export function AddSectionModal({
                         min={1}
                         max={10}
                         value={item.quantity}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
                         onChange={(val) =>
                           updateStyleQuantity(item.style.id, Number(val) || 1)
                         }
@@ -691,7 +705,6 @@ export function AddSectionModal({
                             (s) => s.style.id === style.id
                         );
 
-                        console.warn(style.type);
                         const isSelected = !!selectedItem;
 
                         return (
@@ -708,8 +721,6 @@ export function AddSectionModal({
                               borderColor: selectedItem
                                 ? "var(--mantine-color-blue-4)"
                                 : undefined,
-                              cursor: isDisabled ? "not-allowed" : "pointer",
-                              opacity: isDisabled ? 0.5 : 1,
                             }}
                             onClick={(e) => {
                             const target = e.target as HTMLElement;

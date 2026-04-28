@@ -39,13 +39,13 @@ export interface ISectionOperationsResult {
     // Create operations
     createSectionInPage: (
     styles: { style: IStyle; quantity: number }[],
-    options?: ISectionOperationOptions & { name?: string }
+    option: ISectionOperationOptions & { name?: string }
     ) => Promise<void>;
 
     createSectionInSection: (
     parentSectionId: number,
     styles: { style: IStyle; quantity: number }[],
-    options?: ISectionOperationOptions & { name?: string }
+    options: ISectionOperationOptions & { name?: string }
     ) => Promise<void>;
         
     // Add operations (for existing sections)
@@ -163,7 +163,7 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
             quantity: item.quantity,
             }),
         );
-
+        
         await createSectionInPageMutation.mutateAsync({
             pageId: pageId,
             sections: sections,
