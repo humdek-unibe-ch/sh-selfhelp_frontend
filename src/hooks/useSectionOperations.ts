@@ -24,6 +24,7 @@ import {
 } from './mutations';
 import { importSectionsToPage, importSectionsToSection } from '../api/admin/section.api';
 import { notifications } from '@mantine/notifications';
+import { IStyle } from '../types/responses/admin/styles.types';
 
 export interface IUseSectionOperationsOptions {
     pageId?: number;
@@ -36,9 +37,17 @@ export interface IUseSectionOperationsOptions {
 
 export interface ISectionOperationsResult {
     // Create operations
-    createSectionInPage: (styleId: number, options?: ISectionOperationOptions & { name?: string }) => Promise<void>;
-    createSectionInSection: (parentSectionId: number, styleId: number, options?: ISectionOperationOptions & { name?: string }) => Promise<void>;
+    createSectionInPage: (
+    styles: { style: IStyle; quantity: number }[],
+    options?: ISectionOperationOptions & { name?: string }
+    ) => Promise<void>;
 
+    createSectionInSection: (
+    parentSectionId: number,
+    styles: { style: IStyle; quantity: number }[],
+    options?: ISectionOperationOptions & { name?: string }
+    ) => Promise<void>;
+        
     // Add operations (for existing sections)
     addSectionToPage: (sectionId: number, options?: ISectionOperationOptions) => Promise<void>;
     addSectionToSection: (parentSectionId: number, sectionId: number, options?: ISectionOperationOptions) => Promise<void>;
@@ -139,18 +148,25 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
 
     // Create section in page
     const createSectionInPage = useCallback(async (
-        styleId: number, 
-        options: ISectionOperationOptions & { name?: string } = {}
+    styles: { style: IStyle; quantity: number }[],
+    options: ISectionOperationOptions & { name?: string }
     ) => {
         if (!pageId) {
             throw new Error('Page ID is required for section operations');
         }
+        const { specificPosition, name } = options;
 
-        const sectionData = prepareSectionCreateData(styleId, options);
-        
+          const sections = styles.flatMap((item) =>
+        Array.from({ length: item.quantity }).map(() =>
+            prepareSectionCreateData(item.style.id, {
+                specificPosition,
+                name,
+            })
+        )
+    );
         await createSectionInPageMutation.mutateAsync({
             pageId: pageId,
-            sectionData
+            sections: sections,
         });
     }, [pageId, createSectionInPageMutation]);
 

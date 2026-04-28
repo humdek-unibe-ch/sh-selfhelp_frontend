@@ -244,15 +244,26 @@ export function AddSectionModal({
     };
 
     const handleStyleToggle = (style: IStyle) => {
-      setSelectedStyles((prev) => {
+    setSelectedStyles((prev) => {
         const exists = prev.find((s) => s.style.id === style.id);
 
         if (exists) {
-          return prev.filter((s) => s.style.id !== style.id);
+        return prev.filter((s) => s.style.id !== style.id);
+        }
+
+        const total = prev.reduce((sum, s) => sum + s.quantity, 0);
+
+        if (total >= 20) {
+        notifications.show({
+            title: 'Limit reached',
+            message: 'Maximum of 20 sections allowed',
+            color: 'orange',
+        });
+        return prev;
         }
 
         return [...prev, { style, quantity: 1 }];
-      });
+    });
     };
 
     const toggleUnusedSection = (sectionId: number) => {
@@ -338,27 +349,28 @@ export function AddSectionModal({
     };
 
     const handleAddSection = async () => {
-        if (selectedStyles.length === 0) {
-            return;
-        }
+    if (selectedStyles.length === 0) return;
 
-        const operationOptions: ISectionOperationOptions & { name?: string } = {
-            specificPosition,
-            name: sectionName || undefined
-        };
+    try {
 
-        try {
-            console.log(selectedStyles);
-            if (parentSectionId !== null) {
-                // Create section in another section
-                // await sectionOperations.createSectionInSection(parentSectionId, selectedStyle.id, operationOptions);
-            } else if (pageId) {
-                // Create section in page
-                // await sectionOperations.createSectionInPage(selectedStyle.id, operationOptions);
-            }
-        } catch (error) {
-            // Error is handled by the hook
+        if (parentSectionId !== null) {
+       await sectionOperations.createSectionInSection(
+         parentSectionId,
+         selectedStyles,
+         {
+           specificPosition,
+           name: sectionName,
+         },
+        );
+        } else if (pageId) {
+        await sectionOperations.createSectionInPage(selectedStyles, {
+          specificPosition,
+          name: sectionName,
+        });
         }
+    } catch (error) {
+        // handled by hook
+    }
     };
 
     const handleImportSections = async () => {
@@ -436,11 +448,21 @@ export function AddSectionModal({
     };
 
     const updateStyleQuantity = (styleId: number, quantity: number) => {
-      setSelectedStyles((prev) =>
-        prev.map((item) =>
-          item.style.id === styleId ? { ...item, quantity } : item,
-        ),
-      );
+    setSelectedStyles((prev) => {
+        const otherTotal = prev
+        .filter((item) => item.style.id !== styleId)
+        .reduce((sum, item) => sum + item.quantity, 0);
+
+        const maxAllowedForThis = Math.min(10, 20 - otherTotal);
+
+        const clamped = Math.min(Math.max(quantity, 1), maxAllowedForThis);
+
+        return prev.map((item) =>
+        item.style.id === styleId
+            ? { ...item, quantity: clamped }
+            : item
+        );
+    });
     };
 
     const updateUnusedQuantity = (id: number, quantity: number) => {
@@ -451,6 +473,11 @@ export function AddSectionModal({
 
 
     const isProcessing = sectionOperations.isLoading || isImporting;
+
+    const isSingleMode =
+      selectedStyles.length === 1 && selectedStyles[0].quantity === 1;
+
+      const isDisabled = selectedStyles.length >= 20;
 
     // Custom actions for the footer based on active tab
     const getCustomActions = () => (
@@ -506,7 +533,7 @@ export function AddSectionModal({
                     <Button
                         leftSection={<IconPlus size={16} />}
                         onClick={handleAddSection}
-                        disabled={!selectedStyles || isProcessing}
+                        disabled={selectedStyles.length === 0 || isProcessing}
                         loading={sectionOperations.isLoading}
                         size="sm"
                     >
@@ -551,7 +578,7 @@ export function AddSectionModal({
           )}
 
           {/* Section Name Input - only for new-section tab */}
-          {activeTab === "new-section" && (
+          {activeTab === "new-section" && isSingleMode && (
             <TextInput
               label="Section Name (Optional)"
               placeholder="Enter custom section name..."
@@ -580,6 +607,7 @@ export function AddSectionModal({
                       <NumberInput
                         size="xs"
                         min={1}
+                        max={10}
                         value={item.quantity}
                         onChange={(val) =>
                           updateStyleQuantity(item.style.id, Number(val) || 1)
@@ -658,68 +686,96 @@ export function AddSectionModal({
                       verticalSpacing="sm"
                       mb="md"
                     >
-                      {group.styles.map((style: IStyle) => (
-                        <Card
-                          key={style.id}
-                          withBorder
-                          p="xs"
-                          style={{
-                            cursor: "pointer",
-                            transition: "box-shadow 0.1s ease",
-                            justifyContent: "space-between",
-                            backgroundColor: selectedStyles.some(
-                              (s) => s.style.id === style.id,
-                            )
-                              ? "var(--mantine-color-blue-0)"
-                              : undefined,
-                            borderColor: selectedStyles.some(
-                              (s) => s.style.id === style.id,
-                            )
-                              ? "var(--mantine-color-blue-4)"
-                              : undefined,
-                          }}
-                          onClick={() => handleStyleToggle(style)}
-                        >
-                          <Stack gap={4}>
-                            <Group justify="space-between" wrap="nowrap">
-                              <Text fw={600} size="sm" truncate>
-                                {style.name}
-                              </Text>
-                              {selectedStyles.some(
-                                (s) => s.style.id === style.id,
-                              ) && (
-                                <Badge size="xs" variant="filled" color="blue">
-                                  Selected
-                                </Badge>
-                              )}
-                            </Group>
+                      {group.styles.map((style: IStyle) => {
+                        const selectedItem = selectedStyles.find(
+                            (s) => s.style.id === style.id
+                        );
 
-                            {style.description && (
-                              <Tooltip
-                                label={style.description}
-                                multiline
-                                w={300}
-                                position="bottom"
-                                withArrow
-                                openDelay={300}
-                              >
-                                <Text size="xs" c="dimmed" lineClamp={2}>
-                                  {style.description}
+                        console.warn(style.type);
+                        const isSelected = !!selectedItem;
+
+                        return (
+                          <Card
+                            key={style.id}
+                            withBorder
+                            p="xs"
+                            style={{
+                              transition: "box-shadow 0.1s ease",
+                              justifyContent: "space-between",
+                              backgroundColor: selectedItem
+                                ? "var(--mantine-color-blue-0)"
+                                : undefined,
+                              borderColor: selectedItem
+                                ? "var(--mantine-color-blue-4)"
+                                : undefined,
+                              cursor: isDisabled ? "not-allowed" : "pointer",
+                              opacity: isDisabled ? 0.5 : 1,
+                            }}
+                            onClick={(e) => {
+                            const target = e.target as HTMLElement;
+
+                            const isInteractive = target.closest(
+                                'input, button, textarea, select, [role="spinbutton"]'
+                            );
+
+                            if (isInteractive) return;
+
+                            handleStyleToggle(style);
+                            }}
+                          >
+
+                            <Stack gap={4}>
+                              <Group justify="space-between" wrap="nowrap">
+                                <Text fw={600} size="sm" truncate>
+                                  {style.name}
                                 </Text>
-                              </Tooltip>
-                            )}
+                                {selectedStyles.some(
+                                  (s) => s.style.id === style.id,
+                                ) && (
+                                  <Badge
+                                    size="xs"
+                                    variant="filled"
+                                    color="blue"
+                                  >
+                                    Selected
+                                  </Badge>
+                                )}
+                              </Group>
 
-                            <Badge
-                              size="xxs"
-                              variant="light"
-                              color="gray"
-                              w="fit-content"
-                            >
-                              {style.type}
-                            </Badge>
-                          </Stack>
-                        </Card>
-                      ))}
+                              {style.description && (
+                                <Tooltip
+                                  label={style.description}
+                                  multiline
+                                  w={300}
+                                  position="bottom"
+                                  withArrow
+                                  openDelay={300}
+                                >
+                                  <Text size="xs" c="dimmed" lineClamp={2}>
+                                    {style.description}
+                                  </Text>
+                                </Tooltip>
+                              )}
+
+                              {isSelected && (
+                                <NumberInput
+                                  size="xs"
+                                  min={1}
+                                  max={10}
+                                  value={selectedItem.quantity}
+                                  onMouseDown={(e) => e.stopPropagation()}
+                                  onClick={(e) => e.stopPropagation()}
+                                  onChange={(val) =>
+                                    updateStyleQuantity(
+                                      style.id,
+                                      Number(val) || 1,
+                                    )
+                                  }
+                                />
+                              )}
+                            </Stack>
+                          </Card>
+                        );})}
                     </SimpleGrid>
                   </div>
                 ))}
@@ -781,80 +837,100 @@ export function AddSectionModal({
                     </Text>
 
                     {/* Grid Layout */}
-                    <SimpleGrid cols={{ base: 1, sm: 2, lg: 3, xl: 4 }} spacing="md">
-                    {filteredUnusedSections.map((section) => {
+                    <SimpleGrid
+                      cols={{ base: 1, sm: 2, lg: 3, xl: 4 }}
+                      spacing="md"
+                    >
+                      {filteredUnusedSections.map((section) => {
                         const selectedItem = selectedUnusedSections.find(
-                        (s) => s.id === section.id,
+                          (s) => s.id === section.id,
                         );
 
                         const isSelected = !!selectedItem;
 
                         return (
-                        <Card
+                          <Card
                             key={section.id}
                             withBorder
                             p="md"
                             style={{
-                            cursor: "pointer",
-                            transition: "all 0.1s ease",
-                            backgroundColor: isSelected
+                              cursor: "pointer",
+                              transition: "all 0.1s ease",
+                              backgroundColor: isSelected
                                 ? "var(--mantine-color-blue-0)"
                                 : undefined,
-                            borderColor: isSelected
+                              borderColor: isSelected
                                 ? "var(--mantine-color-blue-5)"
                                 : undefined,
                             }}
                             onClick={() => toggleUnusedSection(section.id)}
-                        >
+                          >
                             <Stack gap="xs">
-                            <Group justify="space-between" align="flex-start" wrap="nowrap">
-                                <Text fw={600} size="sm" truncate style={{ flex: 1 }}>
-                                {section.name}
+                              <Group
+                                justify="space-between"
+                                align="flex-start"
+                                wrap="nowrap"
+                              >
+                                <Text
+                                  fw={600}
+                                  size="sm"
+                                  truncate
+                                  style={{ flex: 1 }}
+                                >
+                                  {section.name}
                                 </Text>
 
                                 {isSelected && (
-                                <Badge size="xs" color="blue" variant="filled">
+                                  <Badge
+                                    size="xs"
+                                    color="blue"
+                                    variant="filled"
+                                  >
                                     Selected
-                                </Badge>
+                                  </Badge>
                                 )}
-                            </Group>
+                              </Group>
 
-                            <Text size="xs" c="dimmed">
+                              <Text size="xs" c="dimmed">
                                 ID: {section.id}
-                            </Text>
+                              </Text>
 
-                            {section.styleName && (
+                              {section.styleName && (
                                 <Badge
-                                size="xs"
-                                variant="light"
-                                color="blue"
-                                style={{ alignSelf: "flex-start" }}
+                                  size="xs"
+                                  variant="light"
+                                  color="blue"
+                                  style={{ alignSelf: "flex-start" }}
                                 >
-                                {section.styleName}
+                                  {section.styleName}
                                 </Badge>
-                            )}
+                              )}
 
-                            {!!section.idStyles && (
+                              {!!section.idStyles && (
                                 <Text size="xs" c="dimmed">
-                                Style ID: {section.idStyles}
+                                  Style ID: {section.idStyles}
                                 </Text>
-                            )}
+                              )}
 
-                            {/* Quantity input (only when selected) */}
-                            {isSelected && (
+                              {/* Quantity input (only when selected) */}
+                              {isSelected && (
                                 <NumberInput
-                                size="xs"
-                                min={1}
-                                value={selectedItem?.quantity ?? 1}
-                                onChange={(val) =>
-                                    updateUnusedQuantity(section.id, Number(val) || 1)
-                                }
+                                  size="xs"
+                                  min={1}
+                                  max={10}
+                                  value={selectedItem?.quantity ?? 1}
+                                  onChange={(val) =>
+                                    updateUnusedQuantity(
+                                      section.id,
+                                      Number(val) || 1,
+                                    )
+                                  }
                                 />
-                            )}
+                              )}
                             </Stack>
-                        </Card>
+                          </Card>
                         );
-                    })}
+                      })}
                     </SimpleGrid>
                   </>
                 )}
