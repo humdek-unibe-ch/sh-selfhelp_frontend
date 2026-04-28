@@ -78,7 +78,7 @@ export function AddSectionModal({
     const [importErrors, setImportErrors] = useState<IImportValidationError[]>([]);
     const [isCopyingPrompt, setIsCopyingPrompt] = useState(false);
     const [selectedUnusedSections, setSelectedUnusedSections] = useState<
-    { id: number; quantity: number }[]
+    { style: IStyle; quantity: number }[]
     >([]);
     const [selectedRefContainerSection, setSelectedRefContainerSection] = useState<string | null>(null);
 
@@ -267,26 +267,32 @@ export function AddSectionModal({
      });
    };
    
-    const toggleUnusedSection = (sectionId: number) => {
-    setSelectedUnusedSections((prev) => {
-        const exists = prev.find((s) => s.id === sectionId);
+   const toggleUnusedSection = (section: any) => {
+     setSelectedUnusedSections((prev) => {
+       const exists = prev.some((s) => s.style.id === section.style.id);
 
-        if (exists) {
-        return prev.filter((s) => s.id !== sectionId);
-        }
+       if (exists) {
+         return prev.filter((s) => s.style.id !== section.style.id);
+       }
 
-        if (prev.length >= MAX_UNUSED_SECTIONS) {
-        notifications.show({
-            title: "Limit reached",
-            message: "Maximum of 20 sections allowed",
-            color: "orange",
-        });
-        return prev;
-        }
+       if (prev.length >= MAX_UNUSED_SECTIONS) {
+         notifications.show({
+           title: "Limit reached",
+           message: "Maximum of 20 sections allowed",
+           color: "orange",
+         });
+         return prev;
+       }
 
-        return [...prev, { id: sectionId, quantity: 1 }];
-    });
-    };
+       return [
+         ...prev,
+         {
+           style: section.style,
+           quantity: 1,
+         },
+       ];
+     });
+   };
 
    const handleAddUnusedSection = async () => {
      if (selectedUnusedSections.length === 0) return;
@@ -300,7 +306,7 @@ export function AddSectionModal({
        const validSections = selectedUnusedSections.filter((item) => {
          if (!parentStyleWithRelationships || !styleGroups) return true;
 
-         const unusedSection = unusedSections.find((s) => s.id === item.id);
+         const unusedSection = unusedSections.find((s) => s.id === item.style.id);
          if (!unusedSection) return false;
 
          const sectionStyle = findStyleById(
@@ -481,14 +487,14 @@ export function AddSectionModal({
         );
     };
 
-    const updateUnusedQuantity = (id: number, quantity: number) => {
-      setSelectedUnusedSections((prev) =>
+    const updateUnusedQuantity = (styleId: number, quantity: number) => {
+    setSelectedUnusedSections((prev) =>
         prev.map((item) =>
-          item.id === id
+        item.style.id === styleId
             ? { ...item, quantity: Math.min(Math.max(quantity, 1), 10) }
-            : item,
-        ),
-      );
+            : item
+        )
+    );
     };
 
 
@@ -903,9 +909,7 @@ export function AddSectionModal({
                       spacing="md"
                     >
                       {filteredUnusedSections.map((section) => {
-                        const selectedItem = selectedUnusedSections.find(
-                          (s) => s.id === section.id,
-                        );
+                        const selectedItem = selectedUnusedSections.find((s) => s.style.id === section.id);
 
                         const isSelected = !!selectedItem;
 
@@ -933,7 +937,7 @@ export function AddSectionModal({
 
                             if (isInteractive) return;
 
-                            toggleUnusedSection(section.id);
+                            toggleUnusedSection(section);
                             }}
                           >
                             <Stack gap="xs">

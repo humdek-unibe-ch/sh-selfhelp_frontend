@@ -111,3 +111,34 @@ export function prepareSectionCreateData(
         ...(name && { name })
     }));
 }
+
+    /**
+     * Prepares section data for unused sections
+     */
+    export function prepareUnusedSectionsData(
+    sectionId: number,
+    options: ISectionOperationOptions & {
+        quantity?: number;
+        oldParentPageId?: number | null;
+        oldParentSectionId?: number | null;
+    } = {}
+    ): Array<{
+    sectionId: number;
+    position: number;
+    oldParentPageId?: number | null;
+    oldParentSectionId?: number | null;
+    }> {
+    const { position } = calculateSectionOperationPosition(options);
+    const {
+        quantity = 1,
+        oldParentPageId,
+        oldParentSectionId,
+    } = options;
+
+    return Array.from({ length: quantity }).map(() => ({
+        sectionId,
+        position,
+        ...(oldParentPageId !== undefined && { oldParentPageId }),
+        ...(oldParentSectionId !== undefined && { oldParentSectionId }),
+    }));
+    }

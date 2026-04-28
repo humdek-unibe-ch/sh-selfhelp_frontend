@@ -12,7 +12,8 @@ import { ISectionExportData } from '../api/admin/section.api';
 import { 
     prepareSectionImportData, 
     prepareSectionCreateData, 
-    ISectionOperationOptions 
+    ISectionOperationOptions, 
+    prepareUnusedSectionsData
 } from '../utils/section-operations.utils';
 import {
     useCreateSectionInPageMutation,
@@ -255,21 +256,24 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
             throw new Error('Page ID is required for section operations');
         }
 
-        const position = options.specificPosition !== undefined ? options.specificPosition : -1;
+        const position =
+        options.specificPosition !== undefined
+            ? options.specificPosition
+            : -1;
+
+        const sectionsPayload = sections.flatMap((s) =>
+        prepareUnusedSectionsData(s.id, {
+            quantity: s.quantity,
+            specificPosition: position,
+            oldParentPageId: options.oldParentPageId,
+            oldParentSectionId: options.oldParentSectionId,
+        })
+        );
 
         await addSectionToSectionMutation.mutateAsync({
         pageId,
         parentSectionId,
-        sections,
-        sectionData: {
-            position,
-            ...(options.oldParentPageId !== undefined && {
-            oldParentPageId: options.oldParentPageId,
-            }),
-            ...(options.oldParentSectionId !== undefined && {
-            oldParentSectionId: options.oldParentSectionId,
-            }),
-        },
+        sections: sectionsPayload,
         });
     }, [pageId, addSectionToSectionMutation]);
 
