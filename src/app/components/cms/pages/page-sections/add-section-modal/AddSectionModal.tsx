@@ -34,6 +34,7 @@ import { NewSectionTab } from './tabs/NewSectionTab';
 import { ImportSectionTab } from './tabs/ImportSectionTab';
 import { ReferenceSectionTab } from './tabs/ReferenceSectionTab';
 import { UnusedSectionTab } from './tabs/UnusedSectionTab';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface IAddSectionModalProps {
     opened: boolean;
@@ -60,6 +61,7 @@ export function AddSectionModal({
     onSectionCreated,
     onSectionsImported
 }: IAddSectionModalProps) {
+    const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState<string>('new-section');
     const [selectedStyles, setSelectedStyles] = useState<
     { style: IStyle; quantity: number }[]
@@ -316,6 +318,7 @@ export function AddSectionModal({
        }
 
        handleClose();
+       queryClient.invalidateQueries({queryKey: ['admin', 'sections', 'unused']})
      } catch (error) {
        // handled by hook
      }
