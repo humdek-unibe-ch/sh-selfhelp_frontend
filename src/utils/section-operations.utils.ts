@@ -114,7 +114,9 @@ export function prepareSectionCreateData(
   }));
 }
 
-
+/**
+ * Prepares DTO for unused sections update
+ */
 export function flattenSections(
   sections: { sectionId: number }[],
   position: number,
