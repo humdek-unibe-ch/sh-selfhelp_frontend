@@ -160,6 +160,7 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
             queryClient.invalidateQueries({ queryKey: ['pageSections', pageId] }),
             queryClient.invalidateQueries({ queryKey: ['pageFields', pageId] }),
             queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+            queryClient.invalidateQueries({queryKey: ['admin', 'sections', 'unused']})
         ]);
     }, [queryClient, pageId]);
 

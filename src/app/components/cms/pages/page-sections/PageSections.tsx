@@ -30,7 +30,7 @@ import { useSectionOperations } from '../../../../../hooks/useSectionOperations'
 import { useStyleGroups } from '../../../../../hooks/useStyleGroups';
 import { IPageSectionWithFields } from '../../../../../types/common/pages.type';
 import { SectionsList } from './SectionsList';
-import { AddSectionModal } from './AddSectionModal';
+import { AddSectionModal } from './add-section-modal/AddSectionModal';
 import { calculateSiblingBelowPosition } from '../../../../../utils/position-calculator';
 import { PageHeader } from '../../../shared/common/PageHeader';
 
