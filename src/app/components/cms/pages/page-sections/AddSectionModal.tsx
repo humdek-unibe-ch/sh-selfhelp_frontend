@@ -78,7 +78,7 @@ export function AddSectionModal({
     const [importErrors, setImportErrors] = useState<IImportValidationError[]>([]);
     const [isCopyingPrompt, setIsCopyingPrompt] = useState(false);
     const [selectedUnusedSections, setSelectedUnusedSections] = useState<
-    { style: IStyle; quantity: number }[]
+    { sectionId: number }[]
     >([]);
     const [selectedRefContainerSection, setSelectedRefContainerSection] = useState<string | null>(null);
 
@@ -267,32 +267,35 @@ export function AddSectionModal({
      });
    };
    
-   const toggleUnusedSection = (section: any) => {
-     setSelectedUnusedSections((prev) => {
-       const exists = prev.some((s) => s.style.id === section.style.id);
+const toggleUnusedSection = (section: {
+  id: number;
+  name: string;
+}) => {
+  setSelectedUnusedSections((prev) => {
+    const exists = prev.some((s) => s.sectionId === section.id);
 
-       if (exists) {
-         return prev.filter((s) => s.style.id !== section.style.id);
-       }
+    if (exists) {
+      return prev.filter((s) => s.sectionId !== section.id);
+    }
 
-       if (prev.length >= MAX_UNUSED_SECTIONS) {
-         notifications.show({
-           title: "Limit reached",
-           message: "Maximum of 20 sections allowed",
-           color: "orange",
-         });
-         return prev;
-       }
+    if (prev.length >= MAX_UNUSED_SECTIONS) {
+      notifications.show({
+        title: "Limit reached",
+        message: "Maximum of 20 sections allowed",
+        color: "orange",
+      });
+      return prev;
+    }
 
-       return [
-         ...prev,
-         {
-           style: section.style,
-           quantity: 1,
-         },
-       ];
-     });
-   };
+    return [
+      ...prev,
+      {
+        sectionId: section.id,
+        quantity: 1,
+      },
+    ];
+  });
+};
 
    const handleAddUnusedSection = async () => {
      if (selectedUnusedSections.length === 0) return;
@@ -306,7 +309,7 @@ export function AddSectionModal({
        const validSections = selectedUnusedSections.filter((item) => {
          if (!parentStyleWithRelationships || !styleGroups) return true;
 
-         const unusedSection = unusedSections.find((s) => s.id === item.style.id);
+         const unusedSection = unusedSections.find((s) => s.id === item.sectionId);
          if (!unusedSection) return false;
 
          const sectionStyle = findStyleById(
@@ -368,10 +371,10 @@ export function AddSectionModal({
         try {
             if (parentSectionId !== null) {
                 // Add ref container section to another section
-                await sectionOperations.addSectionToSection(parentSectionId,[{ id: sectionId, quantity: 1 }], operationOptions);
+                await sectionOperations.addSectionToSection(parentSectionId,  [{ sectionId: sectionId }], operationOptions);
             } else if (pageId) {
                 // Add ref container section to page
-                await sectionOperations.addSectionToPage([{ id: sectionId, quantity: 1 }], operationOptions);
+                await sectionOperations.addSectionToPage(  [{ sectionId: sectionId}], operationOptions);
             }
         } catch (error) {
             // Error is handled by the hook
@@ -490,7 +493,7 @@ export function AddSectionModal({
     const updateUnusedQuantity = (styleId: number, quantity: number) => {
     setSelectedUnusedSections((prev) =>
         prev.map((item) =>
-        item.style.id === styleId
+        item.sectionId === styleId
             ? { ...item, quantity: Math.min(Math.max(quantity, 1), 10) }
             : item
         )
@@ -909,7 +912,7 @@ export function AddSectionModal({
                       spacing="md"
                     >
                       {filteredUnusedSections.map((section) => {
-                        const selectedItem = selectedUnusedSections.find((s) => s.style.id === section.id);
+                        const selectedItem = selectedUnusedSections.find((s) => s.sectionId === section.id);
 
                         const isSelected = !!selectedItem;
 
@@ -987,21 +990,6 @@ export function AddSectionModal({
                                 </Text>
                               )}
 
-                              {/* Quantity input (only when selected) */}
-                              {isSelected && (
-                                <NumberInput
-                                  size="xs"
-                                  min={1}
-                                  max={10}
-                                  value={selectedItem?.quantity ?? 1}
-                                  onChange={(val) =>
-                                    updateUnusedQuantity(
-                                      section.id,
-                                      Number(val) || 1,
-                                    )
-                                  }
-                                />
-                              )}
                             </Stack>
                           </Card>
                         );

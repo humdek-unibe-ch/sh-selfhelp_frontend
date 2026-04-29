@@ -12,7 +12,11 @@ import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 import { IAddSectionToSectionData } from '../../../types/requests/admin/create-section.types';
-import { SectionBulkItem } from '../../useSectionOperations';
+
+export interface IAddSectionInSectionData extends IAddSectionToSectionData {
+    sectionId: number;
+    position: number;
+}
 
 interface IAddSectionToSectionMutationOptions {
   onSuccess?: (
@@ -20,9 +24,8 @@ interface IAddSectionToSectionMutationOptions {
     variables: {
       pageId: number;
       parentSectionId: number;
-      sections: SectionBulkItem[];
-      sectionData: IAddSectionToSectionData;
-    },
+      sections: IAddSectionInSectionData[];
+     },
   ) => void;
 
   onError?: (
@@ -30,8 +33,7 @@ interface IAddSectionToSectionMutationOptions {
     variables: {
       pageId: number;
       parentSectionId: number;
-      sections: SectionBulkItem[];
-      sectionData: IAddSectionToSectionData;
+      sections: IAddSectionInSectionData[];
     },
   ) => void;
   showNotifications?: boolean;
@@ -41,8 +43,7 @@ interface IAddSectionToSectionMutationOptions {
 interface IAddSectionToSectionVariables {
     pageId: number;
     parentSectionId: number;
-    sections: SectionBulkItem[];
-    sectionData: IAddSectionToSectionData;
+    sections: IAddSectionInSectionData[];
 }
 
 /**
@@ -55,8 +56,8 @@ export function useAddSectionToSectionMutation(options: IAddSectionToSectionMuta
     const { onSuccess, onError, showNotifications = true, pageId: cachePageId } = options;
 
     return useMutation({
-        mutationFn: ({ pageId, parentSectionId, sections, sectionData }: IAddSectionToSectionVariables) => 
-            AdminApi.addSectionToSection(pageId, parentSectionId, sections, sectionData),
+        mutationFn: ({ pageId, parentSectionId, sections }: IAddSectionToSectionVariables) => 
+            AdminApi.addSectionToSection(pageId, parentSectionId, sections),
         
         onSuccess: async (createdSection: any, variables: IAddSectionToSectionVariables) => {
 

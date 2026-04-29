@@ -8,12 +8,11 @@
 
 import { useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { ISectionExportData } from '../api/admin/section.api';
 import { 
     prepareSectionImportData, 
     prepareSectionCreateData, 
-    ISectionOperationOptions, 
-    prepareUnusedSectionsData
+    ISectionOperationOptions,
+    flattenSections, 
 } from '../utils/section-operations.utils';
 import {
     useCreateSectionInPageMutation,
@@ -23,14 +22,18 @@ import {
     useRemoveSectionFromPageMutation,
     useRemoveSectionFromSectionMutation
 } from './mutations';
-import { importSectionsToPage, importSectionsToSection } from '../api/admin/section.api';
+import { importSectionsToPage, importSectionsToSection, ISectionExportData } from '../api/admin/section.api';
 import { notifications } from '@mantine/notifications';
 import { IStyle } from '../types/responses/admin/styles.types';
 
-export type SectionBulkItem = {
-  id: number;
+export interface SectionStyleItem {
+  style: IStyle;
   quantity: number;
-};
+}
+
+interface SectionItem {
+  sectionId: number;
+}
 
 export interface IUseSectionOperationsOptions {
     pageId?: number;
@@ -44,25 +47,25 @@ export interface IUseSectionOperationsOptions {
 export interface ISectionOperationsResult {
     // Create operations
     createSectionInPage: (
-    styles: { style: IStyle; quantity: number }[],
+    styles: SectionStyleItem[],
     option: ISectionOperationOptions & { name?: string }
     ) => Promise<void>;
 
     createSectionInSection: (
     parentSectionId: number,
-    styles: { style: IStyle; quantity: number }[],
+    styles: SectionStyleItem[],
     options: ISectionOperationOptions & { name?: string }
     ) => Promise<void>;
         
     // Add operations (for existing sections)
     addSectionToPage: (
-    sections: SectionBulkItem[],
+    sections: SectionItem[],
     options: ISectionOperationOptions
     ) => Promise<void>;
 
     addSectionToSection: (
     parentSectionId: number,
-    sections: SectionBulkItem[],
+    sections: SectionItem[],
     options: ISectionOperationOptions
     ) => Promise<void>;
 
@@ -162,7 +165,7 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
 
     // Create section in page
     const createSectionInPage = useCallback(async (
-    styles: { style: IStyle; quantity: number }[],
+    styles: SectionStyleItem[],
     options: ISectionOperationOptions & { name?: string }
     ) => {
         if (!pageId) {
@@ -188,7 +191,7 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
    const createSectionInSection = useCallback(
      async (
        parentSectionId: number,
-       styles: { style: IStyle; quantity: number }[],
+       styles: SectionStyleItem[],
        options: ISectionOperationOptions & { name?: string } = {},
      ) => {
        if (!pageId) {
@@ -216,7 +219,7 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
 
     // Add existing section to page
     const addSectionToPage = useCallback(async (
-        sections: SectionBulkItem[],
+        sections: SectionItem[],
         options: ISectionOperationOptions & {
             oldParentPageId?: number | null;
             oldParentSectionId?: number | null;
@@ -230,23 +233,14 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
 
         await addSectionToPageMutation.mutateAsync({
         pageId,
-        sections,
-        sectionData: {
-            position,
-            ...(options.oldParentPageId !== undefined && {
-            oldParentPageId: options.oldParentPageId,
-            }),
-            ...(options.oldParentSectionId !== undefined && {
-            oldParentSectionId: options.oldParentSectionId,
-            }),
-        },
+        sections: flattenSections(sections, position, options),
         });
     }, [pageId, addSectionToPageMutation]);
 
     // Add existing section to section
     const addSectionToSection = useCallback(async (
         parentSectionId: number,
-        sections: SectionBulkItem[],
+        sections: SectionItem[],
         options: ISectionOperationOptions & {
             oldParentPageId?: number | null;
             oldParentSectionId?: number | null;
@@ -256,24 +250,12 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
             throw new Error('Page ID is required for section operations');
         }
 
-        const position =
-        options.specificPosition !== undefined
-            ? options.specificPosition
-            : -1;
-
-        const sectionsPayload = sections.flatMap((s) =>
-        prepareUnusedSectionsData(s.id, {
-            quantity: s.quantity,
-            specificPosition: position,
-            oldParentPageId: options.oldParentPageId,
-            oldParentSectionId: options.oldParentSectionId,
-        })
-        );
+        const position = options.specificPosition !== undefined ? options.specificPosition : -1;
 
         await addSectionToSectionMutation.mutateAsync({
         pageId,
         parentSectionId,
-        sections: sectionsPayload,
+        sections: flattenSections(sections, position, options),
         });
     }, [pageId, addSectionToSectionMutation]);
 
