@@ -64,8 +64,8 @@ export function useAddSectionToSectionMutation(options: IAddSectionToSectionMuta
             // Invalidate relevant queries to update the UI
             const invalidationPromises = [
                 queryClient.invalidateQueries({ queryKey: ['pageSections', variables.pageId] }),
+                queryClient.invalidateQueries({queryKey: ['admin', 'sections', 'unused']}),
             ];
-
             await Promise.all(invalidationPromises);
             
             if (showNotifications) {

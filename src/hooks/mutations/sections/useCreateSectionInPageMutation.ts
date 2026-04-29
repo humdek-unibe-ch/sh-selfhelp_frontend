@@ -47,6 +47,7 @@ export function useCreateSectionInPageMutation(options: ICreateSectionInPageMuta
             await Promise.all([
                 queryClient.invalidateQueries({ queryKey: ['pageSections', variables.pageId] }),
                 queryClient.refetchQueries({ queryKey: ['pageSections', variables.pageId] }),
+                queryClient.invalidateQueries({queryKey: ['admin', 'sections', 'unused']})
             ]);
             
             if (showNotifications) {
