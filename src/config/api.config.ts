@@ -553,6 +553,10 @@ export const API_CONFIG = {
             route: (pageId: number, sectionId: number) => `/admin/pages/${pageId}/sections/${sectionId}`,
             permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
         },
+           ADMIN_PAGES_BULK_REMOVE_SECTION: {
+            route: (pageId: number) => `/admin/pages/${pageId}/sections`,
+            permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]
+        },
         ADMIN_SECTIONS_ADD: {
             route: (pageId: number, parentSectionId: number) => `/admin/pages/${pageId}/sections/${parentSectionId}/sections`,
             permissions: [PERMISSIONS.ADMIN_PAGE_UPDATE]

@@ -25,6 +25,7 @@ import {
 import { importSectionsToPage, importSectionsToSection, ISectionExportData } from '../api/admin/section.api';
 import { notifications } from '@mantine/notifications';
 import { IStyle } from '../types/responses/admin/styles.types';
+import { useRemoveBulkSectionsFromPageMutation } from './mutations/sections/useRemoveBulkSectionsFromPageMutation';
 
 export interface SectionStyleItem {
   style: IStyle;
@@ -70,13 +71,16 @@ export interface ISectionOperationsResult {
     ) => Promise<void>;
 
     // Remove operations
-    removeSectionFromPage: (sectionIds: number[]) => Promise<void>;
+    removeSectionFromPage: (sectionIds: number) => Promise<void>;
     removeSectionFromSection: (parentSectionId: number, childSectionId: number) => Promise<void>;
 
     // Import operations
     importSectionsToPage: (sections: ISectionExportData[], options?: ISectionOperationOptions) => Promise<void>;
     importSectionsToSection: (parentSectionId: number, sections: ISectionExportData[], options?: ISectionOperationOptions) => Promise<void>;
 
+    //Bulk Remove
+    removeBulkSectionsFromPage: (sectionIds: number[]) => Promise<void>;
+    
     // Status
     isLoading: boolean;
 }
@@ -148,6 +152,12 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
     const removeSectionFromSectionMutation = useRemoveSectionFromSectionMutation({
         showNotifications,
         pageId,
+        onSuccess: (result, variables) => onSuccess?.(result),
+        onError: (error) => onError?.(error)
+    });
+
+    const removeBulkSectionsFromPageMutation = useRemoveBulkSectionsFromPageMutation({
+        showNotifications,
         onSuccess: (result, variables) => onSuccess?.(result),
         onError: (error) => onError?.(error)
     });
@@ -260,14 +270,14 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
     }, [pageId, addSectionToSectionMutation]);
 
     // Remove section from page
-    const removeSectionFromPage = useCallback(async (sectionIds: number[]) => {
+    const removeSectionFromPage = useCallback(async (sectionId: number) => {
         if (!pageId) {
             throw new Error('Page ID is required for section operations');
         }
 
         await removeSectionFromPageMutation.mutateAsync({
             pageId: pageId,
-            sectionIds
+            sectionId
         });
     }, [pageId, removeSectionFromPageMutation]);
 
@@ -283,6 +293,20 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
             childSectionId
         });
     }, [pageId, removeSectionFromSectionMutation]);
+
+    const removeBulkSectionsFromPage = useCallback(
+      async (sectionIds: number[]) => {
+        if (!pageId) {
+          throw new Error("Page ID is required for section operations");
+        }
+
+        await removeBulkSectionsFromPageMutation.mutateAsync({
+          pageId,
+          sectionIds,
+        });
+      },
+      [pageId, removeBulkSectionsFromPageMutation],
+    );
 
     // Import sections to page
     const importSectionsToPageHandler = useCallback(async (
@@ -423,6 +447,7 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
     }, [pageId, showNotifications, onSuccess, onError, onSectionsImported, invalidateQueriesAfterImport]);
 
     return {
+        removeBulkSectionsFromPage,
         createSectionInPage,
         createSectionInSection,
         addSectionToPage,

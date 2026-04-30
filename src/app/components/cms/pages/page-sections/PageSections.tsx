@@ -393,7 +393,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                     throw new Error('Page ID is required for removing sections from page');
                 }
 
-                await sectionOperations.removeSectionFromPage([sectionId]);
+                await sectionOperations.removeSectionFromPage(sectionId);
             } else {
                 // Remove from parent section
                 if (!pageId) {
@@ -583,9 +583,9 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
 
     const handleDeselectAll = () => setSelectedIds(new Set());
 
-   const handleBulkDelete = async () => {
+   const handleBulkRemove = async () => {
     if (!data?.sections) return;
-    await sectionOperations.removeSectionFromPage(Array.from(selectedIds));
+    await sectionOperations.removeBulkSectionsFromPage(Array.from(selectedIds));
     setSelectedIds(new Set());
     setBulkRemoveModalOpened(false);
     };
@@ -831,7 +831,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                 id,
                 name: findSectionById(id, data?.sections || [])?.section_name ?? 'Unknown Section'
             }))}
-            onConfirm={handleBulkDelete}
+            onConfirm={handleBulkRemove}
         />
        </Stack>
      </Paper>
