@@ -35,6 +35,8 @@ import { ImportSectionTab } from './tabs/ImportSectionTab';
 import { ReferenceSectionTab } from './tabs/ReferenceSectionTab';
 import { UnusedSectionTab } from './tabs/UnusedSectionTab';
 import { useQueryClient } from '@tanstack/react-query';
+import { AddSectionTab, ADD_SECTION_TAB, MAX_SECTIONS, MAX_UNUSED_SECTIONS } from './addSectionModal.constants';
+import { getNewSectionLimitState, getUnusedSectionLimitState, getStatusText, isSingleMode } from './addSectionModal.utils';
 
 interface IAddSectionModalProps {
     opened: boolean;
@@ -47,10 +49,6 @@ interface IAddSectionModalProps {
     onSectionsImported?: (sectionIds: number[]) => void;
 }
 
-// Separated for dettached logic, if we want future different values
-const MAX_SECTIONS = 20;
-const MAX_UNUSED_SECTIONS = 20;
-
 export function AddSectionModal({
     opened,
     onClose,
@@ -60,9 +58,11 @@ export function AddSectionModal({
     specificPosition,
     onSectionCreated,
     onSectionsImported
-}: IAddSectionModalProps) {
+}: Readonly<IAddSectionModalProps>) {
     const queryClient = useQueryClient();
-    const [activeTab, setActiveTab] = useState<string>('new-section');
+    const [activeTab, setActiveTab] = useState<AddSectionTab>(
+    ADD_SECTION_TAB.NEW_SECTION
+    );
     const [selectedStyles, setSelectedStyles] = useState<
     { style: IStyle; quantity: number }[]
     >([]);
@@ -203,8 +203,8 @@ export function AddSectionModal({
         }
     });
 
-    const handleTabChange = (value: string | null) => {
-        setActiveTab(value || 'new-section');
+    const handleTabChange = (value: AddSectionTab) => {
+        setActiveTab(value || ADD_SECTION_TAB.NEW_SECTION);
         // Data is already prefetched when modal opens, no need to refetch
     };
 
@@ -212,7 +212,7 @@ export function AddSectionModal({
         setSelectedStyles([]);
         setSectionName('');
         setSearchQuery('');
-        setActiveTab('new-section');
+        setActiveTab(ADD_SECTION_TAB.NEW_SECTION);
         setSelectedFile(null);
         setIsImporting(false);
         setImportErrors([]);
@@ -228,7 +228,7 @@ export function AddSectionModal({
      if (!exists && selectedStyles.length >= MAX_SECTIONS) {
        notifications.show({
          title: "Limit reached",
-         message: "Maximum of 20 styles allowed",
+         message: `Maximum of ${MAX_SECTIONS} styles allowed`,
          color: "orange",
        });
        return;
@@ -259,7 +259,7 @@ export function AddSectionModal({
         if (prev.length >= MAX_UNUSED_SECTIONS) {
         notifications.show({
             title: "Limit reached",
-            message: "Maximum of 20 sections allowed",
+            message: `Maximum of ${MAX_UNUSED_SECTIONS} sections allowed`,
             color: "orange",
         });
         return prev;
@@ -468,62 +468,37 @@ export function AddSectionModal({
         );
     };
 
+    // Helpers
+    const { styleCount, isNearLimit, isLimit } =
+    getNewSectionLimitState(selectedStyles.length);
 
-    // ==================== Helpers ====================
+    const {
+    unusedCount,
+    isUnusedNearLimit,
+    isUnusedLimit,
+    } = getUnusedSectionLimitState(selectedUnusedSections.length);
+
+    const statusText = getStatusText({
+    activeTab,
+    newSectionCount: styleCount,
+    isNearLimit,
+    isLimit,
+    unusedSectionCount: unusedCount,
+    isUnusedNearLimit,
+    isUnusedLimit,
+    hasRefContainerSelection: !!selectedRefContainerSection,
+    hasImportFile: !!selectedFile,
+    importFileName: selectedFile?.name || null,
+    });
+
     const isProcessing = sectionOperations.isLoading || isImporting;
-
-    const isSingleMode =
-      selectedStyles.length === 1 && selectedStyles[0].quantity === 1;
-
-    const styleCount = selectedStyles.length;
-    const isNearLimit = styleCount >= MAX_SECTIONS - 2;
-    const isLimit = styleCount >= MAX_SECTIONS;
-
-    const unusedCount = selectedUnusedSections.length;
-    const isUnusedNearLimit = unusedCount >= MAX_UNUSED_SECTIONS - 2;
-    const isUnusedLimit = unusedCount >= MAX_UNUSED_SECTIONS;
-
-    const getStatusText = () => {
-      switch (activeTab) {
-        case "import-section":
-          return selectedFile
-            ? `Ready to import from "${selectedFile.name}"`
-            : "Select a JSON file to import";
-
-        case "unassigned-section":
-          if (isUnusedLimit)
-            return `Limit reached (${unusedCount}/${MAX_UNUSED_SECTIONS})`;
-
-          if (isUnusedNearLimit)
-            return `Almost at limit (${unusedCount}/${MAX_UNUSED_SECTIONS})`;
-
-          if (unusedCount > 0)
-            return `Ready to add "${unusedCount}" section(s)`;
-
-          return "Select an unused section to continue";
-
-        case "reference-section":
-          return selectedRefContainerSection
-            ? "Ready to add reference container"
-            : "Select a reference container to continue";
-
-        default:
-          if (isLimit) return `Limit reached (${styleCount}/${MAX_SECTIONS})`;
-
-          if (isNearLimit)
-            return `Almost at limit (${styleCount}/${MAX_SECTIONS})`;
-
-          if (styleCount > 0) return `Ready to add "${styleCount}" style(s)`;
-
-          return "Select a style to continue";
-      }
-    };
+    const singleMode = isSingleMode(selectedStyles);
 
     // Custom actions for the footer based on active tab
     const getCustomActions = () => (
       <Group justify="space-between" align="center" w="100%">
        <Text size="sm" c={isLimit || isNearLimit ? "orange" : "dimmed"}>
-        {getStatusText()}
+        {statusText}
         </Text>
         <Group gap="sm">
           <Button
@@ -534,7 +509,7 @@ export function AddSectionModal({
           >
             Cancel
           </Button>
-          {activeTab === "import-section" ? (
+          {activeTab === ADD_SECTION_TAB.IMPORT_SECTION ? (
             <Button
               leftSection={<IconUpload size={16} />}
               onClick={handleImportSections}
@@ -545,7 +520,7 @@ export function AddSectionModal({
             >
               Import Sections
             </Button>
-          ) : activeTab === "unassigned-section" ? (
+          ) : activeTab === ADD_SECTION_TAB.UNASSIGNED_SECTION ? (
             <Button
               leftSection={<IconPlus size={16} />}
               onClick={handleAddUnusedSection}
@@ -556,7 +531,7 @@ export function AddSectionModal({
             >
               Add Unused Section
             </Button>
-          ) : activeTab === "reference-section" ? (
+          ) : activeTab === ADD_SECTION_TAB.REFERENCE_SECTION ? (
             <Button
               leftSection={<IconPlus size={16} />}
               onClick={handleAddRefContainerSection}
@@ -573,7 +548,7 @@ export function AddSectionModal({
               onClick={handleAddSection}
               disabled={
                 selectedStyles.length === 0 ||
-                selectedStyles.length > 20 ||
+                selectedStyles.length > MAX_SECTIONS ||
                 isProcessing
               }
               loading={sectionOperations.isLoading}
@@ -600,15 +575,15 @@ export function AddSectionModal({
           {/* Header Section */}
           <Group justify="space-between" align="center" mb="md">
             <Tabs.List>
-              <Tabs.Tab value="new-section">New Section</Tabs.Tab>
-              <Tabs.Tab value="unassigned-section">Unused Section</Tabs.Tab>
-              <Tabs.Tab value="reference-section">Reference Section</Tabs.Tab>
-              <Tabs.Tab value="import-section">Import Section</Tabs.Tab>
+            <Tabs.Tab value={ADD_SECTION_TAB.NEW_SECTION}>New Section</Tabs.Tab>
+            <Tabs.Tab value={ADD_SECTION_TAB.UNASSIGNED_SECTION}>Unused Section</Tabs.Tab>
+            <Tabs.Tab value={ADD_SECTION_TAB.REFERENCE_SECTION}>Reference Section</Tabs.Tab>
+            <Tabs.Tab value={ADD_SECTION_TAB.IMPORT_SECTION}>Import Section</Tabs.Tab>
             </Tabs.List>
           </Group>
 
           {/* Search Input - only for new-section tab */}
-          {activeTab === "new-section" && (
+          {activeTab === ADD_SECTION_TAB.NEW_SECTION && (
             <TextInput
               placeholder="Search styles..."
               leftSection={<IconSearch size={16} />}
@@ -620,7 +595,7 @@ export function AddSectionModal({
           )}
 
           {/* Section Name Input - only for new-section tab */}
-          {activeTab === "new-section" && isSingleMode && (
+          {activeTab === ADD_SECTION_TAB.NEW_SECTION && singleMode && (
             <TextInput
               label="Section Name (Optional)"
               placeholder="Enter custom section name..."
@@ -633,7 +608,7 @@ export function AddSectionModal({
           )}
 
           {/* Selected Style Display - only for new-section tab */}
-          {activeTab === "new-section" && selectedStyles.length > 0 && (
+          {activeTab === ADD_SECTION_TAB.NEW_SECTION && selectedStyles.length > 0 && (
             <Stack mb="sm">
               {selectedStyles.map((item) => (
                 <Card key={item.style.id} withBorder p="xs" bg="blue.0">
@@ -676,14 +651,14 @@ export function AddSectionModal({
           )}
 
           {/* Instructions - only for new-section tab */}
-          {activeTab === "new-section" && (
+          {activeTab === ADD_SECTION_TAB.NEW_SECTION && (
             <Text size="xs" c="dimmed" mb="sm">
               Click on a style below to select it for your new section
             </Text>
           )}
 
           {/* Tab Content */}
-         <Tabs.Panel value="new-section">
+         <Tabs.Panel value={ADD_SECTION_TAB.NEW_SECTION}>
                     <NewSectionTab
                         isLoadingStyles={isLoadingStyles}
                         isLoadingParentDetails={isLoadingParentDetails}
@@ -697,7 +672,7 @@ export function AddSectionModal({
                     />
                 </Tabs.Panel>
 
-                <Tabs.Panel value="unassigned-section">
+                <Tabs.Panel value={ADD_SECTION_TAB.UNASSIGNED_SECTION}>
                     <UnusedSectionTab
                         isLoadingUnused={isLoadingUnused}
                         isFetchingUnused={isFetchingUnused}
@@ -712,7 +687,7 @@ export function AddSectionModal({
                     />
                 </Tabs.Panel>
 
-                <Tabs.Panel value="reference-section">
+                <Tabs.Panel value={ADD_SECTION_TAB.REFERENCE_SECTION}>
                     <ReferenceSectionTab
                         isLoadingRefContainers={isLoadingRefContainers}
                         isFetchingRefContainers={isFetchingRefContainers}
@@ -725,7 +700,7 @@ export function AddSectionModal({
                     />
                 </Tabs.Panel>
 
-                <Tabs.Panel value="import-section">
+                <Tabs.Panel value={ADD_SECTION_TAB.IMPORT_SECTION}>
                     <ImportSectionTab
                         selectedFile={selectedFile}
                         setSelectedFile={setSelectedFile}
