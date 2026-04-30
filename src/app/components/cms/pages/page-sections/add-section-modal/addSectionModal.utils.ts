@@ -24,7 +24,7 @@ export const getUnusedSectionLimitState = (count: number) => ({
 // ==================== Footer status text ====================
 
 interface GetStatusTextParams {
-    activeTab: AddSectionTab | string;
+    activeTab: AddSectionTab;
     // new-section
     newSectionCount: number;
     isNearLimit: boolean;
@@ -75,4 +75,37 @@ export const getStatusText = ({
             if (newSectionCount > 0) return `Ready to add "${newSectionCount}" style(s)`;
             return 'Select a style to continue';
     }
+};
+
+export const getStatusColor = (
+  activeTab: AddSectionTab,
+  flags: {
+    isLimit: boolean;
+    isNearLimit: boolean;
+    isUnusedLimit: boolean;
+    isUnusedNearLimit: boolean;
+    hasImportFile: boolean;
+    hasRefContainerSelection: boolean;
+  }
+): "orange" | "red" | "dimmed" => {
+  switch (activeTab) {
+    case ADD_SECTION_TAB.NEW_SECTION:
+      if (flags.isLimit) return "red";
+      if (flags.isNearLimit) return "orange";
+      return "dimmed";
+
+    case ADD_SECTION_TAB.UNASSIGNED_SECTION:
+      if (flags.isUnusedLimit) return "red";
+      if (flags.isUnusedNearLimit) return "orange";
+      return "dimmed";
+
+    case ADD_SECTION_TAB.IMPORT_SECTION:
+      return flags.hasImportFile ? "dimmed" : "orange";
+
+    case ADD_SECTION_TAB.REFERENCE_SECTION:
+      return flags.hasRefContainerSelection ? "dimmed" : "orange";
+
+    default:
+      return "dimmed";
+  }
 };
