@@ -296,7 +296,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                                     className={styles.actionButton}
                                     data-action-button="true"
                                 >
-                                    <IconTrash />SectionsListComponent 
+                                    <IconTrash />
                                 </ActionIcon>
                             </Tooltip>
                         </Group>
