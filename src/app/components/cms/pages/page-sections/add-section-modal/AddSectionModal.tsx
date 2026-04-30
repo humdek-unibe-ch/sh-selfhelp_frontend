@@ -58,7 +58,7 @@ export function AddSectionModal({
     specificPosition,
     onSectionCreated,
     onSectionsImported
-}: Readonly<IAddSectionModalProps>) {
+}: IAddSectionModalProps) {
     const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState<AddSectionTab>(
     ADD_SECTION_TAB.NEW_SECTION
@@ -203,8 +203,8 @@ export function AddSectionModal({
         }
     });
 
-    const handleTabChange = (value: AddSectionTab) => {
-        setActiveTab(value || ADD_SECTION_TAB.NEW_SECTION);
+    const handleTabChange = (value: string | null) => {
+        setActiveTab((value as AddSectionTab) || ADD_SECTION_TAB.NEW_SECTION);
         // Data is already prefetched when modal opens, no need to refetch
     };
 
@@ -370,13 +370,13 @@ export function AddSectionModal({
          selectedStyles,
          {
            specificPosition,
-           name: sectionName,
+           name: isSingleMode(selectedStyles) ? sectionName : undefined,
          },
         );
         } else if (pageId) {
         await sectionOperations.createSectionInPage(selectedStyles, {
           specificPosition,
-          name: sectionName,
+          name: isSingleMode(selectedStyles) ? sectionName : undefined,
         });
         }
     } catch (error) {
