@@ -34,7 +34,7 @@ import { SectionsList } from './SectionsList';
 import { AddSectionModal } from './add-section-modal/AddSectionModal';
 import { calculateSiblingBelowPosition } from '../../../../../utils/position-calculator';
 import { PageHeader } from '../../../shared/common/PageHeader';
-import { BulkDeleteModal } from './BulkDeleteModal';
+import { BulkRemoveModal } from './BulkRemoveModal';
 
 // Helper function to recursively sort sections and their children by position
 const sortSectionsByPosition = (sections: IPageSectionWithFields[]): IPageSectionWithFields[] => {
@@ -552,7 +552,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
     // Bulk
 
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-    const [bulkDeleteModalOpened, setBulkDeleteModalOpened] = useState(false);
+    const [BulkRemoveModalOpened, setBulkRemoveModalOpened] = useState(false);
 
     const handleToggleSelect = (sectionId: number) => {
     setSelectedIds(prev => {
@@ -587,7 +587,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
     if (!data?.sections) return;
     await sectionOperations.removeSectionFromPage(Array.from(selectedIds));
     setSelectedIds(new Set());
-    setBulkDeleteModalOpened(false);
+    setBulkRemoveModalOpened(false);
     };
 
     const findParentId = (sectionId: number, items: IPageSectionWithFields[]): number | null => {
@@ -687,7 +687,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                     size="sm"
                     color="red"
                     leftSection={<IconTrash size={14} />}
-                    onClick={() => setBulkDeleteModalOpened(true)}
+                    onClick={() => setBulkRemoveModalOpened(true)}
                 >
                     Delete ({selectedIds.size})
                 </Button>
@@ -824,9 +824,9 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
            onSectionsImported={handleSectionsImported}
          />
 
-        <BulkDeleteModal
-            opened={bulkDeleteModalOpened}
-            onClose={() => setBulkDeleteModalOpened(false)}
+        <BulkRemoveModal
+            opened={BulkRemoveModalOpened}
+            onClose={() => setBulkRemoveModalOpened(false)}
             selectedSections={Array.from(selectedIds).map(id => ({
                 id,
                 name: findSectionById(id, data?.sections || [])?.section_name ?? 'Unknown Section'

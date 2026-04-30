@@ -1,14 +1,14 @@
 import { Modal, Stack, Alert, List, Group, Button, Text } from "@mantine/core";
 import { IconAlertTriangle } from "@tabler/icons-react";
 
-interface BulkDeleteModalProps {
+interface BulkRemoveModalProps {
     opened: boolean;
     onClose: () => void;
     selectedSections: { id: number; name: string }[];
     onConfirm: () => void;
 }
 
-export function BulkDeleteModal({ opened, onClose, selectedSections, onConfirm }: BulkDeleteModalProps) {
+export function BulkRemoveModal({ opened, onClose, selectedSections, onConfirm }: BulkRemoveModalProps) {
     return (
         <Modal opened={opened} onClose={onClose} title="Delete Sections" centered size="lg">
             <Stack>
