@@ -685,7 +685,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                 {selectedIds.size > 0 && (
                 <Button
                     size="sm"
-                    color="red"
+                    color="orange"
                     leftSection={<IconTrash size={14} />}
                     onClick={() => setBulkRemoveModalOpened(true)}
                 >
