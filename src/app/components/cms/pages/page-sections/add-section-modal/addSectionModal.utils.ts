@@ -40,6 +40,12 @@ interface GetStatusTextParams {
     importFileName: string | null;
 }
 
+/* ==================== STATUS TEXT GENERATOR ==================== */
+
+/**
+ * Generates contextual status text for the modal footer based on the active tab
+ * and current selection state. Provides clear user feedback.
+ */
 export const getStatusText = ({
     activeTab,
     newSectionCount,
@@ -77,6 +83,13 @@ export const getStatusText = ({
     }
 };
 
+
+/* ==================== STATUS COLOR HELPER ==================== */
+
+/**
+ * Returns appropriate Mantine color for the status text based on current state.
+ * Red = blocked/limit reached, Orange = warning, Dimmed = normal state.
+ */
 export const getStatusColor = (
   activeTab: AddSectionTab,
   flags: {
