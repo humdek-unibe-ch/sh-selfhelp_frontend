@@ -50,6 +50,8 @@ interface ISectionsListProps {
     searchQuery?: string;
     pageId?: number;
     styleGroups?: IStyleGroup[];
+    selectedIds?: Set<number>;
+    onToggleSelect?: (sectionId: number) => void;
 }
 
 interface ISectionItemProps {
@@ -68,6 +70,8 @@ interface ISectionItemProps {
     focusedSectionId?: number | null;
     searchQuery?: string;
     styleGroups?: IStyleGroup[];
+    selectedIds?: Set<number>;
+    onToggleSelect?: (sectionId: number) => void;
 }
 
 interface IDragState {
@@ -120,7 +124,9 @@ const SectionItem = memo(function SectionItem({
     selectedSectionId,
     focusedSectionId,
     searchQuery,
-    styleGroups
+    styleGroups,
+    selectedIds,
+    onToggleSelect
 }: ISectionItemProps) {
     const dragContext = useContext(DragContext);
     const hoverPreviewContext = useContext(HoverPreviewContext);
@@ -639,6 +645,8 @@ const SectionItem = memo(function SectionItem({
                 selectedSectionId={selectedSectionId}
                 focusedSectionId={focusedSectionId}
                 searchQuery={searchQuery}
+                isSelected={selectedIds?.has(section.id)}
+                onToggleSelect={onToggleSelect}
             />
 
             {/* Drop zone area for sections that can have children but don't have any */}
@@ -680,6 +688,8 @@ const SectionItem = memo(function SectionItem({
                             focusedSectionId={focusedSectionId}
                             searchQuery={searchQuery}
                             styleGroups={styleGroups}
+                            selectedIds={selectedIds}
+                            onToggleSelect={onToggleSelect}
                         />
                     ))}
                 </Box>
@@ -699,7 +709,8 @@ const SectionItem = memo(function SectionItem({
         prevProps.focusedSectionId === nextProps.focusedSectionId &&
         prevProps.searchQuery === nextProps.searchQuery &&
         prevProps.pageId === nextProps.pageId &&
-        JSON.stringify(prevProps.section.children) === JSON.stringify(nextProps.section.children)
+        JSON.stringify(prevProps.section.children) === JSON.stringify(nextProps.section.children) &&
+        prevProps.selectedIds?.has(prevProps.section.id) === nextProps.selectedIds?.has(nextProps.section.id)
     );
 });
 
@@ -741,6 +752,8 @@ const SectionsListComponent = function SectionsList({
     searchQuery,
     pageId,
     styleGroups,
+    selectedIds,
+    onToggleSelect,
 }: ISectionsListProps) {
 
     // Helper function to flatten all sections including nested children
@@ -810,16 +823,14 @@ const SectionsListComponent = function SectionsList({
         return ids;
     }, []);
 
-    const findParentId = useCallback((sectionId: number, items: IPageSectionWithFields[], parentId: number | null = null): number | null => {
-        for (const item of items) {
-            if (item.id === sectionId) return parentId;
-            if (item.children) {
-                const found = findParentId(sectionId, item.children, item.id);
-                if (found !== null) return found;
-            }
-        }
-        return null;
-    }, []);
+   const findParentId = (sectionId: number, items: IPageSectionWithFields[]): number | null => {
+    for (const item of items) {
+        if (item.children?.some(c => c.id === sectionId)) return item.id;
+        const found = findParentId(sectionId, item.children || []);
+        if (found !== null) return found;
+    }
+    return null;
+};
 
     /**
      * Calculates the new position for a dropped section using centralized positioning logic
@@ -994,6 +1005,8 @@ const SectionsListComponent = function SectionsList({
                                         focusedSectionId={focusedSectionId}
                                         searchQuery={searchQuery}
                                         styleGroups={styleGroups}
+                                        selectedIds={selectedIds}
+                                        onToggleSelect={onToggleSelect}
                                     />
                                 ))}
                             </div>

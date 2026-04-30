@@ -1,7 +1,7 @@
 'use client';
 
 import { forwardRef, useState } from 'react';
-import { Box, Text, Paper, Group, Badge, ActionIcon, Tooltip } from '@mantine/core';
+import { Box, Text, Paper, Group, Badge, ActionIcon, Tooltip, Checkbox } from '@mantine/core';
 import { 
     IconChevronRight, 
     IconChevronDown, 
@@ -40,6 +40,9 @@ interface IPageSectionProps {
     isDragging?: boolean;
 
     showInsideDropZone?: boolean;
+
+    isSelected?: boolean;
+    onToggleSelect?: (sectionId: number) => void;
 }
 
 export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
@@ -63,7 +66,10 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     dragHandleProps,
     isDragging = false,
 
-    showInsideDropZone = false
+    showInsideDropZone = false,
+
+    isSelected = false,
+    onToggleSelect,
 }, ref) => {
     const [removeModalOpened, setRemoveModalOpened] = useState(false);
     
@@ -72,7 +78,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     const canHaveChildren = !!section.can_have_children;
     const isBeingDragged = draggedSectionId === section.id;
     const isValidDropTarget = canHaveChildren && overId === section.id;
-    const isSelected = selectedSectionId === section.id;
+    // const isSelected = selectedSectionId === section.id;
     const isFocused = focusedSectionId === section.id;
 
     // Dynamic indentation aligned with chevron - 12px per level to align with chevron positioning
@@ -290,10 +296,17 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                                     className={styles.actionButton}
                                     data-action-button="true"
                                 >
-                                    <IconTrash />
+                                    <IconTrash />SectionsListComponent 
                                 </ActionIcon>
                             </Tooltip>
                         </Group>
+                        <Checkbox
+                            size="xs"
+                            checked={isSelected}
+                            onChange={() => onToggleSelect?.(section.id)}
+                            onClick={(e) => e.stopPropagation()}
+                            aria-label={`Select ${section.section_name}`}
+                        />
                     </Group>
                     </Paper>
                 </SectionLink>

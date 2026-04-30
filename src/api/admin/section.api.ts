@@ -77,15 +77,15 @@ export const AdminSectionApi = {
     /**
      * Removes a section from a page
      * @param {number} pageId - The page ID
-     * @param {number} sectionId - The section ID to remove
+     * @param {number[]} sectionIds - The section ID list to remove
      * @returns {Promise<{ success: boolean }>} Success response
      * @throws {Error} When API request fails
      */
-    async removeSectionFromPage(pageId: number, sectionId: number): Promise<{ success: boolean }> {
+    async removeSectionFromPage(pageId: number, sectionIds: number[]): Promise<{ success: boolean }> {
         const response = await permissionAwareApiClient.delete(
             API_CONFIG.ENDPOINTS.ADMIN_PAGES_REMOVE_SECTION,
             pageId,
-            sectionId
+            { data: { sectionIds } },
         );
         // For 204 No Content responses, return success indicator
         return { success: response.status === 204 || response.status === 200 };

@@ -23,7 +23,8 @@ import {
     IconChevronDown,
     IconX,
     IconArrowLeft,
-    IconArrowRight
+    IconArrowRight,
+    IconTrash
 } from '@tabler/icons-react';
 import { usePageSections } from '../../../../../hooks/usePageDetails';
 import { useSectionOperations } from '../../../../../hooks/useSectionOperations';
@@ -33,6 +34,7 @@ import { SectionsList } from './SectionsList';
 import { AddSectionModal } from './add-section-modal/AddSectionModal';
 import { calculateSiblingBelowPosition } from '../../../../../utils/position-calculator';
 import { PageHeader } from '../../../shared/common/PageHeader';
+import { BulkDeleteModal } from './BulkDeleteModal';
 
 // Helper function to recursively sort sections and their children by position
 const sortSectionsByPosition = (sections: IPageSectionWithFields[]): IPageSectionWithFields[] => {
@@ -357,7 +359,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                     throw new Error('Page ID is required for page-level moves');
                 }
 
-                await sectionOperations.addSectionToPage(draggedSectionId, {
+                await sectionOperations.addSectionToPage(  [{ sectionId: draggedSectionId }], {
                     specificPosition: newPosition,
                     oldParentPageId,
                     oldParentSectionId
@@ -367,7 +369,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                 if (!pageId) {
                     throw new Error('Page ID is required for section operations');
                 }
-                await sectionOperations.addSectionToSection(newParentId, draggedSectionId, {
+                await sectionOperations.addSectionToSection(newParentId, [{ sectionId: draggedSectionId }], {
                     specificPosition: newPosition,
                     oldParentPageId,
                     oldParentSectionId
@@ -391,7 +393,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                     throw new Error('Page ID is required for removing sections from page');
                 }
 
-                await sectionOperations.removeSectionFromPage(sectionId);
+                await sectionOperations.removeSectionFromPage([sectionId]);
             } else {
                 // Remove from parent section
                 if (!pageId) {
@@ -547,6 +549,56 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
         }
     }, [data?.sections]);
 
+    // Bulk
+
+    const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+    const [bulkDeleteModalOpened, setBulkDeleteModalOpened] = useState(false);
+
+    const handleToggleSelect = (sectionId: number) => {
+    setSelectedIds(prev => {
+        const next = new Set(prev);
+        next.has(sectionId) ? next.delete(sectionId) : next.add(sectionId);
+        return next;
+    });
+    };
+
+    // Flatten all section IDs (including children) for select-all
+    const getAllSectionIds = (sections: IPageSectionWithFields[]): number[] => {
+        const ids: number[] = [];
+        const collect = (items: IPageSectionWithFields[]) => {
+            items.forEach(s => {
+                ids.push(s.id);
+                if (s.children) collect(s.children);
+            });
+        };
+        collect(sections);
+        return ids;
+    };
+
+    const handleSelectAll = () => {
+        if (!data?.sections) return;
+        const allIds = getAllSectionIds(data.sections);
+        setSelectedIds(new Set(allIds));
+    };
+
+    const handleDeselectAll = () => setSelectedIds(new Set());
+
+   const handleBulkDelete = async () => {
+    if (!data?.sections) return;
+    await sectionOperations.removeSectionFromPage(Array.from(selectedIds));
+    setSelectedIds(new Set());
+    setBulkDeleteModalOpened(false);
+    };
+
+    const findParentId = (sectionId: number, items: IPageSectionWithFields[]): number | null => {
+    for (const item of items) {
+        if (item.children?.some(c => c.id === sectionId)) return item.id;
+        const found = findParentId(sectionId, item.children || []);
+        if (found !== null) return found;
+    }
+    return null;
+    };
+
     if (error) {
         return (
             <Paper p="md" withBorder>
@@ -560,22 +612,23 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
    return (
      <Paper p="md" radius="md">
        <Stack gap="md">
-         {/* 1. Standardized Header */}
          <PageHeader
            title={pageName ? `${pageName} - Sections` : "Page Sections"}
            subtitle="Manage page structure, sections, and their relationships"
            badge={data?.sections?.length || 0}
          >
-           <Group gap="xs" wrap="nowrap">
-             <Button
-               leftSection={<IconPlus size={14} />}
-               size="sm"
-               variant="light"
-               onClick={() => setAddSectionModalOpened(true)}
-             >
-               Add Section
-             </Button>
-                {/* Expand/Collapse + Sections List */}
+           <Stack gap="xs">
+             {/* Top row */}
+             <Group gap="xs" wrap="nowrap">
+               <Button
+                 leftSection={<IconPlus size={14} />}
+                 size="sm"
+                 variant="light"
+                 onClick={() => setAddSectionModalOpened(true)}
+               >
+                 Add Section
+               </Button>
+
                <Button
                  size="sm"
                  variant="light"
@@ -595,110 +648,137 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                  {expandedSections.size > 0 ? "Collapse all" : "Expand all"}
                </Button>
 
-             <Button
-               size="sm"
-               variant="light"
-               component={Link}
-               href={`/admin/pages/${pageName}`}
-             >
-               Edit Page
-             </Button>
+               <Button
+                 size="sm"
+                 variant="light"
+                 component={Link}
+                 href={`/admin/pages/${pageName}`}
+               >
+                 Edit Page
+               </Button>
 
-             <Button
-               size="sm"
-               variant="light"
-               component={Link}
-               href={`/${pageName}`}
-               target="_blank"
-               rel="noopener noreferrer"
-             >
-               Preview Page
-             </Button>
-           </Group>
+               <Button
+                 size="sm"
+                 variant="light"
+                 component={Link}
+                 href={`/${pageName}`}
+                 target="_blank"
+                 rel="noopener noreferrer"
+               >
+                 Preview Page
+               </Button>
+             </Group>
+
+             {/* Bottom row (selection actions) */}
+            {data && data?.sections?.length > 0 && (
+            <Group gap="xs" mt="xs">
+                <Button
+                size="sm"
+                variant="subtle"
+                onClick={() =>
+                    selectedIds.size > 0 ? handleDeselectAll() : handleSelectAll()
+                }
+                >
+                {selectedIds.size > 0 ? "Deselect All" : "Select All"}
+                </Button>
+
+                {selectedIds.size > 0 && (
+                <Button
+                    size="sm"
+                    color="red"
+                    leftSection={<IconTrash size={14} />}
+                    onClick={() => setBulkDeleteModalOpened(true)}
+                >
+                    Delete ({selectedIds.size})
+                </Button>
+                )}
+            </Group>
+            )}
+           </Stack>
          </PageHeader>
 
-        {/* 2. Advanced Search Bar with match counter + Prev/Next navigation */}
-        <Group gap="xs" wrap="nowrap" align="center">
-          <TextInput
-            placeholder="Search sections by name, ID, or style..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.currentTarget.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && searchResults.length > 0) {
-                e.preventDefault();
-                if (e.shiftKey) {
-                  handleSearchPrevious();
-                } else {
-                  handleSearchNext();
-                }
-              }
-              if (e.key === "Escape") {
-                e.preventDefault();
-                handleSearchClear();
-              }
-            }}
-            leftSection={<IconSearch size={16} />}
-            rightSection={
-              searchQuery && (
-                <ActionIcon
-                  size="sm"
-                  variant="subtle"
-                  color="gray"
-                  onClick={handleSearchClear}
-                  aria-label="Clear search"
-                >
-                  <IconX size={14} />
-                </ActionIcon>
-              )
-            }
-            size="md"
-            style={{ flex: 1 }}
-            // Autofill / form-helper extensions (SharkID, 1Password,
-            // Bitwarden, Dashlane, …) decorate <input> elements with
-            // custom data-* attributes (e.g. `data-sharkid`) before React
-            // hydrates, producing a hydration-mismatch warning. Suppress
-            // the check on this single input only.
-            suppressHydrationWarning
-          />
+         {/* 2. Advanced Search Bar with match counter + Prev/Next navigation */}
+         <Group gap="xs" wrap="nowrap" align="center">
+           <TextInput
+             placeholder="Search sections by name, ID, or style..."
+             value={searchQuery}
+             onChange={(e) => setSearchQuery(e.currentTarget.value)}
+             onKeyDown={(e) => {
+               if (e.key === "Enter" && searchResults.length > 0) {
+                 e.preventDefault();
+                 if (e.shiftKey) {
+                   handleSearchPrevious();
+                 } else {
+                   handleSearchNext();
+                 }
+               }
+               if (e.key === "Escape") {
+                 e.preventDefault();
+                 handleSearchClear();
+               }
+             }}
+             leftSection={<IconSearch size={16} />}
+             rightSection={
+               searchQuery && (
+                 <ActionIcon
+                   size="sm"
+                   variant="subtle"
+                   color="gray"
+                   onClick={handleSearchClear}
+                   aria-label="Clear search"
+                 >
+                   <IconX size={14} />
+                 </ActionIcon>
+               )
+             }
+             size="md"
+             style={{ flex: 1 }}
+             // Autofill / form-helper extensions (SharkID, 1Password,
+             // Bitwarden, Dashlane, …) decorate <input> elements with
+             // custom data-* attributes (e.g. `data-sharkid`) before React
+             // hydrates, producing a hydration-mismatch warning. Suppress
+             // the check on this single input only.
+             suppressHydrationWarning
+           />
 
-          {searchQuery && (
-            <Badge
-              size="lg"
-              variant="light"
-              color={searchResults.length > 0 ? "yellow" : "gray"}
-              radius="sm"
-            >
-              {searchResults.length > 0
-                ? `${currentSearchIndex + 1}/${searchResults.length}`
-                : "0/0"}
-            </Badge>
-          )}
+           {searchQuery && (
+             <Badge
+               size="lg"
+               variant="light"
+               color={searchResults.length > 0 ? "yellow" : "gray"}
+               radius="sm"
+             >
+               {searchResults.length > 0
+                 ? `${currentSearchIndex + 1}/${searchResults.length}`
+                 : "0/0"}
+             </Badge>
+           )}
 
-          {searchResults.length > 0 && (
-            <Group gap={4} wrap="nowrap">
-              <Tooltip label="Previous match (Shift+Enter)" withArrow>
-                <ActionIcon
-                  size="lg"
-                  variant="default"
-                  onClick={handleSearchPrevious}
-                  aria-label="Previous match"
-                >
-                  <IconArrowLeft size={16} />
-                </ActionIcon>
-              </Tooltip>
-              <Tooltip label="Next match (Enter)" withArrow>
-                <ActionIcon
-                  size="lg"
-                  variant="default"
-                  onClick={handleSearchNext}
-                  aria-label="Next match"
-                >
-                  <IconArrowRight size={16} />
-                </ActionIcon>
-              </Tooltip>
-            </Group>
-          )}
-        </Group>
+           {searchResults.length > 0 && (
+             <Group gap={4} wrap="nowrap">
+               <Tooltip label="Previous match (Shift+Enter)" withArrow>
+                 <ActionIcon
+                   size="lg"
+                   variant="default"
+                   onClick={handleSearchPrevious}
+                   aria-label="Previous match"
+                 >
+                   <IconArrowLeft size={16} />
+                 </ActionIcon>
+               </Tooltip>
+               <Tooltip label="Next match (Enter)" withArrow>
+                 <ActionIcon
+                   size="lg"
+                   variant="default"
+                   onClick={handleSearchNext}
+                   aria-label="Next match"
+                 >
+                   <IconArrowRight size={16} />
+                 </ActionIcon>
+               </Tooltip>
+             </Group>
+           )}
+         </Group>
 
          {/* 4. Main Content */}
          <Box>
@@ -723,6 +803,8 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
              searchQuery={searchQuery}
              pageId={pageId || undefined}
              styleGroups={styleGroups}
+             selectedIds={selectedIds}
+             onToggleSelect={handleToggleSelect}
            />
          </Box>
 
@@ -741,6 +823,16 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
            onSectionCreated={handleSectionCreated}
            onSectionsImported={handleSectionsImported}
          />
+
+        <BulkDeleteModal
+            opened={bulkDeleteModalOpened}
+            onClose={() => setBulkDeleteModalOpened(false)}
+            selectedSections={Array.from(selectedIds).map(id => ({
+                id,
+                name: findSectionById(id, data?.sections || [])?.section_name ?? 'Unknown Section'
+            }))}
+            onConfirm={handleBulkDelete}
+        />
        </Stack>
      </Paper>
    );

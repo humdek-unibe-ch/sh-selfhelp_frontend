@@ -70,7 +70,7 @@ export interface ISectionOperationsResult {
     ) => Promise<void>;
 
     // Remove operations
-    removeSectionFromPage: (sectionId: number) => Promise<void>;
+    removeSectionFromPage: (sectionIds: number[]) => Promise<void>;
     removeSectionFromSection: (parentSectionId: number, childSectionId: number) => Promise<void>;
 
     // Import operations
@@ -260,14 +260,14 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
     }, [pageId, addSectionToSectionMutation]);
 
     // Remove section from page
-    const removeSectionFromPage = useCallback(async (sectionId: number) => {
+    const removeSectionFromPage = useCallback(async (sectionIds: number[]) => {
         if (!pageId) {
             throw new Error('Page ID is required for section operations');
         }
 
         await removeSectionFromPageMutation.mutateAsync({
             pageId: pageId,
-            sectionId
+            sectionIds
         });
     }, [pageId, removeSectionFromPageMutation]);
 

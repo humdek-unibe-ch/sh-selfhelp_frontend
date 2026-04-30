@@ -13,14 +13,14 @@ import { AdminApi } from '../../../api/admin';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IRemoveSectionFromPageMutationOptions {
-    onSuccess?: (data: any, variables: { pageId: number; sectionId: number }) => void;
-    onError?: (error: any, variables: { pageId: number; sectionId: number }) => void;
+    onSuccess?: (data: any, variables: { pageId: number; sectionIds: number[]; }) => void;
+    onError?: (error: any, variables: { pageId: number; sectionIds: number[]; }) => void;
     showNotifications?: boolean;
 }
 
 interface IRemoveSectionFromPageVariables {
     pageId: number;
-    sectionId: number;
+    sectionIds: number[];
 }
 
 /**
@@ -33,8 +33,8 @@ export function useRemoveSectionFromPageMutation(options: IRemoveSectionFromPage
     const { onSuccess, onError, showNotifications = true } = options;
 
     return useMutation({
-        mutationFn: ({ pageId, sectionId }: IRemoveSectionFromPageVariables) => 
-            AdminApi.removeSectionFromPage(pageId, sectionId),
+        mutationFn: ({ pageId, sectionIds }: IRemoveSectionFromPageVariables) => 
+            AdminApi.removeSectionFromPage(pageId, sectionIds),
         
         onSuccess: async (result: any, variables: IRemoveSectionFromPageVariables) => {
 
