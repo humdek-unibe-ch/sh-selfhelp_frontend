@@ -52,6 +52,7 @@ interface ISectionsListProps {
     styleGroups?: IStyleGroup[];
     selectedIds?: Set<number>;
     onToggleSelect?: (sectionId: number) => void;
+    bulkMode: boolean;
 }
 
 interface ISectionItemProps {
@@ -72,6 +73,7 @@ interface ISectionItemProps {
     styleGroups?: IStyleGroup[];
     selectedIds?: Set<number>;
     onToggleSelect?: (sectionId: number) => void;
+    bulkMode: boolean;
 }
 
 interface IDragState {
@@ -126,7 +128,8 @@ const SectionItem = memo(function SectionItem({
     searchQuery,
     styleGroups,
     selectedIds,
-    onToggleSelect
+    onToggleSelect,
+    bulkMode
 }: ISectionItemProps) {
     const dragContext = useContext(DragContext);
     const hoverPreviewContext = useContext(HoverPreviewContext);
@@ -647,6 +650,7 @@ const SectionItem = memo(function SectionItem({
                 searchQuery={searchQuery}
                 isSelected={selectedIds?.has(section.id)}
                 onToggleSelect={onToggleSelect}
+                bulkMode={bulkMode}
             />
 
             {/* Drop zone area for sections that can have children but don't have any */}
@@ -690,6 +694,7 @@ const SectionItem = memo(function SectionItem({
                             styleGroups={styleGroups}
                             selectedIds={selectedIds}
                             onToggleSelect={onToggleSelect}
+                            bulkMode={bulkMode}
                         />
                     ))}
                 </Box>
@@ -710,6 +715,7 @@ const SectionItem = memo(function SectionItem({
         prevProps.searchQuery === nextProps.searchQuery &&
         prevProps.pageId === nextProps.pageId &&
         JSON.stringify(prevProps.section.children) === JSON.stringify(nextProps.section.children) &&
+        prevProps.bulkMode === nextProps.bulkMode &&
         prevProps.selectedIds?.size === nextProps.selectedIds?.size &&
         prevProps.selectedIds?.has(prevProps.section.id) === nextProps.selectedIds?.has(nextProps.section.id)
     );
@@ -755,6 +761,7 @@ const SectionsListComponent = function SectionsList({
     styleGroups,
     selectedIds,
     onToggleSelect,
+    bulkMode
 }: ISectionsListProps) {
 
     // Helper function to flatten all sections including nested children
@@ -1008,6 +1015,7 @@ const SectionsListComponent = function SectionsList({
                                         styleGroups={styleGroups}
                                         selectedIds={selectedIds}
                                         onToggleSelect={onToggleSelect}
+                                        bulkMode={bulkMode}
                                     />
                                 ))}
                             </div>

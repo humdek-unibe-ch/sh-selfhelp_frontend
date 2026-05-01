@@ -97,6 +97,8 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
     const [selectedParentSectionId, setSelectedParentSectionId] = useState<number | null>(null);
     const [selectedSectionId, setSelectedSectionId] = useState<number | null>(null);
     const [specificPosition, setSpecificPosition] = useState<number | undefined>(undefined);
+    const [bulkMode, setBulkMode] = useState(false);
+
 
     // Search functionality
     const [searchQuery, setSearchQuery] = useState('');
@@ -109,6 +111,13 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
         pageId: pageId ? pageId : undefined,
         showNotifications: true
     });
+
+    const handleToggleBulkMode = () => {
+    setBulkMode(prev => {
+        if (prev) setSelectedIds(new Set()); // clear selection on exit
+        return !prev;
+    });
+    };
 
     // Search functionality
     const searchInSections = useCallback((sections: IPageSectionWithFields[], query: string): number[] => {
@@ -650,6 +659,18 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
 
                <Button
                  size="sm"
+                 variant={bulkMode ? "filled" : "light"}
+                 color={bulkMode ? "orange" : ""}
+                 onClick={handleToggleBulkMode}
+                    leftSection={
+                     <IconTrash size={16} />
+                 }
+               >
+                 {bulkMode ? "Exit bulk" : "Bulk remove"}
+               </Button>
+
+               <Button
+                 size="sm"
                  variant="light"
                  component={Link}
                  href={`/admin/pages/${pageName}`}
@@ -670,30 +691,32 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
              </Group>
 
              {/* Bottom row (selection actions) */}
-            {data && data?.sections?.length > 0 && (
-            <Group gap="xs" mt="xs">
-                <Button
-                size="sm"
-                variant="subtle"
-                onClick={() =>
-                    selectedIds.size > 0 ? handleDeselectAll() : handleSelectAll()
-                }
-                >
-                {selectedIds.size > 0 ? "Deselect All" : "Select All"}
-                </Button>
+             {bulkMode && (
+               <Group gap="xs" mt="xs">
+                 <Button
+                   size="sm"
+                   variant="subtle"
+                   onClick={() =>
+                     selectedIds.size > 0
+                       ? handleDeselectAll()
+                       : handleSelectAll()
+                   }
+                 >
+                   {selectedIds.size > 0 ? "Deselect All" : "Select All"}
+                 </Button>
 
-                {selectedIds.size > 0 && (
-                <Button
-                    size="sm"
-                    color="orange"
-                    leftSection={<IconTrash size={14} />}
-                    onClick={() => setBulkRemoveModalOpened(true)}
-                >
-                    Remove ({selectedIds.size})
-                </Button>
-                )}
-            </Group>
-            )}
+                 {selectedIds.size > 0 && (
+                   <Button
+                     size="sm"
+                     color="orange"
+                     leftSection={<IconTrash size={14} />}
+                     onClick={() => setBulkRemoveModalOpened(true)}
+                   >
+                     Remove ({selectedIds.size})
+                   </Button>
+                 )}
+               </Group>
+             )}
            </Stack>
          </PageHeader>
 
@@ -805,6 +828,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
              styleGroups={styleGroups}
              selectedIds={selectedIds}
              onToggleSelect={handleToggleSelect}
+             bulkMode={bulkMode}
            />
          </Box>
 
@@ -824,15 +848,17 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
            onSectionsImported={handleSectionsImported}
          />
 
-        <BulkRemoveModal
-            opened={BulkRemoveModalOpened}
-            onClose={() => setBulkRemoveModalOpened(false)}
-            selectedSections={Array.from(selectedIds).map(id => ({
-                id,
-                name: findSectionById(id, data?.sections || [])?.section_name ?? 'Unknown Section'
-            }))}
-            onConfirm={handleBulkRemove}
-        />
+         <BulkRemoveModal
+           opened={BulkRemoveModalOpened}
+           onClose={() => setBulkRemoveModalOpened(false)}
+           selectedSections={Array.from(selectedIds).map((id) => ({
+             id,
+             name:
+               findSectionById(id, data?.sections || [])?.section_name ??
+               "Unknown Section",
+           }))}
+           onConfirm={handleBulkRemove}
+         />
        </Stack>
      </Paper>
    );
