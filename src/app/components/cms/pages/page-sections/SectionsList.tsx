@@ -710,6 +710,7 @@ const SectionItem = memo(function SectionItem({
         prevProps.searchQuery === nextProps.searchQuery &&
         prevProps.pageId === nextProps.pageId &&
         JSON.stringify(prevProps.section.children) === JSON.stringify(nextProps.section.children) &&
+        prevProps.selectedIds?.size === nextProps.selectedIds?.size &&
         prevProps.selectedIds?.has(prevProps.section.id) === nextProps.selectedIds?.has(nextProps.section.id)
     );
 });

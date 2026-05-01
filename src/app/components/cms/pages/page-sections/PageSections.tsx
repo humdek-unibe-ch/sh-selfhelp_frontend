@@ -689,7 +689,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                     leftSection={<IconTrash size={14} />}
                     onClick={() => setBulkRemoveModalOpened(true)}
                 >
-                    Delete ({selectedIds.size})
+                    Remove ({selectedIds.size})
                 </Button>
                 )}
             </Group>
