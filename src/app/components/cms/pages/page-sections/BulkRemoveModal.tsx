@@ -18,7 +18,7 @@ export function BulkRemoveModal({
     <Modal
       opened={opened}
       onClose={onClose}
-      title="Delete Sections"
+      title="Remove Sections"
       centered
       size="lg"
     >
@@ -61,7 +61,7 @@ export function BulkRemoveModal({
             Cancel
           </Button>
           <Button color="orange" onClick={onConfirm}>
-            Yes, Delete All
+          Remove All
           </Button>
         </Group>
       </Stack>
