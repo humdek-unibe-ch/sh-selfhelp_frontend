@@ -8,6 +8,7 @@
 // Page-Section mutations
 export { useAddSectionToPageMutation } from './useAddSectionToPageMutation';
 export { useRemoveSectionFromPageMutation } from './useRemoveSectionFromPageMutation';
+export { useRemoveBulkSectionsFromPageMutation } from './useRemoveBulkSectionsFromPageMutation';
 
 // Section-Section mutations
 export { useAddSectionToSectionMutation } from './useAddSectionToSectionMutation';

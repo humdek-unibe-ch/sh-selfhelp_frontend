@@ -13,8 +13,8 @@ import { AdminApi } from '../../../api/admin';
 import { parseApiError } from '../../../utils/mutation-error-handler';
 
 interface IRemoveSectionFromPageMutationOptions {
-    onSuccess?: (data: any, variables: { pageId: number; sectionId: number }) => void;
-    onError?: (error: any, variables: { pageId: number; sectionId: number }) => void;
+    onSuccess?: (data: any, variables: { pageId: number; sectionId: number; }) => void;
+    onError?: (error: any, variables: { pageId: number; sectionId: number; }) => void;
     showNotifications?: boolean;
 }
 

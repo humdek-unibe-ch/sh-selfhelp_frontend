@@ -11,8 +11,7 @@ import { IBaseApiResponse } from '../../types/responses/common/response-envelope
 import { TSectionDetailsResponse, ISectionDetailsData } from '../../types/responses/admin/admin.types';
 import type { AxiosRequestConfig } from 'axios';
 import { 
-    IAddSectionToPageData,
-    IAddSectionToSectionData,
+    IAddSectionInSectionData,
     ICreateSectionInPageData,
     ICreateSectionInSectionData,
     IUpdateSectionInPageData
@@ -22,17 +21,13 @@ export const AdminSectionApi = {
     /**
      * Adds an existing section to a page
      * @param {number} pageId - The page ID
-     * @param {number} sectionId - The section ID to add
-     * @param {IAddSectionToPageData} sectionData - The section data to add (position)
+     * @param {IAddSectionInSectionData[]} sections - The sections to add and data
      * @returns {Promise<any>} The created section data
      * @throws {Error} When API request fails
      */
-    async addSectionToPage(pageId: number, sectionId: number, sectionData: IAddSectionToPageData): Promise<any> {
+    async addSectionToPage(pageId: number, sections: IAddSectionInSectionData[]): Promise<any> {
         const requestBody = {
-            sectionId: sectionId,
-            position: sectionData.position,
-            ...(sectionData.oldParentPageId && { oldParentPageId: sectionData.oldParentPageId }),
-            ...(sectionData.oldParentSectionId && { oldParentSectionId: sectionData.oldParentSectionId })
+        sections: sections,
         };
         
         const response = await permissionAwareApiClient.put(
@@ -82,7 +77,7 @@ export const AdminSectionApi = {
     /**
      * Removes a section from a page
      * @param {number} pageId - The page ID
-     * @param {number} sectionId - The section ID to remove
+     * @param {number} sectionId - The section ID list to remove
      * @returns {Promise<{ success: boolean }>} Success response
      * @throws {Error} When API request fails
      */
@@ -90,27 +85,44 @@ export const AdminSectionApi = {
         const response = await permissionAwareApiClient.delete(
             API_CONFIG.ENDPOINTS.ADMIN_PAGES_REMOVE_SECTION,
             pageId,
-            sectionId
+            sectionId,
         );
         // For 204 No Content responses, return success indicator
         return { success: response.status === 204 || response.status === 200 };
+    },
+
+     /**
+     * Removes a section from a page
+     * @param {number} pageId - The page ID
+     * @param {number[]} sectionIds - The section ID list to remove
+     * @returns {Promise<{ success: boolean }>} Success response
+     * @throws {Error} When API request fails
+     */
+    async removeBulkSectionsFromPage(pageId: number, sectionIds: number[]): Promise<any> {
+        const response = await permissionAwareApiClient.delete(
+          API_CONFIG.ENDPOINTS.ADMIN_PAGES_BULK_REMOVE_SECTION,
+          pageId,
+          {
+            data: { sectionIds },
+          },
+        );
+        return response.data?.data ?? {
+            success: response.status === 204 || response.status === 200,
+            deleted_count: sectionIds.length,
+        };
     },
 
     /**
      * Adds an existing section to another section
      * @param {number} pageId - The page ID
      * @param {number} parentSectionId - The parent section ID
-     * @param {number} sectionId - The section ID to add
-     * @param {IAddSectionToSectionData} sectionData - The section data to add (position)
+     * @param {IAddSectionInSectionData[]} sections - The sections to add with data
      * @returns {Promise<any>} The created section data
      * @throws {Error} When API request fails
      */
-    async addSectionToSection(pageId: number, parentSectionId: number, sectionId: number, sectionData: IAddSectionToSectionData): Promise<any> {
+    async addSectionToSection(pageId: number, parentSectionId: number, sections: IAddSectionInSectionData[]): Promise<any> {
         const requestBody = {
-            childSectionId: sectionId,
-            position: sectionData.position,
-            ...(sectionData.oldParentPageId && { oldParentPageId: sectionData.oldParentPageId }),
-            ...(sectionData.oldParentSectionId && { oldParentSectionId: sectionData.oldParentSectionId })
+        sections,
         };
         
         const response = await permissionAwareApiClient.put(
@@ -148,10 +160,10 @@ export const AdminSectionApi = {
      * @returns {Promise<any>} The created section data
      * @throws {Error} When API request fails
      */
-    async createSectionInPage(pageId: number, sectionData: ICreateSectionInPageData): Promise<any> {
+    async createSectionInPage(pageId: number, sections: ICreateSectionInPageData | ICreateSectionInPageData[]): Promise<any> {
         const response = await permissionAwareApiClient.post<IBaseApiResponse<any>>(
             API_CONFIG.ENDPOINTS.ADMIN_PAGES_CREATE_SECTION,
-            sectionData,
+            sections,
             pageId
         );
         return response.data.data;
@@ -165,7 +177,11 @@ export const AdminSectionApi = {
      * @returns {Promise<any>} The created section data
      * @throws {Error} When API request fails
      */
-    async createSectionInSection(pageId: number, parentSectionId: number, sectionData: ICreateSectionInSectionData): Promise<any> {
+    async createSectionInSection(
+        pageId: number,
+        parentSectionId: number,
+        sectionData: ICreateSectionInSectionData | ICreateSectionInSectionData[]
+    ): Promise<any> {
         const response = await permissionAwareApiClient.post<IBaseApiResponse<any>>(
             API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_CREATE_CHILD,
             sectionData,

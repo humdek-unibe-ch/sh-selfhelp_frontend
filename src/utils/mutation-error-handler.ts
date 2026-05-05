@@ -35,6 +35,16 @@ export function parseApiError(error: any): IParsedError {
         
         if (responseData?.error || responseData?.message) {
             errorMessage = responseData.error || responseData.message;
+
+            const itemErrors = responseData?.data?.errors;
+            if (Array.isArray(itemErrors) && itemErrors.length > 0) {
+                const details = itemErrors
+                    .slice(0, 5)
+                    .map((item: any) => `#${item.sectionId ?? item.id}: ${item.error ?? 'Failed'}`)
+                    .join('; ');
+                const suffix = itemErrors.length > 5 ? `; +${itemErrors.length - 5} more` : '';
+                errorMessage = `${errorMessage}: ${details}${suffix}`;
+            }
             
             if (status === 500) {
                 errorTitle = 'Server Error';
@@ -244,4 +254,4 @@ export async function withErrorHandling<T>(
         }
         throw error; // Re-throw for component-level error handling
     }
-} 
+}

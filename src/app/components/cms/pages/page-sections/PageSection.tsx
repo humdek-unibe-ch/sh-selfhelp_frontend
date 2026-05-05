@@ -1,7 +1,7 @@
 'use client';
 
 import { forwardRef, useState } from 'react';
-import { Box, Text, Paper, Group, Badge, ActionIcon, Tooltip } from '@mantine/core';
+import { Box, Text, Paper, Group, Badge, ActionIcon, Tooltip, Checkbox } from '@mantine/core';
 import { 
     IconChevronRight, 
     IconChevronDown, 
@@ -40,13 +40,18 @@ interface IPageSectionProps {
     isDragging?: boolean;
 
     showInsideDropZone?: boolean;
+
+    defaultBulkSelected?: boolean;
+    onToggleSelect?: (sectionId: number, selected: boolean) => void;
+    selectionVersion: number;
+    bulkMode: boolean;
 }
 
 export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     section,
     level,
     parentId,
-    pageId,
+    pageId: _pageId,
     expandedSections,
     onToggleExpand,
     onRemoveSection,
@@ -58,21 +63,33 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     focusedSectionId,
     searchQuery,
     isDragActive,
-    overId,
-    draggedSectionId,
+    overId: _overId,
+    draggedSectionId: _draggedSectionId,
     dragHandleProps,
     isDragging = false,
 
-    showInsideDropZone = false
+    showInsideDropZone: _showInsideDropZone = false,
+
+    defaultBulkSelected = false,
+    onToggleSelect,
+    selectionVersion,
+    bulkMode
 }, ref) => {
     const [removeModalOpened, setRemoveModalOpened] = useState(false);
-    
+    const [isBulkSelected, setIsBulkSelected] = useState(defaultBulkSelected);
+    const [trackedSelectionVersion, setTrackedSelectionVersion] = useState(selectionVersion);
+
+    // Sync from parent (Select All / Deselect All / Clear) without a wasted render.
+    // React docs: "Storing information from previous renders" pattern.
+    if (trackedSelectionVersion !== selectionVersion) {
+        setTrackedSelectionVersion(selectionVersion);
+        setIsBulkSelected(defaultBulkSelected);
+    }
+
     const hasChildren = section.children && section.children.length > 0;
     const isExpanded = expandedSections.has(section.id);
     const canHaveChildren = !!section.can_have_children;
-    const isBeingDragged = draggedSectionId === section.id;
-    const isValidDropTarget = canHaveChildren && overId === section.id;
-    const isSelected = selectedSectionId === section.id;
+    const isActive = selectedSectionId === section.id;
     const isFocused = focusedSectionId === section.id;
 
     // Dynamic indentation aligned with chevron - 12px per level to align with chevron positioning
@@ -154,159 +171,183 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     // Remove the old click handler - now handled by SectionLink
 
     return (
-        <>
-            <div style={getIndentationStyle()} className={styles.indentationWrapper}>
-                <SectionLink
-                    sectionId={section.id}
-                    onSectionSelect={onSectionSelect}
-                    className={`${styles.sectionItem} ${getLevelClass()} ${isSelected ? styles.selected : ''} ${isFocused ? styles.focused : ''}`}
-                    data-section-id={section.id}
-                >
-                    <Paper
-                        ref={ref}
-                        className={styles.sectionPaper}
+      <>
+        <div
+          style={getIndentationStyle()}
+          className={styles.indentationWrapper}
+        >
+          <SectionLink
+            sectionId={section.id}
+            onSectionSelect={onSectionSelect}
+            className={`${styles.sectionItem} ${getLevelClass()} ${isActive ? styles.selected : ""} ${isBulkSelected ? styles.bulkSelected : ""} ${isFocused ? styles.focused : ""}`}
+            data-section-id={section.id}
+          >
+            <Paper ref={ref} className={styles.sectionPaper}>
+              <Group
+                gap="xs"
+                p="xs"
+                wrap="nowrap"
+                align="center"
+                className={styles.compactGroup}
+              >
+                {/* Drag Handle - properly connected */}
+                <div {...dragHandleProps}>
+                  <ActionIcon
+                    variant="subtle"
+                    size="xs"
+                    color="gray"
+                    className={`${styles.dragHandle} ${isDragActive ? "opacity-100" : "opacity-60"} ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
+                  >
+                    <IconGripVertical />
+                  </ActionIcon>
+                </div>
+
+                {/* Expand/Collapse Toggle - only show if has children */}
+                {hasChildren ? (
+                  <ActionIcon
+                    variant="subtle"
+                    size="xs"
+                    onClick={handleToggleExpand}
+                    className={styles.expandButton}
+                    data-action-button="true"
+                  >
+                    {isExpanded ? <IconChevronDown /> : <IconChevronRight />}
+                  </ActionIcon>
+                ) : (
+                  <Box w={12} />
+                )}
+
+                {/* Section Icon */}
+                <Box className={styles.sectionIcon}>{getSectionIcon()}</Box>
+
+                {/* Section Info - Ultra Compact */}
+                <Box className={styles.sectionInfo}>
+                  <Group gap={3} wrap="nowrap" align="center">
+                    <Text
+                      size="xs"
+                      fw={500}
+                      className={styles.sectionName}
+                      title={section.section_name}
                     >
-                    <Group gap="xs" p="xs" wrap="nowrap" align="center" className={styles.compactGroup}>
-                        {/* Drag Handle - properly connected */}
-                        <div {...dragHandleProps}>
-                            <ActionIcon
-                                variant="subtle"
-                                size="xs"
-                                color="gray"
-                                className={`${styles.dragHandle} ${isDragActive ? 'opacity-100' : 'opacity-60'} ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-                            >
-                                <IconGripVertical />
-                            </ActionIcon>
-                        </div>
+                      <HighlightText
+                        text={section.section_name}
+                        query={searchQuery}
+                      />
+                    </Text>
+                    <Badge
+                      size="xs"
+                      variant="light"
+                      color={getSectionTypeColor()}
+                      className={styles.styleBadge}
+                    >
+                      <HighlightText
+                        text={section.style_name}
+                        query={searchQuery}
+                      />
+                    </Badge>
+                    {hasChildren && (
+                      <Badge
+                        size="xs"
+                        variant="outline"
+                        color="gray"
+                        className={styles.childCount}
+                      >
+                        {section.children?.length}
+                      </Badge>
+                    )}
+                  </Group>
+                  <Text size="xs" c="dimmed" className={styles.sectionMeta}>
+                    #
+                    <HighlightText
+                      text={String(section.id)}
+                      query={searchQuery}
+                    />{" "}
+                    • pos:{section.position}
+                  </Text>
+                </Box>
 
-                        {/* Expand/Collapse Toggle - only show if has children */}
-                        {hasChildren ? (
-                            <ActionIcon
-                                variant="subtle"
-                                size="xs"
-                                onClick={handleToggleExpand}
-                                className={styles.expandButton}
-                                data-action-button="true"
-                            >
-                                {isExpanded ? <IconChevronDown  /> : <IconChevronRight  />}
-                            </ActionIcon>
-                        ) : (
-                            <Box w={12} />
-                        )}
+                {/* Action Buttons - Ultra compact and hover-based */}
+                <Group gap={1} className={styles.actionButtons}>
+                  {canHaveChildren && (
+                    <Tooltip label="Add child" position="top" withArrow>
+                      <ActionIcon
+                        size="xs"
+                        variant="subtle"
+                        color="green"
+                        onClick={handleAddChild}
+                        className={styles.actionButton}
+                        data-action-button="true"
+                      >
+                        <IconPlus />
+                      </ActionIcon>
+                    </Tooltip>
+                  )}
 
-                        {/* Section Icon */}
-                        <Box className={styles.sectionIcon}>
-                            {getSectionIcon()}
-                        </Box>
+                  <Tooltip label="Add above" position="top" withArrow>
+                    <ActionIcon
+                      size="xs"
+                      variant="subtle"
+                      color="blue"
+                      onClick={handleAddSiblingAbove}
+                      className={styles.actionButton}
+                      data-action-button="true"
+                    >
+                      <IconPlus />
+                    </ActionIcon>
+                  </Tooltip>
 
-                        {/* Section Info - Ultra Compact */}
-                        <Box className={styles.sectionInfo}>
-                            <Group gap={3} wrap="nowrap" align="center">
-                                <Text
-                                    size="xs"
-                                    fw={500}
-                                    className={styles.sectionName}
-                                    title={section.section_name}
-                                >
-                                    <HighlightText
-                                        text={section.section_name}
-                                        query={searchQuery}
-                                    />
-                                </Text>
-                                <Badge 
-                                    size="xs" 
-                                    variant="light" 
-                                    color={getSectionTypeColor()}
-                                    className={styles.styleBadge}
-                                >
-                                    <HighlightText
-                                        text={section.style_name}
-                                        query={searchQuery}
-                                    />
-                                </Badge>
-                                {hasChildren && (
-                                    <Badge size="xs" variant="outline" color="gray" className={styles.childCount}>
-                                        {section.children?.length}
-                                    </Badge>
-                                )}
-                            </Group>
-                            <Text size="xs" c="dimmed" className={styles.sectionMeta}>
-                                #<HighlightText
-                                    text={String(section.id)}
-                                    query={searchQuery}
-                                /> • pos:{section.position}
-                            </Text>
-                        </Box>
+                  <Tooltip label="Add below" position="top" withArrow>
+                    <ActionIcon
+                      size="xs"
+                      variant="subtle"
+                      color="blue"
+                      onClick={handleAddSiblingBelow}
+                      className={styles.actionButton}
+                      data-action-button="true"
+                    >
+                      <IconPlus />
+                    </ActionIcon>
+                  </Tooltip>
 
-                        {/* Action Buttons - Ultra compact and hover-based */}
-                        <Group gap={1} className={styles.actionButtons}>
-                            {canHaveChildren && (
-                                <Tooltip label="Add child" position="top" withArrow>
-                                    <ActionIcon
-                                        size="xs"
-                                        variant="subtle"
-                                        color="green"
-                                        onClick={handleAddChild}
-                                        className={styles.actionButton}
-                                        data-action-button="true"
-                                    >
-                                        <IconPlus />
-                                    </ActionIcon>
-                                </Tooltip>
-                            )}
-                            
-                            <Tooltip label="Add above" position="top" withArrow>
-                                <ActionIcon
-                                    size="xs"
-                                    variant="subtle"
-                                    color="blue"
-                                    onClick={handleAddSiblingAbove}
-                                    className={styles.actionButton}
-                                    data-action-button="true"
-                                >
-                                    <IconPlus />
-                                </ActionIcon>
-                            </Tooltip>
-                            
-                            <Tooltip label="Add below" position="top" withArrow>
-                                <ActionIcon
-                                    size="xs"
-                                    variant="subtle"
-                                    color="blue"
-                                    onClick={handleAddSiblingBelow}
-                                    className={styles.actionButton}
-                                    data-action-button="true"
-                                >
-                                    <IconPlus />
-                                </ActionIcon>
-                            </Tooltip>
+                  <Tooltip label="Remove" position="top" withArrow>
+                    <ActionIcon
+                      size="xs"
+                      variant="subtle"
+                      color="orange"
+                      onClick={handleRemoveSection}
+                      className={styles.actionButton}
+                      data-action-button="true"
+                    >
+                      <IconTrash />
+                    </ActionIcon>
+                  </Tooltip>
+                </Group>
+                {bulkMode && (
+                  <Checkbox
+                    size="xs"
+                    checked={isBulkSelected}
+                    onChange={(event) => {
+                      const checked = event.currentTarget.checked;
+                      setIsBulkSelected(checked);
+                      onToggleSelect?.(section.id, checked);
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    aria-label={`Select ${section.section_name}`}
+                  />
+                )}
+              </Group>
+            </Paper>
+          </SectionLink>
+        </div>
 
-                            <Tooltip label="Remove" position="top" withArrow>
-                                <ActionIcon
-                                    size="xs"
-                                    variant="subtle"
-                                    color="orange"
-                                    onClick={handleRemoveSection}
-                                    className={styles.actionButton}
-                                    data-action-button="true"
-                                >
-                                    <IconTrash />
-                                </ActionIcon>
-                            </Tooltip>
-                        </Group>
-                    </Group>
-                    </Paper>
-                </SectionLink>
-            </div>
-
-            {/* Remove Section Modal */}
-            <RemoveSectionModal
-                opened={removeModalOpened}
-                onClose={handleRemoveModalClose}
-                onConfirm={handleRemoveConfirm}
-                section={section}
-            />
-        </>
+        {/* Remove Section Modal */}
+        <RemoveSectionModal
+          opened={removeModalOpened}
+          onClose={handleRemoveModalClose}
+          onConfirm={handleRemoveConfirm}
+          section={section}
+        />
+      </>
     );
 });
 

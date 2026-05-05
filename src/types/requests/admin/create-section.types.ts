@@ -15,6 +15,10 @@ export interface IAddSectionToSectionData {
     oldParentSectionId?: number | null; // Section ID where section was previously located
 }
 
+export interface IAddSectionInSectionData extends IAddSectionToSectionData {
+    sectionId: number;
+}
+
 export interface ICreateSectionInPageData {
     styleId: number;
     position: number;

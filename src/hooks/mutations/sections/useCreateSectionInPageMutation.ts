@@ -25,7 +25,7 @@ interface ICreateSectionInPageData {
 
 interface ICreateSectionInPageVariables {
     pageId: number;
-    sectionData: ICreateSectionInPageData;
+    sections: ICreateSectionInPageData[];
 }
 
 /**
@@ -38,15 +38,15 @@ export function useCreateSectionInPageMutation(options: ICreateSectionInPageMuta
     const { onSuccess, onError, showNotifications = true } = options;
 
     return useMutation({
-        mutationFn: ({ pageId, sectionData }: ICreateSectionInPageVariables) => 
-            AdminApi.createSectionInPage(pageId, sectionData),
+        mutationFn: ({ pageId, sections }: ICreateSectionInPageVariables) => 
+            AdminApi.createSectionInPage(pageId, sections),
         
         onSuccess: async (createdSection: any, variables: ICreateSectionInPageVariables) => {
             
             // Invalidate relevant queries to update the UI with consistent query keys
             await Promise.all([
                 queryClient.invalidateQueries({ queryKey: ['pageSections', variables.pageId] }),
-                queryClient.refetchQueries({ queryKey: ['pageSections', variables.pageId] }),
+                queryClient.refetchQueries({ queryKey: ['pageSections', variables.pageId] })
             ]);
             
             if (showNotifications) {

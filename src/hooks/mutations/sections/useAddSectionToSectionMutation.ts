@@ -11,20 +11,34 @@ import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin';
 import { parseApiError } from '../../../utils/mutation-error-handler';
-import { IAddSectionToSectionData } from '../../../types/requests/admin/create-section.types';
+import { IAddSectionInSectionData } from '../../../types/requests/admin/create-section.types';
 
 interface IAddSectionToSectionMutationOptions {
-    onSuccess?: (data: any, variables: { pageId: number; parentSectionId: number; sectionId: number; sectionData: IAddSectionToSectionData }) => void;
-    onError?: (error: any, variables: { pageId: number; parentSectionId: number; sectionId: number; sectionData: IAddSectionToSectionData }) => void;
-    showNotifications?: boolean;
-    pageId?: number; // Optional page ID for cache invalidation
+  onSuccess?: (
+    data: any,
+    variables: {
+      pageId: number;
+      parentSectionId: number;
+      sections: IAddSectionInSectionData[];
+     },
+  ) => void;
+
+  onError?: (
+    error: any,
+    variables: {
+      pageId: number;
+      parentSectionId: number;
+      sections: IAddSectionInSectionData[];
+    },
+  ) => void;
+  showNotifications?: boolean;
+  pageId?: number; // Optional page ID for cache invalidation
 }
 
 interface IAddSectionToSectionVariables {
     pageId: number;
     parentSectionId: number;
-    sectionId: number;
-    sectionData: IAddSectionToSectionData;
+    sections: IAddSectionInSectionData[];
 }
 
 /**
@@ -37,16 +51,16 @@ export function useAddSectionToSectionMutation(options: IAddSectionToSectionMuta
     const { onSuccess, onError, showNotifications = true, pageId: cachePageId } = options;
 
     return useMutation({
-        mutationFn: ({ pageId, parentSectionId, sectionId, sectionData }: IAddSectionToSectionVariables) => 
-            AdminApi.addSectionToSection(pageId, parentSectionId, sectionId, sectionData),
+        mutationFn: ({ pageId, parentSectionId, sections }: IAddSectionToSectionVariables) => 
+            AdminApi.addSectionToSection(pageId, parentSectionId, sections),
         
         onSuccess: async (createdSection: any, variables: IAddSectionToSectionVariables) => {
 
             // Invalidate relevant queries to update the UI
             const invalidationPromises = [
                 queryClient.invalidateQueries({ queryKey: ['pageSections', variables.pageId] }),
+                queryClient.invalidateQueries({queryKey: ['admin', 'sections', 'unused']}),
             ];
-
             await Promise.all(invalidationPromises);
             
             if (showNotifications) {

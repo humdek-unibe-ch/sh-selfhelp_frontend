@@ -33,6 +33,11 @@
     box-shadow: 0 2px 6px light-dark(rgba(37, 99, 235, 0.15), rgba(37, 99, 235, 0.3));
 }
 
+.sectionItem.bulkSelected .sectionPaper {
+    border-color: var(--mantine-color-orange-5);
+    background-color: light-dark(var(--mantine-color-orange-0), var(--mantine-color-orange-9));
+}
+
 /* Focused state - matches the `2/3` match-counter badge styling for consistency:
    yellow-light background + yellow-light-color (orange/amber) border and accent. */
 .sectionItem.focused .sectionPaper {

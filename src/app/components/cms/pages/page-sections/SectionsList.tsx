@@ -50,6 +50,10 @@ interface ISectionsListProps {
     searchQuery?: string;
     pageId?: number;
     styleGroups?: IStyleGroup[];
+    selectedIdsRef?: React.RefObject<Set<number>>;
+    onToggleSelect?: (sectionId: number, selected: boolean) => void;
+    selectionVersion: number;
+    bulkMode: boolean;
 }
 
 interface ISectionItemProps {
@@ -68,6 +72,10 @@ interface ISectionItemProps {
     focusedSectionId?: number | null;
     searchQuery?: string;
     styleGroups?: IStyleGroup[];
+    selectedIdsRef?: React.RefObject<Set<number>>;
+    onToggleSelect?: (sectionId: number, selected: boolean) => void;
+    selectionVersion: number;
+    bulkMode: boolean;
 }
 
 interface IDragState {
@@ -90,6 +98,28 @@ interface IHoverPreviewState {
     newParentId: number | null;
     newPosition: number | null;
     targetSectionName: string | null;
+}
+
+function findSectionById(id: number, items: IPageSectionWithFields[]): IPageSectionWithFields | null {
+    for (const item of items) {
+        if (item.id === id) return item;
+        if (item.children) {
+            const found = findSectionById(id, item.children);
+            if (found) return found;
+        }
+    }
+    return null;
+}
+
+function getAllDescendantIds(section: IPageSectionWithFields): number[] {
+    const ids: number[] = [];
+    if (section.children) {
+        section.children.forEach(child => {
+            ids.push(child.id);
+            ids.push(...getAllDescendantIds(child));
+        });
+    }
+    return ids;
 }
 
 // Context for drag state
@@ -120,7 +150,11 @@ const SectionItem = memo(function SectionItem({
     selectedSectionId,
     focusedSectionId,
     searchQuery,
-    styleGroups
+    styleGroups,
+    selectedIdsRef,
+    onToggleSelect,
+    selectionVersion,
+    bulkMode
 }: ISectionItemProps) {
     const dragContext = useContext(DragContext);
     const hoverPreviewContext = useContext(HoverPreviewContext);
@@ -639,6 +673,10 @@ const SectionItem = memo(function SectionItem({
                 selectedSectionId={selectedSectionId}
                 focusedSectionId={focusedSectionId}
                 searchQuery={searchQuery}
+                defaultBulkSelected={selectedIdsRef?.current.has(section.id) ?? false}
+                onToggleSelect={onToggleSelect}
+                selectionVersion={selectionVersion}
+                bulkMode={bulkMode}
             />
 
             {/* Drop zone area for sections that can have children but don't have any */}
@@ -680,6 +718,10 @@ const SectionItem = memo(function SectionItem({
                             focusedSectionId={focusedSectionId}
                             searchQuery={searchQuery}
                             styleGroups={styleGroups}
+                            selectedIdsRef={selectedIdsRef}
+                            onToggleSelect={onToggleSelect}
+                            selectionVersion={selectionVersion}
+                            bulkMode={bulkMode}
                         />
                     ))}
                 </Box>
@@ -687,19 +729,20 @@ const SectionItem = memo(function SectionItem({
         </Box>
     );
 }, (prevProps, nextProps) => {
-    // Custom comparison for memoization
     return (
         prevProps.section.id === nextProps.section.id &&
         prevProps.section.section_name === nextProps.section.section_name &&
         prevProps.section.position === nextProps.section.position &&
+        prevProps.section.children === nextProps.section.children &&
+        prevProps.selectionVersion === nextProps.selectionVersion &&
+        prevProps.bulkMode === nextProps.bulkMode &&
         prevProps.level === nextProps.level &&
         prevProps.index === nextProps.index &&
         prevProps.parentId === nextProps.parentId &&
         prevProps.selectedSectionId === nextProps.selectedSectionId &&
         prevProps.focusedSectionId === nextProps.focusedSectionId &&
         prevProps.searchQuery === nextProps.searchQuery &&
-        prevProps.pageId === nextProps.pageId &&
-        JSON.stringify(prevProps.section.children) === JSON.stringify(nextProps.section.children)
+        prevProps.pageId === nextProps.pageId
     );
 });
 
@@ -741,6 +784,10 @@ const SectionsListComponent = function SectionsList({
     searchQuery,
     pageId,
     styleGroups,
+    selectedIdsRef,
+    onToggleSelect,
+    selectionVersion,
+    bulkMode
 }: ISectionsListProps) {
 
     // Helper function to flatten all sections including nested children
@@ -787,39 +834,14 @@ const SectionsListComponent = function SectionsList({
         targetSectionName: null
     });
 
-    // Helper functions
-    const findSectionById = useCallback((id: number, items: IPageSectionWithFields[]): IPageSectionWithFields | null => {
-        for (const item of items) {
-            if (item.id === id) return item;
-            if (item.children) {
-                const found = findSectionById(id, item.children);
-                if (found) return found;
-            }
-        }
-        return null;
-    }, []);
-
-    const getAllDescendantIds = useCallback((section: IPageSectionWithFields): number[] => {
-        const ids: number[] = [];
-        if (section.children) {
-            section.children.forEach(child => {
-                ids.push(child.id);
-                ids.push(...getAllDescendantIds(child));
-            });
-        }
-        return ids;
-    }, []);
-
-    const findParentId = useCallback((sectionId: number, items: IPageSectionWithFields[], parentId: number | null = null): number | null => {
-        for (const item of items) {
-            if (item.id === sectionId) return parentId;
-            if (item.children) {
-                const found = findParentId(sectionId, item.children, item.id);
-                if (found !== null) return found;
-            }
-        }
-        return null;
-    }, []);
+   const findParentId = (sectionId: number, items: IPageSectionWithFields[]): number | null => {
+    for (const item of items) {
+        if (item.children?.some(c => c.id === sectionId)) return item.id;
+        const found = findParentId(sectionId, item.children || []);
+        if (found !== null) return found;
+    }
+    return null;
+};
 
     /**
      * Calculates the new position for a dropped section using centralized positioning logic
@@ -849,7 +871,7 @@ const SectionsListComponent = function SectionsList({
             newParentId: result.newParentId as number | null,
             newPosition: result.newPosition
         };
-    }, [sections, findSectionById]);
+    }, [sections]);
 
     // Set up auto-scroll with proper reinitialization
     useEffect(() => {
@@ -949,7 +971,7 @@ const SectionsListComponent = function SectionsList({
                 });
             },
         });
-    }, [sections, findSectionById, getAllDescendantIds, calculateNewPosition, pageId, findParentId]);
+    }, [sections, calculateNewPosition, pageId, findParentId, onSectionMove]);
 
 
     return (
@@ -994,6 +1016,10 @@ const SectionsListComponent = function SectionsList({
                                         focusedSectionId={focusedSectionId}
                                         searchQuery={searchQuery}
                                         styleGroups={styleGroups}
+                                        selectedIdsRef={selectedIdsRef}
+                                        onToggleSelect={onToggleSelect}
+                                        selectionVersion={selectionVersion}
+                                        bulkMode={bulkMode}
                                     />
                                 ))}
                             </div>
@@ -1005,5 +1031,16 @@ const SectionsListComponent = function SectionsList({
     );
 };
 
-// Temporarily export without memoization for debugging
-export const SectionsList = SectionsListComponent; 
+export const SectionsList = memo(SectionsListComponent, (prevProps, nextProps) => {
+    return (
+        prevProps.sections === nextProps.sections &&
+        prevProps.expandedSections === nextProps.expandedSections &&
+        prevProps.selectedSectionId === nextProps.selectedSectionId &&
+        prevProps.focusedSectionId === nextProps.focusedSectionId &&
+        prevProps.searchQuery === nextProps.searchQuery &&
+        prevProps.pageId === nextProps.pageId &&
+        prevProps.styleGroups === nextProps.styleGroups &&
+        prevProps.selectionVersion === nextProps.selectionVersion &&
+        prevProps.bulkMode === nextProps.bulkMode
+    );
+});

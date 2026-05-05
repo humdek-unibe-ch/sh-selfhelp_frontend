@@ -27,7 +27,7 @@ interface ICreateSectionInSectionData {
 interface ICreateSectionInSectionVariables {
     pageId: number;
     parentSectionId: number;
-    sectionData: ICreateSectionInSectionData;
+    sections: ICreateSectionInSectionData[];
 }
 
 /**
@@ -40,14 +40,14 @@ export function useCreateSectionInSectionMutation(options: ICreateSectionInSecti
     const { onSuccess, onError, showNotifications = true, pageId: cachePageId } = options;
 
     return useMutation({
-        mutationFn: ({ pageId, parentSectionId, sectionData }: ICreateSectionInSectionVariables) => 
-            AdminApi.createSectionInSection(pageId, parentSectionId, sectionData),
+        mutationFn: ({ pageId, parentSectionId, sections }: ICreateSectionInSectionVariables) => 
+            AdminApi.createSectionInSection(pageId, parentSectionId, sections),
         
         onSuccess: async (createdSection: any, variables: ICreateSectionInSectionVariables) => {
             
             // Invalidate relevant queries to update the UI
             const invalidationPromises = [
-                queryClient.invalidateQueries({ queryKey: ['adminPages'] }),
+                queryClient.invalidateQueries({ queryKey: ['adminPages'] })
             ];
             
             // If pageId is provided, also invalidate page-specific queries

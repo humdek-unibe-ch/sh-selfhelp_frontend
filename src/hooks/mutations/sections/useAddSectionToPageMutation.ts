@@ -11,18 +11,30 @@ import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin';
 import { parseApiError } from '../../../utils/mutation-error-handler';
-import { IAddSectionToPageData } from '../../../types/requests/admin/create-section.types';
+import { IAddSectionInSectionData } from '../../../types/requests/admin/create-section.types';
 
 interface IAddSectionToPageMutationOptions {
-    onSuccess?: (data: any, variables: { pageId: number; sectionId: number; sectionData: IAddSectionToPageData }) => void;
-    onError?: (error: any, variables: { pageId: number; sectionId: number; sectionData: IAddSectionToPageData }) => void;
-    showNotifications?: boolean;
+  onSuccess?: (
+    data: any,
+    variables: {
+      pageId: number;
+      sections: IAddSectionInSectionData[];
+    },
+  ) => void;
+
+  onError?: (
+    error: any,
+    variables: {
+      pageId: number;
+      sections: IAddSectionInSectionData[];
+    },
+  ) => void;
+  showNotifications?: boolean;
 }
 
 interface IAddSectionToPageVariables {
     pageId: number;
-    sectionId: number;
-    sectionData: IAddSectionToPageData;
+    sections: IAddSectionInSectionData[];
 }
 
 /**
@@ -35,8 +47,8 @@ export function useAddSectionToPageMutation(options: IAddSectionToPageMutationOp
     const { onSuccess, onError, showNotifications = true } = options;
 
     return useMutation({
-        mutationFn: ({ pageId, sectionId, sectionData }: IAddSectionToPageVariables) => 
-            AdminApi.addSectionToPage(pageId, sectionId, sectionData),
+        mutationFn: ({ pageId, sections }: IAddSectionToPageVariables) => 
+            AdminApi.addSectionToPage(pageId, sections),
         
         onSuccess: async (createdSection: any, variables: IAddSectionToPageVariables) => {
             
