@@ -58,11 +58,13 @@
         "axios": "^1.15.1",
         "date-fns": "^4.1.0",
         "dayjs": "^1.11.20",
+        "dompurify": "^3.4.2",
         "embla-carousel": "^8.6.0",
         "embla-carousel-react": "^8.6.0",
         "html-react-parser": "^6.0.1",
         "isomorphic-dompurify": "^3.9.0",
         "json-edit-react": "^1.29.0",
+        "monaco-editor": "^0.55.1",
         "next": "^16.2.4",
         "nuqs": "^2.8.9",
         "react": "^19.2.5",
@@ -88,6 +90,14 @@
         "ts-prune": "^0.10.3",
         "ts-unused-exports": "^11.0.1",
         "typescript": "5.9.3"
+    },
+   "overrides": {
+    "monaco-editor": {
+        "dompurify": "^3.4.2"
+    },
+    "next": {
+        "postcss": "^8.5.10"
+    }
     },
     "packageManager": "npm@11.12.1"
 }
