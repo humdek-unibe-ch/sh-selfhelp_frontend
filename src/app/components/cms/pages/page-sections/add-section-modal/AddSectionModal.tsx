@@ -36,7 +36,7 @@ import { ReferenceSectionTab } from './tabs/ReferenceSectionTab';
 import { UnusedSectionTab } from './tabs/UnusedSectionTab';
 import { useQueryClient } from '@tanstack/react-query';
 import { AddSectionTab, ADD_SECTION_TAB, MAX_SECTIONS, MAX_UNUSED_SECTIONS } from './addSectionModal.constants';
-import { getNewSectionLimitState, getUnusedSectionLimitState, getStatusText, isSingleMode } from './addSectionModal.utils';
+import { getNewSectionLimitState, getUnusedSectionLimitState, getStatusText, isSingleMode, getStatusColor } from './addSectionModal.utils';
 
 interface IAddSectionModalProps {
     opened: boolean;
@@ -491,13 +491,22 @@ export function AddSectionModal({
     importFileName: selectedFile?.name || null,
     });
 
+    const statusColor = getStatusColor(activeTab, {
+    isLimit,
+    isNearLimit,
+    isUnusedLimit,
+    isUnusedNearLimit,
+    hasImportFile: !!selectedFile,
+    hasRefContainerSelection: !!selectedRefContainerSection,
+    });
+
     const isProcessing = sectionOperations.isLoading || isImporting;
     const singleMode = isSingleMode(selectedStyles);
 
     // Custom actions for the footer based on active tab
     const getCustomActions = () => (
       <Group justify="space-between" align="center" w="100%">
-       <Text size="sm" c={isLimit || isNearLimit ? "orange" : "dimmed"}>
+       <Text size="sm" c={statusColor}>
         {statusText}
         </Text>
         <Group gap="sm">
