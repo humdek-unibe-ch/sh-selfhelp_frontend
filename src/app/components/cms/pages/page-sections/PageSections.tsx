@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, memo, useMemo } from 'react';
+import { useState, useEffect, useCallback, memo, useMemo, useDeferredValue, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -47,71 +47,168 @@ const sortSectionsByPosition = (sections: IPageSectionWithFields[]): IPageSectio
         }));
 };
 
-const getAllSectionIds = (sections: IPageSectionWithFields[]): number[] => {
+interface ISectionLookup {
+    validIds: Set<number>;
+    parentById: Map<number, number | null>;
+    nameById: Map<number, string>;
+}
+
+const buildSectionLookup = (sections: IPageSectionWithFields[]): ISectionLookup => {
+    const validIds = new Set<number>();
+    const parentById = new Map<number, number | null>();
+    const nameById = new Map<number, string>();
+
+    const collect = (items: IPageSectionWithFields[], parentId: number | null) => {
+        items.forEach(section => {
+            validIds.add(section.id);
+            parentById.set(section.id, parentId);
+            nameById.set(section.id, section.section_name);
+            if (section.children) collect(section.children, section.id);
+        });
+    };
+
+    collect(sections, null);
+    return { validIds, parentById, nameById };
+};
+
+const getTopMostSelectedIdsFromLookup = (
+    selectedIds: Set<number>,
+    lookup: ISectionLookup
+): number[] => {
     const ids: number[] = [];
+
+    selectedIds.forEach(id => {
+        if (!lookup.validIds.has(id)) return;
+
+        let parentId = lookup.parentById.get(id) ?? null;
+        while (parentId !== null) {
+            if (selectedIds.has(parentId)) return;
+            parentId = lookup.parentById.get(parentId) ?? null;
+        }
+
+        ids.push(id);
+    });
+
+    return ids;
+};
+
+interface ISectionSearchItem {
+    id: number;
+    text: string;
+}
+
+const buildSectionSearchIndex = (sections: IPageSectionWithFields[]): ISectionSearchItem[] => {
+    const index: ISectionSearchItem[] = [];
 
     const collect = (items: IPageSectionWithFields[]) => {
         items.forEach((section) => {
-            ids.push(section.id);
+            index.push({
+                id: section.id,
+                text: `${section.section_name} ${section.style_name} ${section.id}`.toLowerCase(),
+            });
+
             if (section.children) collect(section.children);
         });
     };
 
     collect(sections);
-    return ids;
+    return index;
 };
 
-const getTopMostSelectedSectionIds = (
+const searchSectionIndex = (index: ISectionSearchItem[], query: string): number[] => {
+    const searchLower = query.toLowerCase();
+    const results: number[] = [];
+
+    for (const item of index) {
+        if (item.text.includes(searchLower)) {
+            results.push(item.id);
+        }
+    }
+
+    return results;
+};
+
+const findSectionById = (sectionId: number, sections: IPageSectionWithFields[]): IPageSectionWithFields | null => {
+    for (const section of sections) {
+        if (section.id === sectionId) return section;
+        if (section.children) {
+            const found = findSectionById(sectionId, section.children);
+            if (found) return found;
+        }
+    }
+    return null;
+};
+
+const getParentSectionIds = (sections: IPageSectionWithFields[], sectionId: number): Set<number> => {
+    const parentsToExpand = new Set<number>();
+
+    const findParents = (items: IPageSectionWithFields[]): boolean => {
+        for (const section of items) {
+            if (section.id === sectionId) {
+                return true;
+            }
+
+            if (section.children && findParents(section.children)) {
+                parentsToExpand.add(section.id);
+                return true;
+            }
+        }
+        return false;
+    };
+
+    findParents(sections);
+    return parentsToExpand;
+};
+
+const hasDeepResult = (section: IPageSectionWithFields, results: Set<number>): boolean => {
+    if (results.has(section.id)) return true;
+    return section.children?.some(child => hasDeepResult(child, results)) ?? false;
+};
+
+const getSearchParentSectionIds = (
     sections: IPageSectionWithFields[],
-    selected: Set<number>,
-    hasSelectedAncestor = false
-): number[] => {
-    const ids: number[] = [];
+    searchResults: number[]
+): Set<number> => {
+    const resultSet = new Set(searchResults);
+    const sectionsToExpand = new Set<number>();
 
-    sections.forEach((section) => {
-        const isSelected = selected.has(section.id);
+    const findParentsOfResults = (items: IPageSectionWithFields[]) => {
+        items.forEach(section => {
+            if (!section.children?.length) return;
 
-        if (isSelected && !hasSelectedAncestor) {
-            ids.push(section.id);
-        }
+            const hasResultInChildren = section.children.some(child => hasDeepResult(child, resultSet));
+            if (hasResultInChildren) {
+                sectionsToExpand.add(section.id);
+            }
 
-        if (section.children?.length) {
-            ids.push(
-                ...getTopMostSelectedSectionIds(
-                    section.children,
-                    selected,
-                    hasSelectedAncestor || isSelected
-                )
-            );
-        }
-    });
+            findParentsOfResults(section.children);
+        });
+    };
 
-    return ids;
+    findParentsOfResults(sections);
+    return sectionsToExpand;
+};
+
+const getSectionsWithChildrenIds = (sections: IPageSectionWithFields[]): Set<number> => {
+    const sectionsWithChildren = new Set<number>();
+
+    const collect = (items: IPageSectionWithFields[]) => {
+        items.forEach(item => {
+            if (item.children && item.children.length > 0) {
+                sectionsWithChildren.add(item.id);
+                collect(item.children);
+            }
+        });
+    };
+
+    collect(sections);
+    return sectionsWithChildren;
 };
 
 interface IPageSectionsProps {
     pageId: number | null;
     pageName?: string;
     initialSelectedSectionId?: number | null;
-}
-
-// Interfaces for PageSectionsHeader component
-interface IPageSectionsState {
-    sectionsCount: number;
-    isProcessing: boolean;
-    searchQuery: string;
-    searchResults: number[];
-    currentSearchIndex: number;
-}
-
-interface IPageSectionsHandlers {
-    onExpandAll: () => void;
-    onCollapseAll: () => void;
-    onSearchChange: (query: string) => void;
-    onSearchNext: () => void;
-    onSearchPrevious: () => void;
-    onSearchClear: () => void;
-    onAddSection: () => void;
 }
 
 interface IMoveData {
@@ -131,10 +228,11 @@ interface IMoveData {
 function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSectionsProps) {
     const { data, isLoading, error } = usePageSections(pageId);
     const { data: styleGroups } = useStyleGroups();
+    const sections = data?.sections;
 
     const router = useRouter();
 
-    const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
+    const [expandedSectionsOverride, setExpandedSectionsOverride] = useState<Set<number> | null>(null);
     const [addSectionModalOpened, setAddSectionModalOpened] = useState(false);
     const [selectedParentSectionId, setSelectedParentSectionId] = useState<number | null>(null);
     const [selectedSectionId, setSelectedSectionId] = useState<number | null>(null);
@@ -144,9 +242,47 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
 
     // Search functionality
     const [searchQuery, setSearchQuery] = useState('');
-    const [searchResults, setSearchResults] = useState<number[]>([]);
+    const deferredSearchQuery = useDeferredValue(searchQuery);
     const [currentSearchIndex, setCurrentSearchIndex] = useState(-1);
-    const [focusedSectionId, setFocusedSectionId] = useState<number | null>(null);
+    const searchIndex = useMemo(() => {
+        return sections ? buildSectionSearchIndex(sections) : [];
+    }, [sections]);
+    const searchResults = useMemo(() => {
+        const query = deferredSearchQuery.trim();
+        if (!query || searchIndex.length === 0) return [];
+        return searchSectionIndex(searchIndex, query);
+    }, [deferredSearchQuery, searchIndex]);
+    const normalizedSearchIndex = searchResults.length > 0
+        ? Math.max(0, Math.min(currentSearchIndex, searchResults.length - 1))
+        : -1;
+    const focusedSectionId = normalizedSearchIndex >= 0 ? searchResults[normalizedSearchIndex] : null;
+    const activeSectionId = focusedSectionId ?? selectedSectionId ?? initialSelectedSectionId ?? null;
+    const autoExpandedSections = useMemo(() => {
+        if (!sections) return new Set<number>();
+
+        const ids = getSectionsWithChildrenIds(sections);
+        if (initialSelectedSectionId) {
+            getParentSectionIds(sections, initialSelectedSectionId).forEach(id => ids.add(id));
+        }
+        if (searchResults.length > 0) {
+            getSearchParentSectionIds(sections, searchResults).forEach(id => ids.add(id));
+        }
+        if (focusedSectionId) {
+            getParentSectionIds(sections, focusedSectionId).forEach(id => ids.add(id));
+        }
+
+        return ids;
+    }, [sections, initialSelectedSectionId, searchResults, focusedSectionId]);
+    const visibleExpandedSections = useMemo(() => {
+        return expandedSectionsOverride ?? autoExpandedSections;
+    }, [autoExpandedSections, expandedSectionsOverride]);
+    const sortedSections = useMemo(() => {
+        if (isLoading || !sections) return undefined;
+        return sortSectionsByPosition(sections);
+    }, [isLoading, sections]);
+    const sectionLookup = useMemo(() => {
+        return sections ? buildSectionLookup(sections) : null;
+    }, [sections]);
 
     // Section operations hook
     const sectionOperations = useSectionOperations({
@@ -154,65 +290,18 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
         showNotifications: true
     });
 
-    const handleToggleBulkMode = () => {
-    setBulkMode(prev => {
-        if (prev) setSelectedIds(new Set()); // clear selection on exit
-        return !prev;
-    });
-    };
-
-    // Search functionality
-    const searchInSections = useCallback((sections: IPageSectionWithFields[], query: string): number[] => {
-        const results: number[] = [];
-        const searchLower = query.toLowerCase();
-
-        const searchRecursive = (items: IPageSectionWithFields[]) => {
-            items.forEach(item => {
-                const nameValue = item.section_name;
-                if (nameValue.toLowerCase().includes(searchLower) ||
-                    item.style_name.toLowerCase().includes(searchLower) ||
-                    item.id.toString().includes(searchLower)) {
-                    results.push(item.id);
-                }
-                if (item.children) {
-                    searchRecursive(item.children);
-                }
-            });
-        };
-
-        searchRecursive(sections);
-        return results;
-    }, []);
-
     // Helper function to expand all parent sections of a given section
     const expandParentsOfSection = useCallback((sectionId: number) => {
-        if (!data?.sections) return;
+        if (!sections) return;
 
-        const parentsToExpand = new Set<number>();
-
-        const findParents = (sections: IPageSectionWithFields[], parentId: number | null = null): boolean => {
-            for (const section of sections) {
-                if (section.id === sectionId) {
-                    return true; // Found the target section
-                }
-
-                if (section.children) {
-                    const foundInChildren = findParents(section.children, section.id);
-                    if (foundInChildren) {
-                        parentsToExpand.add(section.id); // This section contains the target
-                        return true;
-                    }
-                }
-            }
-            return false;
-        };
-
-        findParents(data.sections);
-
+        const parentsToExpand = getParentSectionIds(sections, sectionId);
         if (parentsToExpand.size > 0) {
-            setExpandedSections(prev => new Set([...Array.from(prev), ...Array.from(parentsToExpand)]));
+            setExpandedSectionsOverride(prev => {
+                const base = prev ?? autoExpandedSections;
+                return new Set([...Array.from(base), ...Array.from(parentsToExpand)]);
+            });
         }
-    }, [data?.sections]);
+    }, [autoExpandedSections, sections]);
 
     // Helper function to scroll to a section element
     const scrollToSection = useCallback((sectionId: number) => {
@@ -229,81 +318,15 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
         }, 100); // Small delay to allow for DOM updates
     }, []);
 
-    // Update search results when query changes
     useEffect(() => {
-        if (searchQuery.trim() && data?.sections) {
-            const results = searchInSections(data.sections, searchQuery.trim());
-            setSearchResults(results);
-            if (results.length > 0) {
-                const firstResultId = results[0];
-                setCurrentSearchIndex(0);
-                setFocusedSectionId(firstResultId);
-                setSelectedSectionId(firstResultId);
-
-                // Auto-expand and scroll to first result
-                expandParentsOfSection(firstResultId);
-                scrollToSection(firstResultId);
-            } else {
-                setCurrentSearchIndex(-1);
-                setFocusedSectionId(null);
-            }
-        } else {
-            setSearchResults([]);
-            setCurrentSearchIndex(-1);
-            setFocusedSectionId(null);
+        if (focusedSectionId) {
+            scrollToSection(focusedSectionId);
         }
-    }, [searchQuery, data?.sections, searchInSections, expandParentsOfSection, scrollToSection]);
-
-    // Expand all sections that contain search results
-    useEffect(() => {
-        if (searchResults.length > 0 && data?.sections) {
-            const sectionsToExpand = new Set<number>();
-
-            const findParentsOfResults = (sections: IPageSectionWithFields[], parentId: number | null = null) => {
-                sections.forEach(section => {
-                    if (section.children) {
-                        const hasResultInChildren = section.children.some(child =>
-                            searchResults.includes(child.id) ||
-                            hasDeepResult(child, searchResults)
-                        );
-
-                        if (hasResultInChildren) {
-                            sectionsToExpand.add(section.id);
-                        }
-
-                        findParentsOfResults(section.children, section.id);
-                    }
-                });
-            };
-
-            const hasDeepResult = (section: IPageSectionWithFields, results: number[]): boolean => {
-                if (results.includes(section.id)) return true;
-                if (section.children) {
-                    return section.children.some(child => hasDeepResult(child, results));
-                }
-                return false;
-            };
-
-            findParentsOfResults(data.sections);
-            setExpandedSections(prev => new Set([...Array.from(prev), ...Array.from(sectionsToExpand)]));
-        }
-    }, [searchResults, data?.sections]);
-
-    // Helper function to find a section by ID
-    const findSectionById = useCallback((sectionId: number, sections: IPageSectionWithFields[]): IPageSectionWithFields | null => {
-        for (const section of sections) {
-            if (section.id === sectionId) return section;
-            if (section.children) {
-                const found = findSectionById(sectionId, section.children);
-                if (found) return found;
-            }
-        }
-        return null;
-    }, []);
+    }, [focusedSectionId, scrollToSection]);
 
     const handleToggleExpand = (sectionId: number) => {
-        setExpandedSections(prev => {
-            const newSet = new Set(prev);
+        setExpandedSectionsOverride(prev => {
+            const newSet = new Set(prev ?? autoExpandedSections);
             if (newSet.has(sectionId)) {
                 newSet.delete(sectionId);
             } else {
@@ -346,22 +369,26 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
         };
 
         collectAllIds(data.sections);
-        setExpandedSections(allSectionIds);
+        setExpandedSectionsOverride(allSectionIds);
     };
 
     const handleCollapseAll = () => {
-        setExpandedSections(new Set());
+        setExpandedSectionsOverride(new Set());
     };
 
     // Search navigation
+    const handleSearchQueryChange = (query: string) => {
+        setSearchQuery(query);
+        setCurrentSearchIndex(query.trim() ? 0 : -1);
+    };
+
     const handleSearchNext = () => {
         if (searchResults.length === 0) return;
 
-        const nextIndex = (currentSearchIndex + 1) % searchResults.length;
+        const nextIndex = (normalizedSearchIndex + 1) % searchResults.length;
         const nextSectionId = searchResults[nextIndex];
 
         setCurrentSearchIndex(nextIndex);
-        setFocusedSectionId(nextSectionId);
         setSelectedSectionId(nextSectionId);
 
         // Auto-expand parent sections containing the focused result
@@ -376,11 +403,10 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
     const handleSearchPrevious = () => {
         if (searchResults.length === 0) return;
 
-        const prevIndex = currentSearchIndex === 0 ? searchResults.length - 1 : currentSearchIndex - 1;
+        const prevIndex = normalizedSearchIndex === 0 ? searchResults.length - 1 : normalizedSearchIndex - 1;
         const prevSectionId = searchResults[prevIndex];
 
         setCurrentSearchIndex(prevIndex);
-        setFocusedSectionId(prevSectionId);
         setSelectedSectionId(prevSectionId);
 
         // Auto-expand parent sections containing the focused result
@@ -394,9 +420,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
 
     const handleSearchClear = () => {
         setSearchQuery('');
-        setSearchResults([]);
         setCurrentSearchIndex(-1);
-        setFocusedSectionId(null);
     };
 
         const handleSectionMove = async (moveData: IMoveData) => {
@@ -427,14 +451,14 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                 } as any);
             }
 
-        } catch (error) {
+        } catch {
             // Error handling is done by the mutation hooks
         }
     };
 
     const handleRemoveSection = async (sectionId: number, parentId: number | null) => {
         // Check if we're removing the currently selected section
-        const isRemovingSelectedSection = selectedSectionId === sectionId;
+        const isRemovingSelectedSection = activeSectionId === sectionId;
 
 
         try {
@@ -469,7 +493,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                 }
             }
 
-        } catch (error) {
+        } catch {
             // Error handling is done by the mutation hooks
         }
     };
@@ -569,85 +593,72 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
         }
     };
 
-
-
-    // Handle initial selected section ID from URL
     useEffect(() => {
         if (initialSelectedSectionId) {
-            setSelectedSectionId(initialSelectedSectionId);
-            // Auto-expand parents and scroll to the selected section
-            expandParentsOfSection(initialSelectedSectionId);
             scrollToSection(initialSelectedSectionId);
         }
-    }, [initialSelectedSectionId, expandParentsOfSection, scrollToSection]);
-
-    // Auto-expand sections with children on initial load
-    useEffect(() => {
-        if (data?.sections && data.sections.length > 0) {
-            const sectionsWithChildren = new Set<number>();
-
-            const findSectionsWithChildren = (items: IPageSectionWithFields[]) => {
-                items.forEach(item => {
-                    if (item.children && item.children.length > 0) {
-                        sectionsWithChildren.add(item.id);
-                        findSectionsWithChildren(item.children);
-                    }
-                });
-            };
-
-            findSectionsWithChildren(data.sections);
-            setExpandedSections(sectionsWithChildren);
-        }
-    }, [data?.sections]);
+    }, [initialSelectedSectionId, scrollToSection]);
 
     // Bulk
 
-    const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+    const selectedIdsRef = useRef<Set<number>>(new Set());
+    const [selectedCount, setSelectedCount] = useState(0);
+    const [selectionVersion, setSelectionVersion] = useState(0);
     const [BulkRemoveModalOpened, setBulkRemoveModalOpened] = useState(false);
+    const [bulkRemoveIds, setBulkRemoveIds] = useState<number[]>([]);
 
-    const handleToggleSelect = (sectionId: number) => {
-    setSelectedIds(prev => {
-        const next = new Set(prev);
-        next.has(sectionId) ? next.delete(sectionId) : next.add(sectionId);
-        return next;
-    });
+    const clearBulkSelection = useCallback(() => {
+        selectedIdsRef.current = new Set();
+        setSelectedCount(0);
+        setSelectionVersion(prev => prev + 1);
+    }, []);
+
+    const handleToggleBulkMode = () => {
+        setBulkMode(prev => {
+            if (prev) clearBulkSelection();
+            return !prev;
+        });
+    };
+
+    const getBulkRemoveIds = useCallback(() => {
+        const selectedIds = selectedIdsRef.current;
+        if (!sectionLookup) return Array.from(selectedIds);
+        return getTopMostSelectedIdsFromLookup(selectedIds, sectionLookup);
+    }, [sectionLookup]);
+
+    const handleToggleSelect = (sectionId: number, selected: boolean) => {
+        if (selected) {
+            selectedIdsRef.current.add(sectionId);
+        } else {
+            selectedIdsRef.current.delete(sectionId);
+        }
+        setSelectedCount(selectedIdsRef.current.size);
     };
 
     const handleSelectAll = () => {
-        if (!data?.sections) return;
-        const allIds = getAllSectionIds(data.sections);
-        setSelectedIds(new Set(allIds));
+        if (!sectionLookup) return;
+        selectedIdsRef.current = new Set(sectionLookup.validIds);
+        setSelectedCount(selectedIdsRef.current.size);
+        setSelectionVersion(prev => prev + 1);
     };
 
-    const handleDeselectAll = () => setSelectedIds(new Set());
-    const sections = data?.sections;
+    const handleDeselectAll = () => {
+        clearBulkSelection();
+    };
 
-    const bulkRemoveIds = useMemo(() => {
-        if (!sections) return Array.from(selectedIds);
-
-        const validIds = new Set(getAllSectionIds(sections));
-        const visibleSelectedIds = new Set(
-            Array.from(selectedIds).filter((id) => validIds.has(id))
-        );
-
-        return getTopMostSelectedSectionIds(sections, visibleSelectedIds);
-    }, [sections, selectedIds]);
+    const handleOpenBulkRemoveModal = () => {
+        setBulkRemoveIds(getBulkRemoveIds());
+        setBulkRemoveModalOpened(true);
+    };
 
     const handleBulkRemove = async () => {
-        if (!data?.sections || bulkRemoveIds.length === 0) return;
+        const idsToRemove = bulkRemoveIds.length > 0 ? bulkRemoveIds : getBulkRemoveIds();
+        if (!sections || idsToRemove.length === 0) return;
 
-        await sectionOperations.removeBulkSectionsFromPage(bulkRemoveIds);
-        setSelectedIds(new Set());
+        await sectionOperations.removeBulkSectionsFromPage(idsToRemove);
+        clearBulkSelection();
+        setBulkRemoveIds([]);
         setBulkRemoveModalOpened(false);
-    };
-
-    const findParentId = (sectionId: number, items: IPageSectionWithFields[]): number | null => {
-    for (const item of items) {
-        if (item.children?.some(c => c.id === sectionId)) return item.id;
-        const found = findParentId(sectionId, item.children || []);
-        if (found !== null) return found;
-    }
-    return null;
     };
 
     if (error) {
@@ -684,19 +695,19 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                  size="sm"
                  variant="light"
                  onClick={
-                   expandedSections.size > 0
+                   visibleExpandedSections.size > 0
                      ? handleCollapseAll
                      : handleExpandAll
                  }
                  leftSection={
-                   expandedSections.size > 0 ? (
+                   visibleExpandedSections.size > 0 ? (
                      <IconChevronUp size={16} />
                    ) : (
                      <IconChevronDown size={16} />
                    )
                  }
                >
-                 {expandedSections.size > 0 ? "Collapse all" : "Expand all"}
+                 {visibleExpandedSections.size > 0 ? "Collapse all" : "Expand all"}
                </Button>
 
                <Button
@@ -704,9 +715,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                  variant={bulkMode ? "filled" : "light"}
                  color={bulkMode ? "orange" : ""}
                  onClick={handleToggleBulkMode}
-                    leftSection={
-                     <IconTrash size={16} />
-                 }
+                 leftSection={<IconTrash size={16} />}
                >
                  {bulkMode ? "Exit bulk" : "Bulk remove"}
                </Button>
@@ -739,22 +748,22 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                    size="sm"
                    variant="subtle"
                    onClick={() =>
-                     selectedIds.size > 0
+                     selectedCount > 0
                        ? handleDeselectAll()
                        : handleSelectAll()
                    }
                  >
-                   {selectedIds.size > 0 ? "Deselect All" : "Select All"}
+                   {selectedCount > 0 ? "Deselect All" : "Select All"}
                  </Button>
 
-                  {selectedIds.size > 0 && (
+                  {selectedCount > 0 && (
                     <Button
                       size="sm"
                       color="orange"
                       leftSection={<IconTrash size={14} />}
-                      onClick={() => setBulkRemoveModalOpened(true)}
+                      onClick={handleOpenBulkRemoveModal}
                     >
-                      Remove ({bulkRemoveIds.length})
+                      Remove ({selectedCount})
                     </Button>
                   )}
                </Group>
@@ -767,7 +776,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
            <TextInput
              placeholder="Search sections by name, ID, or style..."
              value={searchQuery}
-             onChange={(e) => setSearchQuery(e.currentTarget.value)}
+             onChange={(e) => handleSearchQueryChange(e.currentTarget.value)}
              onKeyDown={(e) => {
                if (e.key === "Enter" && searchResults.length > 0) {
                  e.preventDefault();
@@ -814,7 +823,7 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                radius="sm"
              >
                {searchResults.length > 0
-                 ? `${currentSearchIndex + 1}/${searchResults.length}`
+                 ? `${normalizedSearchIndex + 1}/${searchResults.length}`
                  : "0/0"}
              </Badge>
            )}
@@ -849,13 +858,9 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
          <Box>
            <SectionsList
              sections={
-               isLoading
-                 ? undefined
-                 : data?.sections
-                   ? sortSectionsByPosition(data.sections)
-                   : undefined
+               sortedSections
              }
-             expandedSections={expandedSections}
+             expandedSections={visibleExpandedSections}
              onToggleExpand={handleToggleExpand}
              onSectionMove={handleSectionMove}
              onRemoveSection={handleRemoveSection}
@@ -863,13 +868,14 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
              onAddSiblingAbove={handleAddSiblingAbove}
              onAddSiblingBelow={handleAddSiblingBelow}
              onSectionSelect={handleSectionSelect}
-             selectedSectionId={selectedSectionId}
+             selectedSectionId={activeSectionId}
              focusedSectionId={focusedSectionId}
-             searchQuery={searchQuery}
+             searchQuery={deferredSearchQuery}
              pageId={pageId || undefined}
              styleGroups={styleGroups}
-             selectedIds={selectedIds}
+             selectedIdsRef={selectedIdsRef}
              onToggleSelect={handleToggleSelect}
+             selectionVersion={selectionVersion}
              bulkMode={bulkMode}
            />
          </Box>
@@ -892,11 +898,14 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
 
           <BulkRemoveModal
             opened={BulkRemoveModalOpened}
-            onClose={() => setBulkRemoveModalOpened(false)}
+            onClose={() => {
+              setBulkRemoveIds([]);
+              setBulkRemoveModalOpened(false);
+            }}
             selectedSections={bulkRemoveIds.map((id) => ({
               id,
               name:
-                findSectionById(id, data?.sections || [])?.section_name ??
+                sectionLookup?.nameById.get(id) ??
                "Unknown Section",
            }))}
            onConfirm={handleBulkRemove}

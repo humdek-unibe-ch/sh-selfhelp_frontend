@@ -41,8 +41,9 @@ interface IPageSectionProps {
 
     showInsideDropZone?: boolean;
 
-    isBulkSelected?: boolean;
-    onToggleSelect?: (sectionId: number) => void;
+    defaultBulkSelected?: boolean;
+    onToggleSelect?: (sectionId: number, selected: boolean) => void;
+    selectionVersion: number;
     bulkMode: boolean;
 }
 
@@ -50,7 +51,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     section,
     level,
     parentId,
-    pageId,
+    pageId: _pageId,
     expandedSections,
     onToggleExpand,
     onRemoveSection,
@@ -62,24 +63,32 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     focusedSectionId,
     searchQuery,
     isDragActive,
-    overId,
-    draggedSectionId,
+    overId: _overId,
+    draggedSectionId: _draggedSectionId,
     dragHandleProps,
     isDragging = false,
 
-    showInsideDropZone = false,
+    showInsideDropZone: _showInsideDropZone = false,
 
-    isBulkSelected = false,
+    defaultBulkSelected = false,
     onToggleSelect,
+    selectionVersion,
     bulkMode
 }, ref) => {
     const [removeModalOpened, setRemoveModalOpened] = useState(false);
-    
+    const [isBulkSelected, setIsBulkSelected] = useState(defaultBulkSelected);
+    const [trackedSelectionVersion, setTrackedSelectionVersion] = useState(selectionVersion);
+
+    // Sync from parent (Select All / Deselect All / Clear) without a wasted render.
+    // React docs: "Storing information from previous renders" pattern.
+    if (trackedSelectionVersion !== selectionVersion) {
+        setTrackedSelectionVersion(selectionVersion);
+        setIsBulkSelected(defaultBulkSelected);
+    }
+
     const hasChildren = section.children && section.children.length > 0;
     const isExpanded = expandedSections.has(section.id);
     const canHaveChildren = !!section.can_have_children;
-    const isBeingDragged = draggedSectionId === section.id;
-    const isValidDropTarget = canHaveChildren && overId === section.id;
     const isActive = selectedSectionId === section.id;
     const isFocused = focusedSectionId === section.id;
 
@@ -317,7 +326,11 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                   <Checkbox
                     size="xs"
                     checked={isBulkSelected}
-                    onChange={() => onToggleSelect?.(section.id)}
+                    onChange={(event) => {
+                      const checked = event.currentTarget.checked;
+                      setIsBulkSelected(checked);
+                      onToggleSelect?.(section.id, checked);
+                    }}
                     onClick={(e) => e.stopPropagation()}
                     aria-label={`Select ${section.section_name}`}
                   />
