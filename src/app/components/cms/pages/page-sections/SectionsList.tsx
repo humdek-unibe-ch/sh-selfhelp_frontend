@@ -648,7 +648,7 @@ const SectionItem = memo(function SectionItem({
                 selectedSectionId={selectedSectionId}
                 focusedSectionId={focusedSectionId}
                 searchQuery={searchQuery}
-                isSelected={selectedIds?.has(section.id)}
+                isBulkSelected={selectedIds?.has(section.id)}
                 onToggleSelect={onToggleSelect}
                 bulkMode={bulkMode}
             />

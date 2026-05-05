@@ -41,7 +41,7 @@ interface IPageSectionProps {
 
     showInsideDropZone?: boolean;
 
-    isSelected?: boolean;
+    isBulkSelected?: boolean;
     onToggleSelect?: (sectionId: number) => void;
     bulkMode: boolean;
 }
@@ -69,7 +69,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
 
     showInsideDropZone = false,
 
-    isSelected = false,
+    isBulkSelected = false,
     onToggleSelect,
     bulkMode
 }, ref) => {
@@ -80,7 +80,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
     const canHaveChildren = !!section.can_have_children;
     const isBeingDragged = draggedSectionId === section.id;
     const isValidDropTarget = canHaveChildren && overId === section.id;
-    // const isSelected = selectedSectionId === section.id;
+    const isActive = selectedSectionId === section.id;
     const isFocused = focusedSectionId === section.id;
 
     // Dynamic indentation aligned with chevron - 12px per level to align with chevron positioning
@@ -170,7 +170,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
           <SectionLink
             sectionId={section.id}
             onSectionSelect={onSectionSelect}
-            className={`${styles.sectionItem} ${getLevelClass()} ${isSelected ? styles.selected : ""} ${isFocused ? styles.focused : ""}`}
+            className={`${styles.sectionItem} ${getLevelClass()} ${isActive ? styles.selected : ""} ${isBulkSelected ? styles.bulkSelected : ""} ${isFocused ? styles.focused : ""}`}
             data-section-id={section.id}
           >
             <Paper ref={ref} className={styles.sectionPaper}>
@@ -316,7 +316,7 @@ export const PageSection = forwardRef<HTMLDivElement, IPageSectionProps>(({
                 {bulkMode && (
                   <Checkbox
                     size="xs"
-                    checked={isSelected}
+                    checked={isBulkSelected}
                     onChange={() => onToggleSelect?.(section.id)}
                     onClick={(e) => e.stopPropagation()}
                     aria-label={`Select ${section.section_name}`}

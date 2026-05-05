@@ -43,6 +43,7 @@ export function useRemoveBulkSectionsFromPageMutation(
             AdminApi.removeBulkSectionsFromPage(pageId, sectionIds),
 
         onSuccess: async (result: any, variables) => {
+            const deletedCount = result?.deleted_count ?? variables.sectionIds.length;
 
             await Promise.all([
                 queryClient.invalidateQueries({
@@ -56,7 +57,7 @@ export function useRemoveBulkSectionsFromPageMutation(
             if (showNotifications) {
                 notifications.show({
                     title: 'Sections Removed Successfully',
-                    message: `${variables.sectionIds.length} section(s) removed successfully!`,
+                    message: `${deletedCount} section(s) removed successfully!`,
                     icon: React.createElement(IconCheck, { size: '1rem' }),
                     color: 'green',
                     autoClose: 5000,

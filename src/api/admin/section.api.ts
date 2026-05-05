@@ -11,11 +11,11 @@ import { IBaseApiResponse } from '../../types/responses/common/response-envelope
 import { TSectionDetailsResponse, ISectionDetailsData } from '../../types/responses/admin/admin.types';
 import type { AxiosRequestConfig } from 'axios';
 import { 
+    IAddSectionInSectionData,
     ICreateSectionInPageData,
     ICreateSectionInSectionData,
     IUpdateSectionInPageData
 } from '../../types/requests/admin/create-section.types';
-import { IAddSectionInSectionData } from '../../hooks/mutations/sections/useAddSectionToSectionMutation';
 
 export const AdminSectionApi = {
     /**
@@ -98,7 +98,7 @@ export const AdminSectionApi = {
      * @returns {Promise<{ success: boolean }>} Success response
      * @throws {Error} When API request fails
      */
-    async removeBulkSectionsFromPage(pageId: number, sectionIds: number[]): Promise<{ success: boolean }> {
+    async removeBulkSectionsFromPage(pageId: number, sectionIds: number[]): Promise<any> {
         const response = await permissionAwareApiClient.delete(
           API_CONFIG.ENDPOINTS.ADMIN_PAGES_BULK_REMOVE_SECTION,
           pageId,
@@ -106,8 +106,10 @@ export const AdminSectionApi = {
             data: { sectionIds },
           },
         );
-        // For 204 No Content responses, return success indicator
-        return { success: response.status === 204 || response.status === 200 };
+        return response.data?.data ?? {
+            success: response.status === 204 || response.status === 200,
+            deleted_count: sectionIds.length,
+        };
     },
 
     /**
@@ -158,7 +160,7 @@ export const AdminSectionApi = {
      * @returns {Promise<any>} The created section data
      * @throws {Error} When API request fails
      */
-    async createSectionInPage(pageId: number, sections: ICreateSectionInPageData[]): Promise<any> {
+    async createSectionInPage(pageId: number, sections: ICreateSectionInPageData | ICreateSectionInPageData[]): Promise<any> {
         const response = await permissionAwareApiClient.post<IBaseApiResponse<any>>(
             API_CONFIG.ENDPOINTS.ADMIN_PAGES_CREATE_SECTION,
             sections,
@@ -175,7 +177,11 @@ export const AdminSectionApi = {
      * @returns {Promise<any>} The created section data
      * @throws {Error} When API request fails
      */
-    async createSectionInSection(pageId: number, parentSectionId: number, sectionData: ICreateSectionInSectionData[]): Promise<any> {
+    async createSectionInSection(
+        pageId: number,
+        parentSectionId: number,
+        sectionData: ICreateSectionInSectionData | ICreateSectionInSectionData[]
+    ): Promise<any> {
         const response = await permissionAwareApiClient.post<IBaseApiResponse<any>>(
             API_CONFIG.ENDPOINTS.ADMIN_SECTIONS_CREATE_CHILD,
             sectionData,

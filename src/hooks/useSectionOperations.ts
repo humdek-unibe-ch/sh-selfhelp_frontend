@@ -20,12 +20,12 @@ import {
     useAddSectionToPageMutation,
     useAddSectionToSectionMutation,
     useRemoveSectionFromPageMutation,
-    useRemoveSectionFromSectionMutation
+    useRemoveSectionFromSectionMutation,
+    useRemoveBulkSectionsFromPageMutation
 } from './mutations';
 import { importSectionsToPage, importSectionsToSection, ISectionExportData } from '../api/admin/section.api';
 import { notifications } from '@mantine/notifications';
 import { IStyle } from '../types/responses/admin/styles.types';
-import { useRemoveBulkSectionsFromPageMutation } from './mutations/sections/useRemoveBulkSectionsFromPageMutation';
 
 export interface SectionStyleItem {
   style: IStyle;
@@ -461,6 +461,7 @@ export function useSectionOperations(hookOptions: IUseSectionOperationsOptions =
                    addSectionToPageMutation.isPending ||
                    addSectionToSectionMutation.isPending ||
                    removeSectionFromPageMutation.isPending ||
-                   removeSectionFromSectionMutation.isPending
+                   removeSectionFromSectionMutation.isPending ||
+                   removeBulkSectionsFromPageMutation.isPending
     };
-} 
+}

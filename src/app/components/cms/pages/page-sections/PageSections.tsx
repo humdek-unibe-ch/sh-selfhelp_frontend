@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, memo } from 'react';
+import { useState, useEffect, useCallback, memo, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -45,6 +45,48 @@ const sortSectionsByPosition = (sections: IPageSectionWithFields[]): IPageSectio
             ...section,
             children: section.children ? sortSectionsByPosition(section.children) : []
         }));
+};
+
+const getAllSectionIds = (sections: IPageSectionWithFields[]): number[] => {
+    const ids: number[] = [];
+
+    const collect = (items: IPageSectionWithFields[]) => {
+        items.forEach((section) => {
+            ids.push(section.id);
+            if (section.children) collect(section.children);
+        });
+    };
+
+    collect(sections);
+    return ids;
+};
+
+const getTopMostSelectedSectionIds = (
+    sections: IPageSectionWithFields[],
+    selected: Set<number>,
+    hasSelectedAncestor = false
+): number[] => {
+    const ids: number[] = [];
+
+    sections.forEach((section) => {
+        const isSelected = selected.has(section.id);
+
+        if (isSelected && !hasSelectedAncestor) {
+            ids.push(section.id);
+        }
+
+        if (section.children?.length) {
+            ids.push(
+                ...getTopMostSelectedSectionIds(
+                    section.children,
+                    selected,
+                    hasSelectedAncestor || isSelected
+                )
+            );
+        }
+    });
+
+    return ids;
 };
 
 interface IPageSectionsProps {
@@ -571,19 +613,6 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
     });
     };
 
-    // Flatten all section IDs (including children) for select-all
-    const getAllSectionIds = (sections: IPageSectionWithFields[]): number[] => {
-        const ids: number[] = [];
-        const collect = (items: IPageSectionWithFields[]) => {
-            items.forEach(s => {
-                ids.push(s.id);
-                if (s.children) collect(s.children);
-            });
-        };
-        collect(sections);
-        return ids;
-    };
-
     const handleSelectAll = () => {
         if (!data?.sections) return;
         const allIds = getAllSectionIds(data.sections);
@@ -591,12 +620,25 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
     };
 
     const handleDeselectAll = () => setSelectedIds(new Set());
+    const sections = data?.sections;
 
-   const handleBulkRemove = async () => {
-    if (!data?.sections) return;
-    await sectionOperations.removeBulkSectionsFromPage(Array.from(selectedIds));
-    setSelectedIds(new Set());
-    setBulkRemoveModalOpened(false);
+    const bulkRemoveIds = useMemo(() => {
+        if (!sections) return Array.from(selectedIds);
+
+        const validIds = new Set(getAllSectionIds(sections));
+        const visibleSelectedIds = new Set(
+            Array.from(selectedIds).filter((id) => validIds.has(id))
+        );
+
+        return getTopMostSelectedSectionIds(sections, visibleSelectedIds);
+    }, [sections, selectedIds]);
+
+    const handleBulkRemove = async () => {
+        if (!data?.sections || bulkRemoveIds.length === 0) return;
+
+        await sectionOperations.removeBulkSectionsFromPage(bulkRemoveIds);
+        setSelectedIds(new Set());
+        setBulkRemoveModalOpened(false);
     };
 
     const findParentId = (sectionId: number, items: IPageSectionWithFields[]): number | null => {
@@ -705,16 +747,16 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
                    {selectedIds.size > 0 ? "Deselect All" : "Select All"}
                  </Button>
 
-                 {selectedIds.size > 0 && (
-                   <Button
-                     size="sm"
-                     color="orange"
-                     leftSection={<IconTrash size={14} />}
-                     onClick={() => setBulkRemoveModalOpened(true)}
-                   >
-                     Remove ({selectedIds.size})
-                   </Button>
-                 )}
+                  {selectedIds.size > 0 && (
+                    <Button
+                      size="sm"
+                      color="orange"
+                      leftSection={<IconTrash size={14} />}
+                      onClick={() => setBulkRemoveModalOpened(true)}
+                    >
+                      Remove ({bulkRemoveIds.length})
+                    </Button>
+                  )}
                </Group>
              )}
            </Stack>
@@ -848,13 +890,13 @@ function PageSections({ pageId, pageName, initialSelectedSectionId }: IPageSecti
            onSectionsImported={handleSectionsImported}
          />
 
-         <BulkRemoveModal
-           opened={BulkRemoveModalOpened}
-           onClose={() => setBulkRemoveModalOpened(false)}
-           selectedSections={Array.from(selectedIds).map((id) => ({
-             id,
-             name:
-               findSectionById(id, data?.sections || [])?.section_name ??
+          <BulkRemoveModal
+            opened={BulkRemoveModalOpened}
+            onClose={() => setBulkRemoveModalOpened(false)}
+            selectedSections={bulkRemoveIds.map((id) => ({
+              id,
+              name:
+                findSectionById(id, data?.sections || [])?.section_name ??
                "Unknown Section",
            }))}
            onConfirm={handleBulkRemove}

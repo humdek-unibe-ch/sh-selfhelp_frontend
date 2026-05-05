@@ -11,12 +11,7 @@ import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { AdminApi } from '../../../api/admin';
 import { parseApiError } from '../../../utils/mutation-error-handler';
-import { IAddSectionToSectionData } from '../../../types/requests/admin/create-section.types';
-
-export interface IAddSectionInSectionData extends IAddSectionToSectionData {
-    sectionId: number;
-    position: number;
-}
+import { IAddSectionInSectionData } from '../../../types/requests/admin/create-section.types';
 
 interface IAddSectionToSectionMutationOptions {
   onSuccess?: (
