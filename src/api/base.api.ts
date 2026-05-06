@@ -174,7 +174,6 @@ import { initializePermissionChecking } from './permission-wrapper.api';
 import { permissionAwareApiClient } from './permission-aware-client.api';
 import { readCookieValue } from '../utils/auth.utils';
 import { CSRF_COOKIE, IMPERSONATE_COOKIE } from '../config/cookie-names';
-import { notifications } from '@mantine/notifications';
 
 initializePermissionChecking(apiClient);
 

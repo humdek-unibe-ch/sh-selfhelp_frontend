@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '../config/routes.config';
 import { useAuthUser } from './useUserData';
@@ -53,6 +53,21 @@ export const useAuth = () => {
       writeBrowserCookie(IMPERSONATE_TARGET_EMAIL_COOKIE, '', 0);
       globalThis.location.reload();
     }, []);
+
+    // For cases where the cookie is not valid but the user didnt change page, this in order to update banner.
+    useEffect(() => {
+        if (!isImpersonating) return;
+
+        const interval = setInterval(() => {
+            const stillActive = !!readCookieValue(IMPERSONATE_COOKIE);
+            if (!stillActive) {
+                // Cookie expired — clean up and reload
+                stopImpersonation();
+            }
+        }, 10000); // check every 10 seconds
+
+        return () => clearInterval(interval);
+    }, [isImpersonating, stopImpersonation]);
 
     return useMemo(
         () => ({
