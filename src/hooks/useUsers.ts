@@ -15,8 +15,8 @@ import { parseApiError } from '../utils/mutation-error-handler';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import React from 'react';
-import { writeBrowserCookie } from '../utils/auth.utils';
-import { IMPERSONATE_COOKIE, IMPERSONATE_COOKIE_MAX_AGE, IMPERSONATE_BY_COOKIE, IMPERSONATE_TARGET_ID_COOKIE, IMPERSONATE_TARGET_EMAIL_COOKIE } from '../config/cookie-names';
+import { readCookieValue, writeBrowserCookie } from '../utils/auth.utils';
+import { IMPERSONATE_COOKIE, IMPERSONATE_COOKIE_MAX_AGE, IMPERSONATE_TARGET_EMAIL_COOKIE } from '../config/cookie-names';
 
 // Query Keys
 export const USER_QUERY_KEYS = {
@@ -356,6 +356,24 @@ export function useImpersonateUser() {
   return useMutation({
     mutationFn: (userId: number) => AdminUserApi.impersonateUser(userId),
     onSuccess: (data) => {
+    const currentTarget = readCookieValue(IMPERSONATE_TARGET_EMAIL_COOKIE);
+    const isSameUser = currentTarget === data.target_email;
+
+      if (isSameUser) {
+        notifications.show({
+          title: 'Already Impersonating',
+          message: `You are already impersonating ${data.target_email}`,
+          color: 'yellow',
+          autoClose: 5000,
+          position: 'top-center',
+        });
+        return;
+      }
+
+      // Store impersonation context
+      writeBrowserCookie(IMPERSONATE_COOKIE, data.impersonation_token, IMPERSONATE_COOKIE_MAX_AGE);
+      writeBrowserCookie(IMPERSONATE_TARGET_EMAIL_COOKIE, data.target_email, IMPERSONATE_COOKIE_MAX_AGE);
+
       notifications.show({
         title: 'Impersonation Started',
         message: `You are now impersonating ${data.target_email}`,
@@ -364,9 +382,7 @@ export function useImpersonateUser() {
         autoClose: 5000,
         position: 'top-center',
       });
-      // Store impersonation context  
-      writeBrowserCookie(IMPERSONATE_COOKIE, data.impersonation_token, IMPERSONATE_COOKIE_MAX_AGE);
-      writeBrowserCookie(IMPERSONATE_TARGET_EMAIL_COOKIE, data.target_email, IMPERSONATE_COOKIE_MAX_AGE);
+
       globalThis.location.reload();
     },
     onError: handleMutationError,
