@@ -4,7 +4,7 @@ import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { PageApi } from '../api/page.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useLanguageContext } from '../app/components/contexts/LanguageContext';
-import { IPageContent } from '../types/common/pages.type';
+import { IPageContent } from '../shared';
 
 interface IUsePageContentByKeywordOptions {
     /** Override the language id from context — useful for explicit SSR prefetches. */

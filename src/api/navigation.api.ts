@@ -7,8 +7,7 @@
 
 import { permissionAwareApiClient } from './base.api';
 import { API_CONFIG } from '../config/api.config';
-import { IBaseApiResponse } from '../types/responses/common/response-envelope.types';
-import { IPageItem } from '../types/common/pages.type';
+import { IBaseApiResponse, IPageItem } from '../shared';
 
 /**
  * Transforms raw API page data to match the IPageItem interface

@@ -20,8 +20,7 @@
 
 import { permissionAwareApiClient } from './base.api';
 import { API_CONFIG } from '../config/api.config';
-import { IBaseApiResponse } from '../types/responses/common/response-envelope.types';
-import { IPageContent } from '../types/common/pages.type';
+import { IBaseApiResponse, IPageContent } from '../shared';
 
 export const PageApi = {
     /**

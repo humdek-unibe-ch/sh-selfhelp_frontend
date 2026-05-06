@@ -31,6 +31,7 @@ import { PAGE_ACCESS_TYPES, PAGE_ACCESS_TYPES_MOBILE_AND_WEB } from '../../../..
 import { ICreatePageFormValues, ICreatePageModalProps } from '../../../../../types/forms/create-page.types';
 import { IAdminPage } from '../../../../../types/responses/admin/admin.types';
 import { DragDropMenuPositioner } from '../../ui/drag-drop-menu-positioner/DragDropMenuPositioner';
+import { MenuType } from '../page-inspector/PageInspector';
 import { ICreatePageRequest } from '../../../../../types/requests/admin/create-page.types';
 
 
@@ -287,7 +288,7 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
                                         <SimpleGrid cols={2} spacing="md">
                                             {/* Header Menu */}
                                             <DragDropMenuPositioner
-                                                menuType="header"
+                                                menuType={MenuType.HEADER}
                                                 title="Header Menu Position"
                                                 newPageKeyword={form.values.keyword}
                                                 enabled={form.values.headerMenu}
@@ -303,7 +304,7 @@ export const CreatePageModal = ({ opened, onClose, parentPage = null }: ICreateP
 
                                             {/* Footer Menu */}
                                             <DragDropMenuPositioner
-                                                menuType="footer"
+                                                menuType={MenuType.FOOTER}
                                                 title="Footer Menu Position"
                                                 newPageKeyword={form.values.keyword}
                                                 enabled={form.values.footerMenu}

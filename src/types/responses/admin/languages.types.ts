@@ -4,14 +4,9 @@
  * @module types/responses/admin/languages.types
  */
 
-import { IBaseApiResponse } from '../common/response-envelope.types';
+import type { IBaseApiResponse, ILanguage } from '../../../shared';
 
-export interface ILanguage {
-    id: number;
-    locale: string;
-    language: string;
-    csvSeparator: string;
-}
+export type { ILanguage } from '../../../shared';
 
 export type TLanguagesResponse = IBaseApiResponse<ILanguage[]>;
 export type TLanguageResponse = IBaseApiResponse<ILanguage>; 

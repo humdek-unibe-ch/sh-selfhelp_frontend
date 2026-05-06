@@ -85,11 +85,13 @@ export const getSpacingProps = (style: IStyleWithSpacing) => {
         }
     };
 
-    if (!style.mantine_spacing_margin_padding) {
+    const spacingField = style.mantine_spacing_margin_padding ?? style.mantine_spacing_margin;
+
+    if (!spacingField) {
         return spacingProps;
     }
 
-    const spacingJson = style.mantine_spacing_margin_padding.content;
+    const spacingJson = spacingField.content;
     if (typeof spacingJson !== 'string' || spacingJson.trim() === '') {
         return spacingProps;
     }

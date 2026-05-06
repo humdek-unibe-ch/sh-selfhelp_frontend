@@ -1,7 +1,7 @@
 "use client";
 
 import { usePagePrefetch } from "../../../../../hooks/usePagePrefetch";
-import { IPageItem } from "../../../../../types/common/pages.type";
+import { IPageItem } from "../../../../../shared";
 import { InternalLink } from "../../../shared";
 
 export function FooterLinks({ footerPages }: { footerPages: IPageItem[] }) {

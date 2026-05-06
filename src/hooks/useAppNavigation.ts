@@ -8,7 +8,7 @@
 
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { NavigationApi } from '../api/navigation.api';
-import { IPageItem } from '../types/responses/frontend/frontend.types';
+import { IPageItem } from '../shared';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { useLanguageContext } from '../app/components/contexts/LanguageContext';
 import {

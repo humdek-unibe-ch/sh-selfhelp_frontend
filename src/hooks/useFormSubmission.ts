@@ -3,7 +3,7 @@ import { FormSubmissionApi } from '../api/frontend/form-submission.api';
 import {
     IFormSubmitRequest,
     IFormUpdateRequest
-} from '../types/requests/frontend/form-submission.types';
+} from '../shared';
 import { notifications } from '@mantine/notifications';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 

@@ -30,7 +30,7 @@ import {
     transformNavigationPages,
     selectFooterPages
 } from '../../utils/navigation.utils';
-import type { IPageItem } from '../../types/common/pages.type';
+import type { IPageItem } from '../../shared';
 
 /** SSR cache lifetime for `/languages` in seconds. */
 const LANGUAGES_REVALIDATE_SECONDS = 300;
@@ -40,7 +40,7 @@ async function authHeaders(): Promise<HeadersInit> {
     const token = jar.get(AUTH_COOKIE)?.value;
     const headers: Record<string, string> = {
         Accept: 'application/json',
-        'X-Client-Type': 'web-ssr',
+        'X-Client-Type': 'web',
     };
     if (token) headers.Authorization = `Bearer ${token}`;
     return headers;

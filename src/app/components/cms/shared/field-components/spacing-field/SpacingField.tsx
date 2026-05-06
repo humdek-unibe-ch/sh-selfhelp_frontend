@@ -18,7 +18,7 @@ export interface ISpacingValues {
     pe?: TSpacingValue; // padding-end
 }
 
-export type TSpacingFieldType = 'mantine_spacing_margin_padding';
+export type TSpacingFieldType = 'mantine_spacing_margin' | 'mantine_spacing_margin_padding';
 
 interface ISpacingFieldProps {
     fieldId: number;
@@ -81,6 +81,7 @@ export function SpacingField({
     }, []);
 
     const spacingValues = parseSpacingValue(value);
+    const isMarginOnly = fieldType === 'mantine_spacing_margin';
 
     // Handle spacing value change
     const handleSpacingChange = useCallback((property: keyof ISpacingValues, newValue: TSpacingValue) => {
@@ -267,12 +268,14 @@ export function SpacingField({
                 </Box>
 
                 {/* Padding Layer */}
-                <Box className={classes.paddingLayer}>
-                    {renderSpacingControl('pt', 'paddingTop', 'Padding Top')}
-                    {renderSpacingControl('pb', 'paddingBottom', 'Padding Bottom')}
-                    {renderSpacingControl('ps', 'paddingStart', 'Padding Start')}
-                    {renderSpacingControl('pe', 'paddingEnd', 'Padding End')}
-                </Box>
+                {!isMarginOnly && (
+                    <Box className={classes.paddingLayer}>
+                        {renderSpacingControl('pt', 'paddingTop', 'Padding Top')}
+                        {renderSpacingControl('pb', 'paddingBottom', 'Padding Bottom')}
+                        {renderSpacingControl('ps', 'paddingStart', 'Padding Start')}
+                        {renderSpacingControl('pe', 'paddingEnd', 'Padding End')}
+                    </Box>
+                )}
 
                 {/* Content Area - Fixed position inside padding layer */}
                 <Paper className={classes.contentArea} withBorder radius="sm" bg="gray.1">

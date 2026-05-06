@@ -4,12 +4,12 @@ import {
     IFormSubmitRequest,
     IFormUpdateRequest,
     IFormDeleteRequest
-} from '../../types/requests/frontend/form-submission.types';
+} from '../../shared';
 import {
     IFormSubmitResponse,
     IFormUpdateResponse,
     IFormDeleteResponse
-} from '../../types/responses/frontend/form-submission.types';
+} from '../../shared';
 
 /**
  * Form Submission API Service

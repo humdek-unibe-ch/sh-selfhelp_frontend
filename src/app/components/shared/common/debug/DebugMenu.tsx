@@ -38,7 +38,7 @@ import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { useLanguageContext } from '../../../contexts/LanguageContext';
 import { useAuth } from '../../../../../hooks/useAuth';
 import { notifications } from '@mantine/notifications';
-import { IPageItem } from '../../../../../types/common/pages.type';
+import { IPageItem } from '../../../../../shared';
 import { 
     getRenderStats, 
     getWarnings, 

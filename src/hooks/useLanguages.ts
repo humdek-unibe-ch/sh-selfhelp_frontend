@@ -77,6 +77,7 @@ export function usePublicLanguages() {
         languages: (data ?? EMPTY_LANGUAGES) as ILanguage[],
         isLoading,
         error,
+        refetch,
         defaultLanguage: data?.[0] ?? null,
     };
 }

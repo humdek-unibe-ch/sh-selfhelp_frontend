@@ -24,7 +24,7 @@ import { useQuery } from '@tanstack/react-query';
 import { PageApi } from '../api/page.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { usePageContext } from '../app/components/contexts/PageContext';
-import { IPageContent } from '../types/common/pages.type';
+import { IPageContent } from '../shared';
 
 interface IUsePageContentValueOptions {
     keyword?: string | null;

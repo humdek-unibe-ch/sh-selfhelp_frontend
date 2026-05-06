@@ -1,8 +1,17 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
     allowedDevOrigins: ['127.0.0.1'],
-  
+
+    transpilePackages: ['@selfhelp/shared'],
+
+    outputFileTracingRoot: path.join(__dirname, '..'),
+
     experimental: {
       optimizePackageImports: [
         '@mantine/core',
@@ -10,11 +19,11 @@ const nextConfig = {
         '@mantine/notifications',
       ],
     },
-  
+
     turbopack: {
-      // You can add options here if needed, usually empty is fine
+      root: path.join(__dirname, '..'),
     },
   };
-  
+
   export default nextConfig;
   

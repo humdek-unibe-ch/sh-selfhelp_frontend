@@ -1,5 +1,5 @@
-// Re-export types from the consolidated pages.type.ts file
+// Re-export public frontend page DTOs from the shared package.
 export type {
     IPageContent,
     IPageItem
-} from '../../common/pages.type';
+} from '../../../shared';

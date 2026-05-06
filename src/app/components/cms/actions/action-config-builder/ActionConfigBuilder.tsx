@@ -29,6 +29,9 @@ interface IActionConfigBuilderProps {
 }
 
 function ensureArray<T>(arr: T[] | undefined): T[] { return Array.isArray(arr) ? arr : []; }
+function ensureStringArray(arr: unknown): string[] {
+    return Array.isArray(arr) ? arr.map((item) => String(item)) : [];
+}
 function toOrdinal(n: number): string {
     const s = ["th", "st", "nd", "rd"], v = n % 100;
     return n + (s[(v - 20) % 10] || s[v] || s[0]);
@@ -465,7 +468,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                         {config.repeat && (
                             <div>
                                 <Text fw={500} size="sm" mb="xs">Standard Repeat</Text>
-                                <Grid gutter="sm" align="end">
+                                <Grid gap="sm" align="end">
                                     <Grid.Col span={3}>
                                         <NumberInput
                                             label="Occurrences"
@@ -489,7 +492,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                             <MultiSelect
                                                 label="Week days"
                                                 data={weekdaysData}
-                                                value={ensureArray(config.repeater?.daysOfWeek)}
+                                                value={ensureStringArray(config.repeater?.daysOfWeek)}
                                                 onChange={(v) => setConfig({ ...config, repeater: { ...(config.repeater || {}), daysOfWeek: v } })}
                                                 searchable
                                                 clearable
@@ -502,7 +505,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                             <MultiSelect
                                                 label="Month days"
                                                 data={daysOfMonthOptions}
-                                                value={ensureArray(config.repeater?.daysOfMonth)}
+                                                value={ensureStringArray(config.repeater?.daysOfMonth)}
                                                 onChange={(v) => setConfig({ ...config, repeater: { ...(config.repeater || {}), daysOfMonth: v } })}
                                                 searchable
                                                 clearable
@@ -517,7 +520,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                         {config.repeat_until_date && (
                             <div>
                                 <Text fw={500} size="sm" mb="xs">Repeat Until Deadline</Text>
-                                <Grid gutter="sm" align="end">
+                                <Grid gap="sm" align="end">
                                     <Grid.Col span={4}>
                                         <DateTimePicker
                                             label="Deadline"
@@ -561,13 +564,13 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                 </Grid>
 
                                 {(config.repeater_until_date?.frequency === 'week' || config.repeater_until_date?.frequency === 'month') && (
-                                    <Grid gutter="sm" mt="sm">
+                                    <Grid gap="sm" mt="sm">
                                         {config.repeater_until_date?.frequency === 'week' && (
                                             <Grid.Col span={6}>
                                                 <MultiSelect
                                                     label="Week days"
                                                     data={weekdaysData}
-                                                    value={ensureArray(config.repeater_until_date?.daysOfWeek)}
+                                                    value={ensureStringArray(config.repeater_until_date?.daysOfWeek)}
                                                     onChange={(v) => setConfig({ ...config, repeater_until_date: { ...(config.repeater_until_date || {}), daysOfWeek: v } })}
                                                     searchable
                                                     clearable
@@ -580,7 +583,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                                                 <MultiSelect
                                                     label="Month days"
                                                     data={daysOfMonthOptions}
-                                                    value={ensureArray(config.repeater_until_date?.daysOfMonth)}
+                                                    value={ensureStringArray(config.repeater_until_date?.daysOfMonth)}
                                                     onChange={(v) => setConfig({ ...config, repeater_until_date: { ...(config.repeater_until_date || {}), daysOfMonth: v } })}
                                                     searchable
                                                     clearable
@@ -637,7 +640,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                     </Group>
 
                     {st.job_schedule_types === 'after_period' && (
-                        <Grid gutter="sm">
+                        <Grid gap="sm">
                             <Grid.Col span={4}>
                                 <NumberInput
                                     label="Send after"
@@ -669,7 +672,7 @@ export function ActionConfigBuilder({ actionId, value, onChange, onTranslationsC
                     )}
 
                     {st.job_schedule_types === 'after_period_on_day_at_time' && (
-                        <Grid gutter="sm">
+                        <Grid gap="sm">
                             <Grid.Col span={4}>
                                 <Select
                                     label="Send on"

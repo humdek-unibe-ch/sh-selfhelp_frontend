@@ -357,7 +357,7 @@ export default function ScheduledJobsCalendar() {
       case "day":
         return d.format("dddd, MMMM D, YYYY");
       case "week": {
-        const start = dayjs(getStartOfWeek({ date, firstDayOfWeek: 1 }));
+        const start = dayjs(getStartOfWeek(date, 1));
         const end = start.add(6, "day");
         if (start.month() === end.month()) {
           return `${start.format("MMM D")} – ${end.format("D, YYYY")}`;

@@ -15,7 +15,7 @@
  * hydration mismatch on the menu structure.
  */
 import { transformPageData } from '../api/navigation.api';
-import type { IPageItem } from '../types/common/pages.type';
+import type { IPageItem } from '../shared';
 
 /**
  * Recursively rewrite child page URLs so they navigate to the direct

@@ -8,7 +8,7 @@ import { useLogout } from '@refinedev/core';
 import { useAuthStatus } from '../../../../hooks/useUserData';
 import { ROUTES } from '../../../../config/routes.config';
 import { useAppNavigation } from '../../../../hooks/useAppNavigation';
-import { IPageItem } from '../../../../types/common/pages.type';
+import { IPageItem } from '../../../../shared';
 import { getPageTitle } from '../../../../utils/navigation.utils';
 
 interface IAuthButtonProps {
