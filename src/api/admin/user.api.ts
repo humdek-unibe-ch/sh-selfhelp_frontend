@@ -213,9 +213,7 @@ export const AdminUserApi = {
       success: response.status === 200 || response.status === 204,
       impersonation_token: data.impersonation_token,
       expires_in: data.expires_in,
-      target_user_id: data.target_user_id,
       target_email: data.target_email,
-      impersonated_by: data.impersonated_by,
     };
   },
 }; 

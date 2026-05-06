@@ -60,24 +60,30 @@ export const apiClient = apiClientRaw;
 const UNSAFE_METHODS = new Set(['post', 'put', 'patch', 'delete']);
 
 apiClientRaw.interceptors.request.use(
-    (config) => {
-      const method = (config.method || "get").toLowerCase();
-      if (UNSAFE_METHODS.has(method)) {
-        const csrf = readCookieValue(CSRF_COOKIE);
-        if (csrf) {
-          config.headers.set("X-CSRF-Token", csrf);
-        }
+  (config) => {
+    const method = (config.method || "get").toLowerCase();
+    const impersonationToken = readCookieValue(IMPERSONATE_COOKIE);
+    // Block unsafe methods completely if impersonating
+    if (UNSAFE_METHODS.has(method) && impersonationToken) {
+      // Reject the promise to immediately stop the request from firing
+      return Promise.reject(
+        new Error("Read-only mode during impersonation"),
+      );
+    }
+
+    if (UNSAFE_METHODS.has(method)) {
+      const csrf = readCookieValue(CSRF_COOKIE);
+      if (csrf) {
+        config.headers.set("X-CSRF-Token", csrf);
       }
-      // If impersonation is active, set the header set
-      const impersonationToken = readCookieValue(IMPERSONATE_COOKIE);
-      console.warn(impersonationToken);
-      if (impersonationToken) {
-        
-        config.headers.set("X-Impersonation-Token", impersonationToken);
-      }
-      return config;
-    },
-    (error) => Promise.reject(error)
+    }
+
+    if (impersonationToken) {
+      config.headers.set("X-Impersonation-Token", impersonationToken);
+    }
+    return config;
+  },
+  (error) => Promise.reject(error),
 );
 
 function isAdminDataOperation(url: string | undefined): boolean {
@@ -168,6 +174,7 @@ import { initializePermissionChecking } from './permission-wrapper.api';
 import { permissionAwareApiClient } from './permission-aware-client.api';
 import { readCookieValue } from '../utils/auth.utils';
 import { CSRF_COOKIE, IMPERSONATE_COOKIE } from '../config/cookie-names';
+import { notifications } from '@mantine/notifications';
 
 initializePermissionChecking(apiClient);
 

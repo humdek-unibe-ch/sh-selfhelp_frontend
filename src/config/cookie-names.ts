@@ -44,8 +44,6 @@ export const LONG_LIVED_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 /** Impersonation session token — short-lived, replaced on reload. */
 export const IMPERSONATE_COOKIE = 'sh_impersonate';
-export const IMPERSONATE_BY_COOKIE = 'sh_impersonate_by';
-export const IMPERSONATE_TARGET_ID_COOKIE = 'sh_impersonate_target_id';
 export const IMPERSONATE_TARGET_EMAIL_COOKIE = 'sh_impersonate_target_email';
 
 /** 15 minutes — matches IMPERSONATION_TOKEN_TTL on the Symfony side. */

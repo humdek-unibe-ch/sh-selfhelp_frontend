@@ -366,8 +366,6 @@ export function useImpersonateUser() {
       });
       // Store impersonation context  
       writeBrowserCookie(IMPERSONATE_COOKIE, data.impersonation_token, IMPERSONATE_COOKIE_MAX_AGE);
-      writeBrowserCookie(IMPERSONATE_BY_COOKIE, data.impersonated_by.toString(), IMPERSONATE_COOKIE_MAX_AGE);
-      writeBrowserCookie(IMPERSONATE_TARGET_ID_COOKIE, data.target_user_id.toString(), IMPERSONATE_COOKIE_MAX_AGE);
       writeBrowserCookie(IMPERSONATE_TARGET_EMAIL_COOKIE, data.target_email, IMPERSONATE_COOKIE_MAX_AGE);
       globalThis.location.reload();
     },
