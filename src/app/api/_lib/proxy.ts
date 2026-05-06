@@ -22,6 +22,7 @@ import {
     SYMFONY_INTERNAL_URL,
     callSymfonyRefreshToken,
 } from '../../../config/server.config';
+import { IMPERSONATE_COOKIE } from '../../../config/cookie-names';
 
 export { AUTH_COOKIE, REFRESH_COOKIE, CSRF_COOKIE, SYMFONY_API_PREFIX, SYMFONY_INTERNAL_URL };
 
@@ -175,16 +176,21 @@ export async function forwardBufferedToSymfony(
 ): Promise<Response> {
     const headers = new Headers(buffered.headers);
 
+    const jar = await cookies();
+
+    const impersonationToken = jar.get(IMPERSONATE_COOKIE)?.value;
+    const authToken = jar.get(AUTH_COOKIE)?.value;
+
     if (overrideAccessToken) {
-        headers.set('Authorization', `Bearer ${overrideAccessToken}`);
+      headers.set("Authorization", `Bearer ${overrideAccessToken}`);
+    } else if (impersonationToken) {
+      // Check if impersonation token
+      headers.set("Authorization", `Bearer ${impersonationToken}`);
+    } else if (authToken) {
+      // fallback to normal auth if not impersonation
+      headers.set("Authorization", `Bearer ${authToken}`);
     } else {
-        const jar = await cookies();
-        const auth = jar.get(AUTH_COOKIE)?.value;
-        if (auth) {
-            headers.set('Authorization', `Bearer ${auth}`);
-        } else {
-            headers.delete('authorization');
-        }
+      headers.delete("authorization");
     }
 
     const init: RequestInit = {

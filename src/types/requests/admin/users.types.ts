@@ -34,3 +34,12 @@ export interface IUserGroupsRequest {
 export interface IUserRolesRequest {
   role_ids: number[];
 } 
+
+export interface IImpersonateUserResponse {
+  success: boolean;
+  impersonation_token: string;
+  expires_in: number;
+  target_user_id: number;
+  target_email: string;
+  impersonated_by: number;
+}

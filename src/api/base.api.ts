@@ -38,7 +38,6 @@
 import axios from 'axios';
 import { API_CONFIG } from '../config/api.config';
 import { ROUTES } from '../config/routes.config';
-import { readCsrfToken } from '../utils/auth.utils';
 
 declare module 'axios' {
     export interface InternalAxiosRequestConfig {
@@ -62,14 +61,21 @@ const UNSAFE_METHODS = new Set(['post', 'put', 'patch', 'delete']);
 
 apiClientRaw.interceptors.request.use(
     (config) => {
-        const method = (config.method || 'get').toLowerCase();
-        if (UNSAFE_METHODS.has(method)) {
-            const csrf = readCsrfToken();
-            if (csrf) {
-                config.headers.set('X-CSRF-Token', csrf);
-            }
+      const method = (config.method || "get").toLowerCase();
+      if (UNSAFE_METHODS.has(method)) {
+        const csrf = readCookieValue(CSRF_COOKIE);
+        if (csrf) {
+          config.headers.set("X-CSRF-Token", csrf);
         }
-        return config;
+      }
+      // If impersonation is active, set the header set
+      const impersonationToken = readCookieValue(IMPERSONATE_COOKIE);
+      console.warn(impersonationToken);
+      if (impersonationToken) {
+        
+        config.headers.set("X-Impersonation-Token", impersonationToken);
+      }
+      return config;
     },
     (error) => Promise.reject(error)
 );
@@ -160,6 +166,8 @@ apiClientRaw.interceptors.response.use(
 
 import { initializePermissionChecking } from './permission-wrapper.api';
 import { permissionAwareApiClient } from './permission-aware-client.api';
+import { readCookieValue } from '../utils/auth.utils';
+import { CSRF_COOKIE, IMPERSONATE_COOKIE } from '../config/cookie-names';
 
 initializePermissionChecking(apiClient);
 

@@ -16,7 +16,6 @@
  * runtimes reference identical constants.
  */
 
-import { CSRF_COOKIE } from '../config/cookie-names';
 
 /**
  * Write a cookie from the browser. Pass `maxAge = 0` to delete; the helper
@@ -35,12 +34,11 @@ export function writeBrowserCookie(name: string, value: string, maxAge: number):
 }
 
 /**
- * CSRF double-submit helper. Reads the non-httpOnly `sh_csrf` cookie and
- * returns its value so Axios can attach the `X-CSRF-Token` header.
+ * Reusable read cookie value
  */
-export function readCsrfToken(): string | null {
+export function readCookieValue(name: string): string | null {
     if (typeof document === 'undefined') return null;
-    const prefix = `${CSRF_COOKIE}=`;
+    const prefix = `${name}=`;
     const match = document.cookie.split('; ').find((c) => c.startsWith(prefix));
     return match ? decodeURIComponent(match.slice(prefix.length)) : null;
 }

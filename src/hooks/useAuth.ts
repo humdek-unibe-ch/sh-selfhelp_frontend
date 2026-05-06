@@ -4,6 +4,8 @@ import { useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '../config/routes.config';
 import { useAuthUser } from './useUserData';
+import { IMPERSONATE_TARGET_EMAIL_COOKIE, IMPERSONATE_COOKIE, IMPERSONATE_BY_COOKIE, IMPERSONATE_TARGET_ID_COOKIE } from '../config/cookie-names';
+import { readCookieValue, writeBrowserCookie } from '../utils/auth.utils';
 
 /**
  * Convenience hook bundling auth + permission helpers around a single
@@ -38,6 +40,22 @@ export const useAuth = () => {
         return true;
     }, [isAuthenticated, hasAdminAccess, router]);
 
+    const isImpersonating = useMemo(() => !!readCookieValue(IMPERSONATE_COOKIE), []);
+
+    const targetUser = useMemo(() => {
+      if (!isImpersonating) return null;
+      const email = readCookieValue(IMPERSONATE_TARGET_EMAIL_COOKIE);
+      return email ? { email } : null;
+    }, []);
+
+    const stopImpersonation = useCallback(() => {
+      writeBrowserCookie(IMPERSONATE_COOKIE, "", 0);
+      writeBrowserCookie(IMPERSONATE_BY_COOKIE, "", 0);
+      writeBrowserCookie(IMPERSONATE_TARGET_ID_COOKIE, "", 0);
+      writeBrowserCookie(IMPERSONATE_TARGET_EMAIL_COOKIE, "", 0);
+      window.location.reload();
+    }, []);
+
     return useMemo(
         () => ({
             isAuthenticated,
@@ -47,6 +65,9 @@ export const useAuth = () => {
             hasPermission,
             hasAdminAccess,
             requireAdminAccess,
+            isImpersonating,
+            targetUser,
+            stopImpersonation,
         }),
         [
             isAuthenticated,
@@ -56,6 +77,9 @@ export const useAuth = () => {
             hasPermission,
             hasAdminAccess,
             requireAdminAccess,
+            isImpersonating,
+            targetUser,
+            stopImpersonation,
         ]
     );
 };

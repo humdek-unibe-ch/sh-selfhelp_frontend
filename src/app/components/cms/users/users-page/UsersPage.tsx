@@ -87,7 +87,7 @@ export function UsersPage() {
           title="Access Denied"
           icon={<IconAlertCircle />}
         >
-          You don't have permission to view users.
+          You dont have permission to view users.
         </Alert>
       </Box>
     );

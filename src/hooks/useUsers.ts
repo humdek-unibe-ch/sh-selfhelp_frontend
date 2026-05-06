@@ -15,6 +15,8 @@ import { parseApiError } from '../utils/mutation-error-handler';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import React from 'react';
+import { writeBrowserCookie } from '../utils/auth.utils';
+import { IMPERSONATE_COOKIE, IMPERSONATE_COOKIE_MAX_AGE, IMPERSONATE_BY_COOKIE, IMPERSONATE_TARGET_ID_COOKIE, IMPERSONATE_TARGET_EMAIL_COOKIE } from '../config/cookie-names';
 
 // Query Keys
 export const USER_QUERY_KEYS = {
@@ -350,17 +352,24 @@ export function useCleanUserData() {
  * Hook to impersonate user
  */
 export function useImpersonateUser() {
+
   return useMutation({
     mutationFn: (userId: number) => AdminUserApi.impersonateUser(userId),
-    onSuccess: () => {
+    onSuccess: (data) => {
       notifications.show({
-        title: 'User Impersonation Started',
-        message: 'You are now impersonating the user!',
+        title: 'Impersonation Started',
+        message: `You are now impersonating ${data.target_email}`,
         icon: React.createElement(IconCheck, { size: '1rem' }),
         color: 'green',
         autoClose: 5000,
         position: 'top-center',
       });
+      // Store impersonation context  
+      writeBrowserCookie(IMPERSONATE_COOKIE, data.impersonation_token, IMPERSONATE_COOKIE_MAX_AGE);
+      writeBrowserCookie(IMPERSONATE_BY_COOKIE, data.impersonated_by.toString(), IMPERSONATE_COOKIE_MAX_AGE);
+      writeBrowserCookie(IMPERSONATE_TARGET_ID_COOKIE, data.target_user_id.toString(), IMPERSONATE_COOKIE_MAX_AGE);
+      writeBrowserCookie(IMPERSONATE_TARGET_EMAIL_COOKIE, data.target_email, IMPERSONATE_COOKIE_MAX_AGE);
+      globalThis.location.reload();
     },
     onError: handleMutationError,
   });
