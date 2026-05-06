@@ -63,13 +63,6 @@ apiClientRaw.interceptors.request.use(
   (config) => {
     const method = (config.method || "get").toLowerCase();
     const impersonationToken = readCookieValue(IMPERSONATE_COOKIE);
-    // Block unsafe methods completely if impersonating
-    if (UNSAFE_METHODS.has(method) && impersonationToken) {
-      // Reject the promise to immediately stop the request from firing
-      return Promise.reject(
-        new Error("Read-only mode during impersonation"),
-      );
-    }
 
     if (UNSAFE_METHODS.has(method)) {
       const csrf = readCookieValue(CSRF_COOKIE);
@@ -143,6 +136,7 @@ apiClientRaw.interceptors.response.use(
             responseData?.logged_in === false &&
             typeof window !== 'undefined'
         ) {
+            clearAuthCookies(); // TODO: Stefan review x2
             const path = window.location.pathname + window.location.search;
             if (shouldRedirectToLogin(window.location.pathname)) {
                 const loginUrl = `${ROUTES.LOGIN}?redirect=${encodeURIComponent(path)}`;
@@ -172,7 +166,7 @@ apiClientRaw.interceptors.response.use(
 
 import { initializePermissionChecking } from './permission-wrapper.api';
 import { permissionAwareApiClient } from './permission-aware-client.api';
-import { readCookieValue } from '../utils/auth.utils';
+import { clearAuthCookies, readCookieValue } from '../utils/auth.utils';
 import { CSRF_COOKIE, IMPERSONATE_COOKIE } from '../config/cookie-names';
 
 initializePermissionChecking(apiClient);

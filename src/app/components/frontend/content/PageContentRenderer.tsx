@@ -1,8 +1,6 @@
-import React from 'react';
 import { Stack } from '@mantine/core';
 import type { TStyle } from '../../../../types/common/styles.types';
 import BasicStyle from '../styles/BasicStyle';
-import { ImpersonationBanner } from '../../shared/common/ImpersonationBanner';
 
 interface IPageContentRendererProps {
     sections: TStyle[];
@@ -23,8 +21,6 @@ export function PageContentRenderer({ sections }: IPageContentRendererProps) {
     }
 
     return (
-      <>
-        <ImpersonationBanner />
         <div>
           <Stack gap={0}>
             {sections.map((section, index) => {
@@ -35,7 +31,6 @@ export function PageContentRenderer({ sections }: IPageContentRendererProps) {
             })}
           </Stack>
         </div>
-      </>
     );
 }
 

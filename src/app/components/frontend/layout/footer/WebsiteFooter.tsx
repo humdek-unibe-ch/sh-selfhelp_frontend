@@ -4,6 +4,7 @@ import { Box, Container, Group, Stack, Text } from '@mantine/core';
 import styles from './WebsiteFooter.module.css';
 import { resolveLanguageSSR, getFooterPagesSSR } from '../../../../_lib/server-fetch';
 import { FooterLinks } from './FooterLinks';
+import { ImpersonationBanner } from '../../../shared/common/ImpersonationBanner';
 
 /**
  * Website Footer with optimized loading behavior.
@@ -20,18 +21,21 @@ export async function WebsiteFooter() {
     const footerPages = await getFooterPagesSSR(languageId);
 
     return (
+      <>
+        <ImpersonationBanner />
         <Box component="footer" w="100%" py="xl" className={styles.footer}>
-            <Container size="xl">
-                <Stack gap="lg">
-                    <Group justify="center" gap="xl">
-                        <FooterLinks footerPages={footerPages} />
-                    </Group>
+          <Container size="xl">
+            <Stack gap="lg">
+              <Group justify="center" gap="xl">
+                <FooterLinks footerPages={footerPages} />
+              </Group>
 
-                    <Text size="sm" c="dimmed" ta="center">
-                        © {new Date().getFullYear()} SelfHelp. All rights reserved.
-                    </Text>
-                </Stack>
-            </Container>
+              <Text size="sm" c="dimmed" ta="center">
+                © {new Date().getFullYear()} SelfHelp. All rights reserved.
+              </Text>
+            </Stack>
+          </Container>
         </Box>
+      </>
     );
 }
