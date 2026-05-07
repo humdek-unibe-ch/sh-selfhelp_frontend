@@ -3,8 +3,7 @@
     "section_name": "developer-profile",
     "style_name": "center",
     "global_fields": {
-      "css": "py-16 px-4 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-950 dark:to-gray-900 min-h-screen",
-      "css_mobile": "py-10 px-4"
+      "css": "px-4 py-12 sm:px-6 sm:py-16 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-950 dark:to-gray-900 min-h-screen"
     },
     "children": [
       {
@@ -221,7 +220,7 @@
             "section_name": "profile-stats",
             "style_name": "card-segment",
             "global_fields": {
-              "css": "px-6 py-4 border-t border-gray-200 dark:border-gray-800"
+              "css": "px-4 sm:px-6 py-4 border-t border-gray-200 dark:border-gray-800"
             },
             "children": [
               {
@@ -232,9 +231,9 @@
                       "content": "3"
                     }
                   },
-                  "mantine_spacing_margin_padding": {
+                  "mantine_vertical_spacing": {
                     "all": {
-                      "content": "{\"mantine_horizontal_spacing\":\"xs\",\"mantine_vertical_spacing\":\"xs\"}"
+                      "content": "xs"
                     }
                   }
                 },

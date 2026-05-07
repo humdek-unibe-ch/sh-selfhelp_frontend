@@ -10,8 +10,7 @@
       }
     },
     "global_fields": {
-      "css": "py-16 px-4 bg-gray-50 dark:bg-gray-950",
-      "css_mobile": "py-10 px-4"
+      "css": "px-4 py-12 sm:px-6 sm:py-16 lg:py-20 bg-gray-50 dark:bg-gray-950 max-w-7xl mx-auto"
     },
     "children": [
       {
@@ -66,8 +65,7 @@
                   }
                 },
                 "global_fields": {
-                  "css": "text-4xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-50",
-                  "css_mobile": "text-3xl"
+                  "css": "text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-50 break-words"
                 }
               },
               {
@@ -98,12 +96,12 @@
             "fields": {
               "mantine_cols": {
                 "all": {
-                  "content": "3"
+                  "content": "{\"base\":1,\"sm\":2,\"lg\":3}"
                 }
               },
-              "mantine_spacing_margin_padding": {
+              "mantine_vertical_spacing": {
                 "all": {
-                  "content": "{\"mantine_horizontal_spacing\":\"lg\",\"mantine_vertical_spacing\":\"lg\"}"
+                  "content": "lg"
                 }
               }
             },
@@ -133,7 +131,7 @@
                   }
                 },
                 "global_fields": {
-                  "css": "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:shadow-lg transition-shadow"
+                  "css": "min-w-0 overflow-hidden bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:shadow-lg transition-shadow"
                 },
                 "children": [
                   {
@@ -308,7 +306,7 @@
                   }
                 },
                 "global_fields": {
-                  "css": "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:shadow-lg transition-shadow"
+                  "css": "min-w-0 overflow-hidden bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:shadow-lg transition-shadow"
                 },
                 "children": [
                   {
@@ -483,7 +481,7 @@
                   }
                 },
                 "global_fields": {
-                  "css": "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:shadow-lg transition-shadow"
+                  "css": "min-w-0 overflow-hidden bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:shadow-lg transition-shadow"
                 },
                 "children": [
                   {

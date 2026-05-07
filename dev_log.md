@@ -15,6 +15,198 @@ Components) live in `docs/architecture/ssr-bff-architecture.md`.
 
 ---
 
+## AI prompts, responsive grids and `css_mobile` (2026-05-07)
+
+**Problem.** The first imported page from the `all-styles-showcase.json`
+example rendered fine on desktop but the navigation row in section
+*"8. Lists, accordion & tabs"* squashed three side-by-side cards into a
+≈100px-wide column each on a phone, with text overflowing horizontally.
+The same screenshot also showed a `7. Progress & timeline` row whose
+right-hand timeline card overflowed its grid cell.
+
+**Root cause #1 — inert `mantine_breakpoints`.** The showcase JSON used
+the Mantine v6-era `breakpoints` shape inside the `mantine_breakpoints`
+field (`[{"maxWidth":"md","cols":2},…]`), but
+`SimpleGridStyle.tsx` only honoured the `mantine_cols` integer first and
+then fell back to a CSV format (`xs:1,sm:2,md:3`) which the JSON didn't
+match. As a result the field was ignored and the grid stayed at 3 fixed
+columns at every viewport. Mantine v9's *real* responsive shape is
+`cols={{ base: 1, sm: 2, lg: 3 }}` — no schema field accepted that.
+
+**Root cause #2 — silently inert `css_mobile`.** `getCssClass()` in
+`BasicStyle.tsx` returned only `"section-{id} {style.css}"`; the
+`css_mobile` field was never appended to the className string and no
+media-query CSS-in-JS was emitted. The AI prompt was telling generators
+to put mobile overrides there, the section editor was happy to save
+them, the field was on the wire — but the renderer threw it away.
+
+**Root cause #3 — Tailwind v4 safelist.** Even after fixing the renderer
+to emit `max-md:*` utilities, our `globals.css` `@source inline(...)`
+brace expansions only covered `{sm:,md:,lg:,xl:,2xl:}` prefixes, so
+`max-md:flex-col`, `max-md:py-10` etc. were never compiled and would
+have rendered as no-op classes.
+
+**Fixes (frontend).**
+
+- `SimpleGridStyle.tsx` now exposes `parseResponsiveCols` which accepts
+  a fixed integer (`"3"`), a stringified JSON object
+  (`{"base":1,"sm":2,"lg":3}`), the legacy CSV (`xs:1,sm:2,md:3`) or
+  raw JSON object input. Bad values fall back to `1` so a phone never
+  sees more columns than its viewport can fit.
+- `GridColumnStyle.tsx` ships the same parser shape for
+  `mantine_grid_span`, supporting numbers, the keywords
+  `auto`/`content`, and stringified JSON span objects.
+- `BasicStyle.tsx`'s `getCssClass()` now auto-prefixes every
+  `css_mobile` token with `max-md:` (skipping tokens that already carry
+  a viewport prefix to avoid `max-md:md:hidden`-style nonsense). The
+  result is appended after the regular `css` classes so the mobile
+  values win on viewports below the `md` breakpoint, while remaining a
+  portable raw-string field for the planned react-expo native renderer.
+- `globals.css` extends the `@source inline(...)` brace expansions with
+  `max-sm:`/`max-md:`/`max-lg:`/`max-xl:`/`max-2xl:` for spacing,
+  sizing, layout, flex/grid, gap and typography classes, matching the
+  set of properties `css_mobile` realistically targets.
+
+**Fixes (backend prompt).** `prompt_template_base.md` was rewritten:
+
+- New rule #10 documents the responsive `mantine_cols` /
+  `mantine_grid_span` JSON object shape and explicitly retires
+  `mantine_breakpoints` for new content.
+- New section *Mobile-first guardrails* enumerates the ten
+  recurring mobile bugs (fixed `cols=3`, missing `min-w-0`,
+  `break-words`, hard-coded `mantine_card_padding`, hero text without
+  responsive size, etc.) so the LLM has a checklist before emitting.
+- New section *Cross-platform readiness (web + mobile-web + native
+  react-expo)* explains the three-target rendering matrix and the
+  Mantine-props-first / Tailwind-second priority rule, the
+  `html-tag` deprecation for content, and the
+  `css_mobile`-as-portable-field contract.
+- The *Mobile overrides* section is rewritten so `css_mobile` is
+  documented honestly: it works, it auto-prefixes, prefer Tailwind
+  responsive prefixes inside the regular `css` for one-off tweaks,
+  reach for `css_mobile` when the override is structurally distinct or
+  needs to remain explicit for the native renderer.
+- Recipe hints now reflect the new patterns
+  (`mantine_cols="{\"base\":1,\"sm\":2,\"lg\":3}"`, responsive padding,
+  `min-w-0` on cards in grids).
+
+**Fixes (curated example JSONs).** All six files in
+`docs/AI Prompts/generated examples/` were rewritten to the new
+guardrails: responsive `mantine_cols` objects, `min-w-0
+overflow-hidden` on every card-in-a-grid, `break-words` on text inside
+narrow contexts, responsive Tailwind padding/typography in `css`
+instead of fixed Mantine sizes, removal of `hover:-translate-y-*`
+(workspace rule forbids hover transforms), and
+`mantine_carousel_slide_size` switched from `100` (px — scroll trap)
+to `100%` so a single slide fills the viewport.
+
+**New documentation.** `docs/AI Prompts/README.md` explains the
+prompt-flow (where the editable base lives, what the auto-rendered
+file appends, where to edit), the three-render-target contract, the
+mobile-first guardrails the prompt enforces, the responsive `cols` /
+`span` parsers, and how the auto-prefixed `css_mobile` actually works
+on the wire — so the next person onto this surface area doesn't have
+to retrace this investigation.
+
+**What remains to do.** When the react-expo renderer ships, it will
+need its own translation table for the `mantine_*` props and a
+deliberate decision about `css_mobile` (apply, ignore, or use as a
+hint into a platform-native style preset). The prompt's
+*Cross-platform readiness* section already labels that field as
+portable — the actual mapping is the new renderer's responsibility.
+
+### Follow-up: import 422s and a mobile-aware CSS picker (2026-05-07)
+
+**Problem.** Re-importing the freshly-rewritten `all-styles-showcase.json`
+returned HTTP 422 with nine validation errors:
+
+- 8 × `Field 'mantine_wrap' is not valid for style 'group'`
+- 1 × `Field 'mantine_spacing' does not exist`
+
+The wider context: the editor's `css` and `css_mobile` fields share the
+same dropdown, sourced from the backend's `tailwind-classes.json`. So
+the picker offered every Tailwind class — including hover/cursor/
+viewport-prefixed classes that the planned native (react-expo)
+renderer will silently drop. Either the picker had to filter, or every
+generated `css_mobile` token had to be hand-checked against the shared
+allow-list. The picker was the cheaper fix.
+
+**Root cause #1 — wrong layout fields.** Two field-name shortcuts had
+been baked into the showcase + the prompt:
+
+- `group` does not expose Mantine's `wrap` keyword as a field. The
+  registered field is `mantine_group_wrap` and takes `'0'` / `'1'`
+  (off / on). `mantine_wrap` is `flex`-only.
+- `simple-grid` has `mantine_vertical_spacing` for `verticalSpacing`,
+  but does **not** register a `mantine_spacing` field at all — even
+  though the frontend `SimpleGridStyle` reads `style.mantine_spacing`.
+  Until the backend ships that field, including it in the JSON is a
+  hard 422.
+
+**Root cause #2 — picker ignores native constraints.** The
+`@selfhelp/shared/cms-classes` package already publishes `classifyClass`
++ `CLASS_PATTERNS` + `LITERAL_CLASSES` — the curated subset the native
+renderer can compile. The CMS editor's `GlobalCreatableSelectField` was
+not using it; both `css` and `css_mobile` showed the same full Tailwind
+catalogue.
+
+**Fixes (data layer).**
+
+- New idempotent fixer script
+  `scripts/fix-ai-examples.mjs` walks every `generated examples/*.json`,
+  rewrites `group.fields.mantine_wrap` → `mantine_group_wrap` (with
+  `'wrap'` / `'wrap-reverse'` → `'1'`, `'nowrap'` → `'0'`), and removes
+  `simple-grid.fields.mantine_spacing`. First run patched 12 nodes
+  across 4 files; the second run reported `0` (idempotent).
+
+**Fixes (CMS editor).**
+
+- New hook `useMobileCssClasses` reuses the existing
+  `['css-classes']` query key (so we share the cache and HTTP round-trip
+  with `useCssClasses`) and runs each option through `classifyClass`.
+  `'allow'` decisions are kept verbatim, `'remap'` decisions are kept
+  with the rewritten value plus a `(mobile alias of …)` text label,
+  `'drop'` decisions disappear from the picker.
+- `GlobalCreatableSelectField` now takes a `target?: 'web' | 'mobile'`
+  prop. `target='web'` (default) calls `useCssClasses`,
+  `target='mobile'` calls `useMobileCssClasses`. The component wires
+  the right query at render time without losing dedupe.
+- `FieldRenderer` passes `target='mobile'` for `css_mobile`. The
+  tooltip was rewritten to explain the auto-`max-md:` prefixing **and**
+  the allow-list filter so editors are not surprised when a class they
+  remember from the `css` field is missing.
+
+**Fixes (prompt).**
+
+- New rule #15 *Field-name landmines* enumerates the four recurring
+  field mistakes (group/wrap, simple-grid/spacing, card/padding, media
+  field mix-ups).
+- The *Mobile overrides* section now spells out the curated allow-list
+  by category (spacing, sizing, typography, background/border,
+  flex/grid, atomic literals) and tells the LLM that hover / cursor /
+  responsive-prefix classes do not belong in `css_mobile`.
+- Removed the stray `mantine_spacing` from the *Responsive feature
+  grid* example so the worked example matches the rule.
+
+**Verification path.** Run the fixer:
+
+```text
+node scripts/fix-ai-examples.mjs
+# fixed 9 node(s) in all-styles-showcase.json
+# fixed 1 node(s) in developer-profile-card.json
+# no changes in modern-team-list.json
+# fixed 1 node(s) in modern-team-ui-mantine.json
+# no changes in modern-team-ui-tailwind.json
+# fixed 1 node(s) in sample-travel-blog.json
+# Total nodes fixed: 12
+```
+
+Re-import the fixed JSON; the 422 should be gone. If a different 422
+appears, add a new line to *Field-name landmines* and a new branch to
+the fixer, then re-run.
+
+---
+
 ## v0.1.0 — SSR + BFF refactor (2026-04)
 
 ### `/privacy` becomes a CMS-managed system page (2026-04-25)

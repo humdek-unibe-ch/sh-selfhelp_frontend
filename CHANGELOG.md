@@ -10,6 +10,50 @@ No engineering diary, no implementation detail — that belongs in
 
 ---
 
+## Unreleased — 2026-05
+
+### Added
+- `simple-grid` and `grid-column` now accept their responsive Mantine v9
+  shapes natively — `mantine_cols` and `mantine_grid_span` parse a
+  stringified JSON object such as `{"base":1,"sm":2,"lg":3}` /
+  `{"base":12,"md":4}` and pass it straight to `<SimpleGrid cols={…} />`
+  / `<Grid.Col span={…} />`. The legacy CSV format
+  (`xs:1,sm:2,md:3,lg:4`) and the plain integer string still work; bad
+  input falls back to one column / `auto` so pages never crash.
+- `global_fields.css_mobile` is finally honoured by the web renderer.
+  `getCssClass` (`BasicStyle.tsx`) auto-prefixes every utility token in
+  `css_mobile` with `max-md:` and appends them after the regular `css`
+  classes, so the mobile values win below the `md` breakpoint while
+  remaining a portable, platform-agnostic field for the planned native
+  (react-expo) renderer.
+- `docs/AI Prompts/README.md` documents the prompt-flow, multi-target
+  rendering rules, mobile-first guardrails and how the responsive grid
+  parsers behave — the canonical onboarding doc for anyone editing the
+  generated examples or the backend prompt template.
+
+### Changed
+- All curated AI prompt example JSONs in
+  `docs/AI Prompts/generated examples/` were rewritten to the
+  mobile-first guardrails: responsive `mantine_cols` objects, `min-w-0`
+  / `overflow-hidden` / `break-words` on cards in grids, responsive
+  paddings (`p-4 sm:p-6 lg:p-8`) and display text (`text-3xl sm:text-4xl
+  lg:text-5xl`), removal of `hover:-translate-y-*` (workspace rule), and
+  `mantine_carousel_slide_size` switched from `100` (px, scroll trap) to
+  `100%` so carousels fit the viewport on phones.
+- The CMS editor's **Mobile CSS** picker (`css_mobile` field) is now
+  filtered through the curated `@selfhelp/shared/cms-classes` allow-list
+  so editors only see classes the planned native renderer can compile.
+  The **Custom CSS** picker (`css` field) keeps the full Tailwind set.
+
+### Fixed
+- Importing the showcase JSON failed with HTTP 422 because two field
+  names did not match the backend schema. `mantine_wrap` on `group` is
+  rewritten to `mantine_group_wrap` (`'wrap'` → `'1'`, `'nowrap'` →
+  `'0'`) and `mantine_spacing` on `simple-grid` is removed (only
+  `mantine_vertical_spacing` is registered). A new idempotent script,
+  `scripts/fix-ai-examples.mjs`, patches both patterns across every
+  curated example.
+
 ## v0.1.0 — 2026-04
 
 Major refactor: server-rendered public pages, httpOnly-cookie auth via a

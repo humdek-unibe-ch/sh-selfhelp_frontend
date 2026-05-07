@@ -1,8 +1,19 @@
 'use client';
 
-import { useCssClasses } from '../../../../../../hooks/useCssClasses';
+import { useCssClasses, useMobileCssClasses } from '../../../../../../hooks/useCssClasses';
 import { IFieldConfig } from '../../../../../../types/requests/admin/fields.types';
 import { CreatableSelectField, CREATABLE_SELECT_CONFIGS } from './CreatableSelectField';
+
+/**
+ * `target` selects which CSS catalogue feeds the dropdown:
+ * - `'web'`    : full Tailwind set (default — used by the `css` field).
+ * - `'mobile'` : curated mobile-safe subset (used by the `css_mobile`
+ *                field). The mobile renderer only understands the
+ *                classes in `@selfhelp/shared/cms-classes` allow-list,
+ *                so showing anything else in the picker would mislead
+ *                the editor.
+ */
+export type TCssClassTarget = 'web' | 'mobile';
 
 export interface IGlobalCreatableSelectFieldProps {
     fieldId: number;
@@ -13,6 +24,7 @@ export interface IGlobalCreatableSelectFieldProps {
     isLoading?: boolean;
     clearable?: boolean;
     dataVariables?: Record<string, string>;
+    target?: TCssClassTarget;
 }
 
 export function GlobalCreatableSelectField({
@@ -23,11 +35,13 @@ export function GlobalCreatableSelectField({
     disabled = false,
     isLoading = false,
     clearable = false,
-    dataVariables
+    dataVariables,
+    target = 'web',
 }: IGlobalCreatableSelectFieldProps) {
-    const { data: cssClasses, isLoading: cssLoading } = useCssClasses();
+    const webQuery = useCssClasses();
+    const mobileQuery = useMobileCssClasses();
+    const { data: cssClasses, isLoading: cssLoading } = target === 'mobile' ? mobileQuery : webQuery;
 
-    // For CSS, prioritize API data over fieldConfig.options
     const updatedConfig = {
         ...config,
         options: (cssClasses || config.options || []).map(option => ({
@@ -36,7 +50,6 @@ export function GlobalCreatableSelectField({
         }))
     };
 
-    // Use the shared CSS classes configuration
     const cssConfig = CREATABLE_SELECT_CONFIGS.cssClasses;
 
     return (
