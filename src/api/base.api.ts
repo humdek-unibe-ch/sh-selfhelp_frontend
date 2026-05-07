@@ -136,7 +136,6 @@ apiClientRaw.interceptors.response.use(
             responseData?.logged_in === false &&
             typeof window !== 'undefined'
         ) {
-            // TODO: Should we clear cookies here?
             const path = window.location.pathname + window.location.search;
             if (shouldRedirectToLogin(window.location.pathname)) {
                 const loginUrl = `${ROUTES.LOGIN}?redirect=${encodeURIComponent(path)}`;

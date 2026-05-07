@@ -45,22 +45,3 @@ export function readCookieValue(name: string): string | null {
     const match = document.cookie.split('; ').find((c) => c.startsWith(prefix));
     return match ? decodeURIComponent(match.slice(prefix.length)) : null;
 }
-
-/**
- * Clear auth + impersonation cookies (browser-accessible ones only)
- */
-export function clearClientAuthCookies(): void {
-    if (typeof document === 'undefined') return;
-
-    const cookiesToClear = [
-        AUTH_COOKIE,
-        REFRESH_COOKIE,
-        IMPERSONATE_COOKIE,
-        IMPERSONATE_TARGET_EMAIL_COOKIE,
-        CSRF_COOKIE
-    ];
-
-    for (const name of cookiesToClear) {
-        document.cookie = `${name}=; Max-Age=0; path=/`;
-    }
-}
