@@ -22,7 +22,7 @@ import {
     SYMFONY_INTERNAL_URL,
     callSymfonyRefreshToken,
 } from '../../../config/server.config';
-import { IMPERSONATE_COOKIE } from '../../../config/cookie-names';
+import { IMPERSONATE_COOKIE, IMPERSONATE_TARGET_EMAIL_COOKIE } from '../../../config/cookie-names';
 
 export { AUTH_COOKIE, REFRESH_COOKIE, CSRF_COOKIE, SYMFONY_API_PREFIX, SYMFONY_INTERNAL_URL };
 
@@ -117,6 +117,9 @@ export function setAuthCookies(res: NextResponse, tokens: { access_token?: strin
 export function clearAuthCookies(res: NextResponse): void {
     res.cookies.set(AUTH_COOKIE, '', { ...COOKIE_COMMON, httpOnly: true, maxAge: 0 });
     res.cookies.set(REFRESH_COOKIE, '', { ...COOKIE_COMMON, httpOnly: true, maxAge: 0 });
+    res.cookies.set(IMPERSONATE_COOKIE, '', { ...COOKIE_COMMON, maxAge: 0 });
+    res.cookies.set(IMPERSONATE_TARGET_EMAIL_COOKIE, '', { ...COOKIE_COMMON, maxAge: 0 });
+    res.cookies.set(CSRF_COOKIE, '', { ...COOKIE_COMMON, maxAge: 0 });
 }
 
 /**

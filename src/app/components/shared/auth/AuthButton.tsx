@@ -10,7 +10,7 @@ import { ROUTES } from '../../../../config/routes.config';
 import { useAppNavigation } from '../../../../hooks/useAppNavigation';
 import { IPageItem } from '../../../../types/common/pages.type';
 import { getPageTitle } from '../../../../utils/navigation.utils';
-import { clearAuthCookies } from '../../../../utils/auth.utils';
+import { clearClientAuthCookies } from '../../../../utils/auth.utils';
 
 interface IAuthButtonProps {
     /**
@@ -53,7 +53,7 @@ export function AuthButton({ initialProfilePages = [] }: IAuthButtonProps = {}) 
 
     const handleLogout = () => {
         setIsLoggingOut(true);
-        clearAuthCookies(); // TODO: STEFAN Review - Shouldnt we clear all auth cookies on logout?
+        clearClientAuthCookies(); // TODO: STEFAN Review
         logout({ redirectPath: ROUTES.LOGIN });
     };
 

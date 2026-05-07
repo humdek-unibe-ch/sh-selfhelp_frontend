@@ -49,7 +49,7 @@ export function readCookieValue(name: string): string | null {
 /**
  * Clear auth + impersonation cookies (browser-accessible ones only)
  */
-export function clearAuthCookies(): void {
+export function clearClientAuthCookies(): void {
     if (typeof document === 'undefined') return;
 
     const cookiesToClear = [

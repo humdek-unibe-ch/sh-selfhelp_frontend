@@ -136,7 +136,7 @@ apiClientRaw.interceptors.response.use(
             responseData?.logged_in === false &&
             typeof window !== 'undefined'
         ) {
-            clearAuthCookies(); // TODO: Stefan review x2
+            // TODO: Should we clear cookies here?
             const path = window.location.pathname + window.location.search;
             if (shouldRedirectToLogin(window.location.pathname)) {
                 const loginUrl = `${ROUTES.LOGIN}?redirect=${encodeURIComponent(path)}`;
@@ -166,7 +166,7 @@ apiClientRaw.interceptors.response.use(
 
 import { initializePermissionChecking } from './permission-wrapper.api';
 import { permissionAwareApiClient } from './permission-aware-client.api';
-import { clearAuthCookies, readCookieValue } from '../utils/auth.utils';
+import { readCookieValue } from '../utils/auth.utils';
 import { CSRF_COOKIE, IMPERSONATE_COOKIE } from '../config/cookie-names';
 
 initializePermissionChecking(apiClient);
