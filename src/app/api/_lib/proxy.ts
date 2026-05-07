@@ -119,7 +119,6 @@ export function clearAuthCookies(res: NextResponse): void {
     res.cookies.set(REFRESH_COOKIE, '', { ...COOKIE_COMMON, httpOnly: true, maxAge: 0 });
     res.cookies.set(IMPERSONATE_COOKIE, '', { ...COOKIE_COMMON, maxAge: 0 });
     res.cookies.set(IMPERSONATE_TARGET_EMAIL_COOKIE, '', { ...COOKIE_COMMON, maxAge: 0 });
-    res.cookies.set(CSRF_COOKIE, '', { ...COOKIE_COMMON, maxAge: 0 });
 }
 
 /**
