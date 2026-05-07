@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 
 "use server";
 import { Box, Container, Group, Stack, Text } from '@mantine/core';

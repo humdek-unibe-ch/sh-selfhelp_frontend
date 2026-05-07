@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * React Query hook for fetching style groups.
  * Provides functionality to fetch and transform style groups data from the API.

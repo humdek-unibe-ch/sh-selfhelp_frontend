@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * Custom hook for managing application navigation and menu structure.
  * Provides functionality to fetch and transform navigation data from the API

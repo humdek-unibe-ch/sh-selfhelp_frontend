@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 # AI-Generated Sections — Prompt Flow & Authoring Guide
 
 This folder is the **frontend-side companion** to the LLM workflow that

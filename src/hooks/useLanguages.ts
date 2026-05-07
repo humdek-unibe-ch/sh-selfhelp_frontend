@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * Custom hook for managing languages data.
  * Provides functionality to fetch and cache available languages from the API

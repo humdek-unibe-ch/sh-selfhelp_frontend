@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 'use client';
 
 import { Modal, Stack, Group, Text, Badge, Divider, Paper, Button, ActionIcon, CopyButton, Tooltip, Code, Box, Alert } from '@mantine/core';

@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import dayjs from "dayjs";
 import { ScheduleEventData } from "@mantine/schedule";
 import { IScheduledJob } from "../../../../../types/responses/admin/scheduled-jobs.types";

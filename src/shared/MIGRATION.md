@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 # Migration to `@selfhelp/shared` — COMPLETED 2026-05-06
 
 The `@selfhelp/shared` package is installed via `file:../sh-selfhelp_shared` and re-exported from `src/shared`. Both apps (this frontend and the new `sh-selfhelp_mobile` Expo app) consume the same types and helpers.

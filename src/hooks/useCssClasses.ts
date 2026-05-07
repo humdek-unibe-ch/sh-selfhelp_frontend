@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import { useQuery } from '@tanstack/react-query';
 import { classifyClass } from '@selfhelp/shared';
 import { FrontendApi } from '../api/frontend.api';

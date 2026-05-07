@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * React Query mutation hook for creating pages.
  * Provides optimistic updates, error handling, and cache invalidation.

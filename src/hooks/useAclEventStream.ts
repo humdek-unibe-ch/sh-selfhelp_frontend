@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * Subscribes to the BFF Server-Sent Events stream (`/api/auth/events`)
  * for the current authenticated user.

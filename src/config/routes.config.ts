@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 // Frontend route constants for client-side navigation.
 //
 // These match the *URL* column on the corresponding `pages` rows in the CMS,

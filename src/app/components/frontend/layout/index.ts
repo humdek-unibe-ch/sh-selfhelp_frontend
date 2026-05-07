@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 // Client Components - Safe to import in client components
 export { WebsiteHeaderMenu } from './header/WebsiteHeaderMenu';
 export { WebsiteFooter } from './footer/WebsiteFooter';

@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * Lookup constants for consistent access to lookup types and codes.
  * These constants match the backend lookup system.

@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * Thin selector hook that returns the current page's cached content from
  * React Query. Replaces direct consumption of PageContentContext.

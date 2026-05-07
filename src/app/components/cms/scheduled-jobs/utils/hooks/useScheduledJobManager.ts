@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import { useState } from 'react';
 import { notifications } from '@mantine/notifications';
 import { useExecuteScheduledJobMutation, useDeleteScheduledJobMutation } from '../../../../../../hooks/useScheduledJobs';

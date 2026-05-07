@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import type { IAclPage } from '../app/components/cms/groups/advanced-acl-modal/AdvancedAclModal';
 import type { IAclRequest } from '../types/requests/admin/groups.types';
 import type { IGroupPageAcl } from '../types/responses/admin/groups.types';

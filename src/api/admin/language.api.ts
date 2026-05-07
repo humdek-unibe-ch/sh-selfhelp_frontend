@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * Admin Language API client for handling language-related admin operations.
  * Provides methods for managing languages in the admin interface.

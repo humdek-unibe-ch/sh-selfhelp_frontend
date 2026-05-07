@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * API client for handling navigation-related API calls.
  * Provides methods for fetching application routes and navigation structure.

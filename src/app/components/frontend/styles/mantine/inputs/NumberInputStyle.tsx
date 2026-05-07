@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import React, { useState, useEffect, useContext } from 'react';
 import { NumberInput } from '@mantine/core';
 import { INumberInputStyle } from '../../../../../../types/common/styles.types';

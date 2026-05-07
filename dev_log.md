@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 # Developer Log
 
 This file is an append-only engineering narrative: step-by-step notes from

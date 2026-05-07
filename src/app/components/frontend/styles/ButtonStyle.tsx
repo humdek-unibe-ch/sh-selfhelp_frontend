@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import React, { useState } from 'react';
 import { Button, Modal, Group } from '@mantine/core';
 import { useRouter } from 'next/navigation';

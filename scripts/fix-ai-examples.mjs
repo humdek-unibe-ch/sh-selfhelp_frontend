@@ -1,4 +1,8 @@
 #!/usr/bin/env node
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * One-shot fixer for the curated AI-generated example JSONs.
  *

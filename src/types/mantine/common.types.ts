@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * Mantine common semantic types — now re-exported from
  * `@selfhelp/shared` so the web frontend and the mobile app speak

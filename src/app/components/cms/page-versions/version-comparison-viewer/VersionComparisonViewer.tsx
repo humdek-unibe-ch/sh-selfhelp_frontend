@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 'use client';
 
 import { Modal, Stack, Select, Box, Text, Loader, Alert, Paper, ScrollArea, Code, Group } from '@mantine/core';
