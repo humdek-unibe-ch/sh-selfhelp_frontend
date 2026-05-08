@@ -27,7 +27,7 @@ import { redirect } from 'next/navigation';
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import { REACT_QUERY_CONFIG } from '../../config/react-query.config';
 import { ROUTES } from '../../config/routes.config';
-import { getAdminLookupsSSR, getAdminPagesSSR, getAuthMeSSR } from '../_lib/server-fetch';
+import { getSystemLookupsSSR, getAdminPagesSSR, getAuthMeSSR } from '../_lib/server-fetch';
 import { AUTH_COOKIE } from '../../config/server.config';
 import { getQueryClient } from '../../providers/query-client';
 
@@ -85,7 +85,7 @@ export default async function AdminRouteLayout({ children }: { children: React.R
             .prefetchQuery({
                 queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.LOOKUPS,
                 queryFn: async () => {
-                    const raw = await getAdminLookupsSSR();
+                    const raw = await getSystemLookupsSSR();
                     return Array.isArray(raw?.data) ? raw.data : Array.isArray(raw) ? raw : [];
                 },
                 staleTime: REACT_QUERY_CONFIG.CACHE_TIERS.LOOKUPS.staleTime,

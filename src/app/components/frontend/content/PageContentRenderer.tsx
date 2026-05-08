@@ -38,5 +38,3 @@ export function PageContentRenderer({ sections }: IPageContentRendererProps) {
         </div>
     );
 }
-
-// export default PageContentRenderer;

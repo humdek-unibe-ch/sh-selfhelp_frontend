@@ -2,7 +2,6 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-
 "use server";
 import { Box, Container, Group, Stack, Text } from '@mantine/core';
 import styles from './WebsiteFooter.module.css';
@@ -18,6 +17,12 @@ import { FooterLinks } from './FooterLinks';
  * appears here unless an admin explicitly clears its `footer_position` —
  * which is the same single source of truth the impressum / agb / disclaimer
  * pages already use.
+ *
+ * The impersonation banner is intentionally NOT rendered here: it lives
+ * in the admin shell (`AdminShell`), which is the only place an admin
+ * actually performs impersonation actions. Mounting it on every public
+ * page caused duplicate-banner stacking when an admin previewed a public
+ * route from the CMS.
  */
 export async function WebsiteFooter() {
     const { id: languageId } = await resolveLanguageSSR();

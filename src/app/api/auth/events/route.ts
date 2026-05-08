@@ -21,7 +21,11 @@ SPDX-License-Identifier: MPL-2.0
  *
  * ## Flow
  *
- * 1. Read the user's JWT from the httpOnly `sh_auth` cookie.
+ * 1. Read the session JWT from the httpOnly cookies.
+ *    - When impersonation is active, prefer `sh_impersonate` so the
+ *      upstream Mercure subscription is scoped to the *effective* user
+ *      (the impersonation target).
+ *    - Otherwise fall back to `sh_auth` (the original/admin session).
  * 2. Call Symfony's `GET /cms-api/v1/auth/events` to get the Mercure
  *    discovery payload `{ hubUrl, topic, token, expiresIn }`.
  * 3. Open an upstream subscription to `${hubUrl}?topic=${topic}` with
@@ -40,10 +44,24 @@ SPDX-License-Identifier: MPL-2.0
  *   GET /api/auth/events          (same-origin SSE)
  *
  *   Events emitted:
- *     - `acl-changed`  data: { aclVersion: string }   fired whenever the
- *                       authenticated user's ACL membership changes
- *                       (group/role mutation, async job grant, profile
- *                       edit, etc.).
+ *     - `acl-changed`           data: { aclVersion: string }
+ *                                fired whenever the authenticated user's
+ *                                ACL membership changes (group/role
+ *                                mutation, async job grant, profile edit,
+ *                                etc.).
+ *     - `impersonation-status`  data: {
+ *                                  active: boolean,
+ *                                  targetEmail?: string,
+ *                                  targetUserId: number,
+ *                                  adminUserId: number,
+ *                                  expiresAt?: number,        // unix seconds
+ *                                  expiresIn?: number         // seconds
+ *                                }
+ *                                fired when an admin starts (`active: true`)
+ *                                or stops (`active: false`) impersonating
+ *                                this user. Both topics share ONE upstream
+ *                                Mercure connection (the bootstrap JWT
+ *                                authorises both).
  *
  *   Mercure protocol-level frames (`Last-Event-ID`, `:` heartbeats,
  *   reconnect time hints) flow through unchanged and are handled by the
@@ -65,6 +83,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import {
     AUTH_COOKIE,
+    IMPERSONATE_COOKIE,
     SYMFONY_API_PREFIX,
     SYMFONY_INTERNAL_URL,
 } from '../../../../config/server.config';
@@ -75,6 +94,7 @@ export const runtime = 'nodejs';
 interface MercureBootstrap {
     hubUrl: string;
     topic: string;
+    impersonationTopic: string;
     token: string;
     expiresIn: number;
 }
@@ -99,10 +119,14 @@ function extractBootstrap(payload: unknown): MercureBootstrap | null {
                   | undefined);
 
     if (!candidate || typeof candidate !== 'object') return null;
-    const { hubUrl, topic, token, expiresIn } = candidate as Record<string, unknown>;
+    const { hubUrl, topic, impersonationTopic, token, expiresIn } = candidate as Record<
+        string,
+        unknown
+    >;
     if (
         typeof hubUrl !== 'string' ||
         typeof topic !== 'string' ||
+        typeof impersonationTopic !== 'string' ||
         typeof token !== 'string'
     ) {
         return null;
@@ -110,6 +134,7 @@ function extractBootstrap(payload: unknown): MercureBootstrap | null {
     return {
         hubUrl,
         topic,
+        impersonationTopic,
         token,
         expiresIn: typeof expiresIn === 'number' ? expiresIn : 3600,
     };
@@ -117,7 +142,7 @@ function extractBootstrap(payload: unknown): MercureBootstrap | null {
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
     const jar = await cookies();
-    const jwt = jar.get(AUTH_COOKIE)?.value;
+    const jwt = jar.get(IMPERSONATE_COOKIE)?.value ?? jar.get(AUTH_COOKIE)?.value;
     if (!jwt) {
         return NextResponse.json(
             {
@@ -133,6 +158,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
 
     // Step 1: get hub URL + per-user topic + subscriber JWT from Symfony.
+    // Prefer the impersonation token when present so the stream follows
+    // the same effective identity as the rest of the app session. Once
+    // the impersonation cookie expires (same maxAge as the JWT), the next
+    // reconnect naturally falls back to `sh_auth` and re-subscribes as
+    // the original admin.
     let bootstrap: MercureBootstrap;
     try {
         const bootstrapRes = await fetch(
@@ -167,8 +197,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
 
     // Step 2: subscribe to the Mercure hub. The hub holds the long-lived
-    // SSE socket; we just pipe its body to the browser.
-    const subscribeUrl = `${bootstrap.hubUrl}?topic=${encodeURIComponent(bootstrap.topic)}`;
+    // SSE socket; we just pipe its body to the browser. Mercure accepts
+    // multiple `topic=` query params per connection, so one upstream
+    // socket multiplexes both ACL and impersonation events.
+    const subscribeUrl =
+        `${bootstrap.hubUrl}` +
+        `?topic=${encodeURIComponent(bootstrap.topic)}` +
+        `&topic=${encodeURIComponent(bootstrap.impersonationTopic)}`;
 
     let hubResponse: Response;
     try {
