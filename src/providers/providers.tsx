@@ -52,6 +52,7 @@ import { useAclEventStream } from '../hooks/useAclEventStream';
 import type { ILanguage } from '../types/responses/admin/languages.types';
 import { getQueryClient } from './query-client';
 import type { QueryClient } from '@tanstack/react-query';
+import { ImpersonationBanner } from '../app/components/shared/common/ImpersonationBanner';
 
 function RefineWrapper({
     children,
@@ -156,6 +157,16 @@ function ClientProviders({
                         theme={theme}
                     >
                         <Notifications />
+                        {/*
+                          Mounted at the root client boundary on purpose:
+                          impersonation is most often used to debug what
+                          a real user sees on the *public* website, so the
+                          banner has to render outside the admin shell
+                          too. It self-hides when not impersonating
+                          (returns null), so the cost on every other page
+                          is one cheap Zustand subscription.
+                        */}
+                        <ImpersonationBanner />
                         <LanguageProvider
                             initialLanguageId={initialLanguageId}
                             initialLanguages={initialLanguages}

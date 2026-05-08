@@ -17,7 +17,9 @@ import type {
   IUpdateUserRequest,
   IToggleUserBlockRequest,
   IUserGroupsRequest,
-  IUserRolesRequest
+  IUserRolesRequest,
+  IImpersonateUserResponse,
+  IStopImpersonateResponse
 } from '../../types/requests/admin/users.types';
 
 export const AdminUserApi = {
@@ -192,14 +194,41 @@ export const AdminUserApi = {
   },
 
   /**
-   * Impersonate user
+   * Start an impersonation session.
+   *
+   * The BFF route `/api/admin/users/{id}/impersonate` strips the JWT from
+   * the response body and writes it to an httpOnly cookie before this
+   * call returns. The response we hand back to React contains only
+   * non-secret fields (`target_email`, `expires_in`).
    */
-  async impersonateUser(userId: number): Promise<{ success: boolean }> {
-    const response = await permissionAwareApiClient.post(
+  async impersonateUser(userId: number): Promise<IImpersonateUserResponse> {
+    const response = await permissionAwareApiClient.post<IBaseApiResponse<{ target_email: string; expires_in: number }>>(
       API_CONFIG.ENDPOINTS.ADMIN_USERS_IMPERSONATE,
       undefined,
       userId
     );
-    return { success: response.status === 204 || response.status === 200 };
-  }
-}; 
+
+    const data = response.data.data;
+    return {
+      success: response.status === 200 || response.status === 204,
+      target_email: data.target_email,
+      expires_in: data.expires_in,
+    };
+  },
+
+  /**
+   * End the active impersonation session. The BFF clears both
+   * impersonation cookies; Symfony blacklists the JWT so it cannot be
+   * replayed even if it leaked.
+   */
+  async stopImpersonate(): Promise<IStopImpersonateResponse> {
+    const response = await permissionAwareApiClient.post<IBaseApiResponse<{ stopped: boolean }>>(
+      API_CONFIG.ENDPOINTS.ADMIN_USERS_STOP_IMPERSONATE,
+      undefined
+    );
+    return {
+      success: response.status === 200 || response.status === 204,
+      stopped: !!response.data?.data?.stopped,
+    };
+  },
+};

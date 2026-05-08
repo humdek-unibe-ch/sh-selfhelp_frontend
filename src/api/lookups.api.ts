@@ -25,7 +25,7 @@ export const LookupsApi = {
      * @throws {Error} When API request fails
      */
     async getLookups(): Promise<ILookup[]> {
-        const response = await permissionAwareApiClient.get<ILookupsResponse>(API_CONFIG.ENDPOINTS.ADMIN_LOOKUPS);
+        const response = await permissionAwareApiClient.get<ILookupsResponse>(API_CONFIG.ENDPOINTS.SYSTEM_LOOKUPS);
         return response.data.data;
     },
 

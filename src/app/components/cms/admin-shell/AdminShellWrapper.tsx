@@ -26,7 +26,7 @@ export function AdminShellWrapper({ children, aside, asideWidth }: AdminShellWra
         if (isLoading) {
             return;
         }
-        
+
         // Authentication state is now determined
         if (!isAuthenticated) {
             // Not logged in
@@ -35,7 +35,7 @@ export function AdminShellWrapper({ children, aside, asideWidth }: AdminShellWra
             // Logged in but doesn't have admin access
             router.replace(ROUTES.NO_ACCESS);
         }
-        
+
         // Authentication check is complete
         setIsChecking(false);
     }, [hasAdminAccess, isAuthenticated, isLoading, router]);
