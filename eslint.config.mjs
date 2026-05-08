@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 // eslint.config.mjs
 import next from "eslint-config-next";
 import unusedImports from "eslint-plugin-unused-imports";

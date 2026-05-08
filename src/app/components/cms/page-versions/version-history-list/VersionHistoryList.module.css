@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 .versionItem {
     transition: border-color 0.2s ease, background-color 0.2s ease;
 }

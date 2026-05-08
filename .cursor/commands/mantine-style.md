@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 In file @mantine-styles.sql check and add the style that i am giving. 
 
  # Mantine Style Generation Process

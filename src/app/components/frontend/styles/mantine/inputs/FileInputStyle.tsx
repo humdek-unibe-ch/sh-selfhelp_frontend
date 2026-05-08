@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import React, { useState, useCallback, useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { FileInput, Text, Alert, Box, rem, Paper, Group, Button, Stack, Badge } from '@mantine/core';
 import { IconComponent } from '../../../../shared';

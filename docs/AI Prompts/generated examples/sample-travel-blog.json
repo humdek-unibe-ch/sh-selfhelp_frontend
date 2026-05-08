@@ -10,8 +10,7 @@
       }
     },
     "global_fields": {
-      "css": "py-16 px-4 bg-white dark:bg-gray-950",
-      "css_mobile": "py-10 px-4"
+      "css": "px-4 py-12 sm:px-6 sm:py-16 lg:py-20 bg-white dark:bg-gray-950 max-w-7xl mx-auto"
     },
     "children": [
       {
@@ -84,8 +83,7 @@
                   }
                 },
                 "global_fields": {
-                  "css": "text-4xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-50",
-                  "css_mobile": "text-3xl"
+                  "css": "text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-50 break-words"
                 }
               },
               {
@@ -117,12 +115,12 @@
             "fields": {
               "mantine_cols": {
                 "all": {
-                  "content": "3"
+                  "content": "{\"base\":1,\"sm\":2,\"lg\":3}"
                 }
               },
-              "mantine_spacing_margin_padding": {
+              "mantine_vertical_spacing": {
                 "all": {
-                  "content": "{\"mantine_horizontal_spacing\":\"lg\",\"mantine_vertical_spacing\":\"lg\"}"
+                  "content": "lg"
                 }
               }
             },
@@ -153,7 +151,7 @@
                   }
                 },
                 "global_fields": {
-                  "css": "overflow-hidden bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                  "css": "min-w-0 overflow-hidden bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:shadow-xl transition-shadow duration-300"
                 },
                 "children": [
                   {
@@ -185,7 +183,7 @@
                   {
                     "style_name": "card-segment",
                     "global_fields": {
-                      "css": "p-5 space-y-3"
+                      "css": "p-4 sm:p-5 space-y-3"
                     },
                     "children": [
                       {
@@ -264,7 +262,7 @@
                           }
                         },
                         "global_fields": {
-                          "css": "text-xl font-semibold text-gray-900 dark:text-gray-50 leading-snug"
+                          "css": "text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-50 leading-snug break-words"
                         }
                       },
                       {
@@ -280,7 +278,7 @@
                           }
                         },
                         "global_fields": {
-                          "css": "text-sm text-gray-600 dark:text-gray-400 leading-relaxed"
+                          "css": "text-sm text-gray-600 dark:text-gray-400 leading-relaxed break-words"
                         }
                       },
                       {
@@ -336,7 +334,7 @@
                   }
                 },
                 "global_fields": {
-                  "css": "overflow-hidden bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                  "css": "min-w-0 overflow-hidden bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:shadow-xl transition-shadow duration-300"
                 },
                 "children": [
                   {
@@ -368,7 +366,7 @@
                   {
                     "style_name": "card-segment",
                     "global_fields": {
-                      "css": "p-5 space-y-3"
+                      "css": "p-4 sm:p-5 space-y-3"
                     },
                     "children": [
                       {
@@ -447,7 +445,7 @@
                           }
                         },
                         "global_fields": {
-                          "css": "text-xl font-semibold text-gray-900 dark:text-gray-50 leading-snug"
+                          "css": "text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-50 leading-snug break-words"
                         }
                       },
                       {
@@ -463,7 +461,7 @@
                           }
                         },
                         "global_fields": {
-                          "css": "text-sm text-gray-600 dark:text-gray-400 leading-relaxed"
+                          "css": "text-sm text-gray-600 dark:text-gray-400 leading-relaxed break-words"
                         }
                       },
                       {
@@ -519,7 +517,7 @@
                   }
                 },
                 "global_fields": {
-                  "css": "overflow-hidden bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                  "css": "min-w-0 overflow-hidden bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:shadow-xl transition-shadow duration-300"
                 },
                 "children": [
                   {
@@ -551,7 +549,7 @@
                   {
                     "style_name": "card-segment",
                     "global_fields": {
-                      "css": "p-5 space-y-3"
+                      "css": "p-4 sm:p-5 space-y-3"
                     },
                     "children": [
                       {
@@ -630,7 +628,7 @@
                           }
                         },
                         "global_fields": {
-                          "css": "text-xl font-semibold text-gray-900 dark:text-gray-50 leading-snug"
+                          "css": "text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-50 leading-snug break-words"
                         }
                       },
                       {
@@ -646,7 +644,7 @@
                           }
                         },
                         "global_fields": {
-                          "css": "text-sm text-gray-600 dark:text-gray-400 leading-relaxed"
+                          "css": "text-sm text-gray-600 dark:text-gray-400 leading-relaxed break-words"
                         }
                       },
                       {

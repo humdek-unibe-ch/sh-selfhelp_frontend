@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * POST /api/auth/logout — notify Symfony, then clear both httpOnly auth
  * cookies. Preserves sh_lang and sh_csrf so the next page render still has

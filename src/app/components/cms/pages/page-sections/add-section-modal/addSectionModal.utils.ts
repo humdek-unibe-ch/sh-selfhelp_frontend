@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import { IStyle } from '../../../../../../types/responses/admin/styles.types';
 import { MAX_SECTIONS, MAX_UNUSED_SECTIONS, AddSectionTab, ADD_SECTION_TAB } from './addSectionModal.constants';
 

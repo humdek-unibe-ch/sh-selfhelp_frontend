@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import React, { useMemo, useState } from 'react';
 import { Tabs, Text, Box } from '@mantine/core';
 import { usePublicLanguages } from '../../../../../hooks/useLanguages';

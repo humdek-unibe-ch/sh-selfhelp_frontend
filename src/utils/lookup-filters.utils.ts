@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * Utility functions for filtering and processing lookups data.
  * Provides reusable functions for extracting specific lookup types from the centralized lookups API.

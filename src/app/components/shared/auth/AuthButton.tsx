@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 'use client';
 
 import { useState } from 'react';
@@ -8,7 +12,7 @@ import { useLogout } from '@refinedev/core';
 import { useAuthStatus } from '../../../../hooks/useUserData';
 import { ROUTES } from '../../../../config/routes.config';
 import { useAppNavigation } from '../../../../hooks/useAppNavigation';
-import { IPageItem } from '../../../../types/common/pages.type';
+import { IPageItem } from '../../../../shared';
 import { getPageTitle } from '../../../../utils/navigation.utils';
 
 interface IAuthButtonProps {

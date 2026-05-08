@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';

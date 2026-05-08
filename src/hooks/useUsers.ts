@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AdminUserApi } from '../api/admin/user.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';

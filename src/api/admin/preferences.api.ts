@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * API client for handling CMS preferences and configuration.
  * Provides methods for fetching and updating system preferences.

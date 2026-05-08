@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import type { Config } from "tailwindcss";
 import { breakpoints, colors } from "./src/theme";
 

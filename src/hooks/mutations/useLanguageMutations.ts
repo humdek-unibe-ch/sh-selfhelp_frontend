@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * React Query mutation hooks for language CRUD operations.
  * Provides optimistic updates, error handling, and cache invalidation for language management.

@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * Generates a consistent color for status values using a hash function
  * This ensures the same status always gets the same color across sessions

@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import { useQuery } from '@tanstack/react-query';
 import { permissionAwareApiClient } from '../api/base.api';
 import { API_CONFIG } from '../config/api.config';

@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * Custom hook for managing admin pages data.
  * Provides functionality to fetch and transform admin pages data from the API

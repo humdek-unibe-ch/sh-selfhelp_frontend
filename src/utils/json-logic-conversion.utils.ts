@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * Utility functions for converting between React Query Builder rules and JSON Logic format.
  * Uses React Query Builder's built-in formatQuery with jsonLogic export format.
