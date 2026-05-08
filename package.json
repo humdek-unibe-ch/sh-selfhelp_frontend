@@ -2,6 +2,7 @@
     "name": "selfhelp-frontend",
     "version": "0.0.2",
     "private": true,
+    "license": "MPL-2.0",
     "scripts": {
         "dev": "next dev --turbo",
         "dev:fast": "NODE_ENV=development next dev --turbo --port 3000",
@@ -13,7 +14,10 @@
         "lint:fix": "eslint . --ext .ts,.tsx --fix",
         "dead": "knip",
         "unused": "npx ts-unused-exports tsconfig.json --excludePathsFromReport=.next --ignoreFiles=\"page.tsx\"",
-        "prune": "ts-prune"
+        "prune": "ts-prune",
+        "headers:check": "license-check-and-add check -f license-check-and-add-config.json",
+        "headers:add": "license-check-and-add add -f license-check-and-add-config.json",
+        "headers:remove": "license-check-and-add remove -f license-check-and-add-config.json"
     },
     "dependencies": {
         "@atlaskit/pragmatic-drag-and-drop": "^1.8.0",
@@ -35,6 +39,7 @@
         "@refinedev/core": "^5.0.12",
         "@refinedev/nextjs-router": "^7.0.5",
         "@refinedev/simple-rest": "^6.0.1",
+        "@selfhelp/shared": "^1.0.1",
         "@tabler/icons-react": "^3.41.1",
         "@tanstack/react-query": "^5.99.2",
         "@tanstack/react-table": "^8.21.3",
@@ -85,19 +90,20 @@
         "eslint-config-next": "16.2.4",
         "eslint-plugin-unused-imports": "^4.4.1",
         "knip": "^6.6.0",
+        "license-check-and-add": "^4.0.5",
         "postcss": "^8.5.10",
         "tailwindcss": "^4.2.4",
         "ts-prune": "^0.10.3",
         "ts-unused-exports": "^11.0.1",
         "typescript": "5.9.3"
     },
-   "overrides": {
-    "monaco-editor": {
-        "dompurify": "^3.4.2"
-    },
-    "next": {
-        "postcss": "^8.5.10"
-    }
+    "overrides": {
+        "monaco-editor": {
+            "dompurify": "^3.4.2"
+        },
+        "next": {
+            "postcss": "^8.5.10"
+        }
     },
     "packageManager": "npm@11.12.1"
 }

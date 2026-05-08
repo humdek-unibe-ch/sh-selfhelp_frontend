@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 // Role Management Components
 export { RolesList } from './roles-list/RolesList';
 export { RolesPage } from './roles-page/RolesPage';

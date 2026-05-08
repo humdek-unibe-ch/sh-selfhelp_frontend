@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import React from 'react';
 import { Anchor } from '@mantine/core';
 import { ILinkStyle } from '../../../../types/common/styles.types';

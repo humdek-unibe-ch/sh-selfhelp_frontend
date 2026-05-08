@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 export { BurgerMenuClient } from './BurgerMenuClient';
 export { CustomModal, ModalWrapper } from './CustomModal/CustomModal';
 export { default as IconComponent } from './IconComponent';

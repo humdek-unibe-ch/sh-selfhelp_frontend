@@ -10,8 +10,7 @@
       }
     },
     "global_fields": {
-      "css": "py-16 px-4 bg-white dark:bg-gray-950",
-      "css_mobile": "py-10 px-4"
+      "css": "px-4 py-12 sm:px-6 sm:py-16 lg:py-20 bg-white dark:bg-gray-950 max-w-7xl mx-auto"
     },
     "children": [
       {
@@ -60,8 +59,7 @@
                   }
                 },
                 "global_fields": {
-                  "css": "text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-violet-600 to-pink-600 dark:from-blue-400 dark:via-violet-400 dark:to-pink-400 bg-clip-text text-transparent",
-                  "css_mobile": "text-3xl"
+                  "css": "text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-violet-600 to-pink-600 dark:from-blue-400 dark:via-violet-400 dark:to-pink-400 bg-clip-text text-transparent break-words"
                 }
               },
               {
@@ -112,7 +110,7 @@
                   }
                 },
                 "global_fields": {
-                  "css": "group flex flex-col rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+                  "css": "group flex flex-col rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl transition-shadow duration-300 overflow-hidden min-w-0"
                 },
                 "children": [
                   {
@@ -134,8 +132,7 @@
                       }
                     },
                     "global_fields": {
-                      "css": "w-full h-56 object-cover group-hover:scale-105 transition-transform duration-500",
-                      "css_mobile": "h-48"
+                      "css": "w-full h-48 sm:h-56 object-cover"
                     }
                   },
                   {
@@ -149,7 +146,7 @@
                       }
                     },
                     "global_fields": {
-                      "css": "p-6 space-y-3"
+                      "css": "p-4 sm:p-6 space-y-3"
                     },
                     "children": [
                       {
@@ -170,7 +167,7 @@
                           }
                         },
                         "global_fields": {
-                          "css": "text-xl font-bold text-gray-900 dark:text-gray-50"
+                          "css": "text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-50 break-words"
                         }
                       },
                       {
@@ -220,7 +217,7 @@
                   }
                 },
                 "global_fields": {
-                  "css": "group flex flex-col rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+                  "css": "group flex flex-col rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl transition-shadow duration-300 overflow-hidden min-w-0"
                 },
                 "children": [
                   {
@@ -242,8 +239,7 @@
                       }
                     },
                     "global_fields": {
-                      "css": "w-full h-56 object-cover group-hover:scale-105 transition-transform duration-500",
-                      "css_mobile": "h-48"
+                      "css": "w-full h-48 sm:h-56 object-cover"
                     }
                   },
                   {
@@ -257,7 +253,7 @@
                       }
                     },
                     "global_fields": {
-                      "css": "p-6 space-y-3"
+                      "css": "p-4 sm:p-6 space-y-3"
                     },
                     "children": [
                       {
@@ -278,7 +274,7 @@
                           }
                         },
                         "global_fields": {
-                          "css": "text-xl font-bold text-gray-900 dark:text-gray-50"
+                          "css": "text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-50 break-words"
                         }
                       },
                       {
@@ -328,7 +324,7 @@
                   }
                 },
                 "global_fields": {
-                  "css": "group flex flex-col rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+                  "css": "group flex flex-col rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl transition-shadow duration-300 overflow-hidden min-w-0"
                 },
                 "children": [
                   {
@@ -350,8 +346,7 @@
                       }
                     },
                     "global_fields": {
-                      "css": "w-full h-56 object-cover group-hover:scale-105 transition-transform duration-500",
-                      "css_mobile": "h-48"
+                      "css": "w-full h-48 sm:h-56 object-cover"
                     }
                   },
                   {
@@ -365,7 +360,7 @@
                       }
                     },
                     "global_fields": {
-                      "css": "p-6 space-y-3"
+                      "css": "p-4 sm:p-6 space-y-3"
                     },
                     "children": [
                       {
@@ -386,7 +381,7 @@
                           }
                         },
                         "global_fields": {
-                          "css": "text-xl font-bold text-gray-900 dark:text-gray-50"
+                          "css": "text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-50 break-words"
                         }
                       },
                       {

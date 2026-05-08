@@ -1,44 +1,22 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * API client for handling navigation-related API calls.
  * Provides methods for fetching application routes and navigation structure.
- * 
+ *
  * @module api/navigation.api
  */
 
 import { permissionAwareApiClient } from './base.api';
 import { API_CONFIG } from '../config/api.config';
-import { IBaseApiResponse } from '../types/responses/common/response-envelope.types';
-import { IPageItem } from '../types/common/pages.type';
+import { IBaseApiResponse } from '../shared';
 
-/**
- * Transforms raw API page data to match the IPageItem interface
- * Handles property name mismatches between API and frontend interfaces
- */
-export function transformPageData(apiPage: any): IPageItem {
-    return {
-        // Map API property names to interface property names
-        id: apiPage.id_pages,
-        keyword: apiPage.keyword,
-        url: apiPage.url,
-        parent_page_id: apiPage.parent,
-        is_headless: Boolean(apiPage.is_headless),
-        navPosition: apiPage.nav_position,
-        footerPosition: apiPage.footer_position,
-        is_system: Boolean(apiPage.is_system),
-        title: apiPage.title,
-        children: apiPage.children ? apiPage.children.map(transformPageData) : [],
-
-        // ACL permissions (optional fields)
-        id_users: apiPage.id_users,
-        id_pages: apiPage.id_pages,
-        acl_select: apiPage.acl_select,
-        acl_insert: apiPage.acl_insert,
-        acl_update: apiPage.acl_update,
-        acl_delete: apiPage.acl_delete,
-        id_type: apiPage.id_type,
-        id_pageAccessTypes: apiPage.id_pageAccessTypes,
-    };
-}
+// Re-export the shared transformer so existing imports keep working.
+// The implementation lives in `@selfhelp/shared` so the mobile app and
+// the web frontend share a single source of truth.
+export { transformPageData } from '../shared';
 
 export const NavigationApi = {
 

@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import React, { useState } from 'react';
 import { Indicator, Popover, Text, ScrollArea, Badge, Group, Box, useMantineColorScheme, ActionIcon, TextInput, Stack, Alert } from '@mantine/core';
 import { IconBug, IconSearch, IconX, IconChevronsDown, IconChevronsUp, IconAlertTriangle } from '@tabler/icons-react';
@@ -151,9 +155,9 @@ const DebugWrapper: React.FC<IDebugWrapperProps> = ({ children, style }) => {
                                         {style.condition_debug.error && style.condition_debug.error.length > 0 && (
                                             <Box>
                                                 <Text size="xs" c="dimmed" mb="xs">Errors:</Text>
-                                                {style.condition_debug.error.map((error: string, index: number) => (
+                                                {style.condition_debug.error.map((error, index) => (
                                                     <Text key={index} size="xs" c="orange" className={styles.codeBlock}>
-                                                        {error}
+                                                        {String(error)}
                                                     </Text>
                                                 ))}
                                             </Box>

@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * Admin Page API client for handling page-related admin operations.
  * Provides methods for managing pages in the admin interface.

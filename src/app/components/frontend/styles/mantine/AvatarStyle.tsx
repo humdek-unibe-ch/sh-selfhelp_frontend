@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import React from 'react';
 import { Avatar } from '@mantine/core';
 import { IAvatarStyle } from '../../../../../types/common/styles.types';

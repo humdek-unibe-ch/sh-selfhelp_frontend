@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import React, { useState } from 'react';
 import { Box, Card, TextInput, Button, Alert } from '@mantine/core';
 import { IconCheck, IconMail } from '@tabler/icons-react';

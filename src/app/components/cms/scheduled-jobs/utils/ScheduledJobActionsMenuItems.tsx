@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import { Menu } from "@mantine/core";
 import { IconEye, IconPlayerPlay, IconTrash } from "@tabler/icons-react";
 import { isJobActionAllowed } from "./job-status";

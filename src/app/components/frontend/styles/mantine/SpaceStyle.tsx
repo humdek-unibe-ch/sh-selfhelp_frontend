@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import React from 'react';
 import { Space } from '@mantine/core';
 import { ISpaceStyle } from '../../../../../types/common/styles.types';

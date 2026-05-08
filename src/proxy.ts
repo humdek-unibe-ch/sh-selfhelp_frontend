@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * Next.js **proxy** (formerly `middleware.ts`, renamed in Next 16.0) —
  * runs on every matching request before the page renders. Responsibilities:

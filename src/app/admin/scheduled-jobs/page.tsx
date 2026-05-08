@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import { Suspense } from 'react';
 import { LoadingScreen } from '../../components/shared/common/LoadingScreen';
 import { ScheduledJobsPage } from '../../components/cms/scheduled-jobs/scheduled-jobs-page/ScheduledJobsPage';

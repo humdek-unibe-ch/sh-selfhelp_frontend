@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import React, { useState, useEffect, useContext } from 'react';
 import { Input } from '@mantine/core';
 import { RichTextEditor as MantineRichTextEditor, Link } from '@mantine/tiptap';

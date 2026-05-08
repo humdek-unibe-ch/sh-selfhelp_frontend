@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import { cookies } from 'next/headers';
 import { NotFoundClient } from './NotFoundClient';
 import { AUTH_COOKIE } from '../config/server.config';

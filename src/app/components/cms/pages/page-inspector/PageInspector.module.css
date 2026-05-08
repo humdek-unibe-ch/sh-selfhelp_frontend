@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /* Force Mantine input components to give full width to custom labels */
 .fullWidthLabel :global(.mantine-InputWrapper-label) {
     width: 100% !important;

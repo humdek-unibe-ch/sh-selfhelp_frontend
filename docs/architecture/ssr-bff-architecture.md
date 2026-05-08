@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 # SSR + BFF Architecture
 
 This document explains **why** the SelfHelp frontend is structured the

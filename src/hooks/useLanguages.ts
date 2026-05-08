@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * Custom hook for managing languages data.
  * Provides functionality to fetch and cache available languages from the API
@@ -77,6 +81,7 @@ export function usePublicLanguages() {
         languages: (data ?? EMPTY_LANGUAGES) as ILanguage[],
         isLoading,
         error,
+        refetch,
         defaultLanguage: data?.[0] ?? null,
     };
 }

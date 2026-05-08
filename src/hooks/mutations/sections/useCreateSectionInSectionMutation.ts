@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * React Query mutation hook for creating sections within other sections.
  * Provides error handling, cache invalidation, and success notifications.

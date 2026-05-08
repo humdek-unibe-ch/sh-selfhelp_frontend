@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import React from 'react';
 import { Stack } from '@mantine/core';
 import type { TStyle } from '../../../../types/common/styles.types';

@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * Field definitions for the condition builder.
  * Uses only built-in React Query Builder operators for maximum compatibility.

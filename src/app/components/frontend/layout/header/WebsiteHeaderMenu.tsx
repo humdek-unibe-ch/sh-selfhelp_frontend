@@ -1,10 +1,14 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 'use client';
 
 import { IconChevronDown } from '@tabler/icons-react';
 import { Group, Menu, UnstyledButton, Text } from '@mantine/core';
 import { useAppNavigation } from '../../../../../hooks/useAppNavigation';
 import { usePagePrefetch } from '../../../../../hooks/usePagePrefetch';
-import { IPageItem } from '../../../../../types/responses/frontend/frontend.types';
+import { IPageItem } from '../../../../../shared';
 import { InternalLink } from '../../../shared';
 import { getPageTitle } from '../../../../../utils/navigation.utils';
 

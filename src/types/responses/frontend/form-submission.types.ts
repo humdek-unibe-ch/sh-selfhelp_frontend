@@ -1,57 +1,10 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
- * Form submission response types for frontend form handling
+ * Shared frontend form response DTOs.
+ *
+ * Local shim only; source of truth is `sh-selfhelp_shared`.
  */
-
-// Base form response structure
-interface IFormResponse<T = any> {
-    status: number;
-    message?: string;
-    data?: T;
-    error?: string;
-}
-
-// Form submission response
-export interface IFormSubmitResponse extends IFormResponse {
-    data?: {
-        record_id: number;
-        success: boolean;
-        message?: string;
-    };
-}
-
-// Form update response
-export interface IFormUpdateResponse extends IFormResponse {
-    data?: {
-        record_id: number;
-        success: boolean;
-        updated_fields?: string[];
-        message?: string;
-    };
-}
-
-// Form deletion response
-export interface IFormDeleteResponse extends IFormResponse {
-    data?: {
-        success: boolean;
-        message?: string;
-    };
-}
-
-// Page forms response
-interface IPageFormsResponse extends IFormResponse {
-    data?: {
-        forms: IFormRecord[];
-        total_count: number;
-    };
-}
-
-// Form record structure
-interface IFormRecord {
-    id: number;
-    page_id: number;
-    section_id: number;
-    form_data: Record<string, any>;
-    created_at: string;
-    updated_at?: string;
-    user_id?: number;
-}
+export type { IFormSubmitResponse, IFormUpdateResponse, IFormDeleteResponse } from '../../../shared';

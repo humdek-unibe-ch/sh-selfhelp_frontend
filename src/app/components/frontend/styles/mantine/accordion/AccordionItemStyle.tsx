@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import React from 'react';
 import { Accordion } from '@mantine/core';
 import IconComponent from '../../../../shared/common/IconComponent';

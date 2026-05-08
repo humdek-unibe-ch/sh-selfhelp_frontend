@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import React, { useState, useEffect, useContext } from 'react';
 import { ColorPicker, Input } from '@mantine/core';
 import { IColorPickerStyle } from '../../../../../../types/common/styles.types';

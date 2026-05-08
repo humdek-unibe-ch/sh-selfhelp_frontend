@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * Watches the `aclVersion` field returned by `/auth/user-data` and surgically
  * invalidates the frontend navigation cache whenever it changes.

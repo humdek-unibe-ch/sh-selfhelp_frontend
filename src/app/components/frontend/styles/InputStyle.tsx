@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import React, { useState, useContext, useEffect } from 'react';
 import { IInputStyle } from '../../../../types/common/styles.types';
 import { FormFieldValueContext } from './FormStyle';
