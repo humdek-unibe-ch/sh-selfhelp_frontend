@@ -1,13 +1,27 @@
 /**
  * Shared helpers for the Next.js BFF proxy.
  *
- * All state-changing requests from the browser go through `/api/*`. This file
- * centralises cookie handling, CSRF validation, Symfony forwarding, and the
- * silent-refresh retry loop so individual route handlers stay small.
+ * All state-changing requests from the browser go through `/api/*`. This
+ * file centralises cookie handling, CSRF validation, Symfony forwarding,
+ * impersonation token routing and the silent-refresh retry loop so
+ * individual route handlers stay small.
  *
  * Cookie names, TTLs, Symfony URL, token generation, and the Symfony
  * refresh-token call are imported from `src/config/server.config.ts` so the
  * BFF, the edge proxy, and the RSC server-fetch helper all agree.
+ *
+ * Impersonation rules (single source of truth):
+ *
+ *   1. `sh_impersonate` is httpOnly. JS cannot read it — preventing XSS
+ *      from stealing the token.
+ *   2. The catch-all proxy uses it as the Authorization header for every
+ *      request that goes upstream EXCEPT the auth flow (`/auth/*`).
+ *      Auth/refresh/logout always run as the *original admin* so the
+ *      admin can stop impersonating cleanly even if the impersonation
+ *      JWT is already expired or blacklisted.
+ *   3. The matching `sh_impersonate_target_email` cookie is non-httpOnly
+ *      and contains nothing but the target user's email. The browser
+ *      reads it to draw the "You are impersonating ..." banner.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -22,9 +36,20 @@ import {
     SYMFONY_INTERNAL_URL,
     callSymfonyRefreshToken,
 } from '../../../config/server.config';
-import { IMPERSONATE_COOKIE, IMPERSONATE_TARGET_EMAIL_COOKIE } from '../../../config/cookie-names';
+import {
+    IMPERSONATE_COOKIE,
+    IMPERSONATE_TARGET_EMAIL_COOKIE,
+} from '../../../config/cookie-names';
 
-export { AUTH_COOKIE, REFRESH_COOKIE, CSRF_COOKIE, SYMFONY_API_PREFIX, SYMFONY_INTERNAL_URL };
+export {
+    AUTH_COOKIE,
+    REFRESH_COOKIE,
+    CSRF_COOKIE,
+    SYMFONY_API_PREFIX,
+    SYMFONY_INTERNAL_URL,
+    IMPERSONATE_COOKIE,
+    IMPERSONATE_TARGET_EMAIL_COOKIE,
+};
 
 const COOKIE_COMMON = {
     path: '/',
@@ -71,9 +96,6 @@ export function validateCsrf(req: NextRequest): NextResponse | null {
 
     if (!cookieToken || !headerToken || cookieToken !== headerToken) {
         if (process.env.NODE_ENV !== 'production') {
-            // Help developers diagnose the most common cause (missing
-            // proxy cookie or a raw `curl`/Postman call without the
-            // header). Never logged in production.
             // eslint-disable-next-line no-console
             console.warn(
                 '[BFF CSRF] validation failed',
@@ -114,11 +136,47 @@ export function setAuthCookies(res: NextResponse, tokens: { access_token?: strin
     }
 }
 
+/**
+ * Persist a freshly minted impersonation session.
+ *
+ *   - The JWT lands in `sh_impersonate` as **httpOnly**. JavaScript cannot
+ *     read it; only this BFF or Symfony ever sees the value.
+ *   - `target_email` lands in `sh_impersonate_target_email` (NOT httpOnly)
+ *     so the React banner can show who is being impersonated. This cookie
+ *     intentionally contains no secret material.
+ *
+ * `ttlSeconds` is the value Symfony returned in `expires_in`; the cookie
+ * lifetime always tracks the JWT lifetime exactly so the banner cannot
+ * survive a token that has already expired.
+ */
+export function setImpersonationCookies(
+    res: NextResponse,
+    token: string,
+    targetEmail: string,
+    ttlSeconds: number
+): void {
+    res.cookies.set(IMPERSONATE_COOKIE, token, {
+        ...COOKIE_COMMON,
+        httpOnly: true,
+        maxAge: ttlSeconds,
+    });
+    res.cookies.set(IMPERSONATE_TARGET_EMAIL_COOKIE, targetEmail, {
+        ...COOKIE_COMMON,
+        httpOnly: false,
+        maxAge: ttlSeconds,
+    });
+}
+
+/** Clear both impersonation cookies. */
+export function clearImpersonationCookies(res: NextResponse): void {
+    res.cookies.set(IMPERSONATE_COOKIE, '', { ...COOKIE_COMMON, httpOnly: true, maxAge: 0 });
+    res.cookies.set(IMPERSONATE_TARGET_EMAIL_COOKIE, '', { ...COOKIE_COMMON, httpOnly: false, maxAge: 0 });
+}
+
 export function clearAuthCookies(res: NextResponse): void {
     res.cookies.set(AUTH_COOKIE, '', { ...COOKIE_COMMON, httpOnly: true, maxAge: 0 });
     res.cookies.set(REFRESH_COOKIE, '', { ...COOKIE_COMMON, httpOnly: true, maxAge: 0 });
-    res.cookies.set(IMPERSONATE_COOKIE, '', { ...COOKIE_COMMON, maxAge: 0 });
-    res.cookies.set(IMPERSONATE_TARGET_EMAIL_COOKIE, '', { ...COOKIE_COMMON, maxAge: 0 });
+    clearImpersonationCookies(res);
 }
 
 /**
@@ -166,10 +224,83 @@ export async function bufferRequest(req: NextRequest): Promise<BufferedRequest> 
 }
 
 /**
+ * Routes that operate on the admin's *session itself* — minting,
+ * refreshing or invalidating the original `sh_auth` cookie. These
+ * ALWAYS run with the admin token even during an impersonation session,
+ * so the admin can:
+ *   - keep their own session alive while impersonating (refresh),
+ *   - log out cleanly (logout never accidentally targets the impersonated
+ *     user's session),
+ *   - finish a 2FA challenge that started before impersonation,
+ *   - change their own preferred language without affecting the target.
+ *
+ * Everything else — `/auth/user-data`, `/auth/events`, the entire
+ * `/admin/*` and `/pages/*` surfaces — must follow the impersonation
+ * token, otherwise the SSR + client renders disagree about who the
+ * "current user" is and the UI shows a Frankenstein mix of admin
+ * identity / target ACL.
+ */
+const ADMIN_SESSION_ROUTE_PREFIXES = [
+    '/auth/login',
+    '/auth/logout',
+    '/auth/refresh-token',
+    '/auth/two-factor',
+    '/auth/set-language',
+];
+
+function isAdminSessionRoute(upstreamPath: string): boolean {
+    // `upstreamPath` is the full URL that includes the `/cms-api/v1`
+    // prefix (e.g. `http://symfony/cms-api/v1/auth/refresh-token`), so
+    // we match by `endsWith(prefix.length)`-style substring against
+    // `${API_PREFIX}${prefix}` to keep the comparison anchored.
+    return ADMIN_SESSION_ROUTE_PREFIXES.some((prefix) =>
+        upstreamPath.includes(`${SYMFONY_API_PREFIX}${prefix}`)
+    );
+}
+
+/**
+ * Choose which JWT to send upstream.
+ *
+ *   - If `overrideAccessToken` is supplied (silent refresh just rotated
+ *     the admin token) we always use it — silent refresh runs as the
+ *     admin.
+ *   - For admin-session-lifecycle routes (login/logout/refresh/2FA/
+ *     set-language) we DELIBERATELY ignore the impersonation cookie.
+ *     See {@link ADMIN_SESSION_ROUTE_PREFIXES} for the rationale.
+ *   - For everything else (including `/auth/user-data`, `/auth/events`
+ *     and the entire `/admin/*` + `/pages/*` surfaces) we prefer
+ *     `sh_impersonate` and fall back to `sh_auth`.
+ *
+ * Returns `null` when no token is available — the caller decides
+ * whether to drop the Authorization header or proxy the request as
+ * anonymous.
+ */
+function pickUpstreamToken(
+    upstreamPath: string,
+    impersonationToken: string | undefined,
+    authToken: string | undefined,
+    overrideAccessToken: string | null | undefined
+): string | null {
+    if (overrideAccessToken) return overrideAccessToken;
+
+    if (isAdminSessionRoute(upstreamPath)) {
+        return authToken ?? null;
+    }
+
+    if (impersonationToken) return impersonationToken;
+    if (authToken) return authToken;
+    return null;
+}
+
+/**
  * Replay a buffered request to Symfony with the given (optional) access
  * token overriding whatever is in the cookie jar. Pass no token to use
  * the current `sh_auth` cookie; pass the new token after a silent
  * refresh so the retry uses the fresh credentials immediately.
+ *
+ * Impersonation: when an `sh_impersonate` cookie is present and we are
+ * NOT proxying to `/auth/*`, the impersonation token wins over the admin
+ * cookie. See `pickUpstreamToken`.
  */
 export async function forwardBufferedToSymfony(
     buffered: BufferedRequest,
@@ -179,20 +310,15 @@ export async function forwardBufferedToSymfony(
     const headers = new Headers(buffered.headers);
 
     const jar = await cookies();
-
     const impersonationToken = jar.get(IMPERSONATE_COOKIE)?.value;
     const authToken = jar.get(AUTH_COOKIE)?.value;
 
-    if (overrideAccessToken) {
-      headers.set("Authorization", `Bearer ${overrideAccessToken}`);
-    } else if (impersonationToken) {
-      // Check if impersonation token
-      headers.set("Authorization", `Bearer ${impersonationToken}`);
-    } else if (authToken) {
-      // fallback to normal auth if not impersonation
-      headers.set("Authorization", `Bearer ${authToken}`);
+    const token = pickUpstreamToken(upstreamUrl, impersonationToken, authToken, overrideAccessToken);
+
+    if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
     } else {
-      headers.delete("authorization");
+        headers.delete('authorization');
     }
 
     const init: RequestInit = {
@@ -266,6 +392,53 @@ export function stripTokensFromBody(payload: unknown): {
     return {
         body: { ...(payload as Record<string, unknown>), data: rest },
         tokens,
+    };
+}
+
+/**
+ * Strip the impersonation token from a Symfony envelope. Mirrors
+ * `stripTokensFromBody` but is specific to the impersonation start
+ * endpoint, where `data.impersonation_token` is the only secret we
+ * need to hoist into an httpOnly cookie.
+ */
+export function stripImpersonationFromBody(payload: unknown): {
+    body: unknown;
+    impersonation: { token: string; targetEmail: string; expiresIn: number } | null;
+} {
+    if (!payload || typeof payload !== 'object') {
+        return { body: payload, impersonation: null };
+    }
+    const data = (payload as { data?: unknown }).data;
+    if (!data || typeof data !== 'object') {
+        return { body: payload, impersonation: null };
+    }
+
+    const {
+        impersonation_token,
+        target_email,
+        expires_in,
+        ...rest
+    } = data as {
+        impersonation_token?: string;
+        target_email?: string;
+        expires_in?: number;
+        [key: string]: unknown;
+    };
+
+    if (!impersonation_token || !target_email || !expires_in) {
+        return { body: payload, impersonation: null };
+    }
+
+    return {
+        body: {
+            ...(payload as Record<string, unknown>),
+            data: { ...rest, target_email, expires_in },
+        },
+        impersonation: {
+            token: impersonation_token,
+            targetEmail: target_email,
+            expiresIn: expires_in,
+        },
     };
 }
 

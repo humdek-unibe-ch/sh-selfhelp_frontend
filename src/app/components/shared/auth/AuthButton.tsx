@@ -10,7 +10,6 @@ import { ROUTES } from '../../../../config/routes.config';
 import { useAppNavigation } from '../../../../hooks/useAppNavigation';
 import { IPageItem } from '../../../../types/common/pages.type';
 import { getPageTitle } from '../../../../utils/navigation.utils';
-// import { clearClientAuthCookies } from '../../../../utils/auth.utils';
 
 interface IAuthButtonProps {
     /**

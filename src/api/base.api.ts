@@ -6,8 +6,9 @@
  * how it complements the BFF silent-refresh loop).
  *
  * After the full BFF migration this client only ever talks to the local
- * Next.js `/api/*` proxy. The browser never sees the JWT; access & refresh
- * tokens live in httpOnly cookies that the proxy rotates on our behalf.
+ * Next.js `/api/*` proxy. The browser never sees the JWT; access &
+ * refresh tokens, AND the impersonation JWT, live in httpOnly cookies
+ * that the proxy rotates on our behalf.
  *
  * Why still Axios (vs. raw `fetch`)?
  * - Interceptors give us a single choke point for CSRF header attachment,
@@ -20,7 +21,8 @@
  *
  * Responsibilities:
  *   1. `baseURL = '/api'` so every call is relative to the current origin.
- *   2. `withCredentials: true` so the httpOnly auth cookies are sent.
+ *   2. `withCredentials: true` so the httpOnly auth/impersonation cookies
+ *      are sent automatically.
  *   3. Attach `X-CSRF-Token` on unsafe methods from the `sh_csrf` cookie.
  *   4. Transparent retry exactly once when the BFF signals a refresh
  *      succeeded mid-flight (`401` + `logged_in: true`). This is the
@@ -32,12 +34,19 @@
  *      to the login page with a `redirect=` hint.
  *   6. Permission-denied redirect for admin *non-data* operations.
  *
+ * Note on impersonation: this client never reads, writes, or even sees
+ * the `sh_impersonate` cookie. It is httpOnly, only the BFF proxy
+ * forwards it, and only the dedicated `/api/admin/users/.../impersonate`
+ * + `/api/admin/users/stop-impersonate` BFF routes ever set/clear it.
+ *
  * @module api/base.api
  */
 
 import axios from 'axios';
 import { API_CONFIG } from '../config/api.config';
 import { ROUTES } from '../config/routes.config';
+import { readCookieValue } from '../utils/auth.utils';
+import { CSRF_COOKIE } from '../config/cookie-names';
 
 declare module 'axios' {
     export interface InternalAxiosRequestConfig {
@@ -60,23 +69,17 @@ export const apiClient = apiClientRaw;
 const UNSAFE_METHODS = new Set(['post', 'put', 'patch', 'delete']);
 
 apiClientRaw.interceptors.request.use(
-  (config) => {
-    const method = (config.method || "get").toLowerCase();
-    const impersonationToken = readCookieValue(IMPERSONATE_COOKIE);
-
-    if (UNSAFE_METHODS.has(method)) {
-      const csrf = readCookieValue(CSRF_COOKIE);
-      if (csrf) {
-        config.headers.set("X-CSRF-Token", csrf);
-      }
-    }
-
-    if (impersonationToken) {
-      config.headers.set("X-Impersonation-Token", impersonationToken);
-    }
-    return config;
-  },
-  (error) => Promise.reject(error),
+    (config) => {
+        const method = (config.method || 'get').toLowerCase();
+        if (UNSAFE_METHODS.has(method)) {
+            const csrf = readCookieValue(CSRF_COOKIE);
+            if (csrf) {
+                config.headers.set('X-CSRF-Token', csrf);
+            }
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
 );
 
 function isAdminDataOperation(url: string | undefined): boolean {
@@ -165,8 +168,6 @@ apiClientRaw.interceptors.response.use(
 
 import { initializePermissionChecking } from './permission-wrapper.api';
 import { permissionAwareApiClient } from './permission-aware-client.api';
-import { readCookieValue } from '../utils/auth.utils';
-import { CSRF_COOKIE, IMPERSONATE_COOKIE } from '../config/cookie-names';
 
 initializePermissionChecking(apiClient);
 

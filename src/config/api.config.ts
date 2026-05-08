@@ -100,10 +100,15 @@ export const API_CONFIG = {
             permissions: []
         },
 
-        // Admin lookups endpoint
-        ADMIN_LOOKUPS: {
-            route: '/admin/lookups',
-            permissions: [PERMISSIONS.ADMIN_ACCESS]
+        // System lookups endpoint (timezones, type codes, weekdays, audit
+        // categories). Authenticated-only — anonymous callers get 401 from
+        // the JWT firewall — but NOT admin-gated, because public frontend
+        // styles such as ProfileStyle consume the timezone list. Was
+        // `ADMIN_LOOKUPS` at `/admin/lookups` until Doctrine migration
+        // Version20260508160000.
+        SYSTEM_LOOKUPS: {
+            route: '/lookups',
+            permissions: []
         },
 
         // Admin pages endpoints
@@ -256,6 +261,10 @@ export const API_CONFIG = {
         ADMIN_USERS_IMPERSONATE: {
             route: (userId: number) => `/admin/users/${userId}/impersonate`,
             permissions: [PERMISSIONS.ADMIN_USER_IMPERSONATE]
+        },
+        ADMIN_USERS_STOP_IMPERSONATE: {
+            route: '/admin/users/stop-impersonate',
+            permissions: []
         },
 
         // Admin groups endpoints (only paginated endpoint exists)

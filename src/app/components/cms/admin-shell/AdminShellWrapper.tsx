@@ -16,14 +16,13 @@ export function AdminShellWrapper({ children, aside, asideWidth }: AdminShellWra
     const { isAuthenticated, hasAdminAccess, isLoading } = useAuth();
     const router = useRouter();
     const [isChecking, setIsChecking] = useState(true);
-    console.warn(hasAdminAccess);
 
     useEffect(() => {
         // If still loading authentication data, wait
         if (isLoading) {
             return;
         }
-        
+
         // Authentication state is now determined
         if (!isAuthenticated) {
             // Not logged in

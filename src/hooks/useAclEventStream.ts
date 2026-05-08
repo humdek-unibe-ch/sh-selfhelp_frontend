@@ -4,21 +4,31 @@
  *
  * The BFF route there is a thin proxy that fetches a Mercure subscriber
  * JWT from Symfony and pipes the upstream Mercure subscription back to
- * the browser as same-origin SSE. From this hook's perspective the wire
- * contract is unchanged: an `EventSource` listening for `acl-changed`
- * events whose `data` is `{ aclVersion: string }`.
+ * the browser as same-origin SSE. The single connection multiplexes two
+ * event types — `acl-changed` and `impersonation-status` — over a
+ * single Mercure JWT scoped to two topics on one upstream socket.
  *
- * When the backend reports an `acl-changed` event (group/role mutation,
- * async job grant, admin role change, etc.), this hook invalidates
- * `['user-data']`. That refetch picks up the new `aclVersion`, which the
- * existing `useAclVersionWatcher` then turns into surgical invalidations
- * of `['frontend-pages']`, `['admin-pages']`, and `['page-by-keyword']`.
+ * ## Events handled
  *
- * Result: the public navigation, the admin sidebar, and any
- * permission-gated page content all refresh **without a click** and
- * within a few hundred milliseconds of the backend mutation — even when
- * the trigger was an async background job rather than the user's own
- * request.
+ *   - **`acl-changed`** — `data: { aclVersion: string }`. Fired when
+ *     the user's ACL membership changes (group/role mutation, async
+ *     job grant, admin role change, etc.). Invalidates `['user-data']`;
+ *     the refetch picks up the new `aclVersion`, which
+ *     `useAclVersionWatcher` then cascades into surgical invalidations
+ *     of `['frontend-pages']`, `['admin-pages']`, and `['page-by-keyword']`.
+ *   - **`impersonation-status`** — `data: { active: boolean,
+ *     targetEmail?: string, targetUserId: number, adminUserId: number,
+ *     expiresAt?: number, expiresIn?: number }`. Fired when an admin
+ *     starts (`active: true`) or stops (`active: false`) impersonating
+ *     this user. Drives the `useImpersonationStore` so the banner
+ *     reacts in real time across tabs and devices, replacing the
+ *     previous 5-second cookie poll.
+ *
+ * Result: the public navigation, the admin sidebar, permission-gated
+ * page content AND the impersonation banner all refresh **without a
+ * click** and within a few hundred milliseconds of the backend
+ * mutation — even when the trigger was an async background job or a
+ * stop click in a different browser tab.
  *
  * Mount once at the root of the client tree (`ClientProviders`).
  *
@@ -33,6 +43,28 @@ import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStatus } from './useUserData';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
+import { useImpersonationStore } from '../app/store/impersonation.store';
+
+interface ImpersonationStatusPayload {
+    active: boolean;
+    targetEmail?: string;
+    targetUserId?: number;
+    adminUserId?: number;
+    expiresAt?: number;
+    expiresIn?: number;
+}
+
+function parseImpersonationStatus(raw: string): ImpersonationStatusPayload | null {
+    try {
+        const data = JSON.parse(raw) as unknown;
+        if (typeof data !== 'object' || data === null) return null;
+        const { active } = data as { active?: unknown };
+        if (typeof active !== 'boolean') return null;
+        return data as ImpersonationStatusPayload;
+    } catch {
+        return null;
+    }
+}
 
 const SSE_ENDPOINT = '/api/auth/events';
 /** Max backoff between reconnection attempts after repeated failures. */
@@ -76,6 +108,30 @@ export function useAclEventStream(): void {
                 queryClient.invalidateQueries({
                     queryKey: REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA,
                 });
+            });
+
+            es.addEventListener('impersonation-status', (evt) => {
+                const payload = parseImpersonationStatus(
+                    (evt as MessageEvent<string>).data
+                );
+                if (payload === null) return;
+
+                const store = useImpersonationStore.getState();
+                if (payload.active) {
+                    if (typeof payload.targetEmail !== 'string') return;
+                    store.setActive({
+                        targetEmail: payload.targetEmail,
+                        expiresInSec:
+                            typeof payload.expiresIn === 'number'
+                                ? payload.expiresIn
+                                : undefined,
+                    });
+                } else {
+                    // Either the target's session, the impersonating
+                    // session, or another tab of either side — they all
+                    // share this topic and must clear in lock-step.
+                    store.clear();
+                }
             });
 
             // The browser auto-reconnects on transient errors, but if the
