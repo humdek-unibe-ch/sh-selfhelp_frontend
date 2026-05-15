@@ -86,6 +86,18 @@ If docs conflict with implementation, flag the conflict instead of assuming the 
 - For public rendering changes, verify page content appears on first paint and remains interactive after hydration.
 - For admin rendering changes, verify SSR prefetch and permission gates do not create a blank shell, stale permissions, or sluggish editing flows.
 
+## Rendering Strategy Rules
+- SelfHelp uses a hybrid SSR-first rendering model, not pure SSR and not pure CSR.
+- Public CMS routes must stay SSR-first: resolve language, preview mode, metadata, navigation, and page content on the server when possible.
+- Keep `src/app/[[...slug]]/layout.tsx` and `src/app/[[...slug]]/page.tsx` as Server Components unless there is explicit approval to change the rendering model.
+- Use Client Components for interactive islands: forms, auth widgets, language/theme controls, preview controls, drag/drop, rich editors, Refine, Zustand, React Query hooks, and browser APIs.
+- Do not move SSR-prefetched data into client-only fetching unless there is a clear reason.
+- Server Components should use `src/app/_lib/server-fetch.ts`; browser code should use `/api` through existing API clients.
+- React Query query keys used by SSR prefetch and client hooks must match exactly.
+- Public CMS style components with hooks or browser APIs must stay behind a client boundary.
+- Admin screens may be client-heavy, but admin auth gating and shared prefetch should remain server-side.
+- Treat interactive CMS/admin widgets as islands inside server-rendered shells; do not rewrite the app around a new islands framework.
+
 ## BFF Rules
 - The Next.js BFF is the security boundary for browser API traffic.
 - Browser API code must use `/api/*`; do not bypass the existing proxy/auth flows.
@@ -130,6 +142,8 @@ If docs conflict with implementation, flag the conflict instead of assuming the 
 - Use TypeScript. Prefer precise types and interfaces; avoid adding new `any`.
 - Existing convention: interfaces start with `I`, types start with `T`.
 - Components are usually PascalCase files inside kebab-case feature folders, with `index.ts` exports where already used.
+- Prefer small, focused components in separate files when practical.
+- Extract reusable UI, hooks, and helpers when the same behavior is needed in more than one place, but keep one-off code local until reuse is real.
 - Use functional React components and hooks.
 - Use Mantine components first, Tailwind for layout/utilities/dynamic CMS classes, and CSS modules for component-specific custom CSS.
 - Keep imports consistent with nearby files. The code mostly uses relative imports; confirm aliases before introducing `@/...`.
