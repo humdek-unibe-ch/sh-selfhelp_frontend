@@ -1,11 +1,30 @@
 # AGENTS.md
 
-Before returning anything print in chat `AGENTS.md` so that we know the rules are used
+Before returning anything print in chat `❤️AGENTS.md` so that we know the rules are used
 
 ## Project Overview
 SelfHelp Frontend is a Next.js App Router application for the SelfHelp CMS. It renders public CMS pages and provides an admin CMS for pages, sections, users, roles, groups, assets, actions, cache, audit, data, languages, scheduled jobs, and page versions.
 
 Read `docs/architecture/ssr-bff-architecture.md` first for current architecture. `architecture.md` is useful but partly historical.
+
+## Architecture Snapshot
+- Next.js App Router SSR/BFF frontend for a Symfony backend.
+- JWT auth is managed through httpOnly cookies.
+- React Query cache is seeded by SSR prefetch and hydrated on the client.
+- Public pages use CMS-driven recursive section rendering.
+- Dynamic style components are dispatched through `BasicStyle.tsx`.
+- UI uses Mantine plus Tailwind dynamic CMS classes.
+- Admin CMS is permission-aware and backed by endpoint permission metadata.
+- Shared contracts are gradually moving through `@selfhelp/shared`.
+
+## Source of Truth Priority
+When sources conflict, use this priority order:
+- Actual source code behavior.
+- Current architecture docs, especially `docs/architecture/ssr-bff-architecture.md`.
+- Existing hooks, services, components, and providers.
+- Type definitions and available checks.
+
+If docs conflict with implementation, flag the conflict instead of assuming the docs are correct.
 
 ## Tech Stack
 - Next.js 16 App Router, React 19, TypeScript strict mode.
@@ -32,7 +51,7 @@ Read `docs/architecture/ssr-bff-architecture.md` first for current architecture.
 - `src/shared`: Bridge re-exports from `@selfhelp/shared`.
 
 ## Architecture Rules
-- Default to Server Components. Add `'use client'` only for state, effects, browser APIs, events, Mantine interactive UI, Refine, React Query, or other client-only hooks.
+- Default to Server Components. Add `'use client'` only for state, effects, browser APIs, events, Mantine components requiring client-side interactivity, Refine, React Query, or other client-only hooks.
 - Browser API traffic must go through `/api/*`; do not call Symfony directly from browser code.
 - Server Components use helpers in `src/app/_lib/server-fetch.ts` to call Symfony directly.
 - JWTs are stored only in httpOnly cookies managed by the BFF.
@@ -40,6 +59,54 @@ Read `docs/architecture/ssr-bff-architecture.md` first for current architecture.
 - Admin page/section editing is id-driven where backend contracts require ids.
 - React Query owns server data. Zustand owns client-only UI state. nuqs owns URL state. Cookies own SSR-visible preferences such as language, preview mode, and color scheme.
 - Refine is used for auth provider, router provider, and admin resources; do not replace admin UI with generic Refine CRUD without a clear reason.
+
+## Server vs Client Boundary Rules
+- Prefer Server Components by default.
+- Do not convert Server Components to Client Components unless required.
+- Avoid moving data fetching into client components without a clear reason.
+- Keep the SSR-first public page architecture intact.
+- Do not introduce client-side fetching for data already available during SSR.
+- Be careful with hydration mismatches from random values, `Date` usage, `window` or `document` access, locale-sensitive rendering, and other non-deterministic output.
+- Keep server-only utilities, secrets, Symfony internal URLs, and `src/config/server.config.ts` out of client bundles.
+
+## BFF Rules
+- The Next.js BFF is the security boundary for browser API traffic.
+- Browser API code must use `/api/*`; do not bypass the existing proxy/auth flows.
+- Browser code may use the public backend base URL only for assets when existing utilities already do so.
+- Cookie management, auth refresh, CSRF handling, proxying, token stripping, impersonation routing, and streaming auth events belong in the BFF layer.
+- Keep auth logic centralized in the BFF routes, `src/proxy.ts`, `src/api/base.api.ts`, and `src/providers/auth.provider.ts`.
+
+## React Query Rules
+- Prefer SSR prefetch plus hydration for CMS/admin data where the existing architecture already does this.
+- Avoid duplicate fetching between Server Components and client hooks.
+- Reuse existing query keys and cache tiers from `REACT_QUERY_CONFIG`.
+- Avoid `useEffect` data fetching when React Query or Server Components already own the data.
+- Use optimistic updates only where existing flows already support them safely.
+- Prefer targeted invalidation over refetch-all patterns.
+- Check `staleTime` and `gcTime` implications before changing caching behavior.
+
+## Performance Rules
+- Be careful with recursive CMS rendering and deeply nested sections.
+- Avoid unnecessary client boundaries in large render trees.
+- Avoid creating new object/function props unnecessarily in heavily repeated CMS components.
+- Prefer server rendering for expensive data preparation.
+- Lazy-load heavy admin-only components where appropriate.
+- Check bundle impact before adding dependencies.
+- Preserve streaming, Suspense, SSR prefetch, and hydration behavior where already implemented.
+
+## Admin vs Public Rules
+- Keep public frontend rendering logic separate from admin CMS logic.
+- Avoid importing heavy admin dependencies into public rendering paths.
+- Public pages prioritize SSR/render performance and hydration stability.
+- Admin pages prioritize editing workflows, permissions, and reliable mutation behavior.
+
+## CMS Rendering Rules
+- Preserve recursive section rendering behavior unless intentionally changing frontend rendering.
+- Preserve field extraction, interpolation, condition, and localization behavior.
+- Do not change dynamic style registration casually.
+- Keep frontend style registration aligned with backend style definitions and `@selfhelp/shared` where applicable.
+- Be careful with dynamic Tailwind class generation, mobile class prefixing, and HTML sanitization.
+- Unknown or unsupported CMS styles should continue to render through the existing `UnknownStyle` path.
 
 ## Coding Style
 - Add the two-line MPL-2.0 SPDX header to TS/TSX/JS files.
@@ -51,6 +118,22 @@ Read `docs/architecture/ssr-bff-architecture.md` first for current architecture.
 - Keep imports consistent with nearby files. The code mostly uses relative imports; confirm aliases before introducing `@/...`.
 - Use `@tabler/icons-react` for icons because that is the installed icon set.
 
+## Type Safety Rules
+- Prefer narrowing and explicit typing over assertions.
+- Avoid introducing `any`, double-casts, or unsafe non-null assertions.
+- Reuse shared types from `@selfhelp/shared` where possible.
+- Keep API response and request types aligned with backend schemas.
+- Do not create nearly identical interfaces until existing types have been checked.
+
+## Existing Patterns First
+Before creating new hooks, API clients, providers, Zustand stores, utilities, query keys, layout wrappers, form abstractions, table abstractions, or CMS style systems, inspect whether the repository already has an established implementation pattern.
+
+## Modernization Rules
+- Do not rewrite existing patterns only for architectural purity.
+- Do not replace working hooks, services, components, or providers with new abstractions without a clear reason.
+- Prefer consistency with nearby code over introducing newer trends.
+- Large refactors require explicit approval.
+
 ## AI Agent Rules
 - Inspect current code before changing anything. Prefer source over stale docs.
 - Keep changes small and focused.
@@ -61,6 +144,14 @@ Read `docs/architecture/ssr-bff-architecture.md` first for current architecture.
 - Never commit, push, or stage changes unless explicitly asked.
 - Do not run `npm run dev` if a dev server is already running.
 - Do not expose `.env` values, tokens, cookies, or secrets.
+
+## AI Change Response Expectations
+When making changes, mention the relevant impact on:
+- SSR/client boundaries.
+- React Query keys, cache tiers, invalidation, or hydration.
+- BFF, auth, cookies, CSRF, or permissions.
+- Affected hooks, types, API contracts, and shared contracts.
+- Required backend coordination, if any.
 
 ## Security Rules
 - Browser code must never read or store JWTs.
@@ -119,7 +210,7 @@ Read `docs/architecture/ssr-bff-architecture.md` first for current architecture.
 - Update docs: update the current architecture docs when changing SSR/BFF/cache/auth behavior.
 
 ## Do Not Do
-- Do not store tokens in localStorage/sessionStorage
+- Do not store tokens in localStorage/sessionStorage.
 - Do not bypass the BFF from browser code.
 - Do not import server-only config into client files.
 - Do not add broad `queryClient.invalidateQueries()` calls.
