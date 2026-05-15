@@ -1,7 +1,3 @@
-/*
-SPDX-FileCopyrightText: 2026 Humdek, University of Bern
-SPDX-License-Identifier: MPL-2.0
-*/
 /// <reference types="next" />
 /// <reference types="next/image-types/global" />
 import "./.next/dev/types/routes.d.ts";
