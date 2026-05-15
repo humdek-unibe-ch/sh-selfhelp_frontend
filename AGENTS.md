@@ -26,6 +26,13 @@ When sources conflict, use this priority order:
 
 If docs conflict with implementation, flag the conflict instead of assuming the docs are correct.
 
+## Release and Compatibility Rules
+- Current package version is pre-1.0.0. Until version 1.0.0 is released, backward compatibility is not required by default.
+- Pre-1.0.0 breaking changes are allowed when they simplify the architecture, remove stale contracts, or align frontend behavior with backend/shared contracts.
+- Even before 1.0.0, document contract impact and coordinate changes that affect Symfony APIs, `@selfhelp/shared`, mobile clients, persisted CMS content, or public URLs.
+- After version 1.0.0, preserve backward compatibility unless explicitly told otherwise.
+- Post-1.0.0 breaking changes require explicit approval and migration notes.
+
 ## Tech Stack
 - Next.js 16 App Router, React 19, TypeScript strict mode.
 - Mantine 9 is the primary UI library.
@@ -68,6 +75,16 @@ If docs conflict with implementation, flag the conflict instead of assuming the 
 - Do not introduce client-side fetching for data already available during SSR.
 - Be careful with hydration mismatches from random values, `Date` usage, `window` or `document` access, locale-sensitive rendering, and other non-deterministic output.
 - Keep server-only utilities, secrets, Symfony internal URLs, and `src/config/server.config.ts` out of client bundles.
+
+## Rendering Verification Rules
+- Verify both server-rendered first paint and hydrated client behavior when changing routes, layouts, providers, CMS rendering, data fetching, or auth gates.
+- Server rendering should stay fast, visible, and useful before hydration; do not regress SSR prefetch, metadata, header/footer rendering, or public page visibility.
+- Hydrated client behavior should remain highly responsive for language switching, preview mode, admin editing, forms, mutations, drag/drop, and navigation.
+- Avoid duplicate SSR and client network requests; React Query hydration keys must match the client hooks that consume prefetched data.
+- Check loading, empty, and error states on both initial server render and client-side transitions.
+- Keep watching for hydration mismatches from client-only APIs, random values, dates, locale-sensitive formatting, or non-deterministic render output.
+- For public rendering changes, verify page content appears on first paint and remains interactive after hydration.
+- For admin rendering changes, verify SSR prefetch and permission gates do not create a blank shell, stale permissions, or sluggish editing flows.
 
 ## BFF Rules
 - The Next.js BFF is the security boundary for browser API traffic.
@@ -147,7 +164,9 @@ Before creating new hooks, API clients, providers, Zustand stores, utilities, qu
 
 ## AI Change Response Expectations
 When making changes, mention the relevant impact on:
+- Release compatibility, especially whether a change is pre-1.0.0 cleanup or post-1.0.0 breaking behavior.
 - SSR/client boundaries.
+- Server-rendered first paint and hydrated client responsiveness.
 - React Query keys, cache tiers, invalidation, or hydration.
 - BFF, auth, cookies, CSRF, or permissions.
 - Affected hooks, types, API contracts, and shared contracts.
