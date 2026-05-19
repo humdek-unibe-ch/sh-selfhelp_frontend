@@ -37,9 +37,7 @@ import styles from './ConfigurationPageEditor.module.css';
 import { FieldRenderer, IFieldData } from '../../shared/field-renderer/FieldRenderer';
 import { useQueryClient } from '@tanstack/react-query';
 import { 
-    processAllFields, 
-    isContentField, 
-    isPropertyField, 
+    processAllFields,
     validateFieldProcessing,
     initializeFieldFormValues
 } from '../../../../../utils/field-processing.utils';
@@ -129,14 +127,14 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
     const contentFields = useMemo(() => {
         if (!pageFieldsData?.fields) return [];
         return pageFieldsData.fields.filter(field =>
-            isContentField(field) &&
+            field.display &&
             !['title', 'description'].includes(field.name.toLowerCase())
         );
     }, [pageFieldsData]);
 
     const propertyFields = useMemo(() => {
         if (!pageFieldsData?.fields) return [];
-        return pageFieldsData.fields.filter(field => isPropertyField(field));
+        return pageFieldsData.fields.filter(field => !field.display);
     }, [pageFieldsData]);
 
     // Check if we have multiple languages for content fields

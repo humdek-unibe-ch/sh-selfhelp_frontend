@@ -71,7 +71,7 @@
         "react-dom": "^19.2.5",
         "react-dropzone": "^15.0.0",
         "react-querybuilder": "^8.15.0",
-        "tailwind-preset-mantine": "^4.0.2",
+        "tailwind-preset-mantine": "^4.0.3",
         "tippy.js": "^6.3.7",
         "zustand": "^5.0.12"
     },
@@ -91,13 +91,13 @@
         "ts-unused-exports": "^11.0.1",
         "typescript": "5.9.3"
     },
-   "overrides": {
-    "monaco-editor": {
-        "dompurify": "^3.4.2"
-    },
-    "next": {
-        "postcss": "^8.5.10"
-    }
+    "overrides": {
+        "monaco-editor": {
+            "dompurify": "^3.4.2"
+        },
+        "next": {
+            "postcss": "^8.5.10"
+        }
     },
     "packageManager": "npm@11.12.1"
 }
