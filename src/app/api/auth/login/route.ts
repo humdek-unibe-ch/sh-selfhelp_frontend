@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * POST /api/auth/login — forwards credentials to Symfony, sets the two
  * httpOnly auth cookies on success, and returns the user object without

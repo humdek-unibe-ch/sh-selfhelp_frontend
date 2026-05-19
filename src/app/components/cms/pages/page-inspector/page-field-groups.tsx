@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 'use client';
 
 import React, { useCallback, useRef, useEffect, useState } from 'react';
@@ -76,7 +80,7 @@ export const PageInfoPanel = React.memo(function PageInfoPanel({
                                 Menu Position: {page.nav_position}
                             </Badge>
                         )}
-                        {page.parent !== null && (
+                        {page.id_parent_page !== null && (
                             <Badge color="green" variant="light" size="sm">
                                 Child Page
                             </Badge>

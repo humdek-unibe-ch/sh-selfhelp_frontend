@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 'use client';
 
 import {
@@ -136,9 +140,9 @@ export const PageInspector = React.memo(function PageInspector({ page, isConfigu
     const { pages: adminPages } = useAdminPages();
 
     const parentPage = useMemo(() => {
-        if (!page?.parent || !adminPages.length) return null;
-        return adminPages.find(p => p.id_pages === page.parent) || null;
-    }, [page?.parent, adminPages]);
+        if (!page?.id_parent_page || !adminPages.length) return null;
+        return adminPages.find(p => p.id_pages === page.id_parent_page) || null;
+    }, [page?.id_parent_page, adminPages]);
 
     useEffect(() => {
         if (languagesData.length > 0 && !activeLanguageTab) {

@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /* Website Footer Styles */
 .footer {
   background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));

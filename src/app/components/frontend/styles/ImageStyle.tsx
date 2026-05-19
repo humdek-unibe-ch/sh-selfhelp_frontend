@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import React from 'react';
 import { Image } from '@mantine/core';
 import { IImageStyle } from '../../../../types/common/styles.types';

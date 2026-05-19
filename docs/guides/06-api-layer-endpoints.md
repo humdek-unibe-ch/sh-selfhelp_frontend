@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 # 6. 🔗 API Layer & Endpoint Management
 
 > **BFF routing.** Axios is configured with `baseURL = '/api'`, so every

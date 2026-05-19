@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * API client for handling lookups-related API calls.
  * Provides methods for fetching lookup data from the backend.
@@ -21,7 +25,7 @@ export const LookupsApi = {
      * @throws {Error} When API request fails
      */
     async getLookups(): Promise<ILookup[]> {
-        const response = await permissionAwareApiClient.get<ILookupsResponse>(API_CONFIG.ENDPOINTS.ADMIN_LOOKUPS);
+        const response = await permissionAwareApiClient.get<ILookupsResponse>(API_CONFIG.ENDPOINTS.SYSTEM_LOOKUPS);
         return response.data.data;
     },
 

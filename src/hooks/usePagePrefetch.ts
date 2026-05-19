@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * Prefetches page content into React Query so hovering over a nav link
  * warms the exact cache key that a subsequent navigation will read —

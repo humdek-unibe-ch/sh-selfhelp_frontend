@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * Cookie name constants.
  *
@@ -42,9 +46,27 @@ export const COLOR_SCHEME_COOKIE = 'sh_color_scheme';
 /** One year — used for non-auth cookies (CSRF, locale hint, `sh_lang`). */
 export const LONG_LIVED_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
-/** Impersonation session token — short-lived, replaced on reload. */
+// ──────────────────────────────────────────────────────────────────────────
+// Impersonation cookies
+// ──────────────────────────────────────────────────────────────────────────
+//
+// Two cookies, both short-lived. The split lets us follow the project's
+// "tokens never reach the browser" rule while still giving the browser
+// just enough information to render an impersonation banner.
+//
+//   - `sh_impersonate`              httpOnly  -> the JWT itself.
+//                                              The browser CANNOT read it;
+//                                              only the BFF /api/* proxy
+//                                              forwards it to Symfony as
+//                                              the Authorization header.
+//
+//   - `sh_impersonate_target_email` non-httpOnly -> just the target email.
+//                                              Pure UI hint so the
+//                                              ImpersonationBanner can
+//                                              show "You are impersonating
+//                                              alice@example.com" without
+//                                              calling the API. Contains
+//                                              no secret material.
+
 export const IMPERSONATE_COOKIE = 'sh_impersonate';
 export const IMPERSONATE_TARGET_EMAIL_COOKIE = 'sh_impersonate_target_email';
-
-/** 15 minutes — matches IMPERSONATION_TOKEN_TTL on the Symfony side. */
-export const IMPERSONATE_COOKIE_MAX_AGE = 60 * 15;

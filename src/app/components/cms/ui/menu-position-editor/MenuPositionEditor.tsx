@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 'use client';
 
 import { useState, useEffect, useRef, useCallback, createContext, useContext } from 'react';
@@ -286,7 +290,7 @@ export function MenuPositionEditor({
         const positionField = menuType === 'header' ? 'nav_position' : 'footer_position';
         
         // Determine the parent context for filtering
-        const targetParentId = parentPage ? parentPage.id_pages : currentPage.parent;
+        const targetParentId = parentPage ? parentPage.id_pages : currentPage.id_parent_page;
         
         // Get pages that have positions in this menu type and belong to the same parent
         const existingMenuPages = pages
@@ -298,7 +302,7 @@ export function MenuPositionEditor({
                 if (page.keyword === currentPage.keyword) return false;
                 
                 // Must belong to the same parent context
-                return page.parent === targetParentId;
+                return page.id_parent_page === targetParentId;
             })
             .sort((a, b) => (a[positionField] || 0) - (b[positionField] || 0))
             .map(page => ({

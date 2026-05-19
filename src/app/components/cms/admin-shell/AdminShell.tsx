@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 'use client';
 
 import { AppShell } from "@mantine/core";
@@ -9,7 +13,6 @@ import { ROUTES } from "../../../../config/routes.config";
 import { DebugMenu } from "../../shared/common/debug";
 import { useIsSidebarCollapsed } from "../../../store/ui.store";
 import { useAuthStatus } from "../../../../hooks/useUserData";
-import { ImpersonationBanner } from "../../shared/common/ImpersonationBanner";
 
 interface AdminShellProps {
     children: React.ReactNode;
@@ -45,7 +48,6 @@ export function AdminShell({ children, aside, asideWidth = 400 }: AdminShellProp
 
     return (
         <>
-        <ImpersonationBanner />
             <AppShell
                 navbar={{
                     width: 300,

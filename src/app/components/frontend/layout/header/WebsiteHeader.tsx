@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import { Container, Group, Text, Flex } from '@mantine/core';
 import { ThemeToggle } from '../../../shared/common/ThemeToggle';
 import { AuthButton } from '../../../shared/auth/AuthButton';

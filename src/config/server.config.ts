@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * Shared server-side configuration.
  *
@@ -25,6 +29,8 @@ export {
     LOCALE_HINT_COOKIE,
     PREVIEW_COOKIE,
     COLOR_SCHEME_COOKIE,
+    IMPERSONATE_COOKIE,
+    IMPERSONATE_TARGET_EMAIL_COOKIE,
     LONG_LIVED_COOKIE_MAX_AGE,
 } from './cookie-names';
 

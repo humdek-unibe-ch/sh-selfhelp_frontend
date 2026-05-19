@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 .pageItem {
     border-radius: var(--mantine-radius-sm);
     transition: background-color 0.15s ease;

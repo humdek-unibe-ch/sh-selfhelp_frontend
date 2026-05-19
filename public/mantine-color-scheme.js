@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 // Mantine color-scheme bootstrap, served from /public so it can be included
 // in the document head via `<script src>`. React 19 hoists external scripts
 // as resources (no inline-<script> warning), unlike inline scripts rendered

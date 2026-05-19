@@ -1,12 +1,48 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * API Configuration
  * Backend is running at http://localhost/selfhelp
  * Frontend is running at http://localhost:3000/Teilnahme
+ *
+ * Shared-package alignment
+ * ------------------------
+ * The `route` strings below mirror the public REST routes that the
+ * mobile app consumes via `@selfhelp/shared`. The shared `ENDPOINTS`
+ * map carries the full `/cms-api/v1/...` prefix; this file uses the
+ * BFF-relative form (without the prefix) because Next.js prepends
+ * `/api/cms-api/v1` server-side.
+ *
+ * If you change a shared endpoint, mirror it here. The shared package
+ * is the source of truth for the routes themselves; this file owns the
+ * permission metadata, which is web-only.
+ *
+ * NOTE: when adding a NEW public endpoint, add it to
+ * `sh-selfhelp_shared/src/api/endpoints.ts` first so the mobile app
+ * gets it for free.
  */
 
 import { PERMISSIONS } from "../types/auth/jwt-payload.types";
+import { ENDPOINTS as SHARED_ENDPOINTS, API_VERSION_PREFIX } from "../shared";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost/symfony';
+
+/** Strip `/cms-api/v1` prefix to map shared endpoints to the BFF-relative form. */
+function strip(p: string): string {
+    return p.startsWith(API_VERSION_PREFIX) ? p.slice(API_VERSION_PREFIX.length) : p;
+}
+
+/** Documentation-only export — proves the routes below match shared. */
+export const SHARED_ROUTE_ALIGNMENT = {
+    AUTH_LOGIN: strip(SHARED_ENDPOINTS.AUTH.LOGIN),
+    AUTH_LOGOUT: strip(SHARED_ENDPOINTS.AUTH.LOGOUT),
+    AUTH_SET_LANGUAGE: strip(SHARED_ENDPOINTS.AUTH.SET_LANGUAGE),
+    AUTH_USER_DATA: strip(SHARED_ENDPOINTS.AUTH.USER_DATA),
+    PAGES: strip(SHARED_ENDPOINTS.PAGES.LIST),
+    LANGUAGES: strip(SHARED_ENDPOINTS.LANGUAGES),
+} as const;
 
 /**
  * Full BFF routing:
@@ -100,10 +136,15 @@ export const API_CONFIG = {
             permissions: []
         },
 
-        // Admin lookups endpoint
-        ADMIN_LOOKUPS: {
-            route: '/admin/lookups',
-            permissions: [PERMISSIONS.ADMIN_ACCESS]
+        // System lookups endpoint (timezones, type codes, weekdays, audit
+        // categories). Authenticated-only — anonymous callers get 401 from
+        // the JWT firewall — but NOT admin-gated, because public frontend
+        // styles such as ProfileStyle consume the timezone list. Was
+        // `ADMIN_LOOKUPS` at `/admin/lookups` until Doctrine migration
+        // Version20260508160000.
+        SYSTEM_LOOKUPS: {
+            route: '/lookups',
+            permissions: []
         },
 
         // Admin pages endpoints
@@ -256,6 +297,10 @@ export const API_CONFIG = {
         ADMIN_USERS_IMPERSONATE: {
             route: (userId: number) => `/admin/users/${userId}/impersonate`,
             permissions: [PERMISSIONS.ADMIN_USER_IMPERSONATE]
+        },
+        ADMIN_USERS_STOP_IMPERSONATE: {
+            route: '/admin/users/stop-impersonate',
+            permissions: []
         },
 
         // Admin groups endpoints (only paginated endpoint exists)

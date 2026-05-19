@@ -1,7 +1,11 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 "use client";
 
 import { usePagePrefetch } from "../../../../../hooks/usePagePrefetch";
-import { IPageItem } from "../../../../../types/common/pages.type";
+import { IPageItem } from "../../../../../shared";
 import { InternalLink } from "../../../shared";
 
 export function FooterLinks({ footerPages }: { footerPages: IPageItem[] }) {

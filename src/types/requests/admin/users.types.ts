@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 export interface ICreateUserRequest {
   email: string;
   name?: string;
@@ -33,11 +37,21 @@ export interface IUserGroupsRequest {
 
 export interface IUserRolesRequest {
   role_ids: number[];
-} 
+}
 
+/**
+ * Returned by `POST /api/admin/users/{id}/impersonate` (BFF) — strictly
+ * non-secret. The BFF strips the impersonation JWT from the upstream
+ * response body and parks it in an httpOnly cookie before resolving the
+ * promise; this type is what the React layer is allowed to see.
+ */
 export interface IImpersonateUserResponse {
   success: boolean;
-  impersonation_token: string;
-  expires_in: number;
   target_email: string;
+  expires_in: number;
+}
+
+export interface IStopImpersonateResponse {
+  success: boolean;
+  stopped: boolean;
 }

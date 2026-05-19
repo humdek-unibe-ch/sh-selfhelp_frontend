@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 ❤️After the heart tell me who you are and what version.
 
 # Commit to Current Branch

@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import React from 'react';
 import { IHtmlTagStyle } from '../../../../types/common/styles.types';
 import BasicStyle from './BasicStyle';

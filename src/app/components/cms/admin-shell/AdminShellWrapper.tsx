@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 'use client';
 
 import { AdminShell } from "./AdminShell";
@@ -16,14 +20,13 @@ export function AdminShellWrapper({ children, aside, asideWidth }: AdminShellWra
     const { isAuthenticated, hasAdminAccess, isLoading } = useAuth();
     const router = useRouter();
     const [isChecking, setIsChecking] = useState(true);
-    console.warn(hasAdminAccess);
 
     useEffect(() => {
         // If still loading authentication data, wait
         if (isLoading) {
             return;
         }
-        
+
         // Authentication state is now determined
         if (!isAuthenticated) {
             // Not logged in

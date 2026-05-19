@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 # Copilot & AI Agent Instructions for SH-SelfHelp Frontend (React)
 
 ## Project Architecture & Key Concepts

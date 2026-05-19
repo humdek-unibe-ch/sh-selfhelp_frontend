@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * Shared navigation transforms.
  *
@@ -15,7 +19,7 @@
  * hydration mismatch on the menu structure.
  */
 import { transformPageData } from '../api/navigation.api';
-import type { IPageItem } from '../types/common/pages.type';
+import type { IPageItem } from '../shared';
 
 /**
  * Recursively rewrite child page URLs so they navigate to the direct

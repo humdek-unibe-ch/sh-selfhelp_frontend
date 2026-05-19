@@ -1,3 +1,8 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
+import React from 'react';
 import { Stack } from '@mantine/core';
 import type { TStyle } from '../../../../types/common/styles.types';
 import BasicStyle from '../styles/BasicStyle';
@@ -22,16 +27,14 @@ export function PageContentRenderer({ sections }: IPageContentRendererProps) {
 
     return (
         <div>
-          <Stack gap={0}>
-            {sections.map((section, index) => {
-              if (!section) return null;
+            <Stack gap={0}>
+                {sections.map((section, index) => {
+                    if (!section) return null;
 
-              const key = `section-${section.id || `index-${index}`}`;
-              return <BasicStyle key={key} style={section} />;
-            })}
-          </Stack>
+                    const key = `section-${section.id || `index-${index}`}`;
+                    return <BasicStyle key={key} style={section} />;
+                })}
+            </Stack>
         </div>
     );
 }
-
-// export default PageContentRenderer;

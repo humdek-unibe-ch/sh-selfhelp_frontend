@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
@@ -116,9 +120,9 @@ export function AclManagement({
                 id: page.id_pages,
                 keyword: page.keyword,
                 title: page.keyword,
-                type: page.id_type || 3,
+                type: page.id_page_types || 3,
                 isSystem: page.is_system,
-                isConfiguration: (page.id_type || 0) > 3,
+                isConfiguration: (page.id_page_types || 0) > 3,
                 permissions: pagePermissions,
             };
         });

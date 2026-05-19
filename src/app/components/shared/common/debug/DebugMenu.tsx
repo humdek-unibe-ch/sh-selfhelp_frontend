@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -38,7 +42,7 @@ import { useAdminPages } from '../../../../../hooks/useAdminPages';
 import { useLanguageContext } from '../../../contexts/LanguageContext';
 import { useAuth } from '../../../../../hooks/useAuth';
 import { notifications } from '@mantine/notifications';
-import { IPageItem } from '../../../../../types/common/pages.type';
+import { IPageItem } from '../../../../../shared';
 import { 
     getRenderStats, 
     getWarnings, 

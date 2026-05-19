@@ -1,15 +1,40 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * Server-side fetch helpers.
  *
  * Used by Server Components (layouts, pages, `generateMetadata`) to call
- * Symfony directly — bypassing the `/api/*` BFF proxy because we already run
- * in the trusted Node process. Handles attaching the current user's access
- * token from the `sh_auth` cookie so permission-aware endpoints return the
+ * Symfony directly — bypassing the `/api/*` BFF proxy because we already
+ * run in the trusted Node process. Handles attaching the current user's
+ * access token from the cookies so permission-aware endpoints return the
  * correct data during SSR.
  *
+ * ## Impersonation rule (must match `proxy.ts::pickUpstreamToken`)
+ *
+ * When `sh_impersonate` is present we use it for ANY upstream call that
+ * is NOT a session-lifecycle endpoint. That covers:
+ *
+ *   - `/pages/*`              → render the public site as the target,
+ *   - `/lookups`              → reference data the impersonated profile
+ *                                page actually needs,
+ *   - `/auth/user-data`       → "who am I right now?" must reflect the
+ *                                impersonated identity, otherwise SSR
+ *                                hydrates as the admin while the client
+ *                                fetches as the target → mismatched UI,
+ *   - `/auth/events`          → Mercure subscriber JWT must be minted
+ *                                for the impersonated identity.
+ *
+ * The exclusion list (`isAdminSessionRoute`) covers the routes that
+ * operate on the *admin's session itself* — login, refresh, logout,
+ * 2FA, set-language. Those always run as the original admin so the
+ * admin can stop impersonating cleanly even if the impersonation JWT
+ * has expired or been blacklisted.
+ *
  * Per-user / personalised payloads use `cache: 'no-store'`; globally
- * cacheable data (e.g. `/languages`) uses Next's `revalidate` TTL so hot
- * paths don't re-hit Symfony on every request.
+ * cacheable data (e.g. `/languages`) uses Next's `revalidate` TTL so
+ * hot paths don't re-hit Symfony on every request.
  */
 
 import { cache } from 'react';
@@ -24,23 +49,48 @@ import {
     SYMFONY_API_PREFIX,
     SYMFONY_INTERNAL_URL,
 } from '../../config/server.config';
+import { IMPERSONATE_COOKIE } from '../../config/cookie-names';
 import {
     selectMenuPages,
     selectProfilePages,
     transformNavigationPages,
     selectFooterPages
 } from '../../utils/navigation.utils';
-import type { IPageItem } from '../../types/common/pages.type';
+import type { IPageItem } from '../../shared';
 
 /** SSR cache lifetime for `/languages` in seconds. */
 const LANGUAGES_REVALIDATE_SECONDS = 300;
 
-async function authHeaders(): Promise<HeadersInit> {
+/**
+ * Whether this Symfony route is an "admin session lifecycle" endpoint
+ * that must always run with the original admin's JWT, even during an
+ * impersonation session. Mirrors the same list in
+ * `src/app/api/_lib/proxy.ts` — keep both in lock-step.
+ */
+function isAdminSessionRoute(path: string): boolean {
+    return (
+        path.startsWith('/auth/login') ||
+        path.startsWith('/auth/logout') ||
+        path.startsWith('/auth/refresh-token') ||
+        path.startsWith('/auth/two-factor') ||
+        path.startsWith('/auth/set-language')
+    );
+}
+
+async function authHeaders(path: string): Promise<HeadersInit> {
     const jar = await cookies();
-    const token = jar.get(AUTH_COOKIE)?.value;
+    const adminToken = jar.get(AUTH_COOKIE)?.value;
+    const impersonationToken = jar.get(IMPERSONATE_COOKIE)?.value;
+
+    // Pick: impersonation > admin, except for session-lifecycle routes.
+    const token =
+        impersonationToken && !isAdminSessionRoute(path)
+            ? impersonationToken
+            : adminToken;
+
     const headers: Record<string, string> = {
         Accept: 'application/json',
-        'X-Client-Type': 'web-ssr',
+        'X-Client-Type': 'web',
     };
     if (token) headers.Authorization = `Bearer ${token}`;
     return headers;
@@ -52,7 +102,7 @@ async function fetchJson<T>(path: string, init: RequestInit = {}): Promise<T | n
         const res = await fetch(url, {
             cache: 'no-store',
             ...init,
-            headers: { ...(await authHeaders()), ...(init.headers || {}) },
+            headers: { ...(await authHeaders(path)), ...(init.headers || {}) },
         });
         if (!res.ok) return null;
         return (await res.json()) as T;
@@ -201,13 +251,18 @@ export async function getAdminPagesSSR(): Promise<any | null> {
 }
 
 /**
- * Fetch the admin lookups table. The response rarely changes so it ships at
- * the `LOOKUPS` cache tier (30 m stale / 1 h gc); prefetching on the admin
- * shell boot means inspector / form components get instant dropdown data
- * without a client round-trip.
+ * Fetch the system lookups table (timezones, type codes, weekdays, audit
+ * categories). The response rarely changes so it ships at the `LOOKUPS`
+ * cache tier (30 m stale / 1 h gc); prefetching on the admin shell boot
+ * means inspector / form components get instant dropdown data without a
+ * client round-trip.
+ *
+ * Authenticated-only — anonymous SSR requests get a `null` envelope.
+ * Was `getAdminLookupsSSR()` calling `/admin/lookups` until the route
+ * was demoted to `/lookups` in Symfony migration Version20260508160000.
  */
-export async function getAdminLookupsSSR(): Promise<any | null> {
-    return fetchJson(`/admin/lookups`);
+export async function getSystemLookupsSSR(): Promise<any | null> {
+    return fetchJson(`/lookups`);
 }
 
 /**

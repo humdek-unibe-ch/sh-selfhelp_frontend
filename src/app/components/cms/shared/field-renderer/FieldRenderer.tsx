@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -607,8 +611,8 @@ export function FieldRenderer(props: IFieldRendererProps & { dataVariables?: Rec
         );
     }
 
-    // Spacing field (margin + padding)
-    if (field.type === 'mantine_spacing_margin_padding') {
+    // Spacing field (margin-only or margin + padding)
+    if (field.type === 'mantine_spacing_margin' || field.type === 'mantine_spacing_margin_padding') {
         return renderFieldWithBadge(
             <SpacingField
                 fieldId={field.id}
@@ -723,7 +727,6 @@ export function GlobalFieldRenderer({
         );
     }
 
-    // Handle CSS fields - custom CSS field selector
     if (fieldType === 'css' || fieldType === 'css_mobile') {
         const config: IFieldConfig = {
             multiSelect: true,
@@ -732,10 +735,11 @@ export function GlobalFieldRenderer({
             options: []
         };
 
-        const title = fieldType === 'css' ? 'Custom CSS' : 'Mobile CSS';
-        const tooltip = fieldType === 'css'
-            ? 'Select CSS classes to apply to the section container.'
-            : 'Select CSS classes for mobile-specific styling.';
+        const isMobile = fieldType === 'css_mobile';
+        const title = isMobile ? 'Mobile CSS' : 'Custom CSS';
+        const tooltip = isMobile
+            ? 'CSS classes that only apply on mobile viewports (auto-prefixed with `max-md:` on web). The dropdown is filtered to the curated mobile-safe allow-list — picking a class here means the native mobile renderer will also understand it.'
+            : 'Select CSS classes to apply to the section container.';
 
         return (
             <Stack gap="xs" className={className}>
@@ -750,6 +754,7 @@ export function GlobalFieldRenderer({
                     onChange={onChange}
                     disabled={disabled}
                     dataVariables={dataVariables}
+                    target={isMobile ? 'mobile' : 'web'}
                 />
             </Stack>
         );

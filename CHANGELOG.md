@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 # Changelog
 
 All user-visible changes to the SelfHelp frontend are tracked here.
@@ -9,6 +13,153 @@ No engineering diary, no implementation detail — that belongs in
 `docs/architecture/ssr-bff-architecture.md`.
 
 ---
+
+## Unreleased
+
+### Added
+- Two new BFF routes for the user impersonation feature:
+  `POST /api/admin/users/[userId]/impersonate` (start) and
+  `POST /api/admin/users/stop-impersonate` (stop). Both routes match the
+  existing `sh_auth` / `sh_refresh` pattern: the impersonation JWT is
+  stripped from the upstream JSON envelope and stored in an **httpOnly**
+  cookie (`sh_impersonate`); the matching non-secret hint cookie
+  (`sh_impersonate_target_email`) is the only thing JavaScript can read
+  about the session. Stop blacklists the JWT upstream and clears both
+  cookies regardless of upstream outcome so the admin is never trapped.
+- Reactive impersonation store at `src/app/store/impersonation.store.ts`
+  (Zustand). Boots once via `bootImpersonationStore()` and reads from
+  three independent push channels — direct mutation calls
+  (`setActive`/`clear`), Mercure `impersonation-status` events on the
+  per-user topic, and a local `setTimeout(expires_in)` safety-net — so
+  the banner is always consistent without polling.
+- `useAclEventStream` now also handles `impersonation-status` events
+  pushed over the same Mercure SSE connection: clicking **Stop** in
+  one tab clears the banner in every other tab and on every other
+  device of the same user within milliseconds. Wire contract is
+  documented in `docs/architecture/ssr-bff-architecture.md` and at the
+  top of `useAclEventStream.ts`.
+- `useStopImpersonate` mutation hook (in `src/hooks/useUsers.ts`) that
+  the impersonation banner now uses for the **Stop** button. The hook
+  hits the new BFF route, refreshes the store, and reloads the page
+  so the React tree rebuilds against the original admin's session.
+
+### Changed
+- The impersonation banner is now mounted **once at the root client
+  boundary** (`ClientProviders`) instead of inside the admin shell or
+  the website footer. The banner self-hides outside an active session,
+  so the cost is one Zustand subscription per page; the upside is that
+  it renders on the public website too — exactly where impersonation
+  is most useful (debugging user-facing bugs without admin chrome
+  hiding the page). Previously it was either invisible on the public
+  pages (after the recent cleanup) or duplicated when both
+  `AdminShell` and `WebsiteFooter` mounted it.
+- `src/app/api/_lib/proxy.ts` impersonation handling rewritten:
+  - New helpers `setImpersonationCookies`, `clearImpersonationCookies`,
+    and `stripImpersonationFromBody` keep cookie/JSON handling in one
+    place.
+  - The catch-all proxy now picks the upstream `Authorization` header
+    via `pickUpstreamToken`, which **deliberately ignores the
+    impersonation cookie for `/auth/*` routes** so logout, refresh and
+    user-data always run as the original admin (regression fix: the
+    silent-refresh loop used to refresh the wrong user's session
+    while impersonating).
+- `useAuth` no longer mints its own non-reactive `useMemo` for
+  `isImpersonating` and no longer runs a 10-second per-component
+  interval. It subscribes to the new Zustand store, so every banner
+  in the UI updates instantly when the cookie is set or cleared.
+- The 5-second `setInterval` poll inside `impersonation.store.ts` is
+  gone. The store now relies on the Mercure SSE push for cross-tab
+  stop events, on the local `setTimeout(expires_in)` for TTL expiry,
+  and on `visibilitychange` only for the cookie re-hydration after
+  sleep — strictly event-driven and free of timer churn.
+- **SSR + BFF now follow a single effective-identity rule for
+  impersonation.** Both `src/app/_lib/server-fetch.ts::authHeaders` and
+  `src/app/api/_lib/proxy.ts::pickUpstreamToken` use the impersonation
+  cookie for every upstream call except a small admin-session-lifecycle
+  list (`/auth/login`, `/auth/logout`, `/auth/refresh-token`,
+  `/auth/two-factor-*`, `/auth/set-language`). `/auth/user-data` and
+  `/auth/events` now follow impersonation, so the impersonated session's
+  identity, ACL and Mercure topics all reflect the *target user* —
+  before this fix, SSR rendered as the admin and the client refetched
+  as the target, producing a Frankenstein UI on the first paint of
+  every public page during an impersonation session.
+- The lookups endpoint moved from `/admin/lookups` to `/lookups` and
+  the matching constant was renamed `ADMIN_LOOKUPS` →
+  `SYSTEM_LOOKUPS` in `src/config/api.config.ts`. The SSR helper
+  `getAdminLookupsSSR` was renamed `getSystemLookupsSSR` and its
+  single caller (`src/app/admin/layout.tsx`) updated. No
+  user-visible change — the data, response schema and React Query
+  key are unchanged — but the URL no longer claims to be admin-only,
+  which matches the actual access policy and unblocks impersonation
+  on any page that uses `ProfileStyle`.
+
+### Fixed
+- **Critical security regression.** The impersonation JWT used to be
+  written from the browser via `document.cookie`, which made it readable
+  by any JavaScript on the page (XSS-vulnerable). The JWT now lives in
+  an httpOnly cookie set by the new BFF route — JS cannot read or write
+  it. The non-secret hint cookie (just the target email) is the only
+  thing the React layer ever sees.
+- The dead `X-Impersonation-Token` header that the axios interceptor
+  attached to every request was removed — Symfony never read it and it
+  inflated network logs.
+- `console.warn(hasAdminAccess)` shipped in `AdminShellWrapper` was
+  removed (debug noise on every admin render).
+- "You don't have permission to view users" apostrophe restored in
+  `UsersPage.tsx`.
+- Removed leftover commented import in `AuthButton.tsx`.
+
+### Removed
+- `IMPERSONATE_COOKIE_MAX_AGE` constant (we now use the server-supplied
+  `expires_in` so cookie lifetime always matches the JWT lifetime).
+- `stopImpersonation` helper in `useAuth` — replaced by the
+  `useStopImpersonate` mutation, which actually invalidates the JWT
+  upstream instead of just deleting cookies client-side.
+
+---
+## Unreleased — 2026-05
+
+### Added
+- `simple-grid` and `grid-column` now accept their responsive Mantine v9
+  shapes natively — `mantine_cols` and `mantine_grid_span` parse a
+  stringified JSON object such as `{"base":1,"sm":2,"lg":3}` /
+  `{"base":12,"md":4}` and pass it straight to `<SimpleGrid cols={…} />`
+  / `<Grid.Col span={…} />`. The legacy CSV format
+  (`xs:1,sm:2,md:3,lg:4`) and the plain integer string still work; bad
+  input falls back to one column / `auto` so pages never crash.
+- `global_fields.css_mobile` is finally honoured by the web renderer.
+  `getCssClass` (`BasicStyle.tsx`) auto-prefixes every utility token in
+  `css_mobile` with `max-md:` and appends them after the regular `css`
+  classes, so the mobile values win below the `md` breakpoint while
+  remaining a portable, platform-agnostic field for the planned native
+  (react-expo) renderer.
+- `docs/AI Prompts/README.md` documents the prompt-flow, multi-target
+  rendering rules, mobile-first guardrails and how the responsive grid
+  parsers behave — the canonical onboarding doc for anyone editing the
+  generated examples or the backend prompt template.
+
+### Changed
+- All curated AI prompt example JSONs in
+  `docs/AI Prompts/generated examples/` were rewritten to the
+  mobile-first guardrails: responsive `mantine_cols` objects, `min-w-0`
+  / `overflow-hidden` / `break-words` on cards in grids, responsive
+  paddings (`p-4 sm:p-6 lg:p-8`) and display text (`text-3xl sm:text-4xl
+  lg:text-5xl`), removal of `hover:-translate-y-*` (workspace rule), and
+  `mantine_carousel_slide_size` switched from `100` (px, scroll trap) to
+  `100%` so carousels fit the viewport on phones.
+- The CMS editor's **Mobile CSS** picker (`css_mobile` field) is now
+  filtered through the curated `@selfhelp/shared/cms-classes` allow-list
+  so editors only see classes the planned native renderer can compile.
+  The **Custom CSS** picker (`css` field) keeps the full Tailwind set.
+
+### Fixed
+- Importing the showcase JSON failed with HTTP 422 because two field
+  names did not match the backend schema. `mantine_wrap` on `group` is
+  rewritten to `mantine_group_wrap` (`'wrap'` → `'1'`, `'nowrap'` →
+  `'0'`) and `mantine_spacing` on `simple-grid` is removed (only
+  `mantine_vertical_spacing` is registered). A new idempotent script,
+  `scripts/fix-ai-examples.mjs`, patches both patterns across every
+  curated example.
 
 ## v0.1.0 — 2026-04
 

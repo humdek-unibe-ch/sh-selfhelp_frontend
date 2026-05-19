@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import { IBaseApiResponse } from '../common/response-envelope.types';
 import { IPageField } from '../../common/pages.type';
 import { IFieldConfig } from '../../requests/admin/fields.types';
@@ -11,13 +15,13 @@ export interface IAdminPage {
     id_pages: number;
     keyword: string;
     url: string;
-    parent: number | null;
+    id_parent_page: number | null;
     nav_position: number | null;
     footer_position: number | null;
     is_headless: boolean;
     is_open_access: boolean;
-    id_pageAccessTypes: number;
-    id_type: number;
+    id_page_access_types: number;
+    id_page_types: number;
     is_system: boolean;
     crud: number;
 }

@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import { IPageField, IPageFieldTranslation } from '../types/common/pages.type';
 import { IUpdatePageField } from '../types/requests/admin/update-page.types';
 import { ILanguage } from '../types/responses/admin/languages.types';

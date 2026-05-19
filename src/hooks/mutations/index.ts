@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * Centralized exports for all React Query mutation hooks.
  * This file provides a single import point for all mutation hooks in the application.

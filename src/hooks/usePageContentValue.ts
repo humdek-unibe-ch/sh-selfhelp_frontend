@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * Thin selector hook that returns the current page's cached content from
  * React Query. Replaces direct consumption of PageContentContext.
@@ -24,7 +28,7 @@ import { useQuery } from '@tanstack/react-query';
 import { PageApi } from '../api/page.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
 import { usePageContext } from '../app/components/contexts/PageContext';
-import { IPageContent } from '../types/common/pages.type';
+import { IPageContent } from '../shared';
 
 interface IUsePageContentValueOptions {
     keyword?: string | null;

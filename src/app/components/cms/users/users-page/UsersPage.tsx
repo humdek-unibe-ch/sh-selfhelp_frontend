@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -87,7 +91,7 @@ export function UsersPage() {
           title="Access Denied"
           icon={<IconAlertCircle />}
         >
-          You dont have permission to view users.
+          You don&apos;t have permission to view users.
         </Alert>
       </Box>
     );

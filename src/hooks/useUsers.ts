@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AdminUserApi } from '../api/admin/user.api';
 import { REACT_QUERY_CONFIG } from '../config/react-query.config';
@@ -15,8 +19,7 @@ import { parseApiError } from '../utils/mutation-error-handler';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import React from 'react';
-import { readCookieValue, writeBrowserCookie } from '../utils/auth.utils';
-import { IMPERSONATE_COOKIE, IMPERSONATE_COOKIE_MAX_AGE, IMPERSONATE_TARGET_EMAIL_COOKIE } from '../config/cookie-names';
+import { useImpersonationStore } from '../app/store/impersonation.store';
 
 // Query Keys
 export const USER_QUERY_KEYS = {
@@ -349,30 +352,33 @@ export function useCleanUserData() {
 }
 
 /**
- * Hook to impersonate user
+ * Start impersonating a user.
+ *
+ * The BFF route `/api/admin/users/{id}/impersonate` writes the JWT to an
+ * httpOnly cookie before this mutation resolves. We never see, store, or
+ * forward the token from JS — that's the whole point.
+ *
+ * After success we:
+ *   1. Push the new state into the Zustand store with the response's
+ *      `expires_in`. The store schedules a local TTL `setTimeout` so the
+ *      banner disappears on its own when the JWT is no longer valid,
+ *      even if the Mercure event for stop is missed.
+ *   2. Hard-reload the page so React Query caches, hydration data, and
+ *      any user-scoped derived state are rebuilt as the *target* user.
+ *      This is the one reload we keep — switching effective identity
+ *      while keeping cached data of the previous one is a recipe for
+ *      bugs.
  */
 export function useImpersonateUser() {
+  const setActive = useImpersonationStore((s) => s.setActive);
 
   return useMutation({
     mutationFn: (userId: number) => AdminUserApi.impersonateUser(userId),
     onSuccess: (data) => {
-    const currentTarget = readCookieValue(IMPERSONATE_TARGET_EMAIL_COOKIE);
-    const isSameUser = currentTarget === data.target_email;
-
-      if (isSameUser) {
-        notifications.show({
-          title: 'Already Impersonating',
-          message: `You are already impersonating ${data.target_email}`,
-          color: 'yellow',
-          autoClose: 5000,
-          position: 'top-center',
-        });
-        return;
-      }
-
-      // Store impersonation context
-      writeBrowserCookie(IMPERSONATE_COOKIE, data.impersonation_token, IMPERSONATE_COOKIE_MAX_AGE);
-      writeBrowserCookie(IMPERSONATE_TARGET_EMAIL_COOKIE, data.target_email, IMPERSONATE_COOKIE_MAX_AGE);
+      setActive({
+        targetEmail: data.target_email,
+        expiresInSec: data.expires_in,
+      });
 
       notifications.show({
         title: 'Impersonation Started',
@@ -387,4 +393,41 @@ export function useImpersonateUser() {
     },
     onError: handleMutationError,
   });
-} 
+}
+
+/**
+ * Stop the active impersonation session.
+ *
+ * Calls `/api/admin/users/stop-impersonate`, which:
+ *   - tells Symfony to blacklist the impersonation JWT,
+ *   - clears `sh_impersonate` (httpOnly) and
+ *     `sh_impersonate_target_email` cookies on the response,
+ *   - publishes an `impersonation-status` Mercure event so other open
+ *     tabs / devices flip their banner without an extra round-trip.
+ *
+ * On success we clear the local store and reload — the next request
+ * will carry the original admin's `sh_auth` cookie, exactly as if the
+ * impersonation never happened.
+ */
+export function useStopImpersonate() {
+  const clearImpersonation = useImpersonationStore((s) => s.clear);
+
+  return useMutation({
+    mutationFn: () => AdminUserApi.stopImpersonate(),
+    onSuccess: () => {
+      clearImpersonation();
+
+      notifications.show({
+        title: 'Impersonation Ended',
+        message: 'You are back to your own session.',
+        icon: React.createElement(IconCheck, { size: '1rem' }),
+        color: 'green',
+        autoClose: 4000,
+        position: 'top-center',
+      });
+
+      globalThis.location.reload();
+    },
+    onError: handleMutationError,
+  });
+}

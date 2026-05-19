@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 'use client';
 
 import React, { useState } from 'react';
@@ -135,8 +139,10 @@ const RegisterStyle: React.FC<IRegisterStyleProps> = ({ style, styleProps, cssCl
                     
                     {openRegistration && (
                         <Text size="sm" c="dimmed">
-                            {style.fields?.anonymous_users_registration?.content || 
-                             'Open registration is enabled. You will receive an activation email after registration.'}
+                            {String(
+                                style.fields?.anonymous_users_registration?.content ||
+                                'Open registration is enabled. You will receive an activation email after registration.'
+                            )}
                         </Text>
                     )}
                     

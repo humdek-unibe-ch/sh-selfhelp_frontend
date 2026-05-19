@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * Admin Page Keywords API client for handling page keywords-related admin operations.
  * Provides methods for managing page keywords in the admin interface.

@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 import React from 'react';
 import {
     AlertStyle, ButtonStyle, CarouselStyle, CardStyle, CardSegmentStyle, ContainerStyle,
@@ -57,10 +61,50 @@ const convertSpacingValue = (value: string | undefined): string | undefined => {
 };
 
 /**
- * Extract CSS class from a style object
+ * Tokens that already encode a viewport gate, dark mode, or pseudo-state.
+ * If a `css_mobile` token starts with one of these, we leave it alone instead
+ * of prepending `max-md:` (which would create unreachable selectors like
+ * `max-md:md:hidden`).
+ */
+const RESPONSIVE_PREFIX_RE = /^(max-(?:sm|md|lg|xl|2xl):|sm:|md:|lg:|xl:|2xl:)/;
+
+/**
+ * Auto-prefix every Tailwind utility in `cssMobile` with `max-md:` so the
+ * tokens only apply below the `md` breakpoint (typically <768px = mobile).
+ *
+ * - Empty / whitespace-only input returns `''`.
+ * - Tokens that already carry a viewport prefix (`md:`, `max-md:`, `lg:`, …)
+ *   are kept verbatim — the editor opted out of auto-mobile-scoping.
+ * - Other Tailwind variants on the token (`dark:`, `hover:`, …) are preserved
+ *   because Tailwind allows stacking variants
+ *   (`max-md:dark:bg-gray-900` is valid).
+ *
+ * This keeps `css_mobile` portable: a future React Native / react-expo
+ * renderer can read the raw field directly and do its own mapping; the web
+ * renderer is the only place this transformation runs.
+ */
+const transformMobileCss = (cssMobile: string | null | undefined): string => {
+    if (!cssMobile) return '';
+    const tokens = cssMobile.trim().split(/\s+/).filter(Boolean);
+    if (tokens.length === 0) return '';
+    return tokens
+        .map(token => (RESPONSIVE_PREFIX_RE.test(token) ? token : `max-md:${token}`))
+        .join(' ');
+};
+
+/**
+ * Extract CSS class from a style object.
+ *
+ * Composition order:
+ *   `section-{id}` → `style.css` → mobile-prefixed `style.css_mobile`
+ *
+ * The mobile classes win on viewports below the `md` breakpoint thanks to
+ * Tailwind's `max-md:` modifier.
  */
 export const getCssClass = (style: TStyle): string => {
-    return "section-" + style.id + " " + (style.css ?? '');
+    const base = `section-${style.id} ${style.css ?? ''}`;
+    const mobile = transformMobileCss((style as TStyle & { css_mobile?: string | null }).css_mobile);
+    return mobile ? `${base} ${mobile}`.replace(/\s+/g, ' ').trim() : base.replace(/\s+/g, ' ').trim();
 };
 
 /**
@@ -85,11 +129,13 @@ export const getSpacingProps = (style: IStyleWithSpacing) => {
         }
     };
 
-    if (!style.mantine_spacing_margin_padding) {
+    const spacingField = style.mantine_spacing_margin_padding ?? style.mantine_spacing_margin;
+
+    if (!spacingField) {
         return spacingProps;
     }
 
-    const spacingJson = style.mantine_spacing_margin_padding.content;
+    const spacingJson = spacingField.content;
     if (typeof spacingJson !== 'string' || spacingJson.trim() === '') {
         return spacingProps;
     }

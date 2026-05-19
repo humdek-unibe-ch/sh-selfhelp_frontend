@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 /**
  * Custom hook for managing admin pages data.
  * Provides functionality to fetch and transform admin pages data from the API
@@ -29,8 +33,8 @@ export interface IPageHierarchy {
     label: string;
     link: string;
     url: string; // For compatibility with IAdminPage
-    parent: number | null; // For compatibility with IAdminPage
-    id_type: number; // For compatibility with IAdminPage
+    id_parent_page: number | null; // For compatibility with IAdminPage
+    id_page_types: number; // For compatibility with IAdminPage
     hasChildren: boolean;
     children: IPageHierarchy[];
     level: number;
@@ -39,7 +43,7 @@ export interface IPageHierarchy {
     is_system: boolean;
     is_headless: boolean;
     is_open_access: boolean;
-    id_pageAccessTypes: number;
+    id_page_access_types: number;
     crud: number;
     permissions: ICrudPermissions;
 }
@@ -116,11 +120,11 @@ export function useAdminPages() {
                 };
             }
 
-            // Separate configuration pages (id_type > 3) and regular pages
-            const configurationPages = data.filter(page => page.id_type && page.id_type > 3);
-            const regularPages = data.filter(page => !page.id_type || page.id_type <= 3);
+            // Separate configuration pages (id_page_types > 3) and regular pages
+            const configurationPages = data.filter(page => page.id_page_types && page.id_page_types > 3);
+            const regularPages = data.filter(page => !page.id_page_types || page.id_page_types <= 3);
 
-            const systemPages = data.filter(page => page.is_system && (!page.id_type || page.id_type <= 3));
+            const systemPages = data.filter(page => page.is_system && (!page.id_page_types || page.id_page_types <= 3));
 
             // Helper function to get page label for admin interface (always use keyword)
             const getAdminLabel = (page: IAdminPage): string => {
@@ -193,7 +197,7 @@ export function useAdminPages() {
 
             // Build hierarchical structure from flat array using parent relationships
             const buildHierarchy = (pages: IAdminPage[], parentId: number | null = null, level: number = 0): IPageHierarchy[] => {
-                const children = pages.filter(page => page.parent === parentId);
+                const children = pages.filter(page => page.id_parent_page === parentId);
 
 
                 return children.map(page => {
@@ -223,8 +227,8 @@ export function useAdminPages() {
                         label: getAdminLabel(page),
                         link: `/admin/pages/${page.keyword}`,
                         url: page.url, // For compatibility with IAdminPage
-                        parent: page.parent, // For compatibility with IAdminPage
-                        id_type: page.id_type, // For compatibility with IAdminPage
+                        id_parent_page: page.id_parent_page, // For compatibility with IAdminPage
+                        id_page_types: page.id_page_types, // For compatibility with IAdminPage
                         hasChildren: sortedChildren.length > 0,
                         children: sortedChildren,
                         level,
@@ -233,7 +237,7 @@ export function useAdminPages() {
                         is_system: page.is_system,
                         is_headless: page.is_headless,
                         is_open_access: page.is_open_access,
-                        id_pageAccessTypes: page.id_pageAccessTypes,
+                        id_page_access_types: page.id_page_access_types,
                         crud: page.crud,
                         permissions
                     };

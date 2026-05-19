@@ -1,3 +1,7 @@
+/*
+SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+SPDX-License-Identifier: MPL-2.0
+*/
 // Group Management Components
 export { GroupsList } from './groups-list/GroupsList';
 export { GroupsPage } from './groups-page/GroupsPage';
