@@ -80,7 +80,7 @@ export const PageInfoPanel = React.memo(function PageInfoPanel({
                                 Menu Position: {page.nav_position}
                             </Badge>
                         )}
-                        {page.parent !== null && (
+                        {page.id_parent_page !== null && (
                             <Badge color="green" variant="light" size="sm">
                                 Child Page
                             </Badge>

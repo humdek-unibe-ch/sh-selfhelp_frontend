@@ -87,12 +87,12 @@ export function AdminPagesList({ onPageSelect }: AdminPagesListProps) {
         pages.forEach(page => {
             const pageItem = pageMap.get(page.id_pages)!;
             
-            if (page.parent === null) {
+            if (page.id_parent_page === null) {
                 // Root level page
                 rootPages.push(pageItem);
             } else {
                 // Child page
-                const parentPage = pageMap.get(page.parent);
+                const parentPage = pageMap.get(page.id_parent_page);
                 if (parentPage) {
                     pageItem.level = parentPage.level + 1;
                     parentPage.children.push(pageItem);

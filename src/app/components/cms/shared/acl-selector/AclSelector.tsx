@@ -86,11 +86,11 @@ export function AclSelector({
     switch (pageFilter) {
       case 'experiment-only':
         // Only show experiment pages (type 3)
-        pagesToShow = pages.filter(page => page.id_type === 3);
+        pagesToShow = pages.filter(page => page.id_page_types === 3);
         break;
       case 'menu-footer':
         // Show experiment pages but exclude system and configuration pages
-        pagesToShow = regularPages.filter(page => page.id_type === 3);
+        pagesToShow = regularPages.filter(page => page.id_page_types === 3);
         break;
       case 'all':
       default:
@@ -103,9 +103,9 @@ export function AclSelector({
       id: page.id_pages,
       keyword: page.keyword,
       title: page.keyword,
-      type: page.id_type || 3,
+      type: page.id_page_types || 3,
       isSystem: Boolean(page.is_system),
-      isConfiguration: (page.id_type || 0) > 3,
+      isConfiguration: (page.id_page_types || 0) > 3,
       permissions: {
         select: selectedPages.some(p => p.id === page.id_pages && p.permissions.select),
         insert: selectedPages.some(p => p.id === page.id_pages && p.permissions.insert),

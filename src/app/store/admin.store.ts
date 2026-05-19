@@ -57,8 +57,8 @@ export const useAdminStore = create<AdminState>()(
                 const pathToExpand: number[] = [];
                 let currentPage = page;
 
-                while (currentPage.parent !== null) {
-                    const parentPage = allPages.find((p) => p.id_pages === currentPage.parent);
+                while (currentPage.id_parent_page !== null) {
+                    const parentPage = allPages.find((p) => p.id_pages === currentPage.id_parent_page);
                     if (parentPage) {
                         pathToExpand.push(parentPage.id_pages);
                         currentPage = parentPage;

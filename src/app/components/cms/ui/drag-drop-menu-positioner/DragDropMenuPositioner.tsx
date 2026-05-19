@@ -330,10 +330,10 @@ export function DragDropMenuPositioner({
 
         if (parentPageId) {
             // Creating a child page - show only children of the parent
-            pagesToProcess = pages.filter(page => page.parent === parentPageId);
+            pagesToProcess = pages.filter(page => page.id_parent_page === parentPageId);
         } else {
-            // Show root pages (pages with parent: null)
-            pagesToProcess = pages.filter(page => page.parent === null);
+            // Show root pages (pages with id_parent_page: null)
+            pagesToProcess = pages.filter(page => page.id_parent_page === null);
         }
 
         const processPage = (page: IAdminPage) => {
