@@ -137,6 +137,29 @@ If docs conflict with implementation, flag the conflict instead of assuming the 
 - Be careful with dynamic Tailwind class generation, mobile class prefixing, and HTML sanitization.
 - Unknown or unsupported CMS styles should continue to render through the existing `UnknownStyle` path.
 
+## Accessibility Rules
+- Treat accessibility as a default requirement for all public and admin UI work, not as an optional follow-up.
+- Prefer semantic HTML first; use the correct native element before adding ARIA roles or custom keyboard behavior.
+- Every interactive control must have an accessible name through visible text, `aria-label`, `aria-labelledby`, or an equivalent native label.
+- Inputs, selects, textareas, switches, radios, checkboxes, and comboboxes must have programmatic labels and associate validation/help text with `aria-describedby` when needed.
+- Icon-only buttons and action-only controls must include explicit accessible labels.
+- Preserve full keyboard support: logical tab order, visible focus states, no keyboard traps, and Enter/Space behavior that matches the control type.
+- Do not use clickable `div` or `span` elements when a `button`, `a`, `input`, or other semantic element is appropriate.
+- Use `a`/`Link` for navigation and `button` for in-place actions; do not mix their behavior.
+- Keep headings hierarchical and meaningful so screen-reader navigation reflects the page structure.
+- Images must use meaningful `alt` text when informative and empty `alt=""` when purely decorative.
+- Audio, video, and animation features must avoid inaccessible autoplay behavior and must not hide essential content behind motion alone.
+- Respect reduced-motion preferences for non-essential animation and avoid interactions that depend on drag-only, hover-only, color-only, or pointer-only input.
+- Ensure status, loading, validation, and error messages are announced appropriately with semantic markup or ARIA live regions when the change is not otherwise obvious.
+- Modals, drawers, menus, popovers, and drag/drop tooling must manage focus correctly when opened, used, and closed.
+- Do not hide critical text in placeholders alone; placeholders are supplementary, not labels.
+- Maintain sufficient color contrast and do not rely on color alone to communicate state, meaning, or validation.
+- Keep touch targets reasonably large and spaced for users with limited precision.
+- Sanitize and render CMS HTML in ways that preserve accessibility semantics instead of stripping necessary structure without a reason.
+- When using Mantine, prefer its accessible primitives and preserve their labeling, focus, and keyboard patterns when customizing.
+- For custom composite widgets, follow established WAI-ARIA authoring patterns only when native elements cannot satisfy the requirement.
+- Verify accessibility on both SSR first paint and hydrated client behavior so labels, focus management, and announcements remain correct after hydration.
+
 ## Coding Style
 - Add the two-line MPL-2.0 SPDX header to TS/TSX/JS files.
 - Use TypeScript. Prefer precise types and interfaces; avoid adding new `any`.
@@ -179,6 +202,7 @@ Before creating new hooks, API clients, providers, Zustand stores, utilities, qu
 ## AI Change Response Expectations
 When making changes, mention the relevant impact on:
 - Release compatibility, especially whether a change is pre-1.0.0 cleanup or post-1.0.0 breaking behavior.
+- Accessibility, including semantic structure, keyboard support, focus management, labels, and screen-reader behavior for affected UI.
 - SSR/client boundaries.
 - Server-rendered first paint and hydrated client responsiveness.
 - React Query keys, cache tiers, invalidation, or hydration.
