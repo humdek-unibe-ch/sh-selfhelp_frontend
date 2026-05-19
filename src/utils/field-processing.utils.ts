@@ -1,4 +1,3 @@
-import { deprecate } from 'util';
 import { IPageField, IPageFieldTranslation } from '../types/common/pages.type';
 import { IUpdatePageField } from '../types/requests/admin/update-page.types';
 import { ILanguage } from '../types/responses/admin/languages.types';
@@ -92,7 +91,7 @@ export function processField(
         
         // Check all languages to find where the content is stored
         for (const lang of languages) {
-            const langContent = formValues[field.name]?.[lang.id] || '';
+            const langContent = formValues[field.name]?.[lang.id] ?? '';
             if (langContent.trim()) {
                 content = langContent;
                 break; // Use the first non-empty content found
@@ -101,7 +100,7 @@ export function processField(
         
         // If no content found in any language, check language ID 1 specifically
         if (!content.trim()) {
-            content = formValues[field.name]?.[1] || '';
+            content = formValues[field.name]?.[1] ?? '';
         }
         
         // Property fields: always save with language ID 1
