@@ -5,11 +5,11 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import { useState } from 'react';
-import { Button, Menu } from '@mantine/core';
-import { IconLogin, IconLogout, IconUser, IconSettings } from '@tabler/icons-react';
+import { Button, Menu, Avatar, Group, Text, Box, UnstyledButton } from '@mantine/core';
+import { IconLogin, IconLogout, IconUser, IconSettings, IconChevronDown } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useLogout } from '@refinedev/core';
-import { useAuthStatus } from '../../../../hooks/useUserData';
+import { useAuthStatus, useAuthUser } from '../../../../hooks/useUserData';
 import { ROUTES } from '../../../../config/routes.config';
 import { useAppNavigation } from '../../../../hooks/useAppNavigation';
 import { IPageItem } from '../../../../shared';
@@ -40,6 +40,7 @@ export function AuthButton({ initialProfilePages = [] }: IAuthButtonProps = {}) 
     // on every hard reload. Our own cache is seeded by `ServerProviders`
     // before hydration, so first-paint already knows the real state.
     const { isAuthenticated, isLoading: isAuthLoading } = useAuthStatus();
+    const { user } = useAuthUser();
     const { mutate: logout } = useLogout();
     const { profilePages: liveProfilePages } = useAppNavigation();
     // Prefer live React Query data once it arrives; fall back to the
@@ -101,12 +102,24 @@ export function AuthButton({ initialProfilePages = [] }: IAuthButtonProps = {}) 
     return (
         <Menu position="bottom-end" withArrow>
             <Menu.Target>
-                <Button
-                    variant="subtle"
-                    leftSection={<IconUser size={14} />}
-                >
-                    {profileTitle}
-                </Button>
+                <UnstyledButton>
+                    <Group gap="xs" wrap="nowrap">
+                        <Avatar radius="xl" size="sm" color="blue">
+                            {user?.name?.charAt(0)?.toUpperCase() || <IconUser size={14} />}
+                        </Avatar>
+                        <Box visibleFrom="sm">
+                            <Text size="sm" fw={500} lh={1.2}>
+                                {user?.name || profileTitle}
+                            </Text>
+                            {user?.email && (
+                                <Text size="xs" c="dimmed" lh={1.2}>
+                                    {user.email}
+                                </Text>
+                            )}
+                        </Box>
+                        <IconChevronDown size={14} />
+                    </Group>
+                </UnstyledButton>
             </Menu.Target>
 
             <Menu.Dropdown>
