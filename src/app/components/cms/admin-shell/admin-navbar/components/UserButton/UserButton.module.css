@@ -11,7 +11,7 @@ SPDX-License-Identifier: MPL-2.0
 }
 
 .userButton:hover {
-  background-color: var(--mantine-color-gray-0);
+    background-color: var(--mantine-color-default-hover);
 }
 
 .userInfo {
