@@ -269,17 +269,13 @@ export function ConfigurationPageEditor({ page }: ConfigurationPageEditorProps) 
         };
         
         return (
-            <FieldRenderer
-                field={fieldData}
-                value={fieldValue}
-                onChange={(value) => {
-                    // Update the value for all languages since property fields are not translatable
-                    languagesData.forEach(language => {
-                        const fieldKey = `fields.${field.name}.${language.id}`;
-                        form.setFieldValue(fieldKey, value);
-                    });
-                }}
-            />
+          <FieldRenderer
+            field={fieldData}
+            value={fieldValue}
+            onChange={(value) => {
+              form.setFieldValue(`fields.${field.name}.1`, String(value));
+            }}
+          />
         );
     };
 

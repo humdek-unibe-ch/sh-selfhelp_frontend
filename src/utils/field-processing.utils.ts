@@ -83,53 +83,39 @@ export function getFieldLanguageIds(field: IPageField, languages: ILanguage[]): 
  * @returns Array of field entries for the API
  */
 export function processField(
-    field: IPageField,
-    formValues: Record<string, Record<number, string>>,
-    languages: ILanguage[]
+  field: IPageField,
+  formValues: Record<string, Record<number, string>>,
+  languages: ILanguage[],
 ): IUpdatePageField[] {
-    const fieldEntries: IUpdatePageField[] = [];
-    
-    if (!field.display) {
-        // Property fields: Find content in any language but save with language ID 1
-        let content = '';
-        
-        // Check all languages to find where the content is stored
-        for (const lang of languages) {
-            const langContent = formValues[field.name]?.[lang.id] ?? '';
-            if (langContent.trim()) {
-                content = langContent;
-                break; // Use the first non-empty content found
-            }
-        }
-        
-        // If no content found in any language, check language ID 1 specifically
-        if (!content.trim()) {
-            content = formValues[field.name]?.[1] ?? '';
-        }
-        
-        // Property fields: always save with language ID 1
-        fieldEntries.push({
-            fieldId: field.id,
-            languageId: 1,
-            content: content,
-        });
-    } else {
-        // Content fields: process for all languages
-        const languageIds = getFieldLanguageIds(field, languages);
-        
-        languageIds.forEach(languageId => {
-            const content = formValues[field.name]?.[languageId] || '';
-            
-            // Content fields: always add for all languages
-            fieldEntries.push({
-                fieldId: field.id,
-                languageId: languageId,
-                content: content,
-            });
-        });
-    }
-    
-    return fieldEntries;
+  const fieldEntries: IUpdatePageField[] = [];
+
+  if (!field.display) {
+    // Property fields always stored at language ID 1
+    const content =
+      formValues[field.name]?.["1"] ?? formValues[field.name]?.[1] ?? "";
+
+    fieldEntries.push({
+      fieldId: field.id,
+      languageId: 1,
+      content: content,
+    });
+  } else {
+    // Content fields: process for all languages
+    const languageIds = getFieldLanguageIds(field, languages);
+
+    languageIds.forEach((languageId) => {
+      const content = formValues[field.name]?.[languageId] || "";
+
+      // Content fields: always add for all languages
+      fieldEntries.push({
+        fieldId: field.id,
+        languageId: languageId,
+        content: content,
+      });
+    });
+  }
+
+  return fieldEntries;
 }
 
 /**
