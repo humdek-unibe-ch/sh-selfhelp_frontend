@@ -2,11 +2,13 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
+'use client';
+
 import React from 'react';
 import { Box, Card, Title, Button, Alert, Group } from '@mantine/core';
 import { IconX } from '@tabler/icons-react';
 import { ITwoFactorAuthStyle } from '../../../../types/common/styles.types';
-import { useTwoFactorAuth } from '../../../../hooks/mutations/useTwoFactorAuth';
+import { useTwoFactorAuth } from '../../../../hooks/useTwoFactorAuth';
 import { TwoFactorCodeInputs } from '../../shared/common/TwoFactorCodeInputs';
 
 interface ITwoFactorAuthStyleProps {
