@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import { useState } from 'react';
-import { Button, Menu, Avatar, Group, Text, Box, UnstyledButton } from '@mantine/core';
+import { Button, Menu, Avatar, Group, Text, Box, UnstyledButton, Skeleton } from '@mantine/core';
 import { IconLogin, IconLogout, IconUser, IconSettings, IconChevronDown } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useLogout } from '@refinedev/core';
@@ -80,7 +80,7 @@ export function AuthButton({ initialProfilePages = [] }: IAuthButtonProps = {}) 
     };
 
     if (isAuthLoading || isLoggingOut) {
-        return null;
+        return <Skeleton height={32} width={90} radius="sm" />;
     }
 
     if (!isAuthenticated) {

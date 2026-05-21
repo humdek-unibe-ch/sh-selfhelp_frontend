@@ -64,20 +64,20 @@ export async function ServerProviders({ children }: { children: React.ReactNode 
             .catch(() => undefined);
     }
 
-    // Seed `['user-data']` for both authenticated AND anonymous visitors so
-    // `useAuthStatus` resolves on first paint with no XHR. We deliberately
+    // Seed `['user-data']` only when the server can confirm the auth state.
+    // When `hasAuthCookie` is true and the backend returned a user envelope,
+    // seed it so `useAuthStatus` resolves on first paint. We deliberately
     // skip the negative seed when the upstream call FAILED for an
     // authenticated visitor (`userData === null && hasAuthCookie`) so a
     // transient backend outage doesn't render as a logout.
+    //
+    // We do NOT seed an anonymous sentinel when there is no auth cookie.
+    // Seeding `{ data: null }` would have `HydrationBoundary` overwrite the
+    // post-login user-data cache entry on client-side navigations to the home
+    // page (the SSR sentinel is timestamped after the login fetch, so React
+    // Query's "newer wins" logic picks the server copy and flashes Login).
     if (userData) {
         queryClient.setQueryData(REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA, userData);
-    } else if (!hasAuthCookie) {
-        queryClient.setQueryData(REACT_QUERY_CONFIG.QUERY_KEYS.USER_DATA, {
-            status: 200,
-            message: null,
-            error: null,
-            data: null,
-        });
     }
 
     return (
