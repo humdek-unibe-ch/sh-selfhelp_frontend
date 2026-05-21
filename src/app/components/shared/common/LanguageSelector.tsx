@@ -58,32 +58,41 @@ export function LanguageSelector() {
     const isUpdating = updateLanguageMutation.isPending;
     const currentLanguage = languages.find(l => l.id === currentLanguageId) ?? languages[0];
 
+    const currentShort = currentLanguage.locale.split('-')[0].toUpperCase();
+
     return (
         <Menu position="bottom-end" withArrow>
             <Menu.Target>
-                <UnstyledButton disabled={isUpdating}>
+                <UnstyledButton
+                    disabled={isUpdating}
+                    aria-label={`Select language (current: ${currentLanguage.language})`}
+                >
                     <Group gap={6} wrap="nowrap">
-                        <Text size="sm" fw={500}>{currentLanguage.locale.split('-')[0].toUpperCase()}</Text>
+                        <Text size="sm" fw={500}>{currentShort}</Text>
                         {isUpdating
                             ? <Loader size="xs" />
-                            : <IconChevronDown size={14} />
+                            : <IconChevronDown size={14} aria-hidden="true" />
                         }
                     </Group>
                 </UnstyledButton>
             </Menu.Target>
 
             <Menu.Dropdown>
-                {languages.map(lang => (
-                    <Menu.Item
-                        key={lang.id}
-                        leftSection={<Text size="sm" fw={600}>{lang.locale.split('-')[0].toUpperCase()}</Text>}
-                        rightSection={lang.id === currentLanguageId ? <IconCheck size={14} /> : null}
-                        fw={lang.id === currentLanguageId ? 600 : undefined}
-                        onClick={() => handleLanguageChange(lang.id)}
-                    >
-                        {lang.language}
-                    </Menu.Item>
-                ))}
+                {languages.map(lang => {
+                    const isActive = lang.id === currentLanguageId;
+                    return (
+                        <Menu.Item
+                            key={lang.id}
+                            leftSection={<Text size="sm" fw={600}>{lang.locale.split('-')[0].toUpperCase()}</Text>}
+                            rightSection={isActive ? <IconCheck size={14} aria-hidden="true" /> : null}
+                            fw={isActive ? 600 : undefined}
+                            aria-current={isActive ? 'true' : undefined}
+                            onClick={() => handleLanguageChange(lang.id)}
+                        >
+                            {lang.language}
+                        </Menu.Item>
+                    );
+                })}
             </Menu.Dropdown>
         </Menu>
     );
