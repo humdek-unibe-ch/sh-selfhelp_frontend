@@ -22,7 +22,7 @@ export function UserButton() {
     const router = useRouter();
 
     const handleProfileClick = () => {
-        router.push('/admin/profile');
+        router.push('/profile');
     };
 
     return (

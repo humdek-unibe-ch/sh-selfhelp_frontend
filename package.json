@@ -76,7 +76,7 @@
         "react-dom": "^19.2.5",
         "react-dropzone": "^15.0.0",
         "react-querybuilder": "^8.15.0",
-        "tailwind-preset-mantine": "^4.0.2",
+        "tailwind-preset-mantine": "^4.0.3",
         "tippy.js": "^6.3.7",
         "zustand": "^5.0.12"
     },

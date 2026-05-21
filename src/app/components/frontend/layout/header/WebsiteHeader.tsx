@@ -58,9 +58,9 @@ export async function WebsiteHeader() {
                 <WebsiteHeaderMenu initialMenuPages={initialMenuPages} />
 
                 <Group gap="sm">
-                    <LanguageSelector />
-                    <ThemeToggle />
                     <AuthButton initialProfilePages={initialProfilePages} />
+                    <ThemeToggle />
+                    <LanguageSelector />
                     <BurgerMenuClient />
                 </Group>
             </Flex>

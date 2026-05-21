@@ -16,10 +16,14 @@ import { permissionManager } from '../api/permission-wrapper.api';
  * Fetch + cache the current user envelope from `/auth/user-data` and keep
  * the global `permissionManager` in sync.
  *
- * `refetchOnMount: false` is intentional: `ServerProviders` SSR-seeds the
- * cache with either the real envelope or an anonymous sentinel, so the
- * first client paint already knows the auth state. Stale-window + focus
- * refetches still keep the cache honest after that.
+ * `refetchOnMount: false` is intentional: when an auth cookie is present,
+ * `ServerProviders` SSR-seeds the cache with the real envelope so the
+ * first client paint already knows the auth state. For anonymous visitors
+ * we no longer seed a negative sentinel (it caused `HydrationBoundary` to
+ * overwrite the post-login cache entry on client navigations and flash
+ * "Login"), so this hook will perform one client fetch on first mount to
+ * confirm the anonymous state. Stale-window + focus refetches keep the
+ * cache honest after that.
  */
 export function useUserData() {
     const query = useQuery({

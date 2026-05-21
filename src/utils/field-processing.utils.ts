@@ -2,7 +2,6 @@
 SPDX-FileCopyrightText: 2026 Humdek, University of Bern
 SPDX-License-Identifier: MPL-2.0
 */
-import { deprecate } from 'util';
 import { IPageField, IPageFieldTranslation } from '../types/common/pages.type';
 import { IUpdatePageField } from '../types/requests/admin/update-page.types';
 import { ILanguage } from '../types/responses/admin/languages.types';
@@ -17,42 +16,6 @@ export interface IProcessedFieldResult {
     fieldEntries: IUpdatePageField[];
     contentFields: IPageField[];
     propertyFields: IPageField[];
-}
-
-/**
- * Determines if a field is a content field (translatable) or property field (system)
- * Content fields have translations for specific languages, property fields have translations with language_code "all"
- *
- * @param field - The field to check
- * @returns true if field is content (has language-specific translations), false if property
- * @deprecated  We should use the field.display to check if is content
- */
-export function isContentField(field: IPageField): boolean {
-    // Check if field has translations for specific languages (not "all")
-    const hasSpecificLanguageTranslations = field.translations?.some(t =>
-        t.language_code && t.language_code !== 'all'
-    ) ?? false;
-
-    return hasSpecificLanguageTranslations;
-}
-
-/**
- * Determines if a field is a property field (system, non-translatable)
- * Property fields have translations with language_code "all" or no translations
- *
- * @param field - The field to check
- * @returns true if field is property (has "all" language translations or no translations), false if content
- * @deprecated  We should use the !field.display to check if is property
- */
-export function isPropertyField(field: IPageField): boolean {
-    // Check if field has translations with language_code "all" or no translations at all
-    const hasAllLanguageTranslation = field.translations?.some(t =>
-        t.language_code === 'all'
-    ) ?? false;
-
-    const hasNoTranslations = !field.translations || field.translations.length === 0;
-
-    return hasAllLanguageTranslation || hasNoTranslations;
 }
 
 /**
@@ -84,53 +47,39 @@ export function getFieldLanguageIds(field: IPageField, languages: ILanguage[]): 
  * @returns Array of field entries for the API
  */
 export function processField(
-    field: IPageField,
-    formValues: Record<string, Record<number, string>>,
-    languages: ILanguage[]
+  field: IPageField,
+  formValues: Record<string, Record<number, string>>,
+  languages: ILanguage[],
 ): IUpdatePageField[] {
-    const fieldEntries: IUpdatePageField[] = [];
-    
-    if (!field.display) {
-        // Property fields: Find content in any language but save with language ID 1
-        let content = '';
-        
-        // Check all languages to find where the content is stored
-        for (const lang of languages) {
-            const langContent = formValues[field.name]?.[lang.id] || '';
-            if (langContent.trim()) {
-                content = langContent;
-                break; // Use the first non-empty content found
-            }
-        }
-        
-        // If no content found in any language, check language ID 1 specifically
-        if (!content.trim()) {
-            content = formValues[field.name]?.[1] || '';
-        }
-        
-        // Property fields: always save with language ID 1
-        fieldEntries.push({
-            fieldId: field.id,
-            languageId: 1,
-            content: content,
-        });
-    } else {
-        // Content fields: process for all languages
-        const languageIds = getFieldLanguageIds(field, languages);
-        
-        languageIds.forEach(languageId => {
-            const content = formValues[field.name]?.[languageId] || '';
-            
-            // Content fields: always add for all languages
-            fieldEntries.push({
-                fieldId: field.id,
-                languageId: languageId,
-                content: content,
-            });
-        });
-    }
-    
-    return fieldEntries;
+  const fieldEntries: IUpdatePageField[] = [];
+
+  if (!field.display) {
+    // Property fields always stored at language ID 1
+    const content =
+      formValues[field.name]?.["1"] ?? formValues[field.name]?.[1] ?? "";
+
+    fieldEntries.push({
+      fieldId: field.id,
+      languageId: 1,
+      content: content,
+    });
+  } else {
+    // Content fields: process for all languages
+    const languageIds = getFieldLanguageIds(field, languages);
+
+    languageIds.forEach((languageId) => {
+      const content = formValues[field.name]?.[languageId] || "";
+
+      // Content fields: always add for all languages
+      fieldEntries.push({
+        fieldId: field.id,
+        languageId: languageId,
+        content: content,
+      });
+    });
+  }
+
+  return fieldEntries;
 }
 
 /**

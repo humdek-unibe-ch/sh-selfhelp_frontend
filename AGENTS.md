@@ -26,6 +26,37 @@ When sources conflict, use this priority order:
 
 If docs conflict with implementation, flag the conflict instead of assuming the docs are correct.
 
+## Engineering Principles
+### Think Before Coding
+- State assumptions explicitly.
+- If multiple interpretations exist, present them briefly.
+- Ask questions only when ambiguity materially affects implementation.
+- Prefer the simplest explanation and simplest solution.
+- Push back on unnecessary complexity.
+
+### Simplicity First
+- Implement only what was requested.
+- Avoid premature abstractions.
+- Prefer inline code over single-use helpers.
+- Add configurability only when required.
+- Add defensive handling only for realistic failure modes.
+- Minimize moving parts.
+- Ask: "Can this be simpler without losing correctness?"
+
+### Surgical Changes
+- Change only what is necessary.
+- Match the surrounding style.
+- Do not refactor unrelated code.
+- Remove only code made unused by your changes.
+- Mention unrelated issues separately instead of fixing them opportunistically.
+- Every modified line should directly support the task.
+
+### Goal-Driven Execution
+- Establish clear verification criteria before changing code.
+- For bug fixes: reproduce the issue, identify the minimal cause, implement the smallest reasonable fix, verify the fix, and stop.
+- For features: define success criteria, implement minimally, verify behavior, and stop.
+- Prefer concrete verification over assumptions.
+
 ## Release and Compatibility Rules
 - Current package version is pre-1.0.0. Until version 1.0.0 is released, backward compatibility is not required by default.
 - Pre-1.0.0 breaking changes are allowed when they simplify the architecture, remove stale contracts, or align frontend behavior with backend/shared contracts.
@@ -198,6 +229,12 @@ Before creating new hooks, API clients, providers, Zustand stores, utilities, qu
 - Never commit, push, or stage changes unless explicitly asked.
 - Do not run `npm run dev` if a dev server is already running.
 - Do not expose `.env` values, tokens, cookies, or secrets.
+
+## Multi-Repository Changes
+- When implementing features that affect multiple repositories, read the `AGENTS.md` of every affected repository.
+- Follow repository-specific rules even when they differ.
+- Keep changes isolated to the repository being modified.
+- Do not apply conventions from one repository to another unless explicitly documented.
 
 ## AI Change Response Expectations
 When making changes, mention the relevant impact on:

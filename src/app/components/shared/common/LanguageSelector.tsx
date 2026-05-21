@@ -4,7 +4,8 @@ SPDX-License-Identifier: MPL-2.0
 */
 'use client';
 
-import { Select, Group, Text, Loader } from '@mantine/core';
+import { Menu, UnstyledButton, Group, Text, Loader } from '@mantine/core';
+import { IconChevronDown, IconCheck } from '@tabler/icons-react';
 import { useLanguageContext } from '../../contexts/LanguageContext';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useUpdateLanguagePreferenceMutation } from '../../../../hooks/mutations/useUpdateLanguagePreferenceMutation';
@@ -27,11 +28,7 @@ export function LanguageSelector() {
     // here, and adding one would double-fetch the previous language under
     // React Strict Mode (the updater would run twice and queue two
     // refetches before the state has even committed).
-    const handleLanguageChange = useCallback(async (value: string | null) => {
-        if (!value) return;
-
-        const languageId = parseInt(value, 10);
-
+    const handleLanguageChange = useCallback((languageId: number) => {
         if (languageId === currentLanguageId) return;
 
         setCurrentLanguageId(languageId);
@@ -49,8 +46,7 @@ export function LanguageSelector() {
             });
         }
     }, [user, updateLanguageMutation, setCurrentLanguageId, currentLanguageId]);
-    
-    // Don't show if languages are empty
+
     if (languages.length === 0) {
         return null;
     }
@@ -60,30 +56,44 @@ export function LanguageSelector() {
     // `['page-by-keyword']` as fetching, but that has nothing to do with the
     // language selector and flashing a spinner there is noise.
     const isUpdating = updateLanguageMutation.isPending;
-    
-    // Use language ID as value and language name as label
-    const languageOptions = languages.map(lang => ({
-        value: lang.id.toString(),
-        label: lang.language
-    }));
-    
+    const currentLanguage = languages.find(l => l.id === currentLanguageId) ?? languages[0];
+
+    const currentShort = currentLanguage.locale.split('-')[0].toUpperCase();
+
     return (
-        <Group gap="xs">
-            <Text size="sm" c="dimmed">
-                Language:
-            </Text>
-            <Select
-                data={languageOptions}
-                value={currentLanguageId.toString()}
-                onChange={handleLanguageChange}
-                size="sm"
-                w={150}
-                placeholder="Select language"
-                searchable={false}
-                clearable={false}
-                disabled={isUpdating}
-                rightSection={isUpdating ? <Loader size="xs" /> : undefined}
-            />
-        </Group>
+        <Menu position="bottom-end" withArrow>
+            <Menu.Target>
+                <UnstyledButton
+                    disabled={isUpdating}
+                    aria-label={`Select language (current: ${currentLanguage.language})`}
+                >
+                    <Group gap={6} wrap="nowrap">
+                        <Text size="sm" fw={500}>{currentShort}</Text>
+                        {isUpdating
+                            ? <Loader size="xs" />
+                            : <IconChevronDown size={14} aria-hidden="true" />
+                        }
+                    </Group>
+                </UnstyledButton>
+            </Menu.Target>
+
+            <Menu.Dropdown>
+                {languages.map(lang => {
+                    const isActive = lang.id === currentLanguageId;
+                    return (
+                        <Menu.Item
+                            key={lang.id}
+                            leftSection={<Text size="sm" fw={600}>{lang.locale.split('-')[0].toUpperCase()}</Text>}
+                            rightSection={isActive ? <IconCheck size={14} aria-hidden="true" /> : null}
+                            fw={isActive ? 600 : undefined}
+                            aria-current={isActive ? 'true' : undefined}
+                            onClick={() => handleLanguageChange(lang.id)}
+                        >
+                            {lang.language}
+                        </Menu.Item>
+                    );
+                })}
+            </Menu.Dropdown>
+        </Menu>
     );
-} 
+}

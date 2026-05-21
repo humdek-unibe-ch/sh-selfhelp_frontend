@@ -26,7 +26,7 @@ export function CheckboxField({
     onChange,
     help,
     locale,
-    disabled = false
+    disabled = false,
 }: ICheckboxFieldProps) {
     // Helper function to get field label (use title when available, fallback to name)
     const getFieldLabel = () => {
