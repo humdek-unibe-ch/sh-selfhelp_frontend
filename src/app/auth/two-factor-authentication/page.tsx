@@ -8,7 +8,6 @@ import { Button, Paper, Title, Container, Text, Group } from '@mantine/core';
 import { useTwoFactorAuth } from '../../../hooks/mutations/useTwoFactorAuth';
 import { TwoFactorCodeInputs } from '../../components/shared/common/TwoFactorCodeInputs';
 
-// TODO: Later configure this page as fallback
 export default function TwoFactorAuthenticationPage() {
     const {
         code, timer, isLoading, errorMessage, inputsRef,
