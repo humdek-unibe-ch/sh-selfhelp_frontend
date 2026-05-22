@@ -19,42 +19,6 @@ export interface IProcessedFieldResult {
 }
 
 /**
- * Determines if a field is a content field (translatable) or property field (system)
- * Content fields have translations for specific languages, property fields have translations with language_code "all"
- *
- * @param field - The field to check
- * @returns true if field is content (has language-specific translations), false if property
- * @deprecated  We should use the field.display to check if is content
- */
-export function isContentField(field: IPageField): boolean {
-    // Check if field has translations for specific languages (not "all")
-    const hasSpecificLanguageTranslations = field.translations?.some(t =>
-        t.language_code && t.language_code !== 'all'
-    ) ?? false;
-
-    return hasSpecificLanguageTranslations;
-}
-
-/**
- * Determines if a field is a property field (system, non-translatable)
- * Property fields have translations with language_code "all" or no translations
- *
- * @param field - The field to check
- * @returns true if field is property (has "all" language translations or no translations), false if content
- * @deprecated  We should use the !field.display to check if is property
- */
-export function isPropertyField(field: IPageField): boolean {
-    // Check if field has translations with language_code "all" or no translations at all
-    const hasAllLanguageTranslation = field.translations?.some(t =>
-        t.language_code === 'all'
-    ) ?? false;
-
-    const hasNoTranslations = !field.translations || field.translations.length === 0;
-
-    return hasAllLanguageTranslation || hasNoTranslations;
-}
-
-/**
  * Gets the appropriate language IDs for a field based on its translation type
  *
  * Content fields (language-specific translations): All available languages

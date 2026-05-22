@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 'use client';
 
 import { useState } from 'react';
-import { Button, Menu, Avatar, Group, Text, Box, UnstyledButton } from '@mantine/core';
+import { Button, Menu, Avatar, Group, Text, Box, UnstyledButton, Skeleton } from '@mantine/core';
 import { IconLogin, IconLogout, IconUser, IconSettings, IconChevronDown } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useLogout } from '@refinedev/core';
@@ -80,7 +80,9 @@ export function AuthButton({ initialProfilePages = [] }: IAuthButtonProps = {}) 
     };
 
     if (isAuthLoading || isLoggingOut) {
-        return null;
+        // Match the rendered authenticated trigger so we don't get a width
+        // jump on hydration: Avatar (~24px) + name/email column + chevron.
+        return <Skeleton height={36} width={180} radius="sm" />;
     }
 
     if (!isAuthenticated) {
@@ -99,12 +101,14 @@ export function AuthButton({ initialProfilePages = [] }: IAuthButtonProps = {}) 
     const profileTitle = profilePages.length > 0 ? getPageTitle(profilePages[0]) : 'Profile';
     const profileChildren = profilePages[0]?.children || [];
 
+    const triggerLabel = user?.name || profileTitle || 'Open user menu';
+
     return (
         <Menu position="bottom-end" withArrow>
             <Menu.Target>
-                <UnstyledButton>
+                <UnstyledButton aria-label={triggerLabel}>
                     <Group gap="xs" wrap="nowrap">
-                        <Avatar radius="xl" size="sm" color="blue">
+                        <Avatar radius="xl" size="sm" color="blue" aria-hidden="true">
                             {user?.name?.charAt(0)?.toUpperCase() || <IconUser size={14} />}
                         </Avatar>
                         <Box visibleFrom="sm">
@@ -117,7 +121,7 @@ export function AuthButton({ initialProfilePages = [] }: IAuthButtonProps = {}) 
                                 </Text>
                             )}
                         </Box>
-                        <IconChevronDown size={14} />
+                        <IconChevronDown size={14} aria-hidden="true" />
                     </Group>
                 </UnstyledButton>
             </Menu.Target>
