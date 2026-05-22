@@ -117,6 +117,10 @@ export function PluginsPage() {
     const rows = useMemo(() => pluginList?.plugins ?? [], [pluginList]);
     const installMode = pluginList?.installMode;
     const safeMode = pluginList?.safeMode ?? false;
+    const enabledSourcesCount = useMemo(
+        () => (sources ?? []).filter((source) => source.enabled).length,
+        [sources],
+    );
 
     if (isLoading) {
         return (
@@ -345,7 +349,7 @@ export function PluginsPage() {
                 </Tabs.Panel>
 
                 <Tabs.Panel value="available" pt="md">
-                    <AvailablePluginsPanel sourcesCount={sources?.length ?? 0} />
+                    <AvailablePluginsPanel enabledSourcesCount={enabledSourcesCount} />
                 </Tabs.Panel>
 
                 <Tabs.Panel value="sources" pt="md">

@@ -49,7 +49,7 @@ import {
 import type { IAdminPluginAvailable } from '../../../../../types/responses/admin/plugins.types';
 
 interface IAvailablePluginsPanelProps {
-    sourcesCount: number;
+    enabledSourcesCount: number;
 }
 
 function formatTrustLabel(trustLevel: string): string {
@@ -59,8 +59,8 @@ function formatTrustLabel(trustLevel: string): string {
     return trustLevel;
 }
 
-export function AvailablePluginsPanel({ sourcesCount }: IAvailablePluginsPanelProps) {
-    const { data, isLoading, error, refetch, isFetching } = useAdminPluginsAvailable(sourcesCount > 0);
+export function AvailablePluginsPanel({ enabledSourcesCount }: IAvailablePluginsPanelProps) {
+    const { data, isLoading, error, refetch, isFetching } = useAdminPluginsAvailable(enabledSourcesCount > 0);
     const requestInstall = useAdminPluginRequestInstall();
     const finalizeInstall = useAdminPluginFinalizeInstall();
     const enableMutation = useAdminPluginEnable();
@@ -75,7 +75,9 @@ export function AvailablePluginsPanel({ sourcesCount }: IAvailablePluginsPanelPr
         let manifest: Record<string, unknown> | null = entry.manifest ?? null;
         if (!manifest && entry.manifestUrl) {
             try {
-                const resp = await fetch(entry.manifestUrl);
+                const manifestUrl = new URL(entry.manifestUrl);
+                manifestUrl.searchParams.set('_ts', String(Date.now()));
+                const resp = await fetch(manifestUrl.toString(), { cache: 'no-store' });
                 if (!resp.ok) {
                     throw new Error(`Manifest download failed (HTTP ${resp.status}).`);
                 }
@@ -142,10 +144,10 @@ export function AvailablePluginsPanel({ sourcesCount }: IAvailablePluginsPanelPr
         }
     };
 
-    if (sourcesCount === 0) {
+    if (enabledSourcesCount === 0) {
         return (
-            <Alert color="blue" title="No registry sources configured">
-                Add at least one source in the <strong>Sources</strong> tab to browse plugins from a registry.
+            <Alert color="blue" title="No enabled registry sources">
+                Enable at least one source in the <strong>Sources</strong> tab to browse plugins from a registry.
                 For local testing you can also paste a <code>plugin.json</code> with the <strong>Install plugin</strong>
                 button at the top right.
             </Alert>
