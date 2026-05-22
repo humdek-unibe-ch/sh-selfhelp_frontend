@@ -26,13 +26,13 @@ import type {
     IAdminPluginDoctorReport,
     IAdminPluginFeatureFlag,
     IAdminPluginHealthReport,
+    IAdminPluginListResponse,
     IAdminPluginOperation,
     IAdminPluginSource,
-    IAdminPluginSummary,
 } from '../../types/responses/admin/plugins.types';
 
 export const AdminPluginApi = {
-    async listPlugins(): Promise<IBaseApiResponse<IAdminPluginSummary[]>> {
+    async listPlugins(): Promise<IBaseApiResponse<IAdminPluginListResponse>> {
         const response = await permissionAwareApiClient.get(API_CONFIG.ENDPOINTS.ADMIN_PLUGINS_LIST);
         return response.data;
     },

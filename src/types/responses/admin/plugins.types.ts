@@ -86,6 +86,19 @@ export interface IAdminPluginDetail extends IAdminPluginSummary {
     featureFlags?: IAdminPluginFeatureFlag[];
 }
 
+/**
+ * Envelope returned by `GET /admin/plugins`. The backend wraps the
+ * installed-plugin array in an object that also exposes the current
+ * install mode and safe-mode state so the admin page can render the
+ * "Installing in development mode" / "Safe mode active" banners
+ * without a second request.
+ */
+export interface IAdminPluginListResponse {
+    plugins: IAdminPluginSummary[];
+    installMode: 'development' | 'managed' | 'trusted';
+    safeMode: boolean;
+}
+
 export interface IAdminPluginHealthReport {
     pluginId: string;
     checks: Array<{ name: string; status: 'ok' | 'warning' | 'error'; message: string }>;

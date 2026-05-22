@@ -13,16 +13,21 @@ SPDX-License-Identifier: MPL-2.0
  * fresh without polling.
  */
 
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import {
     Alert,
+    Anchor,
     Badge,
     Button,
     Group,
+    JsonInput,
     Loader,
     Modal,
     ScrollArea,
     Stack,
+    Switch,
     Table,
     Tabs,
     Text,
@@ -30,13 +35,14 @@ import {
     Title,
     Tooltip,
 } from '@mantine/core';
+import { IconDownload } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import {
-    useAdminPlugin,
     useAdminPluginDisable,
     useAdminPluginEnable,
-    useAdminPluginOperations,
+    useAdminPluginFinalizeInstall,
     useAdminPluginPurge,
+    useAdminPluginRequestInstall,
     useAdminPluginSources,
     useAdminPluginUninstall,
     useAdminPlugins,
@@ -44,21 +50,27 @@ import {
 import { PluginSourcesPanel } from '../plugin-sources-panel/PluginSourcesPanel';
 
 export function PluginsPage() {
-    const { data: plugins, isLoading, error } = useAdminPlugins();
+    const router = useRouter();
+    const { data: pluginList, isLoading, error } = useAdminPlugins();
     const { data: sources } = useAdminPluginSources();
-    const [selectedPluginId, setSelectedPluginId] = useState<string | null>(null);
     const [purgeFor, setPurgeFor] = useState<string | null>(null);
     const [purgeConfirm, setPurgeConfirm] = useState('');
 
-    const selected = useAdminPlugin(selectedPluginId);
-    const operations = useAdminPluginOperations(selectedPluginId ?? undefined);
+    const [installOpen, setInstallOpen] = useState(false);
+    const [installManifest, setInstallManifest] = useState('');
+    const [installEnableOnSuccess, setInstallEnableOnSuccess] = useState(true);
+    const [installPendingOperationId, setInstallPendingOperationId] = useState<number | null>(null);
 
     const enableMutation = useAdminPluginEnable();
     const disableMutation = useAdminPluginDisable();
     const uninstallMutation = useAdminPluginUninstall();
     const purgeMutation = useAdminPluginPurge();
+    const requestInstall = useAdminPluginRequestInstall();
+    const finalizeInstall = useAdminPluginFinalizeInstall();
 
-    const rows = useMemo(() => plugins ?? [], [plugins]);
+    const rows = useMemo(() => pluginList?.plugins ?? [], [pluginList]);
+    const installMode = pluginList?.installMode;
+    const safeMode = pluginList?.safeMode ?? false;
 
     if (isLoading) {
         return (
@@ -97,7 +109,6 @@ export function PluginsPage() {
         try {
             await uninstallMutation.mutateAsync(pluginId);
             notifications.show({ color: 'green', title: 'Plugin uninstalled', message: pluginId });
-            if (selectedPluginId === pluginId) setSelectedPluginId(null);
         } catch (err) {
             notifications.show({ color: 'red', title: 'Uninstall failed', message: err instanceof Error ? err.message : String(err) });
         }
@@ -110,9 +121,52 @@ export function PluginsPage() {
             notifications.show({ color: 'green', title: 'Plugin purged', message: purgeFor });
             setPurgeFor(null);
             setPurgeConfirm('');
-            if (selectedPluginId === purgeFor) setSelectedPluginId(null);
         } catch (err) {
             notifications.show({ color: 'red', title: 'Purge failed', message: err instanceof Error ? err.message : String(err) });
+        }
+    };
+
+    const onInstallRequest = async () => {
+        let parsed: Record<string, unknown>;
+        try {
+            parsed = JSON.parse(installManifest);
+        } catch (err) {
+            notifications.show({ color: 'red', title: 'Manifest is not valid JSON', message: err instanceof Error ? err.message : String(err) });
+            return;
+        }
+        try {
+            const op = await requestInstall.mutateAsync({ manifest: parsed, registryEntry: null });
+            setInstallPendingOperationId(op.data?.id ?? null);
+            notifications.show({ color: 'blue', title: 'Install requested', message: `Operation ${op.data?.id} created.` });
+        } catch (err) {
+            notifications.show({ color: 'red', title: 'Install request failed', message: err instanceof Error ? err.message : String(err) });
+        }
+    };
+
+    const onInstallFinalize = async () => {
+        if (installPendingOperationId === null) return;
+        let parsed: Record<string, unknown>;
+        try {
+            parsed = JSON.parse(installManifest);
+        } catch (err) {
+            notifications.show({ color: 'red', title: 'Manifest is not valid JSON', message: err instanceof Error ? err.message : String(err) });
+            return;
+        }
+        try {
+            const result = await finalizeInstall.mutateAsync({ operationId: installPendingOperationId, manifest: parsed });
+            notifications.show({ color: 'green', title: 'Plugin installed', message: result.data?.pluginId ?? 'unknown' });
+            if (installEnableOnSuccess && result.data?.pluginId) {
+                try {
+                    await enableMutation.mutateAsync(result.data.pluginId);
+                } catch (enableErr) {
+                    notifications.show({ color: 'yellow', title: 'Installed but not enabled', message: enableErr instanceof Error ? enableErr.message : String(enableErr) });
+                }
+            }
+            setInstallOpen(false);
+            setInstallPendingOperationId(null);
+            setInstallManifest('');
+        } catch (err) {
+            notifications.show({ color: 'red', title: 'Install finalize failed', message: err instanceof Error ? err.message : String(err) });
         }
     };
 
@@ -120,10 +174,28 @@ export function PluginsPage() {
         <Stack gap="md">
             <Group justify="space-between" align="center">
                 <Title order={2}>Plugins</Title>
-                <Badge variant="light" color="gray">
-                    {rows.length} installed / {sources?.length ?? 0} sources
-                </Badge>
+                <Group gap="xs">
+                    {installMode && (
+                        <Tooltip label={`Plugin install mode: ${installMode}`}>
+                            <Badge variant="light" color={installMode === 'managed' ? 'blue' : installMode === 'development' ? 'orange' : 'grape'}>
+                                {installMode}
+                            </Badge>
+                        </Tooltip>
+                    )}
+                    <Badge variant="light" color="gray">
+                        {rows.length} installed / {sources?.length ?? 0} sources
+                    </Badge>
+                    <Button leftSection={<IconDownload size={14} />} onClick={() => setInstallOpen(true)}>
+                        Install plugin
+                    </Button>
+                </Group>
             </Group>
+
+            {safeMode && (
+                <Alert color="orange" title="Safe mode active">
+                    All plugins are disabled at boot. Disable safe mode (CLI: <Text component="span" ff="monospace">php bin/console selfhelp:plugin:safe-mode off</Text>) to resume normal operation.
+                </Alert>
+            )}
 
             <Tabs defaultValue="installed">
                 <Tabs.List>
@@ -149,12 +221,14 @@ export function PluginsPage() {
                                 {rows.map((p) => (
                                     <Table.Tr
                                         key={p.pluginId}
-                                        onClick={() => setSelectedPluginId(p.pluginId)}
+                                        onClick={() => router.push(`/admin/plugins/${encodeURIComponent(p.pluginId)}`)}
                                         style={{ cursor: 'pointer' }}
                                     >
                                         <Table.Td>
                                             <Stack gap={0}>
-                                                <Text fw={600}>{p.name}</Text>
+                                                <Anchor component={Link} href={`/admin/plugins/${encodeURIComponent(p.pluginId)}`} fw={600} onClick={(e) => e.stopPropagation()}>
+                                                    {p.name}
+                                                </Anchor>
                                                 <Text size="xs" c="dimmed">{p.pluginId}</Text>
                                             </Stack>
                                         </Table.Td>
@@ -209,115 +283,13 @@ export function PluginsPage() {
                                 {rows.length === 0 && (
                                     <Table.Tr>
                                         <Table.Td colSpan={7}>
-                                            <Text c="dimmed" ta="center" py="md">No plugins installed.</Text>
+                                            <Text c="dimmed" ta="center" py="md">No plugins installed. Click <strong>Install plugin</strong> above to add one.</Text>
                                         </Table.Td>
                                     </Table.Tr>
                                 )}
                             </Table.Tbody>
                         </Table>
                     </ScrollArea>
-
-                    {selectedPluginId && (
-                        <Stack gap="xs" mt="lg">
-                            <Title order={4}>Details — {selectedPluginId}</Title>
-                            {selected.isLoading ? (
-                                <Loader />
-                            ) : selected.data ? (
-                                <Tabs defaultValue="overview">
-                                    <Tabs.List>
-                                        <Tabs.Tab value="overview">Overview</Tabs.Tab>
-                                        <Tabs.Tab value="operations">Operations</Tabs.Tab>
-                                        <Tabs.Tab value="feature-flags">Feature flags</Tabs.Tab>
-                                    </Tabs.List>
-
-                                    <Tabs.Panel value="overview" pt="md">
-                                        <Stack gap="xs">
-                                            <Text>Name: <strong>{selected.data.name}</strong></Text>
-                                            <Text>Description: {selected.data.description ?? '—'}</Text>
-                                            <Text>Trust level: {selected.data.trustLevel}</Text>
-                                            <Text>Install mode: {selected.data.installMode}</Text>
-                                            <Text>Backend bundle: {String(selected.data.manifest?.backend ?? '—')}</Text>
-                                            <Text>Frontend package: {selected.data.frontendPackage ?? '—'} v{selected.data.frontendPackageVersion ?? '—'}</Text>
-                                            <Text>Mobile package: {selected.data.mobilePackage ?? '—'} v{selected.data.mobilePackageVersion ?? '—'}</Text>
-                                            <Text>Capabilities: {(selected.data.capabilities ?? []).join(', ') || '—'}</Text>
-                                        </Stack>
-                                    </Tabs.Panel>
-
-                                    <Tabs.Panel value="operations" pt="md">
-                                        <ScrollArea>
-                                            <Table>
-                                                <Table.Thead>
-                                                    <Table.Tr>
-                                                        <Table.Th>#</Table.Th>
-                                                        <Table.Th>Type</Table.Th>
-                                                        <Table.Th>Status</Table.Th>
-                                                        <Table.Th>Versions</Table.Th>
-                                                        <Table.Th>Started</Table.Th>
-                                                        <Table.Th>Finished</Table.Th>
-                                                    </Table.Tr>
-                                                </Table.Thead>
-                                                <Table.Tbody>
-                                                    {(operations.data ?? []).map((op) => (
-                                                        <Table.Tr key={op.id}>
-                                                            <Table.Td>{op.id}</Table.Td>
-                                                            <Table.Td>{op.type}</Table.Td>
-                                                            <Table.Td>
-                                                                <Badge color={
-                                                                    op.status === 'succeeded'
-                                                                        ? 'green'
-                                                                        : op.status === 'failed'
-                                                                            ? 'red'
-                                                                            : op.status === 'running'
-                                                                                ? 'blue'
-                                                                                : 'gray'
-                                                                }>
-                                                                    {op.status}
-                                                                </Badge>
-                                                            </Table.Td>
-                                                            <Table.Td>{op.fromVersion ?? '—'} → {op.toVersion ?? '—'}</Table.Td>
-                                                            <Table.Td>{op.startedAt ?? '—'}</Table.Td>
-                                                            <Table.Td>{op.finishedAt ?? '—'}</Table.Td>
-                                                        </Table.Tr>
-                                                    ))}
-                                                    {(operations.data ?? []).length === 0 && (
-                                                        <Table.Tr>
-                                                            <Table.Td colSpan={6}>
-                                                                <Text c="dimmed" ta="center" py="md">No operations recorded.</Text>
-                                                            </Table.Td>
-                                                        </Table.Tr>
-                                                    )}
-                                                </Table.Tbody>
-                                            </Table>
-                                        </ScrollArea>
-                                    </Tabs.Panel>
-
-                                    <Tabs.Panel value="feature-flags" pt="md">
-                                        <Stack gap="xs">
-                                            {(selected.data.featureFlags ?? []).length === 0 ? (
-                                                <Text c="dimmed">Plugin does not declare any feature flags.</Text>
-                                            ) : (
-                                                (selected.data.featureFlags ?? []).map((flag) => (
-                                                    <Group key={`${flag.flagKey}|${flag.scope}|${flag.scopeValue}`} justify="space-between">
-                                                        <Stack gap={0}>
-                                                            <Text fw={600}>{flag.flagKey}</Text>
-                                                            <Text size="xs" c="dimmed">
-                                                                scope={flag.scope}{flag.scopeValue ? ` / ${flag.scopeValue}` : ''}
-                                                            </Text>
-                                                        </Stack>
-                                                        <Badge color={flag.enabled ? 'green' : 'gray'}>
-                                                            {flag.enabled ? 'enabled' : 'disabled'}
-                                                        </Badge>
-                                                    </Group>
-                                                ))
-                                            )}
-                                        </Stack>
-                                    </Tabs.Panel>
-                                </Tabs>
-                            ) : (
-                                <Text c="dimmed">Plugin details unavailable.</Text>
-                            )}
-                        </Stack>
-                    )}
                 </Tabs.Panel>
 
                 <Tabs.Panel value="sources" pt="md">
@@ -340,6 +312,48 @@ export function PluginsPage() {
                         <Button color="red" disabled={purgeConfirm !== purgeFor} loading={purgeMutation.isPending} onClick={onPurgeConfirm}>
                             Purge plugin
                         </Button>
+                    </Group>
+                </Stack>
+            </Modal>
+
+            <Modal
+                opened={installOpen}
+                onClose={() => { setInstallOpen(false); setInstallManifest(''); setInstallPendingOperationId(null); }}
+                title="Install plugin"
+                size="xl"
+            >
+                <Stack gap="sm">
+                    <Alert color="blue">
+                        Paste the plugin&apos;s <strong>plugin.json</strong> manifest. The host validates it against the manifest schema,
+                        runs the install-policy check, and creates a staged operation. Click <strong>Finalize</strong> to apply.
+                    </Alert>
+                    <JsonInput
+                        label="Plugin manifest (plugin.json)"
+                        placeholder='{ "pluginId": "sh2-shp-...", "version": "1.0.0", ... }'
+                        value={installManifest}
+                        onChange={setInstallManifest}
+                        minRows={14}
+                        autosize
+                        validationError="Invalid JSON"
+                        formatOnBlur
+                    />
+                    <Switch
+                        label="Enable plugin after install succeeds"
+                        checked={installEnableOnSuccess}
+                        onChange={(e) => setInstallEnableOnSuccess(e.currentTarget.checked)}
+                    />
+                    {installPendingOperationId !== null && (
+                        <Alert color="green">
+                            Operation #{installPendingOperationId} created. Click <strong>Finalize</strong> below to apply.
+                        </Alert>
+                    )}
+                    <Group justify="flex-end">
+                        <Button variant="default" onClick={() => { setInstallOpen(false); setInstallManifest(''); setInstallPendingOperationId(null); }}>Cancel</Button>
+                        {installPendingOperationId === null ? (
+                            <Button loading={requestInstall.isPending} onClick={onInstallRequest}>Request install</Button>
+                        ) : (
+                            <Button color="green" loading={finalizeInstall.isPending} onClick={onInstallFinalize}>Finalize</Button>
+                        )}
                     </Group>
                 </Stack>
             </Modal>
