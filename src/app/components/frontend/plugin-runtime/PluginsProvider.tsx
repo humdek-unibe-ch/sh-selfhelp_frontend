@@ -54,7 +54,14 @@ const PluginsContext = createContext<IPluginsContextValue>({
 });
 
 interface IPluginsProviderProps {
-    /** Optional API base URL override (defaults to /cms-api/v1). */
+    /**
+     * Optional API base URL override. Defaults to `/api` so the
+     * call goes through the Next.js BFF proxy (which then forwards to
+     * `/cms-api/v1/plugins/manifest` upstream). Direct `/cms-api/v1`
+     * calls fail in the browser because the dev/edge server doesn't
+     * route that path — only Symfony does, and the browser cannot
+     * reach the upstream host directly without CORS.
+     */
     apiBaseUrl?: string;
     /**
      * Initial manifest piped from a Server Component. When provided,
@@ -81,7 +88,7 @@ async function fetchManifest(baseUrl: string): Promise<IPluginManifest> {
     return json.data;
 }
 
-function PluginsProvider({ apiBaseUrl = '/cms-api/v1', initialManifest, children }: IPluginsProviderProps) {
+function PluginsProvider({ apiBaseUrl = '/api', initialManifest, children }: IPluginsProviderProps) {
     const runtime = useMemo(() => getPluginRuntime(), []);
     const [snapshot, setSnapshot] = useState<IPluginRuntimeSnapshot>(EMPTY_SNAPSHOT);
 
