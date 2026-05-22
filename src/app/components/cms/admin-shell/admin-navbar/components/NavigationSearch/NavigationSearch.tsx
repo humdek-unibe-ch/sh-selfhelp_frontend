@@ -17,7 +17,7 @@ import {
     Badge,
     UnstyledButton
 } from '@mantine/core';
-import { IconSearch, IconX, IconFile, IconSettings, IconUsers, IconDatabase, IconPhoto, IconPlayerPlay, IconFileText, IconLanguage } from '@tabler/icons-react';
+import { IconSearch, IconX, IconFile, IconSettings, IconUsers, IconDatabase, IconPhoto, IconPlayerPlay, IconFileText, IconLanguage, IconPuzzle } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import styles from './NavigationSearch.module.css';
 import { useNavigationStore } from '../../../../../../store/navigation.store';
@@ -131,6 +131,27 @@ export function NavigationSearch({ adminPagesData, onItemSelect }: INavigationSe
         }
         if (permissionChecker?.canReadCache()) {
             systemToolFunctions.push({ id: 'cache', label: 'Cache Management', href: '/admin/cache', icon: <IconDatabase size={16} />, category: 'Configuration', keywords: ['cache', 'performance', 'memory'] });
+        }
+        // Plugin Management lives under System Tools — searchable by
+        // every word an admin would reach for: plugins, addon, extension,
+        // module, marketplace, install, update, uninstall, doctor, safe-mode,
+        // surveyjs (so people who only know the use-case still find it).
+        if (permissionChecker?.canManagePlugins()) {
+            systemToolFunctions.push({
+                id: 'plugin-management',
+                label: 'Plugin Management',
+                href: '/admin/plugins',
+                icon: <IconPuzzle size={16} />,
+                category: 'System Tools',
+                keywords: [
+                    'plugin', 'plugins', 'plugin management',
+                    'addon', 'add-on', 'extension', 'extensions', 'module', 'modules', 'marketplace',
+                    'install', 'install plugin', 'update plugin', 'uninstall',
+                    'plugin doctor', 'doctor', 'safe mode', 'safe-mode',
+                    'plugin sources', 'plugin operations',
+                    'survey', 'surveyjs', 'survey-js',
+                ],
+            });
         }
 
         if (systemToolFunctions.length > 0) {
