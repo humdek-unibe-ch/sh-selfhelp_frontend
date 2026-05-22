@@ -17,7 +17,8 @@
         "prune": "ts-prune",
         "headers:check": "license-check-and-add check -f license-check-and-add-config.json",
         "headers:add": "license-check-and-add add -f license-check-and-add-config.json",
-        "headers:remove": "license-check-and-add remove -f license-check-and-add-config.json"
+        "headers:remove": "license-check-and-add remove -f license-check-and-add-config.json",
+        "plugins:sync": "node scripts/plugins-sync.mjs"
     },
     "dependencies": {
         "@atlaskit/pragmatic-drag-and-drop": "^1.8.0",
