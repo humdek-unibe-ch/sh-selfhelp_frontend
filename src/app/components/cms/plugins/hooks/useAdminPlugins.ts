@@ -153,3 +153,80 @@ export function useAdminPluginSourceDelete() {
         onSuccess: () => qc.invalidateQueries({ queryKey: SOURCES_KEY }),
     });
 }
+
+export function useAdminPluginHealth(pluginId: string | null) {
+    return useQuery({
+        queryKey: [...KEY, 'health', pluginId ?? ''],
+        queryFn: async () => (await AdminPluginApi.health(pluginId as string)).data,
+        enabled: Boolean(pluginId),
+        staleTime: Infinity,
+    });
+}
+
+export function useAdminPluginDoctor() {
+    return useQuery({
+        queryKey: [...KEY, 'doctor'],
+        queryFn: async () => (await AdminPluginApi.doctor()).data,
+        staleTime: Infinity,
+    });
+}
+
+export function useAdminPluginRequestInstall() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: (body: { manifest: Record<string, unknown>; registryEntry?: Record<string, unknown> | null }) =>
+            AdminPluginApi.requestInstall(body),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: KEY });
+            qc.invalidateQueries({ queryKey: OPERATIONS_KEY });
+        },
+    });
+}
+
+export function useAdminPluginFinalizeInstall() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: ({ operationId, manifest }: { operationId: number; manifest: Record<string, unknown> }) =>
+            AdminPluginApi.finalizeInstall(operationId, { manifest }),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: KEY });
+            qc.invalidateQueries({ queryKey: OPERATIONS_KEY });
+        },
+    });
+}
+
+export function useAdminPluginRequestUpdate() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: ({ pluginId, manifest, forceMajor }: { pluginId: string; manifest: Record<string, unknown>; forceMajor?: boolean }) =>
+            AdminPluginApi.requestUpdate(pluginId, { manifest, forceMajor }),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: KEY });
+            qc.invalidateQueries({ queryKey: OPERATIONS_KEY });
+        },
+    });
+}
+
+export function useAdminPluginFinalizeUpdate() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: ({ operationId, manifest }: { operationId: number; manifest: Record<string, unknown> }) =>
+            AdminPluginApi.finalizeUpdate(operationId, { manifest }),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: KEY });
+            qc.invalidateQueries({ queryKey: OPERATIONS_KEY });
+        },
+    });
+}
+
+export function useAdminPluginFeatureFlagSet() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: ({ pluginId, flagKey, scope, scopeValue, enabled }: { pluginId: string; flagKey: string; scope?: string; scopeValue?: string; enabled: boolean }) =>
+            AdminPluginApi.setFeatureFlag(pluginId, { flagKey, scope, scopeValue, enabled }),
+        onSuccess: (_data, variables) => {
+            qc.invalidateQueries({ queryKey: [...KEY, 'detail', variables.pluginId] });
+            qc.invalidateQueries({ queryKey: [...KEY, 'feature-flags', variables.pluginId] });
+        },
+    });
+}
