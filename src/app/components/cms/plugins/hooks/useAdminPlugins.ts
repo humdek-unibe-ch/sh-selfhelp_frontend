@@ -151,7 +151,10 @@ export function useAdminPluginSourceCreate() {
     return useMutation({
         mutationFn: (body: Parameters<typeof AdminPluginApi.createSource>[0]) =>
             AdminPluginApi.createSource(body),
-        onSuccess: () => qc.invalidateQueries({ queryKey: SOURCES_KEY }),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: SOURCES_KEY });
+            qc.invalidateQueries({ queryKey: [...KEY, 'available'] });
+        },
     });
 }
 
@@ -160,7 +163,10 @@ export function useAdminPluginSourceUpdate() {
     return useMutation({
         mutationFn: ({ sourceId, body }: { sourceId: number; body: Parameters<typeof AdminPluginApi.updateSource>[1] }) =>
             AdminPluginApi.updateSource(sourceId, body),
-        onSuccess: () => qc.invalidateQueries({ queryKey: SOURCES_KEY }),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: SOURCES_KEY });
+            qc.invalidateQueries({ queryKey: [...KEY, 'available'] });
+        },
     });
 }
 
@@ -168,7 +174,10 @@ export function useAdminPluginSourceDelete() {
     const qc = useQueryClient();
     return useMutation({
         mutationFn: (sourceId: number) => AdminPluginApi.deleteSource(sourceId),
-        onSuccess: () => qc.invalidateQueries({ queryKey: SOURCES_KEY }),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: SOURCES_KEY });
+            qc.invalidateQueries({ queryKey: [...KEY, 'available'] });
+        },
     });
 }
 

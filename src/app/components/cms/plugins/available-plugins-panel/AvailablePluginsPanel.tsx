@@ -52,6 +52,13 @@ interface IAvailablePluginsPanelProps {
     sourcesCount: number;
 }
 
+function formatTrustLabel(trustLevel: string): string {
+    if (trustLevel === 'official') return 'Official';
+    if (trustLevel === 'reviewed') return 'Reviewed';
+    if (trustLevel === 'untrusted') return 'Untrusted';
+    return trustLevel;
+}
+
 export function AvailablePluginsPanel({ sourcesCount }: IAvailablePluginsPanelProps) {
     const { data, isLoading, error, refetch, isFetching } = useAdminPluginsAvailable(sourcesCount > 0);
     const requestInstall = useAdminPluginRequestInstall();
@@ -226,12 +233,14 @@ export function AvailablePluginsPanel({ sourcesCount }: IAvailablePluginsPanelPr
                                                 : entry.trustLevel === 'reviewed'
                                                     ? 'blue'
                                                     : 'gray'
-                                        }>
-                                            {entry.trustLevel}
+                                        } tt="none">
+                                            {formatTrustLabel(entry.trustLevel)}
                                         </Badge>
                                     </Table.Td>
                                     <Table.Td>
-                                        <Badge variant="light">{entry.sourceName}</Badge>
+                                        <Text size="sm" fw={500}>
+                                            {entry.sourceName}
+                                        </Text>
                                     </Table.Td>
                                     <Table.Td>
                                         <Tooltip label="Stages the install operation, finalizes it, then enables the plugin (if the switch above is on)">
