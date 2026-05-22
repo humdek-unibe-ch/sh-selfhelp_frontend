@@ -679,19 +679,19 @@ export const API_CONFIG = {
             permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
         },
         ADMIN_PLUGIN_REQUEST_INSTALL: {
-            route: '/admin/plugins/install',
+            route: '/admin/plugins',
             permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
         },
         ADMIN_PLUGIN_FINALIZE_INSTALL: {
-            route: (operationId: number) => `/admin/plugins/install/${operationId}/finalize`,
+            route: (pluginId: string) => `/admin/plugins/${pluginId}/finalize-install`,
             permissions: [PERMISSIONS.ADMIN_PLUGINS_EXECUTE]
         },
         ADMIN_PLUGIN_REQUEST_UPDATE: {
-            route: (pluginId: string) => `/admin/plugins/${pluginId}/update`,
+            route: (pluginId: string) => `/admin/plugins/${pluginId}/request-update`,
             permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
         },
         ADMIN_PLUGIN_FINALIZE_UPDATE: {
-            route: (operationId: number) => `/admin/plugins/update/${operationId}/finalize`,
+            route: (pluginId: string) => `/admin/plugins/${pluginId}/finalize-update`,
             permissions: [PERMISSIONS.ADMIN_PLUGINS_EXECUTE]
         },
         ADMIN_PLUGIN_ENABLE: {
@@ -703,7 +703,7 @@ export const API_CONFIG = {
             permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
         },
         ADMIN_PLUGIN_UNINSTALL: {
-            route: (pluginId: string) => `/admin/plugins/${pluginId}`,
+            route: (pluginId: string) => `/admin/plugins/${pluginId}/uninstall`,
             permissions: [PERMISSIONS.ADMIN_PLUGINS_MANAGE]
         },
         ADMIN_PLUGIN_PURGE: {

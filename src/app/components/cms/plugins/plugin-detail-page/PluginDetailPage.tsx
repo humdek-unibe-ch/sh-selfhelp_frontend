@@ -296,7 +296,7 @@ export function PluginDetailPage({ pluginId }: IPluginDetailPageProps) {
             return;
         }
         try {
-            await finalizeUpdate.mutateAsync({ operationId: updatePendingOperationId, manifest: parsed });
+            await finalizeUpdate.mutateAsync({ pluginId, operationId: updatePendingOperationId, manifest: parsed });
             notifications.show({ color: 'green', title: 'Update finalized', message: pluginId });
             setUpdateOpen(false);
             setUpdatePendingOperationId(null);

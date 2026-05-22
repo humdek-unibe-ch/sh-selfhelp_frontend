@@ -186,8 +186,8 @@ export function useAdminPluginRequestInstall() {
 export function useAdminPluginFinalizeInstall() {
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: ({ operationId, manifest }: { operationId: number; manifest: Record<string, unknown> }) =>
-            AdminPluginApi.finalizeInstall(operationId, { manifest }),
+        mutationFn: ({ pluginId, operationId, manifest }: { pluginId: string; operationId: number; manifest: Record<string, unknown> }) =>
+            AdminPluginApi.finalizeInstall(pluginId, { operationId, manifest }),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: KEY });
             qc.invalidateQueries({ queryKey: OPERATIONS_KEY });
@@ -210,8 +210,8 @@ export function useAdminPluginRequestUpdate() {
 export function useAdminPluginFinalizeUpdate() {
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: ({ operationId, manifest }: { operationId: number; manifest: Record<string, unknown> }) =>
-            AdminPluginApi.finalizeUpdate(operationId, { manifest }),
+        mutationFn: ({ pluginId, operationId, manifest }: { pluginId: string; operationId: number; manifest: Record<string, unknown> }) =>
+            AdminPluginApi.finalizeUpdate(pluginId, { operationId, manifest }),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: KEY });
             qc.invalidateQueries({ queryKey: OPERATIONS_KEY });

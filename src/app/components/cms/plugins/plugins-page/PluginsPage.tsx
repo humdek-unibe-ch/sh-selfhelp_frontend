@@ -153,7 +153,12 @@ export function PluginsPage() {
             return;
         }
         try {
-            const result = await finalizeInstall.mutateAsync({ operationId: installPendingOperationId, manifest: parsed });
+            const manifestPluginId = typeof parsed?.id === 'string' ? parsed.id : null;
+            if (!manifestPluginId) {
+                notifications.show({ color: 'red', title: 'Manifest missing id', message: 'The manifest must contain a top-level "id" field.' });
+                return;
+            }
+            const result = await finalizeInstall.mutateAsync({ pluginId: manifestPluginId, operationId: installPendingOperationId, manifest: parsed });
             notifications.show({ color: 'green', title: 'Plugin installed', message: result.data?.pluginId ?? 'unknown' });
             if (installEnableOnSuccess && result.data?.pluginId) {
                 try {

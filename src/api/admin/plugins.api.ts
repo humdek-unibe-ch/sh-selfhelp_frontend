@@ -47,8 +47,8 @@ export const AdminPluginApi = {
         return response.data;
     },
 
-    async finalizeInstall(operationId: number, body: { manifest: Record<string, unknown> }): Promise<IBaseApiResponse<IAdminPluginDetail>> {
-        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_FINALIZE_INSTALL, body, operationId);
+    async finalizeInstall(pluginId: string, body: { operationId: number; manifest: Record<string, unknown> }): Promise<IBaseApiResponse<IAdminPluginDetail>> {
+        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_FINALIZE_INSTALL, body, pluginId);
         return response.data;
     },
 
@@ -57,8 +57,8 @@ export const AdminPluginApi = {
         return response.data;
     },
 
-    async finalizeUpdate(operationId: number, body: { manifest: Record<string, unknown> }): Promise<IBaseApiResponse<IAdminPluginDetail>> {
-        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_FINALIZE_UPDATE, body, operationId);
+    async finalizeUpdate(pluginId: string, body: { operationId: number; manifest: Record<string, unknown> }): Promise<IBaseApiResponse<IAdminPluginDetail>> {
+        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_FINALIZE_UPDATE, body, pluginId);
         return response.data;
     },
 
@@ -73,7 +73,7 @@ export const AdminPluginApi = {
     },
 
     async uninstall(pluginId: string): Promise<IBaseApiResponse<{ pluginId: string }>> {
-        const response = await permissionAwareApiClient.delete(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_UNINSTALL, pluginId);
+        const response = await permissionAwareApiClient.post(API_CONFIG.ENDPOINTS.ADMIN_PLUGIN_UNINSTALL, undefined, pluginId);
         return response.data;
     },
 
