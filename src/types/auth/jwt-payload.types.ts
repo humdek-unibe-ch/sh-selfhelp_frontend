@@ -158,6 +158,11 @@ export const PERMISSIONS = {
     // Permissions
     ADMIN_PERMISSION_READ: 'admin.permission.read',
 
+    // Plugins
+    ADMIN_PLUGINS_MANAGE: 'admin.plugins.manage',
+    ADMIN_PLUGINS_EXECUTE: 'admin.plugins.execute',
+    ADMIN_PLUGINS_PURGE: 'admin.plugins.purge',
+
     // Roles (CRUD)
     ADMIN_ROLE_CREATE: 'admin.role.create',
     ADMIN_ROLE_DELETE: 'admin.role.delete',
