@@ -1,0 +1,105 @@
+# SPDX-FileCopyrightText: 2026 Humdek, University of Bern
+# SPDX-License-Identifier: MPL-2.0
+#
+# Plugin runtime check (plan §21.3).
+#
+# Validates the Next.js plugin runtime surface:
+#   - PluginRuntime + PluginsProvider compile.
+#   - BasicStyle.tsx still dispatches every core style key from the
+#     shared registry (covered by `npm run tsc`).
+#   - `scripts/plugins-sync.mjs` runs in `--dry-run` mode without
+#     changing any tracked file (deterministic plugin pinning).
+#   - The host's React singleton tree is not duplicated by any
+#     dependency: `npm ls react`, `npm ls react-dom`,
+#     `npm ls @mantine/core`, `npm ls @tanstack/react-query` each report
+#     a single resolved version.
+#   - The full Next.js build succeeds (no plugin import broke a page).
+#
+# The job uses Node 22 because the frontend repo already targets it.
+
+name: plugin-runtime-check
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  runtime-check:
+    name: Type-check, plugins:sync, host-singleton, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout frontend
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: License headers
+        run: npm run headers:check
+
+      - name: Type-check (tsc --noEmit)
+        run: npx tsc --noEmit
+
+      - name: ESLint
+        run: npm run lint -- --max-warnings=0
+        continue-on-error: true
+
+      - name: Plugins sync dry-run
+        env:
+          SELFHELP_BACKEND_URL: ${{ vars.SELFHELP_BACKEND_URL }}
+          SELFHELP_API_TOKEN: ${{ secrets.SELFHELP_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SELFHELP_BACKEND_URL:-}" ]; then
+            echo "SELFHELP_BACKEND_URL not set; skipping plugins:sync dry-run."
+            echo "Set the repository variable SELFHELP_BACKEND_URL to enable this check."
+            exit 0
+          fi
+          npm run plugins:sync -- --backend "$SELFHELP_BACKEND_URL" --dry-run
+          if [ -n "$(git status --porcelain selfhelp.plugins.lock.json package.json src/app/components/frontend/plugin-runtime/registered.ts 2>/dev/null)" ]; then
+            echo "::error::plugins:sync produced uncommitted changes - the lock file or package.json is out of date."
+            git status --porcelain
+            exit 1
+          fi
+
+      - name: Host singleton dependency check
+        run: |
+          set -euo pipefail
+          fail=0
+          for pkg in react react-dom @tanstack/react-query @mantine/core; do
+            echo "==> npm ls --all $pkg"
+            output=$(npm ls --all "$pkg" 2>/dev/null || true)
+            # Count unique resolved versions (lines like `pkg@X.Y.Z`)
+            versions=$(printf '%s\n' "$output" | grep -oE "${pkg//\//\\/}@[0-9]+\.[0-9]+\.[0-9]+[^ ]*" | sort -u || true)
+            count=$(printf '%s\n' "$versions" | sed '/^$/d' | wc -l | tr -d ' ')
+            echo "Resolved versions ($count):"
+            printf '  %s\n' $versions
+            if [ "$count" -gt 1 ]; then
+              echo "::error::$pkg resolves to more than one version - duplicate host singleton"
+              fail=1
+            fi
+          done
+          if [ "$fail" -eq 1 ]; then
+            echo "::error::host singleton dependency check failed"
+            exit 1
+          fi
+          echo "All host singletons resolved to a single version."
+
+      - name: Next.js build
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+        run: npm run build
