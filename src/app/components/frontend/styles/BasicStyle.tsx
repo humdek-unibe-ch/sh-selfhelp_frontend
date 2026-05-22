@@ -15,7 +15,6 @@ import {
     FlexStyle, GroupStyle, StackStyle, SimpleGridStyle, GridStyle,
     GridColumnStyle, SpaceStyle, AccordionStyle, AccordionItemStyle,
     ActionIconStyle, AspectRatioStyle, AvatarStyle,
-    // Additional Mantine Components
     BackgroundImageStyle, BadgeStyle, BlockquoteStyle, BoxStyle, ChipStyle,
     CodeStyle, ColorInputStyle, ColorPickerStyle, ComboboxStyle,
     DividerStyle, PaperStyle, FieldsetStyle, FileInputStyle, HighlightStyle, IndicatorStyle,
@@ -24,7 +23,6 @@ import {
     SpoilerStyle,
     SwitchStyle, TextInputStyle, TextareaStyle, RichTextEditorStyle, ThemeIconStyle, TimelineStyle,
     TitleStyle, TextStyle, TypographyStyle,
-    // Special Components
     UnknownStyle,
     FormStyle,
     ProfileStyle
@@ -48,6 +46,7 @@ import {
     TStyle,
     IStyleWithSpacing
 } from '../../../../types/common/styles.types';
+import { usePluginStyleComponent } from '../plugin-runtime';
 
 /**
  * Convert spacing field value to Mantine spacing prop value
@@ -179,6 +178,209 @@ export const getSpacingProps = (style: IStyleWithSpacing) => {
     return spacingProps;
 };
 
+/**
+ * Renderer signature shared by every entry in `styleImpls`.
+ *
+ * Receiving these explicit props (instead of cloning the parent's
+ * `<BasicStyle>` props) gives each renderer a typed surface and keeps
+ * the dispatcher hot path branch-free.
+ */
+interface IStyleRendererProps {
+    style: TStyle;
+    styleProps: Record<string, string>;
+    cssClass: string;
+    parentActive?: number;
+    childIndex?: number;
+    parentColor?: string;
+}
+
+type TStyleRenderer = (props: IStyleRendererProps) => React.ReactElement;
+
+/**
+ * Core style implementation map. Keyed by `style_name`; every plugin
+ * style merges into the same shape via `PluginRuntime.snapshot.styleComponents`.
+ *
+ * Adding a new core style:
+ *   1. Add the renderer below.
+ *   2. Add the entry to `BASE_STYLE_REGISTRY` in `@selfhelp/shared`.
+ *   3. Add the matching mobile renderer in `sh-selfhelp_mobile`.
+ */
+const styleImpls: Record<string, TStyleRenderer> = {
+    // ===== auth =====
+    login: ({ style, styleProps, cssClass }) =>
+        <LoginStyle style={style as ILoginStyle} styleProps={styleProps} cssClass={cssClass} />,
+    register: ({ style, styleProps, cssClass }) =>
+        <RegisterStyle style={style as IRegisterStyle} styleProps={styleProps} cssClass={cssClass} />,
+    validate: ({ style, styleProps, cssClass }) =>
+        <ValidateStyle style={style as IValidateStyle} styleProps={styleProps} cssClass={cssClass} />,
+    resetPassword: ({ style, styleProps, cssClass }) =>
+        <ResetPasswordStyle style={style as IResetPasswordStyle} styleProps={styleProps} cssClass={cssClass} />,
+    twoFactorAuth: ({ style, styleProps, cssClass }) =>
+        <TwoFactorAuthStyle style={style as ITwoFactorAuthStyle} styleProps={styleProps} cssClass={cssClass} />,
+    profile: ({ style, styleProps, cssClass }) =>
+        <ProfileStyle style={style as IProfileStyle} styleProps={styleProps} cssClass={cssClass} />,
+
+    // ===== layout =====
+    container: ({ style, styleProps, cssClass }) =>
+        <ContainerStyle style={style as IContainerStyle} styleProps={styleProps} cssClass={cssClass} />,
+    card: ({ style, styleProps, cssClass }) =>
+        <CardStyle style={style as ICardStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'card-segment': ({ style, styleProps, cssClass }) =>
+        <CardSegmentStyle style={style as ICardSegmentStyle} styleProps={styleProps} cssClass={cssClass} />,
+    alert: ({ style, styleProps, cssClass }) =>
+        <AlertStyle style={style as IAlertStyle} styleProps={styleProps} cssClass={cssClass} />,
+    center: ({ style, styleProps, cssClass }) =>
+        <CenterStyle style={style as ICenterStyle} styleProps={styleProps} cssClass={cssClass} />,
+    flex: ({ style, styleProps, cssClass }) =>
+        <FlexStyle style={style as IFlexStyle} styleProps={styleProps} cssClass={cssClass} />,
+    group: ({ style, styleProps, cssClass }) =>
+        <GroupStyle style={style as IGroupStyle} styleProps={styleProps} cssClass={cssClass} />,
+    stack: ({ style, styleProps, cssClass }) =>
+        <StackStyle style={style as IStackStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'simple-grid': ({ style, styleProps, cssClass }) =>
+        <SimpleGridStyle style={style as ISimpleGridStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'scroll-area': ({ style, styleProps, cssClass }) =>
+        <ScrollAreaStyle style={style as IScrollAreaStyle} styleProps={styleProps} cssClass={cssClass} />,
+    grid: ({ style, styleProps, cssClass }) =>
+        <GridStyle style={style as IGridStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'grid-column': ({ style, styleProps, cssClass }) =>
+        <GridColumnStyle style={style as IGridColumnStyle} styleProps={styleProps} cssClass={cssClass} />,
+    space: ({ style, styleProps, cssClass }) =>
+        <SpaceStyle style={style as ISpaceStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'background-image': ({ style, styleProps, cssClass }) =>
+        <BackgroundImageStyle style={style as IBackgroundImageStyle} styleProps={styleProps} cssClass={cssClass} />,
+    divider: ({ style, styleProps, cssClass }) =>
+        <DividerStyle style={style as IDividerStyle} styleProps={styleProps} cssClass={cssClass} />,
+    paper: ({ style, styleProps, cssClass }) =>
+        <PaperStyle style={style as IPaperStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'html-tag': ({ style, styleProps, cssClass }) =>
+        <HtmlTagStyle style={style as IHtmlTagStyle} styleProps={styleProps} cssClass={cssClass} />,
+
+    // ===== media =====
+    image: ({ style, styleProps, cssClass }) =>
+        <ImageStyle style={style as IImageStyle} styleProps={styleProps} cssClass={cssClass} />,
+    carousel: ({ style, styleProps, cssClass }) =>
+        <CarouselStyle style={style as ICarouselStyle} styleProps={styleProps} cssClass={cssClass} />,
+    video: ({ style, styleProps, cssClass }) =>
+        <VideoStyle style={style as IVideoStyle} styleProps={styleProps} cssClass={cssClass} />,
+    audio: ({ style, styleProps, cssClass }) =>
+        <AudioStyle style={style as IAudioStyle} styleProps={styleProps} cssClass={cssClass} />,
+    figure: ({ style, styleProps, cssClass }) =>
+        <FigureStyle style={style as IFigureStyle} styleProps={styleProps} cssClass={cssClass} />,
+
+    // ===== navigation & links =====
+    button: ({ style, styleProps, cssClass }) =>
+        <ButtonStyle style={style as IButtonStyle} styleProps={styleProps} cssClass={cssClass} />,
+    link: ({ style, styleProps, cssClass }) =>
+        <LinkStyle style={style as ILinkStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'action-icon': ({ style, styleProps, cssClass }) =>
+        <ActionIconStyle style={style as IActionIconStyle} styleProps={styleProps} cssClass={cssClass} />,
+
+    // ===== form & input =====
+    'form-log': ({ style, styleProps, cssClass }) =>
+        <FormStyle style={style as unknown as IFormStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'form-record': ({ style, styleProps, cssClass }) =>
+        <FormStyle style={style as unknown as IFormStyle} styleProps={styleProps} cssClass={cssClass} />,
+    textarea: ({ style, styleProps, cssClass }) =>
+        <TextareaStyle style={style as ITextareaStyle} styleProps={styleProps} cssClass={cssClass} />,
+    input: ({ style, cssClass }) =>
+        <InputStyle style={style as IInputStyle} cssClass={cssClass} />,
+    select: ({ style, cssClass }) =>
+        <SelectStyle style={style as ISelectStyle} cssClass={cssClass} />,
+    radio: ({ style, styleProps, cssClass }) =>
+        <RadioStyle style={style as IRadioStyle} styleProps={styleProps} cssClass={cssClass} />,
+    checkbox: ({ style, styleProps, cssClass }) =>
+        <CheckboxStyle style={style as ICheckboxStyle} styleProps={styleProps} cssClass={cssClass} />,
+    datepicker: ({ style, styleProps, cssClass }) =>
+        <DatePickerStyle style={style as IDatePickerStyle} styleProps={styleProps} cssClass={cssClass} />,
+    slider: ({ style, styleProps, cssClass }) =>
+        <SliderStyle style={style as ISliderStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'color-input': ({ style, styleProps, cssClass }) =>
+        <ColorInputStyle style={style as IColorInputStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'color-picker': ({ style, styleProps, cssClass }) =>
+        <ColorPickerStyle style={style as IColorPickerStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'file-input': ({ style, styleProps, cssClass }) =>
+        <FileInputStyle style={style as IFileInputStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'number-input': ({ style, styleProps, cssClass }) =>
+        <NumberInputStyle style={style as INumberInputStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'range-slider': ({ style, styleProps, cssClass }) =>
+        <RangeSliderStyle style={style as IRangeSliderStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'segmented-control': ({ style, styleProps, cssClass }) =>
+        <SegmentedControlStyle style={style as ISegmentedControlStyle} styleProps={styleProps} cssClass={cssClass} />,
+    switch: ({ style, styleProps, cssClass }) =>
+        <SwitchStyle style={style as ISwitchStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'text-input': ({ style, styleProps, cssClass }) =>
+        <TextInputStyle style={style as ITextInputStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'rich-text-editor': ({ style, styleProps, cssClass }) =>
+        <RichTextEditorStyle style={style as IRichTextEditorStyle} styleProps={styleProps} cssClass={cssClass} />,
+    combobox: ({ style, styleProps, cssClass }) =>
+        <ComboboxStyle style={style as IComboboxStyle} styleProps={styleProps} cssClass={cssClass} />,
+
+    // ===== tabs / accordion =====
+    tabs: ({ style, styleProps, cssClass }) =>
+        <TabsStyle style={style as ITabsStyle} styleProps={styleProps} cssClass={cssClass} />,
+    tab: ({ style, styleProps, cssClass }) =>
+        <TabStyle style={style as ITabStyle} styleProps={styleProps} cssClass={cssClass} />,
+    accordion: ({ style, styleProps, cssClass }) =>
+        <AccordionStyle style={style as IAccordionStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'accordion-item': ({ style, styleProps, cssClass }) =>
+        <AccordionItemStyle style={style as IAccordionItemStyle} styleProps={styleProps} cssClass={cssClass} />,
+
+    // ===== misc / composite =====
+    avatar: ({ style, styleProps, cssClass }) =>
+        <AvatarStyle style={style as IAvatarStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'aspect-ratio': ({ style, styleProps, cssClass }) =>
+        <AspectRatioStyle style={style as IAspectRatioStyle} styleProps={styleProps} cssClass={cssClass} />,
+    badge: ({ style, styleProps, cssClass }) =>
+        <BadgeStyle style={style as IBadgeStyle} styleProps={styleProps} cssClass={cssClass} />,
+    box: ({ style, styleProps, cssClass }) =>
+        <BoxStyle style={style as unknown as IBoxStyle} styleProps={styleProps} cssClass={cssClass} />,
+    chip: ({ style, styleProps, cssClass }) =>
+        <ChipStyle style={style as IChipStyle} styleProps={styleProps} cssClass={cssClass} />,
+    timeline: ({ style, styleProps, cssClass }) =>
+        <TimelineStyle style={style as ITimelineStyle} styleProps={styleProps} cssClass={cssClass} />,
+    list: ({ style, styleProps, cssClass }) =>
+        <ListStyle style={style as IListStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'list-item': ({ style, styleProps, cssClass }) =>
+        <ListItemStyle style={style as IListItemStyle} styleProps={styleProps} cssClass={cssClass} />,
+    indicator: ({ style, styleProps, cssClass }) =>
+        <IndicatorStyle style={style as IIndicatorStyle} styleProps={styleProps} cssClass={cssClass} />,
+    kbd: ({ style, styleProps, cssClass }) =>
+        <KbdStyle style={style as IKbdStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'theme-icon': ({ style, styleProps, cssClass }) =>
+        <ThemeIconStyle style={style as IThemeIconStyle} styleProps={styleProps} cssClass={cssClass} />,
+    rating: ({ style, styleProps, cssClass }) =>
+        <RatingStyle style={style as IRatingStyle} styleProps={styleProps} cssClass={cssClass} />,
+    progress: ({ style, styleProps, cssClass }) =>
+        <ProgressStyle style={style as IProgressStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'progress-root': ({ style, styleProps, cssClass }) =>
+        <ProgressRootStyle style={style as IProgressRootStyle} styleProps={styleProps} cssClass={cssClass} />,
+    'progress-section': ({ style, styleProps, cssClass }) =>
+        <ProgressSectionStyle style={style as IProgressSectionStyle} styleProps={styleProps} cssClass={cssClass} />,
+    notification: ({ style, styleProps, cssClass }) =>
+        <NotificationStyle style={style as INotificationStyle} styleProps={styleProps} cssClass={cssClass} />,
+    title: ({ style, styleProps, cssClass }) =>
+        <TitleStyle style={style as ITitleStyle} styleProps={styleProps} cssClass={cssClass} />,
+    text: ({ style, styleProps, cssClass }) =>
+        <TextStyle style={style as ITextStyle} styleProps={styleProps} cssClass={cssClass} />,
+    code: ({ style, styleProps, cssClass }) =>
+        <CodeStyle style={style as ICodeStyle} styleProps={styleProps} cssClass={cssClass} />,
+    highlight: ({ style, styleProps, cssClass }) =>
+        <HighlightStyle style={style as IHighlightStyle} styleProps={styleProps} cssClass={cssClass} />,
+    blockquote: ({ style, styleProps, cssClass }) =>
+        <BlockquoteStyle style={style as IBlockquoteStyle} styleProps={styleProps} cssClass={cssClass} />,
+    fieldset: ({ style, styleProps, cssClass }) =>
+        <FieldsetStyle style={style as IFieldsetStyle} styleProps={styleProps} cssClass={cssClass} />,
+    spoiler: ({ style, styleProps, cssClass }) =>
+        <SpoilerStyle style={style as ISpoilerStyle} styleProps={styleProps} cssClass={cssClass} />,
+    typography: ({ style, styleProps, cssClass }) =>
+        <TypographyStyle style={style as ITypographyStyle} styleProps={styleProps} cssClass={cssClass} />,
+};
+
+/**
+ * Expose the read-only dispatcher map for tests + developer tools.
+ */
+export const STYLE_IMPLS: Readonly<Record<string, TStyleRenderer>> = styleImpls;
 
 /**
  * Props interface for BasicStyle component
@@ -194,206 +396,55 @@ interface IBasicStyleProps {
 }
 
 /**
- * BasicStyle is a component factory that renders different style components
- * based on the style_name property. It acts as a router for all style types.
+ * BasicStyle is a dispatcher: it looks up the renderer by `style_name`
+ * in the core `styleImpls` map first, then falls back to the plugin
+ * runtime's contributed renderer, and finally to `UnknownStyle`.
  *
- * @param {IBasicStyleProps} props - Component props
- * @returns {JSX.Element | null} The appropriate styled component or null
+ * Mantine spacing + cssClass extraction are computed once here so each
+ * renderer receives the same props and never has to read the global
+ * spacing JSON on its own.
  */
 const BasicStyle: React.FC<IBasicStyleProps> = ({ style, parentActive, childIndex, parentColor }) => {
+    const pluginRenderer = usePluginStyleComponent(style?.style_name ?? '');
+
     if (!style || !style.style_name) {
         return null;
     }
 
-    /**
-     * Helper function to wrap components with debug wrapper when debug is enabled
-     */
     const wrapWithDebug = (component: React.ReactElement) => {
         return <DebugWrapper style={style}>{component}</DebugWrapper>;
     };
 
-    /**
-     * Renders the appropriate style component based on style_name
-     */
-    switch (style.style_name as string) {
-        // Authentication Styles
-        case 'login':
-            return wrapWithDebug(<LoginStyle style={style as ILoginStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'register':
-            return wrapWithDebug(<RegisterStyle style={style as IRegisterStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'validate':
-            return wrapWithDebug(<ValidateStyle style={style as IValidateStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'resetPassword':
-            return wrapWithDebug(<ResetPasswordStyle style={style as IResetPasswordStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'twoFactorAuth':
-            return wrapWithDebug(<TwoFactorAuthStyle style={style as ITwoFactorAuthStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
+    const styleProps = getSpacingProps(style);
+    const cssClass = getCssClass(style);
 
-        // Container & Layout Styles
-        case 'container':
-            return wrapWithDebug(<ContainerStyle style={style as IContainerStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'card':
-            return wrapWithDebug(<CardStyle style={style as ICardStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'card-segment':
-            return wrapWithDebug(<CardSegmentStyle style={style as ICardSegmentStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'alert':
-            return wrapWithDebug(<AlertStyle style={style as IAlertStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'center':
-            return wrapWithDebug(<CenterStyle style={style as ICenterStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'flex':
-            return wrapWithDebug(<FlexStyle style={style as IFlexStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'group':
-            return wrapWithDebug(<GroupStyle style={style as IGroupStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'stack':
-            return wrapWithDebug(<StackStyle style={style as IStackStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'simple-grid':
-            return wrapWithDebug(<SimpleGridStyle style={style as ISimpleGridStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'scroll-area':
-            return wrapWithDebug(<ScrollAreaStyle style={style as IScrollAreaStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'grid':
-            return wrapWithDebug(<GridStyle style={style as IGridStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'grid-column':
-            return wrapWithDebug(<GridColumnStyle style={style as IGridColumnStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'space':
-            return wrapWithDebug(<SpaceStyle style={style as ISpaceStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'background-image':
-            return wrapWithDebug(<BackgroundImageStyle style={style as IBackgroundImageStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'divider':
-            return wrapWithDebug(<DividerStyle style={style as IDividerStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'paper':
-            return wrapWithDebug(<PaperStyle style={style as IPaperStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-
-        case 'html-tag':
-            return wrapWithDebug(<HtmlTagStyle style={style as IHtmlTagStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-
-        // Media Styles
-        case 'image':
-            return wrapWithDebug(<ImageStyle style={style as IImageStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'carousel':
-            return wrapWithDebug(<CarouselStyle style={style as ICarouselStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'video':
-            return wrapWithDebug(<VideoStyle style={style as IVideoStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'audio':
-            return wrapWithDebug(<AudioStyle style={style as IAudioStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'figure':
-            return wrapWithDebug(<FigureStyle style={style as IFigureStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-
-        // Navigation & Links Styles
-        case 'button':
-            return wrapWithDebug(<ButtonStyle style={style as IButtonStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'link':
-            return wrapWithDebug(<LinkStyle style={style as ILinkStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'action-icon':
-            return wrapWithDebug(<ActionIconStyle style={style as IActionIconStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-
-        // Form & Input Styles
-        case 'form-log':
-            return wrapWithDebug(<FormStyle style={style as unknown as IFormStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'form-record':
-            return wrapWithDebug(<FormStyle style={style as unknown as IFormStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'textarea':
-            return wrapWithDebug(<TextareaStyle style={style as ITextareaStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'input':
-            return wrapWithDebug(<InputStyle style={style as IInputStyle} cssClass={getCssClass(style)} />);
-        case 'select':
-            return wrapWithDebug(<SelectStyle style={style as ISelectStyle} cssClass={getCssClass(style)} />);
-        case 'radio':
-            return wrapWithDebug(<RadioStyle style={style as IRadioStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'checkbox':
-            return wrapWithDebug(<CheckboxStyle style={style as ICheckboxStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'datepicker':
-            return wrapWithDebug(<DatePickerStyle style={style as IDatePickerStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'slider':
-            return wrapWithDebug(<SliderStyle style={style as ISliderStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'color-input':
-            return wrapWithDebug(<ColorInputStyle style={style as IColorInputStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'color-picker':
-            return wrapWithDebug(<ColorPickerStyle style={style as IColorPickerStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'file-input':
-            return wrapWithDebug(<FileInputStyle style={style as IFileInputStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'number-input':
-            return wrapWithDebug(<NumberInputStyle style={style as INumberInputStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'range-slider':
-            return wrapWithDebug(<RangeSliderStyle style={style as IRangeSliderStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'segmented-control':
-            return wrapWithDebug(<SegmentedControlStyle style={style as ISegmentedControlStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'switch':
-            return wrapWithDebug(<SwitchStyle style={style as ISwitchStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'text-input':
-            return wrapWithDebug(<TextInputStyle style={style as ITextInputStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'textarea':
-            return wrapWithDebug(<TextareaStyle style={style as ITextareaStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'rich-text-editor':
-            return wrapWithDebug(<RichTextEditorStyle style={style as IRichTextEditorStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'combobox':
-            return wrapWithDebug(<ComboboxStyle style={style as IComboboxStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-
-        // Tab Styles
-        case 'tabs':
-            return wrapWithDebug(<TabsStyle style={style as ITabsStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'tab':
-            return wrapWithDebug(<TabStyle style={style as ITabStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-
-        // Accordion Styles
-        case 'accordion':
-            return wrapWithDebug(<AccordionStyle style={style as IAccordionStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'accordion-item':
-            return wrapWithDebug(<AccordionItemStyle style={style as IAccordionItemStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-
-        case 'avatar':
-            return wrapWithDebug(<AvatarStyle style={style as IAvatarStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'aspect-ratio':
-            return wrapWithDebug(<AspectRatioStyle style={style as IAspectRatioStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'badge':
-            return wrapWithDebug(<BadgeStyle style={style as IBadgeStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'box':
-            return wrapWithDebug(<BoxStyle style={style as unknown as IBoxStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'chip':
-            return wrapWithDebug(<ChipStyle style={style as IChipStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'timeline':
-            return wrapWithDebug(<TimelineStyle style={style as ITimelineStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'list':
-            return wrapWithDebug(<ListStyle style={style as IListStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'list-item':
-            return wrapWithDebug(<ListItemStyle style={style as IListItemStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'indicator':
-            return wrapWithDebug(<IndicatorStyle style={style as IIndicatorStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'kbd':
-            return wrapWithDebug(<KbdStyle style={style as IKbdStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'theme-icon':
-            return wrapWithDebug(<ThemeIconStyle style={style as IThemeIconStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'rating':
-            return wrapWithDebug(<RatingStyle style={style as IRatingStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'profile':
-            return wrapWithDebug(<ProfileStyle style={style as IProfileStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'progress':
-            return wrapWithDebug(<ProgressStyle style={style as IProgressStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'progress-root':
-            return wrapWithDebug(<ProgressRootStyle style={style as IProgressRootStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'progress-section':
-            return wrapWithDebug(<ProgressSectionStyle style={style as IProgressSectionStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'notification':
-            return wrapWithDebug(<NotificationStyle style={style as INotificationStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'title':
-            return wrapWithDebug(<TitleStyle style={style as ITitleStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'text':
-            return wrapWithDebug(<TextStyle style={style as ITextStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'code':
-            return wrapWithDebug(<CodeStyle style={style as ICodeStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'highlight':
-            return wrapWithDebug(<HighlightStyle style={style as IHighlightStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'blockquote':
-            return wrapWithDebug(<BlockquoteStyle style={style as IBlockquoteStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'fieldset':
-            return wrapWithDebug(<FieldsetStyle style={style as IFieldsetStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'spoiler':
-            return wrapWithDebug(<SpoilerStyle style={style as ISpoilerStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-        case 'typography':
-            return wrapWithDebug(<TypographyStyle style={style as ITypographyStyle} styleProps={getSpacingProps(style)} cssClass={getCssClass(style)} />);
-
-        // Unknown/Unsupported styles
-        default:
-            return wrapWithDebug(<UnknownStyle style={style as any} />);
+    const renderer = styleImpls[style.style_name];
+    if (renderer) {
+        return wrapWithDebug(renderer({ style, styleProps, cssClass, parentActive, childIndex, parentColor }));
     }
+
+    if (pluginRenderer) {
+        const PluginComponent = pluginRenderer as unknown as React.ComponentType<{
+            style: TStyle;
+            styleProps: Record<string, string>;
+            cssClass: string;
+            parentActive?: number;
+            childIndex?: number;
+            parentColor?: string;
+        }>;
+        return wrapWithDebug(
+            <PluginComponent
+                style={style}
+                styleProps={styleProps}
+                cssClass={cssClass}
+                parentActive={parentActive}
+                childIndex={childIndex}
+                parentColor={parentColor}
+            />,
+        );
+    }
+
+    return wrapWithDebug(<UnknownStyle style={style as never} />);
 };
 
 export default BasicStyle;

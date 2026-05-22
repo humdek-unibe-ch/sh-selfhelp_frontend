@@ -42,6 +42,7 @@ import { authProvider } from './auth.provider';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { LanguageProvider } from '../app/components/contexts/LanguageContext';
 import { PreviewModeProvider } from '../app/components/contexts/PreviewModeContext';
+import { PluginsProvider } from '../app/components/frontend/plugin-runtime';
 import { theme } from '../../theme';
 import type { MantineColorScheme } from '@mantine/core';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
@@ -172,7 +173,9 @@ function ClientProviders({
                             initialLanguages={initialLanguages}
                         >
                             <PreviewModeProvider initialPreviewMode={initialPreviewMode}>
-                                <RefineWrapper queryClient={queryClient}>{children}</RefineWrapper>
+                                <PluginsProvider>
+                                    <RefineWrapper queryClient={queryClient}>{children}</RefineWrapper>
+                                </PluginsProvider>
                             </PreviewModeProvider>
                         </LanguageProvider>
                     </MantineProvider>
