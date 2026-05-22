@@ -57,6 +57,8 @@ const STATIC_FALLBACK_BY_KEYWORD: Record<string, string> = {
     login: '/auth/login',
     'two-factor-authentication': '/auth/two-factor-authentication',
     profile: '/auth/profile',
+    register: '/auth/register',
+    reset_password: '/auth/reset-password',
 };
 
 /**
